@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+}
+
+// tag::custom[]
+configurations {
+    db
+    integTestImplementation {
+        extendsFrom testImplementation
+    }
+}
+
+dependencies {
+    db 'org.postgresql:postgresql'
+    integTestImplementation 'com.example:integ-test-support:1.3'
+}
+// end::custom[]

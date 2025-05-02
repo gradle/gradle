@@ -1,0 +1,77 @@
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+
+logger.quiet('An info log message which is always logged.')
+logger.error('An error log message.')
+logger.warn('A warning log message.')
+logger.lifecycle('A lifecycle info log message.')
+logger.info('An info log message.')
+logger.debug('A debug log message.')
+logger.trace('A trace log message.')
+
+println 'A message which is logged at QUIET level'
+
+// Should use stdout capture level
+def textOutput = services.get(StyledTextOutputFactory.class).create('build')
+textOutput.text('Text which is logged at QUIET level').println()
+
+logging.captureStandardOutput LogLevel.INFO
+println 'A message which is logged at INFO level'
+
+textOutput.text('Text which is logged at INFO level').println()
+
+System.err.println 'An error message which is logged at ERROR level'
+logging.captureStandardError LogLevel.LIFECYCLE
+System.err.println 'An error message which is logged at LIFECYCLE level'
+
+task logLifecycle {
+    logging.captureStandardOutput LogLevel.LIFECYCLE
+    logging.captureStandardError LogLevel.WARN
+    doFirst {
+        println('A task message which is logged at LIFECYCLE level')
+        System.err.println('A task error message which is logged at WARN level')
+    }
+}
+
+// START SNIPPET task-capture-stdout
+task logInfo {
+    logging.captureStandardOutput LogLevel.INFO
+    doFirst {
+        println 'A task message which is logged at INFO level'
+    }
+}
+// END SNIPPET task-capture-stdout
+
+task nestedBuildLog(type: GradleBuild) {
+    startParameter.currentDir = rootProject.file('nestedBuild')
+    startParameter.taskNames = ['log']
+}
+
+task log(dependsOn: [logInfo, logLifecycle, nestedBuildLog]) {
+    doLast {
+        println('A task message which is logged at QUIET level')
+    }
+}
+
+// warn is the default log level for echo
+ant.echo('A warn message logged from Ant')
+ant.echo('An error message logged from Ant', level: org.apache.tools.ant.types.LogLevel.ERR)
+ant.echo('An info message logged from Ant', level: org.apache.tools.ant.types.LogLevel.INFO)
+ant.echo('A debug message logged from Ant', level: org.apache.tools.ant.types.LogLevel.DEBUG)
+
+// START SNIPPET use-slf4j
+org.slf4j.Logger slf4jLogger = org.slf4j.LoggerFactory.getLogger('some-logger')
+slf4jLogger.info('An info log message logged using SLF4j')
+// END SNIPPET use-slf4j
+
+org.apache.commons.logging.Log jclLogger = org.apache.commons.logging.LogFactory.getLog('some-logger')
+jclLogger.info('An info log message logged using JCL')
+
+org.apache.log4j.Logger log4jLogger = org.apache.log4j.Logger.getLogger('some-logger')
+log4jLogger.info('An info log message logged using Log4j')
+
+java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger('some-logger')
+julLogger.severe('A severe log message logged using JUL')
+julLogger.warning('A warning log message logged using JUL')
+julLogger.info('An info log message logged using JUL')
+julLogger.config('A config log message logged using JUL')
+julLogger.fine('A fine log message logged using JUL')

@@ -1,0 +1,176 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[implemention_precompiled_plugins]]
+= Implementing Pre-compiled Script Plugins
+
+A *precompiled script plugin* is typically a Kotlin script that has been compiled and distributed as Java class files packaged in a library.
+These scripts are intended to be consumed as binary Gradle plugins and are recommended for use as convention plugins.
+
+A *convention plugin* is a plugin that normally configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
+Convention plugins are also used to enforce project standards and help streamline the build process.
+They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
+
+[[sec:the_plugin_id]]
+== Setting the plugin ID
+
+The plugin ID for a precompiled script is derived from its file name and optional package declaration.
+
+For example, a script named `code-quality.gradle(.kts)` located in `src/main/groovy` (or `src/main/kotlin`) without a package declaration would be exposed as the `code-quality` plugin:
+
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    `kotlin-dsl`
+}
+----
+.app/build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("code-quality")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle
+[source, groovy]
+----
+plugins {
+    id 'groovy-gradle-plugin'
+}
+----
+.app/build.gradle
+[source, groovy]
+----
+plugins {
+    id 'code-quality'
+}
+----
+=====
+
+On the other hand, a script named `code-quality.gradle.kts` located in `src/main/kotlin/my` with the package declaration `my` would be exposed as the `my.code-quality` plugin:
+
+=====
+.buildSrc/build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    `kotlin-dsl`
+}
+----
+.app/build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("my.code-quality")
+}
+----
+=====
+
+IMPORTANT: Groovy pre-compiled script plugins cannot have packages.
+
+[[sec:getting_input_from_the_build]]
+== Making a plugin configurable using extensions
+
+*Extension objects* are commonly used in plugins to expose configuration options and additional functionality to build scripts.
+
+When you apply a plugin that defines an extension, you can access the extension object and configure its properties or call its methods to customize the behavior of the plugin or tasks provided by the plugin.
+
+A link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object that contains all the settings and properties for the plugins that have been applied to the project.
+You can provide configuration for your plugin by adding an extension object to this container.
+
+Let's update our `greetings` example:
+
+====
+include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=create-extension]"]
+include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=create-extension]"]
+====
+
+You can set the value of the `message` property directly with `extension.message.set("Hi from Gradle,")`.
+
+However, the `GreetingPluginExtension` object becomes available as a project property with the same name as the extension object.
+You can now access `message` like so:
+
+====
+include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=update]"]
+include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=update]"]
+====
+
+If you apply the `greetings` plugin, you can set the convention in your build script:
+
+====
+include::sample[dir="snippets/plugins/greeting/kotlin", files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/greeting/groovy", files="app/build.gradle[]"]
+====
+
+[[sec:plugin_conventions]]
+== Adding default configuration as conventions
+
+In plugins, you can define default values, also known as *conventions*, using the `project` object.
+
+Convention properties are properties that are initialized with default values but can be overridden:
+
+====
+include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=convention]"]
+include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=convention]"]
+====
+
+`extension.message.convention(...)` sets a convention for the `message` property of the extension.
+This convention specifies that the value of `message` should default to `"Hello from Gradle"`.
+
+If the `message` property is not explicitly set, its value will be automatically set to `"Hello from Gradle"`.
+
+[[sec:mapping_extension_properties_to_task_properties]]
+== Mapping extension properties to task properties
+
+Using an extension and mapping it to a custom task's input/output properties is common in plugins.
+
+In this example, the message property of the `GreetingPluginExtension` is mapped to the message property of the `GreetingTask` as an input:
+
+====
+include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=task]"]
+include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=task]"]
+====
+
+----
+$ gradle -q hello
+include::{snippetsPath}/plugins/greeting/tests/greeting.out[]
+----
+
+This means that changes to the extension's `message` property will trigger the task to be considered out-of-date, ensuring that the task is re-executed with the new message.
+
+You can find out more about types that you can use in task implementations and extensions in <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>>.
+
+[[sec:applying_external_plugins]]
+== Applying external plugins
+
+In order to apply an external plugin in a precompiled script plugin, it has to be added to the plugin project's implementation classpath in the plugin's build file:
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
+====
+
+It can then be applied in the precompiled script plugin:
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
+====
+
+The plugin version in this case is defined in the dependency declaration.

@@ -1,0 +1,31 @@
+NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to create a plugin with a task that accepts arguments.
+The plugin is packaged via an included build.
+
+====
+include::sample[dir="kotlin",files="build.gradle.kts[];settings.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
+====
+
+To execute the sample task:
+
+====
+[.testable-sample,dir="groovy"]
+=====
+[.sample-command]
+----
+$ ./gradlew projectInfo --format json
+{
+    "projectName": "task-with-arguments"
+    "version": "1.0.2"
+}
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+----
+=====
+====
+
+For more information, see link:{userManualPath}/custom_plugins.html[Gradle Plugins reference chapter].
+You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_library[Build Init Plugin].

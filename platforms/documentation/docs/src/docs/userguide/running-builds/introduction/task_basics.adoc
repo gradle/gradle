@@ -1,0 +1,146 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[task_basics]]
+= Task Basics
+
+A task represents some *independent unit of work* that a build performs, such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
+
+image::gradle-basic-5.png[]
+
+Tasks are the building blocks of every Gradle build.
+
+Common types of tasks include:
+
+* Compiling source code
+* Running tests
+* Packaging output (e.g., creating a JAR or APK)
+* Generating documentation (e.g., Javadoc)
+* Publishing build artifacts to repositories
+
+Each task is independent but can depend on other tasks to run first. Gradle uses this information to figure out the most efficient order to execute tasks — skipping anything that’s already up to date.
+
+== Running a task
+
+To run a task, use the Gradle Wrapper from your project’s root directory.
+For example, to run the `build` task:
+
+[source,text]
+----
+$ ./gradlew build
+----
+
+This will run the `build` task and all of its dependencies.
+
+== Listing available tasks
+
+Gradle plugins and your build script define which tasks are available in a project.
+To see them:
+
+[source,text]
+----
+$ ./gradlew tasks
+----
+
+This shows a categorized list of tasks:
+
+[source,text]
+----
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+
+...
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code.
+
+...
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+
+...
+----
+
+You can run any of these tasks directly using the `./gradlew <task-name>` command.
+
+== Running tasks
+
+If you have the `application` plugin applied in your build file, the `run` task should be available.
+You can run your project like this:
+
+[source,text]
+----
+$ ./gradlew run
+----
+
+Example output:
+
+[source,text]
+----
+
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+
+> Task :app:run
+Hello World!
+
+BUILD SUCCESSFUL in 904ms
+2 actionable tasks: 2 executed
+----
+
+Gradle ran all the tasks required to execute your application, including compiling it first.
+In this example, the output of the `run` task is a `Hello World` statement printed on the console.
+
+== Task dependencies
+
+Most tasks don’t run in isolation.
+Gradle knows which tasks depend on which others, and will automatically run them in the correct order.
+
+For example, when you run `./gradlew build`, Gradle also runs tasks like `compileJava`, `test`, and `jar` first — because `build` depends on them:
+
+[source,text]
+----
+$ ./gradlew build
+
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 764ms
+7 actionable tasks: 7 executed
+----
+
+You don't need to worry about ordering — Gradle figures it out for you.
+
+To learn how to define your own tasks and control how they work, see the <<more_about_tasks.adoc#more_about_tasks,Task development chapter>>.
+
+[.text-right]
+**Next Step:** <<plugin_basics.adoc#plugin_basics,Learn about Plugins>> >>

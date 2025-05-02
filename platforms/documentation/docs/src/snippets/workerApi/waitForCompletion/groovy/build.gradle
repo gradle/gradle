@@ -1,0 +1,65 @@
+// The parameters for a single unit of work
+interface ReverseParameters extends WorkParameters {
+    RegularFileProperty getFileToReverse()
+    DirectoryProperty getDestinationDir()
+}
+
+// The implementation of a single unit of work.
+abstract class ReverseFile implements WorkAction<ReverseParameters> {
+    private final FileSystemOperations fileSystemOperations
+
+    @Inject
+    public ReverseFile(FileSystemOperations fileSystemOperations) {
+        this.fileSystemOperations = fileSystemOperations
+    }
+
+    @Override
+    void execute() {
+        fileSystemOperations.copy {
+            from parameters.fileToReverse
+            into parameters.destinationDir
+            filter { String line -> line.reverse() }
+        }
+    }
+}
+
+abstract class ReverseFiles extends SourceTask {
+    private final ProjectLayout projectLayout
+    private final WorkerExecutor workerExecutor
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDir()
+
+    // The WorkerExecutor will be injected by Gradle at runtime
+    @Inject
+    ReverseFiles(ProjectLayout projectLayout, WorkerExecutor workerExecutor) {
+        this.projectLayout = projectLayout
+        this.workerExecutor = workerExecutor
+    }
+
+    @TaskAction
+    void reverseFiles() {
+        // tag::wait-for-completion[]
+        // Create a WorkQueue to submit work items
+        WorkQueue workQueue = workerExecutor.noIsolation()
+
+        // Create and submit a unit of work for each file
+        source.each { file ->
+            workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->
+                parameters.fileToReverse = file
+                parameters.destinationDir = outputDir
+            }
+        }
+
+        // Wait for all asynchronous work submitted to this queue to complete before continuing
+        workQueue.await()
+        logger.lifecycle("Created ${outputDir.get().asFile.listFiles().length} reversed files in ${projectLayout.projectDirectory.asFile.relativePath(outputDir.get().asFile)}")
+
+        // end::wait-for-completion[]
+    }
+}
+
+task reverseFiles(type: ReverseFiles) {
+    outputDir = layout.buildDirectory.dir("reversed")
+    source("sources")
+}

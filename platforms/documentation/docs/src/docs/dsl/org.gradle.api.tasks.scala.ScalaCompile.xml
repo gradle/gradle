@@ -1,0 +1,31 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>scala</literal> plugin <overrides>Default with <literal>java</literal> plugin</overrides></td>
+                </tr>
+            </thead>
+            <tr>
+                <td>scalaClasspath</td>
+                <td><literal>scala-compiler</literal> dependency matching the <literal>scala-library</literal> version found on <literal>classpath</literal></td>
+            </tr>
+            <tr>
+                <td>scalaCompilerPlugins</td>
+                <td>The list of compiler plugins is resolved from the <literal>scalaCompilerPlugins</literal> <literal>configuration</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

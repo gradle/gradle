@@ -1,0 +1,57 @@
+enum Temperature {
+   TOO_HOT,
+   TOO_COLD,
+   JUST_RIGHT
+}
+
+@Managed
+interface Item {
+   void setName(String n); String getName()
+
+   void setQuantity(int q); int getQuantity()
+
+   void setPrice(float p); float getPrice()
+
+   void setTemperature(Temperature t)
+   Temperature getTemperature()
+
+   void setDataFile(File f); File getDataFile()
+}
+
+class ItemRules extends RuleSource {
+   @Model
+   void item(Item item) {
+      def data = item.dataFile.text.trim()
+      def (name, quantity, price, temp) = data.split(',')
+      item.name = name
+      item.quantity = quantity
+      item.price = price
+      item.temperature = temp
+   }
+
+   @Defaults
+   void setDefaults(Item item) {
+      item.dataFile = 'data.csv'
+   }
+
+   @Mutate
+   void createDataTask(ModelMap<Task> tasks, Item item) {
+      tasks.create('showData') {
+         doLast {
+            println """
+Item '$item.name'
+   quantity:    $item.quantity
+   price:       $item.price
+   temperature: $item.temperature"""
+         }
+      }
+   }
+}
+
+apply plugin: ItemRules
+
+model {
+   item {
+      price = "${price * (quantity < 10 ? 2 : 0.5)}"
+   }
+}

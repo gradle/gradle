@@ -1,0 +1,78 @@
+// tag::apply-plugin[]
+plugins {
+// end::apply-plugin[]
+    id 'cpp'
+// tag::apply-plugin[]
+    id 'visual-studio'
+}
+// end::apply-plugin[]
+
+// tag::configure-locations[]
+model {
+    visualStudio {
+        projects.all {
+            projectFile.location = "vs/${name}.vcxproj"
+            filtersFile.location = "vs/${name}.vcxproj.filters"
+        }
+        solution {
+            solutionFile.location = "vs/${name}.sln"
+        }
+    }
+}
+// end::configure-locations[]
+
+// tag::customize-project-files[]
+model {
+    visualStudio {
+        projects.all { project ->
+            projectFile.withXml {
+                asNode().appendNode('PropertyGroup', [Label: 'Custom'])
+                        .appendNode('ProjectDetails', "Project is named ${project.name}")
+            }
+        }
+    }
+}
+// end::customize-project-files[]
+// tag::customize-solution-files[]
+model {
+    visualStudio {
+        solution { solution ->
+            solutionFile.withContent { content ->
+                def sourceControlSection = """
+    GlobalSection(SolutionNotes) = postSolution
+        NumNotes = 2
+        Name1 = FirstNote
+        Issue1 = N
+        Text1 = This is a shared note.
+        Name2 = SecondNote
+        Issue2 = N
+        Text2 = The projects in this solution are ${projects*.name}.
+    EndGlobalSection
+"""
+                def insertPos = content.text.lastIndexOf("EndGlobal")
+                content.asBuilder().insert(insertPos, sourceControlSection)
+            }
+        }
+    }
+}
+// end::customize-solution-files[]
+
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: "hello"
+            }
+        }
+        hello(NativeLibrarySpec)
+    }
+
+    // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+    binaries {
+        withType(SharedLibraryBinarySpec) {
+            if (toolChain in VisualCpp) {
+                cppCompiler.define "DLL_EXPORT"
+            }
+        }
+    }
+}

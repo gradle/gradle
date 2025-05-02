@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<projectDescription>
+  <name>myProject</name>
+  <comment/>
+  <projects/>
+  <natures/>
+  <buildSpec>
+    <buildCommand>
+      <name>org.gradle.test.custom.custombuilder1</name>
+      <arguments/>
+    </buildCommand>
+    <buildCommand>
+      <name>org.gradle.test.custom.custombuilder2</name>
+      <arguments/>
+    </buildCommand>
+  </buildSpec>
+</projectDescription>

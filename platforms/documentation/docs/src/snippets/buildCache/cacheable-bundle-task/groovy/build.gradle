@@ -1,0 +1,67 @@
+plugins {
+    id 'base'
+}
+
+// Fake NPM task that would normally execute npm with its provided arguments
+abstract class NpmTask extends DefaultTask {
+
+    ListProperty<String> args = project.objects.listProperty(String)
+
+    @Inject
+    abstract ProjectLayout getProjectLayout()
+
+    @TaskAction
+    void run() {
+        File bundleFile = projectLayout.buildDirectory.file("bundle.js").get().asFile
+        File[] scriptsFiles = projectLayout.projectDirectory.dir("scripts").asFile.listFiles()
+
+        bundleFile.withOutputStream { stream ->
+            scriptsFiles.sort().each {
+                stream.write(it.bytes)
+            }
+        }
+    }
+}
+
+// tag::bundle-task[]
+@CacheableTask                                       // <1>
+abstract class BundleTask extends NpmTask {
+
+    @Override @Internal                              // <2>
+    ListProperty<String> getArgs() {
+        super.getArgs()
+    }
+
+    @InputDirectory
+    @SkipWhenEmpty
+    @PathSensitive(PathSensitivity.RELATIVE)         // <3>
+    abstract DirectoryProperty getScripts()
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)         // <4>
+    abstract ConfigurableFileCollection getConfigFiles()
+
+    @OutputFile
+    abstract RegularFileProperty getBundle()
+
+    BundleTask() {
+        args.addAll("run", "bundle")
+        bundle = projectLayout.buildDirectory.file("bundle.js")
+        scripts = projectLayout.projectDirectory.dir("scripts")
+        configFiles.from(projectLayout.projectDirectory.file("package.json"))
+        configFiles.from(projectLayout.projectDirectory.file("package-lock.json"))
+    }
+}
+
+tasks.register('bundle', BundleTask)
+// end::bundle-task[]
+
+tasks.register('printBundle') {
+    dependsOn bundle
+
+    ProjectLayout projectLayout = layout
+
+    doLast {
+        println projectLayout.buildDirectory.file("bundle.js").get().asFile.text
+    }
+}

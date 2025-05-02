@@ -1,0 +1,144 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[compatibility]]
+= Compatibility Matrix
+
+The sections below describe Gradle's compatibility with several integrations.
+Versions not listed here may or may not work.
+
+== Java Runtime
+
+Gradle runs on the Java Virtual Machine (JVM), which is often provided by either a JDK or JRE.
+A JVM version between 8 and 24 is required to execute Gradle.
+JVM 25 and later versions are not yet supported.
+
+Executing the Gradle daemon with JVM 16 or earlier has been deprecated and will become an error in Gradle 9.0.
+The Gradle wrapper, Gradle client, Tooling API client, and TestKit client will remain compatible with JVM 8.
+
+JDK 6 and 7 can be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>>.
+Testing with JVM 6 and 7 is deprecated and will not be supported in Gradle 9.0.
+
+Any fully supported version of Java can be used for compilation or testing.
+However, the latest Java version may only be supported for compilation or testing, not for running Gradle.
+Support is achieved using <<toolchains#toolchains,toolchains>> and applies to all tasks supporting toolchains.
+
+See the table below for the Java version supported by a specific Gradle release:
+
+.Java Compatibility
+|===
+|Java version | Support for toolchains | Support for running Gradle
+
+| 8 | N/A | 2.0
+| 9 | N/A | 4.3
+| 10| N/A | 4.7
+| 11| N/A | 5.0
+| 12| N/A | 5.4
+| 13| N/A | 6.0
+| 14| N/A | 6.3
+| 15| 6.7 | 6.7
+| 16| 7.0 | 7.0
+| 17| 7.3 | 7.3
+| 18| 7.5 | 7.5
+| 19| 7.6 | 7.6
+| 20| 8.1 | 8.3
+| 21| 8.4 | 8.5
+| 22| 8.7 | 8.8
+| 23| 8.10 | 8.10
+| 24| 8.14 | 8.14
+| 25| N/A | N/A
+|===
+
+NOTE: We only list versions in the table above once we have tested that they work without any warnings.
+However, thanks to the toolchain support, Gradle will often work with the latest Java version before then.
+We encourage users to try it out and let us know.
+
+[[kotlin]]
+== Kotlin
+
+Gradle is tested with Kotlin 2.0.0 through 2.2.0-Beta1.
+Beta and RC versions may or may not work.
+
+.Embedded Kotlin version
+|===
+| Embedded Kotlin version | Minimum Gradle version | Kotlin Language version
+
+| 1.3.10 | 5.0 | 1.3
+| 1.3.11 | 5.1 | 1.3
+| 1.3.20 | 5.2 | 1.3
+| 1.3.21 | 5.3 | 1.3
+| 1.3.31 | 5.5 | 1.3
+| 1.3.41 | 5.6 | 1.3
+| 1.3.50 | 6.0 | 1.3
+| 1.3.61 | 6.1 | 1.3
+| 1.3.70 | 6.3 | 1.3
+| 1.3.71 | 6.4 | 1.3
+| 1.3.72 | 6.5 | 1.3
+| 1.4.20 | 6.8 | 1.3
+| 1.4.31 | 7.0 | 1.4
+| 1.5.21 | 7.2 | 1.4
+| 1.5.31 | 7.3 | 1.4
+| 1.6.21 | 7.5 | 1.4
+| 1.7.10 | 7.6 | 1.4
+| 1.8.10 | 8.0 | 1.8
+| 1.8.20 | 8.2 | 1.8
+| 1.9.0  | 8.3 | 1.8
+| 1.9.10 | 8.4 | 1.8
+| 1.9.20 | 8.5 | 1.8
+| 1.9.22 | 8.7 | 1.8
+| 1.9.23 | 8.9 | 1.8
+| 1.9.24 | 8.10 | 1.8
+| 2.0.20 | 8.11 | 1.8
+| 2.0.21 | 8.12 | 1.8
+| 2.1.21-RC | 9.0 | 2.1
+|===
+
+== Groovy
+
+Gradle is tested with Groovy 1.5.8 through 4.0.0.
+
+Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Gradle and Groovy DSL build scripts.
+
+== Android
+
+Gradle is tested with Android Gradle Plugin 8.4 through 8.9.
+Alpha and beta versions may or may not work.
+
+== Target Platforms
+
+Gradle supports a defined set of platform targets, which are combinations of:
+
+- Operating system and version
+- Architecture
+- File system watching compatibility
+
+The following table lists the officially supported platforms for Gradle:
+
+.Supported Platforms
+|===
+| OS | Architecture
+
+| Ubuntu 22 | `amd64`
+| Windows 10 | `amd64`
+| macOS 12 | `amd64`
+|  | `aarch64`
+| Ubuntu 16 | `amd64`
+|  | `aarch64`
+| Alpine 3.20 | `amd64`
+| CentOS 9 | `amd64`
+|===
+
+NOTE: Currently, all Gradle tests run with the default file-systems of the platform, i.e. `ext4` for Ubuntu, Amazon Linux and CentOS, `NTFS` for Windows, and `APFS` for macOS.
+
+Platforms not listed above may work with Gradle but are not actively tested.

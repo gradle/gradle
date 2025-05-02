@@ -1,0 +1,5 @@
+${fileComment.multilineComment}${packageDecl.statement}
+object MessageUtils {
+    def getMessage(): String = "Hello      World!"
+}
+

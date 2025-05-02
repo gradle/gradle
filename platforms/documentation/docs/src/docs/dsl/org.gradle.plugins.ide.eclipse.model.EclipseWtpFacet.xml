@@ -1,0 +1,37 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>war</literal> plugins</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>facets</td>
+                <td>Java and web facets.</td>
+            </tr>
+            <tr>
+                <td>file</td>
+                <td/>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>facet</td>
+            </tr>
+            <tr>
+                <td>file</td>
+            </tr>
+        </table>
+    </section>
+</section>

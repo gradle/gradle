@@ -1,0 +1,18 @@
+> Task :generatePomFileForGreetingPluginMarkerMavenPublication
+> Task :publishGreetingPluginMarkerMavenPublicationToMavenRepository
+> Task :compileGradle7Java
+> Task :pluginDescriptors
+> Task :processGradle7Resources
+> Task :gradle7Classes
+> Task :gradle7Jar
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :generateMetadataFileForPluginMavenPublication
+> Task :generatePomFileForPluginMavenPublication
+> Task :publishPluginMavenPublicationToMavenRepository
+> Task :publish
+
+BUILD SUCCESSFUL in 0s
+12 actionable tasks: 12 executed

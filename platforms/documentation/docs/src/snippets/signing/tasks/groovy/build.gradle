@@ -1,0 +1,19 @@
+plugins {
+    id 'signing'
+}
+
+// Typically set in ~/.gradle/gradle.properties
+project.ext['signing.keyId'] = '24875D73'
+project.ext['signing.password'] = 'gradle'
+project.ext['signing.secretKeyRingFile'] = file('secKeyRingFile.gpg').absolutePath
+
+// tag::sign-task[]
+tasks.register('stuffZip', Zip) {
+    archiveBaseName = 'stuff'
+    from 'src/stuff'
+}
+
+signing {
+    sign stuffZip
+}
+// end::sign-task[]

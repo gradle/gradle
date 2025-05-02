@@ -1,0 +1,67 @@
+/*
+* Copyright 2017 the original author or authors.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+def visitIterations = (1..10)
+
+tasks.register("visitZip") {
+    doLast {
+        visitIterations.each {
+            zipTree(file("archive.zip")).each {
+                logger.info it.path
+            }
+        }
+    }
+}
+
+tasks.register("visitTar") {
+    doLast {
+        visitIterations.each {
+            tarTree(file("archive.tar")).each {
+                logger.info it.path
+            }
+        }
+    }
+}
+
+tasks.register("visitTarGz") {
+    doLast {
+        visitIterations.each {
+            tarTree(file("archive.tar.gz")).each {
+                logger.info it.path
+            }
+        }
+    }
+}
+
+tasks.register("zip", Zip) {
+    from "archive-contents"
+    archiveFileName = "archive.zip"
+}
+
+tasks.register("tar", Tar) {
+    from "archive-contents"
+    archiveFileName = "archive.tar"
+}
+
+tasks.register("tarGz", Tar) {
+    from "archive-contents"
+    archiveFileName = "archive.tar.gz"
+    compression = 'gzip'
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    destinationDirectory = layout.buildDirectory
+}

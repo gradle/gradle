@@ -1,0 +1,3 @@
+org.gradle.internal.enterprise.impl.GradleEnterprisePluginServices
+org.gradle.internal.enterprise.test.impl.TestTaskPropertiesServices
+org.gradle.internal.snapshot.impl.SnapshottingServices

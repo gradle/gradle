@@ -1,0 +1,34 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>publications</td>
+            </tr>
+            <tr>
+                <td>repositories</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>publications</td>
+            </tr>
+            <tr>
+                <td>repositories</td>
+            </tr>
+        </table>
+    </section>
+</section>

@@ -1,0 +1,329 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[ant]]
+= Using Ant from Gradle
+
+Gradle provides integration with Ant.
+
+Gradle integrates with Ant, allowing you to use individual Ant tasks or entire Ant builds in your Gradle builds.
+Using Ant tasks in a Gradle build script is often easier and more powerful than using Ant's XML format.
+Gradle can also be used as a powerful Ant task scripting tool.
+
+Ant can be divided into two layers:
+
+1. *Layer 1: The Ant language*. It provides the syntax for the `build.xml` file, the handling of the targets, special constructs like macrodefs, and more. In other words, this layer includes everything except the Ant tasks and types. Gradle understands this language and lets you import your Ant `build.xml` directly into a Gradle project. You can then use the targets of your Ant build as if they were Gradle tasks.
+
+2. *Layer 2: The Ant tasks and types*, like `javac`, `copy` or `jar`. For this layer, Gradle provides integration using Groovy and the `AntBuilder`.
+
+Since build scripts are Kotlin or Groovy scripts, you can execute an Ant build as an external process.
+Your build script may contain statements like: `"ant clean compile".execute()`.footnote:[In Groovy you can execute Strings.]
+
+Gradle's Ant integration allows you to migrate your build from Ant to Gradle smoothly:
+
+1. Begin by importing your existing Ant build.
+2. Then, transition your dependency declarations from the Ant script to your build file.
+3. Finally, move your tasks to your build file or replace them with Gradle's plugins.
+
+This migration process can be performed incrementally, and you can maintain a functional Gradle build throughout the transition.
+
+WARNING: Ant integration is not fully compatible with the <<configuration_cache.adoc#config_cache,configuration cache>>.
+Using link:{javadocPath}/org/gradle/api/Task.html#getAnt--[Task.ant] to run Ant task in the task action may work, but importing the Ant build is not supported.
+
+[[sec:ant_api]]
+The Ant integration is provided by the link:{javadocPath}/org/gradle/api/AntBuilder.html[AntBuilder API].
+
+[[sec:using_ant_tasks]]
+== Using Ant tasks and types
+
+Gradle provides a property called `ant` in your build script.
+This is a reference to an link:{javadocPath}/org/gradle/api/AntBuilder.html[AntBuilder] instance.
+
+`AntBuilder` is used to access Ant tasks, types, and properties from your build script.
+
+You execute an Ant task by calling a method on the `AntBuilder` instance.
+You use the task name as the method name:
+
+.build.gradle
+[source,groovy]
+----
+ant.mkdir(dir: "$STAGE")
+ant.copy(todir: "$STAGE/bin") {
+    ant.fileset(dir: 'bin', includes: "**")
+}
+ant.gzip(destfile:"build/file-${VERSION}.tar.gz", src: "build/file-${VERSION}.tar")
+----
+
+For example, you execute the Ant `echo` task using the `ant.echo()` method.
+
+The attributes of the Ant task are passed as Map parameters to the method.
+Below is an example of the `echo` task:
+
+====
+include::sample[dir="snippets/ant/useAntTask/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/useAntTask/groovy",files="build.gradle"]
+====
+
+----
+$ gradle hello
+include::{snippetsPath}/ant/useAntTask/tests/useAntTask.out[]
+----
+
+TIP: You can mix Groovy/Kotlin code and the Ant task markup. This can be extremely powerful.
+
+You pass nested text to an Ant task as a parameter of the task method call.
+In this example, we pass the message for the `echo` task as nested text:
+
+====
+include::sample[dir="snippets/ant/taskWithNestedText/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/taskWithNestedText/groovy",files="build.gradle"]
+====
+
+----
+$ gradle hello
+include::{snippetsPath}/ant/taskWithNestedText/tests/taskWithNestedText.out[]
+----
+
+You pass nested elements to an Ant task inside a closure.
+Nested elements are defined in the same way as tasks by calling a method with the same name as the element we want to define:
+
+====
+include::sample[dir="snippets/ant/taskWithNestedElements/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/taskWithNestedElements/groovy",files="build.gradle"]
+====
+
+You can access Ant types the same way you access tasks, using the name of the type as the method name.
+The method call returns the Ant data type, which you can use directly in your build script.
+In the following example, we create an Ant `path` object, then iterate over the contents of it:
+
+====
+include::sample[dir="snippets/ant/useAntType/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/useAntType/groovy",files="build.gradle"]
+====
+
+[[sec:using_custom_ant_tasks]]
+=== Using custom Ant tasks
+
+To make custom tasks available in your build, use the `taskdef` (usually easier) or `typedef` Ant task, just as you would in a `build.xml` file.
+You can then refer to the custom Ant task as you would a built-in Ant task:
+
+====
+include::sample[dir="snippets/ant/useExternalAntTask/kotlin",files="build.gradle.kts[tags=configure-task]"]
+include::sample[dir="snippets/ant/useExternalAntTask/groovy",files="build.gradle[tags=configure-task]"]
+====
+
+You can use Gradle's dependency management to assemble the classpath for the custom tasks.
+To do this, you need to define a custom configuration for the classpath and add some dependencies to it.
+This is described in more detail in link:declaring_dependencies.html[Declaring Dependencies]:
+
+====
+include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/kotlin",files="build.gradle.kts[tags=define-classpath]"]
+include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/groovy",files="build.gradle[tags=define-classpath]"]
+====
+
+To use the classpath configuration, use the `asPath` property of the custom configuration:
+
+====
+include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/kotlin",files="build.gradle.kts[tags=use-classpath]"]
+include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/groovy",files="build.gradle[tags=use-classpath]"]
+====
+
+[[sec:import_ant_build]]
+== Importing an Ant build
+
+You can use the `ant.importBuild()` method to import an Ant build into your Gradle project.
+
+When you import an Ant build, each Ant target is treated as a Gradle task.
+This means you can manipulate and execute the Ant targets in the same way as Gradle tasks:
+
+====
+include::sample[dir="snippets/ant/hello/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/hello/groovy",files="build.gradle"]
+====
+
+====
+include::sample[dir="snippets/ant/hello/groovy",files="build.xml"]
+====
+
+----
+$ gradle hello
+include::{snippetsPath}/ant/hello/tests/antHello.out[]
+----
+
+You can add a task that depends on an Ant target:
+
+====
+include::sample[dir="snippets/ant/dependsOnAntTarget/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/dependsOnAntTarget/groovy",files="build.gradle"]
+====
+
+----
+$ gradle intro
+include::{snippetsPath}/ant/dependsOnAntTarget/tests/dependsOnAntTarget.out[]
+----
+
+Or, you can add behavior to an Ant target:
+
+====
+include::sample[dir="snippets/ant/addBehaviourToAntTarget/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/addBehaviourToAntTarget/groovy",files="build.gradle"]
+====
+
+----
+$ gradle hello
+include::{snippetsPath}/ant/addBehaviourToAntTarget/tests/addBehaviourToAntTarget.out[]
+----
+
+It is also possible for an Ant target to depend on a Gradle task:
+
+====
+include::sample[dir="snippets/ant/dependsOnTask/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/dependsOnTask/groovy",files="build.gradle"]
+====
+
+====
+include::sample[dir="snippets/ant/dependsOnTask/groovy",files="build.xml"]
+====
+
+----
+$ gradle hello
+include::{snippetsPath}/ant/dependsOnTask/tests/dependsOnTask.out[]
+----
+
+Sometimes, it may be necessary to "rename" the task generated for an Ant target to avoid a naming collision with existing Gradle tasks.
+To do this, use the link:{javadocPath}/org/gradle/api/AntBuilder.html#importBuild-java.lang.Object-org.gradle.api.Transformer-[AntBuilder.importBuild(java.lang.Object, org.gradle.api.Transformer)] method:
+
+====
+include::sample[dir="snippets/ant/renameTask/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/renameTask/groovy",files="build.gradle"]
+====
+
+====
+include::sample[dir="snippets/ant/renameTask/groovy",files="build.xml"]
+====
+
+----
+$ gradle a-hello
+include::{snippetsPath}/ant/renameTask/tests/renameAntDelegate.out[]
+----
+
+NOTE: While the second argument to this method should be a link:{javadocPath}/org/gradle/api/Transformer.html[Transformer], when programming in Groovy you can use a closure instead of an anonymous inner class (or similar) due to http://mrhaki.blogspot.ie/2013/11/groovy-goodness-implicit-closure.html[Groovy's support for automatically coercing closures to single-abstract-method types].
+
+[[sec:ant_properties]]
+== Using Ant properties and references
+
+There are several ways to set an Ant property so that the property can be used by Ant tasks.
+
+You can set the property directly on the `AntBuilder` instance.
+The Ant properties are also available as a Map, which you can change.
+
+You can also use the Ant `property` task:
+
+====
+include::sample[dir="snippets/ant/properties/kotlin",files="build.gradle.kts[tags=set-property]"]
+include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=set-property]"]
+====
+
+Many Ant tasks set properties when they execute.
+There are several ways to get the value of these properties.
+You can get the property directly from the `AntBuilder` instance.
+The Ant properties are also available as a Map:
+
+====
+include::sample[dir="snippets/ant/properties/groovy",files="build.xml[tags=getproperty]"]
+====
+
+====
+include::sample[dir="snippets/ant/properties/kotlin",files="build.gradle.kts[tags=get-property]"]
+include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=get-property]"]
+====
+
+There are several ways to set an Ant reference:
+
+====
+include::sample[dir="snippets/ant/properties/kotlin",files="build.gradle.kts[tags=set-reference]"]
+include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=set-reference]"]
+====
+
+====
+include::sample[dir="snippets/ant/properties/groovy",files="build.xml[tags=setreference]"]
+====
+
+There are several ways to get an Ant reference:
+
+====
+include::sample[dir="snippets/ant/properties/groovy",files="build.xml[tags=getreference]"]
+====
+
+====
+include::sample[dir="snippets/ant/properties/kotlin",files="build.gradle.kts[tags=get-reference]"]
+include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=get-reference]"]
+====
+
+[[sec:ant_logging]]
+== Using Ant logging
+
+Gradle maps Ant message priorities to Gradle log levels so that messages logged from Ant appear in the Gradle output.
+By default, these are mapped as follows:
+
+[cols="a,a", options="header"]
+|===
+| Ant Message Priority
+| Gradle Log Level
+
+| _VERBOSE_
+| `DEBUG`
+
+| _DEBUG_
+| `DEBUG`
+
+| _INFO_
+| `INFO`
+
+| _WARN_
+| `WARN`
+
+| _ERROR_
+| `ERROR`
+|===
+
+[[sec:fine_tuning_ant_logging]]
+=== Fine-tuning Ant logging
+
+The default mapping of Ant message priority to the Gradle log level can sometimes be problematic.
+For example, no message priority maps directly to the `LIFECYCLE` log level, which is the default for Gradle.
+Many Ant tasks log messages at the _INFO_ priority, which means to expose those messages from Gradle, a build would have to be run with the log level set to `INFO`, potentially logging much more output than is desired.
+
+Conversely, if an Ant task logs messages at too high of a level, suppressing those messages would require the build to be run at a higher log level, such as `QUIET.`
+However, this could result in other desirable outputs being suppressed.
+
+To help with this, Gradle allows the user to fine-tune the Ant logging and control the mapping of message priority to the Gradle log level.
+This is done by setting the priority that should map to the default Gradle `LIFECYCLE` log level using the link:{javadocPath}/org/gradle/api/AntBuilder.html#setLifecycleLogLevel-java.lang.String-[AntBuilder.setLifecycleLogLevel(java.lang.String)] method.
+When this value is set, any Ant message logged at the configured priority or above will be logged at least at `LIFECYCLE`.
+Any Ant message logged below this priority will be logged at `INFO` at most.
+
+For example, the following changes the mapping such that Ant _INFO_ priority messages are exposed at the `LIFECYCLE` log level:
+
+====
+include::sample[dir="snippets/ant/antLogging/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/antLogging/groovy",files="build.gradle"]
+====
+
+----
+$ gradle hello
+include::{snippetsPath}/ant/antLogging/tests/antLogging.out[]
+----
+
+On the other hand, if the `lifecycleLogLevel` was set to _ERROR_, Ant messages logged at the _WARN_ priority would no longer be logged at the `WARN` log level.
+They would now be logged at the `INFO` level and suppressed by default.

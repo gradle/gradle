@@ -1,0 +1,18 @@
+log4j:log4j:1.2.16 FAILED
+   Failures:
+      - Could not resolve log4j:log4j:1.2.16.
+          - Module 'log4j:log4j' has been rejected:
+               Cannot select module with conflict on capability 'log4j:log4j:1.2.16' also provided by [org.slf4j:log4j-over-slf4j:1.7.10(compile)]
+
+log4j:log4j:1.2.16 FAILED
+\--- org.apache.zookeeper:zookeeper:3.4.9
+     \--- compileClasspath
+
+org.slf4j:log4j-over-slf4j:1.7.10 FAILED
+   Failures:
+      - Could not resolve org.slf4j:log4j-over-slf4j:1.7.10.
+          - Module 'org.slf4j:log4j-over-slf4j' has been rejected:
+               Cannot select module with conflict on capability 'log4j:log4j:1.7.10' also provided by [log4j:log4j:1.2.16(compile)]
+
+org.slf4j:log4j-over-slf4j:1.7.10 FAILED
+\--- compileClasspath

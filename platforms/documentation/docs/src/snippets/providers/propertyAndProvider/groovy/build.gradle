@@ -1,0 +1,17 @@
+abstract class Greeting extends DefaultTask { // <1>
+    @Input
+    abstract Property<String> getGreeting() // <2>
+
+    @Internal
+    final Provider<String> message = greeting.map { it + ' from Gradle' } // <3>
+
+    @TaskAction
+    void printMessage() {
+        logger.quiet(message.get())
+    }
+}
+
+tasks.register("greeting", Greeting) {
+    greeting.set('Hi') // <4>
+    greeting = 'Hi' // <5>
+}

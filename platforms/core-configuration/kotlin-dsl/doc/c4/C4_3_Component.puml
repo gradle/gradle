@@ -1,0 +1,130 @@
+@startuml
+!include lib/C4_Component.puml
+
+LAYOUT_TOP_DOWN
+
+title Component diagram for the Gradle Kotlin DSL
+
+Person(dev, "Developer", "Developer using a Kotlin DSL based Gradle build")
+
+System_Boundary(gradleBuildTool, "Gradle") {
+
+    System_Ext(gradle, "Gradle Build Tool") {
+
+        System_Ext(gradleScriptEvaluation, "Script Evaluation")
+        System_Ext(gradlePluginApplication, "Plugin Application")
+    }
+
+    System_Boundary(gradleKotlinDsl, "Gradle Kotlin DSL") {
+
+        Container_Boundary(provider, "Kotlin DSL Provider") {
+
+            Component(gradleKotlinDslApi, "Generated `gradleKotlinDslApi()` API JAR", "The Gradle Kotlin DSL API & Kotlin decorated gradleApi()")
+
+            Component(providerFactory, "Gradle ScriptPluginFactory", "Provides script evaluation to Gradle, main entry point")
+            Component(providerScriptTemplates, "Script Templates", "One per script target type, define scripts API, declare Kotlin compiler settings and plugins, declare editor dependencies resolver")
+
+            Component(providerExecution, "Kotlin DSL Execution", "Partial evaluation interpreter for `.gradle.kts` scripts")
+
+            Component(providerClasspath, "Script Source and Classpath", "Script source and classpath calculation")
+            Component(providerAccessors, "Accessors", "Collects Project Schema, generates Accessors source and bytecode")
+            Component(providerImports, "Implicit Imports", "Includes Gradle's default imports")
+
+
+            Rel_Neighbor(providerFactory, providerExecution, "Delegates to")
+            Rel(providerExecution, providerScriptTemplates, "Uses", "script API for compilation")
+            Rel(providerExecution, providerClasspath, "Uses", "for compilation")
+            Rel_Neighbor(providerClasspath, providerAccessors, "Uses", "for compilation")
+            Rel(providerExecution, gradleKotlinDslApi, "Uses", "for compilation")
+            Rel(providerExecution, providerImports, "Queries", "for compilation")
+        }
+
+        Container_Boundary(plugin, "`kotlin-dsl` Gradle Plugin") {
+
+            Component(pluginPlugin, "`kotlin-dsl` Gradle Plugin", "Configures the project for plugin development and Kotlin DSL features in source sets")
+            Component(pluginEmbedded, "Embedded Kotlin", "Repository with Kotlin artifacts from Gradle distributions")
+            Component(pluginPrecompiled, "Precompiled scripts support", "Configures Kotlin compiler for `.gradle.kts` scripts, infers plugin IDs from script names convention")
+            System_Ext(pluginDevPlugin, "`java-gradle-plugin`")
+
+            Rel_Neighbor(pluginPlugin, pluginEmbedded, "Configures")
+            Rel(pluginPlugin, pluginPrecompiled, "Configures")
+            Rel_Neighbor(pluginPrecompiled, pluginDevPlugin, "Applies", "and configures")
+        }
+
+
+        Container_Boundary(tapiBuilder, "IDE ToolingAPI Models") {
+
+            Component(tapiModels, "TAPI Models", "classpath, sourcepath, implicit imports, user reports")
+            Component(tapiModelBuilders, "TAPI Model Builders", "On-demand source distro download, Calculates editor warnings and errors")
+
+            Rel_Neighbor(tapiModelBuilders, tapiModels, "Build")
+            Rel(tapiModelBuilders, providerClasspath, "Queries", "Script classpath")
+            Rel(tapiModelBuilders, providerImports, "Queries", "Implicit Imports")
+        }
+
+        Container_Boundary(resolver, "Loaded into IntelliJ") {
+            Component(scriptResolver, "Dependencies Resolver", "one loaded per script target type")
+        }
+
+        Rel(providerScriptTemplates, scriptResolver, "Selects", "by configuration, one loaded per script target type")
+
+        Rel(tapiModelBuilders, providerFactory, "Configures", "Lenient mode, collecting exceptions")
+        Rel(tapiModelBuilders, providerFactory, "Queries", "Collected exceptions")
+
+        Rel(pluginPlugin, gradleKotlinDslApi, "Adds", "dependency")
+        Rel(pluginPrecompiled, providerImports, "Registers", "on Kotlin compiler")
+        Rel(pluginPrecompiled, providerScriptTemplates, "Registers", "on Kotlin compiler")
+    }
+
+    Rel(gradleScriptEvaluation, providerFactory, "Selects", "Depending on file extension")
+    Rel(gradlePluginApplication, pluginPlugin, "Applies")
+}
+
+System_Boundary(ide, "IntelliJ IDEA or Android Studio") {
+
+    System_Ext(editor, "`.gradle.kts` script editor") {
+
+        System_Ext(editorDependencies, "Dependencies", "classpath, sourcepath, implicit imports")
+        System_Ext(editorReportPanel, "Report Panel", "Displays warnings and errors on top of the editor UI")
+        System_Ext(editorHints, "Inline Hints", "Displays warning and error hints inline in the editor UI")
+    }
+
+    System_Ext(ideKotlin, "IntelliJ Kotlin Plugin", "for IDEA or Android Studio")
+
+    Rel(editor, ideKotlin, "Uses")
+    Rel(ideKotlin, providerScriptTemplates, "Selects", "by file extension")
+}
+
+Boundary(kotlinTools, "Kotlin Toolchain") {
+
+    System_Ext(kotlinc, "Kotlin Compiler", "kotlinc")
+    System_Ext(kgp, "Kotlin Gradle Plugin", "The `org.jetbrains.kotlin.jvm` Gradle plugin")
+
+    Rel_Neighbor(kgp, kotlinc, "Uses", "Daemon")
+}
+
+System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity Build Cache Node, etc...")
+
+Rel(dev, gradle, "Uses", "Command Line")
+Rel(dev, editor, "Uses", "GUI")
+
+Rel(providerExecution, kotlinc, "Uses", "Embedded")
+
+Rel(pluginPlugin, kgp, "Applies and configures")
+
+Rel(scriptResolver, editorDependencies, "Provides")
+Rel(scriptResolver, editorReportPanel, "Reports")
+Rel(scriptResolver, editorHints, "Reports")
+Rel(scriptResolver, tapiModels, "Requests", "TAPI")
+Rel(gradleKotlinDslApi, kotlinc, "Uses", "Embedded")
+
+Rel(ideKotlin, scriptResolver, "Loads", "Embedded")
+Rel(ideKotlin, kotlinc, "Uses")
+
+Rel_Neighbor(kgp, buildCache, "Uses")
+Rel(providerExecution, buildCache, "Uses")
+
+Lay_D(gradle, gradleKotlinDsl)
+Lay_D(ide, gradleBuildTool)
+
+@enduml

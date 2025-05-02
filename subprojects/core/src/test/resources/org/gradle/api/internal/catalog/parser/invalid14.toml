@@ -1,0 +1,2 @@
+[libraries]
+foo = { group = "com", name = "foo", version.ref = "nope" }

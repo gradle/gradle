@@ -1,0 +1,114 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[gradle]]
+= Core Concepts
+
+Gradle *automates building, testing, and deployment of software* from information in *build scripts*.
+
+image::gradle-basic-1.png[]
+
+== Core concepts
+
+=== Projects:
+
+- A Gradle *project* is a piece of software that can be built, such as an application or a library.
+- *Single project* builds include a single project called the *root project*.
+- *Multi-project* builds include *one root project* and *any number of subprojects*.
+
+=== Build Scripts:
+
+- *Build scripts* detail to Gradle what steps to take to build the project.
+- Each project can include one or more build scripts.
+
+=== Dependencies and Dependency Management:
+
+- *Dependency management* is an automated technique for declaring and resolving external resources required by a project.
+- Each project typically includes a number of *dependencies* that Gradle resolves during the build.
+
+=== Tasks:
+
+- *Tasks are a basic unit of work* such as compiling code or running your test.
+- Each project contains one or more tasks defined inside a build script or a plugin.
+
+=== Plugins:
+
+- Plugins are used to *extend Gradle's capability*.
+- Plugins optionally contribute tasks to a project.
+
+== Project structure
+
+Many developers will interact with Gradle for the first time through an existing project.
+
+The presence of the `gradlew` and `gradlew.bat` files in the root directory of a project is a clear indicator that Gradle is used.
+
+A Gradle project will look similar to the following:
+
+[source,text]
+----
+project
+├── gradle                          // <1>
+│   ├── libs.versions.toml              // <2>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew                         // <3>
+├── gradlew.bat                         // <3>
+├── settings.gradle(.kts)           // <4>
+├── subproject-a
+│   ├── build.gradle(.kts)              // <5>
+│   └── src                         // <6>
+└── subproject-b
+    ├── build.gradle(.kts)              // <5>
+    └── src                         // <6>
+----
+<1> Gradle directory to store wrapper files and more
+<2> Gradle *version catalog* for dependency management
+<3> Gradle *wrapper scripts* - _THIS IS A GRADLE PROJECT!_
+<4> Gradle *settings file* to define a root project name and subprojects
+<5> Gradle *build scripts* of the two subprojects - `subproject-a` and `subproject-b`
+<6> *Source code* and/or additional files for the projects
+
+== Invoking Gradle
+
+=== In the IDE
+
+Gradle is <<gradle_ides.adoc#gradle_ides,built-in to many IDEs>> including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+
+Gradle can be automatically invoked when you build, clean, or run your app in the IDE.
+
+Consult the manual for the IDE of your choice to learn more about how Gradle can be used and configured.
+
+=== On the Command Line
+
+Gradle can be invoked in the command line once <<installation.adoc#installation, installed>>:
+
+[source,text]
+----
+$ gradle build
+----
+
+Most projects do not use the installed version of Gradle but rather the Gradle Wrapper.
+
+=== With the Gradle Wrapper
+
+The wrapper is a script that invokes a declared version of Gradle and is *the recommended way to execute a Gradle build*:
+
+[source,text]
+----
+$ ./gradlew build
+----
+
+[.text-right]
+**Next Step:** <<gradle_wrapper_basics.adoc#gradle_wrapper_basics,Learn about the Gradle Wrapper>> >>

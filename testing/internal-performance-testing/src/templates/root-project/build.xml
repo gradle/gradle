@@ -1,0 +1,13 @@
+<project>
+    <property name="lib.dir" location="lib/test"/>
+
+<% ['clean', 'jar', 'build'].each { target -> %>
+    <target name="$target">
+        <% subprojects.each { subproject -> %>
+            <ant dir="$subproject" target="$target">
+                <property name="lib.dir" location="\${lib.dir}"/>
+            </ant>
+        <%  } %>
+    </target>
+<% } %>
+</project>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
+  <info organisation="org.example" module="project2" revision="1.0" status="integration" publication="20150519174136">
+    <description/>
+  </info>
+  <configurations>
+    <conf name="default" visibility="public" description="Configuration for default artifacts." extends="runtime"/>
+    <conf name="archives" visibility="public" description="Configuration for archive artifacts."/>
+    <conf name="compile" visibility="private" description="Compile classpath for source set 'main'."/>
+    <conf name="testRuntime" visibility="private" description="Runtime classpath for source set 'test'." extends="runtime,testCompile"/>
+    <conf name="runtime" visibility="private" description="Runtime classpath for source set 'main'." extends="compile"/>
+    <conf name="testCompile" visibility="private" description="Compile classpath for source set 'test'." extends="compile"/>
+  </configurations>
+  <publications>
+    <artifact name="project2" type="jar" ext="jar" conf="archives,runtime"/>
+  </publications>
+  <dependencies>
+    <dependency org="org.example" name="project3" rev="1.0" conf="compile-&gt;default"/>
+  </dependencies>
+</ivy-module>

@@ -1,0 +1,46 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// dot -Tpng src/docs/userguide/img/xctest-configurations.dot > src/docs/userguide/img/xctest-configurations.png
+digraph xctestConfigurations {
+  graph [ dpi = 100, fontname="Sans"];
+  node [fontname = "Sans"];
+  edge [fontname = "Sans"];
+  node [shape=rectangle, fixedsize=true, width=3.5, height=0.5];
+
+  subgraph central {
+    node[style=filled, fillcolor=white]
+    implementation -> testVariantExecutableImplementation [style=invis, weight=1000]
+    testVariantExecutableImplementation -> implementation [headport=s, tailport=n]
+
+    testVariantExecutableImplementation[label=<test<i>Variant</i>ExecutableImplementation>]
+    implementation[style=dashed]
+  }
+
+  subgraph left {
+    node[style=filled, fillcolor="#cfe2f3"]
+    swiftCompileTestVariant -> nativeLinkTestVariant -> nativeRuntimeTestVariant [style=invis, weight=1000]
+
+    swiftCompileTestVariant[label=<swiftCompileTest<i>Variant</i> (R)>]
+    nativeLinkTestVariant[label=<nativeLinkTest<i>Variant</i> (R)>]
+    nativeRuntimeTestVariant[label=<nativeRuntimeTest<i>Variant</i> (R)>]
+  }
+
+  // Ensure the order is preserved
+  {rank=same swiftCompileTestVariant implementation}
+  {rank=same testVariantExecutableImplementation nativeLinkTestVariant}
+  nativeLinkTestVariant -> testVariantExecutableImplementation [style=invis]
+
+  {swiftCompileTestVariant, nativeLinkTestVariant, nativeRuntimeTestVariant} -> testVariantExecutableImplementation [headport=w, tailport=e]
+}

@@ -1,0 +1,32 @@
+name: 'Requeue stale team-triage items'
+on:
+  schedule:
+    # Execute every day at 00:05 to avoid conflicts with other workflows
+    - cron: '5 0 * * *'
+
+permissions: {}
+
+jobs:
+  requeue:
+    permissions:
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          operations-per-run: 50
+          remove-stale-when-updated: false
+
+          only-issue-labels: ':wave: team-triage'
+          days-before-issue-stale: 14
+          stale-issue-label: to-triage
+          stale-issue-message: ""
+          days-before-issue-close: -1
+
+          only-pr-labels: 'from:contributor'
+          exempt-all-pr-milestones: true
+          days-before-pr-stale: 14
+          stale-pr-label: to-triage
+          stale-pr-message: ""
+          days-before-pr-close: -1

@@ -1,0 +1,21 @@
+{
+    "formatVersion": "1.0",
+    "variants": [
+        {
+            "name": "api",
+            "capabilities": [
+                { "group": "g1", "name": "m1", "version": "v1" },
+                { "group": "g2", "name": "m2", "version": "v2" }
+            ],
+            "attributes": { "usage": "compile" }
+        },
+        {
+            "attributes": { "usage": "runtime", "packaging": "zip" },
+            "capabilities": [
+                { "group": "g1", "name": "m3", "version": "1.1" },
+                { "group": "g2", "name": "m4", "version": "2.1" }
+            ],
+            "name": "runtime"
+        }
+    ]
+}

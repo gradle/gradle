@@ -1,0 +1,33 @@
+// tag::task-type[]
+// tag::ad-hoc-task[]
+// end::ad-hoc-task[]
+abstract class SomeTask extends DefaultTask {
+
+    @Inject abstract FileSystemOperations getFs() // <1>
+
+    @TaskAction
+    void action() {
+        fs.copy {
+            from 'source'
+            into 'destination'
+        }
+    }
+}
+// end::task-type[]
+
+tasks.register('someTaskType', SomeTask)
+
+// tag::ad-hoc-task[]
+interface Injected {
+    @Inject FileSystemOperations getFs() // <1>
+}
+tasks.register('someTask') {
+    def injected = project.objects.newInstance(Injected) // <2>
+    doLast {
+        injected.fs.copy { // <3>
+            from 'source'
+            into 'destination'
+        }
+    }
+}
+// end::ad-hoc-task[]

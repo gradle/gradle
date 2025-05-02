@@ -1,0 +1,53 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.fixtures.timeout;
+
+import spock.lang.Timeout;
+
+import java.lang.annotation.Annotation;
+import java.util.concurrent.TimeUnit;
+
+public class TimeoutAdapter implements Timeout {
+
+    private int timeout;
+    private TimeUnit unit;
+
+    TimeoutAdapter(IntegrationTestTimeout timeout) {
+        this.timeout = timeout.value();
+        this.unit = timeout.unit();
+    }
+
+    TimeoutAdapter(int timeout, TimeUnit unit) {
+        this.timeout = timeout;
+        this.unit = unit;
+    }
+
+    @Override
+    public int value() {
+        return timeout;
+    }
+
+    @Override
+    public TimeUnit unit() {
+        return unit;
+    }
+
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return getClass();
+    }
+}

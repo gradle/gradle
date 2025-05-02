@@ -1,0 +1,32 @@
+> Task :buildSrc:processResources
+> Task :buildSrc:pluginDescriptors
+> Task :buildSrc:classes
+> Task :buildSrc:jar
+> Task :list:compileJava
+> Task :utilities:compileJava
+> Task :application:compileJava
+> Task :application:processResources NO-SOURCE
+> Task :application:classes
+> Task :application:compileTestJava
+> Task :application:processTestResources NO-SOURCE
+> Task :application:testClasses
+> Task :list:processResources NO-SOURCE
+> Task :list:classes
+> Task :list:jar
+> Task :utilities:processResources NO-SOURCE
+> Task :utilities:classes
+> Task :utilities:jar
+> Task :application:test
+> Task :application:check
+> Task :list:compileTestJava
+> Task :list:processTestResources NO-SOURCE
+> Task :list:testClasses
+> Task :list:test
+> Task :list:check
+> Task :utilities:compileTestJava NO-SOURCE
+> Task :utilities:processTestResources NO-SOURCE
+> Task :utilities:testClasses UP-TO-DATE
+> Task :utilities:test NO-SOURCE
+> Task :utilities:check UP-TO-DATE
+
+BUILD SUCCESSFUL in 0s

@@ -1,0 +1,32 @@
+// A task that generates a source file and writes the result to an output directory
+abstract class GenerateSource extends DefaultTask {
+    // The configuration file to use to generate the source file
+    @InputFile
+    abstract RegularFileProperty getConfigFile()
+
+    // The directory to write source files to
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDir()
+
+    @TaskAction
+    def compile() {
+        def inFile = configFile.get().asFile
+        logger.quiet("configuration file = $inFile")
+        def dir = outputDir.get().asFile
+        logger.quiet("output dir = $dir")
+        def className = inFile.text.trim()
+        def srcFile = new File(dir, "${className}.java")
+        srcFile.text = "public class ${className} { ... }"
+    }
+}
+
+// Create the source generation task
+tasks.register('generate', GenerateSource) {
+    // Configure the locations, relative to the project and build directories
+    configFile = layout.projectDirectory.file('src/config.txt')
+    outputDir = layout.buildDirectory.dir('generated-source')
+}
+
+// Change the build directory
+// Don't need to reconfigure the task properties. These are automatically updated as the build directory changes
+layout.buildDirectory = layout.projectDirectory.dir('output')

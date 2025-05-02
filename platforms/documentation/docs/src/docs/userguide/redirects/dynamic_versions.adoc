@@ -1,0 +1,22 @@
+++++
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+  "sub:declaring_dependency_with_dynamic_version": "dependency_versions.html#sec:dynamic-versions-and-changing-modules",
+  "sub:declaring_dependency_with_changing_version": "dependency_versions.html#sec:declaring-dependency-with-changing-version",
+  "sec:controlling_dependency_caching_programmatically": "dependency_caching.html#sec:dependency-cache",
+  "sec:component_selection_rules": "resolution_rules.html#sec:component-selection-rules"
+};
+
+const defaultRedirect = "dependency_versions.html#sec:dynamic-versions-and-changing-modules";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
+++++

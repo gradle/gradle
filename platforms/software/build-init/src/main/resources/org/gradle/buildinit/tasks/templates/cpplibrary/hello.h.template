@@ -1,0 +1,20 @@
+${fileComment.multilineComment}
+#ifndef ${namespace.groovyString.toUpperCase(Locale.ROOT)}_H
+#define ${namespace.groovyString.toUpperCase(Locale.ROOT)}_H
+
+#ifdef _WIN32
+#define ${namespace.groovyString.toUpperCase(Locale.ROOT)}_EXPORT_FUNC __declspec(dllexport)
+#else
+#define ${namespace.groovyString.toUpperCase(Locale.ROOT)}_EXPORT_FUNC
+#endif
+
+#include <string>
+
+namespace ${namespace.groovyString} {
+    class Greeter {
+        public:
+        std::string ${namespace.groovyString.toUpperCase(Locale.ROOT)}_EXPORT_FUNC greeting();
+    };
+}
+
+#endif

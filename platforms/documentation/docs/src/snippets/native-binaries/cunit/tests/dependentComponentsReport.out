@@ -1,0 +1,17 @@
+
+> Task :dependentComponents
+
+------------------------------------------------------------
+Root project 'cunit'
+------------------------------------------------------------
+
+operators - Components that depend on native library 'operators'
++--- operators:failingSharedLibrary
++--- operators:failingStaticLibrary
++--- operators:passingSharedLibrary
+\--- operators:passingStaticLibrary
+
+Some test suites were not shown, use --test-suites or --all to show them.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

@@ -1,0 +1,18 @@
+// tag::use-plugin[]
+plugins {
+    id "cpp"
+}
+// end::use-plugin[]
+
+// tag::args[]
+model {
+    components {
+        main(NativeLibrarySpec) {
+            binaries.withType(SharedLibraryBinarySpec) {
+                // Define a preprocessor macro that only applies to shared libraries
+                cppCompiler.define "DLL_EXPORT"
+            }
+        }
+    }
+}
+// end::args[]

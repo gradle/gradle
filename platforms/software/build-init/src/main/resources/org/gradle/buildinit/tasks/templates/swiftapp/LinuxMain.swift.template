@@ -1,0 +1,4 @@
+${fileComment.multilineComment}
+import XCTest
+
+XCTMain([testCase(GreeterTests.allTests)])

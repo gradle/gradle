@@ -1,0 +1,34 @@
+
+== Run the application
+
+Thanks to the `application` plugin, you can run the application directly from the command line.
+The `run` task tells Gradle to execute the `main` method in the class assigned to the `mainClass` property.
+
+[listing.terminal.sample-command]
+----
+\$ ./gradlew run
+
+> Task :${subprojectName.raw}:run
+Hello world!
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+NOTE: The first time you run the wrapper script, `gradlew`, there may be a delay while that version of `gradle` is downloaded and stored locally in your `~/.gradle/wrapper/dists` folder.
+
+== Bundle the application
+
+The `application` plugin also bundles the application, with all its dependencies, for you.
+The archive will also contain a script to start the application with a single command.
+
+[listing.terminal.sample-command]
+----
+\$ ./gradlew build
+
+BUILD SUCCESSFUL in 0s
+${tasksExecuted.raw} actionable tasks: ${tasksExecuted.raw} executed
+----
+
+If you run a full build as shown above, Gradle will have produced the archive in two formats for you:
+`${subprojectName.raw}/build/distributions/app.tar` and `${subprojectName.raw}/build/distributions/app.zip`.

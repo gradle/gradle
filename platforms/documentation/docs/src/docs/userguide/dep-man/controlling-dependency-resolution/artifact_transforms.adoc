@@ -1,0 +1,468 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[artifact-transforms]]
+= Artifact Transforms
+
+What if you want to make changes to the files contained in one of your dependencies before you use it?
+
+For example, you might want to unzip a compressed file, adjust the contents of a JAR, or delete unnecessary files from a dependency that contains multiple files prior to using the result in a task.
+
+Gradle has a built-in feature for this called **Artifact Transforms**.
+With Artifact Transforms, you can modify, add to, remove from the set files (or artifacts) - like JAR files - contained in a dependency.
+This is done as the last step when resolving artifacts, before tasks or tools like the IDE can consume the artifacts.
+
+[[sec:artifact-transforms-overview]]
+== Artifact Transforms Overview
+
+Each component exposes a set of <<declaring_configurations.adoc#sec:resolvable-consumable-configs,**variants**>>, where each variant is identified by a set of <<variant_aware_resolution.adoc#sec:abm-configuration-attributes,**attributes**>> (i.e., key-value pairs such as `debug=true`).
+
+When Gradle resolves a configuration, it looks at each dependency, resolves it to a component, and selects the corresponding variant from that component that matches the requested attributes.
+If the component does not have a matching variant, resolution fails *unless* Gradle can construct a sequence of transformations that will modify an existing artifact to create a valid match (without changing its transitive dependencies).
+
+**Artifact Transforms** are a mechanism for converting one type of artifact into another during the build process.
+They provide the consumer an efficient and flexible mechanism for transforming the artifacts of a given producer to the required format without needing the producer to expose variants in that format.
+
+image::artifact-transform-2.png[]
+
+Artifact Transforms are a lot like tasks.
+They are units of work with some inputs and outputs.
+Mechanisms like `UP-TO-DATE` and caching work for transforms as well.
+
+image::artifact-transform-1.png[]
+
+The primary difference between tasks and transforms is how they are scheduled and put into the chain of actions Gradle executes when a build configures and runs.
+At a high level, transforms always run before tasks because they are executed during dependency resolution.
+Transforms modify artifacts BEFORE they become an input to a task.
+
+Here's a brief overview of how to create and use Artifact Transforms:
+
+image::artifact-transform-3.png[]
+
+1. **Implement a Transform**: You define an artifact transform by creating a class that implements the link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html[`TransformAction`] interface.
+This class specifies how the input artifact should be transformed into the output artifact.
+
+2. **Declare request Attributes**: Attributes (key-value pairs used to describe different variants of a component) like `org.gradle.usage=java-api` and `org.gradle.usage=java-runtime` are used to specify the desired artifact format or type.
+
+3. **Register a Transform**: You register the transform by using the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#registerTransform(java.lang.Class,org.gradle.api.Action)[`registerTransform()`] method of the link:{javadocPath}/org/gradle/api/Project.html#dependencies(groovy.lang.Closure)[`dependencies`] block.
+This method tells Gradle that a transform can be used to modify the artifacts of any variant that possesses the given "from" attributes.
+It also tells Gradle what new set of "to" attributes will describe the format or type of the resulting artifacts.
+
+4. **Use the Transform**: When a resolution requires an artifact that isn't already present in the selected component (because none of the actual artifact possess compatible attributes to the requested attributes), Gradle doesn't just give up!
+Instead, Gradle first *automatically* searches all registered transforms to see if it can construct a chain of transformations that will ultimately produce a match.
+If Gradle finds such a chain, it then runs each transform in sequence, and delivers the transformed artifacts as a result.
+
+=== 1. Implement a Transform
+
+A transform is typically written as an abstract class that implements the link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html[`TransformAction`] interface.
+It can optionally have parameters defined in a separate interface.
+
+Each transform has exactly one input artifact.
+It must be annotated with the link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifact.html[`@InputArtifact`] annotation.
+
+Then, you implement the link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html#transform(org.gradle.api.artifacts.transform.TransformOutputs)[`transform(TransformOutputs)`] method from the link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html[`TransformAction`] interface.
+This method's implementation defines what the transform should do when triggered.
+The method has a link:{javadocPath}/org/gradle/api/artifacts/transform/TransformOutputs.html[`TransformOutputs`] parameter that you use to tell Gradle what artifacts the transform produces.
+
+Here, `MyTransform` is the custom transform action that converts a `jar` artifact to a `transformed-jar` artifact:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-imp]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-imp]"]
+====
+
+=== 2. Declare request Attributes
+
+Attributes specify the required properties of a dependency.
+
+Here we specify that we need the `transformed-jar` format for the `runtimeClasspath` configuration:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-use]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-use]"]
+====
+
+=== 3. Register a Transform
+
+A transform must be registered using the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#registerTransform(java.lang.Class,org.gradle.api.Action)[`dependencies.registerTransform()`] method.
+
+Here, our transform is registered with the link:{javadocPath}/org/gradle/api/Project.html#dependencies(groovy.lang.Closure)[`dependencies`] block:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+====
+
+"To" attributes are used to describe the format or type of the artifacts that this transform can use as an input, and "from" attributes to describe the format or type of the artifacts that it produces as an output.
+
+=== 4. Use the Transform
+
+During a build, Gradle *automatically* runs registered transforms to satisfy a resolution request if a match is not directly available.
+
+Since no variants exist supplying artifacts of requested format (as none contain the `artifactType` attribute with a value of `"transformed-jar"`), Gradle attempts to construct a chain of transformations that will supply an artifact matching the requested attributes.
+
+Gradle's search finds `MyTransform`, which is registered as producing the requested format, so it will automatically be run.
+Running this transform action modifies the artifacts of an existing source variant to produce new artifacts that are delivered to the consumer, in the requested format.
+
+Gradle produces a "virtual artifact set" of the component as part of this process.
+
+[[sec:abm-artifact-transforms]]
+== Understanding Artifact Transforms
+
+Dependencies can have different <<declaring_configurations.adoc#sec:resolvable-consumable-configs,**variants**>>, essentially different versions or forms of the same dependency.
+These variants can each provide a different artifact set, meant to satisfy different use cases, such as compiling code, browsing documentation or running applications.
+
+Each variant is identified by a set of <<variant_aware_resolution.adoc#sec:abm-configuration-attributes,**attributes**>>.
+Attributes are key-value pairs that describe specific characteristics of the variant.
+
+image::artifact-transform-4.png[]
+
+Let's use the following example where an external Maven dependency has two variants:
+
+.Maven Dependencies
+[cols="1,1"]
+|===
+|Variant | Description
+
+|`org.gradle.usage=java-api`
+|Used for compiling against the dependency.
+
+|`org.gradle.usage=java-runtime`
+|Used for running an application that uses the dependency.
+|===
+
+And a project dependency has even more variants:
+
+.Project Dependencies
+[cols="1,1"]
+|===
+|Variant | Description
+
+|`org.gradle.usage=java-api`
+`org.gradle.libraryelements=classes`
+|Represents classes directories.
+
+|`org.gradle.usage=java-api`
+`org.gradle.libraryelements=jar`
+|Represents a packaged JAR file, containing classes and resources.
+|===
+
+The variants of a dependency may differ in their transitive dependencies or in the set of artifacts they contain, or both.
+
+For example, the `java-api` and `java-runtime` variants of the Maven dependency only differ in their transitive dependencies, and both use the same artifact — the JAR file.
+For the project dependency, the `java-api,classes` and the `java-api,jars` variants have the same transitive dependencies but different artifacts — the `classes` directories and the `JAR` files respectively.
+
+When Gradle resolves a configuration, it uses the attributes defined to select the appropriate variant of each dependency.
+The attributes that Gradle uses to determine which variant to select are called the **requested attributes**.
+
+For example, if a configuration requests `org.gradle.usage=java-api` and `org.gradle.libraryelements=classes`, Gradle will select the variant of each dependency that matches these attributes (in this case, classes directories intended for use as an API during compilation).
+Matches do not have to exact, as some attribute values can be identified to Gradle as *compatible* with other values and used interchangeably during
+<<variant_attributes.adoc#sec:abm-compatibility-rules,**matching**>>.
+
+Sometimes, a dependency might not have a variant with attributes that match the requested attributes.
+In such cases, Gradle can transform one variant's artifacts into another "virtual artifact set" by modifying its artifacts without changing its transitive dependencies.
+
+IMPORTANT: Gradle will not attempt to select or run Artifact Transforms when a variant of the dependency matching the requested attributes already exists.
+
+For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
+
+TIP: Gradle applies transformations to artifacts, not variants.
+
+== Executing Artifact Transforms
+
+Gradle automatically selects Artifact Transforms as needed to satisfy resolution requests.
+
+To run an Artifact Transform, you can configure a custom <<artifact_views.adoc#artifact-views,Artifact View>> to request an artifact set that is not exposed by any variant of the target component.
+
+When resolving the `ArtifactView` Gradle will search for appropriate Artifact Transforms based on the requested attributes in the view.
+Gradle will run these transformations on the original artifacts found in a variant of the target component to produce a result compatible with the attributes in the view.
+
+In the example below, the `TestTransform` class defines a transformation that is registered to process artifacts of type "jar" into artifacts of type "stub":
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/kotlin",files="build.gradle.kts[tags=artifact-views-with-custom-attribute]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/groovy",files="build.gradle[tags=artifact-views-with-custom-attribute]"]
+====
+
+The `testArtifact` task resolves artifacts of type "stub" using the `runtimeClasspath` configuration.
+This is achieved by creating an `ArtifactView` that filters for artifacts with `ARTIFACT_TYPE_ATTRIBUTE = "stub"`.
+
+[[sec:artifact-transform-chains]]
+== Understanding Artifact Transforms Chains
+
+When Gradle resolves a configuration and a variant in the graph does not have an artifact set with the requested attributes, it attempts to find a chain of one or more Artifact Transforms that can be run sequentially to create the desired artifact set.
+This process is called **Artifact Transform selection**:
+
+image::artifact-transform-5.png[]
+
+=== The Artifact Transform Selection Process:
+
+1. **Start with requested Attributes**:
+- Gradle starts with the attributes specified on the configuration being resolved, appends any attributes specified on an `ArtifactView`, and finally appends any attributes declared directly on the dependency.
+- It considers all registered transforms that modify these attributes.
+
+2. **Find a path to existing Variants**:
+- Gradle works backwards, trying to find a path from the requested attributes to an existing variant.
+
+For example, if the `minified` attribute has values `true` and `false`, and a transform can change `minified=false` to `minified=true`, Gradle will use this transform if only `minified=false` variants are available but `minified=true` is requested.
+
+Gradle selects a chain of transforms using the following process:
+
+- If there is only one possible chain that produces the requested attributes, it is selected.
+- If there are multiple such chains, then only the shortest chains are considered.
+- If there are still multiple chains remaining that are equally suitable but produce different results, the selection fails, and an error is reported.
+- If all the remaining chains produce the same set of resulting attributes, Gradle arbitrarily selects one.
+
+How can multiple chains produce different suitable results?
+Transforms can alter multiple attributes at a time.
+A suitable result of a transformation chain is one possessing attributes compatible with the requested attributes.
+But a result may contain other attributes as well, that were not requested, and are irrelevant to the result.
+
+For example: if attributes `A=a` and `B=b` are requested, and variant `V1` contains attributes `A=a`, `B=b`, and `C=c`, and variant `V2` contains attributes `A=a`, `B=b`, and `D=d`, then since all the values of `A` and `B` are identical (or compatible) either `V1` or `V2` would satisfy the request.
+
+=== A Full Example
+
+Let's continue exploring the `minified` example begun above: a configuration requests `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=true`.
+The dependencies are:
+
+* External `guava` dependency with variants:
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=false`
+** `org.gradle.usage=java-api, org.gradle.libraryelements=jar, minified=false`
+
+* Project `producer` dependency with variants:
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=false`
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=classes, minified=false`
+** `org.gradle.usage=java-api, org.gradle.libraryelements=jar, minified=false`
+** `org.gradle.usage=java-api, org.gradle.libraryelements=classes, minified=false`
+
+Gradle uses the `minify` transform to convert `minified=false` variants to `minified=true`.
+
+* For `guava`, Gradle converts
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=false` to
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=true`.
+* For `producer`, Gradle converts
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=false` to
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=true`.
+
+Then, during execution:
+
+- Gradle downloads the `guava` JAR and runs the transform to minify it.
+- Gradle executes the `producer:jar` task to produce the JAR and then runs the transform to minify it.
+- These tasks and transforms are executed in parallel where possible.
+
+To set up the `minified` attribute so that the above works you must add the attribute to all JAR variants being produced, and also add it to all resolvable configurations being requested.
+You should also register the attribute in the attributes schema.
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-attribute-setup]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
+====
+<1> Add the attribute to the schema
+<2> All JAR files are not minified
+<3> Request that the runtime classpath is minified
+<4> Add the dependencies which will be transformed
+<5> Add task that requires the transformed artifacts
+
+You can now see what happens when we run the `resolveRuntimeClasspath` task, which resolves the `runtimeClasspath` configuration.
+Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
+Gradle transforms the binary dependencies when it executes the `resolveRuntimeClasspath` task:
+
+----
+$ gradle resolveRuntimeClasspath
+include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/artifactTransformMinify.out[]
+----
+
+[[sec:implementing-artifact-transforms]]
+== Implementing Artifact Transforms
+
+Similar to task types, an artifact transform consists of an action and some optional parameters.
+The major difference from custom task types is that the action and the parameters are implemented as two separate classes.
+
+=== Artifact Transforms without Parameters
+
+An artifact transform action is provided by a class implementing link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction].
+Such a class implements the `transform()` method, which converts the input artifacts into zero, one, or multiple output artifacts.
+
+Most Artifact Transforms are one-to-one, so the `transform` method will be used to transform each input artifact contained in the from variant into exactly one output artifact.
+
+The implementation of the artifact transform action needs to register each output artifact by calling
+link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformOutputs.html#org.gradle.api.artifacts.transform.TransformOutputs:dir(java.lang.Object)[TransformOutputs.dir()] or link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformOutputs.html#org.gradle.api.artifacts.transform.TransformOutputs:file(java.lang.Object)[TransformOutputs.file()].
+
+You can supply two types of paths to the `dir` or `file` methods:
+
+- An absolute path to the input artifact or within the input artifact (for an input directory).
+- A relative path.
+
+Gradle uses the absolute path as the location of the output artifact.
+For example, if the input artifact is an exploded WAR, the transform action can call `TransformOutputs.file()` for all JAR files in the `WEB-INF/lib` directory.
+The output of the transform would then be the library JARs of the web application.
+
+For a relative path, the `dir()` or `file()` method returns a workspace to the transform action.
+The transform action needs to create the transformed artifact(s) at the location of the provided workspace.
+
+The output artifact(s) replace the input artifact(s) in the transformed variant in the order they were registered.
+For example, if the selected input variant contains the artifacts `lib1.jar`, `lib2.jar`, `lib3.jar`, and the transform action registers a minified output artifact `<artifact-name>-min.jar` for each input artifact, then the transformed configuration will consist of the artifacts `lib1-min.jar`, `lib2-min.jar`, and `lib3-min.jar`.
+
+Here is the implementation of an `Unzip` transform, which unzips a JAR file into a `classes` directory.
+The `Unzip` transform does not require any parameters:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-unzip]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-unzip]"]
+====
+<1> Use `TransformParameters.None` if the transform does not use parameters
+<2> Inject the input artifact
+<3> Request an output location for the unzipped files
+<4> Do the actual work of the transform
+
+Note how the implementation uses `@InputArtifact` to inject an artifact to transform into the action class, so that it can be accessed within the `transform` method.
+This method requests a directory for the unzipped classes by using `TransformOutputs.dir()` and then unzips the JAR file into this directory.
+
+=== Artifact Transforms with Parameters
+
+An artifact transform may require parameters, such as a `String` for filtering or a file collection used to support the transformation of the input artifact.
+To pass these parameters to the transform action, you must define a new type with the desired parameters.
+This type must implement the marker interface link:{javadocPath}/org/gradle/api/artifacts/transform/TransformParameters.html[TransformParameters].
+
+The parameters must be represented using <<properties_providers.adoc#managed_properties,managed properties>> and the parameter type must be a <<properties_providers.adoc#managed_types,managed type>>.
+You can use an interface or abstract class to declare the getters, and Gradle will generate the implementation.
+All getters need to have proper input annotations, as described in the <<incremental_build.adoc#table:incremental_build_annotations,incremental build annotations>> table.
+
+Here is the implementation of a `Minify` transform that makes JARs smaller by only keeping certain classes in them.
+The `Minify` transform requires knowledge of the classes to keep within each JAR, which is provided as an `Map` property within its parameters:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-minify]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-minify]"]
+====
+<1> Declare the parameter type
+<2> Interface for the transform parameters
+<3> Use the parameters
+<4> Use the unchanged input artifact when no minification is required
+
+Observe how you can obtain the parameters by `TransformAction.getParameters()` in the `transform()` method.
+The implementation of the `transform()` method requests a location for the minified JAR by using `TransformOutputs.file()` and then creates the minified JAR at this location.
+
+Remember that the input artifact is a dependency, which may have its own dependencies.
+Suppose your artifact transform needs access to those transitive dependencies.
+In that case, it can declare an abstract getter returning a `FileCollection` and annotate it with link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifactDependencies.html[@InputArtifactDependencies].
+When your transform runs, Gradle will inject the transitive dependencies into the `FileCollection` property by implementing the getter.
+
+Note that using input artifact dependencies in a transform has performance implications; only inject them when needed.
+
+[[sec:caching-transforms]]
+=== Artifact Transforms with Caching
+
+Artifact Transforms can make use of the <<build_cache.adoc#build_cache,build cache>> to store their outputs and avoid rerunning their transform actions when the result is known.
+
+To enable the build cache to store the results of an artifact transform, add the `@link:{javadocPath}/org/gradle/api/artifacts/transform/CacheableTransform.html[CacheableTransform]` annotation on the action class.
+
+For cacheable transforms, you must annotate its link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifact.html[@InputArtifact] property — and any property marked with link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifactDependencies.html[@InputArtifactDependencies] — with normalization annotations such as link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive].
+
+The following example demonstrates a more complex transform that relocates specific classes within a JAR to a different package.
+This process involves rewriting the bytecode of both the relocated classes and any classes that reference them (class relocation):
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/kotlin",files="build.gradle.kts[tags=artifact-transform-relocate]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/groovy",files="build.gradle[tags=artifact-transform-relocate]"]
+====
+<1> Declare the transform cacheable
+<2> Interface for the transform parameters
+<3> Declare input type for each parameter
+<4> Declare a normalization for the input artifact
+<5> Inject the input artifact dependencies
+<6> Use the parameters
+
+Note the classes to be relocated are determined by examining the packages of the input artifact and its dependencies.
+Additionally, the transform ensures that packages contained in JAR files on an external classpath are not relocated.
+
+=== Incremental Artifact Transforms
+
+Similar to <<custom_tasks#incremental_tasks,incremental tasks>>, Artifact Transforms can avoid some work by only processing files that have changed since the last execution.
+This is done by using the link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] interface.
+
+For Artifact Transforms, only the input artifact is an incremental input; therefore, the transform can only query for changes there.
+To use link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] in the transform action, inject it into the action.
+
+For more information on how to use link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges], see the corresponding documentation for <<custom_tasks#incremental_tasks,incremental tasks>>.
+
+Here is an example of an incremental transform that counts the lines of code in Java source files:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/kotlin",files="build.gradle.kts[tags=artifact-transform-countloc]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/groovy",files="build.gradle[tags=artifact-transform-countloc]"]
+====
+<1> Inject `InputChanges`
+<2> Query for changes in the input artifact
+
+This transform will only run on source files that have changed since the last run, as otherwise the line count would not need to be recalculated.
+
+[[sec:registering-artifact-transforms]]
+== Registering Artifact Transforms
+
+You need to register the artifact transform actions, providing parameters if necessary so that they can be selected when resolving dependencies.
+
+To register an artifact transform, you must use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[registerTransform()] within the `dependencies {}` block.
+
+There are a few points to consider when using `registerTransform()`:
+
+- At least one `from` and `to` attributes are required.
+- Each `to` attribute must have a corresponding `from` attribute.
+- Additional `from` attributes can be included which do _not_ have corresponding `to` attributes.
+- The transform action itself can have configuration options. You can configure them with the `parameters {}` block.
+- You must register the transform on the project that has the configuration that will be resolved.
+- You can supply any type implementing link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction] to the `registerTransform()` method.
+
+For example, imagine you want to unpack some dependencies and put the unpacked directories and files on the classpath.
+You can do so by registering an artifact transform action of type `Unzip`, as shown here:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+====
+
+Another example is that you want to minify JARs by only keeping some `class` files from them.
+Note the use of the `parameters {}` block to provide the classes to keep in the minified JARs to the `Minify` transform:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+====
+
+[[sec:executing-artifact-transforms]]
+== Executing Artifact Transforms
+
+On the command line, Gradle runs tasks; not Artifact Transforms: `./gradlew build.`
+So how and when does it run transforms?
+
+There are two ways Gradle executes a transform:
+
+1. Artifact Transforms execution for _project dependencies_ can be discovered ahead of task execution and therefore can be scheduled before the task execution.
+2. Artifact Transforms execution for _external module dependencies_ cannot be discovered ahead of task execution and, therefore are scheduled inside the task execution.
+
+In well-declared builds, project dependencies can be fully discovered during task configuration ahead of task execution scheduling.
+If the project dependency is badly declared (e.g., missing a task input), the transform execution will happen inside the task.
+
+It's important to remember that Artifact Transforms:
+
+- will only ever be run if no matching variants exist to satisfy a request
+- can be run in parallel
+- will not be rerun if possible (if multiple resolution requests require the same transform to be executed on the same artifacts, and the transform is cacheable, the transform will only be run once and the results fetched from the cache on each subsequent request)
+
+[IMPORTANT]
+====
+`TransformAction`s are only instantiated and run if input artifacts exist.
+If there are no artifacts present in an input variant to a transform, that transform will be skipped.
+This can happen in the middle of a chain of actions, resulting in all subsequent transforms being skipped.
+====

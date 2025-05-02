@@ -1,0 +1,2 @@
+[plugins]
+greeter = "org.example.greeter:1.13"

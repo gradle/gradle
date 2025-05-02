@@ -1,0 +1,79 @@
+// tag::hello[]
+// Extend the DefaultTask class to create a HelloTask class
+class HelloTask extends DefaultTask {
+    @TaskAction
+    void hello() {
+        println("hello from HelloTask")
+    }
+}
+
+// Register the hello Task with type HelloTask
+tasks.register("hello", HelloTask) {
+    group = "Custom tasks"
+    description = "A lovely greeting task."
+}
+// end::hello[]
+
+// tag::registers[]
+// tag::file[]
+class CreateFileTask extends DefaultTask {
+    @TaskAction
+    void action() {
+        def file = new File("myfile.txt")
+        file.createNewFile()
+        file.text = "HELLO FROM MY TASK"
+    }
+}
+// end::file[]
+
+tasks.register("createFileTask", CreateFileTask) {
+    group = "custom"
+    description = "Create myfile.txt in the current directory"
+}
+// end::registers[]
+
+/*
+// tag::register[]
+class CreateFileTask extends DefaultTask {
+    @TaskAction
+    void action() {
+        def file = new File("myfile.txt")
+        file.createNewFile()
+        file.text = "HELLO FROM MY TASK"
+    }
+}
+
+tasks.register("createFileTask", CreateFileTask)
+// end::register[]
+ */
+
+// tag::class[]
+// tag::default[]
+abstract class CreateAFileTask extends DefaultTask {
+    @Input
+    abstract Property<String> getFileText()
+
+    @Input
+    final String fileName = "myfile.txt"
+
+    @OutputFile
+    final File myFile = new File(fileName)
+
+    @TaskAction
+    void action() {
+        myFile.createNewFile()
+        myFile.text = fileText.get()
+    }
+}
+// end::default[]
+
+tasks.register("createAFileTask", CreateAFileTask) {
+    group = "custom"
+    description = "Create myfile.txt in the current directory"
+    fileText.convention("HELLO FROM THE CREATE FILE TASK METHOD") // Set convention
+}
+
+tasks.named("createAFileTask", CreateAFileTask) {
+    fileText.set("HELLO FROM THE NAMED METHOD") // Override with custom message
+}
+// end::class[]

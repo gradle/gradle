@@ -1,0 +1,9 @@
+plugins {
+    id("com.example.kotlin-library")
+}
+
+group = "${group}.admin-feature"
+
+dependencies {
+    implementation("com.example.myproduct.state:application-state")
+}

@@ -1,0 +1,305 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[custom_plugins]]
+= Understanding Plugins
+
+Gradle comes with a set of powerful core systems such as dependency management, task execution, and project configuration.
+But everything else it can do is supplied by plugins.
+
+Plugins encapsulate logic for specific tasks or integrations, such as compiling code, running tests, or deploying artifacts.
+By applying plugins, users can easily add new features to their build process without having to write complex code from scratch.
+
+This plugin-based approach allows Gradle to be lightweight and modular.
+It also promotes code reuse and maintainability, as plugins can be shared across projects or within an organization.
+
+Before reading this chapter, it's recommended that you first read <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<part1_gradle_init_project.adoc#part1_gradle_init,Tutorial>>.
+
+== Plugins Introduction
+
+Plugins can be sourced from Gradle or the Gradle community.
+But when users want to organize their build logic or need specific build capabilities not provided by existing plugins, they can develop their own.
+
+As such, we distinguish between three different kinds of plugins:
+
+1. *Core Plugins* - plugins that come from Gradle.
+2. *Community Plugins* - plugins that come from link:https://plugins.gradle.org/[Gradle Plugin Portal] or a public repository.
+3. *Local or Custom Plugins* - plugins that you develop yourself.
+
+=== Core Plugins
+The term *core plugin* refers to a plugin that is part of the Gradle distribution such as the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>>.
+They are always available.
+
+=== Community Plugins
+The term *community plugin* refers to a plugin published to the Gradle Plugin Portal (or another public repository) such as the link:https://plugins.gradle.org/plugin/com.diffplug.gradle.spotless[Spotless Plugin].
+
+=== Local or Custom Plugins
+The term *local or custom plugin* refers to a plugin you write yourself for your own build.
+
+== Custom plugins
+
+There are three types of *custom plugins*:
+
+[cols="~,~,~,~,~"]
+|===
+|# |Type |Location: |Most likely: |Benefit:
+
+|<<sec:build_script_plugins,1>>
+|<<sec:build_script_plugins,Script plugins>>
+|A `.gradle(.kts)` script file
+|A local plugin
+|Plugin is automatically compiled and included in the classpath of the build script.
+
+|<<sec:precompile_script_plugin,2>>
+|<<sec:precompile_script_plugin,Precompiled script plugins>>
+|<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> folder or <<composite_builds.adoc#composite_builds,composite>> build
+|A convention plugin
+|Plugin is automatically compiled, tested, and available on the classpath of the build script. The plugin is visible to every build script used by the build.
+
+|<<sec:custom_plugins_standalone_project,3>>
+|<<sec:custom_plugins_standalone_project,Binary plugins>>
+|Standalone project
+|A shared plugin
+|Plugin JAR is produced and published. The plugin can be used in multiple builds and shared with others.
+|===
+
+[[sec:build_script_plugins]]
+== Script plugins
+
+*Script plugins* are typically small, local plugins written in script files for tasks specific to a single build or project.
+They do not need to be reused across multiple projects.
+Script plugins *are not recommended* but many other forms of plugins evolve from script plugins.
+
+To create a plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface.
+
+[[sec:writing_a_simple_plugin]]
+The following sample creates a `GreetingPlugin`, which adds a `hello` task to a project when applied:
+
+====
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[tag=no-script-plugin]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[tag=no-script-plugin]"]
+====
+
+----
+$ gradle -q hello
+include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out[]
+----
+
+The `Project` object is passed as a parameter in `apply()`, which the plugin can use to configure the project however it needs to (such as adding tasks, configuring dependencies, etc.).
+In this example, the plugin is written directly in the build file which is *not a recommended practice*.
+
+When the plugin is written in a separate script file, it can be applied using `apply(from = "file_name.gradle.kts")` or `apply from: 'file_name.gradle'`.
+In the example below, the plugin is coded in the `other.gradle(.kts)` script file.
+Then, the `other.gradle(.kts)` is applied to `build.gradle(.kts)` using `apply from`:
+
+====
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="other.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="other.gradle[]"]
+====
+
+====
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[tag=script-plugin]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[tag=script-plugin]"]
+====
+
+----
+$ gradle -q hi
+include::{snippetsPath}/customPlugins/customPlugin/tests/customPluginScript.out[]
+----
+
+**Script plugins should be avoided.**
+
+[[sec:precompile_script_plugin]]
+== Precompiled script plugins
+
+*Precompiled script plugins* are compiled into class files and packaged into a JAR before they are executed.
+These plugins use the Groovy DSL or Kotlin DSL instead of pure Java, Kotlin, or Groovy.
+They are best used as *convention plugins* that share build logic across projects or as a way to neatly organize build logic.
+
+To create a precompiled script plugin, you can:
+
+1. Use Gradle's Kotlin DSL - The plugin is a `.gradle.kts` file, and apply `` `kotlin-dsl` ``.
+2. Use Gradle's Groovy DSL - The plugin is a `.gradle` file, and apply `id("groovy-gradle-plugin")`.
+
+To apply a precompiled script plugin, you need to know its ID.
+The ID is derived from the plugin script's filename and its (optional) package declaration.
+
+For example, the script `src/main/\*/some-java-library.gradle(.kts)` has a plugin ID of `some-java-library` (assuming it has no package declaration).
+Likewise, `src/main/*/my/some-java-library.gradle(.kts)` has a plugin ID of `my.some-java-library` as long as it has a package declaration of `my`.
+
+Precompiled script plugin names have two important limitations:
+
+* They cannot start with `org.gradle`.
+* They cannot have the same name as a <<plugin_reference#plugin_reference,core plugin>>.
+
+When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply()] method.
+
+NOTE: A new instance of a `Plugin` is created within each project applying that plugin.
+
+Let's rewrite the `GreetingPlugin` script plugin as a precompiled script plugin.
+Since we are using the Groovy or Kotlin DSL, the file essentially becomes the plugin.
+The original script plugin simply created a `hello` task which printed a greeting, this is what we will do in the pre-compiled script plugin:
+
+====
+include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="buildSrc/src/main/kotlin/GreetingPlugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="buildSrc/src/main/groovy/GreetingPlugin.gradle[]"]
+====
+
+The `GreetingPlugin` can now be applied in other subprojects' builds by using its ID:
+
+====
+include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="app/build.gradle.kts[tag=use-plugin]"]
+include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="app/build.gradle[tag=use-plugin]"]
+====
+
+----
+$ gradle -q hello
+include::{snippetsPath}/plugins/greetingPlugin/tests/greeting.out[]
+----
+
+[[sec:convention_plugins]]
+== Convention plugins
+
+A *convention plugin* is typically a precompiled script plugin that configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
+Convention plugins are also used to enforce project standards and help streamline the build process.
+They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
+
+Let's take an example build with three subprojects: one for `data-model`, one for `database-logic` and one for `app` code.
+The project has the following structure:
+
+[source, text]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
+├── data-model
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
+├── database-logic
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
+├── app
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+
+The build file of the `database-logic` subproject is as follows:
+
+====
+include::sample[dir="snippets/plugins/pluginProject/kotlin",files="database-logic/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/pluginProject/groovy",files="database-logic/build.gradle[]"]
+====
+
+We apply the `java-library` plugin and add the `org.jetbrains.kotlin.jvm` plugin for Kotlin support.
+We also configure Kotlin, Java, tests and more.
+
+Our build file is beginning to grow...
+
+The more plugins we apply and the more plugins we configure, the larger it gets.
+There's also repetition in the build files of the `app` and `data-model` subprojects, especially when configuring common extensions like setting the Java version and Kotlin support.
+
+To address this, we use convention plugins.
+This allows us to avoid repeating configuration in each build file and keeps our build scripts more concise and maintainable.
+In convention plugins, we can encapsulate arbitrary build configuration or custom build logic.
+
+To develop a convention plugin, we recommend using <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> – which represents a completely separate Gradle build.
+`buildSrc` has its own settings file to define where dependencies of this build are located.
+
+We add a Kotlin script called `my-java-library.gradle.kts` inside the `buildSrc/src/main/kotlin` directory.
+Or conversely, a Groovy script called `my-java-library.gradle` inside the `buildSrc/src/main/groovy` directory.
+We put all the plugin application and configuration from the `database-logic` build file into it:
+
+====
+include::sample[dir="snippets/plugins/pluginProject/kotlin",files="buildSrc/src/main/kotlin/my-java-library.gradle.kts[]"]
+include::sample[dir="snippets/plugins/pluginProject/groovy",files="buildSrc/src/main/groovy/my-java-library.gradle[]"]
+====
+
+The name of the file `my-java-library` is the ID of our brand-new plugin, which we can now use in all of our subprojects.
+
+TIP: Why is the version of `id 'org.jetbrains.kotlin.jvm'` missing? See <<implementing_gradle_plugins_precompiled.adoc#sec:applying_external_plugins,Applying External Plugins to Pre-Compiled Script Plugins>>.
+
+The `database-logic` build file becomes much simpler by removing all the redundant build logic and applying our convention `my-java-library` plugin instead:
+
+====
+[.multi-language-sample]
+=====
+.database-logic/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("my-java-library")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.database-logic/build.gradle
+[source,groovy]
+----
+plugins {
+    id('my-java-library')
+}
+----
+=====
+====
+
+This convention plugin enables us to easily share common configurations across all our build files.
+Any modifications can be made in one place, simplifying maintenance.
+
+[[sec:custom_plugins_standalone_project]]
+== Binary plugins
+
+*Binary plugins* in Gradle are plugins that are built as standalone JAR files and applied to a project using the `plugins{}` block in the build script.
+
+Let's move our `GreetingPlugin` to a standalone project so that we can publish it and share it with others.
+The plugin is essentially moved from the `buildSrc` folder to its own build called `greeting-plugin`.
+
+NOTE: You can publish the plugin from `buildSrc`, but this is not recommended practice. Plugins that are ready for publication should be in their own build.
+
+`greeting-plugin` is simply a Java project that produces a JAR containing the plugin classes.
+
+The easiest way to package and publish a plugin to a repository is to use the <<java_gradle_plugin.adoc#java_gradle_plugin,Gradle Plugin Development Plugin>>.
+This plugin provides the necessary tasks and configurations (including the plugin metadata) to compile your script into a plugin that can be applied in other builds.
+
+Here is a simple build script for the `greeting-plugin` project using the Gradle Plugin Development Plugin:
+
+====
+include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
+====
+
+For more on publishing plugins, see <<publishing_gradle_plugins.adoc#plugin-publishing-plugin,Publishing Plugins>>.
+
+[[project_vs_settings_vs_init_plugins]]
+==  Project vs Settings vs Init plugins
+
+In the example used through this section, the plugin accepts the link:{groovyDslPath}/org.gradle.api.Project.html[Project] type as a type parameter.
+Alternatively, the plugin can accept a parameter of type link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] to be applied in a settings script, or a parameter of type link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] to be applied in an initialization script.
+
+The difference between these types of plugins lies in the scope of their application:
+
+Project Plugin :: A project plugin is a plugin that is applied to a specific project in a build.
+It can customize the build logic, add tasks, and configure the project-specific settings.
+
+Settings Plugin :: A settings plugin is a plugin that is applied in the `settings.gradle` or `settings.gradle.kts` file.
+It can configure settings that apply to the entire build, such as defining which projects are included in the build, configuring build script repositories, and applying common configurations to all projects.
+
+Init Plugin :: An init plugin is a plugin that is applied in the `init.gradle` or `init.gradle.kts` file.
+It can configure settings that apply globally to all Gradle builds on a machine, such as configuring the Gradle version, setting up default repositories, or applying common plugins to all builds.

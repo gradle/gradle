@@ -1,0 +1,135 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[command_line_interface_basics]]
+= Command-Line Interface Basics
+
+The command-line interface is the primary **method of interacting with Gradle** outside the IDE.
+
+image::gradle-basic-2.png[]
+
+The Gradle CLI is the primary way to interact with a Gradle build from the terminal.
+You can use it to run tasks, inspect the build, manage dependencies, and control logging, all through flexible and powerful command-line options.
+
+TIP: Use of the <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> is highly encouraged. Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
+
+== Running commands
+
+To execute Gradle commands, use the following simple structure:
+
+[source,text]
+----
+gradle [taskName...] [--option-name...]
+----
+
+You can specify one or more tasks separated by spaces.
+
+[source,text]
+----
+gradle [taskName1 taskName2...] [--option-name...]
+----
+
+For example, to run a task named `build`, simply type:
+
+[source,text]
+----
+gradle build
+----
+
+To `clean` first, and then `build`:
+
+[source,text]
+----
+gradle clean build
+----
+
+== Command-line options
+
+Gradle commands can include various options to adjust their behavior.
+Options can appear _before_ or _after_ task names, like so:
+
+[source,text]
+----
+gradle [--option-name...] [taskName...]
+----
+
+For options that accept a value, use an equals sign (`=`) for clarity:
+
+[source,text]
+----
+gradle [...] --console=plain
+----
+
+Some options are toggles and have opposite forms.
+For instance, to enable or disable the build cache:
+
+[source,text]
+----
+gradle build --build-cache
+gradle build --no-build-cache
+----
+
+Gradle also provides short-option equivalents for convenience.
+The following two commands are equivalent:
+
+[source,text]
+----
+gradle --help
+gradle -h
+----
+
+[[command_line_executing_tasks]]
+== Executing tasks
+
+In Gradle, tasks belong to specific projects.
+To clearly indicate which task you want to run, especially in multi-project builds, use a colon (`:`) as a project separator.
+
+To execute a task named `test` at the root project level, use:
+
+[source,text]
+----
+gradle :test
+----
+
+For nested subprojects, specify the full path using colons:
+
+[source,text]
+----
+gradle :subproject:test
+----
+
+If you run a task without any colons, Gradle executes the task in the current directory's project context:
+
+[source,text]
+----
+gradle test
+----
+
+[[disambiguate_task_options_from_built_in_options]]
+== Task options
+
+Some tasks accept their own specific options.
+Pass these options directly after the task name, prefixed with `--`.
+
+Here's how you can pass a custom option:
+
+[source,text]
+----
+gradle taskName --exampleOption=exampleValue
+----
+
+For more details, see the complete <<command_line_interface.adoc#command_line_interface_reference, Gradle CLI reference>>.
+
+[.text-right]
+**Next Step:** <<settings_file_basics.adoc#settings_file_basics,Learn about the Settings file>> >>

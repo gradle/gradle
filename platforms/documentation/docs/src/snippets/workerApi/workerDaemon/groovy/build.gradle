@@ -1,0 +1,68 @@
+// The parameters for a single unit of work
+interface ReverseParameters extends WorkParameters {
+    RegularFileProperty getFileToReverse()
+    DirectoryProperty getDestinationDir()
+}
+
+// The implementation of a single unit of work.
+abstract class ReverseFile implements WorkAction<ReverseParameters> {
+    private final FileSystemOperations fileSystemOperations
+
+    @Inject
+    public ReverseFile(FileSystemOperations fileSystemOperations) {
+        this.fileSystemOperations = fileSystemOperations
+    }
+
+    @Override
+    void execute() {
+        def fileToReverse = parameters.fileToReverse.asFile.get()
+        fileSystemOperations.copy {
+            from fileToReverse
+            into parameters.destinationDir
+            filter { String line -> line.reverse() }
+        }
+        if (Boolean.getBoolean("org.gradle.sample.showFileSize")) {
+            println "Reversed ${fileToReverse.size()} bytes from ${fileToReverse.name}"
+        }
+    }
+}
+
+abstract class ReverseFiles extends SourceTask {
+    private final WorkerExecutor workerExecutor
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDir()
+
+    // The WorkerExecutor will be injected by Gradle at runtime
+    @Inject
+    ReverseFiles(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor
+    }
+
+    @TaskAction
+    void reverseFiles() {
+        // tag::worker-daemon[]
+        // Create a WorkQueue with process isolation
+        WorkQueue workQueue = workerExecutor.processIsolation() { ProcessWorkerSpec spec ->
+            // Configure the options for the forked process
+            forkOptions { JavaForkOptions options ->
+                options.maxHeapSize = "512m"
+                options.systemProperty "org.gradle.sample.showFileSize", "true"
+            }
+        }
+
+        // Create and submit a unit of work for each file
+        source.each { file ->
+            workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->
+                parameters.fileToReverse = file
+                parameters.destinationDir = outputDir
+            }
+        }
+        // end::worker-daemon[]
+    }
+}
+
+task reverseFiles(type: ReverseFiles) {
+    outputDir = file("${buildDir}/reversed")
+    source("sources")
+}

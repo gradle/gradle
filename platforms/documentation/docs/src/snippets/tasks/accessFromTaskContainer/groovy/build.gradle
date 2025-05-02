@@ -1,0 +1,6 @@
+tasks.register('hello')
+tasks.register('copy', Copy)
+
+println tasks.named('hello').get().name
+
+println tasks.named('copy').get().destinationDir

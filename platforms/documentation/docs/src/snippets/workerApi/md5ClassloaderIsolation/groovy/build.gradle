@@ -1,0 +1,23 @@
+plugins { id 'base' }
+
+repositories {
+    mavenCentral() // <1>
+}
+
+configurations.create('codec') { // <2>
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    }
+    visible = false
+    canBeConsumed = false
+}
+
+dependencies {
+    codec 'commons-codec:commons-codec:1.10' // <3>
+}
+
+tasks.register('md5', CreateMD5) {
+    codecClasspath.from(configurations.codec) // <4>
+    destinationDirectory = project.layout.buildDirectory.dir('md5')
+    source(project.layout.projectDirectory.file('src'))
+}

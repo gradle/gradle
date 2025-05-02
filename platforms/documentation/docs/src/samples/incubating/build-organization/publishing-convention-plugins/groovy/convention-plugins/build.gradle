@@ -1,0 +1,46 @@
+// tag::apply[]
+// tag::publish[]
+plugins {
+    id 'groovy-gradle-plugin'
+// end::apply[]
+    id 'maven-publish'
+    id 'java'
+// tag::apply[]
+}
+// end::apply[]
+
+group = 'com.myorg.conventions'
+version = '1.0'
+
+publishing {
+    repositories {
+        maven {
+            // change to point to your repo, e.g. http://my.org/repo
+            url = layout.buildDirectory.dir("repo")
+        }
+    }
+}
+
+tasks.named('publish') {
+    dependsOn('check')
+}
+
+// end::publish[]
+
+testing {
+    suites {
+        test {
+            useSpock()
+        }
+    }
+}
+
+// tag::repositories-and-dependencies[]
+repositories {
+    gradlePluginPortal() // so that external plugins can be resolved in dependencies section
+}
+
+dependencies {
+    implementation 'com.github.spotbugs.snom:spotbugs-gradle-plugin:5.2.1'
+}
+// end::repositories-and-dependencies[]

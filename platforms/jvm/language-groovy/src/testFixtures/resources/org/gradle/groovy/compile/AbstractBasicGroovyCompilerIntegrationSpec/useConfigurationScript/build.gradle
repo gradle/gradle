@@ -1,0 +1,12 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+compileGroovy {
+    if (JavaVersion.current().isJava9Compatible()) {
+        groovyOptions.forkOptions.jvmArgs += ['--add-opens', 'java.base/jdk.internal.loader=ALL-UNNAMED']
+    }
+}
+compileGroovy.groovyOptions.configurationScript = file('groovycompilerconfig.groovy')

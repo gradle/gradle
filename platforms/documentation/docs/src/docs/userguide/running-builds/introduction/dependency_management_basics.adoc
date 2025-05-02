@@ -1,0 +1,144 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency_management_basics]]
+= Dependencies and Dependency Management Basics
+
+Gradle has built-in support for *dependency management*.
+
+image::gradle-basic-7.png[]
+
+Dependency management is an automated technique for declaring and resolving external resources required by a project (i.e., dependencies).
+
+*Dependencies* include JARs, plugins, libraries, or source code that support building your project.
+They *are declared in build scripts*.
+
+Gradle automatically handles downloading, caching, and resolving these dependencies, saving you from managing them manually.
+It also handles version conflicts and supports flexible version declarations.
+
+== Declaring Your Dependencies
+
+To add a dependency to your project, specify a dependency in the `dependencies {}` block of your `build.gradle(.kts)` file.
+
+The following `build.gradle.kts` file adds a plugin and two dependencies to the project:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/introductionDependencies">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-dep]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-dep]"]
+====
+<1> Applies the Java Library plugin, which adds support for building Java libraries.
+<2> Adds a dependency on Google's Guava library used in production code.
+<3> Adds a dependency on Apache's Juneau Marshall library, used in library code.
+
+Dependencies in Gradle are grouped by *configurations*, which define when and how the dependency is used:
+
+- `implementation` is used for dependencies needed to compile and run your production code.
+- `api` is used for dependencies that should be exposed to consumers of your library.
+
+NOTE: Gradle supports many other configurations, such as `testImplementation`, `runtimeOnly`, `compileOnly`, `api`, and more.
+
+== Viewing Project Dependencies
+
+You can inspect the dependency tree using the `dependencies` task.
+For example, to view the dependencies of the `:app` project:
+
+[source,text]
+----
+$ ./gradlew :app:dependencies
+----
+
+Gradle will output the dependency tree, grouped by configuration:
+
+[source,text]
+----
+$ ./gradlew :app:dependencies
+
+> Task :app:dependencies
+
+------------------------------------------------------------
+Project ':app'
+------------------------------------------------------------
+
+...
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.juneau:juneau-marshall:8.2.0
+|    \--- org.apache.httpcomponents:httpcore:4.4.13
+\--- com.google.guava:guava:32.1.2-jre
+     +--- com.google.guava:guava-parent:32.1.2-jre
+     |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
+     |    +--- org.checkerframework:checker-qual:3.33.0 (c)
+     |    \--- com.google.errorprone:error_prone_annotations:2.18.0 (c)
+     +--- com.google.guava:failureaccess:1.0.1
+     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     +--- com.google.code.findbugs:jsr305 -> 3.0.2
+     +--- org.checkerframework:checker-qual -> 3.33.0
+     \--- com.google.errorprone:error_prone_annotations -> 2.18.0
+----
+
+== Using a Version Catalog
+
+A version catalog provides a centralized and consistent way to manage dependency coordinates and versions across your entire build.
+Instead of declaring versions directly in each `build.gradle(.kts)` file, you define them once in a `libs.versions.toml` file.
+
+This makes it easier to:
+
+* Share common dependency declarations between subprojects
+* Avoid duplication and version inconsistencies
+* Enforce dependency and plugin versions across large projects
+
+The version catalog typically contains four sections:
+
+1. `[versions]` to declare the version numbers that plugins and libraries will reference.
+2. `[libraries]` to define the libraries used in the build files.
+3. `[bundles]` to define a set of dependencies.
+4. `[plugins]` to define plugins.
+
+Here's an example:
+
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="gradle/libs.versions.toml[]"]
+====
+
+Place this file in the `gradle/` directory of your project as `libs.versions.toml`.
+Gradle will pick it up automatically and expose its contents through the `libs` accessor in your build scripts.
+IDEs like IntelliJ and Android Studio will also pick up this metadata for code completion.
+
+Once defined, you can reference these aliases directly in your build file:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/introductionDependencies">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-catalog]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-catalog]"]
+====
+
+To learn more, consult the <<getting_started_dep_man.adoc#dependency-management-in-gradle,Dependency Management chapter>>.
+
+[.text-right]
+**Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>

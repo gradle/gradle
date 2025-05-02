@@ -1,0 +1,6 @@
+> Task :clean UP-TO-DATE
+> Task :compileJava
+> Task :instrumentClasses
+
+BUILD SUCCESSFUL in 0s
+5 actionable tasks: 4 executed, 1 up-to-date

@@ -1,0 +1,51 @@
+plugins {
+    id 'java-library'
+    id 'checkstyle'
+}
+
+version = '1.2.1'
+
+java {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+ext {
+    currentBuildNumber = '1234'
+}
+
+// tag::repositories[]
+repositories {
+    mavenCentral()
+}
+// end::repositories[]
+
+// tag::compile-dependencies[]
+dependencies {
+    implementation 'log4j:log4j:1.2.12'  // <1>
+}
+// end::compile-dependencies[]
+
+// tag::pom-dependencies[]
+dependencies {
+    testImplementation 'org.codehaus.groovy:groovy-all:2.5.4'
+}
+// end::pom-dependencies[]
+
+// tag::process-resources[]
+processResources {
+    expand(version: version, buildNumber: currentBuildNumber)
+}
+// end::process-resources[]
+
+// tag::checkstyle[]
+checkstyle {
+    config = resources.text.fromFile('checkstyle.xml', 'UTF-8')
+    showViolations = true
+    ignoreFailures = false
+}
+// end::checkstyle[]
+
+// tag::depends-on[]
+test.mustRunAfter checkstyleMain, checkstyleTest
+// end::depends-on[]

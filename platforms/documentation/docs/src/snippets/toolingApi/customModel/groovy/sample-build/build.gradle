@@ -1,0 +1,10 @@
+buildscript {
+    repositories {
+        ivy { url = file('../plugin/build/repo') }
+    }
+    dependencies {
+        classpath 'org.gradle.sample:plugin:1.0'
+    }
+}
+
+apply plugin: 'custom-plugin'

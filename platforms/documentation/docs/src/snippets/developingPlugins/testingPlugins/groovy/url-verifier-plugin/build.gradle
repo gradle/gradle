@@ -1,0 +1,83 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+// tag::test-source-set[]
+def integrationTest = sourceSets.create("integrationTest")
+
+dependencies {
+    integrationTestImplementation(project)
+}
+// end::test-source-set[]
+
+// tag::test-task[]
+def integrationTestTask = tasks.register("integrationTest", Test) {
+    description = 'Runs the integration tests.'
+    group = "verification"
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = integrationTest.runtimeClasspath
+    mustRunAfter(tasks.named('test'))
+}
+tasks.named('check') {
+    dependsOn(integrationTestTask)
+}
+// end::test-task[]
+
+def functionalTest = sourceSets.create("functionalTest")
+dependencies {
+    functionalTestImplementation(project)
+}
+def functionalTestTask = tasks.register("functionalTest", Test) {
+    description = 'Runs the functional tests.'
+    group = "verification"
+    testClassesDirs = functionalTest.output.classesDirs
+    classpath = functionalTest.runtimeClasspath
+    mustRunAfter(tasks.named('test'), integrationTestTask)
+}
+tasks.named('check') {
+    dependsOn(functionalTestTask)
+}
+
+// tag::test-framework[]
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform("org.spockframework:spock-bom:2.2-groovy-3.0")
+    testImplementation 'org.spockframework:spock-core'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    integrationTestImplementation platform("org.spockframework:spock-bom:2.2-groovy-3.0")
+    integrationTestImplementation 'org.spockframework:spock-core'
+    integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    functionalTestImplementation platform("org.spockframework:spock-bom:2.2-groovy-3.0")
+    functionalTestImplementation 'org.spockframework:spock-core'
+    functionalTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(Test).configureEach {
+    // Using JUnitPlatform for running tests
+    useJUnitPlatform()
+}
+// end::test-framework[]
+
+// tag::source-set-config[]
+gradlePlugin {
+    testSourceSets(sourceSets.functionalTest)
+}
+// end::source-set-config[]
+
+gradlePlugin {
+    plugins {
+        urlVerifierPlugin {
+            id = 'org.myorg.url-verifier'
+            implementationClass = 'org.myorg.UrlVerifierPlugin'
+        }
+    }
+}

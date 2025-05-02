@@ -1,0 +1,16 @@
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :assemble
+> Task :compileTestJava
+> Task :processTestResources
+> Task :testClasses
+> Task :test
+> Task :check
+> Task :javadoc
+> Task :checkJavadocOutput
+> Task :build
+
+BUILD SUCCESSFUL in 0s
+8 actionable tasks: 8 executed

@@ -1,0 +1,80 @@
+// tag::code[]
+import org.apache.commons.codec.binary.Base64
+
+buildscript {
+    repositories {  // this is where the plugins are located
+        mavenCentral()
+        google()
+    }
+    dependencies { // these are the plugins that can be used in subprojects or in the build file itself
+        classpath group: 'commons-codec', name: 'commons-codec', version: '1.2' // used in the task below
+        classpath 'com.android.tools.build:gradle:4.1.0' // used in subproject
+    }
+}
+// end::code[]
+
+// tag::apply[]
+// tag::apply-conv[]
+plugins {
+    id 'my-create-file-plugin' // Apply the pre-compiled convention plugin
+// end::apply-conv[]
+    id 'com.example.my-binary-plugin' // Apply the binary plugin
+// tag::apply-conv[]
+    id 'groovy' // Apply the Groovy DSL plugin
+}
+// end::apply-conv[]
+// end::apply[]
+
+// tag::code[]
+tasks.register('encode') {
+    doLast {
+        def byte[] encodedString = new Base64().encode('hello world\n'.getBytes())
+        println new String(encodedString)
+    }
+}
+// end::code[]
+
+// tag::plugin[]
+class SamplePlugin implements Plugin<Project> { // <1>
+    void apply(Project project) {   // <2>
+        project.tasks.register("ScriptPlugin") {
+            doLast {
+                println("Hello world from the build file!")
+            }
+        }
+    }
+}
+
+apply plugin: SamplePlugin // <3>
+// end::plugin[]
+
+// tag::plugin-1[]
+class SamplePlugin1 implements Plugin<Project> { // <1>
+    void apply(Project project) {   // <2>
+        project.tasks.register("helloTaskInRootBuildFileSamplePlugin1") {
+            doLast {
+                println("Hello world from the root build file!")
+            }
+        }
+    }
+}
+
+apply plugin: SamplePlugin1
+// end::plugin-1[]
+
+// tag::plugin-2[]
+class SamplePlugin2 implements Plugin<Project> {
+    void apply(Project project) {
+        project.tasks.register("createFileTaskInRootBuildFileSamplePlugin2") {
+            doLast {
+                String fileText = "HELLO FROM MY SCRIPT PLUGIN"
+                File myFile = new File("myfile.txt")
+                myFile.createNewFile()
+                myFile.writeText(fileText)
+            }
+        }
+    }
+}
+
+apply plugin: SamplePlugin2  // <1>
+// end::plugin-2[]

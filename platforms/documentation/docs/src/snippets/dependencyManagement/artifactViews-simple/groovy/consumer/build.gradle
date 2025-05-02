@@ -1,0 +1,75 @@
+// tag::artifact-views-app[]
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Declare the dependency on the producer project
+dependencies {
+    implementation project(':producer')
+}
+// end::artifact-views-app[]
+
+tasks.register('checkResolvedVariant') {
+    println "RuntimeClasspath Configuration:"
+    def resolvedArtifacts = configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts
+    resolvedArtifacts.get().each { artifact ->
+        println "- Artifact: ${artifact.file}"
+    }
+    def resolvedComponents = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
+    resolvedComponents.each { component ->
+        if (component.id.displayName == 'project :producer') {
+            println "- Component: ${component.id}"
+            component.variants.each { variant ->
+                println "    - Variant: ${variant}"
+                variant.attributes.keySet().each { key ->
+                    println "       - ${key.name} -> ${variant.attributes.getAttribute(key)}"
+                }
+            }
+        }
+    }
+}
+
+// tag::artifact-views-sel[]
+tasks.register('artifactWithAttributeAndView') {
+    def configuration = configurations.runtimeClasspath
+    println "ArtifactView with attribute 'libraryelements = classes' for ${configuration.name}:"
+    def artifactView = configuration.incoming.artifactView {
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, 'classes'))
+        }
+    }
+    println "- Attributes:"
+    artifactView.attributes.keySet().each { attribute ->
+        def value = artifactView.attributes.getAttribute(attribute)
+        println "  - ${attribute.name} = ${value}"
+    }
+    artifactView.artifacts.artifactFiles.files.each { file ->
+        println "- Artifact: ${file.name}"
+    }
+}
+// tag::artifact-views-sel[]
+
+// tag::artifact-views-resel[]
+tasks.register('artifactWithAttributeAndVariantReselectionView') {
+    def configuration = configurations.runtimeClasspath
+    println "ArtifactView with attribute 'category = production' for ${configuration.name}:"
+    def artifactView = configuration.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category,'production'))
+        }
+    }
+    println "- Attributes:"
+    artifactView.attributes.keySet().each { attribute ->
+        def value = artifactView.attributes.getAttribute(attribute)
+        println "  - ${attribute.name} = ${value}"
+    }
+    artifactView.artifacts.artifactFiles.files.each { file ->
+        println "- Artifact: ${file.name}"
+    }
+}
+// end::artifact-views-resel[]

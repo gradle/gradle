@@ -1,0 +1,7 @@
+apply plugin: "groovy"
+
+dependencies {
+    implementation localGroovy()
+}
+
+compileGroovy.groovyOptions.configurationScript = file('groovycompilerconfig.groovy')

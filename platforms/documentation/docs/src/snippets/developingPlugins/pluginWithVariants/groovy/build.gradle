@@ -1,0 +1,61 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'org.example'
+version = '1.0'
+
+// tag::add-plugin-variant[]
+def gradle7 = sourceSets.create('gradle7')
+
+java {
+    registerFeature(gradle7.name) {
+        usingSourceSet(gradle7)
+        capability(project.group.toString(), project.name, project.version.toString()) // <1>
+    }
+}
+
+configurations.configureEach {
+    if (canBeConsumed && name.startsWith(gradle7.name))  {
+        attributes {
+            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, // <2>
+                      objects.named(GradlePluginApiVersion, '7.0'))
+        }
+    }
+}
+
+tasks.named(gradle7.processResourcesTaskName) { // <3>
+    def copyPluginDescriptors = rootSpec.addChild()
+    copyPluginDescriptors.into('META-INF/gradle-plugins')
+    copyPluginDescriptors.from(tasks.pluginDescriptors)
+}
+
+dependencies {
+    gradle7CompileOnly(gradleApi()) // <4>
+}
+// end::add-plugin-variant[]
+
+// tag::consume-plugin-variant[]
+configurations.configureEach {
+    if (canBeResolved && name.startsWith(gradle7.name))  {
+        attributes {
+            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+                objects.named(GradlePluginApiVersion, '7.0'))
+        }
+    }
+}
+// end::consume-plugin-variant[]
+
+gradlePlugin {
+    plugins.create('greeting') {
+        id = 'org.example.greeting'
+        implementationClass = 'org.example.GreetingPlugin'
+    }
+}
+
+publishing {
+    repositories {
+        maven { url = layout.buildDirectory.dir('local-repo') }
+    }
+}

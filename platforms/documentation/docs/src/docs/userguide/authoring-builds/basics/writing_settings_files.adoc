@@ -1,0 +1,229 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[writing_settings_files]]
+= Writing Settings Files
+
+The settings file is the entry point of every Gradle build.
+
+image::author-gradle-7.png[]
+
+Early in the Gradle Build lifecycle, the <<build_lifecycle.adoc#sec:initialization,initialization phase>> finds the settings file in your <<directory_layout#dir:project_root,project root directory>>.
+
+When the settings file `settings.gradle(.kts)` is found, Gradle instantiates a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] object.
+
+One of the purposes of the `Settings` object is to allow you to declare all the projects to be included in the build.
+
+[[sec:settings_script]]
+== Settings Scripts
+
+The settings script is either a `settings.gradle` file in Groovy or a `settings.gradle.kts` file in Kotlin.
+
+Before Gradle assembles the projects for a build, it creates a `Settings` instance and executes the settings file against it.
+
+image::author-gradle-3.png[Settings,500,63,align="left"]
+
+As the settings script executes, it configures this `Settings`.
+Therefore, the _settings file_ defines the `Settings` object.
+
+IMPORTANT: There is a one-to-one correspondence between a `Settings` instance and a `settings.gradle(.kts)` file.
+
+== The `Settings` Object
+
+The `Settings` object is part of the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Gradle API].
+
+- In the Groovy DSL, the `Settings` object documentation is found link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[here].
+- In the Kotlin DSL, the `Settings` object documentation is found link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[here].
+
+Many top-level properties and blocks in a settings script are part of the Settings API.
+
+For example, we can set the root project name in the settings script using the `Settings.rootProject` property:
+
+[source,kotlin]
+----
+settings.rootProject.name = "application"
+----
+
+Which is usually shortened to:
+
+====
+include::sample[dir="snippets/java/application/kotlin",files="settings.gradle.kts[tags=root-project-name]"]
+include::sample[dir="snippets/java/application/groovy",files="settings.gradle[tags=root-project-name]"]
+====
+
+[[sec:standard_settings_properties]]
+=== Standard `Settings` properties
+
+The `Settings` object exposes a standard set of properties in your settings script.
+
+The following table lists a few commonly used properties:
+
+[%autowidth.stretch]
+|===
+| Name | Description
+
+| `buildCache`
+| The build cache configuration.
+
+| `plugins`
+| The container of plugins that have been applied to the settings.
+
+| `rootDir`
+| The root directory of the build. The root directory is the project directory of the root project.
+
+| `rootProject`
+| The root project of the build.
+
+| `settings`
+| Returns this settings object.
+|===
+
+The following table lists a few commonly used methods:
+
+[%autowidth.stretch]
+|===
+| Name | Description
+
+| `include()`
+| Adds the given projects to the build.
+
+| `includeBuild()`
+| Includes a build at the specified path to the composite build.
+|===
+
+== Settings Script structure
+
+A Settings script is a series of method calls to the Gradle API that often use `{ ... }`, a special shortcut in both the Groovy and Kotlin languages.
+A `{ }` block is called a _lambda_ in Kotlin or a _closure_ in Groovy.
+
+Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
+It is the short form for:
+
+[source,text]
+----
+plugins(function() {
+    id("plugin")
+})
+----
+
+Blocks are mapped to Gradle API methods.
+
+The code inside the function is executed against a `this` object called a _receiver_ in Kotlin lambda and a _delegate_ in Groovy closure.
+Gradle determines the correct `this` object and invokes the correct corresponding method.
+The `this` of the method invocation `id("plugin")` object is of type link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[`PluginDependenciesSpec`].
+
+The settings file is composed of Gradle API calls built on top of the DSLs.
+Gradle executes the script line by line, top to bottom.
+
+Let's take a look at an example and break it down:
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/plugins/simple/groovy",files="settings.gradle[]"]
+====
+<1> Define the location of plugins
+<2> Apply settings plugins.
+<3> Define the root project name.
+<4> Define dependency resolution strategies.
+<5> Add subprojects to the build.
+
+=== 1. Define the location of plugins
+
+The settings file can manage plugin versions and repositories for your build using the link:{javadocPath}/org/gradle/plugin/management/PluginManagementSpec.html[`pluginManagement`] block.
+It provides a way to define which plugins should be used in your project and from which repositories they should be resolved.
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin",files="settings.gradle.kts[tags=simple-setting-repositories]"]
+include::sample[dir="snippets/plugins/simple/groovy",files="settings.gradle[tags=simple-setting-repositories]"]
+====
+
+=== 2. Apply settings plugins
+
+The settings file can optionally link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[apply plugins] that are required for configuring the settings of the project.
+These are commonly the link:https://plugins.gradle.org/plugin/com.gradle.develocity[Develocity plugin] and the link:https://plugins.gradle.org/plugin/org.gradle.toolchains.foojay-resolver-convention[Toolchain Resolver plugin] in the example below.
+
+Plugins applied in the settings file only affect the `Settings` object.
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin",files="settings.gradle.kts[tags=simple-setting-plugins]"]
+include::sample[dir="snippets/plugins/simple/groovy",files="settings.gradle[tags=simple-setting-plugins]"]
+====
+
+=== 3. Define the root project name
+
+The settings file defines your project name using the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[`rootProject.name` property]:
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin",files="settings.gradle.kts[tags=simple-setting-name]"]
+include::sample[dir="snippets/plugins/simple/groovy",files="settings.gradle[tags=simple-setting-name]"]
+====
+
+There is only one root project per build.
+
+=== 4. Define dependency resolution strategies
+
+The settings file can optionally link:{javadocPath}/org/gradle/api/initialization/resolve/DependencyResolutionManagement.html[define rules and configurations] for dependency resolution across your project(s).
+It provides a centralized way to manage and customize dependency resolution.
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin",files="settings.gradle.kts[tags=simple-setting-dep]"]
+include::sample[dir="snippets/plugins/simple/groovy",files="settings.gradle[tags=simple-setting-dep]"]
+====
+
+You can also include version catalogs in this section.
+
+=== 5. Add subprojects to the build
+
+The settings file defines the structure of the project by adding all the subprojects using the link:{javadocPath}/org/gradle/api/initialization/Settings.html[`include`] statement:
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin",files="settings.gradle.kts[tags=simple-setting-sub]"]
+include::sample[dir="snippets/plugins/simple/groovy",files="settings.gradle[tags=simple-setting-sub]"]
+====
+
+You can also include entire builds using link:{javadocPath}/org/gradle/api/initialization/IncludedBuild.html[`includeBuild`].
+
+== Settings File Scripting
+
+There are many more properties and methods on the `Settings` object that you can use to configure your build.
+
+It's important to remember that while many Gradle scripts are typically written in short Groovy or Kotlin syntax, every item in the settings script is essentially invoking a method on the `Settings` object in the Gradle API:
+
+[source,kotlin]
+----
+include("app")
+----
+
+Is actually:
+
+[source,kotlin]
+----
+settings.include("app")
+----
+
+Additionally, the full power of the Groovy and Kotlin languages is available to you.
+
+For example, instead of using `include` many times to add subprojects, you can iterate over the list of directories in the project root folder and include them automatically:
+
+[source,kotlin]
+----
+rootDir.listFiles().filter { it.isDirectory && (new File(it, "build.gradle.kts").exists()) }.forEach {
+    include(it.name)
+}
+----
+
+TIP: This type of logic should be developed in a plugin.
+
+[.text-right]
+**Next Step:** <<writing_build_scripts.adoc#writing_build_scripts,Learn how to write Build scripts>> >>

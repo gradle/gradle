@@ -1,0 +1,25 @@
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    scm
+}
+
+dependencies {
+    scm 'org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r'
+    scm 'commons-codec:commons-codec:1.7'
+}
+
+// tag::iteration-task[]
+tasks.register('iterateResolvedArtifacts') {
+    dependsOn configurations.scm
+
+    def scm = configurations.scm
+    doLast {
+        scm.each {
+            logger.quiet it.absolutePath
+        }
+    }
+}
+// end::iteration-task[]

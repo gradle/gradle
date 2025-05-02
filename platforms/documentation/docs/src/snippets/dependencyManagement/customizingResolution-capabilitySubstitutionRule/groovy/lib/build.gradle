@@ -1,0 +1,7 @@
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+}
+
+group = 'com.acme'
+version = '1.0'

@@ -1,0 +1,19 @@
+interface GreetingPluginExtension {
+    Property<String> getMessage()
+}
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        // Add the 'greeting' extension object
+        def extension = project.extensions.create('greeting', GreetingPluginExtension)
+        extension.message.convention('Hello from GreetingPlugin')
+        // Add a task that uses configuration from the extension object
+        project.task('hello') {
+            doLast {
+                println extension.message.get()
+            }
+        }
+    }
+}
+
+apply plugin: GreetingPlugin

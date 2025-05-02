@@ -1,0 +1,3 @@
+++++
+<meta http-equiv="refresh" content="0;URL=part1_gradle_init_project.html">
+++++

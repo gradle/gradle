@@ -1,0 +1,242 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[viewing-debugging-dependencies]]
+= Viewing Dependencies
+
+Gradle offers tools to navigate the results of dependency management, allowing you to more precisely understand how and why Gradle resolves dependencies.
+You can render a full dependency graph, identify the origin of a given dependency, and see why specific versions were selected.
+Dependencies can come from build script declarations or transitive relationships.
+
+[[sec:debugging-build-scans]]
+To visualize dependencies, you can use:
+
+- The `dependencies` task
+- The `dependencyInsight` task
+- A link:https://scans.gradle.com/[Build Scan]
+
+[[sec:listing-dependencies]]
+== List project dependencies using the `dependencies` task
+
+Gradle provides the built-in `dependencies` task to render a dependency tree from the command line.
+By default, the task shows dependencies for all <<dependency_configurations.adoc#sub:what-are-dependency-configurations,configurations>> within a <<command_line_interface#executing_tasks_in_multi_project_builds,single project>>.
+The dependency tree shows the selected version of each dependency and provides information on conflict resolution.
+
+The `dependencies` task is particularly useful for analyzing transitive dependencies.
+While your build file lists direct dependencies, the task helps you understand which transitive dependencies are resolved during the build.
+
+[source,text]
+----
+$ ./gradlew dependencies
+----
+
+TIP: To render the graph of dependencies <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declared in the `buildscript` `classpath` configuration>>, use the <<command_line_interface.adoc#sec:listing_project_dependencies, `buildEnvironment` task>>.
+
+=== Understanding output annotations
+
+[source,text]
+----
+$ ./gradlew :app:dependencies
+
+> Task :app:dependencies
+
+------------------------------------------------------------
+Project ':app'
+------------------------------------------------------------
+
+annotationProcessor - Annotation processors and their dependencies for source set 'main'.
+No dependencies
+
+compileClasspath - Compile classpath for source set 'main'.
+\--- com.fasterxml.jackson.core:jackson-databind:2.17.2
+     +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2
+     |    \--- com.fasterxml.jackson:jackson-bom:2.17.2
+     |         +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2 (c)
+     |         +--- com.fasterxml.jackson.core:jackson-core:2.17.2 (c)
+     |         \--- com.fasterxml.jackson.core:jackson-databind:2.17.2 (c)
+     +--- com.fasterxml.jackson.core:jackson-core:2.17.2
+     |    \--- com.fasterxml.jackson:jackson-bom:2.17.2 (*)
+     \--- com.fasterxml.jackson:jackson-bom:2.17.2 (*)
+
+...
+----
+
+The `dependencies` task marks dependency trees with the following annotations:
+
+- `(*)`: Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+- `(c)`: This element is a <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, not a dependency. Look for the matching dependency elsewhere in the tree.
+- `(n)`: A dependency or dependency configuration that <<declaring_configurations.adoc#sec:resolvable-consumable-configs,cannot be resolved>>.
+
+=== Specifying a dependency configuration
+
+To focus on a specific dependency configuration, use the optional `--configuration` parameter.
+
+Like <<command_line_interface#sec:name_abbreviation, project and task names>>, Gradle allows abbreviated names for dependency configurations.
+For example, you can use `tRC` instead of `testRuntimeClasspath`, as long as it matches a unique configuration.
+
+The following examples display dependencies for the `testRuntimeClasspath` configuration in a Java project:
+
+[source,bash]
+----
+$ gradle -q dependencies --configuration testRuntimeClasspath
+----
+
+[source,bash]
+----
+$ gradle -q dependencies --configuration tRC
+----
+
+To view a list of all configurations in a project, including those provided by plugins, run the `resolvableConfigurations` report.
+For more details, refer to the plugin’s documentation, such as the Java Plugin <<java_plugin.adoc#sec:java_plugin_and_dependency_management,here>>.
+
+=== Looking at an example
+
+Consider a project that uses the link:https://www.eclipse.org/jgit/[JGit library] to execute Source Control Management (SCM) operations for a release process.
+You can declare dependencies for external tooling with the help of a <<dependency_configurations.adoc#sub:what-are-dependency-configurations,custom dependency configuration>>.
+This avoids polluting other contexts, such as the compilation classpath for your production source code.
+
+The following example declares a custom dependency configuration named `scm` that contains the JGit dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+====
+
+Use the following command to view a dependency tree for the `scm` dependency configuration:
+
+----
+$ gradle -q dependencies --configuration scm
+include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependenciesReport/tests/dependencyReport.out[]
+----
+
+[[sec:identifying-reason-dependency-selection]]
+== Identify the selected version using the `dependencyInsight` task
+
+A project may request two different versions of the same dependency either directly or transitively that may result in a <<graph_resolution.adoc#sec:version-conflict,version conflict>>.
+
+The following example introduces a conflict with `commons-codec:commons-codec`, added both as a direct dependency and a transitive dependency of JGit:
+
+====
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+====
+
+Gradle provides the built-in `dependencyInsight` task to render a  _dependency insight report_ from the command line.
+
+Dependency insights provide information about a single dependency within a single <<dependency_configurations.adoc#sub:what-are-dependency-configurations,configuration>>.
+Given a dependency, you can identify the reason and origin for its version selection.
+
+`dependencyInsight` accepts the following parameters:
+
+`--dependency <dependency>` (mandatory)::
+The dependency to investigate.
+You can supply a complete `group:name`, or part of it.
+If multiple dependencies match, Gradle generates a report covering all matching dependencies.
+`--configuration <name>` (mandatory)::
+The dependency configuration which resolves the given dependency.
+This parameter is optional for projects that use the <<java_plugin#java_plugin, Java plugin>>, since the plugin provides a default value of `compileClasspath`.
+`--single-path` (optional)::
+Render only a single path to the dependency.
+`--all-variants` (optional)::
+Render information about all variants, not only the selected variant.
+
+The following code snippet demonstrates how to run a dependency insight report for all paths to a dependency named `commons-codec` within the `scm` configuration:
+
+----
+$ gradle -q dependencyInsight --dependency commons-codec --configuration scm
+include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyInsightReport/tests/dependencyInsightReport.out[]
+----
+
+=== Understanding the selection reasons
+
+The "Selection reasons" section of the dependency insight report lists the reasons why a dependency was selected.
+
+[%header%autowidth,compact]
+|===
+| Reason    | Meaning
+
+| (Absent)
+| No reason other than a reference, direct or transitive, was present.
+
+| Was requested : <text>
+| The dependency appears in the graph, and the inclusion came with a <<declaring_dependencies_basics.adoc#sec:documenting-dependencies, `because` text>>.
+
+| Was requested : didn't match versions <versions>
+| The dependency appears with a <<dependency_versions.adoc#sec:declaring-dependency-with-dynamic-version, dynamic version>> which did not include the listed versions.
+May be followed by a `because` text.
+
+| Was requested : reject version <versions>
+| The dependency appears with a <<dependency_versions.adoc#sec:rich-version-constraints, rich version>> containing one or more `reject`.
+May be followed by a `because` text.
+
+| By conflict resolution : between versions <version>
+| The dependency appeared multiple times, with different version requests.
+This resulted in <<graph_resolution.adoc#sec:version-conflict, conflict resolution>> to select the most appropriate version.
+
+| By constraint
+| A <<dependency_constraints#sec:adding-constraints-transitive-deps, dependency constraint>> participated in the version selection.
+May be followed by a `because` text.
+
+| By ancestor
+| There is a <<dependency_versions.adoc#sec:rich-version-constraints, rich version>> with a `strictly` which enforces the version of this dependency.
+
+| Selected by rule
+| A <<resolution_rules.adoc#using-resolution-rules, dependency resolution rule>> overruled the default selection process.
+May be followed by a `because` text.
+
+| Rejection : <version> by rule because <text>
+| A `ComponentSelection.reject` link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[rejected the given version] of the dependency.
+
+| Rejection: version <version>: <attributes information>
+| The dependency has a dynamic version and some versions did not match the <<variant_aware_resolution.adoc#sec:variant-aware-matching, requested attributes>>.
+
+| Forced
+| The build enforces the version of the dependency through an enforced platform or resolution strategy.
+|===
+
+If multiple selection reasons exist, the insight report lists all of them.
+
+[[sec:dependencies-build-scans]]
+== Get a holistic view using Build Scans
+
+The dependency tree in a link:https://scans.gradle.com/[Build Scan] shows information about conflicts.
+
+A <<build_scans.adoc#build_scans,Build Scan was created>> for the `commons-codec` example above and a URL was provided with the results.
+
+Head over to the `Dependencies` tab and navigate to your desired dependency.
+Select the `Required By` tab to see the selection reason and origin of the dependency:
+
+image::dependency-management-dependency-insight-report-build-scan.png[]
+
+[[sub:resolving-unsafe-configuration-resolution-errors]]
+== Resolving unsafe configuration resolution errors
+
+Resolving a configuration can have side effects on Gradle's project model, so Gradle needs manage access to each project's configurations.
+There are a number of ways a configuration might be resolved unsafely.
+Gradle will produce a deprecation warning for each unsafe access.
+Each of these are bad practices and can cause strange and indeterminate errors.
+
+If your build has an unsafe access deprecation warning, it needs to be fixed.
+
+For example:
+
+* A task from one project directly resolves a configuration in another project in the task's action.
+* A task specifies a configuration from another project as an input file collection.
+* A build script for one project resolves a configuration in another project during evaluation.
+* Project configurations are resolved in the settings file.
+
+In most cases, this issue can be resolved by creating a cross-project dependency on the other project.
+See the how-to guide for <<how_to_share_outputs_between_projects.adoc#variant-aware-sharing, sharing outputs between projects>> for more information.
+
+If you find a use case that can't be resolved using these techniques, please let us know by filing a https://github.com/gradle/gradle/issues[GitHub Issue] adhering to our issue guidelines.

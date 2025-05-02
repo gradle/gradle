@@ -1,0 +1,6 @@
+${fileComment.multilineComment}${packageDecl.javaStatement}
+class MessageUtils {
+    public static String getMessage() {
+        return "Hello      World!";
+    }
+}

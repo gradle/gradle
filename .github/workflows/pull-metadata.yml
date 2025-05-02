@@ -1,0 +1,18 @@
+name: Check pulls metadata
+
+on:
+  pull_request_target:
+    types: [ closed ]
+
+permissions: {}
+
+jobs:
+  check_pull_metadata:
+    permissions:
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      # Check that PRs have proper metadata: labels and milestone
+      # https://github.com/gradle/issue-management-action/blob/main/src/pull-metadata.ts
+      - uses: gradle/issue-management-action/pull-metadata@v2

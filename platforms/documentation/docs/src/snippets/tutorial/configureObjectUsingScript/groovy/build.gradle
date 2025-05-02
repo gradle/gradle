@@ -1,0 +1,14 @@
+class UserInfo {
+    String name
+    String email
+}
+
+tasks.register('configure') {
+    def userInfo = new UserInfo()
+    // Apply the script
+    apply from: 'other.gradle', to: userInfo
+    doLast {
+        println userInfo.name
+        println userInfo.email
+    }
+}

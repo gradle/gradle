@@ -1,0 +1,53 @@
+plugins {
+    id("gradlebuild.distribution.api-java")
+}
+
+description = "Plugins, tasks and domain objects for testing native code"
+
+dependencies {
+    api(projects.baseDiagnostics)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.stdlibJavaExtensions)
+    api(projects.languageNative)
+    api(projects.modelCore)
+    api(projects.native)
+    api(projects.platformBase)
+    api(projects.platformNative)
+    api(projects.processServices)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.testSuitesBase)
+    api(projects.testingBase)
+    api(projects.testingBaseInfrastructure)
+    api(projects.time)
+
+    api(libs.inject)
+    api(libs.jspecify)
+
+    implementation(projects.logging)
+    implementation(projects.loggingApi)
+    implementation(projects.io)
+    implementation(projects.softwareDiagnostics)
+
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+
+    testImplementation(projects.fileCollections)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.platformNative))
+    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.testingBase))
+    testImplementation(testFixtures(projects.languageNative))
+    testImplementation(testFixtures(projects.ide))
+
+    testRuntimeOnly(projects.distributionsCore) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(projects.distributionsNative)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

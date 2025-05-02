@@ -1,0 +1,9 @@
+${fileComment.multilineComment}${packageDecl.statement}
+import groovy.transform.PackageScope
+
+@PackageScope
+class MessageUtils {
+    static String getMessage() {
+        return "Hello      World!"
+    }
+}

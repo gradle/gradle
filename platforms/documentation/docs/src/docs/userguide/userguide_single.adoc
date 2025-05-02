@@ -1,0 +1,273 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+= Gradle User Manual: Version {gradleVersion}
+:description: Single-page Gradle User Manual for Gradle {gradleVersion}
+:meta-name-robots: noindex
+:meta-name-twitter_card: summary
+:meta-name-twitter_site: @gradle
+:meta-name-twitter_creator: @gradle
+:meta-name-twitter_title: Gradle User Manual: Version {gradleVersion}
+:meta-name-twitter_description: {description}
+:meta-name-twitter_url: {docsUrl}/{gradleVersion}/userguide/{docname}.html
+:meta-name-twitter_image: {website}/images/gradle-256x256.png
+
+// The ToC defined below does not have an effect to the navigation sidebar of the Gradle User Manual webpage (ie docs.gradle.org/<version>>/userguide).
+// The sidebar can be adjusted in platforms/documentation/docs/src/main/resources/header.html.
+
+toc::[leveloffset=+2]
+
+[[part:about_gradle]]
+== **OVERVIEW**
+
+include::userguide.adoc[leveloffset=+2]
+
+'''
+
+[[part:releases]]
+== **RELEASES**
+
+include::installation.adoc[leveloffset=+2]
+include::compatibility.adoc[leveloffset=+2]
+include::feature_lifecycle.adoc[leveloffset=+2]
+
+== UPGRADING
+
+include::upgrading_version_8.adoc[leveloffset=+2]
+
+[[part:running_builds]]
+== **RUNNING GRADLE BUILDS**
+
+== CORE CONCEPTS
+
+include::gradle_basics.adoc[leveloffset=+2]
+include::gradle_wrapper_basics.adoc[leveloffset=+2]
+include::command_line_interface_basics.adoc[leveloffset=+2]
+include::settings_file_basics.adoc[leveloffset=+2]
+include::build_file_basics.adoc[leveloffset=+2]
+include::dependency_management_basics.adoc[leveloffset=+2]
+include::task_basics.adoc[leveloffset=+2]
+include::plugin_basics.adoc[leveloffset=+2]
+include::gradle_optimizations.adoc[leveloffset=+2]
+include::build_scans.adoc[leveloffset=+2]
+
+[[part:authoring_builds]]
+== **AUTHORING GRADLE BUILDS**
+
+== CORE CONCEPTS
+
+include::gradle_directories.adoc[leveloffset=+2]
+include::intro_multi_project_builds.adoc[leveloffset=+2]
+include::build_lifecycle.adoc[leveloffset=+2]
+include::writing_settings_files.adoc[leveloffset=+2]
+include::writing_build_scripts.adoc[leveloffset=+2]
+include::tutorial_using_tasks.adoc[leveloffset=+2]
+include::writing_tasks.adoc[leveloffset=+2]
+include::plugins.adoc[leveloffset=+2]
+include::writing_plugins.adoc[leveloffset=+2]
+
+== GRADLE TYPES
+
+include::properties_providers.adoc[leveloffset=+2]
+include::collections.adoc[leveloffset=+2]
+include::service_injection.adoc[leveloffset=+2]
+
+== STRUCTURING BUILDS
+
+include::multi_project_builds.adoc[leveloffset=+2]
+include::declaring_dependencies_between_subprojects.adoc[leveloffset=+2]
+include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
+include::composite_builds.adoc[leveloffset=+2]
+include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
+
+== DEVELOPING TASKS
+
+include::more_about_tasks.adoc[leveloffset=+2]
+include::controlling_task_execution.adoc[leveloffset=+2]
+include::organizing_tasks.adoc[leveloffset=+2]
+//include::implementing_custom_tasks.adoc[leveloffset=+2]
+include::lazy_configuration.adoc[leveloffset=+2]
+include::worker_api.adoc[leveloffset=+2]
+include::custom_tasks.adoc[leveloffset=+2]
+include::build_services.adoc[leveloffset=+2]
+
+== DEVELOPING PLUGINS
+
+include::custom_plugins.adoc[leveloffset=+2]
+include::implementing_gradle_plugins.adoc[leveloffset=+2]
+include::implementing_gradle_plugins_precompiled.adoc[leveloffset=+2]
+include::implementing_gradle_plugins_binary.adoc[leveloffset=+2]
+include::testing_gradle_plugins.adoc[leveloffset=+2]
+include::publishing_gradle_plugins.adoc[leveloffset=+2]
+include::reporting_problems.adoc[leveloffset=+2]
+
+== OTHER TOPICS
+
+include::working_with_files.adoc[leveloffset=+2]
+include::init_scripts.adoc[leveloffset=+2]
+include::dataflow_actions.adoc[leveloffset=+2]
+include::test_kit.adoc[leveloffset=+2]
+include::ant.adoc[leveloffset=+2]
+
+[[part:optimizing_build_times]]
+== **OPTIMIZING BUILD PERFORMANCE**
+
+include::build_environment.adoc[leveloffset=+2]
+include::directory_layout.adoc[leveloffset=+2]
+include::logging.adoc[leveloffset=+2]
+include::config_gradle.adoc[leveloffset=+2]
+include::performance.adoc[leveloffset=+2]
+include::configuration_cache.adoc[leveloffset=+2]
+include::continuous_builds.adoc[leveloffset=+2]
+include::inspect.adoc[leveloffset=+2]
+include::isolated_projects.adoc[leveloffset=+2]
+include::file_system_watching.adoc[leveloffset=+2]
+
+== THE BUILD CACHE
+
+include::build_cache.adoc[leveloffset=+2]
+include::build_cache_use_cases.adoc[leveloffset=+2]
+include::build_cache_performance.adoc[leveloffset=+2]
+include::build_cache_concepts.adoc[leveloffset=+2]
+include::caching_java_projects.adoc[leveloffset=+2]
+include::caching_android_projects.adoc[leveloffset=+2]
+include::build_cache_debugging.adoc[leveloffset=+2]
+include::common_caching_problems.adoc[leveloffset=+2]
+
+[[part:dependency_management]]
+== **DEPENDENCY MANAGEMENT**
+
+== CORE CONCEPTS
+
+include::declaring_dependencies.adoc[leveloffset=+2]
+include::dependency_configurations.adoc[leveloffset=+2]
+include::declaring_repositories.adoc[leveloffset=+2]
+include::centralizing_dependencies.adoc[leveloffset=+2]
+include::dependency_constraints_conflicts.adoc[leveloffset=+2]
+include::dependency_resolution.adoc[leveloffset=+2]
+include::variant_aware_resolution.adoc[leveloffset=+2]
+
+== DECLARING DEPENDENCIES
+
+include::declaring_dependencies_basics.adoc[leveloffset=+2]
+include::viewing_debugging_dependencies.adoc[leveloffset=+2]
+include::dependency_versions.adoc[leveloffset=+2]
+include::dependency_constraints.adoc[leveloffset=+2]
+include::declaring_configurations.adoc[leveloffset=+2]
+
+== DECLARING REPOSITORIES
+
+include::declaring_repositories_basics.adoc[leveloffset=+2]
+include::centralizing_repositories.adoc[leveloffset=+2]
+include::supported_repository_types.adoc[leveloffset=+2]
+include::supported_metadata_formats.adoc[leveloffset=+2]
+include::supported_repository_protocols.adoc[leveloffset=+2]
+include::filtering_repository_content.adoc[leveloffset=+2]
+
+== CENTRALIZING DEPENDENCIES
+
+include::platforms.adoc[leveloffset=+2]
+include::version_catalogs.adoc[leveloffset=+2]
+include::centralizing_catalog_platform.adoc[leveloffset=+2]
+
+== MANAGING DEPENDENCIES
+
+include::dependency_locking.adoc[leveloffset=+2]
+include::resolution_rules.adoc[leveloffset=+2]
+include::component_metadata_rules.adoc[leveloffset=+2]
+include::dependency_caching.adoc[leveloffset=+2]
+
+== UNDERSTANDING DEPENDENCY RESOLUTION
+
+include::dependency_resolution_model.adoc[leveloffset=+2]
+include::variant_model.adoc[leveloffset=+2]
+include::component_capabilities.adoc[leveloffset=+2]
+include::variant_attributes.adoc[leveloffset=+2]
+
+== CONTROLLING DEPENDENCY RESOLUTION
+
+include::dependency_resolution_basics.adoc[leveloffset=+2]
+include::dependency_graph_resolution.adoc[leveloffset=+2]
+include::artifact_resolution.adoc[leveloffset=+2]
+include::artifact_views.adoc[leveloffset=+2]
+include::artifact_transforms.adoc[leveloffset=+2]
+
+== PUBLISHING LIBRARIES
+
+include::publishing_setup.adoc[leveloffset=+2]
+include::publishing_gradle_module_metadata.adoc[leveloffset=+2]
+include::publishing_signing.adoc[leveloffset=+2]
+include::publishing_customization.adoc[leveloffset=+2]
+include::publishing_maven.adoc[leveloffset=+2]
+include::publishing_ivy.adoc[leveloffset=+2]
+
+== OTHER TOPICS
+
+include::dependency_verification.adoc[leveloffset=+2]
+include::dependency_version_alignment.adoc[leveloffset=+2]
+include::feature_variants.adoc[leveloffset=+2]
+
+[[part:platforms]]
+== **PLATFORMS**
+
+[[part:jvm_projects]]
+== JVM BUILDS
+
+include::building_java_projects.adoc[leveloffset=+2]
+include::java_testing.adoc[leveloffset=+2]
+include::dependency_management_for_java_projects.adoc[leveloffset=+2]
+
+== JAVA TOOLCHAINS
+
+include::toolchains.adoc[leveloffset=+2]
+include::toolchain_plugins.adoc[leveloffset=+2]
+
+== JVM PLUGINS
+
+include::java_library_plugin.adoc[leveloffset=+2]
+include::application_plugin.adoc[leveloffset=+2]
+include::java_platform_plugin.adoc[leveloffset=+2]
+include::groovy_plugin.adoc[leveloffset=+2]
+include::scala_plugin.adoc[leveloffset=+2]
+
+[[part:integration]]
+== **INTEGRATION**
+
+include::third_party_integration.adoc[leveloffset=2]
+include::tooling_api.adoc[leveloffset=2]
+include::test_reporting_api.adoc[leveloffset=2]
+
+[[part:reference]]
+== **REFERENCE**
+
+include::gradle_wrapper.adoc[leveloffset=+2]
+include::gradle_daemon.adoc[leveloffset=+2]
+include::command_line_interface.adoc[leveloffset=+2]
+
+== GRADLE DSL/API
+
+include::groovy_build_script_primer.adoc[leveloffset=+2]
+include::kotlin_dsl.adoc[leveloffset=+2]
+
+== CORE PLUGINS
+
+include::plugin_reference.adoc[leveloffset=2]
+
+== HOW TO GUIDES
+
+include::cross_project_publications.adoc[leveloffset=2]
+
+== **LICENSE INFORMATION**
+
+include::licenses.adoc[leveloffset=+2]

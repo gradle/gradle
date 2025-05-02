@@ -1,0 +1,26 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::dependency-constraints[]
+dependencies {
+    implementation 'org.apache.httpcomponents:httpclient'
+    constraints {
+        implementation('org.apache.httpcomponents:httpclient:4.5.3') {
+            because 'previous versions have a bug impacting this application'
+        }
+        implementation('commons-codec:commons-codec:1.11') {
+            because 'version 1.9 pulled from httpclient has bugs affecting this application'
+        }
+    }
+}
+// end::dependency-constraints[]
+
+tasks.register('copyLibs', Copy) {
+    from configurations.compileClasspath
+    into layout.buildDirectory.dir('libs')
+}

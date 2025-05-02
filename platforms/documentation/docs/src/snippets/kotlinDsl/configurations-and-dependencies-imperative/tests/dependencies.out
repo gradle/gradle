@@ -1,0 +1,28 @@
+compileClasspath - Compile classpath for source set 'main'.
+\--- com.example:lib:1.1 FAILED
+
+implementation - Implementation dependencies for the 'main' feature. (n)
+\--- com.example:lib:1.1 (n)
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- com.example:lib:1.1 FAILED
+\--- com.example:runtime:1.0 FAILED
+
+runtimeOnly - Runtime-only dependencies for the 'main' feature. (n)
+\--- com.example:runtime:1.0 (n)
+
+testCompileClasspath - Compile classpath for source set 'test'.
++--- com.example:lib:1.1 FAILED
+\--- com.example:test-support:1.3 FAILED
+
+testImplementation - Implementation only dependencies for source set 'test'. (n)
+\--- com.example:test-support:1.3 (n)
+
+testRuntimeClasspath - Runtime classpath of source set 'test'.
++--- com.example:lib:1.1 FAILED
++--- com.example:runtime:1.0 FAILED
++--- com.example:test-support:1.3 FAILED
+\--- com.example:test-junit-jupiter-runtime:1.3 FAILED
+
+testRuntimeOnly - Runtime only dependencies for source set 'test'. (n)
+\--- com.example:test-junit-jupiter-runtime:1.3 (n)

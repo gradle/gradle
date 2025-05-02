@@ -1,0 +1,17 @@
+> Task :shared:compileJava
+> Task :shared:processResources
+> Task :shared:classes
+> Task :shared:jar
+> Task :api:compileJava
+> Task :api:processResources
+> Task :api:classes
+> Task :api:jar
+> Task :api:assemble
+> Task :api:compileTestJava
+> Task :api:processTestResources
+> Task :api:testClasses
+> Task :api:test
+> Task :api:check
+> Task :api:build
+
+BUILD SUCCESSFUL in 0s

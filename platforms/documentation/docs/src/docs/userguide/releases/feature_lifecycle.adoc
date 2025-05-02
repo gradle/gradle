@@ -1,0 +1,329 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[feature_lifecycle]]
+= The Feature Lifecycle
+
+Gradle is under constant development. New versions are delivered on a regular and frequent basis (approximately every six weeks) as described in <<#eol_support,the section on end-of-life support>>.
+
+Continuous improvement combined with frequent delivery allows new features to be available to users early.
+Early users provide invaluable feedback, which is incorporated into the development process.
+
+Getting new functionality into the hands of users regularly is a core value of the Gradle platform.
+
+At the same time, API and feature stability are taken very seriously and considered a core value of the Gradle platform.
+Design choices and automated testing are engineered into the development process and formalized by <<#backwards_compatibility,the section on backward compatibility>>.
+
+The Gradle _feature lifecycle_ has been designed to meet these goals. It also communicates to users of Gradle what the state of a feature is.
+The term _feature_ typically means an API or DSL method or property in this context, but it is not restricted to this definition.
+Command line arguments and modes of execution (e.g. the Build Daemon) are two examples of other features.
+
+[[sec:states]]
+== Feature States
+
+Features can be in one of four states:
+
+1. <<#sec:internal,Internal>>
+2. <<#sec:incubating_state,Incubating>>
+3. <<#sec:public,Public>>
+4. <<#sec:deprecated,Deprecated>>
+
+[[sec:internal]]
+== 1. Internal
+
+_Internal_ features are not designed for public use and are only intended to be used by Gradle itself. They can change in any way at any point in time without any notice.
+Therefore, we recommend avoiding the use of such features.
+_Internal_ features are not documented.
+If it appears in this User Manual, the DSL Reference, or the API Reference, then the feature is not _internal_.
+
+_Internal_ features may evolve into public features.
+
+[[sec:incubating_state]]
+== 2. Incubating
+
+Features are introduced in the _incubating_ state to allow real-world feedback to be incorporated into the feature before making it public.
+It also gives users willing to test potential future changes early access.
+
+A feature in an _incubating_ state may change in future Gradle versions until it is no longer _incubating_.
+Changes to _incubating_ features for a Gradle release will be highlighted in the release notes for that release.
+The _incubation_ period for new features varies depending on the feature's scope, complexity, and nature.
+
+Features in _incubation_ are indicated.
+In the source code, all methods/properties/classes that are _incubating_ are annotated with link:{javadocPath}/org/gradle/api/Incubating.html[incubating].
+This results in a special mark for them in the DSL and API references.
+
+If an _incubating_ feature is discussed in this User Manual, it will be explicitly said to be in the _incubating_ state.
+
+[[feature_preview]]
+=== Feature Preview API
+
+The feature preview API allows certain _incubating_ features to be activated by adding `enableFeaturePreview('FEATURE')` in your _settings_ file.
+Individual preview features will be announced in release notes.
+
+When _incubating_ features are either promoted to _public_ or removed, the feature preview flags for them become obsolete, have no effect, and should be removed from the settings file.
+
+[[sec:public]]
+== 3. Public
+
+The default state for a non-internal feature is _public_. Anything documented in the User Manual, DSL Reference, or API reference that is not explicitly said to be _incubating_ or _deprecated_ is considered _public_.
+Features are said to be *promoted* from an _incubating_ state to _public_.
+The release notes for each release indicate which previously _incubating_ features are being promoted by the release.
+
+A _public_ feature will *never* be removed or intentionally changed without undergoing _deprecation_.
+All public features are subject to the backward compatibility policy.
+
+[[sec:deprecated]]
+== 4. Deprecated
+
+Some features may be replaced or become irrelevant due to the natural evolution of Gradle.
+Such features will eventually be removed from Gradle after being _deprecated_.
+A _deprecated_ feature may become stale until it is finally removed according to the backward compatibility policy.
+
+_Deprecated_ features are indicated to be so.
+In the source code, all methods/properties/classes that are _deprecated_ are annotated with "`@java.lang.Deprecated`" which is reflected in the DSL and API References.
+In most cases, there is a replacement for the deprecated element, which will be described in the documentation.
+Using a _deprecated_ feature will result in a runtime warning in Gradle's output.
+
+The use of _deprecated_ features should be avoided.
+The release notes for each release indicate any features being _deprecated_ by the release.
+
+[[backwards_compatibility]]
+== Backward compatibility Policy
+
+Gradle provides backward compatibility across major versions (e.g., `1.x`, `2.x`, etc.).
+Once a public feature is introduced in a Gradle release, it will remain indefinitely unless deprecated.
+Once deprecated, it may be removed in the next major release.
+Deprecated features may be supported across major releases, but this is not guaranteed.
+
+[[eol_support]]
+== Release end-of-life Policy
+
+Every day, a new nightly build of Gradle is created.
+
+This contains all of the changes made through Gradle's extensive continuous integration tests during that day.
+Nightly builds may contain new changes that may or may not be stable.
+
+The Gradle team creates a pre-release distribution called a release candidate (RC) for each minor or major release.
+When no problems are found after a short time (usually a week), the release candidate is promoted to a general availability (GA) release.
+If a regression is found in the release candidate, a new RC distribution is created, and the process repeats.
+Release candidates are supported for as long as the release window is open, but they are not intended to be used for production.
+Bug reports are greatly appreciated during the RC phase.
+
+The Gradle team may create additional patch releases to replace the final release due to critical bug fixes or regressions.
+For instance, Gradle 5.2.1 replaces the Gradle 5.2 release.
+
+Once a release candidate has been made, all feature development moves on to the next release for the latest major version.
+As such, each minor Gradle release causes the previous minor releases in the same major version to become end-of-life (EOL). EOL releases do not receive bug fixes or feature backports.
+
+For major versions, Gradle will backport critical fixes and security fixes to the last minor in the previous major version.
+For example, when Gradle 7 was the latest major version, several releases were made in the 6.x line, including Gradle 6.9 (and subsequent releases).
+
+As such, each major Gradle release causes:
+
+* The previous major version becomes maintenance only. It will only receive critical bug fixes and security fixes.
+* The major version before the previous one to become end-of-life (EOL), and that release line will not receive any new fixes.
+
+== Public Gradle APIs
+
+Gradle provides many public APIs that allow developers to interact with various build system components.
+
+Any class name containing `Internal`, or that is located in a package containing the segment `.internal.` is by definition not part of the public Gradle API and should not be relied upon for stable usage.
+
+The following table summarizes public Gradle APIs and their common use cases.
+This is *not* an exhaustive list:
+
+[cols="1,1,2"]
+|===
+| API Package | Description | Common Use Cases
+
+| *`org.gradle.api`*
+| Core Gradle API
+| - Defines key interfaces like `Project`, `Task`, and `Plugin` +
+- Used for configuring projects and tasks
+
+| *`org.gradle.authentication`*
+| Authentication API
+| - Handles authentication for repositories and services +
+- Supports username/password, OAuth, and other mechanisms
+
+| *`org.gradle.build`*
+| Build Lifecycle API
+| - Manages build phases and execution +
+- Useful for controlling the order of tasks
+
+| *`org.gradle.buildinit`*
+| Build Init API
+| - Used to generate new Gradle projects +
+- Supports bootstrapping various project types
+
+| *`org.gradle.caching`*
+| Build Cache API
+| - Provides mechanisms for storing and reusing build outputs +
+- Used for incremental builds and CI optimization
+
+| *`org.gradle.concurrent`*
+| Concurrent Execution API
+| - Manages parallel task execution +
+- Helps optimize Gradle build performance
+
+| *`org.gradle.deployment`*
+| Deployment API
+| - Supports managing and automating application deployments +
+- Useful for CI/CD pipelines
+
+| *`org.gradle.env`*
+| Environment Configuration API
+| - Provides access to environment variables and settings +
+- Used to configure builds based on external conditions
+
+| *`org.gradle.external.javadoc`*
+| Javadoc API
+| - Generates Javadoc for external dependencies +
+- Used in Java documentation workflows
+
+| *`org.gradle.ide`*
+| IDE Integration API
+| - Manages Gradle support for IDEs like IntelliJ and Eclipse +
+- Configures IDE project settings
+
+| *`org.gradle.includedbuild`*
+| Composite Builds API
+| - Enables dependency management across multiple Gradle builds +
+- Supports modular development
+
+| *`org.gradle.ivy`*
+| Ivy Dependency Management API
+| - Supports Ivy repositories and dependency resolution +
+- Alternative to Maven for dependency management
+
+| *`org.gradle.jvm`*
+| Java Virtual Machine API
+| - Manages JVM-based builds +
+- Includes toolchains and JDK selection
+
+| *`org.gradle.language`*
+| Language Plugins API
+| - Defines Gradle support for multiple languages (Java, Kotlin, etc.) +
+- Used in multi-language projects
+
+| *`org.gradle.maven`*
+| Maven Dependency Management API
+| - Supports Maven repositories and dependency resolution +
+- Commonly used for Java projects
+
+| *`org.gradle.nativeplatform`*
+| Native Platform API
+| - Provides support for C, C++, and other native builds +
+- Used in cross-platform development
+
+| *`org.gradle.normalization`*
+| Input Normalization API
+| - Helps optimize caching by defining input normalization rules +
+- Useful for improving incremental builds
+
+| *`org.gradle.platform`*
+| Platform Dependency Management API
+| - Defines and manages dependency constraints for platforms +
+- Useful in multi-module projects
+
+| *`org.gradle.play`*
+| Play Framework Support API
+| - Provides support for Play Framework projects +
+- Used for web application development
+
+| *`org.gradle.plugin.devel`*
+| Plugin Development API
+| - Supports writing and publishing custom Gradle plugins +
+- Used by plugin authors
+
+| *`org.gradle.plugin.repository`*
+| Plugin Repository API
+| - Defines repositories for Gradle plugins +
+- Used to fetch plugins from the Gradle Plugin Portal
+
+| *`org.gradle.plugin.use`*
+| Plugin Application API
+| - Handles plugin application in build scripts +
+- Simplifies plugin usage with `plugins {}` block
+
+| *`org.gradle.plugin.management`*
+| Plugin Management API
+| - Provides centralized management for Gradle plugins +
+- Helps configure plugin versions and repositories
+
+| *`org.gradle.plugins`*
+| Built-in Plugins API
+| - Includes Gradle’s built-in plugins (Java, Kotlin, etc.) +
+- Used for applying standard build logic
+
+| *`org.gradle.process`*
+| Process Management API
+| - Allows running external processes from Gradle tasks +
+- Useful for automation and script execution
+
+| *`org.gradle.testfixtures`*
+| Test Fixtures API
+| - Provides test utilities for Gradle plugin developers +
+- Helps with testing Gradle tasks and plugins
+
+| *`org.gradle.testing.jacoco`*
+| JaCoCo Test Coverage API
+| - Integrates with JaCoCo for code coverage reports +
+- Used for tracking test coverage in Java projects
+
+| *`org.gradle.tooling`*
+| Tooling API (`TAPI`)
+| - Allows external applications to interact with Gradle +
+- Used by IDEs and CI systems to run Gradle builds
+
+| *`org.gradle.swiftpm`*
+| Swift Package Manager API
+| - Provides Gradle integration with Swift Package Manager +
+- Used for managing Swift dependencies
+
+| *`org.gradle.model`*
+| Model Rule-based API
+| - Legacy API for configuring Gradle builds using models +
+- Replaced by modern Gradle DSLs
+
+| *`org.gradle.testkit`*
+| Gradle TestKit API
+| - Provides utilities for testing Gradle plugins +
+- Used to write functional tests for Gradle plugins
+
+| *`org.gradle.testing`*
+| Testing Framework API
+| - Defines testing frameworks for Gradle builds +
+- Supports JUnit, TestNG, and Spock
+
+| *`org.gradle.vcs`*
+| Version Control System API
+| - Allows dependencies to be fetched from VCS (Git, SVN) +
+- Used for managing source-based dependencies
+
+| *`org.gradle.work`*
+| Work Execution API
+| - Provides utilities for parallel and incremental task execution +
+- Helps optimize long-running Gradle tasks
+
+| *`org.gradle.workers`*
+| Worker API
+| - Enables parallel execution of Gradle tasks +
+- Used for running tasks in worker threads
+
+| *`org.gradle.util`*
+| Utility API
+| - Provides various utility functions used internally by Gradle +
+- Used for Gradle build logic and plugin development
+|===

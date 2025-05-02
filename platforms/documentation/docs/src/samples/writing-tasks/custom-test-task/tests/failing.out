@@ -1,0 +1,10 @@
+all tests > FailingSuite > failingTest() FAILED
+    This is a test failure
+
+15 tests completed, 10 succeeded, 1 failed, 4 skipped
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':test'.
+> Test(s) failed. See the test results for more details: file:///home/user/gradle/samples/build/reports/tests/test/index.html

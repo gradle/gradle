@@ -1,0 +1,16 @@
+name: Check closed issue release notes
+
+on:
+  issues:
+    types: [ closed ]
+
+permissions: {}
+
+jobs:
+  check_release_notes:
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      # Check that release-note-worthy issues have a PR with release notes attached
+      - uses: gradle/issue-management-action/release-notes@v2

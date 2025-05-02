@@ -1,0 +1,49 @@
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    implementation
+    runtimeOnly
+}
+
+// tag::define-dependency[]
+dependencies {
+    implementation 'org.hibernate:hibernate-core:3.6.7.Final'
+}
+// end::define-dependency[]
+
+// tag::use-configuration[]
+tasks.register('listJars') {
+    FileCollection implementation = configurations.implementation
+    doLast {
+        implementation.each { File file -> println file.name }
+    }
+}
+// end::use-configuration[]
+
+// tag::module-dependencies[]
+dependencies {
+    runtimeOnly group: 'org.springframework', name: 'spring-core', version: '2.5'
+    runtimeOnly 'org.springframework:spring-core:2.5',
+            'org.springframework:spring-aop:2.5'
+    runtimeOnly(
+        [group: 'org.springframework', name: 'spring-core', version: '2.5'],
+        [group: 'org.springframework', name: 'spring-aop', version: '2.5']
+    )
+    runtimeOnly('org.hibernate:hibernate:3.0.5') {
+        transitive = true
+    }
+    runtimeOnly group: 'org.hibernate', name: 'hibernate', version: '3.0.5', transitive: true
+    runtimeOnly(group: 'org.hibernate', name: 'hibernate', version: '3.0.5') {
+        transitive = true
+    }
+}
+// end::module-dependencies[]
+
+// tag::file-dependencies[]
+dependencies {
+    runtimeOnly files('libs/a.jar', 'libs/b.jar')
+    runtimeOnly fileTree('libs') { include '*.jar' }
+}
+// end::file-dependencies[]

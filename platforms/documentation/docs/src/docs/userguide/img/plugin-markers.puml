@@ -1,0 +1,20 @@
+@startuml
+
+skinparam monochrome true
+skinparam component {
+    BackgroundColor white
+    BorderColor Black
+	ArrowColor Black
+}
+
+database "maven-repo" {
+  file "<b>groupId</b> com.example.hello\n<b>artifactId</b> com.example.hello.gradle.plugin\n<b>version</b> 1.0.0" as marker1
+  file "<b>groupId</b> com.example.goodbye\n<b>artifactId</b> com.example.goodbye.gradle.plugin\n<b>version</b> 1.0.0" as marker2
+
+  file "<b>groupId</b> com.example\n<b>artifactId</b> sample-plugins\n<b>version</b> 1.0.0\n\n<&file> sample-plugins-1.0.0.jar" as main
+
+  marker1 --> main
+  marker2 --> main
+}
+
+@enduml

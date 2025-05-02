@@ -1,0 +1,7 @@
+* Build the library, which includes running its tests
+
+== Next Steps
+
+* Make your way to the https://github.com/gradle/native-samples/[native samples repository] to see the ${language.raw} plugins in action for common scenarios such as https://github.com/gradle/native-samples/tree/master/cpp/transitive-dependencies[transitive dependencies], https://github.com/gradle/native-samples/tree/master/cpp/swift-package-manager[custom source layout], and https://github.com/gradle/native-samples/tree/master/cpp/static-library[static library].
+* Check out the user manual chapter on link:{userManualPath}/building_${languageLC.raw}_projects.html[Building ${language.raw} projects]
+

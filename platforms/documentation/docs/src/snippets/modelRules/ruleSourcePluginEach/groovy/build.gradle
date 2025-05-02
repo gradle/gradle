@@ -1,0 +1,47 @@
+@Managed interface Item extends Named {}
+@Managed interface FileItem extends Item {
+    void setSize(int size)
+    int getSize()
+}
+@Managed interface DirectoryItem extends Item {
+    ModelMap<Item> getChildren()
+}
+
+class PluginRules extends RuleSource {
+    @Defaults void setDefaultFileSize(@Each FileItem file) {
+        file.size = 1024
+    }
+
+    @Rules void applyValidateRules(ValidateRules rules, @Each DirectoryItem directory)  {}
+}
+apply plugin: PluginRules
+
+abstract class ValidateRules extends RuleSource {
+    @Validate
+    void validateSizeIsPositive(ModelMap<FileItem> files) {
+        files.each { file ->
+            assert file.size > 0
+        }
+    }
+
+    @Validate
+    void validateSizeDivisibleBySixteen(ModelMap<FileItem> files) {
+        files.each { file ->
+            assert file.size % 16 == 0
+        }
+    }
+}
+
+model {
+    root(DirectoryItem) {
+        children {
+            dir(DirectoryItem) {
+                children {
+                    file1(FileItem)
+                    file2(FileItem) { size = 2048 }
+                }
+            }
+            file3(FileItem)
+        }
+    }
+}

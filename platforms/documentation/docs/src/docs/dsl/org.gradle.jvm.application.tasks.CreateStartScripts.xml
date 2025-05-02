@@ -1,0 +1,28 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr><td>Name</td></tr>
+            </thead>
+            <tr><td>applicationName</td></tr>
+            <tr><td>mainModule</td></tr>
+            <tr><td>mainClass</td></tr>
+            <tr><td>classpath</td></tr>
+            <tr><td>defaultJvmOpts</td></tr>
+            <tr><td>outputDir</td></tr>
+            <tr><td>executableDir</td></tr>
+            <tr><td>optsEnvironmentVar</td></tr>
+            <tr><td>unixStartScriptGenerator</td></tr>
+            <tr><td>windowsStartScriptGenerator</td></tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr><td>Name</td></tr>
+            </thead>
+        </table>
+    </section>
+</section>

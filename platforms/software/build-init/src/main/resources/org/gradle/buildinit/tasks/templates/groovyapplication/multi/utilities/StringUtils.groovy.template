@@ -1,0 +1,12 @@
+${fileComment.multilineComment}${packageDecl.statement}
+import ${basePackagePrefix.raw}list.LinkedList
+
+class StringUtils {
+    static String join(LinkedList source) {
+        return JoinUtils.join(source)
+    }
+
+    static LinkedList split(String source) {
+        return SplitUtils.split(source)
+    }
+}

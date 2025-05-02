@@ -1,0 +1,10 @@
+// tag::use-plugin[]
+plugins {
+    id 'application'
+    id('greetings')
+}
+// end::use-plugin[]
+
+configure(greeting) {
+    message = "Hello from Gradle"
+}

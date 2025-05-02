@@ -1,0 +1,24 @@
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
+
+// tag::value-source[]
+abstract class EnvVarsWithSubstringValueSource implements ValueSource<Map<String, String>, Parameters> {
+    interface Parameters extends ValueSourceParameters {
+        Property<String> getSubstring()
+    }
+
+    Map<String, String> obtain() {
+        return System.getenv().findAll { key, _ ->
+            key.contains(parameters.substring.get())
+        }
+    }
+}
+// end::value-source[]
+
+// tag::create-provider[]
+def jdkLocationsProvider = providers.of(EnvVarsWithSubstringValueSource.class) {
+    parameters {
+        substring = "JDK"
+    }
+}
+// end::create-provider[]

@@ -1,0 +1,29 @@
+repositories {
+    mavenCentral()
+}
+
+// tag::define-classpath[]
+configurations {
+    pmd
+}
+
+dependencies {
+    pmd group: 'pmd', name: 'pmd', version: '4.2.5'
+}
+// end::define-classpath[]
+
+// tag::use-classpath[]
+tasks.register('check') {
+    doLast {
+        ant.taskdef(name: 'pmd',
+                    classname: 'net.sourceforge.pmd.ant.PMDTask',
+                    classpath: configurations.pmd.asPath)
+        ant.pmd(shortFilenames: 'true',
+                failonruleviolation: 'true',
+                rulesetfiles: file('pmd-rules.xml').toURI().toString()) {
+            formatter(type: 'text', toConsole: 'true')
+            fileset(dir: 'src')
+        }
+    }
+}
+// end::use-classpath[]

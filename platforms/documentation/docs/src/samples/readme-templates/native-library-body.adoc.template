@@ -1,0 +1,25 @@
+
+== Build the library
+
+[listing.terminal.sample-command]
+----
+\$ ./gradlew build
+
+BUILD SUCCESSFUL in 0s
+${tasksExecuted.raw} actionable tasks: ${tasksExecuted.raw} executed
+----
+
+NOTE: The first time you run the wrapper script, `gradlew`, there may be a delay while that version of `gradle` is downloaded and stored locally in your `~/.gradle/wrapper/dists` folder.
+
+The `build` task compiles the ${language.raw} sources, links the object files into a shared library, and runs the tests.
+To build a static library, please refer to the https://github.com/gradle/native-samples/tree/master/cpp/static-library[static library sample].
+
+NOTE: Dependencies on other projects isn't covered in this guide.
+To learn more about this subject, have a look at the https://github.com/gradle/native-samples/tree/master/cpp/transitive-dependencies[transitive dependency sample] for a demonstration.
+
+NOTE: Publishing libraries to Maven repositories is outside the scope of this guide.
+To learn more about this subject, have a look at the https://github.com/gradle/native-samples/tree/master/cpp/simple-library[simple library sample] for a demonstration.
+
+NOTE: Gradle integrates with several IDEs: link:{userManualPath}/visual_studio_plugin.html[Visual Studio], link:{userManualPath}/xcode_plugin.html[Xcode] and https://www.jetbrains.com/help/clion/gradle-support.html[Clion].
+To learn more, have a look at their respective linked documentation to configure those IDE integration in your project.
+

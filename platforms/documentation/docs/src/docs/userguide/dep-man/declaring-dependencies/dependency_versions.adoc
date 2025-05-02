@@ -1,0 +1,397 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[declaring-versions-ranges]]
+= Declaring Versions and Ranges
+
+You can specify dependencies with exact versions or version ranges to define which versions your project can use:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("org.springframework:spring-core:5.3.8")
+    implementation("org.springframework:spring-core:5.3.+")
+    implementation("org.springframework:spring-core:latest.release")
+    implementation("org.springframework:spring-core:[5.2.0, 5.3.8]")
+    implementation("org.springframework:spring-core:[5.2.0,)")
+}
+----
+
+[[sec:single-version-declarations]]
+== Understanding version declaration
+
+Gradle supports various ways to declare *versions and ranges*:
+
+[cols="1,1,2"]
+|===
+|Version |Example |Note
+
+|Exact version
+|`1.3`, `1.3.0-beta3`, `1.0-20150201.131010-1`
+|A specific version.
+
+|Maven-style range
+|`[1.0,)`, `[1.1, 2.0)`, `(1.2, 1.5]`
+|`[` `]` indicates inclusive bounds; `(` `)` indicates exclusive bounds. See <<sec:maven-style-range,below to learn more>>.
+
+When the upper or lower bound is missing, the range has no upper or lower bound.
+
+An upper bound exclude acts as a prefix exclude.
+
+|_Prefix_ version range
+|`1.\+`, `1.3.+`
+|Only versions exactly matching the portion before the `\+` are included.
+
+Declaring a version as `+`, without any prefix, will include any version.
+
+|`latest-status` version
+|`latest.integration`, `latest.release`
+|Matches the highest version with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
+
+|Maven `SNAPSHOT` version
+|`1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
+|Indicates a snapshot version.
+|===
+
+[[sec:maven-style-range]]
+=== Maven-style range
+
+There are a number of options to indicate bounds in the Maven-style:
+
+- `[` and `]` indicate an inclusive bound -> `[1.1, 2.0]`
+- `(` and `)` indicate an exclusive bound -> `(1.1, 2.0)` or `(1.2, 1.5]` or `[1.1, 2.0)`
+- `]` can be used instead of `(` for an exclusive lower bound -> `]1.2, 1.5]` instead of `(1.2, 1.5]`
+- `[` can be used instead of `)` for exclusive upper bound -> `[1.1, 2.0[` instead of `[1.1, 2.0)`
+
+[[sec:version-ordering]]
+== Understanding version ordering
+
+[source,kotlin]
+----
+dependencies {
+    implementation("org.springframework:spring-core:1.1") // This is a newer version than 1.a
+    implementation("org.springframework:spring-core:1.a") // This is a older version than 1.1
+}
+----
+
+Version ordering is used to:
+
+* Determine if a particular *version is included in a range*.
+* Determine which *version is newest* when performing conflict resolution (using
+<<graph_resolution.adoc#sec:base-version-comparison,"base versions">>).
+
+Versions are ordered based on the following rules:
+
+* **Splitting Versions into Parts:**
+** Versions are divided into parts using the characters `[. - _ +]`.
+** Parts containing both digits and letters are split further, e.g., `1a1` becomes `1.a.1`.
+** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<graph_resolution.adoc#sec:base-version-comparison,exceptions>> during conflict resolution).
+* **Comparing Equivalent Parts:**
+** **Numeric vs. Numeric:** Higher numeric value is considered higher: `1.1 < 1.2`.
+** **Numeric vs. Non-numeric:** Numeric parts are higher than non-numeric parts: `1.a < 1.1`.
+** **Non-numeric vs. Non-numeric:** Parts are compared alphabetically and case-sensitively: `1.A < 1.B < 1.a < 1.b`.
+** **Extra Numeric Part:** A version with an additional numeric part is higher, even if it's zero: `1.1 < 1.1.0`.
+** **Extra Non-numeric Part:** A version with an extra non-numeric part is lower: `1.1.a < 1.1`.
+* **Special Non-numeric Parts:**
+** `dev` is *lower* than any other non-numeric part: `1.0-dev < 1.0-ALPHA < 1.0-alpha < 1.0-rc`.
+** `rc`, `snapshot`, `final`, `ga`, `release`, and `sp` are *higher* than any other string part, in this order: `1.0-zeta < 1.0-rc < 1.0-snapshot < 1.0-final < 1.0-ga < 1.0-release < 1.0-sp`.
+** These special values are **not case-sensitive** and their ordering does not depend on the separator used: `1.0-RC-1` == `1.0.rc.1`.
+
+[[sec:rich-version-constraints]]
+== Declaring rich versions
+
+When you declare a version using the shorthand notation, then the version is considered a <<#sec:required-version,required version>>:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=required-version]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=required-version]"]
+====
+
+This means the minimum version will be `1.7.15` and it can be optimistically upgraded by the engine.
+
+To enforce a <<sec:strict-version,strict version>> and ensure that only the specified version of a dependency is used, rejecting any other versions even if they would normally be compatible:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version-intro]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version-intro]"]
+====
+
+Gradle supports a model for *rich version* declarations, allowing you to combine different levels of version specificity.
+
+The key terms, listed from strongest to weakest, are:
+
+[[sec:strict-version]]
+`strictly` or `!!`::
+This is the strongest version declaration.
+Any version not matching this notation will be excluded.
+If used on a declared dependency, `strictly` can downgrade a version.
+For transitive dependencies, if no acceptable version is found, dependency resolution will fail.
++
+Dynamic versions are supported.
++
+When defined, it overrides any previous `require` declaration and clears any previous `reject` already declared on that dependency.
+
+[[sec:required-version]]
+`require`::
+This ensures that the selected version cannot be lower than what `require` accepts, but it can be higher through conflict resolution, even if the higher version has an exclusive upper bound.
+This is the default behavior for a direct dependency.
++
+Dynamic versions are supported.
++
+When defined, it overrides any previous `strictly` declaration and clears any previous `reject` already declared on that dependency.
+
+[[sec:preferred-version]]
+`prefer`::
+This is the softest version declaration.
+It applies only if there is no stronger non-dynamic version specified.
++
+This term does not support dynamic versions and can complement `strictly` or `require`.
++
+When defined, it overrides any previous `prefer` declaration and clears any previous `reject` already declared on that dependency.
+
+Additionally, there is a term outside the hierarchy:
+
+[[sec:rejected-version]]
+`reject`::
+This term specifies versions that are not accepted for the module, causing dependency resolution to fail if a rejected version is selected.
++
+Dynamic versions are supported.
+
+Rich version declaration is accessed through the `version` DSL method on a dependency or constraint declaration, which gives you access to link:{javadocPath}/org/gradle/api/artifacts/MutableVersionConstraint.html[MutableVersionConstraint]:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version]"]
+====
+
+To enforce <<sec:strict-version,strict versions>>, you can also use the `!!` notation:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=strict-shorthand]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=strict-shorthand]"]
+====
+
+The notation `[1.7, 1.8[!!1.7.25` above is equivalent to:
+
+* strictly `[1.7, 1.8[`
+* prefer `1.7.25`
+
+This means that the engine **must** select a version between `1.7` (included) and `1.8` (excluded).
+If no other component in the graph needs a different version, it should _prefer_ `1.7.25`.
+
+TIP: A strict version cannot be upgraded and overrides any transitive dependency versions, therefore using ranges with strict versions is recommended.
+
+The following table illustrates several use cases:
+
+[%header%autowidth,compact]
+|===
+| Which version(s) of this dependency are acceptable? | `strictly` | `require` | `prefer` | `rejects` | Selection result
+
+| Tested with version `1.5`; believe all future versions should work.
+|
+| 1.5
+|
+|
+| Any version starting from `1.5`, equivalent to `org:foo:1.5`. An upgrade to `2.4` is accepted.
+
+| Tested with `1.5`, soft constraint upgrades according to semantic versioning.
+|
+| [1.0, 2.0[
+| 1.5
+|
+| Any version between `1.0` and `2.0`, `1.5` if nobody else cares. An upgrade to `2.4` is accepted. +
+🔒
+
+| Tested with `1.5`, but follows semantic versioning.
+| [1.0, 2.0[
+|
+| 1.5
+|
+| Any version between `1.0` and `2.0` (exclusive), `1.5` if nobody else cares. +
+Overwrites versions from transitive dependencies. +
+🔒
+
+| Same as above, with `1.4` known broken.
+| [1.0, 2.0[
+|
+| 1.5
+| 1.4
+| Any version between `1.0` and `2.0` (exclusive) except for `1.4`, `1.5` if nobody else cares. +
+Overwrites versions from transitive dependencies. +
+🔒
+
+| No opinion, works with `1.5`.
+|
+|
+| 1.5
+|
+| `1.5` if no other opinion, any otherwise.
+
+| No opinion, prefer the latest release.
+|
+|
+| `latest.release`
+|
+| The latest release at build time. +
+🔒
+
+| On the edge, latest release, no downgrade.
+|
+| `latest.release`
+|
+|
+| The latest release at build time. +
+🔒
+
+| No other version than 1.5.
+| 1.5
+|
+|
+|
+| 1.5, or failure if another `strict` or higher `require` constraint disagrees. +
+Overwrites versions from transitive dependencies.
+
+| `1.5` or a patch version of it exclusively.
+| [1.5,1.6[
+|
+|
+|
+| Latest `1.5.x` patch release, or failure if another `strict` or higher `require` constraint disagrees. +
+Overwrites versions from transitive dependencies. +
+🔒
+|===
+
+Lines annotated with a lock (🔒) indicate situations where leveraging <<dependency_locking.adoc#locking-versions,dependency locking>> is recommended.
+NOTE: When using dependency locking, publishing  <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> is always recommended.
+
+Using `strictly` in a library requires careful consideration, as it affects downstream consumers.
+However, when used correctly, it helps consumers understand which combinations of libraries may be incompatible in their context.
+For more details, refer to the section on <<dependency_versions.adoc#sec:enforcing-dependency-version,overriding dependency versions>>.
+
+[NOTE]
+====
+Rich version information is preserved in the Gradle Module Metadata format.
+However, converting this information to Ivy or Maven metadata formats is lossy.
+The highest level of version declaration—`strictly` or `require` over `prefer`—will be published, and any `reject` will be ignored.
+====
+
+[[sec:endorsing-strict-versions]]
+== Endorsing strict versions
+
+[[sec:enforcing-dependency-version]]
+Gradle resolves any dependency version conflicts by selecting the greatest version found in the dependency graph.
+Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
+
+In general, forcing dependencies is done to downgrade a dependency.
+There are common use cases for downgrading:
+
+- A bug was discovered in the latest release.
+- Your code depends on an older version that is not binary compatible with the newer one.
+- Your code does not use the parts of the library that require a newer version.
+
+WARNING: Forcing a version of a dependency requires careful consideration, as changing the version of a transitive dependency might lead to runtime errors if external libraries expect a different version. It is often better to upgrade your source code to be compatible with newer versions if possible.
+
+Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[`HttpClient` library] for performing HTTP calls.
+`HttpClient` pulls in link:https://commons.apache.org/proper/commons-codec/[`Commons Codec`] as transitive dependency with version `1.10`.
+However, the production source code of the project requires an API from `Commons Codec` `1.9` which is no longer available in `1.10`.
+The dependency version can be enforced by declaring it as `strict` it in the build script:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForDependency/kotlin",files="build.gradle.kts[tags=force-using-strictly]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForDependency/groovy",files="build.gradle[tags=force-using-strictly]"]
+====
+
+[[sec:strict-version-consequences]]
+=== Consequences of using strict versions
+
+Using a strict version must be carefully considered:
+
+- *For Library Authors*: Strict versions effectively act like forced versions. They take precedence over transitive dependencies and override any other strict versions found transitively. This could lead to build failures if the consumer project requires a different version.
+- *For Consumers*: Strict versions are considered globally during resolution. If a strict version conflicts with a consumer's version requirement, it will trigger a resolution error.
+
+For example, if project `B` `strictly` depends on `C:1.0`, but consumer project A requires `C:1.1`, a resolution error will occur.
+
+To avoid this, it is recommended to use version ranges and a preferred version within those ranges.
+
+For example, `B` might say, instead of `strictly 1.0`, that it _strictly depends_ on the `[1.0, 2.0[` range, but _prefers_ `1.0`.
+Then if a consumer chooses `1.1` (or any other version in the range), the build will _no longer fail_.
+
+[[sec:declaring-without-version]]
+== Declaring without version
+
+For larger projects, it's advisable to declare *dependencies without versions* and manage versions using <<platforms.adoc#sec:sharing-dep-versions-between-projects,platforms>>:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
+====
+
+This approach centralizes version management, including transitive dependencies.
+
+[[sec:dynamic-versions-and-changing-modules]]
+== Declaring dynamic versions
+
+There are many situations where you might need to use the latest version of a specific module dependency or the latest within a range of versions.
+This is often necessary during development or when creating a library that needs to be compatible with various dependency versions.
+Projects might adopt a more aggressive approach to consuming dependencies by always integrating the latest version to access cutting-edge features.
+
+[[sec:declaring-dependency-with-dynamic-version]]
+You can easily manage these ever-changing dependencies by using a *dynamic version*.
+A dynamic version can be either a version range (e.g., `2.+`) or a placeholder for the latest available version (e.g., `latest.integration`):
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/groovy",files="build.gradle[tags=dependencies]"]
+====
+
+Using dynamic versions and changing modules can lead to unreproducible builds.
+As new versions of a module are published, its API may become incompatible with your source code.
+Therefore, use this feature with caution.
+
+CAUTION: For reproducible builds, it’s crucial to use <<dependency_locking.adoc#locking-versions,dependency locking>> when declaring dependencies with dynamic versions. Without this, the module you request may change even for the same version, which is known as a <<#sec:declaring-dependency-with-changing-version,changing version>>.
+For example, a Maven `SNAPSHOT` module always points to the latest artifact published, making it a "changing module."
+
+[[sec:declaring-dependency-with-changing-version]]
+== Declaring changing versions
+
+A team may implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early is to release a module with a *changing version*.
+A *changing version* indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
+
+In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#what-is-a-snapshot-version[snapshot versions].
+Snapshot versions contain the suffix `-SNAPSHOT`.
+
+The following example demonstrates how to declare a snapshot version on the Spring dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/groovy",files="build.gradle[tags=dependencies]"]
+====
+
+Gradle is flexible enough to treat any version as a changing version.
+All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
+
+[[sec:versioning_file_dependencies]]
+== Versioning file dependencies
+
+It is recommended to clearly express the intention and specify a concrete version when using <<declaring_dependencies_basics.adoc#sec:file-dependencies,file dependencies>>.
+
+File dependencies are not considered by Gradle's <<graph_resolution.adoc#sec:how-gradle-downloads-deps,version conflict resolution>>.
+Therefore, assigning a version to the file name is crucial to indicate the distinct set of changes included in each release.
+
+For example, using `commons-beanutils-1.3.jar` allows tracking changes in the library through its release notes.
+
+By following this practice:
+
+* Project dependencies become easier to maintain and organize.
+* Potential API incompatibilities are easier to identify through the assigned version.

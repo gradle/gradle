@@ -1,0 +1,126 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[what_is_gradle]]
+= Gradle User Manual
+
+[[gradle_overview]]
+== Gradle Build Tool
+
+image:gradle.png[float=left] Gradle Build Tool is a fast, dependable, and adaptable open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool with an elegant and extensible declarative build language.
+
+In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
+
+== Supported Languages and Frameworks
+
+Gradle supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, and C/C++.
+
+image::userguide-languages.png[]
+
+== Compatible IDEs
+
+All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+
+image::userguide-ides.png[]
+
+You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface_reference,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
+
+== Releases
+
+Information on Gradle releases is found on the link:https://gradle.org/releases/[Release page].
+
+== Installing Gradle
+
+Most projects will start with an existing Gradle build which does not require the installation of Gradle.
+However, if you are starting a project from scratch, and you need to install Gradle, check out the <<installation.adoc#installation,installation guide>>.
+
+== DPE University
+
+Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at DPE University:
+
+++++
+<div class="badge-wrapper">
+    <a class="badge" href="https://dpeuniversity.gradle.com/" target="_blank">
+        <span class="badge-type button--blue">LEARN</span>
+        <span class="badge-text">Take courses on DPE University&nbsp;&nbsp;&nbsp;&gt;</span>
+    </a>
+</div>
+++++
+
+== For Software Developers
+
+For software developers that need to build, test, and publish their app, or add dependencies to their build, get started here:
+
+=== 1. Learning the Basics
+
+[sidebar]
+_Description_: *Learn how to invoke tasks and add dependencies.* +
+_Training level_: **Beginner** +
+_Reading time_: **25 minutes** +
+<<gradle_basics.adoc#gradle,-> Read Core Concepts >>
+
+=== 2. Hands-on Beginner Tutorial
+
+[sidebar]
+_Description_: *Initialize a Gradle build for a basic Java App.* +
+_Training level_: **Beginner** +
+_Training time_: **45 minutes** +
+<<part1_gradle_init#part1_begin,-> Start the Tutorial >>
+
+== For Build Engineers
+
+Build engineers that are ready to configure custom build logic or write their own plugins should start here:
+
+=== 1. Beyond the Basics
+
+[sidebar]
+_Description_: *Learn to configure builds, create tasks, and write plugins.* +
+_Training level_: **Intermediate** +
+_Reading time_: **35 minutes** +
+<<gradle_directories.adoc#gradle_directories,-> Read Core Concepts >>
+
+=== 2. Hands-on Advanced Tutorial
+
+[sidebar]
+_Description_: *Initialize a Gradle project and create a basic plugin.* +
+_Training level_: **Intermediate** +
+_Training time_: **55 minutes** +
+<<part1_gradle_init_project#part1_begin,-> Start the Tutorial >>
+
+[[reference]]
+=== 3. API Reference
+
+Gradle's API references can be found in the links below:
+
+- link:{javadocPath}/index.html[Javadocs^]
+- link:{groovyDslPath}/index.html[Groovy DSL Reference^]
+- link:{kotlinDslPath}/index.html[Kotlin DSL Reference^]
+
+== Support
+
+* **Forum** — The fastest way to get help is through the link:https://discuss.gradle.org/[Gradle Forum].
+* **Slack** — Community members and core contributors answer questions directly on our link:https://gradle-community.slack.com/[Slack Channel].
+
+== Licenses
+
+[.legalnotice]
+Gradle Build Tool source code is open and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
+Gradle user manual and DSL reference manual are licensed under link:https://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
+
+== Copyright
+
+Copyright © 2024 Gradle, Inc. All rights reserved.
+Gradle is a trademark of Gradle, Inc.
+
+For inquiries related to commercial use or licensing, contact Gradle Inc. directly.

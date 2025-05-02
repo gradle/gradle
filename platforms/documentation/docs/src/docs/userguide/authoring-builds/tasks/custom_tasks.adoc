@@ -1,0 +1,443 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[custom_tasks]]
+= Advanced Tasks
+
+[[incremental_tasks]]
+== Incremental tasks
+
+In Gradle, implementing a task that skips execution when its inputs and outputs are already `UP-TO-DATE` is simple and efficient, thanks to the <<incremental_build.adoc#incremental_build,Incremental Build>> feature.
+
+However, there are times when only a few input files have changed since the last execution, and it is best to avoid reprocessing all the unchanged inputs.
+This situation is common in tasks that transform input files into output files on a one-to-one basis.
+
+To optimize your build process you can use an incremental task.
+This approach ensures that only out-of-date input files are processed, improving build performance.
+
+[[sec:implementing_an_incremental_task]]
+=== Implementing an incremental task
+
+For a task to process inputs incrementally, that task must contain an _incremental_ task action.
+
+This is a task action method that has a single link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] parameter.
+That parameter tells Gradle that the action only wants to process the changed inputs.
+
+In addition, the task needs to declare at least one incremental file input property by using either link:{javadocPath}/org/gradle/work/Incremental.html[`@Incremental`] or link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[`@SkipWhenEmpty`]:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+.build.gradle.kts
+----
+public class IncrementalReverseTask : DefaultTask() {
+
+    @get:Incremental
+    @get:InputDirectory
+    val inputDir: DirectoryProperty = project.objects.directoryProperty()
+
+    @get:OutputDirectory
+    val outputDir: DirectoryProperty = project.objects.directoryProperty()
+
+    @get:Input
+    val inputProperty: RegularFileProperty = project.objects.fileProperty() // File input property
+
+    @TaskAction
+    fun execute(inputs: InputChanges) { // InputChanges parameter
+        val msg = if (inputs.isIncremental) "CHANGED inputs are out of date"
+                  else "ALL inputs are out of date"
+        println(msg)
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.build.gradle
+----
+class IncrementalReverseTask extends DefaultTask {
+
+    @Incremental
+    @InputDirectory
+    def File inputDir
+
+    @OutputDirectory
+    def File outputDir
+
+    @Input
+    def inputProperty // File input property
+
+    @TaskAction
+    void execute(InputChanges inputs) { // InputChanges parameter
+        println inputs.incremental ? "CHANGED inputs are out of date"
+                                   : "ALL inputs are out of date"
+    }
+}
+----
+=====
+====
+
+[IMPORTANT]
+====
+To query incremental changes for an input file property, that property must always return the same instance.
+The easiest way to accomplish this is to use one of the following property types: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[`RegularFileProperty`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[`DirectoryProperty`] or link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].
+
+You can learn more about `RegularFileProperty` and `DirectoryProperty` in <<lazy_configuration#lazy_configuration,Lazy Configuration>>.
+====
+
+The incremental task action can use link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[`InputChanges.getFileChanges()`] to find out what files have changed for a given file-based input property, be it of type `RegularFileProperty`, `DirectoryProperty` or `ConfigurableFileCollection`.
+
+The method returns an `Iterable` of type link:{javadocPath}/org/gradle/work/FileChange.html[FileChanges], which in turn can be queried for the following:
+
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getFile--[affected file]
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getChangeType--[change type] (`ADDED`, `REMOVED` or `MODIFIED`)
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getNormalizedPath--[normalized path] of the changed file
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getFileType--[file type] of the changed file
+
+The following example demonstrates an incremental task that has a directory input.
+It assumes that the directory contains a collection of text files and copies them to an output directory, reversing the text within each file:
+
+[[taskDefinition]]
+====
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
+====
+
+NOTE: The type of the `inputDir` property, its annotations, and the `execute()` action use `getFileChanges()` to process the subset of files that have changed since the last build.
+The action deletes a target file if the corresponding input file has been removed.
+
+If, for some reason, the task is executed non-incrementally (by running with `--rerun-tasks`, for example), all files are reported as `ADDED`, irrespective of the previous state.
+In this case, Gradle automatically removes the previous outputs, so the incremental task must only process the given files.
+
+For a simple transformer task like the above example, the task action must generate output files for any out-of-date inputs and delete output files for any removed inputs.
+
+IMPORTANT: A task may only contain a single incremental task action.
+
+[[sec:which_inputs_are_considered_out_of_date]]
+=== Which inputs are considered out of date?
+
+When a task has been previously executed, and the only changes since that execution are to incremental input file properties, Gradle can intelligently determine which input files need to be processed, a concept known as incremental execution.
+
+In this scenario, the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[`InputChanges.getFileChanges()`] method, available in the `org.gradle.work.InputChanges` class, provides details for all input files associated with the given property that have been `ADDED`, `REMOVED` or `MODIFIED`.
+
+However, there are many cases where Gradle cannot determine which input files need to be processed (i.e., non-incremental execution). Examples include:
+
+* There is no history available from a previous execution.
+* You are building with a different version of Gradle.
+Currently, Gradle does not use task history from a different version.
+* An link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[`upToDateWhen`] criterion added to the task returns `false`.
+* An input property has changed since the previous execution.
+* A non-incremental input file property has changed since the previous execution.
+* One or more output files have changed since the previous execution.
+
+In these cases, Gradle will report all input files as `ADDED`, and the `getFileChanges()` method will return details for all the files that comprise the given input property.
+
+You can check if the task execution is incremental or not with the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges.html##org.gradle.work.InputChanges:incremental[`InputChanges.isIncremental()`] method.
+
+[[sec:an_incremental_task_in_action]]
+=== An incremental task in action
+
+Consider an instance of `IncrementalReverseTask` executed against a set of inputs for the first time.
+
+In this case, all inputs will be considered `ADDED`, as shown here:
+
+[[ex:incremental_task_definition]]
+====
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
+====
+
+The build layout:
+
+[source, text]
+----
+.
+├── build.gradle
+└── inputs
+    ├── 1.txt
+    ├── 2.txt
+    └── 3.txt
+----
+
+[source, text]
+----
+$ gradle -q incrementalReverse
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskFirstRun.out[]
+----
+
+Naturally, when the task is executed again with no changes, then the entire task is `UP-TO-DATE`, and the task action is not executed:
+
+[source, text]
+----
+$ gradle incrementalReverse
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskNoChange.out[]
+----
+
+When an input file is modified in some way or a new input file is added, then re-executing the task results in those files being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[`InputChanges.getFileChanges()`].
+
+The following example modifies the content of one file and adds another before running the incremental task:
+
+====
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
+
+----
+$ gradle -q updateInputs incrementalReverse
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskUpdatedInputs.out[]
+----
+====
+
+NOTE: The various mutation tasks (`updateInputs`, `removeInput`, etc) are only present to demonstrate the behavior of incremental tasks.
+They should not be viewed as the kinds of tasks or task implementations you should have in your own build scripts.
+
+When an existing input file is removed, then re-executing the task results in that file being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[`InputChanges.getFileChanges()`] as `REMOVED`.
+
+The following example removes one of the existing files before executing the incremental task:
+
+====
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
+
+----
+$ gradle -q removeInput incrementalReverse
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedInput.out[]
+----
+====
+
+Gradle cannot determine which input files are out-of-date when an _output_ file is deleted (or modified).
+In this case, details for _all_ the input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[`InputChanges.getFileChanges()`].
+
+The following example removes one of the output files from the build directory.
+However, all the input files are considered to be `ADDED`:
+
+====
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
+
+----
+$ gradle -q removeOutput incrementalReverse
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedOutput.out[]
+----
+====
+
+The last scenario we want to cover concerns what happens when a non-file-based input property is modified.
+In such cases, Gradle cannot determine how the property impacts the task outputs, so the task is executed non-incrementally.
+This means that _all_ input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[`InputChanges.getFileChanges()`] and they are all treated as `ADDED`.
+
+The following example sets the project property `taskInputProperty` to a new value when running the `incrementalReverse` task.
+That project property is used to initialize the task's `inputProperty` property, as you can see in the <<ex:incremental_task_definition,first example of this section>>.
+
+Here is the expected output in this case:
+
+====
+----
+$ gradle -q -PtaskInputProperty=changed incrementalReverse
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskChangedProperty.out[]
+----
+====
+
+[[sec:declaring_and_using_command_line_options]]
+== Command Line options
+
+Sometimes, a user wants to declare the value of an exposed task property on the command line instead of the build script.
+Passing property values on the command line is particularly helpful if they change more frequently.
+
+The task API supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime.
+
+[[sec:declaring_task_option]]
+=== Step 1. Declare a command-line option
+
+To expose a new command line option for a task property, annotate the corresponding setter method of a property with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option]:
+
+```
+@Option(option = "flag", description = "Sets the flag")
+```
+
+An option requires a mandatory identifier.
+You can provide an optional description.
+
+A task can expose as many command line options as properties available in the class.
+
+Options may be declared in superinterfaces of the task class as well.
+If multiple interfaces declare the same property but with different option flags, they will both work to set the property.
+
+In the example below, the custom task `UrlVerify` verifies whether a URL can be resolved by making an HTTP call and checking the response code. The URL to be verified is configurable through the property `url`.
+The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option]:
+
+[source.multi-language-sample,java]
+.UrlVerify.java
+----
+include::{snippetsPath}/tasks/commandLineOption-stringOption/groovy/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
+----
+
+All options declared for a task can be <<#sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
+
+[[sec:using_task_option_command_line]]
+=== Step 2. Use an option on the command line
+
+There are a few rules for options on the command line:
+
+- The option uses a double-dash as a prefix, e.g., `--url`.
+A single dash does not qualify as valid syntax for a task option.
+- The option argument follows directly after the task declaration, e.g., `verifyUrl --url=http://www.google.com/`.
+- Multiple task options can be declared in any order on the command line following the task name.
+
+Building upon the earlier example, the build script creates a task instance of type `UrlVerify` and provides a value from the command line through the exposed option:
+
+====
+include::sample[dir="snippets/tasks/commandLineOption-stringOption/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/commandLineOption-stringOption/groovy",files="build.gradle[tags=task]"]
+====
+
+----
+$ gradle -q verifyUrl --url=http://www.google.com/
+include::{snippetsPath}/tasks/commandLineOption-stringOption/tests/taskCommandLineOption.out[]
+----
+
+[[sec:supported_task_option_data_types]]
+=== Supported data types for options
+
+Gradle limits the data types that can be used for declaring command line options.
+
+The use of the command line differs per type:
+
+`boolean`, `Boolean`, `Property<Boolean>`::
+Describes an option with the value `true` or `false`. +
+Passing the option on the command line treats the value as `true`.
+For example, `--foo` equates to `true`. +
+The absence of the option uses the default value of the property.
+For each boolean option, an opposite option is created automatically.
+For example, `--no-foo` is created for the provided option `--foo` and `--bar` is created for `--no-bar`.
+Options whose name starts with `--no` are disabled options and set the option value to `false`.
+An opposite option is only created if no option with the same name already exists for the task.
+
+`Double`, `Property<Double>`::
+Describes an option with a double value. +
+Passing the option on the command line also requires a value, e.g., `--factor=2.2` or `--factor 2.2`.
+
+`Integer`, `Property<Integer>`::
+Describes an option with an integer value. +
+Passing the option on the command line also requires a value, e.g., `--network-timeout=5000` or `--network-timeout 5000`.
+
+`Long`, `Property<Long>`::
+Describes an option with a long value. +
+Passing the option on the command line also requires a value, e.g., `--threshold=2147483648` or `--threshold 2147483648`.
+
+`String`, `Property<String>`::
+Describes an option with an arbitrary String value. +
+Passing the option on the command line also requires a value, e.g., `--container-id=2x94held` or `--container-id 2x94held`.
+
+`enum`, `Property<enum>`::
+Describes an option as an enumerated type. +
+Passing the option on the command line also requires a value e.g., `--log-level=DEBUG` or `--log-level debug`. +
+The value is not case-sensitive.
+
+`List<T>` where `T` is `Double`, `Integer`, `Long`, `String`, `enum`::
+Describes an option that can take multiple values of a given type. +
+The values for the option have to be provided as multiple declarations, e.g., `--image-id=123 --image-id=456`. +
+Other notations, such as comma-separated lists or multiple values separated by a space character, are currently not supported.
+
+`ListProperty<T>`, `SetProperty<T>` where `T` is `Double`, `Integer`, `Long`, `String`, `enum`::
+Describes an option that can take multiple values of a given type. +
+The values for the option have to be provided as multiple declarations, e.g., `--image-id=123 --image-id=456`. +
+Other notations, such as comma-separated lists or multiple values separated by a space character, are currently not supported.
+
+`DirectoryProperty`, `RegularFileProperty`::
+Describes an option with a file system element. +
+Passing the option on the command line also requires a value representing a path, e.g., `--output-file=file.txt` or `--output-dir outputDir`. +
+Relative paths are resolved relative to the project directory of the project that owns this property instance.
+See link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#set-java.io.File[`FileSystemLocationProperty.set()`].
+
+[[sec:documenting_available_task_option_values]]
+=== Documenting available values for an option
+
+Theoretically, an option for a property type `String` or `List<String>` can accept any arbitrary value.
+Accepted values for such an option can be documented programmatically with the help of the annotation link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues]:
+
+```
+@OptionValues('file')
+```
+
+This annotation may be assigned to any method that returns a `List` of one of the supported data types.
+You need to specify an option identifier to indicate the relationship between the option and available values.
+
+NOTE: Passing a value on the command line not supported by the option does not fail the build or throw an exception. You must implement custom logic for such behavior in the task action.
+
+The example below demonstrates the use of multiple options for a single task.
+The task implementation provides a list of available values for the option `output-type`:
+
+[source.multi-language-sample,java]
+.UrlProcess.java
+----
+include::{snippetsPath}/tasks/commandLineOption-optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
+----
+
+[[sec:listing_task_options]]
+=== Listing command line options
+
+Command line options using the annotations link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting.
+
+You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task.
+The output renders options alphabetically, except for boolean disable options, which appear following the enable option:
+
+----
+$ gradle -q help --task processUrl
+include::{snippetsPath}/tasks/commandLineOption-optionValues/tests/helpTaskOptions.out[]
+----
+
+=== Limitations
+
+Support for declaring command line options currently comes with a few limitations.
+
+- Command line options can only be declared for custom tasks via annotation.
+There's no programmatic equivalent for defining options.
+- Options cannot be declared globally, e.g., on a project level or as part of a plugin.
+- When assigning an option on the command line, the task exposing the option needs to be spelled out explicitly, e.g., `gradle check --tests abc` does not work even though the `check` task depends on the `test` task.
+- If you specify a task option name that conflicts with the name of a built-in Gradle option, use the `--` delimiter before calling your task to reference that option.
+For more information, see <<command_line_interface.adoc#sec:disambiguate_task_options_from_built_in_options, Disambiguate Task Options from Built-in Options>>.
+
+== Verification failures
+
+Normally, exceptions thrown during task execution result in a failure that immediately terminates a build.
+The outcome of the task will be `FAILED`, the result of the build will be `FAILED`, and no further tasks will be executed.
+When <<command_line_interface.adoc#sec:continue_build_on_failure, running with the `--continue` flag>>, Gradle will continue to run other requested tasks in the build after encountering a task failure.
+However, any tasks that depend on a failed task will not be executed.
+
+There is a special type of exception that behaves differently when downstream tasks only rely on the outputs of a failing task.
+A task can throw a subtype of link:{javadocPath}/org/gradle/api/tasks/VerificationException.html[VerificationException] to indicate that it has failed in a controlled manner such that its output is still valid for consumers.
+A task depends on the *outcome* of another task when it directly depends on it using `dependsOn`.
+When Gradle is run with `--continue`, consumer tasks that depend on a producer task's output (via a relationship between task inputs and outputs) can still run after the producer fails.
+
+A failed unit test, for instance, will cause a failing outcome for the test task.
+However, this doesn't prevent another task from reading and processing the (valid) test results the task produced.
+Verification failures are used in exactly this manner by the <<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin, `Test Report Aggregation Plugin`>>.
+
+Verification failures are also useful for tasks that need to report a failure even after producing useful output consumable by other tasks.
+
+====
+include::sample[dir="snippets/failures/verificationFailure/kotlin",files="build.gradle.kts[tags=verification-failure]"]
+include::sample[dir="snippets/failures/verificationFailure/groovy",files="build.gradle[tags=verification-failure]"]
+====
+----
+$ gradle postProcess --continue
+include::{snippetsPath}/failures/verificationFailure/tests/verificationFailure.out[]
+----
+<1> *Register Output*: The `process` task writes its output to a log file.
+<2> *Modify Output*: The task writes to its output file as it executes.
+<3> *Task Failure*: The task throws a `VerificationException` and fails at this point.
+<4> *Continue to Modify Output*: This line never runs due to the exception stopping the task.
+<5> *Consume Output*: The `postProcess` task depends on the output of the `process` task due to using that task's outputs as its own inputs.
+<6> *Use Partial Result*: With the `--continue` flag set, Gradle still runs the requested `postProcess` task despite the `process` task's failure.  `postProcess` can read and display the partial (though still valid) result.

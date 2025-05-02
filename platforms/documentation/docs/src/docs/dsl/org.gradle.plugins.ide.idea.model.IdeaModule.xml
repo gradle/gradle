@@ -1,0 +1,140 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>idea</literal> plugin</td>
+                    <td>Default with <literal>idea</literal> and <literal>java</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>name</td>
+                <td><literal><replaceable>${project.name}</replaceable> (sometimes prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqueness)</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>sourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>project.sourceSets.main.allJava</td>
+            </tr>
+            <tr>
+                <td>scopes</td>
+                <td><literal>[:]</literal></td>
+                <td>
+                    <itemizedlist>
+                        <listitem><literal>COMPILE</literal> -> <literal>project.configurations.compileClasspath</literal></listitem>
+                        <listitem><literal>RUNTIME</literal> -> <literal>project.configurations.runtimeClasspath - project.configurations.compileClasspath</literal></listitem>
+                        <listitem><literal>TEST</literal> -> <literal>project.configurations.testRuntimeClasspath - project.configurations.runtimeClasspath</literal></listitem>
+                        <listitem><literal>PROVIDED</literal></listitem>
+                    </itemizedlist>
+                </td>
+            </tr>
+            <tr>
+                <td>generatedSourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>downloadSources</td>
+                <td><literal>true</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>downloadJavadoc</td>
+                <td><literal>false</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>contentRoot</td>
+                <td><literal>project.projectDir</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>testSourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>project.sourceSets.test.allJava</td>
+            </tr>
+            <tr>
+                <td>resourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>resource dirs from <literal>project.sourceSets.main.resources</literal></td>
+            </tr>
+            <tr>
+                <td>testResourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>resource dirs from <literal>project.sourceSets.test.resources</literal></td>
+            </tr>
+            <tr>
+                <td>testSources</td>
+                <td><literal>[]</literal></td>
+                <td>Based on source directories in available test suites</td>
+            </tr>
+            <tr>
+                <td>testResources</td>
+                <td><literal>[]</literal></td>
+                <td>Based on resources in available test suites</td>
+            </tr>
+
+            <tr>
+                <td>excludeDirs</td>
+                <td><literal>[project.layout.buildDirectory, project.file('.gradle')]</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>inheritOutputDirs</td>
+                <td><literal>null</literal></td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>outputDir</td>
+                <td><literal>null</literal></td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>testOutputDir</td>
+                <td><literal>null</literal></td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>jdkName</td>
+                <td><literal>'inherited'</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>languageLevel</td>
+                <td/>
+                <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>targetBytecodeVersion</td>
+                <td/>
+                <td><literal>project.targetCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>iml</td>
+                <td/>
+                <td/>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td>#name + <literal>'.iml'</literal></td>
+                <td/>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>iml</td>
+            </tr>
+        </table>
+    </section>
+</section>
