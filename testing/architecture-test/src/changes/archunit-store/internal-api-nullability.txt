@@ -845,7 +845,6 @@ Class <org.gradle.api.internal.tasks.testing.testng.TestNGSpec> is not annotated
 Class <org.gradle.api.internal.tasks.testing.testng.TestNGTestClassDetector$TestNGTestMethodDetector> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestNGTestClassDetector.java:0)
 Class <org.gradle.api.internal.tasks.testing.testng.TestNGTestClassDetector> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestNGTestClassDetector.java:0)
 Class <org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestNGTestClassProcessor.java:0)
-Class <org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework$1> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestNGTestFramework.java:0)
 Class <org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestNGTestFramework.java:0)
 Class <org.gradle.api.internal.tasks.testing.testng.TestNGTestResultProcessorAdapter$TestClassInfo> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestNGTestResultProcessorAdapter.java:0)
 Class <org.gradle.api.internal.tasks.testing.testng.TestNGTestResultProcessorAdapter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestNGTestResultProcessorAdapter.java:0)

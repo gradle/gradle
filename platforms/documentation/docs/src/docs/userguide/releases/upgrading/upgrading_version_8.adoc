@@ -224,6 +224,27 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 - `org.gradle.api.file.FileTreeElement.getMode()`
 - `org.gradle.api.file.FileCopyDetails.setMode(int)`
 
+==== Removal of custom Source Set interfaces
+
+The following source set interfaces have been removed in Gradle 9.0:
+
+- `org.gradle.api.tasks.GroovySourceSet`
+- `org.gradle.api.tasks.ScalaSourceSet`
+
+To configure Groovy or Scala sources, use the plugin-specific Source Directory Sets instead:
+
+- `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
+
+For example, to configure Groovy sources in a plugin:
+
+[source,java]
+----
+GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
+----
+
+
 ==== Removal of select Groovy modules from the Gradle distribution
 
 Gradle 9.0 removes certain Groovy modules from its bundled distribution.
@@ -786,7 +807,7 @@ For example, this code:
 [source,java]
 ----
 class MyValue {
-    private Boolean property = Boolean.TRUE;
+    private final Boolean property = Boolean.TRUE;
 
     @Input
     Boolean isProperty() { return property; }
@@ -798,7 +819,7 @@ Should be replaced with the following:
 [source,java]
 ----
 class MyValue {
-    private Boolean property = Boolean.TRUE;
+    private final Boolean property = Boolean.TRUE;
 
     @Deprecated
     @ReplacedBy("getProperty")
