@@ -32,7 +32,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
-    val agp = "com.android.tools.build:gradle"
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
     val antLauncher = "org.apache.ant:ant-launcher"

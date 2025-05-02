@@ -21,7 +21,7 @@ plugins {
     id("gradlebuild.strict-compile")
 }
 
-val libs = project.the<ExternalModulesExtension>()
+val oldLibs = project.the<ExternalModulesExtension>()
 
 dependencies {
     // The generated classes use these dependencies.
@@ -29,9 +29,9 @@ dependencies {
     compileOnly(project(":base-asm"))
     compileOnly(project(":internal-instrumentation-api"))
     compileOnly(project(":stdlib-java-extensions"))
-    compileOnly(libs.asm)
-    compileOnly(libs.asmUtil)
-    compileOnly(libs.asmTree)
+    compileOnly(oldLibs.asm)
+    compileOnly(oldLibs.asmUtil)
+    compileOnly(oldLibs.asmTree)
     annotationProcessor(project(":internal-instrumentation-processor"))
     annotationProcessor(platform(project(":distributions-dependencies")))
 }

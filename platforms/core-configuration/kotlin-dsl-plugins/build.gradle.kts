@@ -32,10 +32,10 @@ dependencies {
     api(libs.kotlinStdlib)
 
 
-    implementation(libs.futureKotlin("gradle-plugin"))
-    implementation(libs.futureKotlin("gradle-plugin-api"))
-    implementation(libs.futureKotlin("sam-with-receiver"))
-    implementation(libs.futureKotlin("assignment"))
+    implementation(libs.kotlinGradlePlugin)
+    implementation(libs.kotlinGradlePluginApi)
+    implementation(libs.kotlinSamWithReceiver)
+    implementation(libs.kotlinAssignment)
 
 
     testImplementation(projects.logging)

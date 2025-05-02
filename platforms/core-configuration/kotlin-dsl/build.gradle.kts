@@ -72,30 +72,30 @@ dependencies {
 
     compileOnly(libs.jspecify)
 
-    api(libs.futureKotlin("script-runtime"))
+    api(libs.kotlinScriptRuntime)
 
-    api(libs.futureKotlin("scripting-common")) {
+    api(libs.kotlinScriptingCommon) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-jvm")) {
+    implementation(libs.kotlinScriptingJvm) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-jvm-host")) {
+    implementation(libs.kotlinScriptingJvmHost) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-compiler-embeddable")) {
+    implementation(libs.kotlinScriptingCompilerEmbeddable) {
         isTransitive = false
     }
-    api(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
+    api(libs.kotlinScriptingCompilerImplEmbeddable) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
+    implementation(libs.kotlinSamWithReceiverCompilerPlugin) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
+    implementation(libs.kotlinAssignmentCompilerEmbeddable) {
         isTransitive = false
     }
-    shadow(libs.futureKotlin("metadata-jvm")) {
+    shadow(libs.kotlinMetadataJvm) {
         isTransitive = false
     }
 
@@ -117,7 +117,7 @@ dependencies {
     testImplementation(libs.mockitoKotlin)
     testImplementation(libs.jacksonKotlin)
     testImplementation(libs.archunit)
-    testImplementation(libs.kotlinCoroutines)
+    testImplementation(libs.kotlinxCoroutines)
     testImplementation(libs.awaitility)
 
     integTestImplementation(projects.buildOption) {
