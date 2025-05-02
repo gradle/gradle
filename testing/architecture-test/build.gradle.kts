@@ -24,6 +24,7 @@ dependencies {
 
     testImplementation(libs.archunitJunit5)
     testImplementation(libs.guava)
+    testImplementation(libs.gson)
     testImplementation(libs.junitJupiter)
     testImplementation(libs.assertj)
 
@@ -64,6 +65,11 @@ tasks {
 
         systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
         systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
+        systemProperty("org.gradle.architecture.platforms-base-path", layout.settingsDirectory.file("platforms").asFile.absolutePath)
+        val platformsDataTask = rootProject.tasks.named("platformsData")
+        dependsOn(platformsDataTask)
+        systemProperty("org.gradle.architecture.platforms-json", platformsDataTask.get().outputs.files.singleFile.absolutePath)
+
         jvmArgumentProviders.add(
             ArchUnitFreezeConfiguration(
                 ruleStoreDir.asFile,

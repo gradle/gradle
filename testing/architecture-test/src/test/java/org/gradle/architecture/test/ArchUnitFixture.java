@@ -525,4 +525,13 @@ public interface ArchUnitFixture {
             return null;
         }
     }
+
+    @Nullable
+    static Class<?> safeReflect(JavaClass javaClass) {
+        try {
+            return javaClass.reflect();
+        } catch (NoClassDefFoundError | Exception e) {
+            return null;
+        }
+    }
 }
