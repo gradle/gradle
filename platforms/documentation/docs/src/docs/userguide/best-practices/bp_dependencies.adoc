@@ -193,7 +193,7 @@ include::sample[dir="snippets/bestPractices/kotlinStdLib-do/kotlin",files="build
 include::sample[dir="snippets/bestPractices/kotlinStdLib-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
-*`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
+<1> *`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
 
 === References
 
