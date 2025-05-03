@@ -63,6 +63,7 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.
 ====
 
 <1> *Register Implicit Task Dependency*: `translateGood` requires only one of the files that is produced by `helloWorld`.
+
 Gradle now understands that `translateGood` requires `helloWorld` to have run successfully first because it needs to create the `message.txt` file which is then used by the translation task.
 Gradle can use this information to optimize task scheduling.
 Using the `map` method avoids eagerly retrieving the `helloWorld` task until the output is needed to determine if `translateGood` should run.
@@ -76,7 +77,7 @@ Using the `map` method avoids eagerly retrieving the `helloWorld` task until the
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:up-to-date-checking,#up-to-date-checking>>`
 
 [[use_cacheability_annotations]]
-== Favor `@CacheableTask` and `@DisableCachingByDefault` Over `cacheIf(Spec)` and `doNotCacheIf(String, Spec)`
+== Favor `@CacheableTask` and `@DisableCachingByDefault` over `cacheIf(Spec)` and `doNotCacheIf(String, Spec)`
 :keywords: tasks,caching
 
 The link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[`cacheIf`] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)[`doNotCacheIf`] methods should only be used in situations where the <<build_cache.adoc#build_cache,cacheability>> of a task varies between different task instances or cannot be determined until the task is executed by Gradle.
