@@ -13,31 +13,45 @@
 // limitations under the License.
 
 [[multi_project_builds]]
-= Structuring Projects with Gradle
+= Structuring Projects
 
 It is important to structure your Gradle project to optimize build performance.
 A multi-project build is the standard in Gradle.
 
-image::structuring-builds-1.png[]
-
-A multi-project build consists of one root project and one or more subprojects.
-Gradle can build the root project and any number of the subprojects in a single execution.
-
 [[sub:project_locations]]
-== Project locations
+== Project Concepts in Gradle
 
-Multi-project builds contain a single root project in a directory that Gradle views as the root path: `.`.
+There are four key concepts to understand Gradle projects:
 
-Subprojects are located physically under the root path: `./subproject`.
+1. **Root project**: The top-level project in a build that contains the `settings.gradle(.kts)` file and typically aggregates all subprojects.
 
-A subproject has <<intro_multi_project_builds#sec:project_path,a path>>, which denotes the position of that subproject in the multi-project build.
-In most cases, the project path is consistent with its location in the file system.
+2. **Subprojects**: Individual modules (components) that are part of a multi-project build and are included by the root project via the `settings.gradle(.kts)` file.
 
-The project structure is created in the `settings.gradle(.kts)` file.
-The settings file must be present in the root directory.
+3. **Settings file**: A `settings.gradle(.kts)` configuration file used to define the structure of a multi-project build, including which subprojects are part of it and optionally how they're named or located.
+
+4. **Build scripts**: `build.gradle(.kts)` files that define how a project is built (applying plugins, declaring dependencies, configuring tasks, etc...) executed per project (subprojects can each have one).
+
+Let's take a look at an example:
+
+[source,text]
+----
+my-project/                     // Root project directory
+├── settings.gradle(.kts)       // Settings file
+├── build.gradle(.kts)          // Root project build script (optional)
+├── app/                        // Subproject
+│   ├── build.gradle(.kts)      // Subproject build script
+│   └── src/
+│       └── main/
+├── core/                       // Another subproject
+│   ├── build.gradle(.kts)
+│   └── src/
+└── util/                       // Another subproject
+    ├── build.gradle(.kts)
+    └── src/
+----
 
 [[sec:creating_multi_project_builds]]
-== A simple multi-project build
+== Single-Project Build
 
 Let's look at a _basic_ multi-project build example that contains a root project and a single subproject.
 
@@ -50,22 +64,22 @@ The project contains a single subproject called `./app`:
 =====
 [source, kotlin]
 ----
-.
-├── app
-│   ...
-│   └── build.gradle.kts
-└── settings.gradle.kts
+.                           // Root project
+├── app                     // Subproject
+│   ...                     // Source code and other files
+│   └── build.gradle.kts    // Subproject build file
+└── settings.gradle.kts     // Settings file
 ----
 =====
 [.multi-language-sample]
 =====
 [source, groovy]
 ----
-.
-├── app
-│   ...
-│   └── build.gradle
-└── settings.gradle
+.                           // Root project
+├── app                     // Subproject
+│   ...                     // Source code and other files
+│   └── build.gradle        // Subproject build file
+└── settings.gradle         // Settings file
 ----
 =====
 
@@ -108,7 +122,7 @@ include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 ----
 
 [[sub:building_the_tree]]
-== Adding a subproject
+== Multi-Project Build (`include()`)
 
 In the settings file, you can use the `include` method to add another subproject to the root project:
 
@@ -126,6 +140,7 @@ More examples of how to work with the project path can be found in the DSL docum
 Let's add another subproject called `lib` to the previously created project.
 
 All we need to do is add another `include` statement in the root settings file:
+
 ====
 include::sample[dir="snippets/multiproject/multiple-subprojects/kotlin",files="settings.gradle.kts[]"]
 include::sample[dir="snippets/multiproject/multiple-subprojects/groovy",files="settings.gradle[]"]
@@ -137,33 +152,33 @@ Gradle will then look for the build file of the new `lib` subproject in the `./l
 =====
 [source, kotlin]
 ----
-.
-├── app
+.                           // Root project
+├── app                     // Subproject
 │   ...
-│   └── build.gradle.kts
-├── lib
+│   └── build.gradle.kts    // Subproject build file
+├── lib                     // Subproject
 │   ...
-│   └── build.gradle.kts
-└── settings.gradle.kts
+│   └── build.gradle.kts    // Subproject build file
+└── settings.gradle.kts     // Settings file
 ----
 =====
 [.multi-language-sample]
 =====
 [source, groovy]
 ----
-.
-├── app
+.                           // Root project
+├── app                     // Subproject
 │   ...
-│   └── build.gradle
-├── lib
+│   └── build.gradle        // Subproject build file
+├── lib                     // Subproject
 │   ...
-│   └── build.gradle
-└── settings.gradle
+│   └── build.gradle        // Subproject build file
+└── settings.gradle         // Settings file
 ----
 =====
 
 [[sub:modifying_element_of_the_project_tree]]
-== Project Descriptors
+=== Project Descriptors
 
 To further describe the project architecture to Gradle, the settings file provides _project descriptors_.
 
@@ -185,7 +200,7 @@ include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.
 
 Consult the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
 
-== Modifying a subproject path
+=== Modifying a subproject path
 
 Let's take a hypothetical project with the following structure:
 
@@ -197,9 +212,9 @@ Let's take a hypothetical project with the following structure:
 ├── app
 │   ...
 │   └── build.gradle.kts
-├── subs // Gradle may see this as a subproject
-│   └── web // Gradle may see this as a subproject
-│       └── my-web-module // Intended subproject
+├── subs                    // Gradle may see this as a subproject
+│   └── web                 // Gradle may see this as a subproject
+│       └── my-web-module   // Intended subproject
 │           ...
 │           └── build.gradle.kts
 └── settings.gradle.kts
@@ -213,9 +228,9 @@ Let's take a hypothetical project with the following structure:
 ├── app
 │   ...
 │   └── build.gradle
-├── subs // Gradle may see this as a subproject
-│   └── web // Gradle may see this as a subproject
-│       └── my-web-module // Intended subproject
+├── subs                    // Gradle may see this as a subproject
+│   └── web                 // Gradle may see this as a subproject
+│       └── my-web-module   // Intended subproject
 │           ...
 │           └── build.gradle
 └── settings.gradle
@@ -224,26 +239,28 @@ Let's take a hypothetical project with the following structure:
 
 If your `settings.gradle(.kts)` looks like this:
 
-```
+[source,groovy]
+----
 include(':subs:web:my-web-module')
-```
+----
 
 Gradle sees a subproject with a logical project name of `:subs:web:my-web-module` and two, possibly unintentional, other subprojects logically named `:subs` and `:subs:web`.
 This can lead to phantom build directories, especially when using `allprojects{}` or `subproject{}`.
 
 To avoid this, you can use:
 
-```
+[source,kotlin]
+----
 include(':my-web-module')
 project(':my-web-module').projectDir = "subs/web/my-web-module"
-```
+----
 
 So that you only end up with a single subproject named `:my-web-module`.
 
 So, while the physical project layout is the same, the logical results are different.
 
 [[sec:naming_recommendations]]
-== Naming recommendations
+=== Naming recommendations
 
 As your project grows, naming and consistency get increasingly more important.
 To keep your builds maintainable, we recommend the following:
@@ -259,3 +276,101 @@ All letters are lowercase, and words are separated with a dash (`-`) character.
 The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scans.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
 The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).
+
+== Sharing Build Logic (`buildSrc`)
+
+When projects grow in size and complexity, it's common to see the same logic repeated across multiple subprojects—like applying the same plugins, configuring the same tasks, or declaring the same dependencies.
+
+Duplicated build logic is hard to maintain and easy to get wrong.
+Gradle provides a built-in way to centralize and reuse this logic: a special directory called `buildSrc`.
+
+`buildSrc` is a convention-based embedded build located in the root of your Gradle project.
+Any code you put in this directory is automatically compiled and added to the classpath of your main build.
+
+Let's take a look at our multi-project build:
+
+[source,text]
+----
+my-project/
+├── settings.gradle(.kts)
+├── build.gradle(.kts)
+├── app/
+│   ├── build.gradle(.kts)      // Subproject build script, applies `java-library` and testing logic
+│   └── src/
+├── core/
+│   ├── build.gradle(.kts)      // Subproject build script, applies `java-library` and testing logic
+│   └── src/
+└── util/
+    ├── build.gradle(.kts)      // Subproject build script, applies `java-library` and testing logic
+    └── src/
+----
+
+We now encapsulate reusable configuration logic in a `java-library-convention.gradle.kts` file.
+
+Because the file is named `java-library-convention.gradle.kts`, Gradle automatically registers it as a plugin with the ID `java-library-convention`.
+It compiles and makes this plugin available to all other build scripts in the project.
+
+[source,text]
+----
+my-project/
+├── settings.gradle.kts
+├── build.gradle.kts
+├── buildSrc/
+│   └── java-library-convention.gradle.kts  // Applies `java-library` and testing logic
+├── app/
+│   ├── build.gradle.kts                    // Subproject build script, applies `java-library-convention`
+│   └── src/
+├── core/
+│   ├── build.gradle.kts                    // Subproject build script, applies `java-library-convention`
+│   └── src/
+└── util/
+    ├── build.gradle.kts                    // Subproject build script, applies `java-library-convention`
+    └── src/
+----
+
+
+== Composite Builds (`includeBuild()`)
+
+In Gradle, composite builds (or included builds) are ways to compose multiple builds together.
+
+They allow you to work with multiple Gradle projects (builds) as if they were part of a single build, without needing to publish artifacts to a repository.
+
+Imagine we want to break up our multi-project build into two separate builds:
+
+- A shared library in `libs`
+- An application that uses it (our previous multi-project build)
+
+We want to:
+
+- Keep them in separate builds (they could be in separate repos)
+- But develop them together without publishing `lib`
+
+[source,text]
+----
+composite-project/              // Root project directory
+├── settings.gradle(.kts)       // Settings file
+├── app/                        // Subproject
+│   ├── build.gradle(.kts)
+│   └── src/
+│       └── main/
+├── core/                       // Another subproject
+│   ├── build.gradle(.kts)
+│   └── src/
+├── util/                       // Another subproject
+│    ├── build.gradle(.kts)
+│    └── src/
+└── libs/                       // Standalone, reusable library (included build)
+    └── lib/
+        ├── settings.gradle.kts
+        ├── build.gradle.kts
+        └── src/
+----
+
+Here, `lib` is a separate Gradle build that lives in `libs/lib`.
+It’s not part of the normal `include(...)` multi-project structure.
+
+Instead, we treat it as an included build, a distinct build that we can use without publishing it to a repository.
+
+In the root `settings.gradle(.kts)`, we tell Gradle to include `lib` as part of a composite build using `includeBuild()`:
+
+
