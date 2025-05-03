@@ -63,6 +63,7 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.
 ====
 
 <1> *Register Implicit Task Dependency*: `translateGood` requires only one of the files that is produced by `helloWorld`.
+
 Gradle now understands that `translateGood` requires `helloWorld` to have run successfully first because it needs to create the `message.txt` file which is then used by the translation task.
 Gradle can use this information to optimize task scheduling.
 Using the `map` method avoids eagerly retrieving the `helloWorld` task until the output is needed to determine if `translateGood` should run.
