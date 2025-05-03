@@ -40,7 +40,7 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
         """
 
         expect:
-        succeeds "verifyBinariesPlatformType"
+        succeeds "verifyBinariesPlatformType", '--stacktrace'
     }
 
     @ToBeFixedForConfigurationCache
