@@ -38,12 +38,8 @@ To influence resolved versions, check out <<platforms.adoc#platforms,platforms>>
 Avoid declaring versions in `project.ext`, constants, or local variables:
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin",files="gradle/libs.versions.toml[]"]
-====
-
-====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/do-this",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
 ====
 
 Avoid misusing version catalogs for unrelated concerns:
@@ -56,8 +52,12 @@ Avoid misusing version catalogs for unrelated concerns:
 Use a centralized `libs.versions.toml` file in your `gradle/` directory:
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin",files="gradle/libs.versions.toml[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/do-this",files="build.gradle[tags=do-this]"]
 ====
 
 === References
@@ -104,7 +104,7 @@ The following guidelines help in naming catalog entries effectively:
 +
 *Example*: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
 
-=== Examples
+=== Example
 
 ====
 include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="gradle/libs.versions.toml[]"]
@@ -124,7 +124,7 @@ include::sample[dir="snippets/bestPractices/versionCatalogNaming/groovy",files="
 `<<tags_reference.adoc#tag:version-catalog,#version-catalog>>`
 
 [[set_up_repositories_in_settings]]
-== Set up your dependency repositories in `settings.gradle.kts`
+== Set up your Dependency Repositories in the Settings file
 
 Declare your repositories for your plugins and dependencies in `settings.gradle.kts`.
 
@@ -132,11 +132,11 @@ Declare your repositories for your plugins and dependencies in `settings.gradle.
 
 Using `settings.gradle.kts` file to declare repositories has several benefits:
 
- - Avoids repetition: Centralizing repository declarations eliminates the need to repeat them in each project's `build.gradle.kts`.
- - Improves debuggability: Ensures all projects resolve dependencies during resolution from the same repositories, in a consistent order.
- - Matches the build model: Repositories are not part of the project definition; they are part of global build logic, so settings is a more appropriate place for them.
+ - *Avoids repetition*: Centralizing repository declarations eliminates the need to repeat them in each project's `build.gradle.kts`.
+ - *Improves debuggability*: Ensures all projects resolve dependencies during resolution from the same repositories, in a consistent order.
+ - *Matches the build model*: Repositories are not part of the project definition; they are part of global build logic, so settings is a more appropriate place for them.
 
-Note: While https://github.com/gradle/gradle/issues/32443[`dependencyResolutionManagement.repositories` is an incubating API], it is the preferred way of declaring repositories.
+NOTE: While https://github.com/gradle/gradle/issues/32443[`dependencyResolutionManagement.repositories` is an incubating API], it is the preferred way of declaring repositories.
 
 === Example
 
@@ -193,7 +193,7 @@ include::sample[dir="snippets/bestPractices/kotlinStdLib-do/kotlin",files="build
 include::sample[dir="snippets/bestPractices/kotlinStdLib-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
-*`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
+<1> *`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
 
 === References
 
@@ -212,8 +212,8 @@ Avoid declaring the same dependency multiple times, especially when it is alread
 
 Duplicating dependencies in Gradle build scripts can lead to:
 
-* Increased maintenance: Declaring a dependency in multiple places makes it harder to manage.
-* Unexpected behavior: Declaring the same dependency in multiple configurations (e.g., `compileOnly` and `implementation`) can result in hard-to-diagnose classpath issues.
+* *Increased maintenance*: Declaring a dependency in multiple places makes it harder to manage.
+* *Unexpected behavior*: Declaring the same dependency in multiple configurations (e.g., `compileOnly` and `implementation`) can result in hard-to-diagnose classpath issues.
 
 === Example
 
@@ -236,4 +236,5 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/do
 <1> Declare dependency once
 
 === Tags
+
 `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
