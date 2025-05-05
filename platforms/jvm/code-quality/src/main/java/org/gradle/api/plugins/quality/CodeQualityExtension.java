@@ -15,9 +15,14 @@
  */
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Project;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
@@ -25,11 +30,10 @@ import java.util.Collection;
  * Base Code Quality Extension.
  */
 public abstract class CodeQualityExtension {
-
     private String toolVersion;
-    private Collection<SourceSet> sourceSets;
+    private ListProperty<SourceSet> sourceSets;
     private boolean ignoreFailures;
-    private File reportsDir;
+    private Property<File> reportsDir; // TODO (donat) should be DirectoryProperty; Property<File> to keep semantics as close as possible to the original code
 
     /**
      * The version of the code quality tool to be used.
@@ -51,14 +55,14 @@ public abstract class CodeQualityExtension {
      */
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public Collection<SourceSet> getSourceSets() {
-        return sourceSets;
+        return maybeInitSourceSets().get();
     }
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      */
     public void setSourceSets(Collection<SourceSet> sourceSets) {
-        this.sourceSets = sourceSets;
+        maybeInitSourceSets().set(sourceSets);
     }
 
     /**
@@ -85,13 +89,53 @@ public abstract class CodeQualityExtension {
      */
     @ToBeReplacedByLazyProperty
     public File getReportsDir() {
-        return reportsDir;
+        return maybeInitReportsDir().get();
     }
 
     /**
      * The directory where reports will be generated.
      */
     public void setReportsDir(File reportsDir) {
-        this.reportsDir = reportsDir;
+        maybeInitReportsDir().set(reportsDir);
+    }
+
+    /**
+     * Visible for internal use only!
+     *
+     * @return the reports directory property
+     * @since 9.0
+     */
+    @Incubating
+    public Property<File> getReportsDirProperty() {
+        return maybeInitReportsDir();
+    }
+
+    /**
+     * Visible for internal use only!
+     * @return the source sets property
+     * @since 9.0
+     */
+    @Incubating
+    public ListProperty<SourceSet> getSourceSetsProperty() {
+        return maybeInitSourceSets();
+    }
+
+    private Property<File> maybeInitReportsDir() {
+        if (reportsDir == null) {
+            reportsDir = getProject().getObjects().property(File.class);
+        }
+        return reportsDir;
+    }
+
+    private ListProperty<SourceSet> maybeInitSourceSets() {
+        if (sourceSets == null) {
+            sourceSets = getProject().getObjects().listProperty(SourceSet.class);
+        }
+        return sourceSets;
+    }
+
+    @Inject
+    public Project getProject() {
+        throw new UnsupportedOperationException();
     }
 }
