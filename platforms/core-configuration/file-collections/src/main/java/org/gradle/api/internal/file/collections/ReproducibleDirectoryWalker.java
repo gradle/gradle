@@ -86,6 +86,9 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
 
     private static PathWithAttributes toPathWithAttributes(Path path) {
         try {
+            // This is the same logic as used in java.nio.file.FileTreeWalker:
+            // Attempts to get attributes of a file. If it fails it might mean this is a link
+            // and a link target might not exist so try to get attributes of a link
             BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
             return new PathWithAttributes(path, attributes, null);
         } catch (IOException ignored) {
