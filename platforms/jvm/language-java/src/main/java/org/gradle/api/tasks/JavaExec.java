@@ -52,10 +52,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.Collections.emptyList;
 
 /**
  * Executes a Java application in a child process.
@@ -132,8 +131,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         execResult = objectFactory.property(ExecResult.class);
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
 
-        Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
-        javaExecSpec.getJvmArguments().convention(jvmArgumentsConvention);
+        javaExecSpec.getJvmArguments().convention(Collections.emptyList());
 
         javaExecSpec.getMainClass().convention(mainClass);
         javaExecSpec.getMainModule().convention(mainModule);
@@ -825,10 +823,5 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Inject
     protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
-    }
-
-    private Iterable<String> jvmArgsConventionValue() {
-        Iterable<String> jvmArgs = getConventionMapping().getConventionValue(null, "jvmArgs", false);
-        return jvmArgs != null ? jvmArgs : emptyList();
     }
 }
