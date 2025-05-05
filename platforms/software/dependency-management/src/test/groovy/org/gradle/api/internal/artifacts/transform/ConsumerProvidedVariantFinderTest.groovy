@@ -613,7 +613,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         return Mock(TransformRegistration) {
             getFrom() >> from
             getTo() >> to
-            getTransformStep() >> Stub(TransformStep)
+            getTransformStep() >> Stub(TransformStep) {
+                toString() >> "from ${from} to ${to}"
+            }
+            toString() >> "from ${from} to ${to}"
         }
     }
 
