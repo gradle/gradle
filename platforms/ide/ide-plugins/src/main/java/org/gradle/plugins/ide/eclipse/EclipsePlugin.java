@@ -98,9 +98,10 @@ public abstract class EclipsePlugin extends IdePlugin {
     private final Set<Configuration> testConfigurationsConvention = new HashSet<>();
 
     @Inject
-    public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider,
-                         IdeArtifactRegistry artifactRegistry,
-                         JvmPluginServices jvmPluginServices
+    public EclipsePlugin(
+        UniqueProjectNameProvider uniqueProjectNameProvider,
+        IdeArtifactRegistry artifactRegistry,
+        JvmPluginServices jvmPluginServices
     ) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
@@ -197,30 +198,20 @@ public abstract class EclipsePlugin extends IdePlugin {
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
         EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
         classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
+        classpath.getDefaultOutputDirProperty().convention(project.getLayout().getProjectDirectory().file(EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH));
+        classpath.getTestSourceSets().convention(testSourceSetsConvention);
+        classpath.getTestConfigurations().convention(testConfigurationsConvention);
 
         model.setClasspath(classpath);
-
-        ((IConventionAware) model.getClasspath()).getConventionMapping().map("defaultOutputDir", new Callable<File>() {
-            @Override
-            public File call() {
-                return new File(project.getProjectDir(), EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH);
-            }
-
-        });
-        model.getClasspath().getTestSourceSets().convention(testSourceSetsConvention);
-        model.getClasspath().getTestConfigurations().convention(testConfigurationsConvention);
 
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
                 final TaskProvider<GenerateEclipseClasspath> task = project.getTasks().register(ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath.class, model.getClasspath());
-                task.configure(new Action<GenerateEclipseClasspath>() {
-                    @Override
-                    public void execute(final GenerateEclipseClasspath task) {
-                        task.setDescription("Generates the Eclipse classpath file.");
-                        task.setInputFile(project.file(".classpath"));
-                        task.setOutputFile(project.file(".classpath"));
-                    }
+                task.configure(taskToConfigure -> {
+                    taskToConfigure.setDescription("Generates the Eclipse classpath file.");
+                    taskToConfigure.setInputFile(project.file(".classpath"));
+                    taskToConfigure.setOutputFile(project.file(".classpath"));
                 });
                 addWorker(task, ECLIPSE_CP_TASK_NAME);
 
@@ -265,38 +256,30 @@ public abstract class EclipsePlugin extends IdePlugin {
                     }
                 }).cache();
 
-                ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
-                    @Override
-                    public List<File> call() {
+                model.getClasspath().getClassFoldersProperty().convention(project.provider(() -> {
                         List<File> result = new ArrayList<>();
                         for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
                             result.addAll(sourceSet.getOutput().getDirs().getFiles());
                         }
                         return result;
-                    }
-                });
 
-                task.configure(new Action<GenerateEclipseClasspath>() {
-                    @Override
-                    public void execute(GenerateEclipseClasspath task) {
-                        for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
-                            task.dependsOn(sourceSet.getOutput().getDirs());
-                        }
+                    }
+                ));
+                task.configure(taskToConfigure -> {
+                    for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
+                        taskToConfigure.dependsOn(sourceSet.getOutput().getDirs());
                     }
                 });
 
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                sourceSets.configureEach(new Action<SourceSet>() {
-                    @Override
-                    public void execute(SourceSet sourceSet) {
-                        if (sourceSet.getName().toLowerCase(Locale.ROOT).contains("test")) {
-                            // source sets with 'test' in their name are marked as test on the Eclipse classpath
-                            testSourceSetsConvention.add(sourceSet);
+                sourceSets.configureEach(sourceSet -> {
+                    if (sourceSet.getName().toLowerCase(Locale.ROOT).contains("test")) {
+                        // source sets with 'test' in their name are marked as test on the Eclipse classpath
+                        testSourceSetsConvention.add(sourceSet);
 
-                            // resolved dependencies from the source sets with 'test' in their name are marked as test on the Eclipse classpath
-                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
-                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
-                        }
+                        // resolved dependencies from the source sets with 'test' in their name are marked as test on the Eclipse classpath
+                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
+                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
                     }
                 });
 

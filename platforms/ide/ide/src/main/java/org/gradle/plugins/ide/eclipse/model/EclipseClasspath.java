@@ -23,7 +23,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.SourceSet;
@@ -145,9 +147,7 @@ public abstract class EclipseClasspath {
 
     private Collection<Configuration> minusConfigurations = new ArrayList<Configuration>();
 
-    private Set<String> containers = new LinkedHashSet<String>();
-
-    private File defaultOutputDir;
+    private Set<String> containers = new LinkedHashSet<>();
 
     private boolean downloadSources = true;
 
@@ -155,25 +155,18 @@ public abstract class EclipseClasspath {
 
     private XmlFileContentMerger file = new XmlFileContentMerger(new XmlTransformer());
 
-    private Map<String, File> pathVariables = new HashMap<String, File>();
+    private Map<String, File> pathVariables = new HashMap<>();
 
     private boolean projectDependenciesOnly;
-
-    private List<File> classFolders;
 
     private final org.gradle.api.Project project;
 
     private final Property<Boolean> containsTestFixtures;
 
-    private final SetProperty<SourceSet> testSourceSets;
-    private final SetProperty<Configuration> testConfigurations;
-
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
         this.containsTestFixtures = project.getObjects().property(Boolean.class).convention(false);
-        this.testSourceSets = project.getObjects().setProperty(SourceSet.class);
-        this.testConfigurations = project.getObjects().setProperty(Configuration.class);
     }
 
     /**
@@ -234,11 +227,13 @@ public abstract class EclipseClasspath {
      * See {@link EclipseClasspath} for an example.
      */
     public File getDefaultOutputDir() {
-        return defaultOutputDir;
+        return getDefaultOutputDirProperty().getAsFile().get();
     }
 
+    abstract public RegularFileProperty getDefaultOutputDirProperty();
+
     public void setDefaultOutputDir(File defaultOutputDir) {
-        this.defaultOutputDir = defaultOutputDir;
+        this. getDefaultOutputDirProperty().fileValue(defaultOutputDir);
     }
 
     /**
@@ -305,12 +300,14 @@ public abstract class EclipseClasspath {
     }
 
     public List<File> getClassFolders() {
-        return classFolders;
+        return getClassFoldersProperty().get();
     }
 
     public void setClassFolders(List<File> classFolders) {
-        this.classFolders = classFolders;
+        this.getClassFoldersProperty().set(classFolders);
     }
+
+    abstract public ListProperty<File> getClassFoldersProperty();
 
     public org.gradle.api.Project getProject() {
         return project;
@@ -373,7 +370,7 @@ public abstract class EclipseClasspath {
 
     public FileReferenceFactory getFileReferenceFactory() {
         FileReferenceFactory referenceFactory = new FileReferenceFactory();
-        pathVariables.forEach((key, value) -> referenceFactory.addPathVariable(key, value));
+        pathVariables.forEach(referenceFactory::addPathVariable);
         return referenceFactory;
     }
 
@@ -401,9 +398,7 @@ public abstract class EclipseClasspath {
      * @since 7.5
      */
     @Incubating
-    public SetProperty<SourceSet> getTestSourceSets() {
-        return testSourceSets;
-    }
+    abstract public SetProperty<SourceSet> getTestSourceSets();
 
     /**
      * Returns the test configurations.
@@ -412,7 +407,7 @@ public abstract class EclipseClasspath {
      * <p>
      * The default value contains the following elements:
      * <ul>
-     *     <li>The compile and runtime configurations of the {@link #testSourceSets}, including the jvm-test-suite source sets</li>
+     *     <li>The compile and runtime configurations of the testSourceSets, including the jvm-test-suite source sets</li>
      *     <li>Other configurations with names containing the 'test' substring (case ignored)</li>
      * </ul>
      * <p>
@@ -421,7 +416,5 @@ public abstract class EclipseClasspath {
      * @since 7.5
      */
     @Incubating
-    public SetProperty<Configuration> getTestConfigurations() {
-        return testConfigurations;
-    }
+    abstract public SetProperty<Configuration> getTestConfigurations();
 }
