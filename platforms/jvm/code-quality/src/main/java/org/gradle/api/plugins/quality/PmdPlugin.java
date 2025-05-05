@@ -91,8 +91,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.getThreads().convention(1);
         extension.setRuleSetFiles(project.getLayout().files());
         extension.ruleSetsConvention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
-        conventionMappingOf(extension).map("targetJdk", () ->
-            getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
+        extension.targetJdk.convention(project.provider(() -> getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility())));
         return extension;
     }
 

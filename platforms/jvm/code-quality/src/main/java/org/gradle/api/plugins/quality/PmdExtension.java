@@ -37,7 +37,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
 
     private final Project project;
 
-    private TargetJdk targetJdk;
+    Property<TargetJdk> targetJdk;
     private TextResource ruleSetConfig;
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
@@ -49,6 +49,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
 
     public PmdExtension(Project project) {
         this.project = project;
+        this.targetJdk = project.getObjects().property(TargetJdk.class);
         this.rulesMinimumPriority = project.getObjects().property(Integer.class);
         this.incrementalAnalysis = project.getObjects().property(Boolean.class);
         this.maxFailures = project.getObjects().property(Integer.class);
@@ -100,7 +101,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      */
     @ToBeReplacedByLazyProperty
     public TargetJdk getTargetJdk() {
-        return targetJdk;
+        return targetJdk.get();
     }
 
     /**
@@ -110,7 +111,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @since 4.0
      */
     public void setTargetJdk(TargetJdk targetJdk) {
-        this.targetJdk = targetJdk;
+        this.targetJdk.set(targetJdk);
     }
 
     /**
@@ -130,7 +131,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
      */
     public void setTargetJdk(Object value) {
-        targetJdk = TargetJdk.toVersion(value);
+        targetJdk.set(TargetJdk.toVersion(value));
     }
 
     /**
