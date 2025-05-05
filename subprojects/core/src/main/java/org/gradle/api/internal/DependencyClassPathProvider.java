@@ -51,13 +51,11 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         "groovy",
         "groovy-ant",
         "groovy-astbuilder",
-        "groovy-console",
         "groovy-datetime",
         "groovy-dateutil",
         "groovy-groovydoc",
         "groovy-json",
         "groovy-nio",
-        "groovy-sql",
         "groovy-templates",
         "groovy-xml"
     );
