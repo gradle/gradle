@@ -38,8 +38,8 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.
 include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=depended-upon-task-setup]"]
 ====
 
-<1> *Task With Multiple Outputs*: `hellowWorld` task prints "Hello" to its `messageFile` and "World" to its `audienceFile`.
-<2> *Registering the Task*: `hellowWorld` produces "message.txt" and "audience.txt" outputs.
+<1> *Task With Multiple Outputs*: `helloWorld` task prints "Hello" to its `messageFile` and "World" to its `audienceFile`.
+<2> *Registering the Task*: `helloWorld` produces "message.txt" and "audience.txt" outputs.
 
 ==== Don't Do This
 
