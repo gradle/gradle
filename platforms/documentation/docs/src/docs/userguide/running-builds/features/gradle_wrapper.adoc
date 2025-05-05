@@ -302,7 +302,7 @@ Check out the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[API d
 [[sec:authenticated_download]]
 === Authenticated Gradle distribution download
 
-The Gradle `Wrapper` can download Gradle distributions from servers using HTTP Basic Authentication.
+The Gradle `Wrapper` can download Gradle distributions from servers using HTTP Basic Authentication or with a static HTTP Bearer Token.
 This enables you to host the Gradle distribution on a private protected server.
 
 You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the `distributionUrl`.
@@ -338,6 +338,27 @@ distributionUrl=https://username:password@somehost/path/to/gradle-distribution.z
 
 This can be used in conjunction with a proxy, authenticated or not.
 See <<networking.adoc#sec:accessing_the_web_via_a_proxy,Accessing the web via a proxy>> for more information on how to configure the `Wrapper` to use a proxy.
+
+WARNING: If you use `systemProp.gradle.wrapperUser` and `systemProp.gradle.wrapperPassword` to download the Gradle Wrapper from a private server, your credentials may be leaked if a build attempts to download the wrapper from a different server..
+To safeguard your credentials, prefix the system properties with the private server's hostname, replacing all dots (`.`) with underscores (`_`).
+
+For example, if your private server hostname is `your.private-server.com`, use the following system properties:
+
+[source,properties]
+----
+systemProp.gradle.your_private-server_com.wrapperUser=username
+systemProp.gradle.your_private-server_com.wrapperPassword=password
+----
+
+To authenticate with a static HTTP Bearer Token, add the following line to your system properties file:
+
+[source,properties]
+----
+systemProp.gradle.your_private-server_com.wrapperToken=some-api-token
+----
+
+NOTE: If a `wrapperToken` is specified, it will take precedence over `wrapperUser` and `wrapperPassword`.
+It is strongly recommended to include the hostname in the property to prevent the token from being accidentally sent to an unintended server.
 
 [[sec:verification]]
 === Verification of downloaded Gradle distributions

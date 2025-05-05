@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.server.http;
 
+import com.sun.net.httpserver.Authenticator;
 import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
@@ -171,6 +172,22 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
             @Override
             public boolean checkCredentials(String suppliedUser, String suppliedPassword) {
                 return suppliedUser.equals(username) && password.equals(suppliedPassword);
+            }
+        });
+    }
+
+    /**
+     * Expects that all requests use the bearer authentication with the given credentials.
+     */
+    public void withBearerAuthentication(final String token) {
+        context.setAuthenticator(new Authenticator() {
+            @Override
+            public Result authenticate(HttpExchange exchange) {
+                String authorization = exchange.getRequestHeaders().getFirst("Authorization");
+                if (authorization == null || !authorization.equals("Bearer " + token)) {
+                    return new Failure(401);
+                }
+                return new Success(new com.sun.net.httpserver.HttpPrincipal("bearer token", "realm"));
             }
         });
     }
@@ -470,6 +487,13 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
          * @return this
          */
         BuildableExpectedRequest broken();
+
+        /**
+         * Sends a 401 unauthorized response with some arbitrary content as the response body.
+         *
+         * @return this
+         */
+        BuildableExpectedRequest unauthorized();
 
         /**
          * Sends a 200 response with the contents of the given file as the response body.
