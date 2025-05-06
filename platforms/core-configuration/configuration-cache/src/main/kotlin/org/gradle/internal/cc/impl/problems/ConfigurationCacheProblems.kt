@@ -153,6 +153,10 @@ class ConfigurationCacheProblems(
             reportIncompatibleTask(trace, reason)
         }
         return object : AbstractProblemsListener() {
+            override fun onExecutionTimeProblem(problem: PropertyProblem) {
+                onProblem(problem)
+            }
+
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
             }
@@ -161,6 +165,8 @@ class ConfigurationCacheProblems(
                 val failure = failureFactory.create(error)
                 onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
             }
+
+            override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
         }
     }
 

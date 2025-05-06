@@ -20,7 +20,9 @@ import org.gradle.api.IsolatedAction
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
@@ -182,4 +184,7 @@ object ThrowingProblemsListener : AbstractProblemsListener() {
         // TODO: consider throwing more specific exception
         throw ConfigurationCacheError("Failed to isolate 'GradleLifecycle' action: ${problem.message}")
     }
+
+    // TODO(mlopatkin) Does it make sense to have this method in this context?
+    override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
 }

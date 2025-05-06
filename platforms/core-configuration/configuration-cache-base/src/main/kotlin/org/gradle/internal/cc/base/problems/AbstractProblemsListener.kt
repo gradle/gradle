@@ -28,7 +28,6 @@ import java.io.IOException
 
 
 abstract class AbstractProblemsListener : ProblemsListener {
-
     override fun onExecutionTimeProblem(problem: PropertyProblem) {
         onProblem(problem)
         val exception = problem.exception ?: error("Problem was expected to have an associated exception: $problem")
@@ -45,6 +44,4 @@ abstract class AbstractProblemsListener : ProblemsListener {
             error.maybeUnwrapInvocationTargetException()
         )
     }
-
-    override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
 }
