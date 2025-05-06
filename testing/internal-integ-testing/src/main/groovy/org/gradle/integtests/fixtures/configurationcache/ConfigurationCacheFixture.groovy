@@ -119,7 +119,7 @@ class ConfigurationCacheFixture {
             if (details.hasStoreFailure) {
                 configurationCacheBuildOperations.assertStateStoreFailed()
             } else {
-                configurationCacheBuildOperations.assertStateStored(details.loadsOnStore)
+                configurationCacheBuildOperations.assertStateStored(false)
             }
         } else {
             configurationCacheBuildOperations.assertNoWorkGraphOperations()
