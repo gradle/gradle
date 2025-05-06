@@ -29,7 +29,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -374,29 +373,49 @@ public abstract class EclipsePlugin extends IdePlugin {
                 });
                 addWorker(task, ECLIPSE_JDT_TASK_NAME);
 
+//                //model properties:
+//                ConventionMapping conventionMapping = ((IConventionAware) model.getJdt()).getConventionMapping();
+//                conventionMapping.map("sourceCompatibility", new Callable<JavaVersion>() {
+//                    @Override
+//                    public JavaVersion call() {
+//                        return project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility();
+//                    }
+//
+//                });
+//                conventionMapping.map("targetCompatibility", new Callable<JavaVersion>() {
+//                    @Override
+//                    public JavaVersion call() {
+//                        return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
+//                    }
+//
+//                });
+//                conventionMapping.map("javaRuntimeName", new Callable<String>() {
+//                    @Override
+//                    public String call() {
+//                        return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
+//                    }
+//
+//                });
                 //model properties:
-                ConventionMapping conventionMapping = ((IConventionAware) model.getJdt()).getConventionMapping();
-                conventionMapping.map("sourceCompatibility", new Callable<JavaVersion>() {
+                model.getJdt().getSourceCompatibilityProperty().convention(project.provider(new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
                         return project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility();
                     }
-
-                });
-                conventionMapping.map("targetCompatibility", new Callable<JavaVersion>() {
+                }));
+                model.getJdt().getTargetCompatibilityProperty().convention(project.provider(new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
                         return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
                     }
 
-                });
-                conventionMapping.map("javaRuntimeName", new Callable<String>() {
+                }));
+                model.getJdt().getJavaRuntimeNameProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() {
                         return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
                     }
-
-                });
+                }));
             }
         });
     }

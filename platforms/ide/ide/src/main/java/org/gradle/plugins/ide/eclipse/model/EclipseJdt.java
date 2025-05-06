@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.provider.Property;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -64,12 +65,6 @@ import javax.inject.Inject;
  */
 public abstract class EclipseJdt {
 
-    private JavaVersion sourceCompatibility = JavaVersion.current();
-
-    private JavaVersion targetCompatibility = JavaVersion.current();
-
-    private String javaRuntimeName;
-
     private final PropertiesFileContentMerger file;
 
     @Inject
@@ -83,7 +78,7 @@ public abstract class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      */
     public JavaVersion getSourceCompatibility() {
-        return sourceCompatibility;
+        return getSourceCompatibilityProperty().get();
     }
 
     /**
@@ -98,9 +93,11 @@ public abstract class EclipseJdt {
     public void setSourceCompatibility(Object sourceCompatibility) {
         JavaVersion version = JavaVersion.toVersion(sourceCompatibility);
         if (version != null) {
-            this.sourceCompatibility = version;
+            this.getSourceCompatibilityProperty().set(version);
         }
     }
+
+    abstract public Property<JavaVersion> getSourceCompatibilityProperty();
 
     /**
      * The target JVM to generate {@code .class} files for.
@@ -108,8 +105,10 @@ public abstract class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      */
     public JavaVersion getTargetCompatibility() {
-        return targetCompatibility;
+        return  getTargetCompatibilityProperty().get();
     }
+
+    abstract public Property<JavaVersion> getTargetCompatibilityProperty();
 
     /**
      * Sets target compatibility.
@@ -123,7 +122,7 @@ public abstract class EclipseJdt {
     public void setTargetCompatibility(Object targetCompatibility) {
         JavaVersion version = JavaVersion.toVersion(targetCompatibility);
         if (version != null) {
-            this.targetCompatibility = version;
+            this. getTargetCompatibilityProperty().set(version);
         }
     }
 
@@ -133,12 +132,14 @@ public abstract class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      */
     public String getJavaRuntimeName() {
-        return javaRuntimeName;
+        return getJavaRuntimeNameProperty().get();
     }
 
     public void setJavaRuntimeName(String javaRuntimeName) {
-        this.javaRuntimeName = javaRuntimeName;
+        this.getJavaRuntimeNameProperty().set(javaRuntimeName);
     }
+
+    abstract public Property<String> getJavaRuntimeNameProperty();
 
     /**
      * See {@link #file(Action) }
