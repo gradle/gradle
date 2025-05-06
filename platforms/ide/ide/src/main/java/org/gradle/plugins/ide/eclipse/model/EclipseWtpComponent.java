@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -210,6 +211,19 @@ public abstract class EclipseWtpComponent {
         getSourceDirsProperty().set(sourceDirs);
     }
 
+    /**
+     * Source directories to be transformed into wb-resource elements.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     * <p>
+     * Only source dirs that exist will be added to the wtp component file.
+     * Non-existing resource directory declarations lead to errors when project is imported into Eclipse.
+     *
+     * @return The source directories to be transformed into wb-resource elements.
+     *
+     * @since 9.0
+     */
+    @Incubating
     abstract public SetProperty<File> getSourceDirsProperty();
 
     /**
@@ -278,6 +292,16 @@ public abstract class EclipseWtpComponent {
         getDeployNameProperty().set(deployName);
     }
 
+    /**
+     * The deploy name to be used.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @return The deploy name to be used.
+     *
+     * @since 9.0
+     */
+    @Incubating
     abstract public Property<String> getDeployNameProperty();
 
     /**
@@ -372,6 +396,16 @@ public abstract class EclipseWtpComponent {
         this.getLibDeployPathProperty().set(libDeployPath);
     }
 
+    /**
+     * The deploy path for libraries.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @return The deploy path for libraries.
+     *
+     * @since 9.0
+     */
+    @Incubating
     abstract public Property<String> getLibDeployPathProperty();
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.

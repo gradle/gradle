@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.internal.ConfigureUtil;
@@ -134,6 +135,14 @@ public abstract class EclipseWtpFacet {
         this.getFacetsProperty().set(facets);
     }
 
+    /**
+     * The facets to be added as elements.
+     * <p>
+     * For examples see docs for {@link EclipseWtpFacet}
+     *
+     * @since 9.0
+     */
+    @Incubating
     abstract public ListProperty<Facet> getFacetsProperty();
 
     /**

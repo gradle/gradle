@@ -183,7 +183,7 @@ class EclipseModelTest extends Specification {
 
         when: "configure wtp component and facet"
         model.wtp.component({ comp -> comp.deployName = 'name' } as Action<EclipseWtpComponent>)
-        model.wtp.facet({ fac -> fac.facets.add(new Facet()) } as Action<EclipseWtpFacet>)
+        model.wtp.facet({ fac -> fac.facetsProperty.add(new Facet()) } as Action<EclipseWtpFacet>)
 
         then:
         model.wtp.component.deployName == 'name'

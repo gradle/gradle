@@ -230,11 +230,18 @@ public abstract class EclipseClasspath {
         return getDefaultOutputDirProperty().getAsFile().get();
     }
 
-    abstract public RegularFileProperty getDefaultOutputDirProperty();
-
     public void setDefaultOutputDir(File defaultOutputDir) {
-        this. getDefaultOutputDirProperty().fileValue(defaultOutputDir);
+        this.getDefaultOutputDirProperty().fileValue(defaultOutputDir);
     }
+
+    /**
+     * The default output directory where Eclipse puts compiled classes.
+     * @return the default output directory
+     *
+     * @since 9.0
+     */
+    @Incubating
+    abstract public RegularFileProperty getDefaultOutputDirProperty();
 
     /**
      * The base output directory for source sets.
@@ -307,6 +314,13 @@ public abstract class EclipseClasspath {
         this.getClassFoldersProperty().set(classFolders);
     }
 
+    /**
+     * The class folders to be added.
+     * @return the class folders to be added
+     *
+     * @since 9.0
+     */
+    @Incubating
     abstract public ListProperty<File> getClassFoldersProperty();
 
     public org.gradle.api.Project getProject() {

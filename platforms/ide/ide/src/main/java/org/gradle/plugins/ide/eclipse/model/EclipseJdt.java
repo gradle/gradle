@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.provider.Property;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
@@ -97,6 +98,14 @@ public abstract class EclipseJdt {
         }
     }
 
+    /**
+     * The source Java language level.
+     * <p>
+     * For example see docs for {@link EclipseJdt}
+     *
+     * @since 9.0
+     */
+    @Incubating
     abstract public Property<JavaVersion> getSourceCompatibilityProperty();
 
     /**
@@ -105,9 +114,17 @@ public abstract class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      */
     public JavaVersion getTargetCompatibility() {
-        return  getTargetCompatibilityProperty().get();
+        return getTargetCompatibilityProperty().get();
     }
 
+    /**
+     * The target JVM to generate {@code .class} files for.
+     * <p>
+     * For example see docs for {@link EclipseJdt}
+     *
+     * @since 9.0
+     */
+    @Incubating
     abstract public Property<JavaVersion> getTargetCompatibilityProperty();
 
     /**
@@ -122,7 +139,7 @@ public abstract class EclipseJdt {
     public void setTargetCompatibility(Object targetCompatibility) {
         JavaVersion version = JavaVersion.toVersion(targetCompatibility);
         if (version != null) {
-            this. getTargetCompatibilityProperty().set(version);
+            this.getTargetCompatibilityProperty().set(version);
         }
     }
 
@@ -139,6 +156,13 @@ public abstract class EclipseJdt {
         this.getJavaRuntimeNameProperty().set(javaRuntimeName);
     }
 
+    /**
+     * The name of the Java Runtime to use.
+     *
+     * @return The name of the Java Runtime to use.
+     * @since 9.0
+     */
+    @Incubating
     abstract public Property<String> getJavaRuntimeNameProperty();
 
     /**
