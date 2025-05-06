@@ -18,6 +18,7 @@ package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.AppEntryPoint;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -49,6 +51,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
@@ -123,12 +126,12 @@ import java.util.stream.Collectors;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class CreateStartScripts extends ConventionTask {
 
-    private File outputDir;
-    private String executableDir = "bin";
+    private final Property<File> outputDir;
+    private final Property<String> executableDir;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
-    private Iterable<String> defaultJvmOpts = new LinkedList<>();
-    private String applicationName;
+    private final ListProperty<String> defaultJvmOpts;
+    private final Property<String> applicationName;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
     private FileCollection classpath;
@@ -137,8 +140,12 @@ public abstract class CreateStartScripts extends ConventionTask {
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
     public CreateStartScripts() {
+        this.outputDir = getObjectFactory().property(File.class);
+        this.executableDir = getObjectFactory().property(String.class);
         this.mainModule = getObjectFactory().property(String.class);
         this.mainClass = getObjectFactory().property(String.class);
+        this.defaultJvmOpts = getObjectFactory().listProperty(String.class);
+        this.applicationName = getObjectFactory().property(String.class);
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
 
@@ -215,11 +222,11 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Nullable
     @ToBeReplacedByLazyProperty
     public File getOutputDir() {
-        return outputDir;
+        return outputDir.getOrNull();
     }
 
     public void setOutputDir(@Nullable File outputDir) {
-        this.outputDir = outputDir;
+        this.outputDir.set(outputDir);
     }
 
     /**
@@ -229,7 +236,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getExecutableDir() {
-        return executableDir;
+        return executableDir.getOrElse("bin");
     }
 
     /**
@@ -237,7 +244,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      * @since 4.5
      */
     public void setExecutableDir(String executableDir) {
-        this.executableDir = executableDir;
+        this.executableDir.set(executableDir);
     }
 
     /**
@@ -270,11 +277,11 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Input
     @ToBeReplacedByLazyProperty
     public Iterable<String> getDefaultJvmOpts() {
-        return defaultJvmOpts;
+        return defaultJvmOpts.getOrElse(new LinkedList<>());
     }
 
     public void setDefaultJvmOpts(@Nullable Iterable<String> defaultJvmOpts) {
-        this.defaultJvmOpts = defaultJvmOpts;
+        this.defaultJvmOpts.set(defaultJvmOpts);
     }
 
     /**
@@ -284,11 +291,11 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getApplicationName() {
-        return applicationName;
+        return applicationName.getOrNull();
     }
 
     public void setApplicationName(@Nullable String applicationName) {
-        this.applicationName = applicationName;
+        this.applicationName.set(applicationName);
     }
 
     public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
@@ -397,4 +404,51 @@ public abstract class CreateStartScripts extends ConventionTask {
         return path.getFiles().stream().map(input -> "lib/" + input.getName()).collect(Collectors.toCollection(Lists::newArrayList));
     }
 
+    /**
+     * Defines the convention for {@code applicationName}.
+     *
+     * @param convention lambda returning the convention value
+     * @since 9.0
+     */
+    @Internal
+    @Incubating
+    public void applicationNameConvention(Callable<String> convention) {
+        applicationName.convention(getProject().provider(convention));
+    }
+
+    /**
+     * Defines the convention for {@code outputDir}.
+     *
+     * @param convention lambda returning the convention value
+     * @since 9.0
+     */
+    @Internal
+    @Incubating
+    public void outputDirConvention(Callable<File> convention) {
+        outputDir.convention(getProject().provider(convention));
+    }
+
+    /**
+     * Defines the convention for {@code executableDir}.
+     *
+     * @param convention lambda returning the convention value
+     * @since 9.0
+     */
+    @Internal
+    @Incubating
+    public void executableDirConvention(Callable<String> convention) {
+        executableDir.convention(getProject().provider(convention));
+    }
+
+    /**
+     * Defines the convention for {@code defaultJvmOpts}.
+     *
+     * @param convention lambda returning the convention value
+     * @since 9.0
+     */
+    @Internal
+    @Incubating
+    public void defaultJvmOptsConvention(Callable<Iterable<String>> convention) {
+        defaultJvmOpts.convention(getProject().provider(convention));
+    }
 }
