@@ -361,6 +361,8 @@ gradle.rootProject {
 
 abstract class GeneratePlatformsDataTask : DefaultTask() {
 
+    data class PlatformData(val name: String, val dirs: List<String>, val uses: List<String>)
+
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
 
@@ -370,11 +372,12 @@ abstract class GeneratePlatformsDataTask : DefaultTask() {
     @TaskAction
     fun action() {
         val allPlatforms = platforms.get()
-        // name: [dirs: ..., uses: ...]
-        val data = allPlatforms.associateBy { it.name }.mapValues { (_, platform) ->
-            val dirs = platform.children.takeIf { it.isNotEmpty() }?.map { it.name } ?: listOf(platform.name)
-            val uses = platform.uses.map { use -> allPlatforms.single { it.id == use }.name }
-            mapOf("dirs" to dirs, "uses" to uses)
+        val data = allPlatforms.map { platform ->
+            PlatformData(
+                name = platform.name,
+                dirs = platform.children.takeIf { it.isNotEmpty() }?.map { it.name } ?: listOf(platform.name),
+                uses = platform.uses.map { use -> allPlatforms.single { it.id == use }.name },
+            )
         }
         outputFile.get().asFile.writeText(Gson().toJson(data))
     }
