@@ -233,8 +233,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 libConfigurations.clear();
                 libConfigurations.add(project.getConfigurations().getByName("earlib"));
                 component.setClassesDeployPath("/");
-                final ConventionMapping convention = ((IConventionAware) component).getConventionMapping();
-                convention.map("libDeployPath", new Callable<String>() {
+                component.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() throws Exception {
                         String deployPath = ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getLibDirName();
@@ -244,22 +243,22 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
                         return deployPath;
                     }
-                });
-                convention.map("sourceDirs", new Callable<Set<File>>() {
+                }));
+                component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
                         return WrapUtil.toSet(((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getAppDirectory().get().getAsFile());
                     }
-                });
+                }));
                 project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
                     @Override
                     public void execute(JavaPlugin javaPlugin) {
-                        convention.map("sourceDirs", new Callable<Set<File>>() {
+                        component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                             @Override
                             public Set<File> call() throws Exception {
                                 return getMainSourceDirs(project);
                             }
-                        });
+                        }));
                     }
 
                 });
