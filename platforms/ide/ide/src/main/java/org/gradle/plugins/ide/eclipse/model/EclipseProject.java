@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
@@ -141,7 +140,7 @@ public abstract class EclipseProject {
     public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
     private String name;
 
-    private Property<Optional> comment;
+    private Property<String> comment;
 
     private Set<String> referencedProjects = new LinkedHashSet<>();
 
@@ -158,8 +157,8 @@ public abstract class EclipseProject {
     @Inject
     public EclipseProject(XmlFileContentMerger file, org.gradle.api.Project project) {
         this.file = file;
-        this.comment = project.getObjects().property(Optional.class);
-        this.comment.convention(project.provider(() ->  Optional.ofNullable(project.getDescription())));
+        this.comment = project.getObjects().property(String.class);
+        this.comment.convention(project.provider(() ->  project.getDescription()));
         this.linkedResources = project.getObjects().setProperty(Link.class);
         this.linkedResources.convention(project.provider(() -> {
             if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
@@ -198,10 +197,8 @@ public abstract class EclipseProject {
         this.name = name;
     }
 
-    @SuppressWarnings("unchecked")
     public String getComment() {
-        Optional<String> c = (Optional<String>) comment.getOrNull();
-        return c.orElse((String) null);
+        return comment.getOrNull();
     }
 
     /**
@@ -210,7 +207,7 @@ public abstract class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void setComment(String comment) {
-        this.comment.set(Optional.ofNullable(comment));
+        this.comment.set(comment);
     }
 
 

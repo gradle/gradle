@@ -25,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -148,9 +149,7 @@ public abstract class EclipseWtpComponent {
     private Set<Configuration> rootConfigurations = new LinkedHashSet<>();
     private Set<Configuration> libConfigurations = new LinkedHashSet<>();
     private Set<Configuration> minusConfigurations = new LinkedHashSet<>();
-    private List<WbResource> resources = new ArrayList<>();
     private List<WbProperty> properties = new ArrayList<>();
-    private String contextPath;
     private String classesDeployPath = "/WEB-INF/classes";
     private Map<String, File> pathVariables = new HashMap<>();
 
@@ -315,12 +314,27 @@ public abstract class EclipseWtpComponent {
      * lead to errors when project is imported into Eclipse.
      */
     public List<WbResource> getResources() {
-        return resources;
+        return getResourcesProperty().get();
     }
 
     public void setResources(List<WbResource> resources) {
-        this.resources = resources;
+        this.getResourcesProperty().set(resources);
     }
+
+    /**
+     * Additional wb-resource elements.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     * <p>
+     * Only resources that link to an existing directory ({@link WbResource#getSourcePath()})
+     * will be added to the wtp component file.
+     * The reason is that non-existing resource directory declarations
+     * lead to errors when project is imported into Eclipse.
+     *
+     * @since 9.0
+     */
+    @Incubating
+    abstract public ListProperty<WbResource> getResourcesProperty();
 
     /**
      * Adds a wb-resource.
@@ -330,7 +344,7 @@ public abstract class EclipseWtpComponent {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     public void resource(Map<String, String> args) {
-        resources = Lists.newArrayList(Iterables.concat(getResources(), Collections.singleton(new WbResource(args.get("deployPath"), args.get("sourcePath")))));
+        setResources(Lists.newArrayList(Iterables.concat(getResources(), Collections.singleton(new WbResource(args.get("deployPath"), args.get("sourcePath"))))));
     }
 
     /**
@@ -363,12 +377,22 @@ public abstract class EclipseWtpComponent {
      * For examples see docs for {@link EclipseWtp}
      */
     public String getContextPath() {
-        return contextPath;
+        return getContextPathProperty().getOrNull();
     }
 
     public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
+        this.getContextPathProperty().set(contextPath);
     }
+
+    /**
+     * The context path for the web application
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @since 9.0
+     */
+    @Incubating
+    abstract public Property<String> getContextPathProperty();
 
     /**
      * The deploy path for classes.

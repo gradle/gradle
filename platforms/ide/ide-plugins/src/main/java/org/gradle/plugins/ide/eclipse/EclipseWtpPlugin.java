@@ -20,8 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.WarPlugin;
@@ -189,38 +187,36 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getMainFeature().getRuntimeClasspathConfiguration());
                 minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
                 component.setClassesDeployPath("/WEB-INF/classes");
-                ConventionMapping convention = ((IConventionAware) component).getConventionMapping();
-                convention.map("libDeployPath", new Callable<String>() {
+                component.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
-                    public String call() throws Exception {
+                    public String call() {
                         return "/WEB-INF/lib";
                     }
-                });
-                convention.map("contextPath", new Callable<String>() {
+                }));
+                component.getContextPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
-                    public String call() throws Exception {
+                    public String call() {
                         return ((War) project.getTasks().getByName("war")).getArchiveBaseName().getOrNull();
                     }
-                });
-                convention.map("resources", new Callable<List<WbResource>>() {
+                }));
+                component.getResourcesProperty().convention(project.provider(new Callable<List<WbResource>>() {
                     @Override
-                    public List<WbResource> call() throws Exception {
+                    public List<WbResource> call() {
                         File projectDir = project.getProjectDir();
                         File webAppDir = ((War) project.getTasks().getByName("war")).getWebAppDirectory().get().getAsFile();
                         String webAppDirName = RelativePathUtil.relativePath(projectDir, webAppDir);
-                        List<WbResource> result = new ArrayList<>(1);
+                        List<WbResource> result = new ArrayList<>();
                         result.add(new WbResource("/", webAppDirName));
                         return result;
                     }
-                });
-                convention.map("sourceDirs", new Callable<Set<File>>() {
+                }));
+                component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
-                    public Set<File> call() throws Exception {
+                    public Set<File> call() {
                         return getMainSourceDirs(project);
                     }
-                });
+                }));
             }
-
         });
         project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
             @Override

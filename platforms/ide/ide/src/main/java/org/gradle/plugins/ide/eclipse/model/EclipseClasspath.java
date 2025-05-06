@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.views.ListPropertyListView;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -186,7 +187,7 @@ public abstract class EclipseClasspath {
      * See {@link EclipseClasspath} for an example.
      */
     public Collection<Configuration> getPlusConfigurations() {
-        return getPlusConfigurationsProperty().get();
+        return new ListPropertyListView<>(getPlusConfigurationsProperty());
     }
 
     public void setPlusConfigurations(Collection<Configuration> plusConfigurations) {
