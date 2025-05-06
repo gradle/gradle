@@ -149,12 +149,6 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 return model.getProject().getName();
             }
         }));
-//        ((IConventionAware) component).getConventionMapping().map("deployName", new Callable<String>() {
-//            @Override
-//            public String call() throws Exception {
-//                return model.getProject().getName();
-//            }
-//        });
 
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
@@ -173,12 +167,12 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         return "../";
                     }
                 });
-                ((IConventionAware) component).getConventionMapping().map("sourceDirs", new Callable<Set<File>>() {
+                component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
                         return getMainSourceDirs(project);
                     }
-                });
+                }));
             }
 
         });

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
@@ -143,7 +144,6 @@ public abstract class EclipseWtpComponent {
     private final Project project;
     private final XmlFileContentMerger file;
 
-    private Set<File> sourceDirs;
     private Set<Configuration> rootConfigurations = new LinkedHashSet<>();
     private Set<Configuration> libConfigurations = new LinkedHashSet<>();
     private Set<Configuration> minusConfigurations = new LinkedHashSet<>();
@@ -204,12 +204,14 @@ public abstract class EclipseWtpComponent {
      * Non-existing resource directory declarations lead to errors when project is imported into Eclipse.
      */
     public Set<File> getSourceDirs() {
-        return sourceDirs;
+        return getSourceDirsProperty().get();
     }
 
     public void setSourceDirs(Set<File> sourceDirs) {
-        this.sourceDirs = sourceDirs;
+        getSourceDirsProperty().set(sourceDirs);
     }
+
+    abstract public SetProperty<File> getSourceDirsProperty();
 
     /**
      * The configurations whose files are to be marked to be deployed with a deploy path of '/'.
