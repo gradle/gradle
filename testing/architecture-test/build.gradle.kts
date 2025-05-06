@@ -65,10 +65,11 @@ tasks {
 
         systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
         systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
-        systemProperty("org.gradle.architecture.platforms-base-path", layout.settingsDirectory.file("platforms").asFile.absolutePath)
+
         val platformsDataTask = rootProject.tasks.named("platformsData")
         dependsOn(platformsDataTask)
         systemProperty("org.gradle.architecture.platforms-json", platformsDataTask.get().outputs.files.singleFile.absolutePath)
+        systemProperty("org.gradle.architecture.platforms-base-path", layout.settingsDirectory.file("platforms").asFile.absolutePath)
 
         jvmArgumentProviders.add(
             ArchUnitFreezeConfiguration(

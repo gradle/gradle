@@ -369,20 +369,12 @@ abstract class GeneratePlatformsDataTask : DefaultTask() {
 
     @TaskAction
     fun action() {
-        // platform name -> list of directories
-        // platform name -> names of used platforms
-        val data = mutableMapOf<String, Map<String, List<String>>>()
         val allPlatforms = platforms.get()
-        val dirsKey = "dirs"
-        val usesKey = "uses"
-        for (platform in allPlatforms) {
-            val dirNames =
-                if (platform.children.isNotEmpty()) platform.children.map { it.name }
-                else listOf(platform.name)
-            val uses = platform.uses.map { useId ->
-                allPlatforms.single { it.id == useId }.name
-            }
-            data[platform.name] = mapOf(dirsKey to dirNames, usesKey to uses)
+        // name: [dirs: ..., uses: ...]
+        val data = allPlatforms.associateBy { it.name }.mapValues { (_, platform) ->
+            val dirs = platform.children.takeIf { it.isNotEmpty() }?.map { it.name } ?: listOf(platform.name)
+            val uses = platform.uses.map { use -> allPlatforms.single { it.id == use }.name }
+            mapOf("dirs" to dirs, "uses" to uses)
         }
         outputFile.get().asFile.writeText(Gson().toJson(data))
     }
