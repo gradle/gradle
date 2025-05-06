@@ -33,6 +33,7 @@ gradleModule {
 }
 
 dependencies {
+    implementation(projects.buildProcessStartup)
     implementation(projects.cli)
     implementation(projects.wrapperShared)
 
