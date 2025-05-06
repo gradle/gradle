@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
-import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.ConfigurableLauncher
@@ -35,7 +34,6 @@ import org.gradle.tooling.model.GradleProject
  * specifying the daemon JDK version.
  */
 @TargetGradleVersion("current") // Supporting multiple Gradle versions is more work.
-@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
     def setup() {
