@@ -17,6 +17,7 @@
 package org.gradle.architecture.test;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -35,6 +36,7 @@ import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -51,9 +53,20 @@ import static org.gradle.architecture.test.ArchUnitFixture.safeReflect;
  *
  * This test assumes that the classes are in the build directory of each project.
  */
-@SuppressWarnings("unchecked")
 @AnalyzeClasses(packages = "org.gradle")
 public class PlatformBoundariesTest {
+
+    static class PlatformData {
+        final String name;
+        final List<String> dirs;
+        final List<String> uses;
+
+        PlatformData(String name, List<String> dirs, List<String> uses) {
+            this.name = name;
+            this.dirs = dirs;
+            this.uses = uses;
+        }
+    }
 
     private static final List<Path> allPlatformDirs;
     private static final Map<String, List<Path>> dirsByPlatform;
@@ -63,31 +76,25 @@ public class PlatformBoundariesTest {
     static {
         Path basePath = Paths.get(System.getProperty("org.gradle.architecture.platforms-base-path"));
         Path jsonPath = Paths.get(System.getProperty("org.gradle.architecture.platforms-json"));
-        Map<String, Map<String, List<String>>> data;
+
+        List<PlatformData> platforms;
         try (Reader reader = new FileReader(jsonPath.toFile())) {
-            data = (Map<String, Map<String, List<String>>>) new Gson().fromJson(reader, Map.class);
+            platforms = new Gson().fromJson(reader, TypeToken.getParameterized(List.class, PlatformData.class).getType());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        allPlatformDirs = data.values().stream().flatMap(
-            info -> resolvePlatformDirs(basePath, info.get("dirs"))
-        ).collect(toList());
-        dirsByPlatform = data.entrySet().stream().collect(toMap(
-            Map.Entry::getKey,
-            v -> resolvePlatformDirs(basePath, v.getValue().get("dirs")).collect(toList())
+
+        allPlatformDirs = platforms.stream().flatMap(p -> resolvePlatformDirs(basePath, p.dirs)).collect(toList());
+
+        dirsByPlatform = collectDirsByPlatform(platforms, p -> resolvePlatformDirs(basePath, p.dirs));
+
+        usedDirsByPlatform = collectDirsByPlatform(platforms, p -> p.uses.stream().flatMap(
+            use -> dirsByPlatform.get(use).stream()
         ));
-        usedDirsByPlatform = data.entrySet().stream().collect(toMap(
-            Map.Entry::getKey,
-            v -> v.getValue().get("uses").stream().flatMap(
-                use -> dirsByPlatform.get(use).stream()
-            ).distinct().collect(toList())
-        ));
-        allowedDirsByPlatform = data.entrySet().stream().collect(toMap(
-            Map.Entry::getKey,
-            v -> Stream.concat(
-                usedDirsByPlatform.getOrDefault(v.getKey(), allPlatformDirs).stream(),
-                dirsByPlatform.get(v.getKey()).stream()
-            ).distinct().collect(toList())
+
+        allowedDirsByPlatform = collectDirsByPlatform(platforms, p -> Stream.concat(
+            usedDirsByPlatform.getOrDefault(p.name, allPlatformDirs).stream(),
+            dirsByPlatform.get(p.name).stream()
         ));
     }
 
@@ -139,6 +146,13 @@ public class PlatformBoundariesTest {
                 }
             }
         };
+    }
+
+    private static Map<String, List<Path>> collectDirsByPlatform(List<PlatformData> platforms, Function<PlatformData, Stream<Path>> valueFunction) {
+        return platforms.stream().collect(toMap(
+            p -> p.name,
+            p -> valueFunction.apply(p).distinct().collect(toList())
+        ));
     }
 
     private static boolean isInAnyPlatformDirectory(Path classFile) {
