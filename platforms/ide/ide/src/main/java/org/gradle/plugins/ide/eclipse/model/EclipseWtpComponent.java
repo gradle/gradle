@@ -389,7 +389,7 @@ public abstract class EclipseWtpComponent {
      * For examples see docs for {@link EclipseWtp}
      */
     public String getLibDeployPath() {
-        return getLibDeployPathProperty().get();
+        return getLibDeployPathProperty().getOrNull();
     }
 
     public void setLibDeployPath(String libDeployPath) {

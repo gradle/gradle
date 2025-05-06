@@ -106,7 +106,6 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
                         EclipseWtpComponent component = model.getWtp().getComponent();
                         builder.addAll(component.getRootConfigurations());
-
                         builder.addAll(component.getLibConfigurations());
 
                         model.getClasspath().getPlusConfigurationsProperty().set(builder.build());
