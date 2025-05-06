@@ -28,6 +28,8 @@ interface ProblemsListener {
     fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
 
     fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener
+
+    fun forIncompatibleBuildLogic(trace: PropertyTrace, reason: String): ProblemsListener
 }
 
 

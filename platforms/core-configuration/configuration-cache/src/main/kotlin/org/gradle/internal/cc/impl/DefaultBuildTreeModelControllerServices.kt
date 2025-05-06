@@ -41,11 +41,13 @@ import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheIncompatibleUserCodeContext
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessListenerRegistry
+import org.gradle.internal.cc.impl.initialization.UserCodeTrackingConfigurationCacheProblemsListener
 import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
@@ -61,6 +63,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.invocation.ConfigurationCacheDegradationController
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.internal.IncubationLogger
@@ -244,7 +247,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
-            registration.add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
+            registration.add(ConfigurationCacheProblemsListener::class.java, ConfigurationCacheIncompatibleUserCodeContext::class.java, UserCodeTrackingConfigurationCacheProblemsListener::class.java)
+            registration.add(ConfigurationCacheDegradationController::class.java, DefaultConfigurationCacheDegradationController::class.java)
             registration.add(ConfigurationCacheProblems::class.java)
             registration.add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)

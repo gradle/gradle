@@ -98,6 +98,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
+    private ConfigurationCacheDegradationController configurationCacheDegradationController;
 
     public DefaultGradle(@Nullable BuildState parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -107,6 +108,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.isolatedProjectEvaluationListenerProvider = services.get(IsolatedProjectEvaluationListenerProvider.class);
         this.gradleLifecycleActionExecutor = services.get(GradleLifecycleActionExecutor.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
+        this.configurationCacheDegradationController = services.get(ConfigurationCacheDegradationController.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
 
         buildListenerBroadcast.add(new InternalBuildAdapter() {
@@ -569,6 +571,11 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             classLoaderScope = () -> getClassLoaderScopeRegistry().getCoreAndPluginsScope();
         }
         return classLoaderScope.get();
+    }
+
+    @Override
+    public void notCompatibleWithConfigurationCache(String reason, Runnable action) {
+        configurationCacheDegradationController.notCompatibleWithConfigurationCache(reason, action);
     }
 
     @Inject

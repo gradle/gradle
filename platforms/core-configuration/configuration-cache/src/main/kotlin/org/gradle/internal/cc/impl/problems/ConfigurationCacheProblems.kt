@@ -52,6 +52,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -105,6 +106,9 @@ class ConfigurationCacheProblems(
     val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
+    val incompatibleBuildLogic = ConcurrentHashMap<PropertyTrace, Set<String>>()
+
+    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     private
@@ -152,6 +156,20 @@ class ConfigurationCacheProblems(
             // report the incompatible task itself the first time only
             reportIncompatibleTask(trace, reason)
         }
+        return object : AbstractProblemsListener() {
+            override fun onProblem(problem: PropertyProblem) {
+                onProblem(problem, ProblemSeverity.Suppressed)
+            }
+
+            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                val failure = failureFactory.create(error)
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+            }
+        }
+    }
+
+    override fun forIncompatibleBuildLogic(trace: PropertyTrace, reason: String): ProblemsListener {
+        incompatibleBuildLogic.compute(trace) { _, reasons -> (reasons ?: emptySet()) + reason }
         return object : AbstractProblemsListener() {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
@@ -332,6 +350,7 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == Store && discardStateDueToProblems && incompatibleBuildLogic.isNotEmpty() -> log("Configuration cache entry discarded${incompatibleBuildLogicSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -351,6 +370,12 @@ class ConfigurationCacheProblems(
     private
     fun incompatibleTasksSummary() = when {
         incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'${it.render()}'" }}."
+        else -> "."
+    }
+
+    private
+    fun incompatibleBuildLogicSummary() = when {
+        incompatibleBuildLogic.isNotEmpty() -> " because incompatible build logic found:\n${incompatibleBuildLogic.entries.joinToString("\n") { (trace, reasons) -> "'${trace.render()}': ${reasons.joinToString()}" }}"
         else -> "."
     }
 
