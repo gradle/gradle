@@ -361,11 +361,32 @@ fun Test.runWithJavaVersion(testJvmVersion: JavaLanguageVersion) {
     }
 
     if (testJvmVersion.canCompileOrRun(9)) {
-        if (isUnitTest() || usesEmbeddedExecuter()) {
-            jvmArgs(JpmsConfiguration.forDaemonProcesses(testJvmVersion.asInt(), true))
+        val argProvider = objects.newInstance(AddOpensArgumentProvider::class.java).apply {
+            jvmVersion = testJvmVersion.asInt()
+            unitTest = provider { isUnitTest() }
+            embedded = provider { usesEmbeddedExecuter() }
+        }
+        jvmArgumentProviders.add(argProvider)
+    }
+}
+
+internal
+abstract class AddOpensArgumentProvider : CommandLineArgumentProvider {
+    @get:Input
+    abstract val jvmVersion: Property<Int>
+
+    @get:Input
+    abstract val unitTest: Property<Boolean>
+
+    @get:Input
+    abstract val embedded: Property<Boolean>
+
+    override fun asArguments(): Iterable<String> {
+        return if (unitTest.get() || embedded.get()) {
+            JpmsConfiguration.forDaemonProcesses(jvmVersion.get().toInt(), true)
         } else {
-            jvmArgs(listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")) // Used in tests by native platform library: WrapperProcess.getEnv
-            jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils
+            listOf("--add-opens", "java.base/java.util=ALL-UNNAMED") + // Used in tests by native platform library: WrapperProcess.getEnv
+                listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")   // Used in tests by ClassLoaderUtils
         }
     }
 }
@@ -378,7 +399,7 @@ fun Test.addOsAsInputs() {
 
 fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
 
-fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
+fun Test.usesEmbeddedExecuter() = systemProperties["org.gradle.integtest.executer"]?.equals("embedded") ?: false
 
 fun Test.configureRerun() {
     if (project.rerunAllTests.get()) {

@@ -167,7 +167,12 @@ class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_23
         }
 
-        return javaVersion >= JavaVersion.VERSION_1_8 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_24)
+        // 9.0+ requires Java 17
+        if (isSameOrOlder("8.14")) {
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_24
+        }
+
+        return javaVersion >= JavaVersion.VERSION_17 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_24)
     }
 
     @Override

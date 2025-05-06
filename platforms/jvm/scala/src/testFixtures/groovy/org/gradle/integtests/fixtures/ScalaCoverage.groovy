@@ -81,7 +81,7 @@ class ScalaCoverage {
 
     private static Set<String> scala3VersionsSupportedByJdk(JavaVersion javaVersion) {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            return VersionCoverage.versionsAtLeast(SCALA_3, "3.6.4") // Tentative, not released yet. The version here also needs to not trigger the Unsafe warnings (https://openjdk.org/jeps/498).
+            return VersionCoverage.versionsAtLeast(SCALA_3, "3.6.4") // The version here also needs to not trigger the Unsafe warnings (https://openjdk.org/jeps/498).
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
             // Latest patches of 3.3.x work on Java 20+

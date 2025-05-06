@@ -37,7 +37,6 @@ import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
@@ -227,7 +226,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         where:
         javaHome << [
-            jdk8,
             jdk17,
             jdk21
         ]
