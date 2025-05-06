@@ -15,16 +15,13 @@
  */
 package org.gradle.api.plugins.quality;
 
-import com.google.common.util.concurrent.Callables;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -33,8 +30,6 @@ import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Map;
-import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -97,13 +92,12 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     private void configureTaskConventionMapping(Configuration configuration, Checkstyle task) {
-        ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("checkstyleClasspath", Callables.returning(configuration));
-        taskMapping.map("config", (Callable<TextResource>) () -> extension.getConfig());
-        taskMapping.map("configProperties", (Callable<Map<String, Object>>) () -> extension.getConfigProperties());
-        taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
-        taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
-        taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
+        task.checkstyleClasspath.convention(configuration);
+        task.config.convention(project.provider(() -> extension.getConfig()));
+        task.configProperties.convention(project.provider(() -> extension.getConfigProperties()));
+        task.showViolations.convention(project.provider(() -> extension.isShowViolations()));
+        task.maxErrors.convention(project.provider(() -> extension.getMaxErrors()));
+        task.maxWarnings.convention(project.provider(() -> extension.getMaxWarnings()));
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
         task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
