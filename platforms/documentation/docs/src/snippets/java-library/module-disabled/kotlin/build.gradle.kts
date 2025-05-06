@@ -17,7 +17,7 @@ tasks.compileJava {
 // end::disableModulePath[]
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.13.0")
+    implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.apache.commons:commons-lang3:3.10")
     implementation("commons-cli:commons-cli:1.4")
 }
