@@ -88,6 +88,19 @@ public class PlatformBoundariesTest {
         .that(areInPlatformDirectories())
         .should(importClassesOnlyFromAllowedPlatforms()));
 
+    private static DescribedPredicate<? super JavaClass> areInPlatformDirectories() {
+        return new DescribedPredicate<JavaClass>("are in platform directories") {
+            @Override
+            public boolean test(JavaClass javaClass) {
+                Path classFile = getClassFile(javaClass);
+                if (classFile == null) {
+                    return false;
+                }
+                return allPlatformDirs.stream().anyMatch(classFile::startsWith);
+            }
+        };
+    }
+
     private static ArchCondition<? super JavaClass> importClassesOnlyFromAllowedPlatforms() {
         return new ArchCondition<JavaClass>("import classes only from allowed platforms") {
             @Override
@@ -116,19 +129,6 @@ public class PlatformBoundariesTest {
                         ));
                     }
                 }
-            }
-        };
-    }
-
-    private static DescribedPredicate<? super JavaClass> areInPlatformDirectories() {
-        return new DescribedPredicate<JavaClass>("are in platform directories") {
-            @Override
-            public boolean test(JavaClass javaClass) {
-                Path classFile = getClassFile(javaClass);
-                if (classFile == null) {
-                    return false;
-                }
-                return allPlatformDirs.stream().anyMatch(classFile::startsWith);
             }
         };
     }
