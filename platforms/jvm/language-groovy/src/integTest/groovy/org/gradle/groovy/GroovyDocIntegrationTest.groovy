@@ -170,6 +170,36 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         !file("build/docs/groovydoc/pkg/B.html").isFile()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/33288")
+    def "does not interfere with output of subsequent tasks"() {
+        file("src/main/groovy/pkg/Thing.groovy") << """
+            package pkg
+
+            class Thing {}
+        """
+
+        when:
+        buildFile << """
+            task('foo') {
+                doLast {
+                    logger.lifecycle "FOO"
+                    println "BAR"
+                }
+            }
+        """
+
+        then:
+        succeeds "foo", "groovydoc"
+        outputContains("FOO")
+        outputContains("BAR")
+
+        then:
+        args("--rerun-tasks")
+        succeeds "groovydoc", "foo"
+        outputContains("FOO")
+        outputContains("BAR")
+    }
+
     private static TestFile groovySource(TestFile srcDir, String packageName, String className) {
         def srcFile = srcDir.file("${packageName.replace('.', '/')}/${className}.groovy")
         srcFile << """
