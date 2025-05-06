@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -46,7 +47,6 @@ import org.gradle.util.internal.WrapUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -101,10 +101,15 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
                     @Override
                     public void execute(Project project) {
-                        Collection<Configuration> plusConfigurations = model.getClasspath().getPlusConfigurations();
+                        ImmutableList.Builder<Configuration> builder = ImmutableList.builder();
+                        builder.addAll(model.getClasspath().getPlusConfigurationsProperty().get());
+
                         EclipseWtpComponent component = model.getWtp().getComponent();
-                        plusConfigurations.addAll(component.getRootConfigurations());
-                        plusConfigurations.addAll(component.getLibConfigurations());
+                        builder.addAll(component.getRootConfigurations());
+
+                        builder.addAll(component.getLibConfigurations());
+
+                        model.getClasspath().getPlusConfigurationsProperty().set(builder.build());
                     }
                 });
 

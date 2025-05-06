@@ -29,7 +29,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.AppliedPlugin;
@@ -241,19 +240,17 @@ public abstract class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
-                ((IConventionAware) model.getClasspath()).getConventionMapping().map("plusConfigurations", new Callable<Collection<Configuration>>() {
-                    @Override
-                    public Collection<Configuration> call() {
-                        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                        List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
-                        ConfigurationContainer configurations = project.getConfigurations();
-                        for (SourceSet sourceSet : sourceSets) {
-                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
-                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
-                        }
-                        return sourceSetsConfigurations;
+
+                model.getClasspath().getPlusConfigurationsProperty().convention(project.provider((Callable<Collection<Configuration>>) () -> {
+                    SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                    List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
+                    ConfigurationContainer configurations = project.getConfigurations();
+                    for (SourceSet sourceSet : sourceSets) {
+                        sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
+                        sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
                     }
-                }).cache();
+                    return sourceSetsConfigurations;
+                }));
 
                 model.getClasspath().getClassFoldersProperty().convention(project.provider(() -> {
                         List<File> result = new ArrayList<>();

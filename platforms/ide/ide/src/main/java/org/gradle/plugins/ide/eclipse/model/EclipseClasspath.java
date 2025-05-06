@@ -143,9 +143,7 @@ import java.util.Set;
 public abstract class EclipseClasspath {
     private Iterable<SourceSet> sourceSets;
 
-    private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
-
-    private Collection<Configuration> minusConfigurations = new ArrayList<Configuration>();
+    private Collection<Configuration> minusConfigurations = new ArrayList<>();
 
     private Set<String> containers = new LinkedHashSet<>();
 
@@ -188,12 +186,24 @@ public abstract class EclipseClasspath {
      * See {@link EclipseClasspath} for an example.
      */
     public Collection<Configuration> getPlusConfigurations() {
-        return plusConfigurations;
+        return getPlusConfigurationsProperty().get();
     }
 
     public void setPlusConfigurations(Collection<Configuration> plusConfigurations) {
-        this.plusConfigurations = plusConfigurations;
+        this.getPlusConfigurationsProperty().set(plusConfigurations);
     }
+
+    /**
+     * The configurations whose files are to be added as classpath entries.
+     * <p>
+     * See {@link EclipseClasspath} for an example.
+     *
+     * @return the configurations whose files are to be added as classpath entries
+     *
+     * @since 9.0
+     */
+    @Incubating
+    abstract public ListProperty<Configuration> getPlusConfigurationsProperty();
 
     /**
      * The configurations whose files are to be excluded from the classpath entries.
