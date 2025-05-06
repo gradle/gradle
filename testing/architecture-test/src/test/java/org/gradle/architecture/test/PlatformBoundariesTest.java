@@ -35,10 +35,11 @@ import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.safeReflect;
 
@@ -49,26 +50,38 @@ public class PlatformBoundariesTest {
     private static final List<Path> allPlatformDirs;
     private static final Map<String, List<Path>> dirsByPlatform;
     private static final Map<String, List<Path>> usedDirsByPlatform;
+    private static final Map<String, List<Path>> allowedDirsByPlatform;
 
     static {
         Path basePath = Paths.get(System.getProperty("org.gradle.architecture.platforms-base-path"));
         Path jsonPath = Paths.get(System.getProperty("org.gradle.architecture.platforms-json"));
+        Map<String, Map<String, List<String>>> data;
         try (Reader reader = new FileReader(jsonPath.toFile())) {
-            Map<String, Map<String, List<String>>> data = (Map<String, Map<String, List<String>>>) new Gson().fromJson(reader, Map.class);
-            allPlatformDirs = data.values().stream().flatMap(info -> info.get("dirs").stream().map(basePath::resolve)).collect(toList());
-            dirsByPlatform = data.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                v -> v.getValue().get("dirs").stream().map(basePath::resolve).collect(toList())
-            ));
-            usedDirsByPlatform = data.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                v -> v.getValue().get("uses").stream().flatMap(x -> dirsByPlatform.get(x).stream()).distinct().collect(toList())
-            ));
+            data = (Map<String, Map<String, List<String>>>) new Gson().fromJson(reader, Map.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        allPlatformDirs = data.values().stream().flatMap(
+            info -> resolvePlatformDirs(basePath, info.get("dirs"))
+        ).collect(toList());
+        dirsByPlatform = data.entrySet().stream().collect(toMap(
+            Map.Entry::getKey,
+            v -> resolvePlatformDirs(basePath, v.getValue().get("dirs")).collect(toList())
+        ));
+        usedDirsByPlatform = data.entrySet().stream().collect(toMap(
+            Map.Entry::getKey,
+            v -> v.getValue().get("uses").stream().flatMap(
+                use -> dirsByPlatform.get(use).stream()
+            ).distinct().collect(toList())
+        ));
+        allowedDirsByPlatform = data.entrySet().stream().collect(toMap(
+            Map.Entry::getKey,
+            v -> Stream.concat(
+                usedDirsByPlatform.getOrDefault(v.getKey(), allPlatformDirs).stream(),
+                dirsByPlatform.get(v.getKey()).stream()
+            ).distinct().collect(toList())
+        ));
     }
-
 
     @ArchTest
     public static final ArchRule platform_coupling = freeze(classes()
@@ -78,31 +91,27 @@ public class PlatformBoundariesTest {
     private static ArchCondition<? super JavaClass> importClassesOnlyFromAllowedPlatforms() {
         return new ArchCondition<JavaClass>("import classes only from allowed platforms") {
             @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                Path ownClassFile = getClassFile(item);
+            public void check(JavaClass ownJavaClass, ConditionEvents events) {
+                Path ownClassFile = getClassFile(ownJavaClass);
                 if (ownClassFile == null) {
                     return;
                 }
-                String ownPlatformName = dirsByPlatform.entrySet().stream().filter(e -> e.getValue().stream().anyMatch(ownClassFile::startsWith)).map(Map.Entry::getKey).findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Could not find platform for class " + item.getName()));
-                List<Path> allowedDirs = usedDirsByPlatform.getOrDefault(ownPlatformName, PlatformBoundariesTest.allPlatformDirs);
-                allowedDirs.addAll(dirsByPlatform.get(ownPlatformName));
-                for (JavaAccess<?> access : item.getAccessesFromSelf()) {
-                    JavaClass targetOwner = access.getTargetOwner();
-                    Path targetClassFile = getClassFile(targetOwner);
+                String ownPlatformName = platformNameOf(ownJavaClass, ownClassFile);
+                for (JavaAccess<?> access : ownJavaClass.getAccessesFromSelf()) {
+                    JavaClass targetJavaClass = access.getTargetOwner();
+                    Path targetClassFile = getClassFile(targetJavaClass);
                     if (targetClassFile != null && allPlatformDirs.stream().anyMatch(targetClassFile::startsWith)) {
-                        boolean foundViolation = allowedDirs.stream().noneMatch(targetClassFile::startsWith);
-                        String targetPlatformName = dirsByPlatform.entrySet().stream().filter(e -> e.getValue().stream().anyMatch(targetClassFile::startsWith)).map(Map.Entry::getKey).findFirst()
-                            .orElseThrow(() -> new IllegalStateException("Could not find platform for class " + item.getName()));
+                        boolean conditionSatisfied = allowedDirsByPlatform.get(ownPlatformName).stream().anyMatch(targetClassFile::startsWith);
+                        String targetPlatformName = platformNameOf(targetJavaClass, targetClassFile);
                         String message;
-                        if (foundViolation) {
-                            message = String.format("Class '%s' from platform '%s' imports class '%s' from a forbidden platform '%s'", item.getName(), ownPlatformName, targetOwner.getName(), targetPlatformName);
+                        if (conditionSatisfied) {
+                            message = String.format("Class '%s' from platform '%s' does not import any class from forbidden platforms", ownJavaClass.getName(), ownPlatformName);
                         } else {
-                            message = String.format("Class '%s' from platform '%s' does not import any class from forbidden platforms", item.getName(), ownPlatformName);
+                            message = String.format("Class '%s' from platform '%s' imports class '%s' from a forbidden platform '%s'", ownJavaClass.getName(), ownPlatformName, targetJavaClass.getName(), targetPlatformName);
                         }
                         events.add(new SimpleConditionEvent(
-                            item,
-                            !foundViolation,
+                            ownJavaClass,
+                            conditionSatisfied,
                             message
                         ));
                     }
@@ -122,6 +131,15 @@ public class PlatformBoundariesTest {
                 return allPlatformDirs.stream().anyMatch(classFile::startsWith);
             }
         };
+    }
+
+    private static Stream<Path> resolvePlatformDirs(Path basePath, List<String> dirNames) {
+        return dirNames.stream().map(basePath::resolve);
+    }
+
+    private static String platformNameOf(JavaClass javaClass, Path classFile) {
+        return dirsByPlatform.entrySet().stream().filter(e -> e.getValue().stream().anyMatch(classFile::startsWith)).map(Map.Entry::getKey).findFirst()
+            .orElseThrow(() -> new IllegalStateException("Could not find platform for class " + javaClass.getName()));
     }
 
     @Nullable
