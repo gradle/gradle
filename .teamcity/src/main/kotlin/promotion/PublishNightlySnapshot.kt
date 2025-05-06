@@ -28,7 +28,7 @@ class PublishNightlySnapshot(
         promotedBranch = branch.branchName,
         prepTask = branch.prepNightlyTaskName(),
         promoteTask = branch.promoteNightlyTaskName(),
-        triggerName = "ReadyforNightly",
+        triggerName = "QuickFeedbackLinuxOnly",
     ) {
     init {
         id(NIGHTLY_SNAPSHOT_BUILD_ID)
