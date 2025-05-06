@@ -43,6 +43,14 @@ import static java.util.stream.Collectors.toMap;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.safeReflect;
 
+/**
+ * Keep lower level platforms from depending on higher level platform projects.
+ *
+ * This test consumes the definition of platform directories and relationships from
+ * the outer build definition via system properties.
+ *
+ * This test assumes that the classes are in the build directory of each project.
+ */
 @SuppressWarnings("unchecked")
 @AnalyzeClasses(packages = "org.gradle")
 public class PlatformBoundariesTest {
@@ -96,7 +104,7 @@ public class PlatformBoundariesTest {
                 if (classFile == null) {
                     return false;
                 }
-                return allPlatformDirs.stream().anyMatch(classFile::startsWith);
+                return isInAnyPlatformDirectory(classFile);
             }
         };
     }
@@ -113,8 +121,8 @@ public class PlatformBoundariesTest {
                 for (JavaAccess<?> access : ownJavaClass.getAccessesFromSelf()) {
                     JavaClass targetJavaClass = access.getTargetOwner();
                     Path targetClassFile = getClassFile(targetJavaClass);
-                    if (targetClassFile != null && allPlatformDirs.stream().anyMatch(targetClassFile::startsWith)) {
-                        boolean conditionSatisfied = allowedDirsByPlatform.get(ownPlatformName).stream().anyMatch(targetClassFile::startsWith);
+                    if (targetClassFile != null && isInAnyPlatformDirectory(targetClassFile)) {
+                        boolean conditionSatisfied = isInPlatformAllowedDirectory(ownPlatformName, targetClassFile);
                         String targetPlatformName = platformNameOf(targetJavaClass, targetClassFile);
                         String message;
                         if (conditionSatisfied) {
@@ -131,6 +139,14 @@ public class PlatformBoundariesTest {
                 }
             }
         };
+    }
+
+    private static boolean isInAnyPlatformDirectory(Path classFile) {
+        return allPlatformDirs.stream().anyMatch(classFile::startsWith);
+    }
+
+    private static boolean isInPlatformAllowedDirectory(String platformName, Path classFile) {
+        return allowedDirsByPlatform.get(platformName).stream().anyMatch(classFile::startsWith);
     }
 
     private static Stream<Path> resolvePlatformDirs(Path basePath, List<String> dirNames) {
