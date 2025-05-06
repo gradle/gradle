@@ -43,8 +43,7 @@ public class DaemonParameters {
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
 
-    private final ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
-
+    private final ToolchainConfiguration toolchainConfiguration;
     private final File gradleUserHomeDir;
 
     private File baseDir;
@@ -64,10 +63,14 @@ public class DaemonParameters {
     private ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
 
     public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory) {
-        this(gradleUserHomeDir, fileCollectionFactory, Collections.<String, String>emptyMap());
+        this(gradleUserHomeDir, fileCollectionFactory, Collections.emptyMap());
     }
 
     public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
+        this(gradleUserHomeDir, fileCollectionFactory, extraSystemProperties, null);
+    }
+
+    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties, @Nullable Map<String, String> environmentVariables) {
         this.jvmOptions = new JvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
             jvmOptions.systemProperties(extraSystemProperties);
@@ -75,7 +78,8 @@ public class DaemonParameters {
         jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.baseDir = new File(gradleUserHomeDir, "daemon");
-        this.envVariables = new HashMap<>(System.getenv());
+        this.envVariables = environmentVariables == null ? new HashMap<>(System.getenv()) : environmentVariables;
+        toolchainConfiguration = new DefaultToolchainConfiguration(this.envVariables);
     }
 
     public DaemonRequestContext toRequestContext() {
@@ -163,10 +167,6 @@ public class DaemonParameters {
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
         jvmOptions.setAllJvmArgs(jvmArgs);
-    }
-
-    public void setEnvironmentVariables(Map<String, String> envVariables) {
-        this.envVariables = envVariables == null ? new HashMap<String, String>(System.getenv()) : envVariables;
     }
 
     public void setDebug(boolean debug) {
