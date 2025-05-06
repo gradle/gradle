@@ -29,6 +29,7 @@
     NULL='null'
     TRUE='true'
     FALSE='false'
+    THIS='this'
 
     space='regexp:\s+'
     comment='regexp://.*|/\*[^/*]*\*/'
@@ -47,28 +48,25 @@
 
 root ::= statements
 
-statement ::= (assignment | block | functionChain)
+statement ::= (assignment | block | expression)
 statements ::= (statement SEMI*)*
 
+assignment ::= directlyAssignableExpression (EQ|PLUSEQ) expression {pin=2}
 directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
-
-assignment ::= directlyAssignableExpression (EQ|PLUSEQ) infixFunctionCall {pin=2}
-infixFunctionCall ::= (assignmentValue 'to' assignmentValue) | assignmentValue
-assignmentValue ::= (simpleIdentifier (navigationSuffix* valueArguments)?) | literalOrIdentifier
 
 block ::= simpleIdentifier valueArguments? annotatedLambda
 annotatedLambda ::= LB statements RB {pin=1}
 
-functionChain ::= simpleIdentifier postfixUnarySuffixes
-postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
-
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgumentElement ::= functionChain | literalOrIdentifier
-valueArgument ::= (valueArgumentElement 'to' valueArgumentElement) | (simpleIdentifier EQ)? valueArgumentElement
+valueArgument ::= (simpleIdentifier EQ)? expression
+
+expression ::= simpleExpression ('to' simpleExpression)?
+simpleExpression ::= simpleIdentifier postfixUnarySuffixes | primaryExpression
+postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
+primaryExpression ::= simpleIdentifier | stringLiteral | literalConstant
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
-literalOrIdentifier ::= literalConstant | simpleIdentifier | stringLiteral
 literalConstant ::= NULL | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
 booleanLiteral ::= TRUE | FALSE {pin=1}
 
