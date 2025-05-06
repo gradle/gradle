@@ -96,7 +96,7 @@ All code contributions should contain the following:
 
 Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
-* Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
+* Be careful when using features introduced in Java 9 or later. Some parts of Gradle still need to run on Java 8.
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
 
 You can consult the [Architecture documentation](architecture) to learn about some of the architecture of Gradle.
