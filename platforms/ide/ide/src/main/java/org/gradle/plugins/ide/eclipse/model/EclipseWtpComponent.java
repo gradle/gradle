@@ -151,7 +151,6 @@ public abstract class EclipseWtpComponent {
     private List<WbProperty> properties = new ArrayList<>();
     private String contextPath;
     private String classesDeployPath = "/WEB-INF/classes";
-    private String libDeployPath;
     private Map<String, File> pathVariables = new HashMap<>();
 
     @Inject
@@ -366,13 +365,14 @@ public abstract class EclipseWtpComponent {
      * For examples see docs for {@link EclipseWtp}
      */
     public String getLibDeployPath() {
-        return libDeployPath;
+        return getLibDeployPathProperty().get();
     }
 
     public void setLibDeployPath(String libDeployPath) {
-        this.libDeployPath = libDeployPath;
+        this.getLibDeployPathProperty().set(libDeployPath);
     }
 
+    abstract public Property<String> getLibDeployPathProperty();
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.
      * <p>

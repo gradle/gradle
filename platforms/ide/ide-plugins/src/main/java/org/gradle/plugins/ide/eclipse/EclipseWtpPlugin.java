@@ -161,12 +161,12 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
                 libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getMainFeature().getRuntimeClasspathConfiguration());
                 component.setClassesDeployPath("/");
-                ((IConventionAware) component).getConventionMapping().map("libDeployPath", new Callable<String>() {
+                component.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() throws Exception {
                         return "../";
                     }
-                });
+                }));
                 component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
@@ -283,7 +283,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                     return;
                 }
 
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                eclipseModel.getWtp().getFacet().getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(3);
@@ -292,14 +292,13 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         result.add(new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility())));
                         return result;
                     }
-                });
+                }));
             }
-
         });
         project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
             @Override
             public void execute(WarPlugin warPlugin) {
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                eclipseModel.getWtp().getFacet().getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(4);
@@ -309,14 +308,13 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         result.add(new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility())));
                         return result;
                     }
-                });
+                }));
             }
-
         });
         project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
             @Override
             public void execute(EarPlugin earPlugin) {
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                eclipseModel.getWtp().getFacet().getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(2);
@@ -324,9 +322,8 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         result.add(new Facet(Facet.FacetType.installed, "jst.ear", "5.0"));
                         return result;
                     }
-                });
+                }));
             }
-
         });
     }
 

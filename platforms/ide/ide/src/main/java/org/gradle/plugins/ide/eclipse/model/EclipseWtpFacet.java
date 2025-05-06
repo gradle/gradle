@@ -20,12 +20,11 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -83,7 +82,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class EclipseWtpFacet {
 
     private final XmlFileContentMerger file;
-    private List<Facet> facets = new ArrayList<>();
 
     @Inject
     public EclipseWtpFacet(XmlFileContentMerger file) {
@@ -129,12 +127,14 @@ public abstract class EclipseWtpFacet {
      * For examples see docs for {@link EclipseWtpFacet}
      */
     public List<Facet> getFacets() {
-        return facets;
+        return getFacetsProperty().get();
     }
 
     public void setFacets(List<Facet> facets) {
-        this.facets = facets;
+        this.getFacetsProperty().set(facets);
     }
+
+    abstract public ListProperty<Facet> getFacetsProperty();
 
     /**
      * Adds a facet.
@@ -155,11 +155,11 @@ public abstract class EclipseWtpFacet {
         } else {
             newFacets = Collections.singletonList(newFacet);
         }
-        facets = Lists.newArrayList(Iterables.concat(
+        setFacets(Lists.newArrayList(Iterables.concat(
             getFacets().stream()
                        .filter(f -> f.getType() != newFacet.getType() || !Objects.equals(f.getName(), newFacet.getName()))
                        .collect(Collectors.toList()),
-            newFacets));
+            newFacets)));
     }
 
     /**
