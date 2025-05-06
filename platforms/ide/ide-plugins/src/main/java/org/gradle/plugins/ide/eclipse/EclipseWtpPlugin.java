@@ -128,7 +128,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
     private void configureEclipseWtpComponent(final Project project, final EclipseModel model) {
         XmlTransformer xmlTransformer = new XmlTransformer();
         xmlTransformer.setIndentation("\t");
-        final EclipseWtpComponent component = project.getObjects().newInstance(EclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
+        EclipseWtpComponent component = project.getObjects().newInstance(EclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
         model.getWtp().setComponent(component);
 
         TaskProvider<GenerateEclipseWtpComponent> task = project.getTasks().register(ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent.class, component);
@@ -143,12 +143,18 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         });
         addWorker(task, ECLIPSE_WTP_COMPONENT_TASK_NAME);
 
-        ((IConventionAware) component).getConventionMapping().map("deployName", new Callable<String>() {
+        component.getDeployNameProperty().convention(project.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return model.getProject().getName();
             }
-        });
+        }));
+//        ((IConventionAware) component).getConventionMapping().map("deployName", new Callable<String>() {
+//            @Override
+//            public String call() throws Exception {
+//                return model.getProject().getName();
+//            }
+//        });
 
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override

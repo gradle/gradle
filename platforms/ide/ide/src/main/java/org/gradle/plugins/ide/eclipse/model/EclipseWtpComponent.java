@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.provider.Property;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
@@ -146,7 +147,6 @@ public abstract class EclipseWtpComponent {
     private Set<Configuration> rootConfigurations = new LinkedHashSet<>();
     private Set<Configuration> libConfigurations = new LinkedHashSet<>();
     private Set<Configuration> minusConfigurations = new LinkedHashSet<>();
-    private String deployName;
     private List<WbResource> resources = new ArrayList<>();
     private List<WbProperty> properties = new ArrayList<>();
     private String contextPath;
@@ -270,12 +270,14 @@ public abstract class EclipseWtpComponent {
      * For examples see docs for {@link EclipseWtp}
      */
     public String getDeployName() {
-        return deployName;
+        return getDeployNameProperty().get();
     }
 
     public void setDeployName(String deployName) {
-        this.deployName = deployName;
+        getDeployNameProperty().set(deployName);
     }
+
+    abstract public Property<String> getDeployNameProperty();
 
     /**
      * Additional wb-resource elements.
