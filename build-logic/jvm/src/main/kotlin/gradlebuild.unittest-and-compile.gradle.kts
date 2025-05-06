@@ -145,8 +145,8 @@ fun enforceCompatibility(gradleModule: UnitTestAndCompileExtension) {
 fun UnitTestAndCompileExtension.computeProductionJvmTargetVersion(): Provider<Int> {
     // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
     val targetRuntimeJavaVersions = mapOf(
-        usedForStartup to 6,
-        usedInWrapper to 6, // TODO: Should be 8
+        usedForStartup to 8,
+        usedInWrapper to 8,
         usedInWorkers to 8,
         usedInClient to 8,
         usedInDaemon to 8
@@ -158,26 +158,10 @@ fun UnitTestAndCompileExtension.computeProductionJvmTargetVersion(): Provider<In
 }
 
 fun enforceJavaCompatibility(targetVersion: Provider<Int>, useRelease: Provider<Boolean>) {
-    // The build JDK (17) is able to target JVM >= 8
-    val defaultCompiler = javaToolchains.compilerFor(java.toolchain)
-
-    // To compile Java 6 and 7 sources, we need an older compiler.
-    // We choose 11 since it supports both of these versions.
-    val legacyCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
-
     tasks.withType<JavaCompile>().configureEach {
         // Set the release flag is requested.
         // Otherwise, we set the source and target compatibility in the afterEvaluate below.
         options.release = useRelease.zip(targetVersion) { doUseRelease, target -> if (doUseRelease) { target } else { null } }
-
-        javaCompiler = targetVersion.flatMap { version ->
-            when {
-                version >= 8 -> defaultCompiler
-                else -> legacyCompiler
-            }
-        }
     }
 
     // Need to use afterEvaluate since source/target compatibility are not lazy
@@ -198,14 +182,7 @@ fun enforceGroovyCompatibility(targetVersion: Provider<Int>) {
         // JDK we are targeting in order to see the correct standard lib classes
         // during compilation
         javaLauncher = javaToolchains.launcherFor {
-            languageVersion = targetVersion.map {
-                // Use the target version's toolchain if it is 8 or higher.
-                // We do not expect dev machines to have Java 6 or 7 installed,
-                // so when compiling this code, we accept the risk of seeing
-                // higher standard library classes.
-                JavaLanguageVersion.of(maxOf(it, 8))
-            }
-            // TODO: Use a stable vendor. CI currently specifies different vendors for Java 8 depending on the OS
+            languageVersion = targetVersion.map { JavaLanguageVersion.of(it) }
         }
     }
 

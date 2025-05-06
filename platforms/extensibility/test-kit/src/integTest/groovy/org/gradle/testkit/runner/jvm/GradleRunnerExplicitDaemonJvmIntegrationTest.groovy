@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
-import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
@@ -38,7 +37,6 @@ import spock.lang.Issue
 @NoDebug // We are starting daemons with different JAVA_HOMEs
 @NonCrossVersion // Supporting multiple Gradle versions is more work.
 @SuppressWarnings('IntegrationTestFixtures')
-@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRunnerIntegrationTest implements DaemonJvmPropertiesFixture {
 
     /**
