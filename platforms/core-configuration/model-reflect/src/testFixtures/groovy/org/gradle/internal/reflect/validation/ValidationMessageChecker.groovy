@@ -510,7 +510,7 @@ trait ValidationMessageChecker {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
             "This behavior has been deprecated. " +
-            "This behavior is scheduled to be removed in Gradle 9.0. " +
+            "This will fail with an error in Gradle 10.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             documentationRegistry.getDocumentationRecommendationFor("information", docId, section)
         executer.expectDocumentedDeprecationWarning(deprecationMessage)
