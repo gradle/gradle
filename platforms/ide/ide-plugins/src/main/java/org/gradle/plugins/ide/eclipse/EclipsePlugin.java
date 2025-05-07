@@ -243,7 +243,8 @@ public abstract class EclipsePlugin extends IdePlugin {
             @Override
             public void execute(JavaPlugin javaPlugin) {
 
-                ((EclipseClasspathInternal) model.getClasspath()).getPlusConfigurationsProperty().convention(project.provider((Callable<Collection<Configuration>>) () -> {
+                EclipseClasspathInternal classpath = (EclipseClasspathInternal) model.getClasspath();
+                classpath.getPlusConfigurationsProperty().convention(project.provider((Callable<Collection<Configuration>>) () -> {
                     SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
                     List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
                     ConfigurationContainer configurations = project.getConfigurations();
@@ -254,7 +255,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                     return sourceSetsConfigurations;
                 }));
 
-                model.getClasspath().getClassFoldersProperty().convention(project.provider(() -> {
+                classpath.getClassFoldersProperty().convention(project.provider(() -> {
                         List<File> result = new ArrayList<>();
                         for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
                             result.addAll(sourceSet.getOutput().getDirs().getFiles());

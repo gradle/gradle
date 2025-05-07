@@ -23,6 +23,8 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.jspecify.annotations.NullMarked;
 
+import java.io.File;
+
 @NullMarked
 public interface EclipseClasspathInternal {
     /**
@@ -43,5 +45,14 @@ public interface EclipseClasspathInternal {
      * @since 9.0
      */
     @Incubating
-    abstract public RegularFileProperty getDefaultOutputDirProperty();
+    RegularFileProperty getDefaultOutputDirProperty();
+
+    /**
+     * The class folders to be added.
+     * @return the class folders to be added
+     *
+     * @since 9.0
+     */
+    @Incubating
+    ListProperty<File> getClassFoldersProperty();
 }

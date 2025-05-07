@@ -25,6 +25,7 @@ import org.jspecify.annotations.NullMarked;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 @NullMarked
 public abstract class DefaultEclipseClasspath extends EclipseClasspath implements EclipseClasspathInternal {
@@ -51,5 +52,15 @@ public abstract class DefaultEclipseClasspath extends EclipseClasspath implement
     @Override
     public void setDefaultOutputDir(File defaultOutputDir) {
         this.getDefaultOutputDirProperty().fileValue(defaultOutputDir);
+    }
+
+    @Override
+    public List<File> getClassFolders() {
+        return getClassFoldersProperty().get();
+    }
+
+    @Override
+    public void setClassFolders(List<File> classFolders) {
+        this.getClassFoldersProperty().set(classFolders);
     }
 }

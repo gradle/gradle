@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.SourceSet;
@@ -286,22 +285,9 @@ public abstract class EclipseClasspath {
         this.projectDependenciesOnly = projectDependenciesOnly;
     }
 
-    public List<File> getClassFolders() {
-        return getClassFoldersProperty().get();
-    }
+    public abstract List<File> getClassFolders();
 
-    public void setClassFolders(List<File> classFolders) {
-        this.getClassFoldersProperty().set(classFolders);
-    }
-
-    /**
-     * The class folders to be added.
-     * @return the class folders to be added
-     *
-     * @since 9.0
-     */
-    @Incubating
-    abstract public ListProperty<File> getClassFoldersProperty();
+    public abstract void setClassFolders(List<File> classFolders);
 
     public org.gradle.api.Project getProject() {
         return project;

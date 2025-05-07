@@ -2868,6 +2868,14 @@
         },
         {
             "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.getClassFolders()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
             "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.getDefaultOutputDir()",
             "acceptation": "remove deprecated convention mapping",
             "changes": [
@@ -2877,6 +2885,14 @@
         {
             "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
             "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.getPlusConfigurations()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.setClassFolders(java.util.List)",
             "acceptation": "remove deprecated convention mapping",
             "changes": [
                 "Method is now abstract"
