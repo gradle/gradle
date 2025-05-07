@@ -98,6 +98,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
+    private boolean isPartOfClasspath;
 
     public DefaultGradle(@Nullable BuildState parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -569,6 +570,16 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             classLoaderScope = () -> getClassLoaderScopeRegistry().getCoreAndPluginsScope();
         }
         return classLoaderScope.get();
+    }
+
+    @Override
+    public boolean isPartOfClasspath() {
+        return isPartOfClasspath;
+    }
+
+    @Override
+    public void setIsPartOfClasspath(boolean isPartOfClasspath) {
+        this.isPartOfClasspath = isPartOfClasspath;
     }
 
     @Inject

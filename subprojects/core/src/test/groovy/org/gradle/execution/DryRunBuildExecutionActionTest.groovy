@@ -32,10 +32,11 @@ class DryRunBuildExecutionActionTest extends Specification {
     def gradle = Mock(GradleInternal)
     def startParameter = Mock(StartParameterInternal)
     def textOutputFactory = new TestStyledTextOutputFactory()
-    def action = new DryRunBuildExecutionAction(textOutputFactory)
+    def action = new DryRunBuildExecutionAction(Mock(BuildWorkExecutor), textOutputFactory)
 
     def setup() {
         _ * gradle.getStartParameter() >> startParameter
+        _ * gradle.isPartOfClasspath() >> false
     }
 
     def "print all selected tasks before proceeding when dry run is enabled"() {
