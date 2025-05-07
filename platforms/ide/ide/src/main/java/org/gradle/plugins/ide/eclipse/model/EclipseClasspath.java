@@ -23,9 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.views.ListPropertyListView;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -186,25 +184,9 @@ public abstract class EclipseClasspath {
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    public Collection<Configuration> getPlusConfigurations() {
-        return new ListPropertyListView<>(getPlusConfigurationsProperty());
-    }
+    abstract public Collection<Configuration> getPlusConfigurations();
 
-    public void setPlusConfigurations(Collection<Configuration> plusConfigurations) {
-        this.getPlusConfigurationsProperty().set(plusConfigurations);
-    }
-
-    /**
-     * The configurations whose files are to be added as classpath entries.
-     * <p>
-     * See {@link EclipseClasspath} for an example.
-     *
-     * @return the configurations whose files are to be added as classpath entries
-     *
-     * @since 9.0
-     */
-    @Incubating
-    abstract public ListProperty<Configuration> getPlusConfigurationsProperty();
+    abstract public void setPlusConfigurations(Collection<Configuration> plusConfigurations);
 
     /**
      * The configurations whose files are to be excluded from the classpath entries.
@@ -237,22 +219,9 @@ public abstract class EclipseClasspath {
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    public File getDefaultOutputDir() {
-        return getDefaultOutputDirProperty().getAsFile().get();
-    }
+    abstract public File getDefaultOutputDir();
 
-    public void setDefaultOutputDir(File defaultOutputDir) {
-        this.getDefaultOutputDirProperty().fileValue(defaultOutputDir);
-    }
-
-    /**
-     * The default output directory where Eclipse puts compiled classes.
-     * @return the default output directory
-     *
-     * @since 9.0
-     */
-    @Incubating
-    abstract public RegularFileProperty getDefaultOutputDirProperty();
+    abstract public void setDefaultOutputDir(File defaultOutputDir);
 
     /**
      * The base output directory for source sets.

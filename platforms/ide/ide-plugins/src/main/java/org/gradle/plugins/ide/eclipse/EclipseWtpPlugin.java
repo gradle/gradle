@@ -24,6 +24,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.reflect.Instantiator;
@@ -37,6 +38,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.Facet;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathInternal;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.internal.RelativePathUtil;
@@ -100,13 +102,14 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                     @Override
                     public void execute(Project project) {
                         ImmutableList.Builder<Configuration> builder = ImmutableList.builder();
-                        builder.addAll(model.getClasspath().getPlusConfigurationsProperty().get());
+                        ListProperty<Configuration> plusConfigurationsProperty = ((EclipseClasspathInternal) model.getClasspath()).getPlusConfigurationsProperty();
+                        builder.addAll(plusConfigurationsProperty.get());
 
                         EclipseWtpComponent component = model.getWtp().getComponent();
                         builder.addAll(component.getRootConfigurations());
                         builder.addAll(component.getLibConfigurations());
 
-                        model.getClasspath().getPlusConfigurationsProperty().set(builder.build());
+                        plusConfigurationsProperty.set(builder.build());
                     }
                 });
 

@@ -53,10 +53,11 @@ import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
-import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseClasspath;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathInternal;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
@@ -194,7 +195,7 @@ public abstract class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
-        EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
+        DefaultEclipseClasspath classpath = project.getObjects().newInstance(DefaultEclipseClasspath.class, project);
         classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
         classpath.getDefaultOutputDirProperty().convention(project.getLayout().getProjectDirectory().file(EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH));
         classpath.getTestSourceSets().convention(testSourceSetsConvention);
@@ -241,7 +242,7 @@ public abstract class EclipsePlugin extends IdePlugin {
             @Override
             public void execute(JavaPlugin javaPlugin) {
 
-                model.getClasspath().getPlusConfigurationsProperty().convention(project.provider((Callable<Collection<Configuration>>) () -> {
+                ((EclipseClasspathInternal) model.getClasspath()).getPlusConfigurationsProperty().convention(project.provider((Callable<Collection<Configuration>>) () -> {
                     SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
                     List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
                     ConfigurationContainer configurations = project.getConfigurations();
