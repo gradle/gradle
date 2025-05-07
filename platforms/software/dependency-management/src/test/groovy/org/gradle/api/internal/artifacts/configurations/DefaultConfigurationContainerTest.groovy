@@ -210,6 +210,12 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.RESOLVABLE, "b") {
             resolvable("b", {})
         }
+        verifyLocked(ConfigurationRoles.RESOLVABLE, "c") {
+            resolvableLocked("c")
+        }
+        verifyLocked(ConfigurationRoles.RESOLVABLE, "d") {
+            resolvableLocked("d", {})
+        }
     }
 
     def "creates consumable configurations"() {
@@ -219,6 +225,12 @@ class DefaultConfigurationContainerTest extends Specification {
         }
         verifyRole(ConfigurationRoles.CONSUMABLE, "b") {
             consumable("b", {})
+        }
+        verifyLocked(ConfigurationRoles.CONSUMABLE, "c") {
+            consumableLocked("c")
+        }
+        verifyLocked(ConfigurationRoles.CONSUMABLE, "d") {
+            consumableLocked("d", {})
         }
     }
 
@@ -231,7 +243,13 @@ class DefaultConfigurationContainerTest extends Specification {
             dependencyScope("b", {})
         }
         verifyLocked(ConfigurationRoles.DEPENDENCY_SCOPE, "c") {
-            maybeCreateDependencyScopeLocked("c", false)
+            dependencyScopeLocked("c")
+        }
+        verifyLocked(ConfigurationRoles.DEPENDENCY_SCOPE, "d") {
+            dependencyScopeLocked("d", {})
+        }
+        verifyLocked(ConfigurationRoles.DEPENDENCY_SCOPE, "e") {
+            maybeCreateDependencyScopeLocked("e", false)
         }
     }
 
@@ -268,12 +286,6 @@ class DefaultConfigurationContainerTest extends Specification {
 
         when:
         configurationContainer.migratingLocked("bar", role) {}
-
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configurationContainer.migratingLocked("baz", role)
 
         then:
         thrown(InvalidUserDataException)
