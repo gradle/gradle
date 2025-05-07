@@ -1622,13 +1622,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // KGP continues to set the already-set value for a given usage even though it is already set
         boolean redundantChange = current == newValue;
 
-        // KGP disables `consumable` on detached configurations even though this is not necessary
-        boolean disableUsageForDetached = isDetachedConfiguration() && !newValue;
-
         // This property exists to allow KGP to test whether they have properly resolved this deprecation.
         // This property WILL be removed without warning.
-        if ((redundantChange || disableUsageForDetached) &&
-            !Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled")
+        if (redundantChange && !Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled")
         ) {
             return;
         }
