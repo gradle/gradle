@@ -47,7 +47,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         fails("help")
-        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getErrorPattern(jdk))
+        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getIncompatibleJvmErrorMessageFor("Gradle CLI Client", jdk.javaVersionMajor))
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -66,7 +66,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
-        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getErrorPattern(unsupportedJdk))
+        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getIncompatibleJvmErrorMessageFor("Gradle CLI Client", unsupportedJdk.javaVersionMajor))
 
         where:
         noDaemon << [false, true]
@@ -104,7 +104,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
 
         then:
-        failure.assertHasDescription(SupportedJavaVersionsExpectations.getExpectedDaemonIncompatibilityErrorMessage(unsupportedJdk))
+        failure.assertHasDescription(SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(unsupportedJdk.javaVersionMajor))
 
         where:
         noDaemon << [false, true]
@@ -150,15 +150,15 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
     @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "throws an exception when specifying a daemon toolchain with an unsupported daemon JDK version"() {
         given:
-        def oldJvm = AvailableJavaHomes.unsupportedDaemonJdk
-        writeJvmCriteria(oldJvm)
-        withInstallations(oldJvm)
+        def jdk = AvailableJavaHomes.unsupportedDaemonJdk
+        writeJvmCriteria(jdk)
+        withInstallations(jdk)
 
         when:
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
 
         then:
-        failure.assertHasDescription(SupportedJavaVersionsExpectations.getExpectedDaemonIncompatibilityErrorMessage(oldJvm))
+        failure.assertHasDescription(SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.javaVersionMajor))
 
         where:
         noDaemon << [false, true]

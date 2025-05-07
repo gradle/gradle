@@ -65,7 +65,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == SupportedJavaVersionsExpectations.getExpectedDaemonIncompatibilityErrorMessage(jdk)
+        e.cause.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.javaVersionMajor)
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -83,7 +83,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == SupportedJavaVersionsExpectations.getExpectedDaemonIncompatibilityErrorMessage(jdk)
+        e.cause.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.javaVersionMajor)
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -101,7 +101,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == SupportedJavaVersionsExpectations.getExpectedDaemonIncompatibilityErrorMessage(jdk)
+        e.cause.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.javaVersionMajor)
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()

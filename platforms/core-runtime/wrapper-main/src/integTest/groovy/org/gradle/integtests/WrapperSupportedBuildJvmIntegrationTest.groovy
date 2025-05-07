@@ -37,7 +37,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
 
         expect:
         def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getErrorPattern(jdk))
+        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getIncompatibleJvmErrorMessageFor("The Gradle Wrapper", jdk.javaVersionMajor))
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()
