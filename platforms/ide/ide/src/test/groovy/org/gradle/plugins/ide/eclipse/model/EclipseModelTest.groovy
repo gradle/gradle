@@ -29,7 +29,6 @@ import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseJdt
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpFacet
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -91,8 +90,7 @@ class EclipseModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
-        TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-        model.project = TestUtil.newInstance(EclipseProject, xmlMerger, TestUtil.create(temporaryFolder).rootProject())
+        model.project = TestUtil.newInstance(EclipseProject, xmlMerger)
 
         when: "configure project"
         model.project({ p -> p.comment = 'something' } as Action<EclipseProject>)

@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -37,9 +36,7 @@ public interface EclipseWtpComponentInternal {
      * Non-existing resource directory declarations lead to errors when project is imported into Eclipse.
      *
      * @return The source directories to be transformed into wb-resource elements.
-     * @since 9.0
      */
-    @Incubating
     SetProperty<File> getSourceDirsProperty();
 
     /**
@@ -48,19 +45,14 @@ public interface EclipseWtpComponentInternal {
      * For examples see docs for {@link EclipseWtp}
      *
      * @return The deploy name to be used.
-     * @since 9.0
      */
-    @Incubating
     Property<String> getDeployNameProperty();
 
     /**
      * The context path for the web application
      * <p>
      * For examples see docs for {@link EclipseWtp}
-     *
-     * @since 9.0
      */
-    @Incubating
     Property<String> getContextPathProperty();
 
     /**
@@ -69,9 +61,7 @@ public interface EclipseWtpComponentInternal {
      * For examples see docs for {@link EclipseWtp}
      *
      * @return The deploy path for libraries.
-     * @since 9.0
      */
-    @Incubating
     Property<String> getLibDeployPathProperty();
 
     /**
@@ -83,9 +73,6 @@ public interface EclipseWtpComponentInternal {
      * will be added to the wtp component file.
      * The reason is that non-existing resource directory declarations
      * lead to errors when project is imported into Eclipse.
-     *
-     * @since 9.0
      */
-    @Incubating
     ListProperty<WbResource> getResourcesProperty();
 }

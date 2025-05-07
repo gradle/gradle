@@ -33,6 +33,7 @@ dependencies {
     runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(projects.core))
+    testRuntimeOnly(projects.softwareDiagnostics)
 
     integTestImplementation(testFixtures(projects.messaging))
     integTestImplementation(testFixtures(projects.enterpriseOperations))

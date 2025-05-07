@@ -18,17 +18,12 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.junit.Rule
 import spock.lang.Specification
 
 class EclipseProjectTest extends Specification {
 
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-
-    def eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger), TestUtil.create(temporaryFolder).rootProject())
+    def eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger))
 
     def "allows adding linked resources"() {
         when:

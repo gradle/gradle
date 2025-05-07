@@ -37,7 +37,7 @@ public abstract class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     public GenerateEclipseProject() {
         getXmlTransformer().setIndentation("\t");
-        projectModel = getInstantiator().newInstance(EclipseProject.class, new XmlFileContentMerger(getXmlTransformer()), getProject());
+        projectModel = getInstantiator().newInstance(EclipseProject.class, new XmlFileContentMerger(getXmlTransformer()));
     }
 
     @Inject

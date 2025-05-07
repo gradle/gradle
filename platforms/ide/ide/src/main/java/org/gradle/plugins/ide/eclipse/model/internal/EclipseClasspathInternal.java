@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
@@ -33,26 +32,18 @@ public interface EclipseClasspathInternal {
      * See {@link EclipseClasspath} for an example.
      *
      * @return the configurations whose files are to be added as classpath entries
-     * @since 9.0
      */
-    @Incubating
     ListProperty<Configuration> getPlusConfigurationsProperty();
 
     /**
      * The default output directory where Eclipse puts compiled classes.
      * @return the default output directory
-     *
-     * @since 9.0
      */
-    @Incubating
     RegularFileProperty getDefaultOutputDirProperty();
 
     /**
      * The class folders to be added.
      * @return the class folders to be added
-     *
-     * @since 9.0
      */
-    @Incubating
     ListProperty<File> getClassFoldersProperty();
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.provider.Property;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
@@ -28,28 +27,20 @@ public interface EclipseJdtInternal {
      * The source Java language level.
      * <p>
      * For example see docs for {@link EclipseJdt}
-     *
-     * @since 9.0
      */
-    @Incubating
     Property<JavaVersion> getSourceCompatibilityProperty();
 
     /**
      * The target JVM to generate {@code .class} files for.
      * <p>
      * For example see docs for {@link EclipseJdt}
-     *
-     * @since 9.0
      */
-    @Incubating
     Property<JavaVersion> getTargetCompatibilityProperty();
 
     /**
      * The name of the Java Runtime to use.
      *
      * @return The name of the Java Runtime to use.
-     * @since 9.0
      */
-    @Incubating
     Property<String> getJavaRuntimeNameProperty();
 }

@@ -155,8 +155,9 @@ public abstract class EclipseProject {
     private final XmlFileContentMerger file;
 
     @Inject
-    public EclipseProject(XmlFileContentMerger file, org.gradle.api.Project project) {
+    public EclipseProject(XmlFileContentMerger file) {
         this.file = file;
+        org.gradle.api.Project project = getProject();
         this.comment = project.getObjects().property(String.class);
         this.comment.convention(project.provider(() ->  project.getDescription()));
         this.linkedResources = project.getObjects().setProperty(Link.class);
@@ -168,6 +169,9 @@ public abstract class EclipseProject {
             }
         }));
     }
+
+    @Inject
+    abstract protected org.gradle.api.Project getProject();
 
     public String getName() {
         return name;

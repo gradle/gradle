@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet;
 import org.gradle.plugins.ide.eclipse.model.Facet;
@@ -28,9 +27,6 @@ public interface EclipseWtpFacetInternal {
      * The facets to be added as elements.
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
-     *
-     * @since 9.0
      */
-    @Incubating
     ListProperty<Facet> getFacetsProperty();
 }
