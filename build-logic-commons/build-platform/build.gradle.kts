@@ -73,7 +73,6 @@ dependencies {
         }
         api("com.beust:jcommander:1.78")
         api("$groovyGroup:groovy:$groovyVersion")
-        api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
         api("org.codenarc:CodeNarc:$codenarcVersion")
         api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
         api("org.javassist:javassist:3.30.2-GA")
