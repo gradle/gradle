@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
@@ -36,6 +37,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -52,6 +54,9 @@ public abstract class ConventionReportTask extends ConventionTask {
     private final Transient.Var<Set<Project>> projects = varOf(new HashSet<>(singleton(getProject())));
     private final DirectoryProperty reportDir;
     private File outputFile;
+    private boolean isOutputFileSet = false;
+    private Callable<File> outputFileConvention;
+
 
     /**
      * Returns the project report directory.
@@ -87,7 +92,18 @@ public abstract class ConventionReportTask extends ConventionTask {
     @OutputFile
     @ToBeReplacedByLazyProperty
     public File getOutputFile() {
-        return outputFile;
+        // hardcoded convention mapping
+        if (isOutputFileSet) {
+            return outputFile;
+        } else if (outputFileConvention != null) {
+            try {
+                return outputFileConvention.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -96,7 +112,19 @@ public abstract class ConventionReportTask extends ConventionTask {
      * @param outputFile The output file. May be null.
      */
     public void setOutputFile(@Nullable File outputFile) {
+        isOutputFileSet = true;
         this.outputFile = outputFile;
+    }
+
+    /**
+     * Sets the convention for outputFile. The value is evaluated lazily.
+     *
+     * @param convention callable that returns the output file.
+     * @since 9.0
+     */
+    @Incubating
+    public void outputFileConvention(Callable<File> convention) {
+        this.outputFileConvention = convention;
     }
 
     /**
