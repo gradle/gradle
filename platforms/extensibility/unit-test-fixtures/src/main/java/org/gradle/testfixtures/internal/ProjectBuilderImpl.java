@@ -60,6 +60,7 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.jvm.SupportedJavaVersions;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
@@ -115,6 +116,8 @@ public class ProjectBuilderImpl {
     }
 
     public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir) {
+        // ProjectBuilder uses daemon classes, so it has the same JVM compatibility.
+        UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
 
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {

@@ -18,6 +18,7 @@ package org.gradle.launcher;
 
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.jvm.SupportedJavaVersions;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.bootstrap.ProcessBootstrap;
 
 /**
@@ -27,11 +28,11 @@ public class GradleMain {
     public static void main(String[] args) throws Exception {
         int currentMajorJavaVersion = JavaVersionParser.parseCurrentMajorVersion();
         if (currentMajorJavaVersion < SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION) {
-            System.err.printf(
-                "Gradle requires JVM %d or later to run. You are currently using JVM %d.%n",
+            System.err.printf(UnsupportedJavaRuntimeException.getIncompatibleJavaVersionForProcessErrorMessage(
+                "The Gradle CLI Client",
                 SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION,
                 currentMajorJavaVersion
-            );
+            ));
             System.exit(1);
         }
 

@@ -24,7 +24,6 @@ dependencies {
     api(projects.toolingApi)
 
     implementation(projects.baseServices)
-    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.coreApi)
