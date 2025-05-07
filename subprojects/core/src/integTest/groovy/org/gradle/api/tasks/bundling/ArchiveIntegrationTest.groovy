@@ -32,7 +32,6 @@ import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.hamcrest.CoreMatchers.equalTo
 
 @TestReproducibleArchives
@@ -321,7 +320,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'myTar'
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31858")
     def "can choose compression method for tarTree"() {
         given:
         TestFile tar = file('tar-contents')
