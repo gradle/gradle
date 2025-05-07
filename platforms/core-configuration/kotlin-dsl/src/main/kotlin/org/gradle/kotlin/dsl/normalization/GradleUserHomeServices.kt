@@ -34,14 +34,24 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     @Provides
     fun createClasspathSnapshotHashesCache(
         store: CrossBuildFileHashCache,
-    ) =
-        KotlinDslCompileAvoidanceClasspathHashCache(
+    ): KotlinDslCompileAvoidanceClasspathHashCache {
+        /* KotlinCompileClasspathFingerprinter keeps entries in this cache for jar files and class file directories.
+         * At this level of granularity, for a project like `gradle/gradle` for example, it stores less than 300 entries.
+         * Considering this, 10_000 seems like a safe enough value.
+         *
+         * One entry has a 128 bit HashCode both as its key and value, so 10_000 entries take up roughly 300+ kilobytes
+         * of memory, which is not a lot.
+         */
+        val maxEntriesToKeep = 10_000
+
+        return KotlinDslCompileAvoidanceClasspathHashCache(
             store.createIndexedCache(
                 IndexedCacheParameters.of("kotlinDslCompileAvoidanceClasspathHashCache", HashCode::class.java, HashCodeSerializer()),
-                10_000,
+                maxEntriesToKeep, // This is an arbitrary small cache size that can handle e.g. the gradle/gradle build without incurring too much extra memory consumption.
                 true
             )
         )
+    }
 
     @Provides
     @PrivateService
