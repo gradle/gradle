@@ -1,3 +1,4 @@
+import com.google.gson.Gson
 import org.gradle.api.internal.FeaturePreviews
 import java.io.PrintWriter
 import java.io.Serializable
@@ -350,6 +351,35 @@ gradle.rootProject {
         description = "Generates the architecture documentation"
         outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
+    }
+    tasks.register("platformsData", GeneratePlatformsDataTask::class) {
+        description = "Generates the platforms data"
+        outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
+        platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
+    }
+}
+
+abstract class GeneratePlatformsDataTask : DefaultTask() {
+
+    data class PlatformData(val name: String, val dirs: List<String>, val uses: List<String>)
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @get:Input
+    abstract val platforms: ListProperty<Platform>
+
+    @TaskAction
+    fun action() {
+        val allPlatforms = platforms.get()
+        val data = allPlatforms.map { platform ->
+            PlatformData(
+                name = platform.name,
+                dirs = platform.children.takeIf { it.isNotEmpty() }?.map { it.name } ?: listOf(platform.name),
+                uses = platform.uses.map { use -> allPlatforms.single { it.id == use }.name },
+            )
+        }
+        outputFile.get().asFile.writeText(Gson().toJson(data))
     }
 }
 
