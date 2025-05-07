@@ -67,10 +67,6 @@ dependencies {
     implementation(libs.jspecify)
     implementation(libs.kotlinReflect)
 
-    runtimeOnly(libs.kotlinBuildToolsImpl) {
-        isTransitive = false
-    }
-
     implementation(libs.kotlinCompilerEmbeddable)
     api(libs.futureKotlin("script-runtime"))
 
@@ -96,6 +92,10 @@ dependencies {
         isTransitive = false
     }
     shadow("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0") {
+        isTransitive = false
+    }
+
+    runtimeOnly(libs.kotlinBuildToolsImpl) {
         isTransitive = false
     }
 
