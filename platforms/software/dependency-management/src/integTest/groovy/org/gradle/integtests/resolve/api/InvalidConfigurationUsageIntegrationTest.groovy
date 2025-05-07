@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -80,6 +79,53 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         'resolve()'                                     | 'dependencyScope' | 'resolve()'                                                       || buildMethodNotAllowedMessage('resolve()')
         'shouldResolveConsistentlyWith(Configuration)'  | 'consumable'      | 'shouldResolveConsistentlyWith(null)'                             || buildMethodNotAllowedMessage('shouldResolveConsistentlyWith(Configuration)')
         'shouldResolveConsistentlyWith(Configuration)'  | 'dependencyScope' | 'shouldResolveConsistentlyWith(null)'                             || buildMethodNotAllowedMessage('shouldResolveConsistentlyWith(Configuration)')
+    }
+
+    def "calling a valid but deprecated public API method #methodName for role #role warns"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
+
+            configurations.$role
+            configurations.custom.$methodCall
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Calling $methodName on configuration ':custom' has been deprecated. This will fail with an error in Gradle 10.0. This configuration does not allow this method to be called. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        succeeds('help')
+
+        where:
+        methodName                                      | role                                                                                                          | methodCall
+        'copy()'                                        | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'copy()'
+        'copyRecursive()'                               | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'copyRecursive()'
+        'copy(Spec)'                                    | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'copy { } as Spec'
+        'copyRecursive(Spec)'                           | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'copyRecursive { } as Spec'
+        'defaultDependencies(Action)'                   | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)'         | 'defaultDependencies { }'
+        'disableConsistentResolution()'                 | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'disableConsistentResolution()'
+        'shouldResolveConsistentlyWith(Configuration)'  | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'shouldResolveConsistentlyWith(null)'
+    }
+
+    def "calling a valid but deprecated public API method #methodName that causes resolution for role #role warns"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
+
+            configurations.$role
+            configurations.custom.$methodCall
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Calling $methodName on configuration ':custom' has been deprecated. This will fail with an error in Gradle 10.0. This configuration does not allow this method to be called. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        executer.expectDocumentedDeprecationWarning("The custom configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("Calling toRootComponent() on configuration ':custom' has been deprecated. This will fail with an error in Gradle 10.0. This configuration does not allow this method to be called. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        succeeds('help')
+
+        where:
+        methodName                                      | role                                                                                                          | methodCall
+        'getResolvedConfiguration()'                    | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'getResolvedConfiguration()'
+        'resolve()'                                     | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'resolve()'
     }
 
     def "calling an invalid internal API method #methodName for role #role fails"() {
