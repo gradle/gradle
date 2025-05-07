@@ -1413,25 +1413,22 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (!isProperUsage(properUsages)) {
             String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
             String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
+            String msgTemplate = "Calling configuration method '%s' is not allowed for configuration '%s', which has permitted usage(s):\n" +
+                "%s\n" +
+                "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
 
-            if (isDeprecatedUsage(properUsages)) {
-                DeprecationLogger.deprecateAction(String.format("Calling %s on %s", methodName, this))
-                    .withContext("This configuration does not allow this method to be called.")
-                    .willBecomeAnErrorInGradle10()
-                    .withUpgradeGuideSection(8, "configurations_allowed_usage")
-                    .nagUser();
-            } else {
-                String msgTemplate = "Calling configuration method '%s' is not allowed for configuration '%s', which has permitted usage(s):\n" +
-                    "%s\n" +
-                    "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
-
-                GradleException ex = new GradleException(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc));
-                ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
-                throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
-                    spec.contextualLabel(ex.getMessage());
-                    spec.severity(Severity.ERROR);
-                });
-            }
+            GradleException ex = new GradleException(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc));
+            ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+                spec.contextualLabel(ex.getMessage());
+                spec.severity(Severity.ERROR);
+            });
+        } else if (isDeprecatedUsage(properUsages)) {
+            DeprecationLogger.deprecateAction(String.format("Calling %s on %s", methodName, this))
+                .withContext("This configuration does not allow this method to be called.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(8, "configurations_allowed_usage")
+                .nagUser();
         }
     }
 
