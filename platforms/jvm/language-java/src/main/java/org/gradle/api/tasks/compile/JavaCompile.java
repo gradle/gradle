@@ -32,9 +32,9 @@ import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingC
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
-import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.JvmCompileTask;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.jvm.ModularitySpec;
@@ -72,6 +72,7 @@ import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 import org.gradle.work.NormalizeLineEndings;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
@@ -92,7 +93,7 @@ import java.util.concurrent.Callable;
  * </pre>
  */
 @CacheableTask
-public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class JavaCompile extends JvmCompileTask {
     private final CompileOptions compileOptions;
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final ModularitySpec modularity;
@@ -233,7 +234,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         boolean isSourcepathUserDefined = !compileOptions.getSourcepath().isEmpty();
         FileCollection sourcepath = compileOptions.getSourcepath();
 
-        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
+        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain().get()).create();
 
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
@@ -285,38 +286,28 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private boolean isToolchainCompatibleWithJava8() {
-        return getToolchain().getLanguageVersion().canCompileOrRun(8);
+        return getToolchain().get().getLanguageVersion().canCompileOrRun(8);
     }
 
     @Input
-    JavaVersion getJavaVersion() {
-        return JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt());
+    Provider<JavaVersion> getJavaVersion() {
+        return getToolchain().map(toolchain -> JavaVersion.toVersion(toolchain.getLanguageVersion().asInt()));
     }
 
     private void configureCompileOptions(DefaultJavaCompileSpec spec, FileCollection sourcepath) {
         if (compileOptions.getRelease().isPresent()) {
             spec.setRelease(compileOptions.getRelease().get());
         } else {
-            String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
-            String sourceCompatibility = getSourceCompatibility().getOrNull();
-            // Compatibility can be null if no convention was configured, e.g. when JavaBasePlugin is not applied
-            if (sourceCompatibility == null) {
-                sourceCompatibility = toolchainVersion;
-            }
-
-            String targetCompatibility = getTargetCompatibility().getOrNull();
-            if (targetCompatibility == null) {
-                targetCompatibility = sourceCompatibility;
-            }
-
-            spec.setSourceCompatibility(sourceCompatibility);
-            spec.setTargetCompatibility(targetCompatibility);
+            configureCompatibilityOptions(spec);
         }
         spec.setCompileOptions(compileOptions, sourcepath);
     }
 
-    private JavaInstallationMetadata getToolchain() {
-        return getJavaCompiler().get().getMetadata();
+    @Nonnull
+    @Override
+    @Internal
+    protected Provider<JavaInstallationMetadata> getToolchain() {
+        return getJavaCompiler().map(JavaCompiler::getMetadata);
     }
 
     private File getTemporaryDirWithoutCreating() {

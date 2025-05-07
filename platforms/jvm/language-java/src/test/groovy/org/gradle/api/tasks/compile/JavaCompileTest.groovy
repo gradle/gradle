@@ -265,7 +265,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         (spec as ForkingJavaCompileSpec).javaHome == javaHome
 
         where:
-        toolchainVersion << [8, 9, 10, 11]
+        toolchainVersion << [9, 10, 11]
     }
 
     def "incremental compilation is enabled by default"() {

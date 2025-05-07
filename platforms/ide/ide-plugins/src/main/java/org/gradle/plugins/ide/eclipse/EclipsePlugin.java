@@ -409,21 +409,21 @@ public abstract class EclipsePlugin extends IdePlugin {
                 conventionMapping.map("sourceCompatibility", new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
-                        return project.getExtensions().getByType(JavaPluginExtension.class).getEffectiveSourceCompatibility().get();
+                        return project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility().get();
                     }
 
                 });
                 conventionMapping.map("targetCompatibility", new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
-                        return project.getExtensions().getByType(JavaPluginExtension.class).getEffectiveTargetCompatibility().get();
+                        return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility().get();
                     }
 
                 });
                 conventionMapping.map("javaRuntimeName", new Callable<String>() {
                     @Override
                     public String call() {
-                        return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getEffectiveTargetCompatibility().get());
+                        return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility().get());
                     }
 
                 });

@@ -20,6 +20,7 @@ dependencies {
     api(projects.files)
     api(projects.platformBase)
     api(projects.platformJvm)
+    api(projects.toolchainsJvmShared)
     api(projects.workers)
 
     api(libs.groovy)

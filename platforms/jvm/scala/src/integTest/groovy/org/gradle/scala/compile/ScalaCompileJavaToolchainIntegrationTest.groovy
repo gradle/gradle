@@ -240,8 +240,8 @@ class ScalaCompileJavaToolchainIntegrationTest2 extends AbstractScalaCompileJava
 
                 ${source != 'none' ? "sourceCompatibility = '$source'" : ''}
                 ${target != 'none' ? "targetCompatibility = '$target'" : ''}
-                def projectSourceCompat = project.java.effectiveSourceCompatibility.get()
-                def projectTargetCompat = project.java.effectiveTargetCompatibility.get()
+                def projectSourceCompat = project.java.sourceCompatibility.get()
+                def projectTargetCompat = project.java.targetCompatibility.get()
                 doLast {
                     logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
                     logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")

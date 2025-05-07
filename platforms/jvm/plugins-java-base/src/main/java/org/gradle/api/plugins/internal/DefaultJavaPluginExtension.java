@@ -97,6 +97,15 @@ public abstract class DefaultJavaPluginExtension implements JavaPluginExtension 
         getDocsDir().convention(project.getLayout().getBuildDirectory().dir("docs"));
         getTestResultsDir().convention(project.getLayout().getBuildDirectory().dir(TestingBasePlugin.TEST_RESULTS_DIR_NAME));
         getTestReportDir().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
+        Provider<JavaVersion> toolchainVersion = project.provider(() -> {
+            if (toolchainSpec != null && toolchainSpec.isConfigured()) {
+                return JavaVersion.toVersion(toolchainSpec.getLanguageVersion().get().toString());
+            } else {
+                return null;
+            }
+        });
+        getSourceCompatibility().convention(toolchainVersion);
+        getTargetCompatibility().convention(getSourceCompatibility());
     }
 
     @Override
@@ -112,24 +121,6 @@ public abstract class DefaultJavaPluginExtension implements JavaPluginExtension 
 
     @Override
     public abstract DirectoryProperty getTestReportDir();
-
-    @Override
-    public Provider<JavaVersion> getEffectiveSourceCompatibility() {
-        return getSourceCompatibility().orElse(
-            project.provider(() -> {
-                if (toolchainSpec != null && toolchainSpec.isConfigured()) {
-                    return JavaVersion.toVersion(toolchainSpec.getLanguageVersion().get().toString());
-                } else {
-                    return JavaVersion.current();
-                }
-            })
-        );
-    }
-
-    @Override
-    public Provider<JavaVersion> getEffectiveTargetCompatibility() {
-        return getTargetCompatibility().orElse(getEffectiveSourceCompatibility());
-    }
 
     @Override
     public Manifest manifest() {

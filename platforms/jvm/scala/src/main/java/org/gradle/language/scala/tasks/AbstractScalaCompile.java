@@ -28,6 +28,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.JvmCompileTask;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
@@ -36,6 +37,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
@@ -71,7 +73,7 @@ import java.util.Map;
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
-public abstract class AbstractScalaCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class AbstractScalaCompile extends JvmCompileTask {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions;
@@ -153,8 +155,9 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     @Internal
-    protected JavaInstallationMetadata getToolchain() {
-        return javaLauncher.map(JavaLauncher::getMetadata).get();
+    @Override
+    protected Provider<JavaInstallationMetadata> getToolchain() {
+        return javaLauncher.map(JavaLauncher::getMetadata);
     }
 
     protected ScalaJavaJointCompileSpec createSpec() {
@@ -179,21 +182,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
         return spec;
-    }
-
-    private void configureCompatibilityOptions(DefaultScalaJavaJointCompileSpec spec) {
-        String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
-        String sourceCompatibility = getSourceCompatibility().getOrNull();
-        if (sourceCompatibility == null) {
-            sourceCompatibility = toolchainVersion;
-        }
-        String targetCompatibility = getTargetCompatibility().getOrNull();
-        if (targetCompatibility == null) {
-            targetCompatibility = sourceCompatibility;
-        }
-
-        spec.setSourceCompatibility(sourceCompatibility);
-        spec.setTargetCompatibility(targetCompatibility);
     }
 
     private void configureIncrementalCompilation(ScalaCompileSpec spec) {

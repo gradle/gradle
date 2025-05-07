@@ -35,6 +35,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
+import org.gradle.api.internal.tasks.compile.JvmCompileTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
@@ -53,7 +54,6 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
 
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
@@ -176,47 +176,15 @@ public class JvmPluginsHelper {
      *
      * @param compile The compile task to configure
      * @param javaExtension The java extension containing the raw source and target compatibility values
-     * @param compatibilityComputer A function to compute the compatibility version to use as the convention
-     *      given the raw version values and the current version property values set on the extension
      */
-    public static void configureCompileDefaults(AbstractCompile compile, DefaultJavaPluginExtension javaExtension, BiFunction<Provider<JavaVersion>, Provider<JavaVersion>, Provider<JavaVersion>> compatibilityComputer) {
-        compile.getSourceCompatibility().convention(
-            compatibilityComputer.apply(
-                javaExtension.getSourceCompatibility(),
-                javaExtension.getEffectiveSourceCompatibility()
-            ).map(JavaVersion::toString)
+    public static void configureCompileDefaults(JvmCompileTask compile, DefaultJavaPluginExtension javaExtension) {
+        compile.getSourceCompatibilityConvention().set(
+            javaExtension.getSourceCompatibility().map(JavaVersion::toString)
         );
-        compile.getTargetCompatibility().convention(
-            compatibilityComputer.apply(
-                javaExtension.getTargetCompatibility()
-                    .orElse(javaExtension.getSourceCompatibility())
-                    .orElse(getRawSourceCompatibilityValue(compile).map(JavaVersion::toVersion)),
-                javaExtension.getEffectiveTargetCompatibility()
-            ).map(JavaVersion::toString)
+        compile.getTargetCompatibilityConvention().set(
+            compile.getSourceCompatibility() // without the convention since extension targetCompatibility value should be preferred over task sourceCompatibility value
+                .orElse(javaExtension.getTargetCompatibility().map(JavaVersion::toString))
+                .orElse(javaExtension.getSourceCompatibility().map(JavaVersion::toString))
         );
-    }
-
-    // we need to know value WITHOUT convention before we set the convention
-    // FIXME: refactor the code below
-    private static Method explicitValueMethod;
-
-    static {
-        try {
-            explicitValueMethod = AbstractProperty.class.getDeclaredMethod("getExplicitValue", ValueSupplier.class);
-            explicitValueMethod.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Provider<String> getRawSourceCompatibilityValue(AbstractCompile compile) {
-        return compile.getProject().provider(() -> {
-            try {
-                return ((Provider<String>) explicitValueMethod.invoke(compile.getSourceCompatibility(), Providers.notDefined())).getOrNull();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
     }
 }

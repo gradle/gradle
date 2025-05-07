@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -39,6 +38,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
+import org.gradle.api.internal.tasks.compile.JvmCompileTask;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
@@ -81,6 +81,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
+import org.gradle.api.JavaVersion;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -209,7 +210,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         );
     }
 
-    private void configureTargetPlatform(TaskProvider<JavaCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
+    private void configureTargetPlatform(TaskProvider<? extends JvmCompileTask> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
         getJvmLanguageUtils().useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
         getJvmLanguageUtils().useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
     }
@@ -323,17 +324,13 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
-            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension, (Provider<JavaVersion> extensionConfiguredVersion, Provider<JavaVersion> extensionEffectiveVersion) -> {
-                if (compile instanceof JavaCompile) {
-                    JavaCompile javaCompile = (JavaCompile) compile;
-                    return javaCompile.getOptions().getRelease().map(JavaVersion::toVersion)
-                        .orElse(extensionConfiguredVersion)
-                        .orElse(javaCompile.getJavaCompiler().map(compiler -> JavaVersion.toVersion(compiler.getMetadata().getLanguageVersion())));
-                } else {
-                    return extensionEffectiveVersion; // used by plugins, e.g. Kotlin plugin
-                }
-            });
-
+            if (compile instanceof JavaCompile) {
+                JvmPluginsHelper.configureCompileDefaults((JavaCompile)compile, javaExtension);
+            } else {
+                // used by plugins, e.g. Kotlin plugin
+                compile.getSourceCompatibility().convention(javaExtension.getSourceCompatibility().map(JavaVersion::toString));
+                compile.getTargetCompatibility().convention(javaExtension.getTargetCompatibility().map(JavaVersion::toString));
+            }
             compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }

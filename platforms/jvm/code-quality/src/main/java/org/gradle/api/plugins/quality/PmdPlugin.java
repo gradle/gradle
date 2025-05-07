@@ -96,7 +96,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.getTargetJdk().convention(
             project.getProviders()
                 .provider(this::getJavaPluginExtension)
-                .flatMap(JavaPluginExtension::getEffectiveSourceCompatibility)
+                .flatMap(JavaPluginExtension::getTargetCompatibility)
                 .map(this::getDefaultTargetJdk)
         );
         return extension;

@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -35,13 +34,14 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.JvmCompileTask;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
@@ -69,6 +69,7 @@ import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
@@ -80,7 +81,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  * Compiles Groovy source files, and optionally, Java source files.
  */
 @CacheableTask
-public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class GroovyCompile extends JvmCompileTask {
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = getProject().getObjects().newInstance(GroovyCompileOptions.class);
@@ -224,7 +225,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     }
 
     private GroovyJavaJointCompileSpec createSpec() {
-        DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
+        DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions, getToolchain().get()).create();
         assert spec != null;
 
         FileTreeInternal stableSourcesAsFileTree = (FileTreeInternal) getStableSources().getAsFileTree();
@@ -258,24 +259,11 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         return spec;
     }
 
-    private void configureCompatibilityOptions(DefaultGroovyJavaJointCompileSpec spec) {
-        String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
-        String sourceCompatibility = getSourceCompatibility().getOrNull();
-        // Compatibility can be null if no convention was configured, e.g. when JavaBasePlugin is not applied
-        if (sourceCompatibility == null) {
-            sourceCompatibility = toolchainVersion;
-        }
-        String targetCompatibility = getTargetCompatibility().getOrNull();
-        if (targetCompatibility == null) {
-            targetCompatibility = sourceCompatibility;
-        }
-
-        spec.setSourceCompatibility(sourceCompatibility);
-        spec.setTargetCompatibility(targetCompatibility);
-    }
-
-    private JavaInstallationMetadata getToolchain() {
-        return javaLauncher.map(JavaLauncher::getMetadata).get();
+    @Nonnull
+    @Override
+    @Internal
+    protected Provider<JavaInstallationMetadata> getToolchain() {
+        return javaLauncher.map(JavaLauncher::getMetadata);
     }
 
     private void checkGroovyClasspathIsNonEmpty() {
@@ -293,8 +281,8 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * @since 4.0
      */
     @Input
-    protected String getGroovyCompilerJvmVersion() {
-        return getToolchain().getLanguageVersion().toString();
+    protected Provider<String> getGroovyCompilerJvmVersion() {
+        return getToolchain().map(toolchain -> toolchain.getLanguageVersion().toString());
     }
 
     /**

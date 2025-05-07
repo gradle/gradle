@@ -75,8 +75,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def ext = project.extensions.java
         project.sourceCompatibility == JavaVersion.current()
         project.targetCompatibility == JavaVersion.current()
-        ext.effectiveSourceCompatibility.get() == JavaVersion.current()
-        ext.effectiveTargetCompatibility.get() == JavaVersion.current()
+        ext.sourceCompatibility.get() == JavaVersion.current()
+        ext.targetCompatibility.get() == JavaVersion.current()
 
         when:
         project.sourceCompatibility = JavaVersion.VERSION_1_6
@@ -84,8 +84,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.sourceCompatibility == JavaVersion.VERSION_1_6
         project.targetCompatibility == JavaVersion.VERSION_1_6
-        ext.effectiveSourceCompatibility.get() == JavaVersion.VERSION_1_6
-        ext.effectiveTargetCompatibility.get() == JavaVersion.VERSION_1_6
+        ext.sourceCompatibility.get() == JavaVersion.VERSION_1_6
+        ext.targetCompatibility.get() == JavaVersion.VERSION_1_6
 
         when:
         ext.sourceCompatibility.set(JavaVersion.VERSION_1_8)
@@ -93,8 +93,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.sourceCompatibility == JavaVersion.VERSION_1_8
         project.targetCompatibility == JavaVersion.VERSION_1_8
-        ext.effectiveSourceCompatibility.get() == JavaVersion.VERSION_1_8
-        ext.effectiveTargetCompatibility.get() == JavaVersion.VERSION_1_8
+        ext.sourceCompatibility.get() == JavaVersion.VERSION_1_8
+        ext.targetCompatibility.get() == JavaVersion.VERSION_1_8
 
         when:
         project.targetCompatibility = JavaVersion.VERSION_1_7
@@ -102,8 +102,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.sourceCompatibility == JavaVersion.VERSION_1_8
         project.targetCompatibility == JavaVersion.VERSION_1_7
-        ext.effectiveSourceCompatibility.get() == JavaVersion.VERSION_1_8
-        ext.effectiveTargetCompatibility.get() == JavaVersion.VERSION_1_7
+        ext.sourceCompatibility.get() == JavaVersion.VERSION_1_8
+        ext.targetCompatibility.get() == JavaVersion.VERSION_1_7
 
         when:
         ext.targetCompatibility.set(JavaVersion.VERSION_1_6)
@@ -111,8 +111,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.sourceCompatibility == JavaVersion.VERSION_1_8
         project.targetCompatibility == JavaVersion.VERSION_1_6
-        ext.effectiveSourceCompatibility.get() == JavaVersion.VERSION_1_8
-        ext.effectiveTargetCompatibility.get() == JavaVersion.VERSION_1_6
+        ext.sourceCompatibility.get() == JavaVersion.VERSION_1_8
+        ext.targetCompatibility.get() == JavaVersion.VERSION_1_6
     }
 
     def "creates tasks and applies mappings for source set"() {

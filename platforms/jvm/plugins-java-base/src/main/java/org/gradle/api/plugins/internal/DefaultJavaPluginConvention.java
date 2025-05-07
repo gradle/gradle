@@ -74,7 +74,7 @@ public abstract class DefaultJavaPluginConvention extends org.gradle.api.plugins
 
     @Override
     public JavaVersion getSourceCompatibility() {
-        return extension.getEffectiveSourceCompatibility().get();
+        return extension.getSourceCompatibility().get();
     }
 
     @Override
@@ -89,7 +89,7 @@ public abstract class DefaultJavaPluginConvention extends org.gradle.api.plugins
 
     @Override
     public JavaVersion getTargetCompatibility() {
-        return extension.getEffectiveTargetCompatibility().get();
+        return extension.getTargetCompatibility().get();
     }
 
     @Override

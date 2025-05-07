@@ -91,13 +91,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             );
 
             DefaultJavaPluginExtension javaExtension = (DefaultJavaPluginExtension) project.getExtensions().getByType(JavaPluginExtension.class);
-            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension, (Provider<JavaVersion> extensionConfiguredVersion, Provider<JavaVersion> extensionEffectiveVersion) ->
-                extensionConfiguredVersion.orElse(
-                    compile.getJavaLauncher().map(
-                        launcher -> JavaVersion.toVersion(launcher.getMetadata().getLanguageVersion().toString())
-                    )
-                )
-            );
+            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension);
         });
     }
 

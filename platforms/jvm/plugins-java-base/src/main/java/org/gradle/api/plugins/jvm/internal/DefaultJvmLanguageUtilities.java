@@ -22,12 +22,11 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.JvmCompileTask;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
@@ -57,9 +56,9 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
     }
 
     @Override
-    public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask) {
+    public void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<? extends JvmCompileTask> compileTask) {
         ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
-        Set<TaskProvider<COMPILE>> compileTasks = Cast.uncheckedCast(configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> new HashSet<>()));
+        Set<TaskProvider<? extends JvmCompileTask>> compileTasks = Cast.uncheckedCast(configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> new HashSet<>()));
         compileTasks.add(compileTask);
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -79,7 +78,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
         builder.build();
     }
 
-    private static <COMPILE extends AbstractCompile & HasCompileOptions> int getDefaultTargetPlatform(Configuration configuration, JavaPluginExtension java, Set<TaskProvider<COMPILE>> compileTasks) {
+    private static int getDefaultTargetPlatform(Configuration configuration, JavaPluginExtension java, Set<TaskProvider<? extends JvmCompileTask>> compileTasks) {
         assert !compileTasks.isEmpty();
 
         if (!configuration.isCanBeConsumed() && !java.getAutoTargetJvm().get()) {
@@ -87,7 +86,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
         }
 
         return compileTasks.stream().map(provider -> {
-            COMPILE compileTask = provider.get();
+            JvmCompileTask compileTask = provider.get();
             if (compileTask.getOptions().getRelease().isPresent()) {
                 return compileTask.getOptions().getRelease().get();
             }
@@ -98,7 +97,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
             if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
                 return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
             } else {
-                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility().get()).getMajorVersion());
+                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility().orElse(compileTask.getEnvironmentJavaVersion()).get()).getMajorVersion());
             }
         }).max(Comparator.naturalOrder()).get();
     }

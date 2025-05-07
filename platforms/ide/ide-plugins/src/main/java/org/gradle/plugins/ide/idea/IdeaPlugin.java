@@ -96,13 +96,13 @@ public abstract class IdeaPlugin extends IdePlugin {
     public static final Function<Project, JavaVersion> SOURCE_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
         public JavaVersion apply(Project p) {
-            return p.getExtensions().getByType(JavaPluginExtension.class).getEffectiveSourceCompatibility().get();
+            return p.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility().get();
         }
     };
     public static final Function<Project, JavaVersion> TARGET_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
         public JavaVersion apply(Project p) {
-            return p.getExtensions().getByType(JavaPluginExtension.class).getEffectiveTargetCompatibility().get();
+            return p.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility().get();
         }
     };
 
@@ -418,7 +418,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         convention.map("targetBytecodeVersion", new Callable<JavaVersion>() {
             @Override
             public JavaVersion call() {
-                JavaVersion moduleTargetBytecodeLevel = project.getExtensions().getByType(JavaPluginExtension.class).getEffectiveTargetCompatibility().get();
+                JavaVersion moduleTargetBytecodeLevel = project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility().get();
                 return includeModuleBytecodeLevelOverride(project.getRootProject(), moduleTargetBytecodeLevel) ? moduleTargetBytecodeLevel : null;
             }
 
@@ -426,7 +426,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         convention.map("languageLevel", new Callable<IdeaLanguageLevel>() {
             @Override
             public IdeaLanguageLevel call() {
-                IdeaLanguageLevel moduleLanguageLevel = new IdeaLanguageLevel(project.getExtensions().getByType(JavaPluginExtension.class).getEffectiveSourceCompatibility().get());
+                IdeaLanguageLevel moduleLanguageLevel = new IdeaLanguageLevel(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility().get());
                 return includeModuleLanguageLevelOverride(project.getRootProject(), moduleLanguageLevel) ? moduleLanguageLevel : null;
             }
 

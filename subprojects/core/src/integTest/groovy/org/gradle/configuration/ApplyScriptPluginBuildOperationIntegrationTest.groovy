@@ -28,6 +28,14 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
+    def "test"(){
+        given:
+        new URI('C:/some/file')
+        new URI('C:/some/file with space')
+        expect:
+        true
+    }
+
     def "captures gradle script events"() {
         given:
         def otherScript2 = file("script2.gradle") << ""
@@ -114,7 +122,7 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
         given:
         def otherScript2 = file("script2.gradle") << ""
         def otherScript1 = file("script1.gradle") << """
-            apply from: "${normaliseFileSeparators(otherScript2.absolutePath)}"
+            apply from: "c:/${normaliseFileSeparators(otherScript2.absolutePath)}"
         """
         buildFile << """
             apply from: "${normaliseFileSeparators(otherScript1.absolutePath)}"

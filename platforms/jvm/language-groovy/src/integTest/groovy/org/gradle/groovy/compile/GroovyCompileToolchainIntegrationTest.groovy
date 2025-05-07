@@ -166,8 +166,8 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
             compileGroovy {
                 ${source != 'none' ? "sourceCompatibility = '$source'" : ''}
                 ${target != 'none' ? "targetCompatibility = '$target'" : ''}
-                def projectSourceCompat = project.java.effectiveSourceCompatibility.getOrNull()
-                def projectTargetCompat = project.java.effectiveTargetCompatibility.getOrNull()
+                def projectSourceCompat = project.java.sourceCompatibility.getOrNull()
+                def projectTargetCompat = project.java.targetCompatibility.getOrNull()
                 doLast {
                     logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
                     logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")

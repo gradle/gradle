@@ -287,7 +287,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         return Lists.newArrayList(
                             new Facet(Facet.FacetType.fixed, "jst.java", null),
                             new Facet(Facet.FacetType.installed, "jst.utility", "1.0"),
-                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getEffectiveSourceCompatibility().get()))
+                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility().get()))
                         );
                     }
                 });
@@ -304,7 +304,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                             new Facet(Facet.FacetType.fixed, "jst.java", null),
                             new Facet(Facet.FacetType.fixed, "jst.web", null),
                             new Facet(Facet.FacetType.installed, "jst.web", "2.4"),
-                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getEffectiveSourceCompatibility().get()))
+                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility().get()))
                         );
                     }
                 });

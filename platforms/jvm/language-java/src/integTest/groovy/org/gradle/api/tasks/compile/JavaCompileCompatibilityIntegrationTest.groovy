@@ -54,8 +54,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileCustomJava.doLast {
-                logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.getOrNull()}'")
-                logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.getOrNull()}'")
+                logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.orElse(sourceCompatibilityConvention).getOrNull()}'")
+                logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.orElse(targetCompatibilityConvention).getOrNull()}'")
             }
         """
 
@@ -72,9 +72,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
 
         where:
         taskSource | taskRelease | extensionSource | taskToolchain | sourceOut            | targetOut
-        "9"        | "8"         | "11"            | "11"          | "9"                  | "1.8"
+        "9"        | "8"         | "11"            | "11"          | "9"                  | "1.8" // TODO: check in a different way
         null       | "9"         | "11"            | "11"          | "9"                  | "9"
-        null       | null        | "9"             | "11"          | "9"                  | "9"
+        null       | null        | "9"             | "11"          | "9"                  | "9" //TODO: ask Justin
         null       | null        | null            | "11"          | "11"                 | "11"
         null       | null        | null            | null          | currentJavaVersion() | currentJavaVersion()
     }
@@ -101,15 +101,15 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileCustomJava.doLast {
-                logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.getOrNull()}'")
-                logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.getOrNull()}'")
+                logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.orElse(sourceCompatibilityConvention).getOrNull()}'")
+                logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.orElse(targetCompatibilityConvention).getOrNull()}'")
             }
         """
 
         file("src/custom/java/Test.java") << """public class Test { }"""
 
         when:
-        withInstallations(jdk11).succeeds("compileCustomJava")
+        withInstallations(jdk11).succeeds("compileCustomJava", "-s")
 
         then:
         executedAndNotSkipped(":compileCustomJava")
@@ -145,8 +145,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileJava.doLast {
-                logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.getOrNull()}'")
-                logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.getOrNull()}'")
+                logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.orElse(sourceCompatibilityConvention).getOrNull()}'")
+                logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.orElse(targetCompatibilityConvention).getOrNull()}'")
             }
         """
 
@@ -187,13 +187,13 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileJava {
-                def projectSourceCompat = project.java.effectiveSourceCompatibility.getOrNull()
-                def projectTargetCompat = project.java.effectiveTargetCompatibility.getOrNull()
+                def projectSourceCompat = project.java.sourceCompatibility.getOrNull()
+                def projectTargetCompat = project.java.targetCompatibility.getOrNull()
                 doLast {
                     logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
                     logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
-                    logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.getOrNull()}'")
-                    logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.getOrNull()}'")
+                    logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.orElse(sourceCompatibilityConvention).getOrNull()}'")
+                    logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.orElse(targetCompatibilityConvention).getOrNull()}'")
                 }
             }
         """
@@ -230,13 +230,13 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileJava {
-                def projectSourceCompat = project.java.effectiveSourceCompatibility.getOrNull()
-                def projectTargetCompat = project.java.effectiveTargetCompatibility.getOrNull()
+                def projectSourceCompat = project.java.sourceCompatibility.getOrNull()
+                def projectTargetCompat = project.java.targetCompatibility.getOrNull()
                 doLast {
                     logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
                     logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
-                    logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.getOrNull()}'")
-                    logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.getOrNull()}'")
+                    logger.lifecycle("task.sourceCompatibility = '\${sourceCompatibility.orElse(sourceCompatibilityConvention).getOrNull()}'")
+                    logger.lifecycle("task.targetCompatibility = '\${targetCompatibility.orElse(targetCompatibilityConvention).getOrNull()}'")
                 }
             }
         """

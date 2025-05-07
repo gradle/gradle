@@ -72,7 +72,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
         ScalaCompileOptionsConfigurer.configure(
             spec.getScalaCompileOptions(),
             getScalaCompileOptions(),
-            getToolchain(),
+            getToolchain().get(),
             getScalaClasspath().getFiles()
         );
         if (getScalaCompilerPlugins() != null) {

@@ -24,7 +24,7 @@ class JavaPluginExtensionAdapters {
     static class SourceCompatibilityAdapter {
         @BytecodeUpgrade
         static JavaVersion getSourceCompatibility(JavaPluginExtension extension) {
-            return extension.getEffectiveSourceCompatibility().get();
+            return extension.getSourceCompatibility().get();
         }
 
         @BytecodeUpgrade
@@ -41,7 +41,7 @@ class JavaPluginExtensionAdapters {
     static class TargetCompatibilityAdapter {
         @BytecodeUpgrade
         static JavaVersion getTargetCompatibility(JavaPluginExtension extension) {
-            return extension.getEffectiveTargetCompatibility().get();
+            return extension.getTargetCompatibility().get();
         }
 
         @BytecodeUpgrade

@@ -262,16 +262,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             compile.getScalaClasspath().convention(project.provider(() -> scalaRuntime.inferScalaClasspath(compile.getClasspath())));
             compile.getZincClasspath().convention(project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
             compile.getScalaCompilerPlugins().convention(project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
-            compile.getSourceCompatibility().convention(
-                javaExtension.getSourceCompatibility().map(JavaVersion::toString).orElse(
-                    compile.getJavaLauncher().map(launcher -> launcher.getMetadata().getLanguageVersion().toString())
-                )
-            );
-            compile.getTargetCompatibility().convention(
-                javaExtension.getTargetCompatibility().map(JavaVersion::toString).orElse(
-                    compile.getSourceCompatibility()
-                )
-            );
+            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension);
             compile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
         });
     }

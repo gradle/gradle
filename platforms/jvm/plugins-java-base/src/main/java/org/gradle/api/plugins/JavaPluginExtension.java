@@ -26,7 +26,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -59,21 +58,6 @@ public interface JavaPluginExtension {
     @Optional
     @ReplacesEagerProperty(adapter = JavaPluginExtensionAdapters.TargetCompatibilityAdapter.class)
     Property<JavaVersion> getTargetCompatibility();
-
-    /**
-     * The resulting source compatibility used for compiling Java sources with conventions applied.
-     * @since 9.0
-     */
-    @Incubating
-    Provider<JavaVersion> getEffectiveSourceCompatibility();
-
-    /**
-     * The resulting target compatibility used for compiling Java sources with conventions applied.
-     *
-     * @since 9.0
-     */
-    @Incubating
-    Provider<JavaVersion> getEffectiveTargetCompatibility();
 
     /**
      * Registers a feature.

@@ -19,6 +19,7 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.JvmCompileTask;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -37,7 +38,7 @@ public interface JvmLanguageUtilities {
      * @param configuration the configuration to configure
      * @param compileTask the compile task which serves as reference for inference
      */
-    <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask);
+    void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<? extends JvmCompileTask> compileTask);
 
     /**
      * Registers a new source directory for a source set, assuming that it will be compiled by
