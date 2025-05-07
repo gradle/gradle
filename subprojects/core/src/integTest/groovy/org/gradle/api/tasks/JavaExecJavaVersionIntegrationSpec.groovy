@@ -33,10 +33,6 @@ import spock.lang.Issue
 class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def "up-to-date when executing JavaExec task twice in a row with the same java version"() {
-        if (jdk.javaVersionMajor == Jvm.current().javaVersionMajor) {
-            jdk = Jvm.current()
-        }
-
         given:
         configureJavaExecTask()
 
@@ -114,9 +110,6 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
     }
 
     def "can execute ExecOperations.javaexec on java #jvm"() {
-        if (jvm.javaVersionMajor == Jvm.current().javaVersionMajor) {
-            jvm = Jvm.current()
-        }
         given:
         configureExecOperationTask()
 
@@ -132,9 +125,6 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
     }
 
     def "can execute ProviderFactory.javaexec on java #jvm"() {
-        if (jvm.javaVersionMajor == Jvm.current().javaVersionMajor) {
-            jvm = Jvm.current()
-        }
         given:
         configureProviderFactoryTask()
 
