@@ -16,6 +16,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
@@ -99,17 +100,19 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
         StyledTextOutputFactory textOutputFactory,
         BuildOperationRunner buildOperationRunner
     ) {
-        boolean isPluginBuild = false;
+        BuildWorkExecutor delegate = new SelectedTaskExecutionAction();
+        boolean shouldRun = false;
         if (build instanceof NestedBuildState) {
-            isPluginBuild = ((NestedBuildState) build).getBuildDefinition().isPluginBuild();
+            BuildDefinition buildDefinition = ((NestedBuildState) build).getBuildDefinition();
+            shouldRun = buildDefinition.isPluginBuild();
         }
         BuildWorkExecutor executor;
-        if (gradle.getStartParameter().isDryRun() && !isPluginBuild) {
-            executor = new DryRunBuildExecutionAction(textOutputFactory);
-        } else if (gradle.getStartParameter().isTaskGraph() && !isPluginBuild) {
-            executor = new TaskGraphBuildExecutionAction(textOutputFactory);
+        if (gradle.getStartParameter().isDryRun() && !shouldRun) {
+            executor = new DryRunBuildExecutionAction(delegate, textOutputFactory);
+        } else if (gradle.getStartParameter().isTaskGraph() && !shouldRun) {
+            executor = new TaskGraphBuildExecutionAction(delegate, textOutputFactory);
         } else {
-            executor = new SelectedTaskExecutionAction();
+            executor = delegate;
         }
         return new BuildOperationFiringBuildWorkerExecutor(executor, buildOperationRunner);
     }

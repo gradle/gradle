@@ -126,6 +126,91 @@ includeBuild '${buildB.toURI()}'
         )
     }
 
+    def "dry-run can execute logic from included builds if it's required for configuration"() {
+        given:
+        settingsFile << """
+            pluginManagement {
+                includeBuild 'build-logic-settings'
+            }
+
+            includeBuild 'build-logic-commons'
+            includeBuild "build-logic"
+        """
+        settingsFile "build-logic-settings/settings.gradle", """
+            println("I'm a build logic settings file")
+        """
+        buildFile "build-logic-settings/build.gradle", """
+            plugins {
+                id 'java'
+            }
+            tasks.register("settingsTask") {
+               doLast {
+                    println "I'm settings task"
+               }
+            }
+            tasks.named("compileJava") {
+                dependsOn "settingsTask"
+            }
+        """
+        settingsFile "build-logic-commons/settings.gradle", """
+            includeBuild('../build-logic-settings')
+            include("basics")
+        """
+        buildFile "build-logic-commons/build.gradle", """
+            plugins {
+                id "base"
+            }
+            tasks.register("commonsTask") {
+               dependsOn(":basics:commonsTask")
+            }
+        """
+        buildFile "build-logic-commons/basics/build.gradle", """
+            plugins {
+                id 'java'
+                id 'groovy-gradle-plugin'
+            }
+            tasks.register("commonsTask") {
+               doLast {
+                    println "I'm commons task"
+               }
+            }
+            tasks.named("compileJava") {
+                dependsOn "commonsTask"
+            }
+        """
+        file('build-logic-commons/basics/src/main/groovy/dummy.plugin.gradle') << ""
+        settingsFile "build-logic/settings.gradle", """
+            pluginManagement {
+                includeBuild '../build-logic-commons'
+            }
+        """
+        buildFile "build-logic/build.gradle", """
+            plugins {
+                id "base"
+                id 'dummy.plugin'
+            }
+        """
+
+        buildFile """
+            tasks.register("root") {
+                dependsOn(gradle.includedBuild("build-logic-commons").task(":commonsTask"))
+                dependsOn(gradle.includedBuild("build-logic").task(":check"))
+                doLast {
+                    println "I'm root task"
+                }
+            }
+        """
+
+        when:
+        succeeds("root", "--dry-run")
+
+        then:
+        executedAndNotSkipped(
+            ":build-logic-commons:basics:commonsTask", ":build-logic-commons:basics:jar"
+        )
+        skipped(":root", ":build-logic:check")
+    }
+
     void skipped(String... taskNames) {
         for (String taskName : taskNames) {
             outputContains(taskName + " SKIPPED\n")

@@ -39,14 +39,22 @@ import java.util.stream.Stream;
  * A {@link BuildWorkExecutor} that does not execute any tasks, but prints the task graph instead.
  */
 public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
+    private final BuildWorkExecutor delegate;
     private final StyledTextOutputFactory textOutputFactory;
 
-    public TaskGraphBuildExecutionAction(StyledTextOutputFactory textOutputFactory) {
+    public TaskGraphBuildExecutionAction(
+        BuildWorkExecutor delegate,
+        StyledTextOutputFactory textOutputFactory
+    ) {
+        this.delegate = delegate;
         this.textOutputFactory = textOutputFactory;
     }
 
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
+        if (gradle.isPartOfClasspath()) {
+            return delegate.execute(gradle, plan);
+        }
         StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
 
         if (gradle.isRootBuild()) {
