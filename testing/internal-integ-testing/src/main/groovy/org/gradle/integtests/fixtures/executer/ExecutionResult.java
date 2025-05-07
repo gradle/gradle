@@ -17,9 +17,6 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public interface ExecutionResult {
     /**
      * Returns a copy of this result that ignores `buildSrc` tasks.
@@ -92,20 +89,6 @@ public interface ExecutionResult {
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
     ExecutionResult assertHasErrorOutput(String expectedOutput);
-
-    /**
-     * Asserts that this result includes the given error log message pattern. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
-     *
-     * @param expectedOutput The expected log message pattern, with line endings normalized to a newline character.
-     */
-    default Matcher assertHasErrorOutput(Pattern expectedOutput) {
-        String error = getError();
-        Matcher matcher = expectedOutput.matcher(error);
-        if (!matcher.find()) {
-            throw new AssertionError(String.format("%s%nExpected matching: %s%n%n%s:%n=======%n%s", "Pattern not found", expectedOutput.toString(), "Build output", error));
-        }
-        return matcher;
-    }
 
     /**
      * Returns true when this result includes the given error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).

@@ -18,8 +18,6 @@ package org.gradle.internal.jvm
 
 import org.gradle.util.GradleVersion
 
-import java.util.regex.Pattern
-
 /**
  * Contains common deprecation warnings that are emitted by Gradle which
  * are related to java version compatibility
@@ -48,35 +46,58 @@ class SupportedJavaVersionsExpectations {
             "https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_${currentMajorGradleVersion}.html#minimum_daemon_jvm_version"
     }
 
-    static String getExpectedDaemonIncompatibilityErrorMessage(Jvm jdk) {
-        getExpectedDaemonIncompatibilityErrorMessage(jdk.javaVersionMajor)
+    /**
+     * The error message emitted when the client is started, but the JVM version
+     * requested for the daemon cannot execute the daemon.
+     */
+    static String getMisconfiguredDaemonJavaVersionErrorMessage(int majorVersion) {
+        "Gradle requires JVM ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION} or later to run. " +
+            "Your build is currently configured to use JVM ${majorVersion}."
     }
 
-    static String getExpectedDaemonIncompatibilityErrorMessage(int majorVersion) {
-        getExpectedDaemonIncompatibilityErrorMessage(majorVersion as String)
+    /**
+     * To be used in conjunction with {@code GradleExecuter#withJvm(Jvm)},
+     * as either the client or the daemon may be incompatible, and the error message
+     * changes depending on the java version.
+     */
+    static String getIncompatibleJvmErrorMessageFor(String processType, int majorVersion) {
+        if (majorVersion < SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION) {
+            return getIncompatibleClientJvmVersionErrorMessage(processType, majorVersion)
+        } else {
+            return getMisconfiguredDaemonJavaVersionErrorMessage(majorVersion)
+        }
     }
 
-    static String getExpectedDaemonIncompatibilityErrorMessage(String majorVersion) {
-        getExpectedIncompatibilityErrorMessage(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION, majorVersion)
+    /**
+     * To be used when the Gradle client is bypassed, therefore not checking
+     * compatibility, and daemon classes may be loaded directly on an incompatible JVM.
+     */
+    static String getIncompatibleDaemonJvmVersionErrorMessage(String processType, int majorVersion) {
+        getIncompatibleProcessJvmVersionErrorMessage(
+            processType,
+            SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
+            majorVersion
+        )
     }
 
-    static String getExpectedLauncherIncompatibilityErrorMessage(Jvm jdk) {
-        getExpectedIncompatibilityErrorMessage(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION, jdk.javaVersionMajor as String)
+    /**
+     * The error message emitted when the client fails to start.
+     */
+    static String getIncompatibleClientJvmVersionErrorMessage(String processType, int majorVersion) {
+        getIncompatibleProcessJvmVersionErrorMessage(
+            processType,
+            SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION,
+            majorVersion
+        )
     }
 
-    static String getExpectedWrapperIncompatibilityErrorMessage(Jvm jdk) {
-        getExpectedIncompatibilityErrorMessage(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION, jdk.javaVersionMajor as String)
+    private static String getIncompatibleProcessJvmVersionErrorMessage(
+        String processType,
+        int minVersion,
+        int currentVersion
+    ) {
+        "${processType} requires JVM ${minVersion} or later to run. " +
+            "You are currently using JVM ${currentVersion}."
     }
 
-    private static String getExpectedIncompatibilityErrorMessage(int minimumVersion, String majorVersion) {
-        "Gradle requires JVM ${minimumVersion} or later to run. Your build is currently configured to use JVM ${majorVersion}."
-    }
-
-    static Pattern getErrorPattern(Jvm jdk) {
-        getErrorPattern(jdk.javaVersionMajor)
-    }
-
-    static Pattern getErrorPattern(int majorVersion) {
-        Pattern.compile("Gradle requires JVM \\d+ or later to run. (You are currently using|Your build is currently configured to use) JVM ${majorVersion}.")
-    }
 }

@@ -34,6 +34,7 @@ dependencies {
 
     implementation(projects.buildOperationsTrace)
     implementation(projects.buildProcessServices)
+    implementation(projects.buildProcessStartup)
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.loggingApi)
