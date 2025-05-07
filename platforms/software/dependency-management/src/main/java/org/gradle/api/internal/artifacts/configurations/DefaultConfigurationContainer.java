@@ -62,8 +62,6 @@ import java.util.regex.Pattern;
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     private static final Pattern RESERVED_NAMES_FOR_DETACHED_CONFS = Pattern.compile(DETACHED_CONFIGURATION_DEFAULT_NAME + "\\d*");
-    @SuppressWarnings("deprecation")
-    private static final Set<ConfigurationRole> VALID_MAYBE_CREATE_ROLES = new HashSet<>(Arrays.asList(ConfigurationRoles.CONSUMABLE, ConfigurationRoles.RESOLVABLE, ConfigurationRoles.DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
 
     private final DependencyMetaDataProvider rootComponentIdentity;
     private final DomainObjectContext owner;
@@ -350,11 +348,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 return getByName(name);
             }
         } else {
-            if (VALID_MAYBE_CREATE_ROLES.contains(ConfigurationRoles.DEPENDENCY_SCOPE)) {
-                return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
-            } else {
-                throw new GradleException("Cannot maybe create invalid role: " + ConfigurationRoles.DEPENDENCY_SCOPE);
-            }
+            return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
         }
     }
 
