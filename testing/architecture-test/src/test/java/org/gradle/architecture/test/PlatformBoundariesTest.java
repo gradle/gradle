@@ -79,7 +79,7 @@ public class PlatformBoundariesTest {
 
         List<PlatformData> platforms;
         try (Reader reader = new FileReader(jsonPath.toFile())) {
-            platforms = new Gson().fromJson(reader, TypeToken.getParameterized(List.class, PlatformData.class).getType());
+            platforms = new Gson().fromJson(reader, new TypeToken<List<PlatformData>>() {});
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
