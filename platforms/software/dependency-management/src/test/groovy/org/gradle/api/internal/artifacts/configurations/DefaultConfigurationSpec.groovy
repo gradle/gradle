@@ -680,7 +680,6 @@ This method is only meant to be called on configurations which allow the (non-de
         ]
     }
 
-
     def "can copy with spec"() {
         def configuration = prepareConfigurationForCopyTest()
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
