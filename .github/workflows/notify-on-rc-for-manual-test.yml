@@ -15,18 +15,12 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@v2.1.0
         with:
+          webhook: ${{ secrets.IDE_EXPERIENCE_TEAM_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
-            {
-              "text": "<https://github.com/gradle/gradle/${{ github.event.ref }}|[gradle/gradle#${{ github.event.ref }}]> has been pushed",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "<https://github.com/gradle/gradle/${{ github.event.ref }}|[gradle/gradle#${{ github.event.ref }}]> has been pushed"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDE_EXPERIENCE_TEAM_SLACK_WEBHOOK_URL }}
+            text: "<https://github.com/gradle/gradle/${{ github.event.ref }}|[gradle/gradle#${{ github.event.ref }}]> has been pushed"
+            blocks:
+              - type: "section"
+                text:
+                  type: "mrkdwn",
+                  text: "<https://github.com/gradle/gradle/${{ github.event.ref }}|[gradle/gradle#${{ github.event.ref }}]> has been pushed"
