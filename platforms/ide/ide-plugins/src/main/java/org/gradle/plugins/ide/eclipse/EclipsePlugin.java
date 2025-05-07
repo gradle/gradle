@@ -53,12 +53,13 @@ import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
-import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseClasspath;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathInternal;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseJdtInternal;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
@@ -358,7 +359,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
-                model.setJdt(project.getObjects().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(new PropertiesTransformer())));
+                model.setJdt(project.getObjects().newInstance(DefaultEclipseJdt.class, new PropertiesFileContentMerger(new PropertiesTransformer())));
                 final TaskProvider<GenerateEclipseJdt> task = project.getTasks().register(ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt.class, model.getJdt());
                 task.configure(new Action<GenerateEclipseJdt>() {
                     @Override
@@ -372,20 +373,21 @@ public abstract class EclipsePlugin extends IdePlugin {
                 addWorker(task, ECLIPSE_JDT_TASK_NAME);
 
                 //model properties:
-                model.getJdt().getSourceCompatibilityProperty().convention(project.provider(new Callable<JavaVersion>() {
+                EclipseJdtInternal jdt = (EclipseJdtInternal) model.getJdt();
+                jdt.getSourceCompatibilityProperty().convention(project.provider(new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
                         return project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility();
                     }
                 }));
-                model.getJdt().getTargetCompatibilityProperty().convention(project.provider(new Callable<JavaVersion>() {
+                jdt.getTargetCompatibilityProperty().convention(project.provider(new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
                         return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
                     }
 
                 }));
-                model.getJdt().getJavaRuntimeNameProperty().convention(project.provider(new Callable<String>() {
+                jdt.getJavaRuntimeNameProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() {
                         return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
