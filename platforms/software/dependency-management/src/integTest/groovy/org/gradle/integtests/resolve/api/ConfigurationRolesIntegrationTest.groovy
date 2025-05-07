@@ -242,7 +242,6 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Calling attributes(Action) on configuration ':con' has been deprecated. This will fail with an error in Gradle 10.0. This configuration does not allow this method to be called. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         executer.expectDocumentedDeprecationWarning("The con configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds("resolve")
     }
