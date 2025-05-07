@@ -21,6 +21,7 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet;
 import org.gradle.plugins.ide.eclipse.model.WtpFacet;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpFacet;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -38,7 +39,7 @@ public abstract class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet>
 
     public GenerateEclipseWtpFacet() {
         getXmlTransformer().setIndentation("\t");
-        facet = getInstantiator().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(getXmlTransformer()));
+        facet = getInstantiator().newInstance(DefaultEclipseWtpFacet.class, new XmlFileContentMerger(getXmlTransformer()));
     }
 
     @Inject

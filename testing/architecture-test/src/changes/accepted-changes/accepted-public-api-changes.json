@@ -3027,6 +3027,22 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.getFacets()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.setFacets(java.util.List)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.process.JavaForkOptions",
             "member": "Method org.gradle.process.JavaForkOptions.getSystemProperties()",
             "acceptation": "Values of returned map can be null",

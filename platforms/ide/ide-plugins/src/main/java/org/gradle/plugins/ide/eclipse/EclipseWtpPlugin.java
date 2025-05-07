@@ -41,6 +41,7 @@ import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathInternal;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseWtpComponentInternal;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseWtpFacetInternal;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.internal.RelativePathUtil;
@@ -288,7 +289,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                     return;
                 }
 
-                eclipseModel.getWtp().getFacet().getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
+                ((EclipseWtpFacetInternal)eclipseModel.getWtp().getFacet()).getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(3);
@@ -303,7 +304,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
             @Override
             public void execute(WarPlugin warPlugin) {
-                eclipseModel.getWtp().getFacet().getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
+                ((EclipseWtpFacetInternal)eclipseModel.getWtp().getFacet()).getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(4);
@@ -319,7 +320,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
             @Override
             public void execute(EarPlugin earPlugin) {
-                eclipseModel.getWtp().getFacet().getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
+                ((EclipseWtpFacetInternal)eclipseModel.getWtp().getFacet()).getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(2);
