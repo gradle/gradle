@@ -1935,7 +1935,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             boolean isDeprecated(ConfigurationInternal configuration) {
                 return configuration.isDeprecatedForConsumption();
             }
-       },
+        },
         RESOLVABLE {
             @Override
             boolean isAllowed(ConfigurationInternal configuration) {
