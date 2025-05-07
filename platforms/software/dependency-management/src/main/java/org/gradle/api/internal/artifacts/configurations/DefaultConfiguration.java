@@ -1396,9 +1396,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return Arrays.stream(properUsages).anyMatch(pu -> pu.isAllowed(conf));
     }
 
-    private boolean isDeprecatedUsage(ProperMethodUsage... properUsages) {
+    /**
+     * Checks if the only usages that allow this method are also deprecated.
+     *
+     * @param properUsages the usages to check against
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    private boolean isExclusivelyDeprecatedUsage(ProperMethodUsage... properUsages) {
         ConfigurationInternal conf = this;
-        return Arrays.stream(properUsages).anyMatch(pu -> pu.isDeprecated(conf));
+        return Arrays.stream(properUsages)
+            .filter(pu -> pu.isAllowed(conf))
+            .allMatch(pu -> pu.isDeprecated(conf));
     }
 
     private void warnOrFailOnInvalidInternalAPIUsage(String methodName, ProperMethodUsage... properUsages) {
@@ -1423,7 +1431,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 spec.contextualLabel(ex.getMessage());
                 spec.severity(Severity.ERROR);
             });
-        } else if (isDeprecatedUsage(properUsages)) {
+        } else if (isExclusivelyDeprecatedUsage(properUsages)) {
             DeprecationLogger.deprecateAction(String.format("Calling %s on %s", methodName, this))
                 .withContext("This configuration does not allow this method to be called.")
                 .willBecomeAnErrorInGradle10()

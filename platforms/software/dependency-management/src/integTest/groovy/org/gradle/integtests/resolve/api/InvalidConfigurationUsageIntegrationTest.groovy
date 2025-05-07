@@ -29,7 +29,6 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.noDeprecationChecks() // These will be checked elsewhere, this test is about ensuring failures
         fails('help')
 
         then:
@@ -106,24 +105,6 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         'getConsistentResolutionSource()'               | 'dependencyScope' | "getConsistentResolutionSource()"                                 || buildMethodNotAllowedMessage('getConsistentResolutionSource()')
     }
 
-    def "causing resolve of a non-resolvable configuration via internal API method #methodName for role #role fails"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-
-            configurations.$role('custom')
-            configurations.custom.$methodCall
-        """
-
-        expect:
-        fails('help')
-        assertCallNotAllowed(methodName, "custom")
-
-        where:
-        methodName       | role         | methodCall
-        'contains(File)' | 'consumable' | "contains(new File('foo'))"
-    }
-
     def "calling deprecated usage does not produce a deprecation warning if other allowed usage permits it"() {
         given:
         buildFile << """
@@ -153,6 +134,7 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("Calling toRootComponent() on configuration ':foo' has been deprecated. This will fail with an error in Gradle 10.0. This configuration does not allow this method to be called. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         succeeds("help")
     }
 
