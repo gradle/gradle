@@ -27,6 +27,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jspecify.annotations.Nullable;
 
 import java.io.FileReader;
@@ -36,7 +37,10 @@ import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -124,28 +128,45 @@ public class PlatformBoundariesTest {
                 if (ownClassFile == null) {
                     return;
                 }
-                String ownPlatformName = platformNameOf(ownJavaClass, ownClassFile);
-                for (JavaAccess<?> access : ownJavaClass.getAccessesFromSelf()) {
-                    JavaClass targetJavaClass = access.getTargetOwner();
+                String ownPlatformName = platformNameOf(ownClassFile, ownJavaClass.getName());
+                javaClassesAccessedFrom(ownJavaClass).map(targetJavaClass -> {
                     Path targetClassFile = getClassFile(targetJavaClass);
                     if (targetClassFile != null && isInAnyPlatformDirectory(targetClassFile)) {
-                        boolean conditionSatisfied = isInPlatformAllowedDirectory(ownPlatformName, targetClassFile);
-                        String targetPlatformName = platformNameOf(targetJavaClass, targetClassFile);
-                        String message;
-                        if (conditionSatisfied) {
-                            message = String.format("Class '%s' from platform '%s' does not import any class from forbidden platforms", ownJavaClass.getName(), ownPlatformName);
-                        } else {
-                            message = String.format("Class '%s' from platform '%s' imports class '%s' from a forbidden platform '%s'", ownJavaClass.getName(), ownPlatformName, targetJavaClass.getName(), targetPlatformName);
-                        }
-                        events.add(new SimpleConditionEvent(
-                            ownJavaClass,
-                            conditionSatisfied,
-                            message
-                        ));
+                        return Pair.ofNonNull(targetJavaClass.getName(), targetClassFile);
                     }
-                }
+                    return null;
+                }).filter(Objects::nonNull).forEach(pair -> {
+                    String targetClassName = pair.getLeft();
+                    Path targetClassFile = pair.getRight();
+                    boolean conditionSatisfied = isInPlatformAllowedDirectory(ownPlatformName, targetClassFile);
+                    String message;
+                    if (conditionSatisfied) {
+                        message = String.format(
+                            "Class '%s' from platform '%s' does not import any class from forbidden platforms",
+                            ownJavaClass.getName(),
+                            ownPlatformName
+                        );
+                    } else {
+                        message = String.format(
+                            "Class '%s' from platform '%s' imports class '%s' from a forbidden platform '%s'",
+                            ownJavaClass.getName(),
+                            ownPlatformName,
+                            targetClassName,
+                            platformNameOf(targetClassFile, targetClassName)
+                        );
+                    }
+                    events.add(new SimpleConditionEvent(
+                        ownJavaClass,
+                        conditionSatisfied,
+                        message
+                    ));
+                });
             }
         };
+    }
+
+    private static Stream<JavaClass> javaClassesAccessedFrom(JavaClass ownJavaClass) {
+        return ownJavaClass.getAccessesFromSelf().stream().map(JavaAccess::getTargetOwner).filter(distinctBy(JavaClass::getName));
     }
 
     private static Map<String, List<Path>> collectDirsByPlatform(List<PlatformData> platforms, Function<PlatformData, Stream<Path>> valueFunction) {
@@ -167,9 +188,9 @@ public class PlatformBoundariesTest {
         return dirNames.stream().map(basePath::resolve);
     }
 
-    private static String platformNameOf(JavaClass javaClass, Path classFile) {
+    private static String platformNameOf(Path classFile, String className) {
         return dirsByPlatform.entrySet().stream().filter(e -> e.getValue().stream().anyMatch(classFile::startsWith)).map(Map.Entry::getKey).findFirst()
-            .orElseThrow(() -> new IllegalStateException("Could not find platform for class " + javaClass.getName()));
+            .orElseThrow(() -> new IllegalStateException("Could not find platform for class " + className));
     }
 
     @Nullable
@@ -183,5 +204,10 @@ public class PlatformBoundariesTest {
             return null;
         }
         return Paths.get(codeSource.getLocation().getPath());
+    }
+
+    private static <T> Predicate<T> distinctBy(Function<? super T, ?> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 }
