@@ -20,11 +20,13 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.provider.views.ListPropertyListView;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
+@NullMarked
 public abstract class DefaultEclipseClasspath extends EclipseClasspath implements EclipseClasspathInternal {
     @Inject
     public DefaultEclipseClasspath(Project project) {

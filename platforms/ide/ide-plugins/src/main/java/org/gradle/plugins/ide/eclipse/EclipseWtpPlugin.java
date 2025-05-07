@@ -38,7 +38,9 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.Facet;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathInternal;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseWtpComponentInternal;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.internal.RelativePathUtil;
@@ -133,7 +135,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
     private void configureEclipseWtpComponent(final Project project, final EclipseModel model) {
         XmlTransformer xmlTransformer = new XmlTransformer();
         xmlTransformer.setIndentation("\t");
-        EclipseWtpComponent component = project.getObjects().newInstance(EclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
+        EclipseWtpComponent component = project.getObjects().newInstance(DefaultEclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
         model.getWtp().setComponent(component);
 
         TaskProvider<GenerateEclipseWtpComponent> task = project.getTasks().register(ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent.class, component);
@@ -148,7 +150,8 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         });
         addWorker(task, ECLIPSE_WTP_COMPONENT_TASK_NAME);
 
-        component.getDeployNameProperty().convention(project.provider(new Callable<String>() {
+        EclipseWtpComponentInternal eclipseWtpComponentInternal = (EclipseWtpComponentInternal) component;
+        eclipseWtpComponentInternal.getDeployNameProperty().convention(project.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return model.getProject().getName();
@@ -166,13 +169,13 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
                 libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getMainFeature().getRuntimeClasspathConfiguration());
                 component.setClassesDeployPath("/");
-                component.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
+                eclipseWtpComponentInternal.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() throws Exception {
                         return "../";
                     }
                 }));
-                component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
+                eclipseWtpComponentInternal.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
                         return getMainSourceDirs(project);
@@ -190,19 +193,19 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getMainFeature().getRuntimeClasspathConfiguration());
                 minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
                 component.setClassesDeployPath("/WEB-INF/classes");
-                component.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
+                eclipseWtpComponentInternal.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() {
                         return "/WEB-INF/lib";
                     }
                 }));
-                component.getContextPathProperty().convention(project.provider(new Callable<String>() {
+                eclipseWtpComponentInternal.getContextPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() {
                         return ((War) project.getTasks().getByName("war")).getArchiveBaseName().getOrNull();
                     }
                 }));
-                component.getResourcesProperty().convention(project.provider(new Callable<List<WbResource>>() {
+                eclipseWtpComponentInternal.getResourcesProperty().convention(project.provider(new Callable<List<WbResource>>() {
                     @Override
                     public List<WbResource> call() {
                         File projectDir = project.getProjectDir();
@@ -213,7 +216,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         return result;
                     }
                 }));
-                component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
+                eclipseWtpComponentInternal.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() {
                         return getMainSourceDirs(project);
@@ -232,7 +235,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 libConfigurations.clear();
                 libConfigurations.add(project.getConfigurations().getByName("earlib"));
                 component.setClassesDeployPath("/");
-                component.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
+                eclipseWtpComponentInternal.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() throws Exception {
                         String deployPath = ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getLibDirName();
@@ -243,7 +246,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         return deployPath;
                     }
                 }));
-                component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
+                eclipseWtpComponentInternal.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
                         return WrapUtil.toSet(((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getAppDirectory().get().getAsFile());
@@ -252,7 +255,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
                     @Override
                     public void execute(JavaPlugin javaPlugin) {
-                        component.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
+                        eclipseWtpComponentInternal.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                             @Override
                             public Set<File> call() throws Exception {
                                 return getMainSourceDirs(project);

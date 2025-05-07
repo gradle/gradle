@@ -19,10 +19,12 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 
-public abstract class DefaultEclipseJdt extends EclipseJdt implements EclipseJdtInternal{
+@NullMarked
+public abstract class DefaultEclipseJdt extends EclipseJdt implements EclipseJdtInternal {
     @Inject
     public DefaultEclipseJdt(PropertiesFileContentMerger file) {
         super(file);

@@ -2796,14 +2796,6 @@
         },
         {
             "type": "org.gradle.plugins.ear.EarPluginConvention",
-            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure)",
-            "acceptation": "Remove deprecated API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ear.EarPluginConvention",
             "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(org.gradle.api.Action)",
             "acceptation": "Remove deprecated API",
             "changes": [
@@ -2872,6 +2864,166 @@
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.getDefaultOutputDir()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.getPlusConfigurations()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.setDefaultOutputDir(java.io.File)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.setPlusConfigurations(java.util.Collection)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.getJavaRuntimeName()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.getSourceCompatibility()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.getTargetCompatibility()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.setJavaRuntimeName(java.lang.String)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.setSourceCompatibility(java.lang.Object)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.setTargetCompatibility(java.lang.Object)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.getContextPath()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.getDeployName()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.getLibDeployPath()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.getResources()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.getSourceDirs()",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.setContextPath(java.lang.String)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.setDeployName(java.lang.String)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.setLibDeployPath(java.lang.String)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.setResources(java.util.List)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.setSourceDirs(java.util.Set)",
+            "acceptation": "remove deprecated convention mapping",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {

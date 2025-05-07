@@ -21,7 +21,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public interface EclipseClasspathInternal {
     /**
      * The configurations whose files are to be added as classpath entries.

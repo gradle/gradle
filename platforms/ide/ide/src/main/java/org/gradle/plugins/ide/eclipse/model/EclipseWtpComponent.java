@@ -20,14 +20,10 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
@@ -202,28 +198,9 @@ public abstract class EclipseWtpComponent {
      * Only source dirs that exist will be added to the wtp component file.
      * Non-existing resource directory declarations lead to errors when project is imported into Eclipse.
      */
-    public Set<File> getSourceDirs() {
-        return getSourceDirsProperty().get();
-    }
+    public abstract Set<File> getSourceDirs();
 
-    public void setSourceDirs(Set<File> sourceDirs) {
-        getSourceDirsProperty().set(sourceDirs);
-    }
-
-    /**
-     * Source directories to be transformed into wb-resource elements.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     * <p>
-     * Only source dirs that exist will be added to the wtp component file.
-     * Non-existing resource directory declarations lead to errors when project is imported into Eclipse.
-     *
-     * @return The source directories to be transformed into wb-resource elements.
-     *
-     * @since 9.0
-     */
-    @Incubating
-    abstract public SetProperty<File> getSourceDirsProperty();
+    public abstract void setSourceDirs(Set<File> sourceDirs);
 
     /**
      * The configurations whose files are to be marked to be deployed with a deploy path of '/'.
@@ -283,25 +260,9 @@ public abstract class EclipseWtpComponent {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    public String getDeployName() {
-        return getDeployNameProperty().get();
-    }
+    public abstract String getDeployName();
 
-    public void setDeployName(String deployName) {
-        getDeployNameProperty().set(deployName);
-    }
-
-    /**
-     * The deploy name to be used.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     *
-     * @return The deploy name to be used.
-     *
-     * @since 9.0
-     */
-    @Incubating
-    abstract public Property<String> getDeployNameProperty();
+    public abstract void setDeployName(String deployName);
 
     /**
      * Additional wb-resource elements.
@@ -313,28 +274,10 @@ public abstract class EclipseWtpComponent {
      * The reason is that non-existing resource directory declarations
      * lead to errors when project is imported into Eclipse.
      */
-    public List<WbResource> getResources() {
-        return getResourcesProperty().get();
-    }
+    public abstract List<WbResource> getResources();
 
-    public void setResources(List<WbResource> resources) {
-        this.getResourcesProperty().set(resources);
-    }
+    public abstract void setResources(List<WbResource> resources);
 
-    /**
-     * Additional wb-resource elements.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     * <p>
-     * Only resources that link to an existing directory ({@link WbResource#getSourcePath()})
-     * will be added to the wtp component file.
-     * The reason is that non-existing resource directory declarations
-     * lead to errors when project is imported into Eclipse.
-     *
-     * @since 9.0
-     */
-    @Incubating
-    abstract public ListProperty<WbResource> getResourcesProperty();
 
     /**
      * Adds a wb-resource.
@@ -376,23 +319,9 @@ public abstract class EclipseWtpComponent {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    public String getContextPath() {
-        return getContextPathProperty().getOrNull();
-    }
+    public abstract String getContextPath();
 
-    public void setContextPath(String contextPath) {
-        this.getContextPathProperty().set(contextPath);
-    }
-
-    /**
-     * The context path for the web application
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     *
-     * @since 9.0
-     */
-    @Incubating
-    abstract public Property<String> getContextPathProperty();
+    public abstract void setContextPath(String contextPath);
 
     /**
      * The deploy path for classes.
@@ -412,25 +341,10 @@ public abstract class EclipseWtpComponent {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    public String getLibDeployPath() {
-        return getLibDeployPathProperty().getOrNull();
-    }
+    public abstract String getLibDeployPath();
 
-    public void setLibDeployPath(String libDeployPath) {
-        this.getLibDeployPathProperty().set(libDeployPath);
-    }
+    public abstract void setLibDeployPath(String libDeployPath);
 
-    /**
-     * The deploy path for libraries.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     *
-     * @return The deploy path for libraries.
-     *
-     * @since 9.0
-     */
-    @Incubating
-    abstract public Property<String> getLibDeployPathProperty();
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.
      * <p>

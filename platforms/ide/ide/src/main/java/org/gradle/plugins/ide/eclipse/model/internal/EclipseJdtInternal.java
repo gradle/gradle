@@ -20,7 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.provider.Property;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public interface EclipseJdtInternal {
     /**
      * The source Java language level.
