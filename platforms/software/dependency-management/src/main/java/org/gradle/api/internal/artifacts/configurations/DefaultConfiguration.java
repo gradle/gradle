@@ -537,7 +537,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      */
     @Override
     public boolean contains(File file) {
-        warnOrFailOnInvalidInternalAPIUsage("contains(File)", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("contains(File)", ProperMethodUsage.RESOLVABLE);
         return getIntrinsicFiles().contains(file);
     }
 

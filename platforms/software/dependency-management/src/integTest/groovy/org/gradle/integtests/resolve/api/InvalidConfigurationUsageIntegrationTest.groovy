@@ -36,11 +36,13 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains(message)
 
         where:
-        methodName                   | role              | methodCall                   || message
-        'getFiles()'                 | 'consumable'      | 'files'                      || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getFiles()'                 | 'dependencyScope' | 'files'                      || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getBuildDependencies()'     | 'consumable'      | 'getBuildDependencies()'     || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getBuildDependencies()'     | 'dependencyScope' | 'getBuildDependencies()'     || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        methodName                          | role              | methodCall                   || message
+        'contains(new File("dummy.txt"))'   | 'consumable'      | 'contains(File)'             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'contains(new File("dummy.txt"))'   | 'dependencyScope' | 'contains(File)'             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getFiles()'                        | 'consumable'      | 'files'                      || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getFiles()'                        | 'dependencyScope' | 'files'                      || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'            | 'consumable'      | 'getBuildDependencies()'     || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'            | 'dependencyScope' | 'getBuildDependencies()'     || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
     }
 
     def "calling an invalid public API method #methodName for role #role fails"() {
