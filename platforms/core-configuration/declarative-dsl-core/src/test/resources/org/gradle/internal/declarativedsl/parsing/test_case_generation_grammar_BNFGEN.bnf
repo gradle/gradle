@@ -4,7 +4,7 @@
 <statementIndent1> ::= 5 "  " <assignment> "\n" | 3 "  " <blockIndent1> "\n" | "  " <functionChain> "\n";
 <statementIndent2> ::= 3 "    " <assignment> "\n" | "    " <functionChain> "\n";
 
-<assignment> ::= <directlyAssignableExpression> "=" <assignmentValue>;
+<assignment> ::= 10 <directlyAssignableExpression> "=" <assignmentValue> | 2 <directlyAssignableExpression> "+=" <assignmentValue>;
 <directlyAssignableExpression> ::= <simpleIdentifier> | <simpleIdentifier> <navigationSuffix>;
 <assignmentValue> ::= 10 <literalOrIdentifier> | 5 <simpleIdentifier> | 3 <simpleIdentifier> <navigationSuffix> {1,3} <valueArguments>;
 
