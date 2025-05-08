@@ -26,6 +26,4 @@ public interface ConfigurationContainerInternal extends RoleBasedConfigurationCo
     ConfigurationInternal getByName(String name) throws UnknownConfigurationException;
     @Override
     ConfigurationInternal detachedConfiguration(Dependency... dependencies);
-
-
 }
