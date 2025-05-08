@@ -47,7 +47,7 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
         return KotlinDslCompileAvoidanceClasspathHashCache(
             store.createIndexedCache(
                 IndexedCacheParameters.of("kotlinDslCompileAvoidanceClasspathHashCache", HashCode::class.java, HashCodeSerializer()),
-                maxEntriesToKeep, // This is an arbitrary small cache size that can handle e.g. the gradle/gradle build without incurring too much extra memory consumption.
+                maxEntriesToKeep,
                 true
             )
         )
