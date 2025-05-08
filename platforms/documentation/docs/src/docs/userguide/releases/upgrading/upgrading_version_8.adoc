@@ -629,6 +629,12 @@ Since the previous version was 3.0.22, this includes changes for https://groovy-
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.13].
 
+==== `JavaExec` now uses the toolchain from the `java` extension by default
+
+Previously, the `JavaExec` task used the same Java version as the Gradle process itself.
+Starting in Gradle 9.0, when the `java-base` plugin is applied, `JavaExec` will instead default to the Java toolchain configured in the `java` extension.
+You can override the toolchain explicitly in the `JavaExec` task configuration if needed.
+
 ==== Upgrade to SLF4J 2.0.17
 
 SLF4J has been updated from 1.7.36 to https://www.slf4j.org/news.html#2.0.17[2.0.17].
