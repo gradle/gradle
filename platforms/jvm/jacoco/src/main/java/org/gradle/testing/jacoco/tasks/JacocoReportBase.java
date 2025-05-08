@@ -78,9 +78,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Instantiator getInstantiator();
 
     /**
      * Required for decorating reports container callbacks for tracing user code application.
@@ -88,14 +86,10 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @since 5.1
      */
     @Inject
-    protected CollectionCallbackActionDecorator getCallbackActionDecorator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract CollectionCallbackActionDecorator getCallbackActionDecorator();
 
     @Inject
-    protected IsolatedAntBuilder getAntBuilder() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IsolatedAntBuilder getAntBuilder();
 
     /**
      * Collection of execution data files to analyze.

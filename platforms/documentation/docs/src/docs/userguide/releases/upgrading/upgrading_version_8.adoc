@@ -115,6 +115,11 @@ These typically indicate places where you need to clarify or adjust null handlin
 
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9.0 as they did before.
 
+==== Injection getters are now `abstract`
+
+All injection getters (getters annoted with `@Inject`) in types provided by Gradle are now marked as `abstract`. Some classes
+were also made `abstract` to allow this to happen. If you extended one of these types, you will need to make your class `abstract` as well.
+
 ==== Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
 The following source set interfaces have been removed in Gradle 9.0:
 

@@ -35,28 +35,27 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class DefaultTaskSelector implements TaskSelector {
+public abstract class DefaultTaskSelector implements TaskSelector {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskSelector.class);
 
     private final TaskNameResolver taskNameResolver;
-    private final ProjectConfigurer configurer;
 
     @Inject
-    public DefaultTaskSelector(TaskNameResolver taskNameResolver, ProjectConfigurer configurer) {
+    public DefaultTaskSelector(TaskNameResolver taskNameResolver) {
         this.taskNameResolver = taskNameResolver;
-        this.configurer = configurer;
     }
 
     @Inject
-    protected InternalProblems getProblemsService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectConfigurer getConfigurer();
+
+    @Inject
+    protected abstract InternalProblems getProblemsService();
 
     @Override
     public Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean includeSubprojects) {
         if (includeSubprojects) {
             // Try to delay configuring all the subprojects
-            configurer.configure(project.getMutableModel());
+            getConfigurer().configure(project.getMutableModel());
             if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project.getMutableModel())) {
                 // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects at this point
                 return new TaskPathSpec(project.getMutableModel(), taskName);
@@ -70,9 +69,9 @@ public class DefaultTaskSelector implements TaskSelector {
     @Override
     public TaskSelection getSelection(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
         if (!includeSubprojects) {
-            configurer.configure(targetProject.getMutableModel());
+            getConfigurer().configure(targetProject.getMutableModel());
         } else {
-            configurer.configureHierarchy(targetProject.getMutableModel());
+            getConfigurer().configureHierarchy(targetProject.getMutableModel());
         }
 
         TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject.getMutableModel(), includeSubprojects);
@@ -107,7 +106,7 @@ public class DefaultTaskSelector implements TaskSelector {
 
         throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(), spec ->
             configureProblem(spec, context)
-              .contextualLabel(message)
+                .contextualLabel(message)
         );
     }
 

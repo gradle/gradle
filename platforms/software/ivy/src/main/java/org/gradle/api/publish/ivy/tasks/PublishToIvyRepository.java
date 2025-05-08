@@ -48,6 +48,7 @@ import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Set;
@@ -71,9 +72,9 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
         // Allow the publication to participate in incremental build
         getInputs().files((Callable<FileCollection>) () -> {
-            IvyPublicationInternal publicationInternal = getPublicationInternal();
-            return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-        })
+                IvyPublicationInternal publicationInternal = getPublicationInternal();
+                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
+            })
             .withPropertyName("publication.publishableFiles")
             .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
@@ -178,9 +179,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     }
 
     @Inject
-    protected IvyPublisher getIvyPublisher() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IvyPublisher getIvyPublisher();
 
     private void doPublish(final IvyNormalizedPublication normalizedPublication, final IvyArtifactRepository repository) {
         new PublishOperation(normalizedPublication.getName(), repository.getName()) {
@@ -214,7 +213,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
         abstract IvyArtifactRepository get(ServiceRegistry services);
 
-        static class Configured extends RepositorySpec implements java.io.Serializable {
+        static class Configured extends RepositorySpec implements Serializable {
             final DefaultIvyArtifactRepository repository;
 
             public Configured(DefaultIvyArtifactRepository repository) {
@@ -310,8 +309,6 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     }
 
     @Inject
-    protected IvyDuplicatePublicationTracker getDuplicatePublicationTracker() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IvyDuplicatePublicationTracker getDuplicatePublicationTracker();
 
 }

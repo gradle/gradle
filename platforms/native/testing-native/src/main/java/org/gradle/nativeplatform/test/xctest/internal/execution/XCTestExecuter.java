@@ -58,30 +58,22 @@ import java.util.List;
  * - Smarter/fancier test filtering
  * - Test probing (so we know which tests exist without executing them)
  */
-public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
+public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     @Inject
-    public ClientExecHandleBuilderFactory getExecHandleFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ClientExecHandleBuilderFactory getExecHandleFactory();
 
     @Inject
-    public WorkerLeaseService getWorkerLeaseService() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract WorkerLeaseService getWorkerLeaseService();
 
     public IdGenerator<?> getIdGenerator() {
         return new LongIdGenerator();
     }
 
     @Inject
-    public Clock getClock() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract Clock getClock();
 
     @Inject
-    public Clock getTimeProvider() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract Clock getTimeProvider();
 
     @Override
     public void execute(XCTestTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {

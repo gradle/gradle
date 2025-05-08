@@ -56,9 +56,7 @@ public abstract class AbstractPluginAware implements PluginAwareInternal {
 
     @Override
     @Inject
-    public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ConfigurationTargetIdentifier getConfigurationTargetIdentifier();
 
     abstract protected DefaultObjectConfigurationAction createObjectConfigurationAction();
 

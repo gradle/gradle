@@ -238,7 +238,5 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 }
