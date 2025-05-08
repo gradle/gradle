@@ -137,9 +137,6 @@ import java.util.Set;
  * <li>The <em>extensions</em> added to the task by plugins. Each extension is available as a read-only property with the same
  * name as the extension.</li>
  *
- * <li>The <em>convention</em> properties added to the task by plugins. A plugin can add properties and methods to a task through
- * the task's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
- *
  * <li>The <em>extra properties</em> of the task. Each task object maintains a map of additional properties. These
  * are arbitrary name -&gt; value pairs which you can use to dynamically add properties to a task object.  Once defined, the properties
  * of this scope are readable and writable.</li>
@@ -147,8 +144,6 @@ import java.util.Set;
  * </ul>
  *
  * <h4>Dynamic Methods</h4>
- *
- * <p>A {@link Plugin} may add methods to a {@code Task} using its {@link org.gradle.api.plugins.Convention} object.</p>
  *
  * <h3>Parallel Execution</h3>
  * <p>
@@ -571,18 +566,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param value The value of the property
      */
     void setProperty(String name, Object value) throws MissingPropertyException;
-
-    /**
-     * <p>Returns the {@link org.gradle.api.plugins.Convention} object for this task. A {@link Plugin} can use the convention object to
-     * contribute properties and methods to this task.</p>
-     *
-     * @return The convention object. Never returns null.
-     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
-     * @see ExtensionAware#getExtensions()
-     */
-    @Internal
-    @Deprecated
-    org.gradle.api.plugins.Convention getConvention();
 
     /**
      * Returns the description of this task.

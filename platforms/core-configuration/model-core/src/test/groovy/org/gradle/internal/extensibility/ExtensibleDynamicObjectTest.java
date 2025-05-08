@@ -20,10 +20,9 @@ import groovy.lang.GroovyRuntimeException;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
@@ -34,8 +33,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -179,35 +178,6 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canGetAndSetPropertiesOnJavaSubClassOfGroovyObjectFromGroovy() {
         ExtensibleDynamicObjectTestHelper.assertCanGetAndSetProperties(new DynamicJavaBean());
-    }
-
-    @Test
-    public void hasPropertyDefinedByConventionObject() {
-        Bean bean = new Bean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-
-        assertFalse(bean.hasProperty("conventionProperty"));
-        assertFalse(bean.hasProperty("conventionProperty"));
-
-        convention.getPlugins().put("test", new ConventionBean());
-        assertTrue(bean.hasProperty("conventionProperty"));
-    }
-
-    @Test
-    public void canGetAndSetPropertyDefinedByConventionObject() {
-        Bean bean = new Bean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        ConventionBean conventionBean = new ConventionBean();
-        convention.getPlugins().put("test", conventionBean);
-
-        conventionBean.setConventionProperty("value");
-
-        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "value"));
-
-        bean.setProperty("conventionProperty", "new value");
-
-        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "new value"));
-        assertThat(conventionBean.getConventionProperty(), equalTo((Object) "new value"));
     }
 
     @Test
@@ -808,6 +778,7 @@ public class ExtensibleDynamicObjectTest {
             extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, TestUtil.instantiatorFactory().decorateLenient());
         }
 
+        @Override
         public DynamicObject getAsDynamicObject() {
             return extensibleDynamicObject;
         }
@@ -886,7 +857,7 @@ public class ExtensibleDynamicObjectTest {
         }
 
         public void defineProperty(String name, Object value) {
-            extensibleDynamicObject.getConvention().getExtraProperties().set(name, value);
+            extensibleDynamicObject.getExtraProperties().set(name, value);
         }
     }
 

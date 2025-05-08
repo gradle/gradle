@@ -61,7 +61,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -87,7 +86,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -596,13 +594,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     public Object getLifecycleActionsState() {
         return beforeProjectActionState;
-    }
-
-    @Deprecated
-    @Override
-    public org.gradle.api.plugins.Convention getConvention() {
-        onMutableStateAccess();
-        return extensibleDynamicObject.getConvention();
     }
 
     @Override
@@ -1455,12 +1446,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factoryClosure);
-    }
-
-    @Override
-    public ExtensionContainerInternal getExtensions() {
-        onMutableStateAccess();
-        return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
     }
 
     // Not part of the public API

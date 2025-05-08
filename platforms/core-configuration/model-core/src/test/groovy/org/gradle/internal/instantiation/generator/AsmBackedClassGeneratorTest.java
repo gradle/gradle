@@ -34,12 +34,11 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.ListProperty;
@@ -871,8 +870,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
         DynamicObjectAwareBean bean = newInstance(DynamicObjectAwareBean.class);
-        assertThat(bean.getConvention(), sameInstance(bean.conv));
-        assertThat(bean.getAsDynamicObject(), sameInstance(bean.conv.getExtensionsAsDynamicObject()));
+        assertThat(bean.getAsDynamicObject(), sameInstance(((ExtensionContainerInternal) bean.conv.getExtensionContainer()).getExtensionsAsDynamicObject()));
     }
 
     @Test
@@ -1478,13 +1476,6 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class ConventionAwareBean extends Bean implements IConventionAware, ConventionMapping {
-        public Convention getConvention() {
-            throw new UnsupportedOperationException();
-        }
-
-        public void setConvention(Convention convention) {
-            throw new UnsupportedOperationException();
-        }
 
         public MappedProperty map(String propertyName, Closure value) {
             throw new UnsupportedOperationException();
@@ -1507,6 +1498,7 @@ public class AsmBackedClassGeneratorTest {
             }
         }
 
+        @Override
         public <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue) {
             return getConventionValue(actualValue, propertyName);
         }
@@ -1522,18 +1514,15 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        Convention conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorateLenient()).getConvention();
-
-        public Convention getConvention() {
-            return conv;
-        }
+        ExtensibleDynamicObject conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorateLenient());
 
         public ExtensionContainer getExtensions() {
-            return conv;
+            return conv.getExtensionContainer();
         }
 
+        @Override
         public DynamicObject getAsDynamicObject() {
-            return conv.getExtensionsAsDynamicObject();
+            return ((ExtensionContainerInternal)conv.getExtensionContainer()).getExtensionsAsDynamicObject();
         }
     }
 

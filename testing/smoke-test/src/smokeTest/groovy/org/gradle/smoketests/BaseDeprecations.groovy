@@ -28,11 +28,6 @@ class BaseDeprecations {
         "Please use the archiveFile property instead. " +
         String.format(RECOMMENDATION, "information", DOCUMENTATION_REGISTRY.getDslRefForProperty("org.gradle.api.tasks.bundling.AbstractArchiveTask","archivePath"))
 
-    public static final String CONVENTION_TYPE_DEPRECATION = "The org.gradle.api.plugins.Convention type has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","deprecated_access_to_conventions")
-
     public static final String JAVA_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +

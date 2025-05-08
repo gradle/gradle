@@ -330,16 +330,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
         val customConvention = mock<CustomConvention>()
-        @Suppress("deprecation")
-        val convention = mock<org.gradle.api.plugins.Convention> {
-            on { plugins } doReturn mapOf("customConvention" to customConvention)
-        }
         val project = mock<ProjectInternal> {
             on { getConfigurations() } doReturn configurations
             on { getExtensions() } doReturn extensions
             on { getDependencies() } doReturn dependencies
             on { getTasks() } doReturn tasks
-            on { @Suppress("deprecation") getConvention() } doReturn convention
         }
 
         // when:
@@ -416,7 +411,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             sourceSets,
             dependencies,
             tasks,
-            convention,
             customConvention,
             constraints
         ) {
@@ -453,18 +447,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // val h
             verify(project).extensions
             verify(extensions).configure(eq("buildTypes"), any<Action<*>>())
-
-            // val i
-            @Suppress("deprecation")
-            verify(project).convention
-            @Suppress("deprecation")
-            verify(convention).plugins
-
-            // val j
-            @Suppress("deprecation")
-            verify(project).convention
-            @Suppress("deprecation")
-            verify(convention).plugins
 
             // val k
             verify(project).dependencies

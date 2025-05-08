@@ -23,7 +23,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
@@ -412,7 +411,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         methods.empty
 
         where:
-        workClass << [ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class]
+        workClass << [ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, ScriptOrigin.class, DynamicObjectAware.class]
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.internal.metaobject.DynamicObject;
 
 import java.util.Map;
 
@@ -26,4 +27,6 @@ public interface ExtensionContainerInternal extends ExtensionContainer {
      * @return A map of extensions, keyed by name.
      */
     Map<String, Object> getAsMap();
+
+    DynamicObject getExtensionsAsDynamicObject();
 }

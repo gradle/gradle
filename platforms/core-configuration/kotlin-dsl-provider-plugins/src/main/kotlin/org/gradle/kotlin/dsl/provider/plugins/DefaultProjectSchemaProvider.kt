@@ -100,13 +100,6 @@ internal class DefaultProjectSchemaProvider(
                 }
             }
             if (target is Project) {
-                @Suppress("deprecation")
-                val plugins: Map<String, Any> = DeprecationLogger.whileDisabled(Factory { target.convention.plugins })!!
-                accessibleConventionsSchema(plugins).forEach { (name, type) ->
-                    conventions.add(ProjectSchemaEntry(targetType, name, type))
-                    val plugin = DeprecationLogger.whileDisabled(Factory { plugins[name] })!!
-                    collectSchemaOf(plugin, type)
-                }
                 accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
                     tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
                 }

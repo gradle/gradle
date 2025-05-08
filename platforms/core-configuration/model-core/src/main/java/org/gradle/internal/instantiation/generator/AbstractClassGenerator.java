@@ -1056,9 +1056,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyTo(ClassGenerationVisitor visitor) {
             boolean addExtensionProperty = extensible && !hasExtensionAwareImplementation;
             boolean mixInConventionAware = conventionAware && !IConventionAware.class.isAssignableFrom(type);
-            if (addExtensionProperty || mixInConventionAware) {
-                visitor.addNoDeprecationConventionPrivateGetter();
-            }
             if (addExtensionProperty) {
                 visitor.addExtensionsProperty();
             }
@@ -1514,8 +1511,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void addNameConstructor();
 
         void mixInDynamicAware();
-
-        void addNoDeprecationConventionPrivateGetter();
 
         void mixInConventionAware();
 

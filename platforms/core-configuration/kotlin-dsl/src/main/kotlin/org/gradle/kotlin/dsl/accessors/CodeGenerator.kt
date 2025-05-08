@@ -285,7 +285,7 @@ val thisExtensions =
 @Suppress("DEPRECATION")
 private
 val thisConvention =
-    "((this as? Project)?.convention ?: (this as ${org.gradle.api.internal.HasConvention::class.java.name}).convention)"
+    ""//"((this as? Project)?.convention ?: (this as ${org.gradle.api.internal.HasConvention::class.java.name}).convention)" // TODO (donat) cleanup!
 
 
 internal

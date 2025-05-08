@@ -25,7 +25,6 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -38,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -47,7 +45,7 @@ import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @Deprecated
-public class DefaultConvention implements org.gradle.api.plugins.Convention, ExtensionContainerInternal {
+public class DefaultConvention implements ExtensionContainerInternal { // TODO (donat) rename to DefaultExtensionContainer
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
@@ -62,57 +60,9 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
-    @Deprecated
-    @Override
-    public Map<String, Object> getPlugins() {
-        logConventionDeprecation();
-        if (plugins == null) {
-            plugins = new LinkedHashMap<>();
-        }
-        return plugins;
-    }
-
     @Override
     public DynamicObject getExtensionsAsDynamicObject() {
-        // This implementation of Convention doesn't log a deprecation warning
-        // because it mixes both extensions and conventions.
-        // Instead, the returned object logs a deprecation warning when
-        // a convention is actually accessed.
         return extensionsDynamicObject;
-    }
-
-    @Deprecated
-    @Override
-    public <T> T getPlugin(Class<T> type) {
-        T value = findPlugin(type);
-        if (value == null) {
-            throw new IllegalStateException(
-                format("Could not find any convention object of type %s.", type.getSimpleName()));
-        }
-        return value;
-    }
-
-    @Deprecated
-    @Override
-    public <T> T findPlugin(Class<T> type) throws IllegalStateException {
-        logConventionDeprecation();
-        if (plugins == null) {
-            return null;
-        }
-        List<T> values = new ArrayList<T>();
-        for (Object object : plugins.values()) {
-            if (type.isInstance(object)) {
-                values.add(type.cast(object));
-            }
-        }
-        if (values.isEmpty()) {
-            return null;
-        }
-        if (values.size() > 1) {
-            throw new IllegalStateException(
-                format("Found multiple convention objects of type %s.", type.getSimpleName()));
-        }
-        return values.get(0);
     }
 
     @Override
@@ -396,12 +346,5 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             action = Cast.uncheckedCast(args[0]);
         }
         return extensionsStorage.configureExtension(name, action);
-    }
-
-    private static void logConventionDeprecation() {
-        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-            .nagUser();
     }
 }

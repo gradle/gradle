@@ -23,7 +23,6 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.same
 import com.nhaarman.mockito_kotlin.verify
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -440,24 +439,6 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    fun `precompiled project script receiver is undecorated`() {
-
-        assertUndecoratedImplicitReceiverOf<Project>("my-project-plugin.gradle.kts")
-    }
-
-    @Test
-    fun `precompiled settings script receiver is undecorated`() {
-
-        assertUndecoratedImplicitReceiverOf<Settings>("my-settings-plugin.settings.gradle.kts")
-    }
-
-    @Test
-    fun `precompiled init script receiver is undecorated`() {
-
-        assertUndecoratedImplicitReceiverOf<Gradle>("my-init-plugin.init.gradle.kts")
-    }
-
-    @Test
     fun `nested plugins block fails to compile with reasonable message`() {
 
         withKotlinDslPlugin()
@@ -625,33 +606,6 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         getArgument<Action<T>>(index).execute(configurationAction)
     }
 
-    @Suppress("deprecation")
-    private
-    inline fun <reified T : Any> assertUndecoratedImplicitReceiverOf(fileName: String) {
-
-        givenPrecompiledKotlinScript(
-            fileName,
-            """
-            val ${T::class.simpleName}.receiver get() = this
-            (receiver as ${org.gradle.api.internal.HasConvention::class.qualifiedName}).convention.add("receiver", receiver)
-            """
-        )
-
-        val convention = mock<org.gradle.api.plugins.Convention>()
-        val receiver = mock<org.gradle.api.internal.HasConvention>(extraInterfaces = arrayOf(T::class)) {
-            on { getConvention() } doReturn convention
-        }
-
-        instantiatePrecompiledScriptOf(
-            receiver as T,
-            scriptClassNameForFile(fileName)
-        )
-
-        verify(convention).add(
-            eq("receiver"),
-            same(receiver)
-        )
-    }
 
     private
     inline fun <reified T : Any> assertHasImplicitReceiverIsHonoredByScriptOf(fileName: String) {

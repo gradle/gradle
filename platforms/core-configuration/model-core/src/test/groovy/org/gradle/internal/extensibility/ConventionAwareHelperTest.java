@@ -17,6 +17,7 @@
 package org.gradle.internal.extensibility;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestTask;
 import org.gradle.util.TestUtil;
@@ -40,7 +41,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
 public class ConventionAwareHelperTest {
-    ConventionAwareHelper conventionAware;
+    ConventionMapping conventionAware;
 
     TestTask testTask;
 
@@ -49,7 +50,7 @@ public class ConventionAwareHelperTest {
 
     @Before public void setUp() {
         testTask = TestUtil.create(temporaryFolder).task(TestTask.class);
-        conventionAware = new ConventionAwareHelper(testTask, new DefaultConvention(TestUtil.instantiatorFactory().decorateLenient()));
+        conventionAware = new ConventionAwareHelper(testTask);
     }
 
     @Ignore
@@ -62,6 +63,7 @@ public class ConventionAwareHelperTest {
     @Test
     public void canMapPropertiesUsingCallable() {
         Callable callable = new Callable() {
+            @Override
             public Object call() throws Exception {
                 return toList("a");
             }
@@ -73,6 +75,7 @@ public class ConventionAwareHelperTest {
 
     @Test (expected = InvalidUserDataException.class) public void cannotMapUnknownProperty() {
         conventionAware.map("unknownProp", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 throw new UnsupportedOperationException();
             }
@@ -82,6 +85,7 @@ public class ConventionAwareHelperTest {
     @Test public void canOverwriteProperties() {
         final List conventionList1 = toList("a");
         conventionAware.map("list1", new Callable<Object>() {
+            @Override
             public Object call() {
                 return conventionList1;
             }
@@ -93,6 +97,7 @@ public class ConventionAwareHelperTest {
 
     @Test public void canEnableCachingOfPropertyValue() {
         conventionAware.map("list1", new Callable<Object>() {
+            @Override
             public Object call() {
                 return toList("a");
             }
@@ -102,6 +107,7 @@ public class ConventionAwareHelperTest {
 
     @Test public void notCachesPropertyValuesByDefault() {
         conventionAware.map("list1", new Callable<Object>() {
+            @Override
             public Object call() {
                 return toList("a");
             }
@@ -115,6 +121,7 @@ public class ConventionAwareHelperTest {
 
     @Test public void doesNotUseMappingWhenExplicitValueProvided() {
         conventionAware.map("list1", new Callable<Object>() {
+            @Override
             public Object call() {
                 throw new UnsupportedOperationException();
             }
@@ -126,6 +133,7 @@ public class ConventionAwareHelperTest {
 
     @Test public void usesConventionValueForEmptyCollection() {
         conventionAware.map("list1", new Callable<Object>() {
+            @Override
             public Object call() {
                 return toList("a");
             }
@@ -135,6 +143,7 @@ public class ConventionAwareHelperTest {
 
     @Test public void usesConventionValueForEmptyMap() {
         conventionAware.map("map1", new Callable<Object>() {
+            @Override
             public Object call() {
                 return toMap("a", "b");
             }
