@@ -65,6 +65,28 @@
         }
     }
 
+    function initClipboardCopyButton() {
+        document.querySelectorAll(".copy-btn").forEach((button) => {
+            const container = button.parentElement;
+            const pre = container.querySelector("pre");
+
+            button.addEventListener("click", () => {
+                const text = pre.innerText.trim();
+                navigator.clipboard
+                    .writeText(text)
+                    .then(() => {
+                        button.textContent = "Copied!";
+                        setTimeout(() => {
+                            button.textContent = "Copy";
+                        }, 1500);
+                    })
+                    .catch((err) => {
+                        console.error("Failed to copy: ", err);
+                    });
+            });
+        });
+    }
+
     function initControls() {
         if (findCodeBlocks().length > 0) {
             const checkBox = getCheckBox();
@@ -75,6 +97,8 @@
 
             removeClass(label, "hidden");
          }
+
+         initClipboardCopyButton()
     }
 
     class TabManager {
