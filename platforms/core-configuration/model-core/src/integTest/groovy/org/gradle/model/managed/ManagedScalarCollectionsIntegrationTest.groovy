@@ -344,6 +344,8 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
     def "reports problem when managed type declares a #type of managed type"() {
         when:
         buildFile """
+        apply plugin: 'model-reporting-tasks'
+
         @Managed
         interface Thing { }
 
@@ -361,7 +363,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         fails 'model'
 
         and:
-        failure.assertHasCause "Exception thrown while executing model rule: container(Container) @ build.gradle line 11, column 13"
+        failure.assertHasCause "Exception thrown while executing model rule: container(Container) @ build.gradle line 13, column 13"
         failure.assertHasCause("""A model element of type: 'Container' can not be constructed.
 Its property 'java.util.$type<Thing> items' is not a valid scalar collection
 A scalar collection can not contain 'Thing's
@@ -374,6 +376,8 @@ A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one o
     def "reports problem when managed type declares a #type of subtype of scalar type"() {
         when:
         buildFile """
+        apply plugin: 'model-reporting-tasks'
+
         class Thing extends File {
             Thing(String s) { super(s) }
         }
@@ -392,7 +396,7 @@ A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one o
         fails 'model'
 
         and:
-        failure.assertHasCause "Exception thrown while executing model rule: container(Container) @ build.gradle line 12, column 13"
+        failure.assertHasCause "Exception thrown while executing model rule: container(Container) @ build.gradle line 14, column 13"
         failure.assertHasCause("""A model element of type: 'Container' can not be constructed.
 Its property 'java.util.$type<Thing> items' is not a valid scalar collection
 A scalar collection can not contain 'Thing's
