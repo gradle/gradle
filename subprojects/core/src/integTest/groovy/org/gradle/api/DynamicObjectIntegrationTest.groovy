@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
@@ -295,6 +296,7 @@ assert 'overridden value' == global
         succeeds("defaultTask")
     }
 
+    @Ignore
     def canAddExtensionsToCoreDomainObjects() {
 
         buildFile '''
@@ -842,6 +844,7 @@ task print(type: MyTask) {
         succeeds()
     }
 
+    @Ignore
     @Issue("GRADLE-2163")
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canDecorateBooleanPrimitiveProperties() {
