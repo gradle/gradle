@@ -9,7 +9,7 @@ dependencies {
 // end::dependencies[]
 
 // tag::substitution_rule[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.dependencySubstitution {
         substitute(platform(module('com.google.guava:guava:28.2-jre'))).
             using module('com.google.guava:guava:28.2-jre')
@@ -18,7 +18,7 @@ configurations.all {
 // end::substitution_rule[]
 
 // tag::substitution_rule_alternative[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.dependencySubstitution {
         substitute variant(module('com.google.guava:guava:28.2-jre')) {
             attributes {
