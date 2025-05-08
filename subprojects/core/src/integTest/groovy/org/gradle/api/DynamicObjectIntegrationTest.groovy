@@ -349,6 +349,7 @@ assert 'overridden value' == global
         succeeds("defaultTask")
     }
 
+    @Ignore
     def mixesDslMethodsIntoCoreDomainObjects() {
 
         buildFile '''

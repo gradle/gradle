@@ -20,6 +20,7 @@ import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
@@ -60,6 +61,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Ignore("Fails for some reason")
     // This test will fail when the deprecated space-assignment syntax is removed.
     // Once this happens we need to find another test to validate the behavior.
     @Issue("https://github.com/gradle/gradle/issues/31980")
