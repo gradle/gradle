@@ -137,7 +137,7 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        Configuration variant = project.getConfigurations().maybeCreateConsumableLocked(variantName);
+        Configuration variant = project.getConfigurations().consumableLocked(variantName);
         variant.setVisible(false);
         variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 
