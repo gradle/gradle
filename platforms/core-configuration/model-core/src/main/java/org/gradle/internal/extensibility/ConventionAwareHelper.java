@@ -132,9 +132,9 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
                     case 0:
                         return value.call();
                     case 1:
-                        return value.call(convention);
+                        throw new RuntimeException("Boom1!");
                     default:
-                        return value.call(convention, conventionAwareObject);
+                        throw new RuntimeException("Boom2!");
                 }
             }
         });
