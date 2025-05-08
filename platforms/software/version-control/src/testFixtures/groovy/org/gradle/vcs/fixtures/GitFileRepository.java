@@ -20,10 +20,14 @@ import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
+import org.eclipse.jgit.util.FS;
+import org.eclipse.jgit.util.SystemReader;
 import org.gradle.api.Named;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
@@ -81,7 +85,15 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
     }
 
     private void createGitRepo(File repoDir) throws GitAPIException {
+        maybeInstallIsolatedGitConfigReader();
         git = Git.init().setDirectory(repoDir).call();
+    }
+
+    private static void maybeInstallIsolatedGitConfigReader() {
+        SystemReader currentSystemReader = SystemReader.getInstance();
+        if (!(currentSystemReader instanceof IsolatedSystemReader)) {
+            SystemReader.setInstance(new IsolatedSystemReader(currentSystemReader));
+        }
     }
 
     @Override
@@ -210,5 +222,77 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
 
     public String getId() {
         return "git-repo:" + getUrl().toASCIIString();
+    }
+
+    /**
+     * Configuration reader for JGit that ignores local configuration files.
+     */
+    private static class IsolatedSystemReader extends SystemReader {
+        private static FileBasedConfig emptyConfig(Config parent, FS fs) {
+            return new FileBasedConfig(parent, null, fs) {
+                @Override
+                public void load() {
+                    // load an empty config
+                }
+
+                @Override
+                public boolean isOutdated() {
+                    return false;
+                }
+
+                @Override
+                public void save() throws IOException {
+                    // do not try to write anything
+                }
+            };
+        }
+
+        private final SystemReader defaultSystemReader;
+
+        public IsolatedSystemReader(SystemReader defaultSystemReader) {
+            this.defaultSystemReader = defaultSystemReader;
+        }
+
+        @Override
+        public String getHostname() {
+            return defaultSystemReader.getHostname();
+        }
+
+        @Override
+        public String getenv(String variable) {
+            return defaultSystemReader.getenv(variable);
+        }
+
+        @Override
+        public String getProperty(String key) {
+            return defaultSystemReader.getProperty(key);
+        }
+
+        @Override
+        public FileBasedConfig openUserConfig(Config parent, FS fs) {
+            // Do not load the user config, as it may contain settings that affect the test
+            return emptyConfig(parent, fs);
+        }
+
+        @Override
+        public FileBasedConfig openSystemConfig(Config parent, FS fs) {
+            // Do not load the system config, as it may contain settings that affect the test
+            return emptyConfig(parent, fs);
+        }
+
+        @Override
+        public FileBasedConfig openJGitConfig(Config parent, FS fs) {
+            return emptyConfig(parent, fs);
+        }
+
+        @Override
+        public long getCurrentTime() {
+            return defaultSystemReader.getCurrentTime();
+        }
+
+        @Override
+        public int getTimezone(long when) {
+            return defaultSystemReader.getTimezone(when);
+        }
     }
 }
