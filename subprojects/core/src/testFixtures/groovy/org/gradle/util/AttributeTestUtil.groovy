@@ -104,6 +104,7 @@ class AttributeTestUtil {
      */
     static AttributeSchemaServices services() {
         new AttributeSchemaServices(
+            attributesFactory(),
             new ImmutableAttributesSchemaFactory(TestUtil.inMemoryCacheFactory()),
             new ImmutableArtifactTypeRegistryFactory(TestUtil.inMemoryCacheFactory(), attributesFactory()),
             TestUtil.inMemoryCacheFactory()

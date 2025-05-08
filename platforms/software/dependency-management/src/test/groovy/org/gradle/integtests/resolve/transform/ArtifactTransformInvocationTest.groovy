@@ -113,12 +113,12 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
 
     private <T extends TransformParameters> TransformStep registerTransform(Class<? extends TransformAction<T>> actionType) {
         def variantTransformRegistry = project.services.get(VariantTransformRegistry)
-        int currentRegisteredTransforms = variantTransformRegistry.registrations.size()
+        int currentRegisteredTransforms = variantTransformRegistry.registrations.transforms.size()
         project.dependencies.registerTransform(actionType) {
             it.from.attribute(artifactType, 'jar')
             it.to.attribute(artifactType, 'transformed')
         }
-        return variantTransformRegistry.registrations[currentRegisteredTransforms].transformStep
+        return variantTransformRegistry.registrations.transforms[currentRegisteredTransforms].transformStep
     }
 
     private Try<ImmutableList<File>> invokeTransform(TransformStep transform, File inputArtifact) {

@@ -20,11 +20,7 @@ import com.google.common.collect.ImmutableMap
 import org.gradle.api.Action
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.artifacts.transform.TransformAction
-import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
-import org.gradle.api.internal.artifacts.TransformRegistration
-import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultLocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -335,17 +331,5 @@ class FixedFileMetadata(
 
     override fun getSource(): FileCollectionDependency {
         throw UnsupportedOperationException("Should not be called")
-    }
-}
-
-
-private
-object EmptyVariantTransformRegistry : VariantTransformRegistry {
-    override fun <T : TransformParameters> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in org.gradle.api.artifacts.transform.TransformSpec<T>>) {
-        throw UnsupportedOperationException("Should not be called")
-    }
-
-    override fun getRegistrations(): Set<TransformRegistration> {
-        return emptySet()
     }
 }

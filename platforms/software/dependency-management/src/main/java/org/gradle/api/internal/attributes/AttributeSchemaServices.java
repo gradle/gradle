@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.artifacts.TransformRegistration;
+import org.gradle.api.internal.artifacts.transform.CacheableTransforms;
+import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
+import org.gradle.api.internal.artifacts.transform.RegisteredTransforms;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistryFactory;
@@ -24,6 +29,7 @@ import org.gradle.api.internal.attributes.matching.CachingAttributeSelectionSche
 import org.gradle.api.internal.attributes.matching.DefaultAttributeMatcher;
 import org.gradle.api.internal.attributes.matching.DefaultAttributeSelectionSchema;
 import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryInterner;
 import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -36,23 +42,32 @@ import javax.inject.Inject;
 @ServiceScope(Scope.BuildSession.class)
 public class AttributeSchemaServices {
 
+    private final AttributesFactory attributesFactory;
     private final ImmutableAttributesSchemaFactory attributesSchemaFactory;
     private final ImmutableArtifactTypeRegistryFactory artifactTypeRegistryFactory;
     private final InMemoryCacheFactory cacheFactory;
 
     private final InMemoryLoadingCache<ImmutableAttributesSchema, AttributeMatcher> matchers;
 
+    private final InMemoryInterner<CacheableTransforms> cacheableTransformRegistrations;
+    private final InMemoryLoadingCache<AttributeMatcher, ConsumerProvidedVariantFinder> transformers;
+
     @Inject
     public AttributeSchemaServices(
+        AttributesFactory attributesFactory,
         ImmutableAttributesSchemaFactory attributesSchemaFactory,
         ImmutableArtifactTypeRegistryFactory artifactTypeRegistryFactory,
         InMemoryCacheFactory cacheFactory
     ) {
+        this.attributesFactory = attributesFactory;
         this.attributesSchemaFactory = attributesSchemaFactory;
         this.artifactTypeRegistryFactory = artifactTypeRegistryFactory;
         this.cacheFactory = cacheFactory;
 
         this.matchers = cacheFactory.createIdentityCache(this::createMatcher);
+
+        this.cacheableTransformRegistrations = cacheFactory.createInterner();
+        this.transformers = cacheFactory.createIdentityCache(this::createTransformSelector);
     }
 
     /**
@@ -88,6 +103,29 @@ public class AttributeSchemaServices {
             ),
             cacheFactory
         );
+    }
+
+    /**
+     * Given an attribute matcher, return a selector that can determine artifact transform chains
+     * for a given set of request attributes, source variants, and registered transforms.
+     */
+    public ConsumerProvidedVariantFinder getTransformSelector(AttributeMatcher matcher) {
+        return transformers.get(matcher);
+    }
+
+    private ConsumerProvidedVariantFinder createTransformSelector(AttributeMatcher matcher) {
+        return new ConsumerProvidedVariantFinder(matcher, attributesFactory, cacheFactory);
+    }
+
+    /**
+     * Given a list of registered transforms, create a {@link RegisteredTransforms} which represents
+     * that original list, along with a cacheable representation that can be used across project boundaries.
+     */
+    public RegisteredTransforms getRegisteredTransforms(ImmutableList<TransformRegistration> registeredTransforms) {
+        CacheableTransforms cacheable = cacheableTransformRegistrations.intern(
+            CacheableTransforms.from(registeredTransforms)
+        );
+        return new RegisteredTransforms(registeredTransforms, cacheable);
     }
 
 }

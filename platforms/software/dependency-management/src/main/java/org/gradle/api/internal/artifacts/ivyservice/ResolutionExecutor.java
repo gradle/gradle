@@ -76,7 +76,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
-import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
@@ -155,7 +154,6 @@ public class ResolutionExecutor {
     private final AttributesFactory attributesFactory;
     private final DomainObjectContext domainObjectContext;
     private final TaskDependencyFactory taskDependencyFactory;
-    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributeSchemaServices attributeSchemaServices;
     private final ResolutionFailureHandler resolutionFailureHandler;
     private final VariantArtifactSetCache variantArtifactSetCache;
@@ -189,7 +187,6 @@ public class ResolutionExecutor {
         AttributesFactory attributesFactory,
         DomainObjectContext domainObjectContext,
         TaskDependencyFactory taskDependencyFactory,
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributeSchemaServices attributeSchemaServices,
         ResolutionFailureHandler resolutionFailureHandler,
         VariantArtifactSetCache variantArtifactSetCache,
@@ -221,7 +218,6 @@ public class ResolutionExecutor {
         this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
         this.taskDependencyFactory = taskDependencyFactory;
-        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.attributeSchemaServices = attributeSchemaServices;
         this.resolutionFailureHandler = resolutionFailureHandler;
         this.variantArtifactSetCache = variantArtifactSetCache;
@@ -417,7 +413,6 @@ public class ResolutionExecutor {
             transformedVariantFactory,
             dependenciesResolverFactory,
             consumerSchema,
-            consumerProvidedVariantFinder,
             attributesFactory,
             attributeSchemaServices,
             resolutionFailureHandler,

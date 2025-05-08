@@ -21,8 +21,8 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
-import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
+import org.gradle.api.internal.artifacts.transform.TransformationChainSelector;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -58,7 +58,6 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
         TransformedVariantFactory transformedVariantFactory,
         TransformUpstreamDependenciesResolver.Factory transformUpstreamDependenciesResolverFactory,
         ImmutableAttributesSchema consumerSchema,
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
         ResolutionFailureHandler resolutionFailureHandler,
@@ -73,12 +72,18 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
         this.artifactsResults = artifactsResults;
         this.artifactSetResolver = artifactSetResolver;
 
+        TransformationChainSelector transformationChainSelector = new TransformationChainSelector(
+            attributeSchemaServices,
+            transformRegistry,
+            resolutionFailureHandler
+        );
+
         ArtifactVariantSelector artifactVariantSelector = new AttributeMatchingArtifactVariantSelector(
             consumerSchema,
-            consumerProvidedVariantFinder,
             attributesFactory,
             attributeSchemaServices,
-            resolutionFailureHandler
+            resolutionFailureHandler,
+            transformationChainSelector
         );
 
         this.consumerServices = new ArtifactSelectionServices(
