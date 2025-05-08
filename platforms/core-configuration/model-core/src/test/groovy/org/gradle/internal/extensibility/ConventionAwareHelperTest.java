@@ -33,10 +33,10 @@ import static org.gradle.util.internal.WrapUtil.toList;
 import static org.gradle.util.internal.WrapUtil.toMap;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ConventionAwareHelperTest {
     ConventionAwareHelper conventionAware;
@@ -55,12 +55,6 @@ public class ConventionAwareHelperTest {
     public void canMapPropertiesUsingClosure() {
         conventionAware.map("list1", TestUtil.toClosure("{ ['a'] }"));
         assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList("a")));
-
-        conventionAware.map("list1", TestUtil.toClosure("{ convention -> [convention] }"));
-        assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList(conventionAware.getConvention())));
-
-        conventionAware.map("list1", TestUtil.toClosure("{ convention, object -> [convention, object] }"));
-        assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList(conventionAware.getConvention(), testTask)));
     }
 
     @Test

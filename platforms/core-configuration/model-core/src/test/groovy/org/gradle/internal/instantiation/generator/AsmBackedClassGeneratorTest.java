@@ -1486,10 +1486,12 @@ public class AsmBackedClassGeneratorTest {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public MappedProperty map(String propertyName, Closure value) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public MappedProperty map(String propertyName, Callable<?> value) {
             throw new UnsupportedOperationException();
         }
@@ -1507,6 +1509,7 @@ public class AsmBackedClassGeneratorTest {
             }
         }
 
+        @Override
         public <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue) {
             return getConventionValue(actualValue, propertyName);
         }
