@@ -24,20 +24,20 @@ Prefer the Kotlin DSL (`build.gradle.kts`) over the Groovy DSL (`build.gradle`) 
 
 The Kotlin DSL offers several advantages over the Groovy DSL:
 
-* Strict typing: IDEs provide better auto-completion and navigation with the Kotlin DSL.
-* Improved readability: Code written in Kotlin is often easier to follow and understand.
-* Single-language stack: Projects that already use Kotlin for production and test code don’t need to introduce Groovy just for the build.
+* *Strict typing*: IDEs provide better auto-completion and navigation with the Kotlin DSL.
+* *Improved readability*: Code written in Kotlin is often easier to follow and understand.
+* *Single-language stack*: Projects that already use Kotlin for production and test code don’t need to introduce Groovy just for the build.
 
 Since Gradle 8.0, link:https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds[Kotlin DSL is the default] for new builds created with `gradle init`.
 Android Studio also link:https://developer.android.com/build/migrate-to-kotlin-dsl#timeline[defaults to Kotlin DSL].
 
 === References
 
-<<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL Primer>>
+- <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL Primer>>
 
 === Tags
 
-`#kotlin-dsl`
+<<tags_reference.adoc#tag:kotlin-dsl,`#kotlin-dsl`>>
 
 [[use_latest_minor_versions]]
 == Use the Latest Minor Version of Gradle
@@ -77,17 +77,15 @@ Always use the latest compatible version of each plugin:
 * Test plugin compatibility using link:https://slack.engineering/shadow-jobs/[shadow jobs].
 * Consult changelogs when updating.
 
-=== Stay Informed
-
 Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay informed about new Gradle releases, features, and plugins.
 
 === References
 
-<<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
+- <<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
 
 === Tags
 
-`#plugins`
+<<tags_reference.adoc#tag:plugins,`#plugins`>>
 
 [[use_the_plugins_block]]
 == Apply Plugins Using the `plugins` Block
@@ -129,12 +127,11 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 
 === References
 
-<<plugins.adoc#sec:using_plugins,Using Plugins>>
+- <<plugins.adoc#sec:using_plugins,Using Plugins>>
 
 === Tags
 
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
-
 
 [[do_not_use_internal_apis]]
 == Do Not Use Internal APIs
@@ -177,4 +174,4 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 
 === Tags
 
-`<<tags_reference.adoc#tag:upgrades,#upgrades>>`
+<<tags_reference.adoc#tag:upgrades,`#upgrades`>>

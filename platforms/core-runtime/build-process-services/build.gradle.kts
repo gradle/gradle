@@ -11,7 +11,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServices)
-    implementation(projects.buildProcessStartup)
 
     implementation(libs.guava)
 

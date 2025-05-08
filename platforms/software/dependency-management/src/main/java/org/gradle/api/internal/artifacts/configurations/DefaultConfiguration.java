@@ -471,7 +471,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
-        warnOnDeprecatedUsage("defaultDependencies(Action)", ProperMethodUsage.DECLARABLE_AGAINST);
+        warnOrFailOnInvalidUsage("defaultDependencies(Action)", ProperMethodUsage.DECLARABLE_AGAINST);
         validateMutation(MutationType.DEPENDENCIES);
         defaultDependencyActions = defaultDependencyActions.add(collectionCallbackActionDecorator.decorate(dependencies -> {
             if (dependencies.isEmpty()) {
@@ -510,7 +510,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Set<File> resolve() {
-        warnOnDeprecatedUsage("resolve()", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("resolve()", ProperMethodUsage.RESOLVABLE);
         return getFiles();
     }
 
@@ -532,12 +532,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     /**
      * {@inheritDoc}
      *
-     * @implNote Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * @implNote Usage: This method should only be called on resolvable configurations and throws an exception if
      * called on a configuration that does not permit this usage.
      */
     @Override
     public boolean contains(File file) {
-        warnOnInvalidInternalAPIUsage("contains(File)", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("contains(File)", ProperMethodUsage.RESOLVABLE);
         return getIntrinsicFiles().contains(file);
     }
 
@@ -571,9 +571,16 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
+
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
-        warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
         return resolutionAccess.getResults().getValue().getLegacyResults().getResolvedConfiguration();
     }
 
@@ -743,9 +750,16 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         });
     }
 
+
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public ConfigurationInternal getConsistentResolutionSource() {
-        warnOnInvalidInternalAPIUsage("getConsistentResolutionSource()", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidInternalAPIUsage("getConsistentResolutionSource()", ProperMethodUsage.RESOLVABLE);
         return consistentResolutionSource;
     }
 
@@ -803,9 +817,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public <T> T callAndResetResolutionState(Factory<T> factory) {
-        warnOnInvalidInternalAPIUsage("callAndResetResolutionState()", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidInternalAPIUsage("callAndResetResolutionState(Factory)", ProperMethodUsage.RESOLVABLE);
         try {
             // Prevent the state required for resolution from being discarded if anything in the
             // factory resolves this configuration
@@ -1078,27 +1098,45 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         action.execute(outgoing);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public ConfigurationInternal copy() {
-        warnOnDeprecatedUsage("copy()", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("copy()", ProperMethodUsage.RESOLVABLE);
         return createCopy(getDependencies(), getDependencyConstraints());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public Configuration copyRecursive() {
-        warnOnDeprecatedUsage("copyRecursive()", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("copyRecursive()", ProperMethodUsage.RESOLVABLE);
         return createCopy(getAllDependencies(), getAllDependencyConstraints());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public Configuration copy(Spec<? super Dependency> dependencySpec) {
-        warnOnDeprecatedUsage("copy(Spec)", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("copy(Spec)", ProperMethodUsage.RESOLVABLE);
         return createCopy(CollectionUtils.filter(getDependencies(), dependencySpec), getDependencyConstraints());
     }
 
     @Override
     public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
-        warnOnDeprecatedUsage("copyRecursive(Spec)", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("copyRecursive(Spec)", ProperMethodUsage.RESOLVABLE);
         return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), getAllDependencyConstraints());
     }
 
@@ -1202,9 +1240,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return resolutionStrategy;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public RootComponentMetadataBuilder.RootComponentState toRootComponent() {
-        warnOnInvalidInternalAPIUsage("toRootComponent()", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidInternalAPIUsage("toRootComponent()", ProperMethodUsage.RESOLVABLE);
         return rootComponentMetadataBuilder.toRootComponent(getName());
     }
 
@@ -1347,34 +1391,51 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
     }
 
-    private boolean isProperUsage(boolean allowDeprecated, ProperMethodUsage... properUsages) {
-        for (ProperMethodUsage properUsage : properUsages) {
-            if (properUsage.isProperUsage(this, allowDeprecated)) {
-                return true;
-            }
-        }
-        return false;
+    private boolean isProperUsage(ProperMethodUsage... properUsages) {
+        ConfigurationInternal conf = this;
+        return Arrays.stream(properUsages).anyMatch(pu -> pu.isAllowed(conf));
     }
 
-    private void warnOnInvalidInternalAPIUsage(String methodName, ProperMethodUsage... properUsages) {
-        warnOnDeprecatedUsage(methodName, true, properUsages);
+    /**
+     * Checks if the only usages that allow this method are also deprecated.
+     *
+     * @param properUsages the usages to check against
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    private boolean isExclusivelyDeprecatedUsage(ProperMethodUsage... properUsages) {
+        ConfigurationInternal conf = this;
+        return Arrays.stream(properUsages)
+            .filter(pu -> pu.isAllowed(conf))
+            .allMatch(pu -> pu.isDeprecated(conf));
     }
 
-    private void warnOnDeprecatedUsage(String methodName, ProperMethodUsage... properUsages) {
-        warnOnDeprecatedUsage(methodName, false, properUsages);
+    private void warnOrFailOnInvalidInternalAPIUsage(String methodName, ProperMethodUsage... properUsages) {
+        warnOrFailOnInvalidUsage(methodName, true, properUsages);
     }
 
-    private void warnOnDeprecatedUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
-        if (!isProperUsage(allowDeprecated, properUsages)) {
-            String msgTemplate = "Calling configuration method '%s' is deprecated for configuration '%s', which has permitted usage(s):\n" +
-                "%s\n" +
-                "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
+    private void warnOrFailOnInvalidUsage(String methodName, ProperMethodUsage... properUsages) {
+        warnOrFailOnInvalidUsage(methodName, false, properUsages);
+    }
+
+    private void warnOrFailOnInvalidUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
+        if (!isProperUsage(properUsages)) {
             String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
             String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
+            String msgTemplate = "Calling configuration method '%s' is not allowed for configuration '%s', which has permitted usage(s):\n" +
+                "%s\n" +
+                "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
 
-            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc))
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_configuration_usage")
+            GradleException ex = new GradleException(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc));
+            ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+                spec.contextualLabel(ex.getMessage());
+                spec.severity(Severity.ERROR);
+            });
+        } else if (isExclusivelyDeprecatedUsage(properUsages)) {
+            DeprecationLogger.deprecateAction(String.format("Calling %s on %s", methodName, this))
+                .withContext("This configuration does not allow this method to be called.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(8, "configurations_allowed_usage")
                 .nagUser();
         }
     }
@@ -1455,12 +1516,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     /**
      * {@inheritDoc}
      *
-     * @implNote Usage: This method should only be called on consumable or resolvable configurations and will emit a deprecation warning if
-     * called on a configuration that does not permit this usage, or has had allowed this usage but marked it as deprecated.
+     * @implNote Usage: This method can only be called on consumable or resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
      */
     @Override
     public Configuration attributes(Action<? super AttributeContainer> action) {
-        warnOnDeprecatedUsage("attributes(Action)", ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("attributes(Action)", ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE);
         action.execute(configurationAttributes);
         return this;
     }
@@ -1667,6 +1728,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             .build();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public void addResolutionAlternatives(String... alternativesForResolving) {
         this.resolutionAlternatives = ImmutableList.<String>builder()
@@ -1677,15 +1744,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration shouldResolveConsistentlyWith(Configuration versionsSource) {
-        warnOnDeprecatedUsage("shouldResolveConsistentlyWith(Configuration)", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("shouldResolveConsistentlyWith(Configuration)", ProperMethodUsage.RESOLVABLE);
         this.consistentResolutionSource = (ConfigurationInternal) versionsSource;
         this.consistentResolutionReason = "version resolved in " + versionsSource + " by consistent resolution";
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public Configuration disableConsistentResolution() {
-        warnOnDeprecatedUsage("disableConsistentResolution()", ProperMethodUsage.RESOLVABLE);
+        warnOrFailOnInvalidUsage("disableConsistentResolution()", ProperMethodUsage.RESOLVABLE);
         this.consistentResolutionSource = null;
         this.consistentResolutionReason = null;
         return this;
@@ -1894,10 +1967,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         abstract boolean isAllowed(ConfigurationInternal configuration);
 
         abstract boolean isDeprecated(ConfigurationInternal configuration);
-
-        boolean isProperUsage(ConfigurationInternal configuration, boolean allowDeprecated) {
-            return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
-        }
 
         public static String buildProperName(ProperMethodUsage usage) {
             return WordUtils.capitalizeFully(usage.name().replace('_', ' '));

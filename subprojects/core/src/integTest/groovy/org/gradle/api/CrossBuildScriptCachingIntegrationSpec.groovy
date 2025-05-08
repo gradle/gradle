@@ -35,8 +35,6 @@ import spock.lang.Issue
 
 import java.util.regex.Pattern
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
     FileTreeBuilder root
@@ -515,47 +513,48 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 8 // classpath and body for the common script + identical script x 3 targets
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "remapped classes have script origin"() {
         root {
             'build.gradle'('''
 
-                void assertScriptOrigin(Object o, Set<String> seen) {
-                    assert (o instanceof org.gradle.internal.scripts.ScriptOrigin)
-                    // need to get through reflection to bypass the Groovy MOP on closures, which would cause calling the method on the owner instead of the closure itself
-                    def originalClassName = o.class.getMethod('getOriginalClassName').invoke(o)
-                    def contentHash = o.class.getMethod('getContentHash').invoke(o)
-                    assert originalClassName
-                    assert contentHash
-                    println "Action type: ${originalClassName} (remapped name: ${o.class})"
-                    println "Action hash: ${contentHash}"
-                    if (!seen.add(contentHash)) {
-                       throw new AssertionError("Expected a unique hash, but found duplicate: ${o.contentHash} in $seen")
+                class Asserter {
+                    static void assertScriptOrigin(Object o, Set<String> seen) {
+                        assert (o instanceof org.gradle.internal.scripts.ScriptOrigin)
+                        // need to get through reflection to bypass the Groovy MOP on closures, which would cause calling the method on the owner instead of the closure itself
+                        def originalClassName = o.class.getMethod('getOriginalClassName').invoke(o)
+                        def contentHash = o.class.getMethod('getContentHash').invoke(o)
+                        assert originalClassName
+                        assert contentHash
+                        println "Action type: ${originalClassName} (remapped name: ${o.class})"
+                        println "Action hash: ${contentHash}"
+                        if (!seen.add(contentHash)) {
+                           throw new AssertionError("Expected a unique hash, but found duplicate: ${o.contentHash} in $seen")
+                        }
                     }
                 }
 
                 Set<String> seen = []
 
-                assertScriptOrigin(this, seen)
+                Asserter.assertScriptOrigin(this, seen)
 
                 task one {
                     doLast {
                         { ->
-                            assertScriptOrigin(owner, seen) // hack to get a handle on the parent closure
+                            Asserter.assertScriptOrigin(owner, seen) // hack to get a handle on the parent closure
                         }()
                     }
                 }
 
                 task two {
                     def v
-                    v = { assertScriptOrigin(v, seen) }
+                    v = { Asserter.assertScriptOrigin(v, seen) }
                     doFirst(v)
                 }
 
                 task three {
                     doLast(new Action() {
                         void execute(Object o) {
-                            assertScriptOrigin(this, seen)
+                            Asserter.assertScriptOrigin(this, seen)
                         }
                     })
                 }
@@ -563,7 +562,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
                 task four {
                     doLast {
                         def a = new A()
-                        assertScriptOrigin(a, seen)
+                        Asserter.assertScriptOrigin(a, seen)
                     }
                 }
 

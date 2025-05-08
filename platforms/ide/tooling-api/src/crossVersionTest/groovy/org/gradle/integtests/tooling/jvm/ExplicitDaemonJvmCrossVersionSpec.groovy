@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -46,7 +46,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
     /**
      * Configure this build to use the given JVM.
      */
-    void configureBuild(String majorVersion, File javaHome) { }
+    void configureBuild(int majorVersion, File javaHome) { }
 
     /**
      * Configure the tooling API launcher to use the given JVM.
@@ -70,7 +70,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not execute build using ")
-        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
+        e.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.majorVersion)
 
         where:
         jdk << getUnsupportedJdks()
@@ -91,7 +91,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not fetch model of type 'GradleProject' using ")
-        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
+        e.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.majorVersion)
 
         where:
         jdk << getUnsupportedJdks()
@@ -112,7 +112,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not run build action using ")
-        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
+        e.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.majorVersion)
 
         where:
         jdk << getUnsupportedJdks()
@@ -133,7 +133,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not execute tests using ")
-        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
+        e.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.majorVersion)
 
         where:
         jdk << getUnsupportedJdks()
@@ -150,7 +150,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
         captureJavaHome()
         configureBuild(jdk.majorVersion, jdk.javaHome)
-        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
 
          when:
         succeeds { connection ->
@@ -170,7 +170,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
         captureJavaHome()
         configureBuild(jdk.majorVersion, jdk.javaHome)
-        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
 
         when:
         succeeds { connection ->
@@ -189,7 +189,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
 
         configureBuild(jdk.majorVersion, jdk.javaHome)
-        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
 
         when:
         def javaHome = succeeds { connection ->
@@ -211,7 +211,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         writeTestFiles()
         captureJavaHome()
         configureBuild(jdk.majorVersion, jdk.javaHome)
-        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
 
         when:
         succeeds { connection ->
@@ -307,7 +307,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
     // Using dynamic Groovy since we cannot reference the Jvm type here -- due to Tooling API test weirdness
     private static JvmInfo asJavaInfo(def jvm) {
-        new JvmInfo(jvm.javaVersion.majorVersion, jvm.javaHome)
+        new JvmInfo(jvm.javaVersionMajor, jvm.javaHome)
     }
 
     /**
@@ -316,20 +316,26 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
      */
     static class JvmInfo {
 
-        final String majorVersion
+        final int majorVersion
         final File javaHome
 
-        JvmInfo(String majorVersion, File javaHome) {
+        JvmInfo(int majorVersion, File javaHome) {
             this.majorVersion = majorVersion
             this.javaHome = javaHome
         }
 
-        String getMajorVersion() {
+        int getMajorVersion() {
             return majorVersion
         }
 
         File getJavaHome() {
             return javaHome
+        }
+
+        // used in parameterized tests' names
+        @Override
+        String toString() {
+            return "JDK " + majorVersion;
         }
     }
 

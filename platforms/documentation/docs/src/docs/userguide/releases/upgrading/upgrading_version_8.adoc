@@ -65,16 +65,16 @@ or better yet, upgrade to the latest version of the link:https://docs.gradle.com
 
 For Gradle 8.x, the minimum supported version was 3.0.
 
-==== Upgrade to Kotlin 2.1.21-RC
+==== Upgrade to Kotlin 2.1.21-RC2
 
-Gradle now embeds link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21-RC[Kotlin 2.1.21-RC], upgrading from the previously embedded version 2.0.21.
+Gradle now embeds Kotlin 2.1.21-RC2, upgrading from the previously embedded version 2.0.21.
 
 This upgrade includes several important changes:
 
 * Support for Kotlin language versions 1.4 and 1.5 has been removed.
 * Kotlin language version 1.7 is now deprecated.
 
-For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21-RC[Kotlin release notes].
+For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21-RC2[Kotlin release notes].
 
 ==== Kotlin DSL now uses the Kotlin language version 2.1
 
@@ -114,6 +114,25 @@ Because JSpecify's semantics differ slightly from JSR-305, you might see new war
 These typically indicate places where you need to clarify or adjust null handling, and modern compilers and IDEs should provide helpful messages to guide you.
 
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9.0 as they did before.
+
+==== Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
+The following source set interfaces have been removed in Gradle 9.0:
+
+- `org.gradle.api.tasks.GroovySourceSet`
+- `org.gradle.api.tasks.ScalaSourceSet`
+
+To configure Groovy or Scala sources, use the plugin-specific source directory set extensions:
+
+- `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
+
+Here's how to configure Groovy sources programmatically:
+
+[source,java]
+----
+GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
+----
 
 ==== Removal of custom build layout options
 
@@ -165,6 +184,27 @@ The following members of the `org.gradle.util` package have been removed:
 
 * `CollectionUtils`
 
+* `ConfigureUtil`, `ClosureBackedAction`
++
+These classes used to provide utilities related to `groovy.lang.Closure`.
+Plugins should avoid relying on Groovy specifics, such as `Closure`, in their APIs. Instead, plugins should create methods that use
+link:{javadocPath}/org/gradle/api/Action.html[Action]:
++
+[source,java]
+----
+abstract class MyExtension {
+    // ...
+    public void options(Action<? extends MyOptions>  action) {
+        action.execute(options)
+    }
+}
+----
++
+Gradle automatically generates a `Closure`-taking method at runtime for each method with an `Action` as a single argument as long as the object is created with link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object...)[ObjectFactory#newInstance].
++
+As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use
+link:{javadocPath}/org/gradle/api/Project.html#configure(java.lang.Object,groovy.lang.Closure)[Project#configure].
+
 ==== Removal of Unix mode based file permissions
 
 Gradle 9.0 removes legacy APIs for specifying file permissions using raw Unix mode integers.
@@ -183,6 +223,27 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 - `org.gradle.api.file.CopyProcessingSpec.setDirMode(Integer)`
 - `org.gradle.api.file.FileTreeElement.getMode()`
 - `org.gradle.api.file.FileCopyDetails.setMode(int)`
+
+==== Removal of custom Source Set interfaces
+
+The following source set interfaces have been removed in Gradle 9.0:
+
+- `org.gradle.api.tasks.GroovySourceSet`
+- `org.gradle.api.tasks.ScalaSourceSet`
+
+To configure Groovy or Scala sources, use the plugin-specific Source Directory Sets instead:
+
+- `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
+
+For example, to configure Groovy sources in a plugin:
+
+[source,java]
+----
+GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
+----
+
 
 ==== Removal of select Groovy modules from the Gradle distribution
 
@@ -268,6 +329,24 @@ The `outputFile` property in the `WriteProperties` task has been removed in Grad
 
 This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
 
+==== Removal of `Project#exec`, `Project#javaexec`, and Script-Level Counterparts
+
+The following helper methods for launching external processes were <<#deprecated_project_exec,deprecated in Gradle 8.11>> and have now been removed in Gradle 9.0:
+
+* `org.gradle.apiProject#exec(Closure)`
+* `org.gradle.apiProject#exec(Action)`
+* `org.gradle.apiProject#javaexec(Closure)`
+* `org.gradle.apiProject#javaexec(Action)`
+* `org.gradle.api.Script#exec(Closure)`
+* `org.gradle.api.Script#exec(Action)`
+* `org.gradle.api.Script#javaexec(Closure)`
+* `org.gradle.api.Script#javaexec(Action)`
+* `org.gradle.kotlin.dsl.InitScriptApi#exec(Action)`
+* `org.gradle.kotlin.dsl.InitScriptApi#javaexec(Action)`
+* `org.gradle.kotlin.dsl.KotlinScript#exec(Action)`
+* `org.gradle.kotlin.dsl.KotlinScript#javaexec(Action)`
+* `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
+* `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
 
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
 
@@ -532,6 +611,10 @@ Previously, the `JavaExec` task used the same Java version as the Gradle process
 Starting in Gradle 9.0, when the `java-base` plugin is applied, `JavaExec` will instead default to the Java toolchain configured in the `java` extension.
 You can override the toolchain explicitly in the `JavaExec` task configuration if needed.
 
+==== Upgrade to SLF4J 2.0.17
+
+SLF4J has been updated from 1.7.36 to https://www.slf4j.org/news.html#2.0.17[2.0.17].
+
 === Deprecations
 
 [[null-attribute-lookup]]
@@ -734,7 +817,7 @@ For example, this code:
 [source,java]
 ----
 class MyValue {
-    private Boolean property = Boolean.TRUE;
+    private final Boolean property = Boolean.TRUE;
 
     @Input
     Boolean isProperty() { return property; }
@@ -746,7 +829,7 @@ Should be replaced with the following:
 [source,java]
 ----
 class MyValue {
-    private Boolean property = Boolean.TRUE;
+    private final Boolean property = Boolean.TRUE;
 
     @Deprecated
     @ReplacedBy("getProperty")
@@ -1131,10 +1214,7 @@ Potential migrations include using `Object.equals(Object)` directly, or comparin
 [[deprecated_project_exec]]
 ==== Deprecated `Project#exec` and `Project#javaexec`
 
-The link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
-link:{javadocPath}/org/gradle/api/Project.html#exec(org.gradle.api.Action)[Project#exec(Action)],
-link:{javadocPath}/org/gradle/api/Project.html#javaexec(groovy.lang.Closure)[Project#javaexec(Closure)],
-link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] methods have been deprecated and will be removed in Gradle 9.0.
+The `Project#exec(Closure)`, `Project#exec(Action)`, `Project#javaexec(Closure)`, `Project#javaexec(Action)` methods have been deprecated and will be removed in Gradle 9.0.
 
 These methods are scheduled for removal as part of the ongoing effort to make writing configuration-cache-compatible code easier.
 There is no way to use these methods without breaking configuration cache requirements so it is recommended to migrate to a compatible alternative.

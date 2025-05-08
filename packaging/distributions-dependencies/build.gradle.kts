@@ -29,7 +29,7 @@ val junit5Version = "5.8.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-28"
-val slf4jVersion = "1.7.36"
+val slf4jVersion = "2.0.17"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
 
@@ -96,7 +96,7 @@ dependencies {
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
-        api(libs.gson)                  { version { strictly("2.13.0") }}
+        api(libs.gson)                  { version { strictly("2.13.1") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
         api(libs.hamcrest)              { version { strictly(hamcrestVersion) }}
         api("org.hamcrest:hamcrest-core") { version { strictly(hamcrestVersion) }}

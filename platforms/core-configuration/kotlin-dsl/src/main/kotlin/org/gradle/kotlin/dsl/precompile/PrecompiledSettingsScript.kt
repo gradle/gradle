@@ -17,11 +17,9 @@
 package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.ProcessOperations
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.fileOperationsFor
-import org.gradle.kotlin.dsl.support.serviceOf
 
 
 /**
@@ -41,6 +39,4 @@ open class PrecompiledSettingsScript(target: Settings) : @Suppress("deprecation"
     }
 
     override val fileOperations by lazy { fileOperationsFor(delegate) }
-
-    override val processOperations by lazy { delegate.serviceOf<ProcessOperations>() }
 }

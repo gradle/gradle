@@ -4,7 +4,9 @@ plugins {
 
 description = "The Gradle build option parser."
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.cli)

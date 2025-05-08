@@ -5,7 +5,9 @@ plugins {
 
 description = "Logging infrastructure"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)

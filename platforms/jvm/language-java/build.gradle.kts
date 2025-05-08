@@ -4,7 +4,7 @@ plugins {
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
-gradlebuildJava {
+gradleModule {
     usesJdkInternals = true
 }
 
@@ -59,9 +59,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
-    implementation(projects.logging)
     implementation(projects.loggingApi)
-    implementation(projects.logging)
     implementation(projects.problemsRendering)
     implementation(projects.toolingApi)
 

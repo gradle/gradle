@@ -18,12 +18,11 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @Requires(value = [IntegTestPreconditions.NotEmbeddedExecutor], reason = NOT_EMBEDDED_REASON)
-@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
@@ -38,7 +37,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
 
         expect:
         def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasErrorOutput("Gradle requires JVM 8 or later to run. You are currently using JVM ${jdk.javaVersionMajor}.")
+        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getIncompatibleJvmErrorMessageFor("The Gradle Wrapper", jdk.javaVersionMajor))
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()

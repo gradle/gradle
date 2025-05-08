@@ -75,6 +75,4 @@ abstract class KotlinInitScript(
     override val fileOperations
         get() = host.fileOperations
 
-    override val processOperations
-        get() = host.processOperations
 }

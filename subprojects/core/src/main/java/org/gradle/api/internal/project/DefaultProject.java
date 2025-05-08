@@ -46,7 +46,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DeprecatedProcessOperations;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
@@ -125,9 +124,6 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -1253,34 +1249,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     public abstract ProcessOperations getProcessOperations();
-
-    private DeprecatedProcessOperations getDeprecatedProcessOperations() {
-        return new DeprecatedProcessOperations(Project.class, getProcessOperations());
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult javaexec(Closure closure) {
-        return getDeprecatedProcessOperations().javaexec(closure);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        return getDeprecatedProcessOperations().javaexec(action);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult exec(Closure closure) {
-        return getDeprecatedProcessOperations().exec(closure);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult exec(Action<? super ExecSpec> action) {
-        return getDeprecatedProcessOperations().exec(action);
-    }
 
     @Override
     public ServiceRegistry getServices() {

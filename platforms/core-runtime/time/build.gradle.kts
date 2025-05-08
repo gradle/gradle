@@ -21,7 +21,9 @@ plugins {
 
 description = "Monotonic clock implementation"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)

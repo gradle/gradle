@@ -13,6 +13,12 @@ val smokeTestSourceSet = sourceSets.create("smokeTest") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(smokeTestSourceSet.name)
+    }
+}
+
 addDependenciesAndConfigurations("smoke")
 
 val smokeTestImplementation: Configuration by configurations

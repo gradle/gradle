@@ -26,7 +26,6 @@ dependencies {
     api(projects.toolchainsJvmShared)
     api(projects.workers)
 
-    api(libs.groovy)
     api(libs.inject)
     api(libs.jspecify)
 
@@ -49,6 +48,8 @@ dependencies {
         exclude(module="log4j-core")
         exclude(module="log4j-api")
     }
+
+    runtimeOnly(libs.groovy)
 
     testImplementation(projects.baseServicesGroovy)
     testImplementation(projects.files)

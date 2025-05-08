@@ -1,3 +1,4 @@
+import com.google.gson.Gson
 import org.gradle.api.internal.FeaturePreviews
 import java.io.PrintWriter
 import java.io.Serializable
@@ -30,14 +31,14 @@ buildscript {
     dependencies {
         // update Gson to the desired version, needed here as org.gradle.toolchains.foojay-resolver-convention brings in an older version below
         // https://github.com/gradle/foojay-toolchains/issues/99
-        classpath("com.google.code.gson:gson:2.13.0") // keep in sync with build-logic-commons/build-platform/build.gradle.kts
+        classpath("com.google.code.gson:gson:2.13.1") // keep in sync with build-logic-commons/build-platform/build.gradle.kts
     }
 }
 
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("4.0") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("4.0.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.10.0")
 }
@@ -350,6 +351,35 @@ gradle.rootProject {
         description = "Generates the architecture documentation"
         outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
+    }
+    tasks.register("platformsData", GeneratePlatformsDataTask::class) {
+        description = "Generates the platforms data"
+        outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
+        platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
+    }
+}
+
+abstract class GeneratePlatformsDataTask : DefaultTask() {
+
+    data class PlatformData(val name: String, val dirs: List<String>, val uses: List<String>)
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @get:Input
+    abstract val platforms: ListProperty<Platform>
+
+    @TaskAction
+    fun action() {
+        val allPlatforms = platforms.get()
+        val data = allPlatforms.map { platform ->
+            PlatformData(
+                name = platform.name,
+                dirs = platform.children.takeIf { it.isNotEmpty() }?.map { it.name } ?: listOf(platform.name),
+                uses = platform.uses.map { use -> allPlatforms.single { it.id == use }.name },
+            )
+        }
+        outputFile.get().asFile.writeText(Gson().toJson(data))
     }
 }
 
