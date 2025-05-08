@@ -35,28 +35,29 @@ import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUt
 
 @SelfType(AbstractIntegrationSpec)
 trait DaemonJvmPropertiesFixture {
-    void assertDaemonUsedJvm(Jvm expectedJvm) {
-        assertDaemonUsedJvm(expectedJvm.javaHome)
+    void assertDaemonUsedJvm(Jvm expectedJvm, TestFile testDir = testDirectory) {
+        assertDaemonUsedJvm(expectedJvm.javaHome, testDir)
     }
 
-    void assertDaemonUsedJvm(File expectedJavaHome) {
+    void assertDaemonUsedJvm(File expectedJavaHome, TestFile testDir = testDirectory) {
         // might be not the same as the actual java home because the actual JRE can be in a subdirectory of the jdk/installedToolchain
-        assert file("javaHome.txt").text.startsWith(expectedJavaHome.canonicalPath)
+        assert testDir.file("javaHome.txt").text.startsWith(expectedJavaHome.canonicalPath)
     }
 
-    void captureJavaHome() {
-        buildFile << """
+    void captureJavaHome(TestFile testBuildFile = buildFile) {
+        testBuildFile << """
             def javaHome = org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
             println javaHome
             file("javaHome.txt").text = javaHome
         """
     }
 
-    TestFile getDaemonJvmPropertiesFile() {
-        return file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE)
+    TestFile getDaemonJvmPropertiesFile(TestFile testDir = testDirectory) {
+        return testDir.file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE)
     }
 
-    void assertJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
+    void assertJvmCriteria(JavaVersion version, String vendor = null, String implementation = null, TestFile testDir = testDirectory) {
+        TestFile daemonJvmPropertiesFile = getDaemonJvmPropertiesFile(testDir)
         Map<String, String> properties = daemonJvmPropertiesFile.properties
         assert properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY) == version.majorVersion
         if (vendor) {
@@ -65,7 +66,8 @@ trait DaemonJvmPropertiesFixture {
         assert properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY) == implementation
     }
 
-    void assertToolchainDownloadUrlsProperties(Map<List<String>, String> platformToolchainUrl) {
+    void assertToolchainDownloadUrlsProperties(Map<List<String>, String> platformToolchainUrl, TestFile testDir = testDirectory) {
+        TestFile daemonJvmPropertiesFile = getDaemonJvmPropertiesFile(testDir)
         Map<String, String> properties = daemonJvmPropertiesFile.properties
         platformToolchainUrl.forEach { platform, url ->
             def toolchainUrlProperty = String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, platform[0], platform[1])
@@ -73,12 +75,13 @@ trait DaemonJvmPropertiesFixture {
         }
     }
 
-    void writeJvmCriteria(Jvm jvm) {
+    void writeJvmCriteria(Jvm jvm, TestFile testDir = testDirectory) {
         def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm)
-        writeJvmCriteria(jvm.javaVersion, otherMetadata.vendor.rawVendor)
+        writeJvmCriteria(jvm.javaVersion, otherMetadata.vendor.rawVendor, null, testDir)
     }
 
-    void writeJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
+    void writeJvmCriteria(JavaVersion version, String vendor = null, String implementation = null, TestFile testDir = testDirectory) {
+        TestFile daemonJvmPropertiesFile = getDaemonJvmPropertiesFile(testDir)
         Properties properties = daemonJvmPropertiesFile.exists() ? GUtil.loadProperties(daemonJvmPropertiesFile) : new Properties()
         properties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, version.majorVersion)
         if (vendor) {
@@ -88,10 +91,11 @@ trait DaemonJvmPropertiesFixture {
             properties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, implementation)
         }
         daemonJvmPropertiesFile.writeProperties(properties)
-        assertJvmCriteria(version, vendor, implementation)
+        assertJvmCriteria(version, vendor, implementation, testDir)
     }
 
-    void writeToolchainDownloadUrls(String url) {
+    void writeToolchainDownloadUrls(String url, TestFile testDir = testDirectory) {
+        TestFile daemonJvmPropertiesFile = getDaemonJvmPropertiesFile(testDir)
         Properties properties = daemonJvmPropertiesFile.exists() ? GUtil.loadProperties(daemonJvmPropertiesFile) : new Properties()
         Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
             Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os))).collect(Collectors.toSet()).forEach { buildPlatform ->
