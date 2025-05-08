@@ -46,7 +46,7 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("test")
-        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30315")
