@@ -33,6 +33,10 @@
                 <td/>
             </tr>
             <tr>
+                <td>failOnNoDiscoveredTests</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>reports</td>
                 <td/>
             </tr>
