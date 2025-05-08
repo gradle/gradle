@@ -16,14 +16,19 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -51,6 +56,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
@@ -61,11 +67,11 @@ import java.util.Set;
  */
 @CacheableTask
 public abstract class Groovydoc extends SourceTask {
-    private FileCollection groovyClasspath;
+    private final ConfigurableFileCollection groovyClasspath = getProject().getObjects().fileCollection();
 
     private FileCollection classpath;
 
-    private File destinationDir;
+    private final DirectoryProperty destinationDir = getProject().getObjects().directoryProperty();
 
     private boolean use;
 
@@ -73,9 +79,9 @@ public abstract class Groovydoc extends SourceTask {
 
     private boolean noVersionStamp = true;
 
-    private String windowTitle;
+    private final Property<String> windowTitle = getProject().getObjects().property(String.class);
 
-    private String docTitle;
+    private final Property<String> docTitle = getProject().getObjects().property(String.class);
 
     private String header;
 
@@ -103,9 +109,8 @@ public abstract class Groovydoc extends SourceTask {
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
-        File destinationDir = getDestinationDir();
         try {
-            getDeleter().ensureEmptyDirectory(destinationDir);
+            getDeleter().ensureEmptyDirectory(getDestinationDir());
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
@@ -120,7 +125,7 @@ public abstract class Groovydoc extends SourceTask {
             parameters.getAntLibraryClasspath().from(getClasspath());
             parameters.getAntLibraryClasspath().from(getGroovyClasspath());
             parameters.getSource().convention(getSource());
-            parameters.getDestinationDirectory().fileValue(destinationDir);
+            parameters.getDestinationDirectory().convention(destinationDir);
             parameters.getUse().convention(isUse());
             parameters.getNoTimestamp().convention(isNoTimestamp());
             parameters.getNoVersionStamp().convention(isNoVersionStamp());
@@ -171,14 +176,25 @@ public abstract class Groovydoc extends SourceTask {
     @OutputDirectory
     @ToBeReplacedByLazyProperty
     public File getDestinationDir() {
-        return destinationDir;
+        return destinationDir.get().getAsFile();
     }
 
     /**
      * Sets the directory to generate the documentation into.
      */
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        this.destinationDir.fileValue(destinationDir);
+    }
+
+    /**
+     * Sets the convention for the directory to generate the documentation into.
+     * @param destinationDirConvention A callable that returns a directory
+     *
+     * @since 9.0
+     */
+    @Incubating
+    public void setDestinationDirConvention(Callable<Directory> destinationDirConvention) {
+        this.destinationDir.convention(getProject().provider(destinationDirConvention));
     }
 
     /**
@@ -196,7 +212,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets the classpath containing the Groovy library to be used.
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
-        this.groovyClasspath = groovyClasspath;
+        this.groovyClasspath.from(groovyClasspath);
     }
 
     /**
@@ -273,7 +289,7 @@ public abstract class Groovydoc extends SourceTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getWindowTitle() {
-        return windowTitle;
+        return windowTitle.get();
     }
 
     /**
@@ -282,7 +298,20 @@ public abstract class Groovydoc extends SourceTask {
      * @param windowTitle A text for the windows title
      */
     public void setWindowTitle(@Nullable String windowTitle) {
-        this.windowTitle = windowTitle;
+        this.windowTitle.set(windowTitle);
+    }
+
+    /**
+     * Sets the convention for browser window title and the package index page for the documentation.
+     *
+     * @param titleConvention A text for the windows title and the package index page
+     * @since 9.0
+     */
+    @Incubating
+    public void setTitleConventions(Callable<String> titleConvention) {
+        Provider<String> titleProvider = getProject().provider(titleConvention);
+        this.windowTitle.convention(titleProvider);
+        this.docTitle.convention(titleProvider);
     }
 
     /**
@@ -293,7 +322,7 @@ public abstract class Groovydoc extends SourceTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getDocTitle() {
-        return docTitle;
+        return docTitle.get();
     }
 
     /**
@@ -302,7 +331,7 @@ public abstract class Groovydoc extends SourceTask {
      * @param docTitle the docTitle as HTML
      */
     public void setDocTitle(@Nullable String docTitle) {
-        this.docTitle = docTitle;
+        this.docTitle.set(docTitle);
     }
 
     /**

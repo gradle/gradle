@@ -80,7 +80,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  */
 @CacheableTask
 public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
-    private FileCollection groovyClasspath;
+    private final ConfigurableFileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = getProject().getObjects().newInstance(GroovyCompileOptions.class);
@@ -98,6 +98,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
 
+        this.groovyClasspath = objectFactory.fileCollection();
         this.astTransformationClasspath = objectFactory.fileCollection();
         if (!experimentalCompilationAvoidanceEnabled()) {
             this.astTransformationClasspath.from((Callable<FileCollection>) this::getClasspath);
@@ -346,7 +347,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * @param groovyClasspath The classpath. Must not be null.
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
-        this.groovyClasspath = groovyClasspath;
+        this.groovyClasspath.from(groovyClasspath);
     }
 
     /**
