@@ -27,28 +27,30 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
  * A {@link BuildWorkExecutor} that disables all selected tasks before they are executed.
  */
 public class DryRunBuildExecutionAction implements BuildWorkExecutor {
-    private final StyledTextOutputFactory textOutputFactory;
     private final BuildWorkExecutor delegate;
+    private final StyledTextOutputFactory textOutputFactory;
 
-    public DryRunBuildExecutionAction(StyledTextOutputFactory textOutputFactory, BuildWorkExecutor delegate) {
-        this.textOutputFactory = textOutputFactory;
+    public DryRunBuildExecutionAction(
+        BuildWorkExecutor delegate,
+        StyledTextOutputFactory textOutputFactory
+    ) {
         this.delegate = delegate;
+        this.textOutputFactory = textOutputFactory;
     }
 
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        if (gradle.getStartParameter().isDryRun()) {
-            for (Task task : plan.getContents().getTasks()) {
-                textOutputFactory.create(DryRunBuildExecutionAction.class)
-                    .append(((TaskInternal) task).getIdentityPath().getPath())
-                    .append(" ")
-                    .style(StyledTextOutput.Style.ProgressStatus)
-                    .append("SKIPPED")
-                    .println();
-            }
-            return ExecutionResult.succeeded();
-        } else {
+        if (gradle.isPartOfClasspath()) {
             return delegate.execute(gradle, plan);
         }
+        for (Task task : plan.getContents().getTasks()) {
+            textOutputFactory.create(DryRunBuildExecutionAction.class)
+                .append(((TaskInternal) task).getIdentityPath().getPath())
+                .append(" ")
+                .style(StyledTextOutput.Style.ProgressStatus)
+                .append("SKIPPED")
+                .println();
+        }
+        return ExecutionResult.succeeded();
     }
 }
