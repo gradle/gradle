@@ -77,7 +77,7 @@ class ConfigurationCacheProblemsSummaryTest {
 
     private
     fun buildLogicProblem(location: String, message: String) = PropertyProblem(
-        PropertyTrace.BuildLogic(DefaultUserCodeSource(Describables.of(location), null)),
+        PropertyTrace.BuildLogic(DefaultUserCodeSource(Describables.of(location), null, null)),
         StructuredMessage.build { text(message) }
     )
 }
