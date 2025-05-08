@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
@@ -37,14 +38,10 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerP
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
-    private final DirectoryProperty destinationDirectory;
-    private FileCollection classpath;
+    private final DirectoryProperty destinationDirectory = getProject().getObjects().directoryProperty();
+    private final ConfigurableFileCollection classpath = getProject().getObjects().fileCollection();
     private String sourceCompatibility;
     private String targetCompatibility;
-
-    public AbstractCompile() {
-        this.destinationDirectory = getProject().getObjects().directoryProperty();
-    }
 
     /**
      * Returns the classpath to use to compile the source files.
@@ -63,7 +60,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @param configuration The classpath. Must not be null, but may be empty.
      */
     public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
+        this.classpath.from(configuration);
     }
 
     /**

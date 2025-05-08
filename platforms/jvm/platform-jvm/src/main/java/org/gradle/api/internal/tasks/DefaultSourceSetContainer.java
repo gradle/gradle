@@ -55,7 +55,7 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
     @Override
     protected SourceSet doCreate(String name) {
         DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, objectFactory);
-        sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), taskDependencyFactory, fileResolver, fileCollectionFactory));
+        sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), taskDependencyFactory, fileResolver, fileCollectionFactory, objectFactory));
         return sourceSet;
     }
 

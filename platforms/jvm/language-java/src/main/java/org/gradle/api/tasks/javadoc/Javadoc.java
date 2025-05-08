@@ -19,6 +19,8 @@ package org.gradle.api.tasks.javadoc;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -62,6 +64,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static org.gradle.util.internal.GUtil.isTrue;
 
@@ -107,11 +110,9 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    private File destinationDir;
-
     private boolean failOnError = true;
 
-    private String title;
+    private final Property<String> title;
 
     private String maxMemory;
 
@@ -134,6 +135,7 @@ public abstract class Javadoc extends SourceTask {
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
         this.javadocTool = propertyFactory.property(JavadocTool.class).convention(javadocToolConvention);
         this.javadocTool.finalizeValueOnRead();
+        this.title = objectFactory.property(String.class);
     }
 
     @TaskAction
@@ -247,7 +249,7 @@ public abstract class Javadoc extends SourceTask {
     @Nullable
     @ToBeReplacedByLazyProperty
     public File getDestinationDir() {
-        return destinationDir;
+        return getDestinationDirectory().get().getAsFile();
     }
 
     @OutputDirectory
@@ -263,8 +265,11 @@ public abstract class Javadoc extends SourceTask {
      * <p>Sets the directory to generate the documentation into.</p>
      */
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        this.getDestinationDirectory().set(destinationDir);
     }
+
+    @Inject
+    abstract public DirectoryProperty getDestinationDirectory();
 
     /**
      * Returns the amount of memory allocated to this task.
@@ -295,14 +300,14 @@ public abstract class Javadoc extends SourceTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getTitle() {
-        return title;
+        return title.get();
     }
 
     /**
      * <p>Sets the title for the generated documentation.</p>
      */
     public void setTitle(@Nullable String title) {
-        this.title = title;
+        this.title.set(title);
     }
 
     /**
@@ -436,5 +441,17 @@ public abstract class Javadoc extends SourceTask {
     @Inject
     protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Sets the title convention for the generated documentation.
+     *
+     * @param titleConvention The title convention
+     *
+     * @since 9.0
+     */
+    @Incubating
+    public void setTitleConvention(Callable<String> titleConvention) {
+        title.convention(getProject().provider(titleConvention));
     }
 }

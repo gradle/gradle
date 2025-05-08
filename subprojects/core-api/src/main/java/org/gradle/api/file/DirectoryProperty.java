@@ -18,6 +18,8 @@ package org.gradle.api.file;
 
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -33,6 +35,7 @@ import java.io.File;
  *
  * @since 4.3
  */
+@ServiceScope(Scope.Build.class)
 public interface DirectoryProperty extends FileSystemLocationProperty<Directory> {
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
