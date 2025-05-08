@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getPlatformFromToolchainProperty;
+import static org.gradle.internal.buildconfiguration.DaemonJvmPropertiesUtils.getPlatformFromToolchainProperty;
 
 public class DaemonJvmPropertiesAccessor {
 

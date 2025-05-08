@@ -21,9 +21,4 @@ abstract class AbstractJvmLibraryInitIntegrationSpec extends AbstractInitIntegra
     @Override
     String subprojectName() { 'lib' }
 
-    def setup() {
-        executer.beforeExecute { e ->
-            e.withToolchainDetectionEnabled()
-        }
-    }
 }
