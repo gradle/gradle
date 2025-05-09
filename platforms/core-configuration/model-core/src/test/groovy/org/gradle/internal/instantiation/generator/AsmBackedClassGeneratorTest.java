@@ -37,7 +37,6 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.ListProperty;
@@ -1438,13 +1437,6 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class ConventionAwareBean extends Bean implements IConventionAware, ConventionMapping {
-        public Convention getConvention() {
-            throw new UnsupportedOperationException();
-        }
-
-        public void setConvention(Convention convention) {
-            throw new UnsupportedOperationException();
-        }
 
         public MappedProperty map(String propertyName, Closure value) {
             throw new UnsupportedOperationException();
