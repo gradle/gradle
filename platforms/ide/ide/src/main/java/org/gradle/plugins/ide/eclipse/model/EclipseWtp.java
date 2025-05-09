@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpFacet;
 
 import javax.inject.Inject;
 
@@ -113,7 +114,7 @@ public abstract class EclipseWtp {
         if (facet == null) {
             XmlTransformer xmlTransformer = new XmlTransformer();
             xmlTransformer.setIndentation("\t");
-            facet = getObjectFactory().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(xmlTransformer));
+            facet = getObjectFactory().newInstance(DefaultEclipseWtpFacet.class, new XmlFileContentMerger(xmlTransformer));
         }
         return facet;
     }

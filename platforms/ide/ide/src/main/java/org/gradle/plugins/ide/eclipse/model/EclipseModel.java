@@ -106,6 +106,11 @@ public abstract class EclipseModel {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected Project getCurrentProject() {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Configures eclipse project information
      * <p>

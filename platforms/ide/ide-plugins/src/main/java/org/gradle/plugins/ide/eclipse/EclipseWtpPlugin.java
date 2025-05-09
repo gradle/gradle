@@ -15,16 +15,16 @@
  */
 package org.gradle.plugins.ide.eclipse;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.reflect.Instantiator;
@@ -38,6 +38,10 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.Facet;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpComponent;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathInternal;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseWtpComponentInternal;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseWtpFacetInternal;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.internal.RelativePathUtil;
@@ -46,7 +50,6 @@ import org.gradle.util.internal.WrapUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -101,10 +104,15 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
                     @Override
                     public void execute(Project project) {
-                        Collection<Configuration> plusConfigurations = model.getClasspath().getPlusConfigurations();
+                        ImmutableList.Builder<Configuration> builder = ImmutableList.builder();
+                        ListProperty<Configuration> plusConfigurationsProperty = ((EclipseClasspathInternal) model.getClasspath()).getPlusConfigurationsProperty();
+                        builder.addAll(plusConfigurationsProperty.get());
+
                         EclipseWtpComponent component = model.getWtp().getComponent();
-                        plusConfigurations.addAll(component.getRootConfigurations());
-                        plusConfigurations.addAll(component.getLibConfigurations());
+                        builder.addAll(component.getRootConfigurations());
+                        builder.addAll(component.getLibConfigurations());
+
+                        plusConfigurationsProperty.set(builder.build());
                     }
                 });
 
@@ -128,7 +136,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
     private void configureEclipseWtpComponent(final Project project, final EclipseModel model) {
         XmlTransformer xmlTransformer = new XmlTransformer();
         xmlTransformer.setIndentation("\t");
-        final EclipseWtpComponent component = project.getObjects().newInstance(EclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
+        EclipseWtpComponent component = project.getObjects().newInstance(DefaultEclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
         model.getWtp().setComponent(component);
 
         TaskProvider<GenerateEclipseWtpComponent> task = project.getTasks().register(ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent.class, component);
@@ -143,12 +151,13 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         });
         addWorker(task, ECLIPSE_WTP_COMPONENT_TASK_NAME);
 
-        ((IConventionAware) component).getConventionMapping().map("deployName", new Callable<String>() {
+        EclipseWtpComponentInternal eclipseWtpComponentInternal = (EclipseWtpComponentInternal) component;
+        eclipseWtpComponentInternal.getDeployNameProperty().convention(project.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return model.getProject().getName();
             }
-        });
+        }));
 
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
@@ -161,18 +170,18 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
                 libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getMainFeature().getRuntimeClasspathConfiguration());
                 component.setClassesDeployPath("/");
-                ((IConventionAware) component).getConventionMapping().map("libDeployPath", new Callable<String>() {
+                eclipseWtpComponentInternal.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() throws Exception {
                         return "../";
                     }
-                });
-                ((IConventionAware) component).getConventionMapping().map("sourceDirs", new Callable<Set<File>>() {
+                }));
+                eclipseWtpComponentInternal.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
                         return getMainSourceDirs(project);
                     }
-                });
+                }));
             }
 
         });
@@ -185,38 +194,36 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getMainFeature().getRuntimeClasspathConfiguration());
                 minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
                 component.setClassesDeployPath("/WEB-INF/classes");
-                ConventionMapping convention = ((IConventionAware) component).getConventionMapping();
-                convention.map("libDeployPath", new Callable<String>() {
+                eclipseWtpComponentInternal.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
-                    public String call() throws Exception {
+                    public String call() {
                         return "/WEB-INF/lib";
                     }
-                });
-                convention.map("contextPath", new Callable<String>() {
+                }));
+                eclipseWtpComponentInternal.getContextPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
-                    public String call() throws Exception {
+                    public String call() {
                         return ((War) project.getTasks().getByName("war")).getArchiveBaseName().getOrNull();
                     }
-                });
-                convention.map("resources", new Callable<List<WbResource>>() {
+                }));
+                eclipseWtpComponentInternal.getResourcesProperty().convention(project.provider(new Callable<List<WbResource>>() {
                     @Override
-                    public List<WbResource> call() throws Exception {
+                    public List<WbResource> call() {
                         File projectDir = project.getProjectDir();
                         File webAppDir = ((War) project.getTasks().getByName("war")).getWebAppDirectory().get().getAsFile();
                         String webAppDirName = RelativePathUtil.relativePath(projectDir, webAppDir);
-                        List<WbResource> result = new ArrayList<>(1);
+                        List<WbResource> result = new ArrayList<>();
                         result.add(new WbResource("/", webAppDirName));
                         return result;
                     }
-                });
-                convention.map("sourceDirs", new Callable<Set<File>>() {
+                }));
+                eclipseWtpComponentInternal.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
-                    public Set<File> call() throws Exception {
+                    public Set<File> call() {
                         return getMainSourceDirs(project);
                     }
-                });
+                }));
             }
-
         });
         project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
             @Override
@@ -229,8 +236,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 libConfigurations.clear();
                 libConfigurations.add(project.getConfigurations().getByName("earlib"));
                 component.setClassesDeployPath("/");
-                final ConventionMapping convention = ((IConventionAware) component).getConventionMapping();
-                convention.map("libDeployPath", new Callable<String>() {
+                eclipseWtpComponentInternal.getLibDeployPathProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() throws Exception {
                         String deployPath = ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getLibDirName();
@@ -240,22 +246,22 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
                         return deployPath;
                     }
-                });
-                convention.map("sourceDirs", new Callable<Set<File>>() {
+                }));
+                eclipseWtpComponentInternal.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
                         return WrapUtil.toSet(((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getAppDirectory().get().getAsFile());
                     }
-                });
+                }));
                 project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
                     @Override
                     public void execute(JavaPlugin javaPlugin) {
-                        convention.map("sourceDirs", new Callable<Set<File>>() {
+                        eclipseWtpComponentInternal.getSourceDirsProperty().convention(project.provider(new Callable<Set<File>>() {
                             @Override
                             public Set<File> call() throws Exception {
                                 return getMainSourceDirs(project);
                             }
-                        });
+                        }));
                     }
 
                 });
@@ -283,7 +289,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                     return;
                 }
 
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                ((EclipseWtpFacetInternal)eclipseModel.getWtp().getFacet()).getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(3);
@@ -292,14 +298,13 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         result.add(new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility())));
                         return result;
                     }
-                });
+                }));
             }
-
         });
         project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
             @Override
             public void execute(WarPlugin warPlugin) {
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                ((EclipseWtpFacetInternal)eclipseModel.getWtp().getFacet()).getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(4);
@@ -309,14 +314,13 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         result.add(new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility())));
                         return result;
                     }
-                });
+                }));
             }
-
         });
         project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
             @Override
             public void execute(EarPlugin earPlugin) {
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                ((EclipseWtpFacetInternal)eclipseModel.getWtp().getFacet()).getFacetsProperty().convention(project.provider(new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(2);
@@ -324,9 +328,8 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                         result.add(new Facet(Facet.FacetType.installed, "jst.ear", "5.0"));
                         return result;
                     }
-                });
+                }));
             }
-
         });
     }
 

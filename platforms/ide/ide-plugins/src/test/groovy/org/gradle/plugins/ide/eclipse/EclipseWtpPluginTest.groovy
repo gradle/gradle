@@ -369,7 +369,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp).contains(eclipseWtpFacet)
         assert eclipseWtpFacet.inputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtpFacet.outputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-        assert wtp.replaceInconsistentFacets(wtp.facets).sort() == expectedFacets.sort()
+        assert wtp.replaceInconsistentFacets(new ArrayList<>(wtp.facets)).sort() == expectedFacets.sort()
     }
 
     private void checkEclipseWtpComponentForJava() {
