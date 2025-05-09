@@ -864,8 +864,8 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
         DynamicObjectAwareBean bean = newInstance(DynamicObjectAwareBean.class);
-        assertThat(bean.getConvention(), sameInstance(bean.conv));
-        assertThat(bean.getAsDynamicObject(), sameInstance(((DefaultConvention)bean.conv).getExtensionsAsDynamicObject()));
+        assertThat(bean.getExtensions(), sameInstance(bean.conv));
+        assertThat(bean.getAsDynamicObject(), sameInstance(((DefaultConvention)bean.getExtensions()).getExtensionsAsDynamicObject()));
     }
 
     @Test
@@ -1484,11 +1484,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        Convention conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorateLenient()).getConvention();
-
-        public Convention getConvention() {
-            return conv;
-        }
+        ExtensionContainer conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorateLenient()).getExtensionContainer();
 
         public ExtensionContainer getExtensions() {
             return conv;
