@@ -892,7 +892,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         // Check the final component ids do not change within the chain.
         outputContains("""components = ${
-            ((['file1.jar', 'file2.jar'] + (['Local Groovy'] * 13) + ['project :producer', 'com.test:test:4.2'])).collectMany {
+            ((['file1.jar', 'file2.jar'] + (['Local Groovy'] * 11) + ['project :producer', 'com.test:test:4.2'])).collectMany {
                 [it] * 3 // The multiplier creates three copies of everything.
             }
         }""")
