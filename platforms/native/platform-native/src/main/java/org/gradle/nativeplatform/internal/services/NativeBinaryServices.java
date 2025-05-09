@@ -18,12 +18,15 @@ package org.gradle.nativeplatform.internal.services;
 
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
 import org.gradle.internal.file.RelativeFilePathResolver;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
@@ -87,7 +90,6 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(NativeToolChainRegistry.class, DefaultNativeToolChainRegistry.class);
         registration.addProvider(new ProjectCompilerServices());
     }
 
@@ -137,6 +139,13 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
         @Provides
         CompilerOutputFileNamingSchemeFactory createCompilerOutputFileNamingSchemeFactory(RelativeFilePathResolver fileResolver) {
             return new CompilerOutputFileNamingSchemeFactory(fileResolver);
+        }
+
+        @Provides
+        NativeToolChainRegistry createNativeToolChainRegistry(ObjectFactory objectFactory,
+                                                              InstantiatorFactory instantiatorFactory,
+                                                              ServiceRegistry projectScopeServiceRegistry) {
+            return objectFactory.newInstance(DefaultNativeToolChainRegistry.class, instantiatorFactory.decorateLenient(projectScopeServiceRegistry));
         }
     }
 

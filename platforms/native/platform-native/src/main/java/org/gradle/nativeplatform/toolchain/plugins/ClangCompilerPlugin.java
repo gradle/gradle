@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.Cast;
@@ -39,13 +38,7 @@ public abstract class ClangCompilerPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
         NativeToolChainRegistryInternal toolChainRegistry = Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
-//        toolChainRegistry.registerBinding(Clang.class, ClangToolChain.class);
-        toolChainRegistry.registerFactory(Clang.class, new NamedDomainObjectFactory<Clang>() {
-            @Override
-            public Clang create(String name) {
-                return project.getObjects().newInstance(ClangToolChain.class, name);
-            }
-        });
+        toolChainRegistry.registerBinding(Clang.class, ClangToolChain.class);
         toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang.class);
     }
 }
