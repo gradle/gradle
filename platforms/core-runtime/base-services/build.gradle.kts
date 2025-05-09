@@ -1,3 +1,6 @@
+import gradlebuild.basics.buildCommitId
+import gradlebuild.identity.tasks.BuildReceipt
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.jmh")
@@ -30,7 +33,7 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
     options.release = 8
 }
 
-moduleIdentity.createBuildReceipt()
+createBuildReceipt()
 
 dependencies {
     api(projects.buildOperations)
@@ -74,6 +77,25 @@ packageCycles {
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+fun createBuildReceipt() {
+    // TODO: Why is base-services in charge of generating the build receipt?
+
+    val createBuildReceipt by tasks.registering(BuildReceipt::class) {
+        version = moduleIdentity.version.map { it.version }
+        baseVersion = moduleIdentity.version.map { it.baseVersion.version }
+        snapshot = moduleIdentity.snapshot
+        promotionBuild = moduleIdentity.promotionBuild
+        buildTimestampFrom(moduleIdentity.buildTimestamp)
+        commitId = project.buildCommitId
+        receiptFolder = project.layout.buildDirectory.dir("generated-resources/build-receipt")
+    }
+
+    tasks.named<Jar>("jar").configure {
+        from(createBuildReceipt.map { it.receiptFolder })
+    }
 }

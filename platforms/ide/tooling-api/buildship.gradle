@@ -19,7 +19,7 @@ import java.util.zip.ZipInputStream
 tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
     toolingApiShadedJar = tasks.named('toolingApiShadedJar').flatMap { it.jarFile }
-    projectVersion = project.version
+    projectVersion = project.version.toString()
     projectDirectory = layout.buildDirectory.dir("buildshipProject").get().asFile
 }
 

@@ -1,3 +1,4 @@
+import gradlebuild.attributes.ExternallyAvailableLibraryAttribute
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.packaging.tasks.ExtractJavaAbi
