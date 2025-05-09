@@ -49,6 +49,8 @@ tasks.register('tar', Tar) {
 tasks.withType(AbstractArchiveTask).configureEach {
     preserveFileTimestamps = false
     reproducibleFileOrder = true
+    dirPermissions { unix("755") }
+    filePermissions { unix("644") }
 }
 // end::reproducible[]
 

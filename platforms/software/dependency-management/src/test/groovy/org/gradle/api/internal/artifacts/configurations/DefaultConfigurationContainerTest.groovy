@@ -37,7 +37,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Provider
-import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -217,9 +216,6 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyLocked(ConfigurationRoles.RESOLVABLE, "d") {
             resolvableLocked("d", {})
         }
-        verifyLocked(ConfigurationRoles.RESOLVABLE, "e") {
-            maybeCreateResolvableLocked("e")
-        }
     }
 
     def "creates consumable configurations"() {
@@ -235,9 +231,6 @@ class DefaultConfigurationContainerTest extends Specification {
         }
         verifyLocked(ConfigurationRoles.CONSUMABLE, "d") {
             consumableLocked("d", {})
-        }
-        verifyLocked(ConfigurationRoles.CONSUMABLE, "e") {
-            maybeCreateConsumableLocked("e")
         }
     }
 
@@ -256,10 +249,7 @@ class DefaultConfigurationContainerTest extends Specification {
             dependencyScopeLocked("d", {})
         }
         verifyLocked(ConfigurationRoles.DEPENDENCY_SCOPE, "e") {
-            maybeCreateDependencyScopeLocked("e")
-        }
-        verifyLocked(ConfigurationRoles.DEPENDENCY_SCOPE, "f") {
-            maybeCreateDependencyScopeLocked("f", false)
+            maybeCreateDependencyScopeLocked("e", false)
         }
     }
 
@@ -271,9 +261,6 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyLocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "b") {
             resolvableDependencyScopeLocked("b", {})
         }
-        verifyLocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "c") {
-            maybeCreateResolvableDependencyScopeLocked("c")
-        }
     }
 
     def "can create migrating configurations"() {
@@ -281,15 +268,11 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyLocked(role, "a") {
             migratingLocked("a", role)
         }
-        verifyLocked(role, "b") {
-            migratingLocked("b", role) {}
-        }
-        verifyLocked(role, "c") {
-            maybeCreateMigratingLocked("c", role)
-        }
 
         where:
         role << [
+            ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+            ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE,
             ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
         ]
     }
@@ -303,12 +286,6 @@ class DefaultConfigurationContainerTest extends Specification {
 
         when:
         configurationContainer.migratingLocked("bar", role) {}
-
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configurationContainer.maybeCreateMigratingLocked("baz", role)
 
         then:
         thrown(InvalidUserDataException)
@@ -374,18 +351,6 @@ class DefaultConfigurationContainerTest extends Specification {
         !configurationContainer.resolvable("d", {}).get().visible
         !configurationContainer.dependencyScope("e").get().visible
         !configurationContainer.dependencyScope("f", {}).get().visible
-    }
-
-    def "cannot maybeCreate invalid role (#role)"() {
-        when:
-        configurationContainer.maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest("foo", role, TestUtil.problemsService()));
-
-        then:
-        def e = thrown(GradleException)
-        e.message == "Cannot maybe create invalid role: ${role.getName()}"
-
-        where:
-        role << [ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE]
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements

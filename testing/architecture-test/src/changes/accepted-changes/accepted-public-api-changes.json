@@ -737,6 +737,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field COMPONENTS_TASK",
+            "acceptation": "This task is no longer associated with HelpTasksPlugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field DEPENDENT_COMPONENTS_TASK",
+            "acceptation": "This task is no longer associated with HelpTasksPlugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.JavaPluginConvention",
             "member": "Class org.gradle.api.plugins.JavaPluginConvention",
             "acceptation": "Removed deprecated feature",
@@ -1577,6 +1593,23 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getFailOnNoDiscoveredTests()",
+            "acceptation": "Adding as a stable opt-out for new behavior in 9.0",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Class org.gradle.api.tasks.testing.Test",
+            "acceptation": "Opt-out for new behavior in 9.0",
+            "changes": [
+                "Abstract method has been added to a superclass"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
@@ -1694,6 +1727,22 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removing component reporting tasks from HelpTasksPlugin",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getModel-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removing model reporting tasks from HelpTasksPlugin",
+            "changes": [
+                "Method added to public class"
             ]
         },
         {

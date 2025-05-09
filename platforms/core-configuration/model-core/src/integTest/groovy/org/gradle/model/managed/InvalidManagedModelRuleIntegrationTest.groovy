@@ -191,6 +191,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
             }
 
             apply type: RulePlugin
+            apply plugin: 'model-reporting-tasks'
         '''
 
         then:

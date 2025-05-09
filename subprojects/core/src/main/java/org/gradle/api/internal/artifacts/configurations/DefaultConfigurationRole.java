@@ -47,6 +47,10 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
         this.consumptionDeprecated = consumptionDeprecated;
         this.resolutionDeprecated = resolutionDeprecated;
         this.declarationDeprecated = declarationDeprecated;
+
+        assert consumable || !consumptionDeprecated;
+        assert resolvable || !resolutionDeprecated;
+        assert declarable || !declarationDeprecated;
     }
 
     @Override

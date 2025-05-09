@@ -33,6 +33,7 @@ gradleModule {
 }
 
 dependencies {
+    implementation(projects.buildProcessStartup)
     implementation(projects.cli)
     implementation(projects.wrapperShared)
 
@@ -46,10 +47,12 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(libs.jetty)
+    integTestImplementation(testFixtures(projects.buildProcessStartup))
 
     crossVersionTestImplementation(projects.logging)
     crossVersionTestImplementation(projects.persistentCache)
     crossVersionTestImplementation(projects.launcher)
+    crossVersionTestImplementation(testFixtures(projects.buildProcessStartup))
 
     integTestNormalizedDistribution(projects.distributionsFull)
     crossVersionTestNormalizedDistribution(projects.distributionsFull)

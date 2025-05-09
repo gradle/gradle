@@ -82,7 +82,6 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.wrapperShared)
 
     implementation(libs.ant)
     implementation(libs.asm)

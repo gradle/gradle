@@ -519,7 +519,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         def otherJdk = AvailableJavaHomes.getJdk(JavaVersion.current())
         def jdk = AvailableJavaHomes.getDifferentVersion {
             def v = it.languageVersion.majorVersion.toInteger()
-            11 <= v && v <= 18 // Java versions supported by ECJ releases used in the test
+            17 <= v && v <= 24 // Java versions supported by ECJ releases used in the test
         }
 
         buildFile << """
@@ -544,7 +544,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
 
             dependencies {
                 def changed = providers.gradleProperty("changed").isPresent()
-                ecj(!changed ? "org.eclipse.jdt:ecj:3.31.0" : "org.eclipse.jdt:ecj:3.32.0")
+                ecj(!changed ? "org.eclipse.jdt:ecj:3.40.0" : "org.eclipse.jdt:ecj:3.41.0")
             }
 
             // Make sure the provider is up-to-date only if the ECJ classpath does not change

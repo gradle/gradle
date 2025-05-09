@@ -43,7 +43,7 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations;
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
@@ -1368,7 +1368,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings = new ArrayList<>();
         if (filterJavaVersionDeprecation) {
             maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(
-                SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(getComputedGradleVersion())
+                SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(getComputedGradleVersion())
             ));
         }
 

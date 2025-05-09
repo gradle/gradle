@@ -219,7 +219,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         TaskProvider<JavaCompile> compileJava
     ) {
         String configName = getConfigurationName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration apiElements = configurations.maybeCreateConsumableLocked(configName);
+        Configuration apiElements = configurations.consumableLocked(configName);
 
         apiElements.setVisible(false);
         jvmLanguageUtilities.useDefaultTargetPlatformInference(apiElements, compileJava);
@@ -239,7 +239,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         TaskProvider<JavaCompile> compileJava
     ) {
         String configName = getConfigurationName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeElements = configurations.maybeCreateConsumableLocked(configName);
+        Configuration runtimeElements = configurations.consumableLocked(configName);
 
         runtimeElements.setVisible(false);
         jvmLanguageUtilities.useDefaultTargetPlatformInference(runtimeElements, compileJava);

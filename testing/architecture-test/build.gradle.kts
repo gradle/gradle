@@ -24,6 +24,7 @@ dependencies {
 
     testImplementation(libs.archunitJunit5)
     testImplementation(libs.guava)
+    testImplementation(libs.gson)
     testImplementation(libs.junitJupiter)
     testImplementation(libs.assertj)
 
@@ -64,6 +65,14 @@ tasks {
 
         systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
         systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
+
+        jvmArgumentProviders.add(
+            ArchUnitPlatformsData(
+                layout.settingsDirectory.dir("platforms"),
+                rootProject.tasks.named("platformsData").get().outputs.files.elements.map { it.single() },
+            )
+        )
+
         jvmArgumentProviders.add(
             ArchUnitFreezeConfiguration(
                 ruleStoreDir.asFile,
@@ -80,6 +89,20 @@ tasks {
 
         finalizedBy(reorderRuleStore)
     }
+}
+
+class ArchUnitPlatformsData(
+    @get:Internal
+    val basePath: Directory,
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    val json: Provider<FileSystemLocation>,
+) : CommandLineArgumentProvider {
+
+    override fun asArguments(): Iterable<String> = listOf(
+        "-Dorg.gradle.architecture.platforms-base-path=${basePath.asFile.absolutePath}",
+        "-Dorg.gradle.architecture.platforms-json=${json.get().asFile.absolutePath}",
+    )
 }
 
 class ArchUnitFreezeConfiguration(

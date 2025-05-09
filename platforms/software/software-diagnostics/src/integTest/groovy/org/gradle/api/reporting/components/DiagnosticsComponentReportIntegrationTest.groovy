@@ -24,6 +24,13 @@ class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentR
     @RequiresInstalledToolChain
     @ToBeFixedForConfigurationCache(because = ":components")
     def "informs the user when project has no components defined"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'component-reporting-tasks'
+            }
+        """
+
         when:
         executer.withArgument("--no-problems-report")
         succeeds "components"

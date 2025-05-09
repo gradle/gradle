@@ -6,10 +6,14 @@ description = "Utility code shared between the wrapper and the Gradle distributi
 
 gradleModule {
     usedInWrapper = true
-    usesIncompatibleDependencies = true // For test dependencies
+    usesIncompatibleDependencies = true // For :files, test dependencies
 }
 
 dependencies {
+    implementation(projects.files) {
+        because("We need org.gradle.internal.file.PathTraversalChecker")
+    }
+
     testImplementation(projects.baseServices)
     testImplementation(projects.coreApi)
     testImplementation(projects.native)

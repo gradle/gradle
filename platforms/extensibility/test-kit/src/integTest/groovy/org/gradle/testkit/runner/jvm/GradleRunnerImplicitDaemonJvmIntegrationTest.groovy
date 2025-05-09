@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner.jvm
 
-import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
@@ -39,7 +39,7 @@ class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerInteg
         def result = runner("help").build()
 
         then:
-        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
+        result.output.contains(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(gradleVersion))
     }
 
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
@@ -51,7 +51,7 @@ class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerInteg
         def result = runner("help").buildAndFail()
 
         then:
-        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
+        result.output.contains(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(gradleVersion))
         result.output.contains("A problem occurred evaluating root project")
         result.output.contains("> Boom")
     }
@@ -62,7 +62,7 @@ class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerInteg
         def result = runner("help").run()
 
         then:
-        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
+        result.output.contains(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(gradleVersion))
     }
 
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
@@ -74,7 +74,7 @@ class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerInteg
         def result = runner("help").run()
 
         then:
-        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
+        result.output.contains(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(gradleVersion))
         result.output.contains("A problem occurred evaluating root project")
         result.output.contains("> Boom")
     }
