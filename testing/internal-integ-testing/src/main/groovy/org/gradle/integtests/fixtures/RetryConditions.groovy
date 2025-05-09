@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import org.junit.AssumptionViolatedException
@@ -216,6 +214,6 @@ class RetryConditions {
     }
 
     static boolean runsOnWindowsAndJava7or8() {
-        return TestPrecondition.satisfied(UnitTestPreconditions.Windows) && [JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_8].contains(JavaVersion.current())
+        return new UnitTestPreconditions.IsKnownWindowsSocketDisappearanceIssue().isSatisfied()
     }
 }

@@ -19,15 +19,12 @@ package org.gradle.integtests.tooling.r88
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.TestLauncher
 import spock.lang.Timeout
 
 @Timeout(120)
 @ToolingApiVersion('>=8.8')
 @TargetGradleVersion(">=8.8")
-@Requires(UnitTestPreconditions.Jdk17OrEarlier)
 /**
  * @see org.gradle.integtests.tooling.r70.TestDisplayNameJUnit5CrossVersionSpec and
  * @see TestDisplayNameSpockCrossVersionSpec

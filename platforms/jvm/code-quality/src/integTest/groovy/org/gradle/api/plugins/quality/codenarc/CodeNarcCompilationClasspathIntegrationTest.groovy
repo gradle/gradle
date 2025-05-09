@@ -16,14 +16,18 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
+import com.google.common.collect.Range
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.junit.Assume
 
-class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpec {
+class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     private final static String CONFIG_FILE_PATH = 'config/codenarc/rulesets.groovy'
+
+    // TODO: We should merge these versions into CodeNarcCoverage
     private final static String MIN_SUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.27.0'
     private final static String UNSUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.26.0'
 
@@ -47,12 +51,16 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasCause('CodeNarc rule violations were found')
     }
 
-    @Requires(UnitTestPreconditions.Jdk15OrEarlier)
     def "an informative error is shown when a compilation classpath is specified on a CodeNarc task when using an incompatible CodeNarc version"() {
+        def jvm = AvailableJavaHomes.getJdkInRange(Range.atMost(15)) // UNSUPPORTED_COMPILATION_CLASSPATH_VERSION does not support JVM < 16
+        Assume.assumeNotNull(jvm)
+        withInstallations(jvm)
+
         given:
         buildFileWithCodeNarcAndCompilationClasspath(UNSUPPORTED_COMPILATION_CLASSPATH_VERSION)
         cloneWithoutCloneableRuleEnabled()
         codeViolatingCloneWithoutCloneableRule()
+        buildFile << javaPluginToolchainVersion(jvm)
 
         when:
         fails("codenarcMain")
