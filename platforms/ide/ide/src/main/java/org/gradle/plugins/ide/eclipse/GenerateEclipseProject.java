@@ -19,6 +19,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
+import org.gradle.plugins.ide.eclipse.internal.DefaultEclipseProject;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Project;
 import org.gradle.work.DisableCachingByDefault;
@@ -37,7 +38,7 @@ public abstract class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     public GenerateEclipseProject() {
         getXmlTransformer().setIndentation("\t");
-        projectModel = getInstantiator().newInstance(EclipseProject.class, new XmlFileContentMerger(getXmlTransformer()));
+        projectModel = getInstantiator().newInstance(DefaultEclipseProject.class, new XmlFileContentMerger(getXmlTransformer()));
     }
 
     @Inject

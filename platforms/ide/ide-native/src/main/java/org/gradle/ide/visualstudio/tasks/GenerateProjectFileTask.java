@@ -61,6 +61,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
     private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getProjectFile().getLocation()));
     private final Cached<Transformer<@org.jetbrains.annotations.NotNull String, File>> transformer = Cached.of(this::getTransformer);
+    private Callable<String> gradleExeCallable;
     private String gradleExe;
     private String gradleArgs;
 
@@ -76,10 +77,10 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
     public void initGradleCommand() {
         final File gradlew = new File(IdePlugin.toGradleCommand(getProject()));
-        getConventionMapping().map("gradleExe", new Callable<Object>() {
+        gradleExeCallable = new Callable<String>() {
             @Override
-            public Object call() {
-                final String rootDir = transformer.get().transform(getProject().getRootDir());
+            public String call() {
+                final String rootDir = transformer.get().transform(GenerateProjectFileTask.this.getProject().getRootDir());
                 String args = "";
                 if (!rootDir.equals(".")) {
                     args = " -p \"" + rootDir + "\"";
@@ -91,7 +92,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
                 return "\"gradle\"" + args;
             }
-        });
+        };
     }
 
     @Internal
@@ -181,6 +182,13 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
     @Internal
     public String getGradleExe() {
+        if(gradleExe == null) {
+            try {
+                gradleExe = gradleExeCallable.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
         return gradleExe;
     }
 
