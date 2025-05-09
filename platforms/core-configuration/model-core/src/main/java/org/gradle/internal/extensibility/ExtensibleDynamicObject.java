@@ -133,7 +133,6 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         updateDelegates();
     }
 
-    @Override
     @Deprecated
     public org.gradle.api.plugins.Convention getConvention() {
         DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
