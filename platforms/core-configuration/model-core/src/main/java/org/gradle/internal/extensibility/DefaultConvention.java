@@ -47,7 +47,7 @@ import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @Deprecated
-public class DefaultConvention implements org.gradle.api.plugins.Convention, ExtensionContainerInternal {
+public class DefaultConvention implements org.gradle.api.plugins.Convention, ExtensionContainerInternal { // TODO (donat) rename to DefaultExtensionContainer
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
