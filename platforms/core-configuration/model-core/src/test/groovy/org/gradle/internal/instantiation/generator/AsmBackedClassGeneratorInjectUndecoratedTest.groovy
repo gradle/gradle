@@ -18,7 +18,6 @@ package org.gradle.internal.instantiation.generator
 
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GeneratedSubclass
-import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
@@ -66,7 +65,6 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
 
         !(bean instanceof DynamicObjectAware)
         !(bean instanceof ExtensionAware)
-        !(bean instanceof HasConvention)
         !(bean instanceof IConventionAware)
         !(bean instanceof GroovyObject)
     }
@@ -92,7 +90,6 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
 
         !(bean instanceof DynamicObjectAware)
         !(bean instanceof ExtensionAware)
-        !(bean instanceof HasConvention)
         !(bean instanceof IConventionAware)
         !(bean instanceof GroovyObject)
     }

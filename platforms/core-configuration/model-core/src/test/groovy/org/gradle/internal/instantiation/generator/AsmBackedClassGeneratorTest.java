@@ -33,7 +33,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
@@ -842,7 +841,6 @@ public class AsmBackedClassGeneratorTest {
         NotExtensibleBean bean = newInstance(NotExtensibleBean.class);
         assertFalse(bean instanceof ExtensionContainer);
         assertFalse(bean instanceof IConventionAware);
-        assertFalse(bean instanceof HasConvention);
 
         // Check dynamic object behaviour still works
         assertTrue(bean instanceof DynamicObjectAware);
