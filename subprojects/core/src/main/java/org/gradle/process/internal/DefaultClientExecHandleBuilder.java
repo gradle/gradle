@@ -242,7 +242,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public ClientExecHandleBuilder setWorkingDir(@Nullable File dir) {
-        this.workingDir = dir == null ? null:  fileResolver.resolve(dir);
+        this.workingDir = dir == null ? null : fileResolver.resolve(dir);
         return this;
     }
 
@@ -256,7 +256,9 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     public void copyTo(ProcessForkOptions options) {
         options.setExecutable(executable);
         options.setWorkingDir(getWorkingDir());
-        options.setEnvironment(getEnvironment());
+        Map<String, Object> env = getEnvironment();
+        env.remove("LD_LIBRARY_PATH");
+        options.setEnvironment(env);
     }
 
     private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {
