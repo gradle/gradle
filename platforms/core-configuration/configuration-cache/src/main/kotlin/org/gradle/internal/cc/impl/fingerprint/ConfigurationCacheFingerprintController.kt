@@ -45,6 +45,7 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
@@ -84,6 +85,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val modelParameters: BuildModelParameters,
     private val workInputListeners: WorkInputListeners,
     private val fileSystemAccess: FileSystemAccess,
+    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
     private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
     private val listenerManager: ListenerManager,
@@ -430,8 +432,10 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun displayNameOf(file: File): String =
             GFileUtils.relativePathOf(file, rootDirectory)
 
-        override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
-            fileCollectionFingerprinter.fingerprint(fileCollection).hash
+        override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode {
+            val snapshot = fileCollectionSnapshotter.snapshot(fileCollection)
+            return fileCollectionFingerprinter.fingerprint(snapshot, null).hash
+        }
 
         override fun reportInput(input: PropertyProblem) =
             report.onInput(input)
@@ -503,8 +507,10 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun hashCodeOfDirectoryContent(file: File): HashCode =
             directoryChildrenNamesHash(file)
 
-        override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
-            fileCollectionFingerprinter.fingerprint(fileCollection).hash
+        override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode {
+            val snapshot = fileCollectionSnapshotter.snapshot(fileCollection)
+            return fileCollectionFingerprinter.fingerprint(snapshot, null).hash
+        }
 
         override fun displayNameOf(fileOrDirectory: File): String =
             GFileUtils.relativePathOf(fileOrDirectory, rootDirectory)

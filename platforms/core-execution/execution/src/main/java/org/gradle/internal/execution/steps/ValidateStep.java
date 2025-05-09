@@ -16,57 +16,36 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.MutableReference;
+import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
-import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.internal.TextUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
-
-    private final VirtualFileSystem virtualFileSystem;
-    private final ValidationWarningRecorder warningReporter;
+    private final ExecutionProblemHandler problemHandler;
     private final Step<? super ValidationFinishedContext, ? extends R> delegate;
 
     public ValidateStep(
-        VirtualFileSystem virtualFileSystem,
-        ValidationWarningRecorder warningReporter,
+        ExecutionProblemHandler problemHandler,
         Step<? super ValidationFinishedContext, ? extends R> delegate
     ) {
-        this.virtualFileSystem = virtualFileSystem;
-        this.warningReporter = warningReporter;
+        this.problemHandler = problemHandler;
         this.delegate = delegate;
     }
 
@@ -74,40 +53,16 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     public R execute(UnitOfWork work, C context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
+        work.checkOutputDependencies(validationContext);
         context.getBeforeExecutionState()
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
-        InternalProblems problemsService = validationContext.getProblemsService();
-        InternalProblemReporter reporter = problemsService.getInternalReporter();
-        List<InternalProblem> problems = validationContext.getProblems();
+        problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
 
-        Map<Severity, ImmutableList<InternalProblem>> problemsMap = problems.stream()
-            .collect(
-                groupingBy(p -> p.getDefinition().getSeverity(),
-                    mapping(identity(), toImmutableList())));
-        List<InternalProblem> warnings = problemsMap.getOrDefault(WARNING, ImmutableList.of());
-        List<InternalProblem> errors = problemsMap.getOrDefault(ERROR, ImmutableList.of());
-
-        if (!warnings.isEmpty()) {
-            for (InternalProblem warning : warnings) {
-                reporter.report(warning);
-            }
-            warningReporter.recordValidationWarnings(work, warnings);
-        }
-
-        if (!errors.isEmpty()) {
-            throwValidationException(work, validationContext, errors);
-        }
-
-        if (!warnings.isEmpty()) {
-            LOGGER.info("Invalidating VFS because {} failed validation", work.getDisplayName());
-            virtualFileSystem.invalidateAll();
-        }
-
-        return delegate.execute(work, new ValidationFinishedContext(context, warnings));
+        return delegate.execute(work, new ValidationFinishedContext(context, validationContext.getProblems()));
     }
 
-    private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
+    private static void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
         MutableReference<Class<?>> workClass = MutableReference.empty();
         work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
             @Override
@@ -116,11 +71,11 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             }
 
             @Override
-            public void visitImplementation(ImplementationSnapshot implementation) {
+            public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
             }
         });
         // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
-        Class<?> workType = workClass.get();
+        Class<?> workType = Objects.requireNonNull(workClass.get());
         TypeValidationContext workValidationContext = validationContext.forType(workType, true);
         validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work);
         beforeExecutionState.getAdditionalImplementations()
@@ -136,7 +91,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     private static final String UNKNOWN_IMPLEMENTATION_NESTED = "UNKNOWN_IMPLEMENTATION_NESTED";
     private static final String UNKNOWN_IMPLEMENTATION = "UNKNOWN_IMPLEMENTATION";
 
-    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
+    private static void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
             workValidationContext.visitPropertyProblem(problem -> problem
@@ -151,7 +106,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         }
     }
 
-    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
+    private static void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
             workValidationContext.visitPropertyProblem(problem -> problem
@@ -165,19 +120,8 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         }
     }
 
-    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends InternalProblem> validationErrors) {
-        Set<String> uniqueErrors = validationErrors.stream()
-            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-            .collect(toImmutableSet());
-        WorkValidationException workValidationException = WorkValidationException.forProblems(uniqueErrors)
-            .withSummaryForContext(work.getDisplayName(), validationContext)
-            .get();
-        InternalProblemReporter reporter = validationContext.getProblemsService().getInternalReporter();
-        throw reporter.throwing(workValidationException, validationErrors);
-    }
-
     @ServiceScope(Scope.Global.class)
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork work, Collection<? extends InternalProblem> warnings);
+        void recordValidationWarnings(UnitOfWork.Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings);
     }
 }

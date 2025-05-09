@@ -26,7 +26,6 @@ import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-import static org.hamcrest.core.AnyOf.anyOf
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -566,30 +565,123 @@ The following types/formats are supported:
         failureCauseContains(cause)
     }
 
+    def "detects missing dependency when executed in #firstTask -> #secondTask order"() {
+        def producerOutput = file("build/producerOutput.txt")
+
+        buildFile << """
+            def producerOutput = file("$producerOutput")
+
+            task producer {
+                outputs.file(producerOutput)
+                doLast {
+                    producerOutput.text = "produced"
+                }
+            }
+
+            task consumer {
+                def consumerOutput = file("build/comsumer/consumerOutput.txt")
+                inputs.files(producerOutput)
+                outputs.file(consumerOutput)
+                doLast {
+                    consumerOutput.text = "consumed"
+                }
+            }
+        """
+
+        when:
+        // Using max-workers=1 to avoid parallel execution and re-ordering of tasks
+        runAndFail(firstTask, secondTask, "--max-workers=1")
+
+        then:
+        assertMissingDependency(":producer", ":consumer", producerOutput)
+
+        where:
+        firstTask  | secondTask
+        "producer" | "consumer"
+        "consumer" | "producer"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27576")
+    def "detects missing dependency when producer task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
+        def producerOutput = file("build/producerOutput.txt")
+
+        buildFile << """
+            def producerOutput = file("$producerOutput")
+
+            task producer {
+                inputs.files("empty-input").skipWhenEmpty(true)
+                outputs.file(producerOutput)
+                doLast {
+                    producerOutput.text = "produced"
+                }
+            }
+
+            task consumer {
+                def consumerOutput = file("build/comsumer/consumerOutput.txt")
+                inputs.files(producerOutput)
+                outputs.file(consumerOutput)
+                doLast {
+                    consumerOutput.text = "consumed"
+                }
+            }
+        """
+
+        when:
+        // Using max-workers=1 to avoid parallel execution and re-ordering of tasks
+        runAndFail(firstTask, secondTask, "--max-workers=1")
+
+        then:
+        assertMissingDependency(":producer", ":consumer", producerOutput)
+
+        where:
+        firstTask  | secondTask
+        "producer" | "consumer"
+        "consumer" | "producer"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27576")
+    def "does not detect missing dependency when consumer task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
+        def producerOutput = file("build/producerOutput.txt")
+
+        buildFile << """
+            def producerOutput = file("$producerOutput")
+
+            task producer {
+                outputs.file(producerOutput)
+                doLast {
+                    producerOutput.text = "produced"
+                }
+            }
+
+            task consumer {
+                inputs.files("empty-input").skipWhenEmpty(true)
+                def consumerOutput = file("build/comsumer/consumerOutput.txt")
+                inputs.files(producerOutput)
+                outputs.file(consumerOutput)
+                doLast {
+                    consumerOutput.text = "consumed"
+                }
+            }
+        """
+
+        expect:
+        // Using max-workers=1 to avoid parallel execution and re-ordering of tasks
+        succeeds(firstTask, secondTask, "--max-workers=1")
+
+        where:
+        firstTask  | secondTask
+        "producer" | "consumer"
+        "consumer" | "producer"
+    }
+
     void assertMissingDependency(String producerTask, String consumerTask, File... producedConsumedLocations) {
         expectReindentedValidationMessage()
-        if (GradleContextualExecuter.configCache) {
-            // TODO: Remove this workaround once https://github.com/gradle/gradle/issues/27576 is fixed
-            // Due to extra parallelism with configuration cache missing dependencies detection mechanism
-            // can report multiple errors instead of just one as is the case without configuration cache.
-            def messageMatchers = producedConsumedLocations.collect { producedConsumedLocation ->
-                def message = implicitDependency {
-                    at(producedConsumedLocation)
-                    consumer(consumerTask)
-                    producer(producerTask)
-                    includeLink()
-                }
-                containsNormalizedString(message)
-            }
-            failure.assertThatAllDescriptions(anyOf(messageMatchers))
-        } else {
-            def expectedMessage = implicitDependency {
-                at(producedConsumedLocations[0])
-                consumer(consumerTask)
-                producer(producerTask)
-                includeLink()
-            }
-            failure.assertThatDescription(containsNormalizedString(expectedMessage))
+        def expectedMessage = implicitDependency {
+            at(producedConsumedLocations[0])
+            consumer(consumerTask)
+            producer(producerTask)
+            includeLink()
         }
+        failure.assertThatDescription(containsNormalizedString(expectedMessage))
     }
 }

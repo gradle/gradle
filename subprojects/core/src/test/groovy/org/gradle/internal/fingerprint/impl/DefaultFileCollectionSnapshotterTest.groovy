@@ -92,7 +92,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile zip = tempDir.file('archive.zip')
         archiveBaseDir.zipTo(zip)
         def zipTree = TestFiles.fileOperations(tempDir, testFileProvider()).zipTree(zip)
-        def snapshot = snapshotter.snapshot(zipTree).snapshot
+        def snapshot = snapshotter.snapshot(zipTree)
 
         then:
         assertSingleFileSnapshot(snapshot)
@@ -101,7 +101,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile tar = tempDir.file('archive.tar')
         archiveBaseDir.tarTo(tar)
         def tarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
-        snapshot = snapshotter.snapshot(tarTree).snapshot
+        snapshot = snapshotter.snapshot(tarTree)
 
         then:
         assertSingleFileSnapshot(snapshot)
@@ -111,7 +111,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile emptyTar = tempDir.file('emptyArchive.tar')
         tarDir.tarTo(emptyTar)
         def emptyTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
-        snapshot = snapshotter.snapshot(emptyTarTree).snapshot
+        snapshot = snapshotter.snapshot(emptyTarTree)
 
         then:
         assertSingleFileSnapshot(snapshot)
@@ -122,7 +122,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         tgzDir.tgzTo(tgz)
         def localResource = new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz))
         def emptyTgzTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(localResource)
-        snapshot = snapshotter.snapshot(emptyTgzTree).snapshot
+        snapshot = snapshotter.snapshot(emptyTgzTree)
 
         then:
         assertSingleFileSnapshot(snapshot)
@@ -185,7 +185,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
     }
 
     void assertEmptyTree(FileCollection fileCollection) {
-        def snapshot = snapshotter.snapshot(fileCollection).snapshot
+        def snapshot = snapshotter.snapshot(fileCollection)
         assert snapshot == FileSystemSnapshot.EMPTY
         assert fileCollection.files.empty
     }
@@ -193,7 +193,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
     void assertSingleFileTree(FileCollection fileCollection) {
         assert fileCollection.files.size() == 1
         def file = fileCollection.files[0]
-        def snapshot = snapshotter.snapshot(fileCollection).snapshot
+        def snapshot = snapshotter.snapshot(fileCollection)
         assertSingleFileSnapshot(snapshot)
         assert snapshot.absolutePath == file.absolutePath
     }
