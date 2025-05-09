@@ -18,13 +18,16 @@ package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
+import org.gradle.internal.component.resolution.failure.exception.ConflictingConstraintsException
 import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure
+import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
@@ -48,6 +51,36 @@ import org.gradle.util.GradleVersion
  * These tests are ordered according to the different categories of {@link ResolutionFailure}.
  */
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
+
+    // region Component Selection failures
+    @ToBeFixedForConfigurationCache(because = "Error preventing graph construction prevents caching of the configuration's files - this is expected")
+    def "demonstrate conflicting version constraints failure"() {
+        conflictingVersionConstraints.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(conflictingVersionConstraints)
+
+        and: "Has error output"
+        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
+        failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
+4.5.3
+4.1.0""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsViewingDocs("Run with :dependencyInsight --configuration resolveMe --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
+        assertSuggestsViewingDocs("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-version-satisfies'
+            additionalData.asMap['requestTarget'] == "org.apache.httpcomponents:httpclient"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
+            additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
+        }
+    }
+    // endregion Component Selection failures
 
     // region Variant Selection failures
     def "demonstrate ambiguous graph variant selection failure with single disambiguating value for project"() {
@@ -615,6 +648,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    private final Demonstration conflictingVersionConstraints = new Demonstration("Conflicting version constraints", ConflictingConstraintsException.class, ModuleRejectedFailure.class, this.&setupConflictingVersionConstraints)
     private final Demonstration ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project with single disambiguating attribute)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute)
     private final Demonstration ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project without single disambiguating attribute)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute)
     private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
@@ -803,6 +837,40 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 add("myDependencies", project(":"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupConflictingVersionConstraints() {
+        buildKotlinFile << """
+            repositories {
+                mavenCentral()
+            }
+
+            configurations {
+                dependencyScope("deps")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("deps"))
+                }
+            }
+
+            dependencies {
+                add("deps", "org.apache.httpcomponents:httpclient")
+                constraints {
+                    add("deps", "org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5.3")
+                        }
+                    }
+                    add("deps", "org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.1.0")
+                        }
+                    }
+                }
             }
 
             ${forceConsumerResolution()}
