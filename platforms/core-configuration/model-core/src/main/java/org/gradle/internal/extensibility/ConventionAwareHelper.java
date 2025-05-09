@@ -56,6 +56,11 @@ public class ConventionAwareHelper implements ConventionMapping {
 
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<>();
 
+    @SuppressWarnings("unused")
+    public ConventionAwareHelper(IConventionAware source, org.gradle.api.plugins.Convention convention) {
+        this(source);
+    }
+
     public ConventionAwareHelper(IConventionAware source) {
         this._source = source;
         this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
