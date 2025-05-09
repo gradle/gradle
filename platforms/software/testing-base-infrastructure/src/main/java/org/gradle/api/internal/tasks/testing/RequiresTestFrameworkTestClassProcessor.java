@@ -52,7 +52,7 @@ public interface RequiresTestFrameworkTestClassProcessor extends TestClassProces
          * Note that we can't use the Documentation class here instead, because we'll get missing Guava classes at runtime:
          *   Caused by: java.lang.ClassNotFoundException: com.google.common.base.Preconditions
          */
-        return "See the upgrade guide for more details: " + new DocumentationRegistry().getDocumentationFor("upgrading_version_8", "test_framework_implementation_dependencies");
+        return "See the upgrade guide for more details: " + new DocumentationRegistry().getDocumentationFor("upgrading_version_8", "test_framework_implementation_dependencies") + ".";
     }
 
     /**

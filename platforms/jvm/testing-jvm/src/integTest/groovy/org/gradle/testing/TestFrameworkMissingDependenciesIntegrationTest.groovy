@@ -29,7 +29,6 @@ import static org.hamcrest.CoreMatchers.containsString
  * runtime dependencies are not included on the test runtime classpath.
  */
 class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegrationSpec {
-
     def "junit 4 fails with sensible error message"() {
         given:
         buildFile << """
@@ -46,8 +45,6 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             test.useJUnit()
         """
 
-        executer.withToolchainDetectionEnabled()
-
         file("src/test/java/MyTest.java") << """
             public class MyTest {
                 @org.junit.Test
@@ -55,13 +52,24 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
         """
 
+        executer.withToolchainDetectionEnabled()
+        executer.withStackTraceChecksDisabled()
+
         when:
         fails('test')
 
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString('Failed to load JUnit 4. Please ensure that JUnit 4 is available on the test runtime classpath'))
+        then: "Test framework startup failure is reported"
+        result.assertHasErrorOutput("TestFrameworkStartupFailureException: Could not execute test class 'MyTest'")
+        result.assertHasErrorOutput("TestFrameworkNotAvailableException: Failed to load JUnit 4")
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("Could not start Gradle Test Executor")
+
+        and: "Resolutions are provided"
+        assertSuggestsCheckingTestFrameworkAvailability("JUnit 4")
+        assertSuggestsUpgradeGuide()
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
     }
 
     def "junit platform fails with sensible error message"() {
@@ -87,13 +95,23 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
         """
 
+        executer.withStackTraceChecksDisabled()
+
         when:
         fails('test')
 
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString("Failed to load JUnit Platform. Please ensure that the JUnit Platform is available on the test runtime classpath. See the user guide for more details: https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#using_junit5"))
+        then: "Test framework startup failure is reported"
+        result.assertHasErrorOutput("TestFrameworkStartupFailureException: Could not execute test class 'MyTest'")
+        result.assertHasErrorOutput("TestFrameworkNotAvailableException: Failed to load JUnit Platform")
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("Could not start Gradle Test Executor")
+
+        and: "Resolutions are provided"
+        assertSuggestsCheckingTestFrameworkAvailability("the JUnit Platform")
+        assertSuggestsUpgradeGuide()
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
     }
 
     def "testng fails with sensible error message"() {
@@ -119,13 +137,30 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
         """
 
+        executer.withStackTraceChecksDisabled()
+
         when:
         fails('test')
 
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString("Failed to load TestNG. Please ensure that TestNG is available on the test runtime classpath."))
+        then: "Test framework startup failure is reported"
+        result.assertHasErrorOutput("TestFrameworkStartupFailureException: Could not execute test class 'MyTest'")
+        result.assertHasErrorOutput("TestFrameworkNotAvailableException: Failed to load TestNG")
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("Could not start Gradle Test Executor")
+
+        and: "Resolutions are provided"
+        assertSuggestsCheckingTestFrameworkAvailability("TestNG")
+        assertSuggestsUpgradeGuide()
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
     }
 
+    private assertSuggestsCheckingTestFrameworkAvailability(String testFramework) {
+        failure.assertHasResolution("Please ensure that $testFramework is available on the test runtime classpath.")
+    }
+
+    private assertSuggestsUpgradeGuide() {
+        failure.assertHasResolution("See the upgrade guide for more details: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#test_framework_implementation_dependencies.")
+    }
 }
