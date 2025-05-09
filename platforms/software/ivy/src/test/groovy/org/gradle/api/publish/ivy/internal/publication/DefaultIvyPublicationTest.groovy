@@ -24,9 +24,9 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -173,7 +173,7 @@ class DefaultIvyPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def buildTreePath = Mock(Path)
-        def projectIdentity = new ProjectIdentity(Mock(BuildIdentifier), buildTreePath, buildTreePath, "foo")
+        def projectIdentity = new ProjectIdentity(DefaultBuildIdentifier.ROOT, buildTreePath, buildTreePath, "foo")
         def projectDependency = Mock(ProjectDependencyInternal) {
             getTargetProjectIdentity() >> projectIdentity
         }
