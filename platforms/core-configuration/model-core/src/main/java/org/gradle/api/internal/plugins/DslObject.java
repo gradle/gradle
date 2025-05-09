@@ -86,9 +86,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     @Override
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
-            this.conventionMapping = DeprecationLogger.whileDisabled(() ->
-                toType(object, IConventionAware.class).getConventionMapping()
-            );
+            this.conventionMapping = toType(object, IConventionAware.class).getConventionMapping();
         }
         return conventionMapping;
     }
