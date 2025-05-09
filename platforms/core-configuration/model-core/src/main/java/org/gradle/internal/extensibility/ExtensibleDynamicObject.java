@@ -17,6 +17,7 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -139,6 +140,10 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
             .nagUser();
+        return convention;
+    }
+
+    public ExtensionContainer getExtensionContainer() {
         return convention;
     }
 
