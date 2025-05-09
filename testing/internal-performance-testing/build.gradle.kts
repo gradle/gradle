@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
     implementation(libs.jettyUtil)
-    implementation(libs.joda)
     implementation(libs.joptSimple)
     implementation(libs.mina)
     implementation(libs.slf4jApi)
