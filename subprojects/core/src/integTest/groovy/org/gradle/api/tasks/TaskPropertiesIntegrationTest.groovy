@@ -74,6 +74,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33215")
     def "reports failure to query read-only unmanaged Property<T> with final getter"() {
         given:
         buildFile << """

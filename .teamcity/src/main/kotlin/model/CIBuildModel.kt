@@ -145,7 +145,6 @@ data class CIBuildModel(
                     listOf(
                         SpecificBuild.BuildDistributions,
                         SpecificBuild.Gradleception,
-                        SpecificBuild.GradleceptionWithGroovy4,
                         SpecificBuild.CheckLinks,
                         SpecificBuild.CheckTeamCityKotlinDSL,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
@@ -672,12 +671,6 @@ enum class SpecificBuild {
             model: CIBuildModel,
             stage: Stage,
         ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default")
-    },
-    GradleceptionWithGroovy4 {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovy4 = true)
     },
     GradleceptionWithMaxLtsJdk {
         override fun create(

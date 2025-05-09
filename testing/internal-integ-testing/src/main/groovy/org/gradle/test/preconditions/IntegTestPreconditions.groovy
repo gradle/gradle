@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.KillProcessAvailability
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.util.internal.VersionNumber
 
 // These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
 // permitted subtypes to use the parent type's methods without importing them
@@ -377,13 +376,6 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             return System.getProperty('java.runtime.version') != null
-        }
-    }
-
-    static final class Groovy3OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return VersionNumber.parse(GroovySystem.version).major <= 3
         }
     }
 }
