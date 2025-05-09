@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resource.s3.fixtures
 
-
 import groovy.xml.StreamingMarkupBuilder
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
@@ -26,23 +25,19 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.TextUtil
-import org.joda.time.DateTimeZone
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
-import org.joda.time.tz.FixedDateTimeZone
 
 import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.security.MessageDigest
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class S3Server extends HttpServer implements RepositoryServer {
 
     public static final String BUCKET_NAME = "tests3bucket"
-    private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
-    protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
-        .withLocale(Locale.US)
-        .withZone(GMT);
+    protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.of("GMT"))
 
     public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
     public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'
@@ -178,7 +173,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Date': DATE_HEADER,
                     'Server': SERVER_AMAZON_S3,
                     'Content-Length': length,
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
                 ]
                 body = { xml.toString() }
             }
@@ -216,7 +211,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Server': SERVER_AMAZON_S3,
                     'ETag': calculateEtag(file),
                     'Content-Length': 0,
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
                 ]
             }
         }
@@ -259,7 +254,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'x-amz-request-id': X_AMZ_REQUEST_ID,
                     'Date': DATE_HEADER,
                     'Server': SERVER_AMAZON_S3,
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
                 ]
                 body = { responseXml.toString() }
             }
@@ -288,7 +283,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Accept-Ranges': 'bytes',
                     'Content-Type': 'application/octet-stream',
                     'Content-Length': "0",
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
                 ]
             }
         }
@@ -348,7 +343,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Accept-Ranges': 'bytes',
                     'Content-Type': 'application/octet-stream',
                     'Content-Length': { file.length() },
-                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
                 ]
                 body = { file.bytes }
             }

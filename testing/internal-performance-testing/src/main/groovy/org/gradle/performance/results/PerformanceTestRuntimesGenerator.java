@@ -17,8 +17,8 @@
 package org.gradle.performance.results;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;

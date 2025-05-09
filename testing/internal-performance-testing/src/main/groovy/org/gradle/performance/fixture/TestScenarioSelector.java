@@ -17,8 +17,8 @@
 package org.gradle.performance.fixture;
 
 import com.google.common.base.Splitter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
