@@ -43,6 +43,11 @@ public class DirectoryProviderPathToFileResolver implements PathToFileResolver {
     }
 
     @Override
+    public File parseToFile(Object path) {
+        return createResolver().parseToFile(path);
+    }
+
+    @Override
     public PathToFileResolver newResolver(File baseDir) {
         return new DirectoryProviderPathToFileResolver(
             directoryProvider.map(transformer(dir -> dir.dir(baseDir.getPath()))),

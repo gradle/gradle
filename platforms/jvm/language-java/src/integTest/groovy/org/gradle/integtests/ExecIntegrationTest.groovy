@@ -32,6 +32,7 @@ import org.gradle.process.TestJavaMain
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -450,6 +451,126 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         method     | configuration
         "exec"     | { File serverInfoFile -> execSpecWithHttpServerExecutable(serverInfoFile) }
         "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
+    }
+
+    def "execOperations.#method in non-root build.gradle resolves relative path correctly"() {
+        settingsFile << "include 'a'"
+        testDirectory.createDirs("a/build/test/folder")
+        file("a/build.gradle") << """
+            interface ExecOperationsProvider {
+                @Inject
+                abstract ExecOperations getExec()
+            }
+            tasks.register("run") {
+                def execOperations = project.objects.newInstance(ExecOperationsProvider).getExec()
+                doLast {
+                    execOperations.${method} {
+                        $configuration
+                        workingDir = new File("build/test/folder")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        outputContains("user.dir=${file("a/build/test/folder").absolutePath}")
+
+        where:
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
+    }
+
+    def "providers.#method in a non-root build.gradle resolves relative path correctly"() {
+        settingsFile << "include 'a'"
+        testDirectory.file("a").mkdirs()
+        testDirectory.file("a/build/test/folder").mkdirs()
+        file("a/$location") << """
+            def provider = project.providers.${method} {
+                $configuration
+                workingDir = new File("build/test/folder")
+            }
+
+            abstract class MyExec extends DefaultTask {
+                @Internal
+                abstract Property<ExecResult> getExecResult()
+
+                @TaskAction
+                void doIt() {
+                    System.out.println("Exec exit value=" + execResult.get().getExitValue())
+                }
+            }
+
+            tasks.register("run", MyExec) {
+                execResult = provider.getResult()
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        file("a/build/test/folder/output.txt").text.contains(
+            "user.dir=${file("a/build/test/folder").absolutePath}"
+        )
+
+        where:
+        location       | method     | configuration
+        "build.gradle" | "exec"     | execSpecWithJavaExecutable()
+        "build.gradle" | "javaexec" | javaExecSpec()
+    }
+
+    /**
+     * Not implemented due to configuration cache serialization issues, see:
+     * https://github.com/gradle/gradle/pull/32951#discussion_r2038250814
+     */
+    @ToBeImplemented
+    def "ExecOperations in ValueSource resolve relative paths relative to project dir for working dir"() {
+        given:
+        settingsFile << "include 'a'"
+        testDirectory.file("a/build/test/folder").mkdirs()
+        testDirectory.file("build/test/folder").mkdirs()
+        buildFile("a/build.gradle", """
+            import org.gradle.api.provider.*
+            abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Inject
+                abstract ExecOperations getExecOperations()
+                String obtain() {
+                    execOperations.$method {
+                        $configuration
+                        workingDir = new File("build/test/folder")
+                    }
+                    return "Hello!"
+                }
+            }
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getGreeting()
+                @TaskAction void run() { println greeting.get() }
+            }
+            def greetValueSource = providers.of(GreetValueSource) {}
+            tasks.register("run", MyTask) {
+                greeting = greetValueSource
+            }
+        """)
+
+        when:
+        runAndFail("run")
+
+        then:
+        // TODO: Should be:
+        // def workingDir = testDirectory.file("a/build/test/folder")
+        // workingDir.file("output.txt").exists()
+        // workingDir.file("output.txt").text.contains("user.dir=${workingDir.absolutePath}")
+        result.assertHasErrorOutput("Cannot convert relative path ${"build/test/folder".replace("/", File.separator)} to an absolute file.")
+
+        where:
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
     }
 
     private static def execSpec(def owner = "") {

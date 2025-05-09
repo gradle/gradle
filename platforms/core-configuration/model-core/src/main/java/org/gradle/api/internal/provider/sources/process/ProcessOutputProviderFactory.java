@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public class ProcessOutputProviderFactory {
     private final Instantiator instantiator;
     private final ExecSpecFactory execSpecFactory;
