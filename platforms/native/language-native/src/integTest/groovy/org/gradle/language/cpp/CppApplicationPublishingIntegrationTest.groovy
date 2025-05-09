@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.nativeplatform.MachineArchitecture.ARM64
 import static org.gradle.nativeplatform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
 import static org.gradle.nativeplatform.MachineArchitecture.X86
 import static org.gradle.nativeplatform.MachineArchitecture.X86_64
@@ -470,7 +471,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
         def app = new CppApp()
-        def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
+        def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64), machine(currentOsFamilyName, ARM64)]
 
         given:
         buildFile << """
@@ -481,7 +482,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             version = '1.2'
             application {
                 baseName = 'test'
-                targetMachines = [machines.os('${currentOsFamilyName}').x86, machines.os('${currentOsFamilyName}').x86_64]
+                targetMachines = [machines.os('${currentOsFamilyName}').x86, machines.os('${currentOsFamilyName}').x86_64, machines.os('${currentOsFamilyName}').AARCH_64]
             }
             publishing {
                 repositories { maven { url = '$mavenRepo.uri' } }
