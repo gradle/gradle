@@ -37,6 +37,8 @@ import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 import org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
+import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -58,14 +60,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -126,6 +121,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private Import importedCatalog = null;
+    private boolean isDefaultCatalogImported = false;
     private final StrictVersionParser strictVersionParser;
 
     private final Property<String> description;
@@ -283,8 +279,19 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     @Override
     public void from(Object dependencyNotation) {
         if (importedCatalog == null) {
+            if(isDefaultVersionCatalog(dependencyNotation)){
+                isDefaultCatalogImported = true;
+            }
             importedCatalog = new Import(dependencyNotation);
-        } else {
+        } else if (isDefaultVersionCatalog(dependencyNotation)){
+            if(isDefaultCatalogImported) {
+                throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
+                    configureVersionCatalogError(builder,getProblemInVersionCatalog() + "you can only import default catalog `gradle/libs.versions.toml` once.", TOO_MANY_IMPORT_INVOCATION)
+                        .details("The default catalog was imported more than once. Path: " + getPathFromDependencyNotation(dependencyNotation))
+                        .solution("Remove explicit import of the default version catalog.")));
+            }
+        }
+        else{
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
                 configureVersionCatalogError(builder, getProblemInVersionCatalog() + "you can only call the 'from' method a single time.", TOO_MANY_IMPORT_INVOCATION)
                     .details("The method was called more than once")
@@ -640,6 +647,36 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         Supplier<PluginModel> previous = plugins.put(intern(AliasNormalizer.normalize(alias)), new VersionReferencingPluginModel(id, AliasNormalizer.normalize(versionRef)));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for plugin '{}': {} is replaced with {}", alias, previous.get(), model);
+        }
+    }
+
+    private String getPathFromDependencyNotation(Object dependencyNotation){
+        try{
+            String catalogPath = ((AbstractFileCollection) dependencyNotation).getAsPath();
+            return  catalogPath;
+        } catch (Exception ex){
+            LOGGER.error("dependencyNotation provided is invalid. Path is empty.");
+        }
+        return "";
+    }
+
+    private boolean isDefaultVersionCatalog(Object dependencyNotation) {
+        try {
+            if (dependencyNotation instanceof AbstractFileCollection) {
+                String catalogPath = ((AbstractFileCollection) dependencyNotation).getAsPath();
+                FileResolver fileResolver = dependencyResolutionServicesSupplier.get().getFileResolver();
+                File settingsDir = fileResolver.resolve(".");
+                File defaultCatalogFile = new File(settingsDir, "gradle/libs.versions.toml");
+
+                // Normalize paths for comparison
+                String normalizedCatalogPath = new File(catalogPath).getCanonicalPath();
+                String normalizedDefaultPath = defaultCatalogFile.getCanonicalPath();
+
+                return normalizedCatalogPath.equals(normalizedDefaultPath);
+            }
+            return false;
+        } catch (Exception ex) {
+            return false;
         }
     }
 
