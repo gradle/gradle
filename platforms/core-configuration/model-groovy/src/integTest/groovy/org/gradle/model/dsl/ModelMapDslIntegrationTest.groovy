@@ -37,6 +37,7 @@ class MyPlugin extends RuleSource {
 }
 
 apply plugin: MyPlugin
+apply plugin: 'model-reporting-tasks'
 '''
     }
 
@@ -257,8 +258,8 @@ model {
 '''
         expect:
         fails "model"
-        failure.assertHasLineNumber(18)
-        failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasLineNumber(19)
+        failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No signature of method: org.gradle.api.Project.create() is applicable for argument types:')
     }
 
@@ -393,7 +394,7 @@ model {
 
         expect:
         fails 'model'
-        failure.assertHasCause('Exception thrown while executing model rule: main(Thing) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('Exception thrown while executing model rule: main(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 
@@ -411,7 +412,7 @@ model {
 
         expect:
         fails 'model'
-        failure.assertHasCause('Exception thrown while executing model rule: main { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('Exception thrown while executing model rule: main { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 
@@ -429,7 +430,7 @@ model {
 
         expect:
         fails 'model'
-        failure.assertHasCause('Exception thrown while executing model rule: all { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('Exception thrown while executing model rule: all { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 
@@ -447,7 +448,7 @@ model {
 
         expect:
         fails 'model'
-        failure.assertHasCause('Exception thrown while executing model rule: withType(Thing) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('Exception thrown while executing model rule: withType(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 
@@ -465,7 +466,7 @@ model {
 
         expect:
         fails 'model'
-        failure.assertHasCause('Exception thrown while executing model rule: beforeEach(Thing) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('Exception thrown while executing model rule: beforeEach(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 
@@ -483,7 +484,7 @@ model {
 
         expect:
         fails 'model'
-        failure.assertHasCause('Exception thrown while executing model rule: afterEach(Thing) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('Exception thrown while executing model rule: afterEach(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 }

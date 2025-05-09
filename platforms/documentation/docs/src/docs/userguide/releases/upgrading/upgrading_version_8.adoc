@@ -589,6 +589,13 @@ plugins {
 TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
 If you are already applying one of those, no further action is needed.
 
+==== The `model` and `component` tasks are no longer automatically added
+
+The `model` and `component` tasks report on the structure of legacy software model objects configured for the project.
+Previously, these tasks were automatically added to the project for every build.
+These tasks are now only added to a project when a rule-based plugin is applied (such as those provided by Gradle's support for building native software).
+
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 

@@ -320,7 +320,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("8.13")) {
+        if (targetVersion >= GradleVersion.version("9.0")) {
+            return ['artifactTransforms', 'buildEnvironment', 'dependencies', 'dependencyInsight', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'outgoingVariants', 'resolvableConfigurations']
+        } else if (targetVersion >= GradleVersion.version("8.13")) {
             return ['artifactTransforms', 'buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
         } else if (targetVersion >= GradleVersion.version("7.5")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
@@ -355,7 +357,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of invisible implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitInvisibleTasks() {
-        if (targetVersion >= GradleVersion.version("6.8")) {
+        if (targetVersion >= GradleVersion.version("9.0")) {
+            return ['prepareKotlinBuildScriptModel']
+        } else if (targetVersion >= GradleVersion.version("6.8")) {
             return ['prepareKotlinBuildScriptModel', 'components', 'dependentComponents', 'model']
         } else if (targetVersion >= GradleVersion.version("5.3")) {
             return ['prepareKotlinBuildScriptModel']

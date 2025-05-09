@@ -737,6 +737,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field COMPONENTS_TASK",
+            "acceptation": "This task is no longer associated with HelpTasksPlugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field DEPENDENT_COMPONENTS_TASK",
+            "acceptation": "This task is no longer associated with HelpTasksPlugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.JavaPluginConvention",
             "member": "Class org.gradle.api.plugins.JavaPluginConvention",
             "acceptation": "Removed deprecated feature",
@@ -1711,6 +1727,22 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removing component reporting tasks from HelpTasksPlugin",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getModel-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removing model reporting tasks from HelpTasksPlugin",
+            "changes": [
+                "Method added to public class"
             ]
         },
         {
