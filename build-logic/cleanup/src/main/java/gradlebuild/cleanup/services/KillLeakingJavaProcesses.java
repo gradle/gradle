@@ -193,6 +193,8 @@ public class KillLeakingJavaProcesses {
             return new String[]{"wmic", "process", "get", "processid,commandline"};
         } else if (isMacOS()) {
             return new String[]{"ps", "x", "-o", "pid,command"};
+        } else if (isAlpine()) {
+            return new String[]{"ps", "x", "-o", "pid,args"};
         } else {
             return new String[]{"ps", "x", "-o", "pid,cmd"};
         }
@@ -204,6 +206,10 @@ public class KillLeakingJavaProcesses {
 
     private static boolean isMacOS() {
         return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac");
+    }
+
+    private static boolean isAlpine() {
+        return System.getProperty("java.vm.vendor").toLowerCase(Locale.ROOT).contains("alpine");
     }
 
     private static class ExecResult {
