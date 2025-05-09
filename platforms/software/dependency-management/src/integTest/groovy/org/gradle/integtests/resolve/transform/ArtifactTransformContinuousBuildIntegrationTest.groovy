@@ -17,9 +17,10 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ProjectDirectoryCreator
 import org.gradle.util.internal.ToBeImplemented
 
-class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest implements ArtifactTransformTestFixture {
+class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest implements ArtifactTransformTestFixture, ProjectDirectoryCreator {
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -27,9 +28,7 @@ class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuous
 
     @ToBeImplemented("We treat parameters as an opaque hash")
     def "changes to artifact transform parameters trigger a build"() {
-        settingsFile << """
-            include 'producer', 'consumer'
-        """
+        includeProjects("producer", "consumer")
 
         setupBuildWithColorAttributes()
 

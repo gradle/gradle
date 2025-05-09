@@ -25,10 +25,8 @@ import org.gradle.tooling.model.gradle.GradleBuild
 
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
-        file('settings.gradle') << '''
-include 'a'
-include 'b'
-include 'b:c'
+        includeProjects("a", "b", "b:c")
+        settingsFile << '''
 rootProject.name = 'test'
 '''
         buildFile << """

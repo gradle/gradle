@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.r33
+package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.idea.IdeaProject
-
-class IdeaProjectModelCrossVersionSpec extends ToolingApiSpecification {
-
-    def "Idea modules are returned in order"() {
-        given:
-        includeProjects("a", "b")
+trait ProjectDirectoryCreator {
+    def includeProjects(String... names) {
+        createProjectSubDirs(names.collect { it.replace(":", "/")  }.toArray() as String[])
         settingsFile << """
-            rootProject.name = 'root'
+            include ${names.collect { "'$it'" }.join(",")}
         """
+    }
 
-        when:
-        def ideaProject = loadToolingModel(IdeaProject)
-
-        then:
-        ideaProject.modules*.name == ['root', 'a', 'b']
+    def createProjectSubDirs(String... names) {
+        createDirs(names)
     }
 }
