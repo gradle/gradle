@@ -869,36 +869,6 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void canAddDynamicPropertiesAndMethodsToJavaObject() throws Exception {
-        Bean bean = newInstance(Bean.class);
-        DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
-        ConventionObject conventionObject = new ConventionObject();
-        new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
-
-        call("{ it.conventionProperty = 'value' }", bean);
-        assertThat(conventionObject.getConventionProperty(), equalTo("value"));
-        assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
-        assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
-        assertThat(call("{ it.conventionMethod('value') }", bean), equalTo((Object) "[value]"));
-        assertThat(call("{ it.invokeMethod('conventionMethod', 'value') }", bean), equalTo((Object) "[value]"));
-    }
-
-    @Test
-    public void canAddDynamicPropertiesAndMethodsToGroovyObject() throws Exception {
-        TestDecoratedGroovyBean bean = newInstance(TestDecoratedGroovyBean.class);
-        DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
-        ConventionObject conventionObject = new ConventionObject();
-        new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
-
-        call("{ it.conventionProperty = 'value' }", bean);
-        assertThat(conventionObject.getConventionProperty(), equalTo("value"));
-        assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
-        assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
-        assertThat(call("{ it.conventionMethod('value') }", bean), equalTo((Object) "[value]"));
-        assertThat(call("{ it.invokeMethod('conventionMethod', 'value') }", bean), equalTo((Object) "[value]"));
-    }
-
-    @Test
     public void respectsPropertiesAddedToMetaClassOfJavaObject() throws Exception {
         Bean bean = newInstance(Bean.class);
 
@@ -1084,7 +1054,6 @@ public class AsmBackedClassGeneratorTest {
         assertEquals(Bean.class, dslObject.getImplementationType());
         assertEquals(typeOf(Bean.class), dslObject.getPublicType());
         assertNotNull(dslObject.getConventionMapping());
-        assertNotNull(dslObject.getConvention());
         assertNotNull(dslObject.getExtensions());
         assertNotNull(dslObject.getAsDynamicObject());
     }
