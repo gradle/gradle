@@ -53,7 +53,7 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
             return Optional.empty();
         }
         String internedTargetPath = interner.intern(targetPath);
-        String targetName = PathUtil.getFileName(internedTargetPath);
+        String targetName = PathUtil.getFileName(targetPath);
         String internedTargetName = targetName.equals(name)
             ? name
             : interner.intern(targetName);
