@@ -51,6 +51,7 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
+import org.gradle.internal.extensibility.DefaultConvention;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
@@ -864,7 +865,7 @@ public class AsmBackedClassGeneratorTest {
     public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
         DynamicObjectAwareBean bean = newInstance(DynamicObjectAwareBean.class);
         assertThat(bean.getConvention(), sameInstance(bean.conv));
-        assertThat(bean.getAsDynamicObject(), sameInstance(bean.conv.getExtensionsAsDynamicObject()));
+        assertThat(bean.getAsDynamicObject(), sameInstance(((DefaultConvention)bean.conv).getExtensionsAsDynamicObject()));
     }
 
     @Test
@@ -1525,7 +1526,7 @@ public class AsmBackedClassGeneratorTest {
         }
 
         public DynamicObject getAsDynamicObject() {
-            return conv.getExtensionsAsDynamicObject();
+            return ((DefaultConvention) conv).getExtensionsAsDynamicObject();
         }
     }
 

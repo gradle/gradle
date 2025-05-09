@@ -72,7 +72,6 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         return plugins;
     }
 
-    @Override
     public DynamicObject getExtensionsAsDynamicObject() {
         // This implementation of Convention doesn't log a deprecation warning
         // because it mixes both extensions and conventions.
