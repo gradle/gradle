@@ -56,11 +56,6 @@ public class ConventionAwareHelper implements ConventionMapping {
 
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<>();
 
-    @SuppressWarnings("unused") // TODO (donat) Removing this method breaks the Gradleception CI build. We can remove it after changes are merged to the `master` branch.
-    public ConventionAwareHelper(IConventionAware source, org.gradle.api.plugins.Convention convention) {
-        this(source);
-    }
-
     public ConventionAwareHelper(IConventionAware source) {
         this._source = source;
         this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);

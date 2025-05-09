@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.analysis.checkers.toVisibilityOrNull
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
@@ -647,6 +648,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
+    @Ignore("there is no jruby-gradle-plugin that works without conventions or dependencies are missing. https://github.com/jruby-gradle/jruby-gradle-plugin/issues/451")
     fun `can use plugin specs with jruby-gradle-plugin`() {
 
         withKotlinDslPlugin().appendText(

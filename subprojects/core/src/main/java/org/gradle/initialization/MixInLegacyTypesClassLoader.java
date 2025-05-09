@@ -73,6 +73,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     private static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
 
     private static final String META_CLASS_FIELD = "__meta_class__";
+    private static final String LEGACY_MIXIN_LOADER_NAME = "legacy-mixin-loader";
 
     private LegacyTypesSupport legacyTypesSupport;
 
@@ -85,12 +86,12 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     }
 
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
-        super("legacy-mixin-loader", parent, classPath);
+        super(LEGACY_MIXIN_LOADER_NAME, parent, classPath);
         this.legacyTypesSupport = legacyTypesSupport;
     }
 
     public MixInLegacyTypesClassLoader(ClassLoader parent, Collection<URL> urls, LegacyTypesSupport legacyTypesSupport) {
-        super("legacy-mixin-loader", parent, urls);
+        super(LEGACY_MIXIN_LOADER_NAME, parent, urls);
         this.legacyTypesSupport = legacyTypesSupport;
     }
 

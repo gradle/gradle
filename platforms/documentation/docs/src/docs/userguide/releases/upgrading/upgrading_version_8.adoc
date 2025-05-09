@@ -2958,8 +2958,8 @@ The concept of conventions is outdated and superseded by <<implementing_gradle_p
 
 To reflect this in the Gradle API, the following elements are deprecated:
 
-- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[org.gradle.api.Project.getConvention()]
-- link:{javadocPath}/org/gradle/api/plugins/Convention.html[org.gradle.api.plugins.Convention]
+- `org.gradle.api.Project.getConvention()
+- `org.gradle.api.plugins.Convention`
 - `org.gradle.api.internal.HasConvention`
 
 Gradle Core plugins still register their conventions in addition to their extensions for backwards compatibility.

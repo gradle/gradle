@@ -25,52 +25,31 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
-import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-@Deprecated
-public class DefaultConvention implements org.gradle.api.plugins.Convention, ExtensionContainerInternal { // TODO (donat) rename to DefaultExtensionContainer
+public class DefaultExtensionContainer implements ExtensionContainerInternal {
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
-    private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
+    private final DefaultExtensionContainer.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final InstanceGenerator instanceGenerator;
 
-    private Map<String, Object> plugins;
-    private IdentityHashMap<Object, BeanDynamicObject> dynamicObjects;
-
-    public DefaultConvention(InstanceGenerator instanceGenerator) {
+    public DefaultExtensionContainer(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
-    @Deprecated
-    @Override
-    public Map<String, Object> getPlugins() {
-        logConventionDeprecation();
-        if (plugins == null) {
-            plugins = new LinkedHashMap<>();
-        }
-        return plugins;
-    }
 
     public DynamicObject getExtensionsAsDynamicObject() {
         // This implementation of Convention doesn't log a deprecation warning
@@ -78,40 +57,6 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         // Instead, the returned object logs a deprecation warning when
         // a convention is actually accessed.
         return extensionsDynamicObject;
-    }
-
-    @Deprecated
-    @Override
-    public <T> T getPlugin(Class<T> type) {
-        T value = findPlugin(type);
-        if (value == null) {
-            throw new IllegalStateException(
-                format("Could not find any convention object of type %s.", type.getSimpleName()));
-        }
-        return value;
-    }
-
-    @Deprecated
-    @Override
-    public <T> T findPlugin(Class<T> type) throws IllegalStateException {
-        logConventionDeprecation();
-        if (plugins == null) {
-            return null;
-        }
-        List<T> values = new ArrayList<T>();
-        for (Object object : plugins.values()) {
-            if (type.isInstance(object)) {
-                values.add(type.cast(object));
-            }
-        }
-        if (values.isEmpty()) {
-            return null;
-        }
-        if (values.size() > 1) {
-            throw new IllegalStateException(
-                format("Found multiple convention objects of type %s.", type.getSimpleName()));
-        }
-        return values.get(0);
     }
 
     @Override
@@ -237,30 +182,12 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
 
         @Override
         public boolean hasProperty(String name) {
-            if (extensionsStorage.hasExtension(name)) {
-                return true;
-            }
-            if (plugins == null) {
-                return false;
-            }
-            for (Object object : plugins.values()) {
-                if (asDynamicObject(object).hasProperty(name)) {
-                    return true;
-                }
-            }
-            return false;
+            return extensionsStorage.hasExtension(name);
         }
 
         @Override
         public Map<String, @Nullable Object> getProperties() {
             Map<String, Object> properties = new HashMap<String, Object>();
-            if (plugins != null) {
-                List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
-                Collections.reverse(reverseOrder);
-                for (Object object : reverseOrder) {
-                    properties.putAll(asDynamicObject(object).getProperties());
-                }
-            }
             properties.putAll(extensionsStorage.getAsMap());
             return properties;
         }
@@ -271,16 +198,6 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             if (extension != null) {
                 return DynamicInvokeResult.found(extension);
             }
-            if (plugins == null) {
-                return DynamicInvokeResult.notFound();
-            }
-            for (Object object : plugins.values()) {
-                DynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
-                DynamicInvokeResult result = dynamicObject.tryGetProperty(name);
-                if (result.isFound()) {
-                    return result;
-                }
-            }
             return DynamicInvokeResult.notFound();
         }
 
@@ -290,50 +207,30 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return getProperty(name);
         }
 
-        @Override
-        public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
-            return trySetProperty(name, beanDynamicObject -> beanDynamicObject.trySetProperty(name, value));
-        }
-
-        @Override
-        public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
-            return trySetProperty(name, beanDynamicObject -> beanDynamicObject.trySetPropertyWithoutInstrumentation(name, value));
-        }
-
-        private DynamicInvokeResult trySetProperty(String name, Function<BeanDynamicObject, DynamicInvokeResult> methodCall) {
-            checkExtensionIsNotReassigned(name);
-            if (plugins == null) {
-                return DynamicInvokeResult.notFound();
-            }
-            for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
-                DynamicInvokeResult result = methodCall.apply(dynamicObject);
-                if (result.isFound()) {
-                    return result;
-                }
-            }
-            return DynamicInvokeResult.notFound();
-        }
-
         @SuppressWarnings("unused")  // Groovy magic method
         public void propertyMissing(String name, Object value) {
             setProperty(name, value);
         }
 
         @Override
+        public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
+            return trySetProperty(name);
+        }
+
+        @Override
+        public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+            return trySetProperty(name);
+        }
+
+        private DynamicInvokeResult trySetProperty(String name) {
+            checkExtensionIsNotReassigned(name);
+            return DynamicInvokeResult.notFound();
+        }
+
+        @Override
         public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return DynamicInvokeResult.found(configureExtension(name, args));
-            }
-            if (plugins == null) {
-                return DynamicInvokeResult.notFound();
-            }
-            for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
-                DynamicInvokeResult result = dynamicObject.tryInvokeMethod(name, args);
-                if (result.isFound()) {
-                    return result;
-                }
             }
             return DynamicInvokeResult.notFound();
         }
@@ -346,31 +243,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
 
         @Override
         public boolean hasMethod(String name, @Nullable Object... args) {
-            if (isConfigureExtensionMethod(name, args)) {
-                return true;
-            }
-            if (plugins == null) {
-                return false;
-            }
-            for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = asDynamicObject(object);
-                if (dynamicObject.hasMethod(name, args)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private BeanDynamicObject asDynamicObject(Object object) {
-            if (dynamicObjects == null) {
-                dynamicObjects = new IdentityHashMap<>();
-            }
-            BeanDynamicObject dynamicObject = dynamicObjects.get(object);
-            if (dynamicObject == null) {
-                dynamicObject = new BeanDynamicObject(object);
-                dynamicObjects.put(object, dynamicObject);
-            }
-            return dynamicObject;
+            return isConfigureExtensionMethod(name, args);
         }
     }
 
@@ -395,12 +268,5 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             action = Cast.uncheckedCast(args[0]);
         }
         return extensionsStorage.configureExtension(name, action);
-    }
-
-    private static void logConventionDeprecation() {
-        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-            .nagUser();
     }
 }

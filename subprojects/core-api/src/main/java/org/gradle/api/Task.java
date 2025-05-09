@@ -573,18 +573,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     void setProperty(String name, Object value) throws MissingPropertyException;
 
     /**
-     * <p>Returns the {@link org.gradle.api.plugins.Convention} object for this task. A {@link Plugin} can use the convention object to
-     * contribute properties and methods to this task.</p>
-     *
-     * @return The convention object. Never returns null.
-     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
-     * @see ExtensionAware#getExtensions()
-     */
-    @Internal
-    @Deprecated
-    org.gradle.api.plugins.Convention getConvention();
-
-    /**
      * Returns the description of this task.
      *
      * @return the description. May return null.

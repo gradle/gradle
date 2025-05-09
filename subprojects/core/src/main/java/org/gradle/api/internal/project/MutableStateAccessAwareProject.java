@@ -1086,17 +1086,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         delegate.artifacts(configureAction);
     }
 
-    /**
-     * @deprecated the concept of conventions is deprecated. Use extensions instead
-     */
-    @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public org.gradle.api.plugins.Convention getConvention() {
-        onMutableStateAccess("convention");
-        return delegate.getConvention();
-    }
-
     @Override
     public int depthCompare(Project otherProject) {
         return delegate.depthCompare(otherProject);
