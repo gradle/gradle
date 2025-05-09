@@ -20,10 +20,17 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
+import org.gradle.internal.resolve.ArtifactDeclarationLocation;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Collections;
 
 public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
     private ComponentGraphResolveState state;
@@ -42,7 +49,17 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
 
     @Override
     public void notFound(ModuleComponentIdentifier versionIdentifier) {
-        failed(new ModuleVersionNotFoundException(DefaultModuleVersionIdentifier.newId(versionIdentifier), getAttempted()));
+        failed(new ModuleVersionNotFoundException(DefaultModuleVersionIdentifier.newId(versionIdentifier), getAttempted(), Collections.singletonList(new ArtifactDeclarationLocation(new UserCodeSource() {
+            @Override
+            public DisplayName getDisplayName() {
+                return Describables.of("Foo location");
+            }
+
+            @Override
+            public @Nullable String getPluginId() {
+                return null;
+            }
+        }))));
     }
 
     @Override
