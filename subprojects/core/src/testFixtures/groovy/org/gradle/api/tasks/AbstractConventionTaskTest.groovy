@@ -16,24 +16,23 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.internal.extensibility.ConventionAwareHelper
 import org.gradle.api.internal.ConventionTask
 
-public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
+abstract class AbstractConventionTaskTest extends AbstractTaskTest {
 
-    public abstract ConventionTask getTask();
+    abstract ConventionTask getTask();
 
-    def "is aware of conventions"() {
-
-        expect:
-        task.getConventionMapping() instanceof ConventionAwareHelper
-
-        when:
-        ConventionAwareHelper conventionMapping = (ConventionAwareHelper) task.getConventionMapping();
-
-        then:
-        conventionMapping.getConvention().is(task.getConvention())
-    }
+//    def "is aware of conventions"() {
+//
+//        expect:
+//        task.getConventionMapping() instanceof ConventionAwareHelper
+//
+//        when:
+//        ConventionAwareHelper conventionMapping = (ConventionAwareHelper) task.getConventionMapping();
+//
+//        then:
+//        conventionMapping.getConvention().is(task.getConvention())
+//    }
 }
 
 

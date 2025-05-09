@@ -54,7 +54,6 @@ fun conventionPluginByName(convention: org.gradle.api.plugins.Convention, name: 
 @Suppress("deprecation")
 fun conventionOf(target: Any): org.gradle.api.plugins.Convention = when (target) {
     is Project -> DeprecationLogger.whileDisabled(Factory { target.convention })!!
-    is org.gradle.api.internal.HasConvention -> DeprecationLogger.whileDisabled(Factory { target.convention })!!
     else -> error("Object `$target` doesn't support conventions!")
 }
 
