@@ -279,7 +279,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator decorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        ProjectRegistry<ProjectInternal> projectRegistry,
+        UserCodeApplicationContext userCodeApplicationContext
     ) {
         return new DefaultTaskContainerFactory(
             instantiator,
@@ -290,7 +291,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             buildOperationRunner,
             crossProjectConfigurator,
             decorator,
-            projectRegistry
+            projectRegistry,
+            userCodeApplicationContext
         ).create();
     }
 

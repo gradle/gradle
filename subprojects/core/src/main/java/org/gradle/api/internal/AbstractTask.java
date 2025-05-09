@@ -66,6 +66,7 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -1072,5 +1073,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private BuildServiceRegistryInternal getBuildServiceRegistry() {
         return getServices().get(BuildServiceRegistryInternal.class);
+    }
+
+    @Internal
+    @Nullable
+    public UserCodeSource getUserCodeSource() {
+        return identity.userCodeSource;
     }
 }
