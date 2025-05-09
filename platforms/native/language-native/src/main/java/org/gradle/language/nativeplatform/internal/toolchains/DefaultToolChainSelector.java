@@ -22,11 +22,11 @@ import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.internal.DefaultSwiftPlatform;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -37,12 +37,12 @@ import org.gradle.util.internal.VersionNumber;
 import javax.inject.Inject;
 
 public class DefaultToolChainSelector implements ToolChainSelector {
-    private final ModelRegistry modelRegistry;
+    private final NativeToolChainRegistry registry;
     private DefaultNativePlatform host;
 
     @Inject
-    public DefaultToolChainSelector(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
+    public DefaultToolChainSelector(NativeToolChainRegistry registry) {
+        this.registry = registry;
         this.host = DefaultNativePlatform.host();
     }
 
@@ -97,8 +97,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
     }
 
     private NativeToolChainInternal getToolChain(NativeLanguage sourceLanguage, NativePlatformInternal targetNativePlatform) {
-        NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
-        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetNativePlatform);
+        NativeToolChainInternal toolChain = Cast.<NativeToolChainRegistryInternal>uncheckedCast(registry).getForPlatform(sourceLanguage, targetNativePlatform);
         toolChain.assertSupported();
 
         return toolChain;

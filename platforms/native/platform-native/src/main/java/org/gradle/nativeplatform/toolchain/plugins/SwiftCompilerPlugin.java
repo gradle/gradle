@@ -17,24 +17,14 @@
 package org.gradle.nativeplatform.toolchain.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.model.Defaults;
-import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
-import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
+import org.gradle.internal.Cast;
+import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
+import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.nativeplatform.toolchain.internal.swift.SwiftcToolChain;
-import org.gradle.process.internal.ExecActionFactory;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -48,28 +38,9 @@ public abstract class SwiftCompilerPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(NativeComponentModelPlugin.class);
-    }
-
-    static class Rules extends RuleSource {
-        @Defaults
-        public static void addToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            final ExecActionFactory execActionFactory = serviceRegistry.get(ExecActionFactory.class);
-            final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = serviceRegistry.get(CompilerOutputFileNamingSchemeFactory.class);
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            final BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
-            final CompilerMetaDataProviderFactory metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProviderFactory.class);
-            final WorkerLeaseService workerLeaseService = serviceRegistry.get(WorkerLeaseService.class);
-
-            toolChainRegistry.registerFactory(Swiftc.class, new NamedDomainObjectFactory<Swiftc>() {
-                @Override
-                public Swiftc create(String name) {
-                    return instantiator.newInstance(SwiftcToolChain.class, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.swiftc(), instantiator, workerLeaseService);
-                }
-            });
-            toolChainRegistry.registerDefaultToolChain(SwiftcToolChain.DEFAULT_NAME, Swiftc.class);
-        }
-
+        project.getPluginManager().apply(NativeComponentPlugin.class);
+        NativeToolChainRegistryInternal toolChainRegistry = Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
+        toolChainRegistry.registerBinding(Swiftc.class, SwiftcToolChain.class);
+        toolChainRegistry.registerDefaultToolChain(SwiftcToolChain.DEFAULT_NAME, Swiftc.class);
     }
 }
