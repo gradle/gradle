@@ -22,8 +22,6 @@ import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 import org.gradle.util.GradleVersion
 
-import static org.hamcrest.CoreMatchers.containsString
-
 /**
  * Tests behavior of different test frameworks when their required
  * runtime dependencies are not included on the test runtime classpath.
