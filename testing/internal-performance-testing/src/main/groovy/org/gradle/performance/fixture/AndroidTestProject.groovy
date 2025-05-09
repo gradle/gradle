@@ -23,8 +23,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
-
-import javax.annotation.Nullable
+import org.jspecify.annotations.Nullable
 
 class AndroidTestProject implements TestProject {
 

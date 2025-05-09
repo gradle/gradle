@@ -44,7 +44,7 @@ dependencies {
     api(libs.jatl)
     api(libs.jettyServer)
     api(libs.jettyWebApp)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.junit)
     api(libs.spock)
 
