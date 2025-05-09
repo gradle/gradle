@@ -19,17 +19,29 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Thrown when some internal exception occurs executing a test suite.
+ * <p>
+ * If the exception involves a particular test class, records the name of the test class.
  */
 @NullMarked
 public class TestSuiteExecutionException extends GradleException implements ResolutionProvider {
+    @Nullable
+    private final String testClassName;
+
     public TestSuiteExecutionException(String message, Throwable cause) {
+        this(message, null, cause);
+    }
+
+    public TestSuiteExecutionException(String message, @Nullable String testClassName, Throwable cause) {
         super(message, cause);
+        this.testClassName = testClassName;
     }
 
     @Override
@@ -39,5 +51,9 @@ public class TestSuiteExecutionException extends GradleException implements Reso
         } else {
             return Collections.emptyList();
         }
+    }
+
+    public Optional<String> getTestClassName() {
+        return Optional.ofNullable(testClassName);
     }
 }

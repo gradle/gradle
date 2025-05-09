@@ -22,19 +22,24 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class StateTrackingTestResultProcessor implements TestResultProcessor {
-    private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
+    private final Map<Object, TestState> executing = new HashMap<>();
     private TestDescriptorInternal currentParent;
     private final TestListenerInternal listener;
+    private final Set<Object> reportedClassStartupFailures = new HashSet<>();
 
     public StateTrackingTestResultProcessor(TestListenerInternal delegate) {
         this.listener = delegate;
@@ -112,12 +117,39 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
              * We want to treat this not as a test failure, but as a TASK failure, as it indicates a task misconfiguration.
              * We need to throw an exception here and abort normal failure processing so that this information
              * isn't buried in the typical test results report.
+             *
+             * We only want to do this once per test, so we keep track of the test ids that have failed like this.
              */
-            throw new TestFrameworkStartupFailureException(testFailure);
+            Object testTaskId = Objects.requireNonNull(findDescriptor(testId).getParent()).getId();
+            if (needToReportStartupFailure(testTaskId, testFailure)) {
+                throw new TestFrameworkStartupFailureException(testFailure);
+            }
         } else if (testFailure.getDetails().isAssumptionFailure()) {
             testState.assumptionFailure = testFailure;
         } else {
             testState.failures.add(testFailure);
+        }
+    }
+
+    /**
+     * We only want to report one failing test class per test task, to keep logs from exploding; this method
+     * will determine if a startup failure needs to be reported or swallowed.
+     *
+     * @param testTaskId the id of the test task where the failure occurred
+     * @param failure the test failure
+     * @return {@code true} if the failure should be reported; {@code false} otherwise
+     */
+    private boolean needToReportStartupFailure(Object testTaskId, TestFailure failure) {
+        boolean isClassExecutionFailure = failure.getRawFailure() instanceof TestSuiteExecutionException && ((TestSuiteExecutionException) failure.getRawFailure()).getTestClassName().isPresent();
+        if (isClassExecutionFailure) {
+            if (reportedClassStartupFailures.contains(testTaskId)) {
+                return false;
+            } else {
+                reportedClassStartupFailures.add(testTaskId);
+                return true;
+            }
+        } else {
+            return true;
         }
     }
 
