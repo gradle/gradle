@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.Cast;
@@ -39,13 +38,7 @@ public abstract class GccCompilerPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
         NativeToolChainRegistryInternal toolChainRegistry = Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
-//        toolChainRegistry.registerBinding(Gcc.class, GccToolChain.class);
-        toolChainRegistry.registerFactory(Gcc.class, new NamedDomainObjectFactory<Gcc>() {
-            @Override
-            public Gcc create(String name) {
-                return project.getObjects().newInstance(GccToolChain.class, name);
-            }
-        });
+        toolChainRegistry.registerBinding(Gcc.class, GccToolChain.class);
         toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc.class);
     }
 }

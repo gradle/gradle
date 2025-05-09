@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.Cast;
@@ -41,13 +40,7 @@ public abstract class SwiftCompilerPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
         NativeToolChainRegistryInternal toolChainRegistry = Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
-//        toolChainRegistry.registerBinding(Swiftc.class, SwiftcToolChain.class);
-        toolChainRegistry.registerFactory(Swiftc.class, new NamedDomainObjectFactory<Swiftc>() {
-            @Override
-            public Swiftc create(String name) {
-                return project.getObjects().newInstance(SwiftcToolChain.class, name);
-            }
-        });
+        toolChainRegistry.registerBinding(Swiftc.class, SwiftcToolChain.class);
         toolChainRegistry.registerDefaultToolChain(SwiftcToolChain.DEFAULT_NAME, Swiftc.class);
     }
 }

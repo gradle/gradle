@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.Cast;
@@ -37,13 +36,7 @@ public abstract class MicrosoftVisualCppCompilerPlugin implements Plugin<Project
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
         NativeToolChainRegistryInternal toolChainRegistry = Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
-//        toolChainRegistry.registerBinding(VisualCpp.class, VisualCppToolChain.class);
-        toolChainRegistry.registerFactory(VisualCpp.class, new NamedDomainObjectFactory<VisualCpp>() {
-            @Override
-            public VisualCpp create(String name) {
-                return project.getObjects().newInstance(VisualCppToolChain.class, name);
-            }
-        });
+        toolChainRegistry.registerBinding(VisualCpp.class, VisualCppToolChain.class);
         toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp.class);
     }
 }
