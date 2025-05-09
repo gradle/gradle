@@ -75,6 +75,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -119,7 +120,11 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
     private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
+    @Nullable
     private transient Configuration configuration;
+    private transient boolean isConfigurationSet = false;
+    @Nullable
+    private Callable<Configuration> configurationConvention;
     private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
 
     // this field is named with a starting `z` to be serialized after `rootComponentProperty`
@@ -192,7 +197,18 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Internal
     @ToBeReplacedByLazyProperty
     public @Nullable Configuration getConfiguration() {
-        return configuration;
+        // hardcoded convention mapping
+        if (isConfigurationSet) {
+            return configuration;
+        } else if (configurationConvention != null) {
+            try {
+                return configurationConvention.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -200,6 +216,18 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      */
     public void setConfiguration(@Nullable Configuration configuration) {
         this.configuration = configuration;
+        this.isConfigurationSet = true;
+    }
+
+    /**
+     * Sets the convention for configuration. The value is evaluated lazily.
+     *
+     * @param convention callable that returns the configuration.
+     * @since 9.0
+     */
+    @Incubating
+    public void configurationConvention(Callable<Configuration> convention) {
+        this.configurationConvention = convention;
     }
 
     /**
