@@ -19,6 +19,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.logging)
     implementation(projects.io)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
