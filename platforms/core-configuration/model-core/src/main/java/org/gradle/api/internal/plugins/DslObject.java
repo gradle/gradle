@@ -24,7 +24,6 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -39,12 +38,11 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * if the backing object does not implement {@link IConventionAware}.
  */
 @SuppressWarnings("deprecation")
-public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware, org.gradle.api.internal.HasConvention {
+public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware {
 
     private DynamicObject dynamicObject;
     private ExtensionContainer extensionContainer;
     private ConventionMapping conventionMapping;
-    private org.gradle.api.plugins.Convention convention;
 
     private final Object object;
 
@@ -58,21 +56,6 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
             this.dynamicObject = toType(object, DynamicObjectAware.class).getAsDynamicObject();
         }
         return dynamicObject;
-    }
-
-    @Override
-    @Deprecated
-    public org.gradle.api.plugins.Convention getConvention() {
-        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-            .nagUser();
-        if (convention == null) {
-            this.convention = DeprecationLogger.whileDisabled(() ->
-                toType(object, org.gradle.api.internal.HasConvention.class).getConvention()
-            );
-        }
-        return convention;
     }
 
     @Override
