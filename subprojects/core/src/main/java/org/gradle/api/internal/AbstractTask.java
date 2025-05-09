@@ -594,7 +594,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public ExtensionContainer getExtensions() {
-        return getConventionVia("Task.extensions", true);
+        notifyConventionAccess("Task.extensions");
+        assertDynamicObject();
+        return extensibleDynamicObject.getExtensionContainer();
     }
 
     private org.gradle.api.plugins.Convention getConventionVia(String invocationDescription, boolean disableDeprecationForConventionAccess) {
