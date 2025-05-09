@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -43,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import static java.util.Collections.singletonList;
 import static org.gradle.util.internal.CollectionUtils.collect;
@@ -472,10 +474,25 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         public void add(SingletonService serviceProvider) {
             assertMutable();
             stoppable.add(serviceProvider);
+            checkDeclaredServices(serviceProvider.getDeclaredServiceTypes());
             collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
             services.add(serviceProvider);
             for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
                 notifyAnnotationHandler(annotationHandler, serviceProvider);
+            }
+        }
+
+        public void checkDeclaredServices(List<Class<?>> declaredServiceTypes) {
+            // Caveat: we only validate explicitly declared types, because super-types can still implement these interfaces
+            for (Class<?> serviceType : declaredServiceTypes) {
+                if (serviceType.equals(Supplier.class)
+                    || serviceType.equals(Factory.class)
+                    // avoid adding a dependency
+                    || "org.gradle.internal.lazy.Lazy".equals(serviceType.getName())) {
+
+                    throw new IllegalArgumentException("Cannot define a service of type '" + serviceType.getName() + "' because lazy service wrapping is unsupported." +
+                        " Use an explicit type instead.");
+                }
             }
         }
 
