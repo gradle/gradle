@@ -19,6 +19,8 @@ import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -41,19 +43,25 @@ abstract public class SignOperation implements SignatureSpec {
     /**
      * The file representation of the signature(s).
      */
-    private SignatureType signatureType;
+    final Property<SignatureType> signatureType;
 
     /**
      * The signatory to the generated digital signatures.
      */
-    private Signatory signatory;
+    final Property<Signatory> signatory;
 
     /**
      * Whether or not it is required that this signature be generated.
      */
-    private boolean required;
+    final Property<Boolean> required;
 
     private final List<Signature> signatures = new ArrayList<Signature>();
+
+    protected SignOperation(ObjectFactory objects) {
+        signatureType = objects.property(SignatureType.class);
+        signatory = objects.property(Signatory.class);
+        required = objects.property(Boolean.class).convention(false);
+    }
 
     @ToBeReplacedByLazyProperty
     public String getDisplayName() {
@@ -67,35 +75,35 @@ abstract public class SignOperation implements SignatureSpec {
 
     @Override
     public void setSignatureType(SignatureType signatureType) {
-        this.signatureType = signatureType;
+        this.signatureType.set(signatureType);
     }
 
     @Override
     @ToBeReplacedByLazyProperty
     public SignatureType getSignatureType() {
-        return signatureType;
+        return signatureType.getOrNull();
     }
 
     @Override
     public void setSignatory(Signatory signatory) {
-        this.signatory = signatory;
+        this.signatory.set(signatory);
     }
 
     @Override
     @ToBeReplacedByLazyProperty
     public Signatory getSignatory() {
-        return signatory;
+        return signatory.getOrNull();
     }
 
     @Override
     public void setRequired(boolean required) {
-        this.required = required;
+        this.required.set(required);
     }
 
     @Override
     @ToBeReplacedByLazyProperty
     public boolean isRequired() {
-        return required;
+        return required.get();
     }
 
     /**
@@ -141,7 +149,7 @@ abstract public class SignOperation implements SignatureSpec {
      * Change the signature type for signature generation.
      */
     public SignOperation signatureType(SignatureType type) {
-        this.signatureType = type;
+        this.signatureType.set(type);
         return this;
     }
 
@@ -149,7 +157,7 @@ abstract public class SignOperation implements SignatureSpec {
      * Change the signatory for signature generation.
      */
     public SignOperation signatory(Signatory signatory) {
-        this.signatory = signatory;
+        this.signatory.set(signatory);
         return this;
     }
 

@@ -18,6 +18,7 @@ package org.gradle.plugins.signing.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.plugins.signing.SignOperation;
 
 import javax.inject.Inject;
@@ -28,7 +29,8 @@ public class SignOperationInternal extends SignOperation {
     private final ProjectLayout projectLayout;
 
     @Inject
-    public SignOperationInternal(ProjectLayout projectLayout) {
+    public SignOperationInternal(ObjectFactory objects, ProjectLayout projectLayout) {
+        super(objects);
         this.projectLayout = projectLayout;
     }
 
