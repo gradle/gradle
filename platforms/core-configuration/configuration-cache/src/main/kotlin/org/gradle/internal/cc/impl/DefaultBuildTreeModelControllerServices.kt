@@ -49,6 +49,7 @@ import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessLis
 import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
+import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
@@ -264,6 +265,12 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.addProvider(ConfigurationCacheModelProvider())
         } else {
             registration.addProvider(VintageModelProvider())
+        }
+
+        if (!requirements.startParameter.configurationCache.isExplicit && !modelParameters.isConfigurationCache) {
+            // Don't suggest enabling CC if it is on, even if implicitly (e.g. enabled by isolated projects).
+            // Most likely, the user who tries IP is already aware of CC and nudging will be just noise.
+            registration.add(ConfigurationCachePromoHandler::class.java)
         }
     }
 
