@@ -17,8 +17,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
@@ -28,11 +27,11 @@ import org.gradle.internal.time.Clock;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class TestNGTestClassProcessor implements TestClassProcessor {
-
-    private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
+public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassProcessor {
+    private final List<Class<?>> testClasses = new ArrayList<>();
     private final File testReportDir;
     private final TestNGSpec spec;
     private final List<File> suiteFiles;
@@ -42,6 +41,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private ClassLoader applicationClassLoader;
     private Actor resultProcessorActor;
     private TestResultProcessor resultProcessor;
+    private boolean startedProcessing;
 
     public TestNGTestClassProcessor(File testReportDir, TestNGSpec spec, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
@@ -53,15 +53,23 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void startProcessing(TestResultProcessor resultProcessor) {
+    public void assertTestFrameworkAvailable() {
         try {
             Class.forName("org.testng.TestNG");
         } catch (ClassNotFoundException e) {
-            throw new InvalidUserCodeException(
-                "Failed to load TestNG. " +
-                "Please ensure that TestNG is available on the test runtime classpath."
+            throw new TestFrameworkNotAvailableException(
+                "Failed to load TestNG. ",
+                Arrays.asList(
+                    "Please ensure that TestNG is available on the test runtime classpath.",
+                    getUpgradeGuide()
+                )
             );
         }
+    }
+
+    @Override
+    public void startProcessing(TestResultProcessor resultProcessor) {
+        assertTestFrameworkAvailable();
 
         // Wrap the processor in an actor, to make it thread-safe
         resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
@@ -70,10 +78,14 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (spec.isDryRun()) {
             System.setProperty("testng.mode.dryrun", "true");
         }
+
+        startedProcessing = true;
     }
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
+        assertTestFrameworkAvailable();
+
         // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
         try {
             testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
@@ -84,19 +96,21 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stop() {
-        try {
-            new TestNGTestRunner(
-                testReportDir,
-                suiteFiles,
-                idGenerator,
-                clock,
-                resultProcessor,
-                applicationClassLoader,
-                spec,
-                testClasses
-            ).runTests();
-        } finally {
-            resultProcessorActor.stop();
+        if (startedProcessing) {
+            try {
+                new TestNGTestRunner(
+                    testReportDir,
+                    suiteFiles,
+                    idGenerator,
+                    clock,
+                    resultProcessor,
+                    applicationClassLoader,
+                    spec,
+                    testClasses
+                ).runTests();
+            } finally {
+                resultProcessorActor.stop();
+            }
         }
     }
 
@@ -104,5 +118,4 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     public void stopNow() {
         throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
     }
-
 }

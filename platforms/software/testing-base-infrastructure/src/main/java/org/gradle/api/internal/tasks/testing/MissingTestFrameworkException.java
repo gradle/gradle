@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,20 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.ResolutionProvider;
-import org.jspecify.annotations.NullMarked;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Thrown when some internal exception occurs executing a test suite.
- */
-@NullMarked
-public class TestSuiteExecutionException extends GradleException implements ResolutionProvider {
-    public TestSuiteExecutionException(String message, Throwable cause) {
+public final class MissingTestFrameworkException extends GradleException implements ResolutionProvider {
+    private final List<String> resolutions;
+
+    public MissingTestFrameworkException(String message, TestSuiteExecutionException cause) {
         super(message, cause);
+        this.resolutions = new ArrayList<>(cause.getResolutions());
     }
 
     @Override
     public List<String> getResolutions() {
-        if (getCause() instanceof ResolutionProvider) {
-            return ((ResolutionProvider) getCause()).getResolutions();
-        } else {
-            return Collections.emptyList();
-        }
+        return resolutions;
     }
 }
