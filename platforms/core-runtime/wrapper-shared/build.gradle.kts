@@ -5,7 +5,12 @@ plugins {
 description = "Utility code shared between the wrapper and the Gradle distribution"
 
 gradleModule {
-    usedInWrapper = true
+    targetRuntimes {
+        usedInWrapper = true
+    }
+}
+
+jvmCompile {
     usesIncompatibleDependencies = true // For :files, test dependencies
 }
 

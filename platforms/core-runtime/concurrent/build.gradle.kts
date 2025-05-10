@@ -22,7 +22,9 @@ plugins {
 description = "Tools to work with managed executors"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

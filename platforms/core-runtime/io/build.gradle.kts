@@ -22,7 +22,9 @@ plugins {
 description = "I/O utilities"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

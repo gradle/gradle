@@ -25,7 +25,9 @@ various implementations of WorkerTestClassProcessorFactory.
 """
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

@@ -23,7 +23,12 @@ plugins {
 description = "Java 6-compatible entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
 gradleModule {
-    usedForStartup = true
+    targetRuntimes {
+        usedForStartup = true
+    }
+}
+
+jvmCompile {
     usesIncompatibleDependencies = true
 }
 

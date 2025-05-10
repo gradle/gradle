@@ -5,7 +5,9 @@ plugins {
 description = "Implementation of messaging between Gradle processes"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

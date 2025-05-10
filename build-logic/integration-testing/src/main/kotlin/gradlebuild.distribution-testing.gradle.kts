@@ -28,7 +28,7 @@ plugins {
 val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 
 val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
-    parameters.gradleVersion = moduleIdentity.version.map { it.version }
+    parameters.gradleVersion = gradleModule.identity.version.map { it.version }
     parameters.homeDir = intTestHomeDir
 }
 

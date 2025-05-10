@@ -5,7 +5,9 @@ plugins {
 description = "Process memory abstractions."
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

@@ -21,7 +21,7 @@ plugins {
 
 description = "Configuration Cache services supporting bean serialization"
 
-gradleModule {
+jvmCompile {
     usesJdkInternals = true
 }
 
