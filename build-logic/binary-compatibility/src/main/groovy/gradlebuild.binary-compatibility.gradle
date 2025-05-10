@@ -56,7 +56,7 @@ def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonDirectory.asFile
     .collect { providers.fileContents(apiChangesJsonDirectory.file(it.name)).asText.get() }
 )
 
-def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
+def compatibilityBaselineVersion = gradleModule.identity.releasedVersions.get().mostRecentRelease.version
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
 def RUNTIME_ATTRIBUTE = objects.named(Usage, Usage.JAVA_RUNTIME)
@@ -100,7 +100,7 @@ configurations {
 def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
 def currentDistroJars = currentClasspath.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
 def baselineJars = configurations.baselineJars
-def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
+def baseVersion = gradleModule.identity.version.map { it.baseVersion.version }
 
 dependencies {
     baseline("gradle:gradle:${compatibilityBaselineVersion}@zip")
@@ -131,7 +131,7 @@ def extractGradleApiInfo = tasks.register("extractGradleApiInfo", gradlebuild.bi
 }
 
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
-    def isSnapshot = moduleIdentity.snapshot
+    def isSnapshot = gradleModule.identity.snapshot
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)

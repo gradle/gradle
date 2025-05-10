@@ -5,7 +5,7 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
-gradleModule {
+jvmCompile {
     usesJdkInternals = true
 }
 

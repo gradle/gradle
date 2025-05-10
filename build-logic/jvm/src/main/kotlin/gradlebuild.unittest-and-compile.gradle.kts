@@ -36,6 +36,8 @@ import gradlebuild.basics.testJavaVersion
 import gradlebuild.basics.testing.excludeSpockAnnotation
 import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
+import gradlebuild.identity.extension.GradleModuleExtension
+import gradlebuild.identity.extension.ModuleTargetRuntimes
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.jvm.JpmsConfiguration
@@ -53,32 +55,27 @@ plugins {
     id("gradlebuild.dependency-modules")
 }
 
+val gradleModule = the<GradleModuleExtension>()
+
 // Create an extension that allows projects to configure the way they are compiled and tested.
 //
-// Particularly, we let them describe the "platform" they are targeting, like a Gradle worker, daemon, etc.
-//
-// Furthermore, we let them describe whether they are using any "workarounds" like:
+// Projects may describe whether they are using any "workarounds" like:
 // - Using JDK internal classes
 // - Using Java standard library APIs that were introduced after the JVM version they are targeting
 // - Using dependencies that target a higher JVM version than the project's target JVM version
 //
 // All of these workarounds should be generally avoided, but, with this data we can configure the
 // compile tasks to permit some of these requirements.
-val gradleModule = extensions.create<UnitTestAndCompileExtension>("gradleModule").apply {
-    // By default, assume a library targets only the daemon
-    // TODO: Eventually, all projects should explicitly declare their target platform(s)
-    usedForStartup = false
-    usedInWrapper = false
-    usedInWorkers = false
-    usedInClient = false
-    usedInDaemon = true
-
+val jvmCompile = extensions.create<UnitTestAndCompileExtension>(UnitTestAndCompileExtension.NAME).apply {
     // And assume it does not use any workarounds
     usesJdkInternals = false
     usesFutureStdlib = false
+
+    // By default, use the target runtimes of the module to determine the java version
+    targetJvmVersion = gradleModule.targetRuntimes.computeProductionJvmTargetVersion()
 }
 
-enforceCompatibility(gradleModule)
+enforceCompatibility(jvmCompile)
 
 removeTeamcityTempProperty()
 addDependencies()
@@ -115,24 +112,22 @@ fun configureCompileDefaults() {
  * for Groovy to ensure it compiles against the correct classes.
  */
 private
-fun enforceCompatibility(gradleModule: UnitTestAndCompileExtension) {
+fun enforceCompatibility(jvmCompile: UnitTestAndCompileExtension) {
     // When using the release flag, compiled code cannot access JDK internal classes or standard library
     // APIs defined in future versions of Java. If either of these cases are true, we do not use the
     // release flag, but instead set the source and target compatibility flags.
-    val useRelease = gradleModule.usesJdkInternals.zip(gradleModule.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
+    val useRelease = jvmCompile.usesJdkInternals.zip(jvmCompile.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
 
-    val productionJvmVersion = gradleModule.computeProductionJvmTargetVersion()
-
-    enforceJavaCompatibility(productionJvmVersion, useRelease)
-    enforceGroovyCompatibility(productionJvmVersion)
-    enforceKotlinCompatibility(productionJvmVersion, useRelease)
+    enforceJavaCompatibility(jvmCompile.targetJvmVersion, useRelease)
+    enforceGroovyCompatibility(jvmCompile.targetJvmVersion)
+    enforceKotlinCompatibility(jvmCompile.targetJvmVersion, useRelease)
 }
 
 /**
  * Given the declared target platforms of a given Gradle module, determine
  * the JVM version that the production code should target.
  */
-fun UnitTestAndCompileExtension.computeProductionJvmTargetVersion(): Provider<Int> {
+fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
     // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
     val targetRuntimeJavaVersions = mapOf(
         usedForStartup to 8,

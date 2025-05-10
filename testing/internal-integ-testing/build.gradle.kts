@@ -174,11 +174,11 @@ packageCycles {
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
     destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
-    versions = moduleIdentity.releasedVersions.map {
+    versions = gradleModule.identity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
     }
-    mostRecent = moduleIdentity.releasedVersions.map { it.mostRecentRelease.version }
-    mostRecentSnapshot = moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version }
+    mostRecent = gradleModule.identity.releasedVersions.map { it.mostRecentRelease.version }
+    mostRecentSnapshot = gradleModule.identity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
 val copyTestedVersionsInfo by tasks.registering(Copy::class) {
