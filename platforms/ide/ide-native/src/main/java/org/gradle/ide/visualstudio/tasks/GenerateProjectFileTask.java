@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -61,12 +62,13 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
     private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getProjectFile().getLocation()));
     private final Cached<Transformer<@org.jetbrains.annotations.NotNull String, File>> transformer = Cached.of(this::getTransformer);
-    private String gradleExe;
+    private final Property<String> gradleExe;
     private String gradleArgs;
 
     @Inject
     public GenerateProjectFileTask(DefaultVisualStudioProject visualStudioProject) {
         setVisualStudioProject(visualStudioProject);
+        this.gradleExe = getProject().getObjects().property(String.class);
     }
 
     @Override
@@ -76,9 +78,9 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
     public void initGradleCommand() {
         final File gradlew = new File(IdePlugin.toGradleCommand(getProject()));
-        getConventionMapping().map("gradleExe", new Callable<Object>() {
+        gradleExe.convention(getProject().provider(new Callable<String>() {
             @Override
-            public Object call() {
+            public String call() {
                 final String rootDir = transformer.get().transform(getProject().getRootDir());
                 String args = "";
                 if (!rootDir.equals(".")) {
@@ -91,7 +93,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
                 return "\"gradle\"" + args;
             }
-        });
+        }));
     }
 
     @Internal
@@ -181,11 +183,11 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
     @Internal
     public String getGradleExe() {
-        return gradleExe;
+        return gradleExe.get();
     }
 
     public void setGradleExe(String gradleExe) {
-        this.gradleExe = gradleExe;
+        this.gradleExe.set(gradleExe);
     }
 
     @Nullable
