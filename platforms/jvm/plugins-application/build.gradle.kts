@@ -18,13 +18,14 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Contains the Application plugin, and its supporting classes.  This plugin is used for creating runnable Java application projects."
+description = "Contains the Application plugin, and its supporting classes. This plugin is used for creating runnable Java application projects."
 
 dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.jvmServices)
     api(projects.modelCore)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
     api(libs.jspecify)
@@ -38,7 +39,6 @@ dependencies {
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.processServices)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 
