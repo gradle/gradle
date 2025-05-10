@@ -76,13 +76,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
         assertValidationFailsWith([
-            warning(unsupportedValueTypeConfig { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
         ])
 
         and:
@@ -643,7 +643,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=1")
         assertValidationFailsWith([
-            warning(nestedMapUnsupportedKeyTypeConfig { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
+            error(nestedMapUnsupportedKeyTypeConfig { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
         ])
 
         and:
@@ -683,7 +683,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         def reason = "Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types."
         assertValidationFailsWith([
-            warning(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
+            error(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
                 'validation_problems', 'unsupported_nested_type'),
         ])
 
@@ -781,7 +781,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationFailsWith([
-            warning(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
+            error(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
                 'validation_problems', 'unsupported_nested_type'),
         ])
 
