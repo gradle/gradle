@@ -20,12 +20,14 @@ package org.gradle.smoketests
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Requires(UnitTestPreconditions.Jdk17OrLater)
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
+    @Ignore("Spring boot still uses convention mapping in multiple places, e.g.: https://github.com/spring-projects/spring-boot/blob/v3.4.5/spring-boot-project/spring-boot-tools/spring-boot-gradle-plugin/src/main/java/org/springframework/boot/gradle/plugin/ApplicationPluginAction.java#L74")
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
         given:
