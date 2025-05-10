@@ -29,6 +29,7 @@ import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.Workarounds.canAccessConventions
 import org.gradle.internal.cc.impl.isSupportedListener
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsExternalProcess
@@ -41,6 +42,7 @@ import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import java.util.concurrent.ConcurrentHashMap
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -48,12 +50,12 @@ import org.gradle.internal.service.scopes.ServiceScope
 interface ConfigurationCacheProblemsListener : ExecutionAccessListener, TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener
 
 
-class DefaultConfigurationCacheProblemsListener internal constructor(
-    private val problems: ProblemsListener,
+open class DefaultConfigurationCacheProblemsListener internal constructor(
+    protected val problems: ProblemsListener,
     private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val inputTrackingState: InputTrackingState
+    private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
     override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
@@ -66,7 +68,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
             .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
             .build()
-        problems.onProblem(problem)
+        problemListenerForCurrentUserCode().onProblem(problem)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
@@ -95,7 +97,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Starting an external process '$command' during configuration time is unsupported.")
             .documentationSection(RequirementsExternalProcess)
             .build()
-        problems.onProblem(problem)
+        problemListenerForCurrentUserCode().onProblem(problem)
     }
 
     private
@@ -151,11 +153,14 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         else -> problems.forIncompatibleTask(locationForTask(task), task.reasonTaskIsIncompatibleWithConfigurationCache.get())
     }
 
+    protected
+    open fun problemListenerForCurrentUserCode(): ProblemsListener = problems
+
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (isBuildSrcBuild(invocationSource) || isSupportedListener(listener)) {
             return
         }
-        problems.onProblem(
+        problemListenerForCurrentUserCode().onProblem(
             listenerRegistrationProblem(
                 invocationDescription,
                 InvalidUserCodeException(

@@ -390,4 +390,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @since 3.1
      */
     IncludedBuild includedBuild(String name) throws UnknownDomainObjectException;
+
+    @Incubating
+    void notCompatibleWithConfigurationCache(String reason, Runnable action);
 }
