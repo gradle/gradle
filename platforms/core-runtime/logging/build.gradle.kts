@@ -6,7 +6,9 @@ plugins {
 description = "Logging infrastructure"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

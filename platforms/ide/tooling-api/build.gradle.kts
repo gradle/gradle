@@ -7,8 +7,12 @@ plugins {
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
 gradleModule {
-    usedInClient = true
+    targetRuntimes {
+        usedInClient = true
+    }
+}
 
+jvmCompile {
     // JSpecify annotations on static inner type return types
     usesJdkInternals = true
 }

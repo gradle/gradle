@@ -5,7 +5,9 @@ plugins {
 description = "The Gradle build option parser."
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

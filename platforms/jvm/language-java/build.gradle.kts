@@ -4,7 +4,7 @@ plugins {
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
-gradleModule {
+jvmCompile {
     usesJdkInternals = true
 }
 
