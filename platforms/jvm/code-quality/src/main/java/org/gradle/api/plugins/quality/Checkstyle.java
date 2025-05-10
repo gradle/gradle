@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
@@ -54,21 +55,30 @@ import java.util.Map;
  */
 @CacheableTask
 public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
-    private FileCollection checkstyleClasspath;
+    Property<FileCollection> checkstyleClasspath;
     private FileCollection classpath;
-    private TextResource config;
-    private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
+    Property<TextResource> config;
+    MapProperty<String, Object> configProperties;
     private final CheckstyleReports reports;
-    private int maxErrors;
-    private int maxWarnings = Integer.MAX_VALUE;
-    private boolean showViolations = true;
+    Property<Integer> maxErrors;
+    Property<Integer> maxWarnings;
+    Property<Boolean> showViolations;
     private final DirectoryProperty configDirectory;
     private final Property<Boolean> enableExternalDtdLoad;
 
     public Checkstyle() {
         super();
+        this.checkstyleClasspath = getObjectFactory().property(FileCollection.class);
+        this.config = getObjectFactory().property(TextResource.class);
+        this.configProperties = getObjectFactory().mapProperty(String.class, Object.class);
+        this.configProperties.convention(new LinkedHashMap<>());
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
+        this.maxErrors = getObjectFactory().property(Integer.class);
+        this.maxWarnings = getObjectFactory().property(Integer.class);
+        this.showViolations = getObjectFactory().property(Boolean.class);
+        this.showViolations.convention(true);
+        this.maxWarnings.convention(Integer.MAX_VALUE);
         this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
     }
 
@@ -195,14 +205,14 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Classpath
     @ToBeReplacedByLazyProperty
     public FileCollection getCheckstyleClasspath() {
-        return checkstyleClasspath;
+        return checkstyleClasspath.getOrNull();
     }
 
     /**
      * The class path containing the Checkstyle library to be used.
      */
     public void setCheckstyleClasspath(FileCollection checkstyleClasspath) {
-        this.checkstyleClasspath = checkstyleClasspath;
+        this.checkstyleClasspath.set(checkstyleClasspath);
     }
 
     /**
@@ -228,7 +238,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      */
     @Nested
     public TextResource getConfig() {
-        return config;
+        return config.getOrNull();
     }
 
     /**
@@ -237,7 +247,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 2.2
      */
     public void setConfig(TextResource config) {
-        this.config = config;
+        this.config.set(config);
     }
 
     /**
@@ -248,14 +258,14 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ToBeReplacedByLazyProperty
     public Map<String, Object> getConfigProperties() {
-        return configProperties;
+        return configProperties.getOrNull();
     }
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
     public void setConfigProperties(@Nullable Map<String, Object> configProperties) {
-        this.configProperties = configProperties;
+        this.configProperties.set(configProperties);
     }
 
     /**
@@ -292,7 +302,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxErrors() {
-        return maxErrors;
+        return maxErrors.getOrElse(0);
     }
 
     /**
@@ -302,7 +312,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 3.4
      */
     public void setMaxErrors(int maxErrors) {
-        this.maxErrors = maxErrors;
+        this.maxErrors.set(maxErrors);
     }
 
     /**
@@ -315,7 +325,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxWarnings() {
-        return maxWarnings;
+        return maxWarnings.get();
     }
 
     /**
@@ -325,7 +335,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 3.4
      */
     public void setMaxWarnings(int maxWarnings) {
-        this.maxWarnings = maxWarnings;
+        this.maxWarnings.set(maxWarnings);
     }
 
     /**
@@ -336,14 +346,14 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Console
     @ToBeReplacedByLazyProperty
     public boolean isShowViolations() {
-        return showViolations;
+        return showViolations.get();
     }
 
     /**
      * Whether rule violations are to be displayed on the console.
      */
     public void setShowViolations(boolean showViolations) {
-        this.showViolations = showViolations;
+        this.showViolations.set(showViolations);
     }
 
     /**
