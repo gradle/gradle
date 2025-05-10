@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -185,9 +184,6 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     def "compilation emits toolchain usage events"() {
         captureBuildOperations()
         def jdk = AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersion.toInteger() in 21..24 }
-        if (jdk.javaVersionMajor == Jvm.current().javaVersionMajor) {
-            jdk = Jvm.current()
-        }
 
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jdk)
 

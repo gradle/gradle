@@ -463,7 +463,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
      */
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "Java deprecation messages with different JDKs"() {
-        def jdk = javaVersion == JavaVersion.current() ? Jvm.current() : AvailableJavaHomes.getJdk(javaVersion)
+        def jdk = AvailableJavaHomes.getJdk(javaVersion)
 
         buildFile << """
             plugins {
@@ -516,21 +516,14 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
 
     @Issue("https://github.com/gradle/gradle/issues/23990")
     def "can compile with a custom compiler executable"() {
-        def otherJdk = AvailableJavaHomes.getJdk(JavaVersion.current())
         def jdk = AvailableJavaHomes.getDifferentVersion {
             def v = it.languageVersion.majorVersion.toInteger()
-            17 <= v && v <= 24 // Java versions supported by ECJ releases used in the test
+            17 <= v && v <= 23 // Java versions supported by ECJ releases used in the test
         }
 
         buildFile << """
             plugins {
                 id("java")
-            }
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${otherJdk.javaVersion.majorVersion})
-                }
             }
 
             configurations {
@@ -576,7 +569,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         """
 
         when:
-        withInstallations(jdk, otherJdk).run(":compileJava", "--info")
+        withInstallations(jdk)
+        succeeds(":compileJava", "--info")
+
         then:
         executedAndNotSkipped(":compileJava")
         outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'")
@@ -585,17 +580,23 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
 
         // Test up-to-date checks
         when:
-        withInstallations(jdk, otherJdk).run(":compileJava")
+        withInstallations(jdk)
+        succeeds(":compileJava")
+
         then:
         skipped(":compileJava")
 
         when:
-        withInstallations(jdk, otherJdk).run(":compileJava", "-Pchanged")
+        withInstallations(jdk)
+        succeeds(":compileJava", "-Pchanged")
+
         then:
         executedAndNotSkipped(":compileJava")
 
         when:
-        withInstallations(jdk, otherJdk).run(":compileJava", "-Pchanged")
+        withInstallations(jdk)
+        succeeds(":compileJava", "-Pchanged")
+
         then:
         skipped(":compileJava")
     }
