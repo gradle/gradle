@@ -617,13 +617,8 @@
             <pgp value="F05E5F90E43E837F9DD8C781BF935C771A8474F8"/>
          </artifact>
       </component>
-      <component group="com.google.errorprone" name="error_prone_annotations" version="2.13.1">
-         <artifact name="error_prone_annotations-2.13.1.jar">
-            <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
-         </artifact>
-      </component>
-      <component group="com.google.googlejavaformat" name="google-java-format" version="1.19.1">
-         <artifact name="google-java-format-1.19.1.jar">
+      <component group="com.google.googlejavaformat" name="google-java-format" version="1.24.0">
+         <artifact name="google-java-format-1.24.0.jar">
             <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
          </artifact>
       </component>
