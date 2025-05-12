@@ -18,25 +18,8 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.plugins.Convention
-import org.gradle.kotlin.dsl.accessors.runtime.conventionPluginByName
 
 import kotlin.reflect.KClass
-
-
-/**
- * Looks for the convention plugin of a given name and casts it to the expected type [T].
- *
- * If no convention is found or if the one found cannot be cast to the expected type it will throw an [IllegalStateException].
- *
- * @param name convention plugin name
- * @return the convention plugin, never null
- * @throws [IllegalStateException] When the convention cannot be found or cast to the expected type.
- */
-@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
-    conventionPluginByName(this, name).let {
-        (it as T?) ?: error("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
-    }
 
 
 /**
