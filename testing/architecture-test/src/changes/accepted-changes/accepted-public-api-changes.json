@@ -1002,6 +1002,14 @@
         },
         {
             "type": "org.gradle.api.plugins.WarPlugin",
+            "member": "Field WEB_APP_GROUP",
+            "acceptation": "Removed deprecated constant.",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPlugin",
             "member": "Method org.gradle.api.plugins.WarPlugin.configureConfigurations(org.gradle.api.artifacts.ConfigurationContainer)",
             "acceptation": "Removed deprecated method",
             "changes": [
@@ -2830,14 +2838,6 @@
         {
             "type": "org.gradle.plugins.ear.EarPluginConvention",
             "member": "Method org.gradle.plugins.ear.EarPluginConvention.appDirName(java.lang.String)",
-            "acceptation": "Remove deprecated API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ear.EarPluginConvention",
-            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure)",
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
