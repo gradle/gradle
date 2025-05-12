@@ -35,15 +35,10 @@ class DefaultConfigurationCacheDegradationController(
         degradationRequests.add(DegradationRequest(trace, reason, spec))
     }
 
-    fun shouldDegradeWithReasons(): List<String> =
+    fun getDegradationReasons(): Map<PropertyTrace, List<String>> =
         degradationRequests
             .filter { it.spec.get() }
-            .map { it.reason }
-
-    fun shouldDegradeWithReasons(trace: PropertyTrace): List<String> =
-        degradationRequests
-            .filter { it.trace == trace && it.spec.get() }
-            .map { it.reason }
+            .groupBy({ it.trace }, { it.reason })
 
     private data class DegradationRequest(
         val trace: PropertyTrace,
