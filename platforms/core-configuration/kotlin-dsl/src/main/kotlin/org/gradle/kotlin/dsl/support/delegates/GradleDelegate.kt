@@ -177,4 +177,8 @@ abstract class GradleDelegate : Gradle {
 
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
+
+    override fun requireConfigurationCacheDegradationIf(reason: String, spec: Closure<Boolean>) {
+        delegate.requireConfigurationCacheDegradationIf(reason, spec)
+    }
 }

@@ -44,6 +44,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
+import org.gradle.invocation.ConfigurationCacheDegradationController
 import java.io.File
 
 
@@ -63,6 +64,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(ConfigurationCacheKey::class.java)
             add(BuildModelControllerServices::class.java, DefaultBuildModelControllerServices::class.java)
             add(BuildToolingModelControllerFactory::class.java, DefaultBuildToolingModelControllerFactory::class.java)
+            add(ConfigurationCacheDegradationController::class.java, DefaultConfigurationCacheDegradationController::class.java)
             add(DeprecatedFeaturesListener::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)

@@ -31,6 +31,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
+import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
@@ -49,6 +50,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.invocation.ConfigurationCacheDegradationController
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
@@ -80,7 +82,10 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider
+    val buildNameProvider: BuildNameProvider,
+
+    private val
+    degradationController: ConfigurationCacheDegradationController
 ) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
@@ -120,6 +125,11 @@ class ConfigurationCacheProblems(
             }
             val summary = summarizer.get()
             return discardStateDueToProblems(summary) || hasTooManyProblems(summary)
+        }
+
+    val shouldDegradeGracefully: Boolean
+        get() {
+            return (degradationController as DefaultConfigurationCacheDegradationController).shouldDegradeWithReasons().isNotEmpty()
         }
 
     init {
@@ -162,6 +172,20 @@ class ConfigurationCacheProblems(
                 onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
             }
         }
+    }
+
+    override fun forBuildLogic(trace: PropertyTrace): ProblemsListener {
+        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).shouldDegradeWithReasons(trace).isNotEmpty()
+        return if (shouldDegrade) object : AbstractProblemsListener() {
+            override fun onProblem(problem: PropertyProblem) {
+                onProblem(problem, ProblemSeverity.Suppressed)
+            }
+
+            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                val failure = failureFactory.create(error)
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+            }
+        } else this
     }
 
     private

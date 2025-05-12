@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.configuration.problems
+package org.gradle.invocation;
 
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-interface ProblemsListener {
-
-    fun onProblem(problem: PropertyProblem)
-
-    fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
-
-    fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener
-
-    fun forBuildLogic(trace: PropertyTrace) : ProblemsListener
+@ServiceScope(Scope.BuildTree.class)
+public interface ConfigurationCacheDegradationController {
+    void requireConfigurationCacheDegradationIf(String reason, Cached<Boolean> spec);
 }
-
-

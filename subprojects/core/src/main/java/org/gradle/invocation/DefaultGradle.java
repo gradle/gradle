@@ -64,6 +64,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -98,6 +99,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
+    private final ConfigurationCacheDegradationController configurationCacheDegradationController;
 
     public DefaultGradle(@Nullable BuildState parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -108,6 +110,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.gradleLifecycleActionExecutor = services.get(GradleLifecycleActionExecutor.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
+        this.configurationCacheDegradationController = services.get(ConfigurationCacheDegradationController.class);
 
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
@@ -606,6 +609,11 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     @Inject
     public abstract PublicBuildPath getPublicBuildPath();
+
+    @Override
+    public void requireConfigurationCacheDegradationIf(String reason, Closure<Boolean> spec) {
+        configurationCacheDegradationController.requireConfigurationCacheDegradationIf(reason, Cached.of(spec));
+    }
 
     /**
      * Instantiate {@link DefaultGradleLifecycle} via {@link ObjectFactory} in order to get
