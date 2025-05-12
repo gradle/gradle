@@ -26,10 +26,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.Nullable;
@@ -45,16 +41,14 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     private final String componentName;
     private final Map<Configuration, ConfigurationVariantMapping> variants = new LinkedHashMap<>(4);
     private final ObjectFactory objectFactory;
-    private final InternalProblems problemsService;
 
     @Nullable
     private Set<UsageContext> cachedVariants;
 
     @Inject
-    public DefaultAdhocSoftwareComponent(String componentName, ObjectFactory objectFactory, InternalProblems problemsService) {
+    public DefaultAdhocSoftwareComponent(String componentName, ObjectFactory objectFactory) {
         this.componentName = componentName;
         this.objectFactory = objectFactory;
-        this.problemsService = problemsService;
     }
 
     @Override
@@ -101,12 +95,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
      */
     protected void checkNotObserved() {
         if (cachedVariants != null) {
-            GradleException ex = new MetadataModificationException("Gradle Module Metadata can't be modified after an eagerly populated publication.");
-            ProblemId id = ProblemId.create("Gradle Module Metadata locked", "Gradle Module Metadata locked", GradleCoreProblemGroup.publishing());
-            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
-                spec.contextualLabel(ex.getMessage());
-                spec.severity(Severity.ERROR);
-            });
+            throw new MetadataModificationException("Gradle Module Metadata can't be modified after an eagerly populated publication.");
         }
     }
 

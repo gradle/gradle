@@ -16,7 +16,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
-    api(projects.problemsApi)
 
     api(libs.inject)
     api(libs.jspecify)

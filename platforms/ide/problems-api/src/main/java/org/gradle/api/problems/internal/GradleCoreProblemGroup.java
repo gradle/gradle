@@ -28,7 +28,6 @@ public abstract class GradleCoreProblemGroup {
     private static final ProblemGroup VERSION_CATALOG_PROBLEM_GROUP = ProblemGroup.create("dependency-version-catalog", "Version catalog");
     private static final ProblemGroup VARIANT_RESOLUTION_PROBLEM_GROUP = ProblemGroup.create("dependency-variant-resolution", "Variant resolution");
     private static final ProblemGroup CONFIGURATION_USAGE_PROBLEM_GROUP = ProblemGroup.create("configuration-usage", "Configuration usage");
-    private static final ProblemGroup PUBLISHING_PROBLEM_GROUP = ProblemGroup.create("publishing", "Publishing");
     private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
 
     public static CompilationProblemGroup compilation() {
@@ -61,10 +60,6 @@ public abstract class GradleCoreProblemGroup {
 
     public static ProblemGroup configurationUsage() {
         return CONFIGURATION_USAGE_PROBLEM_GROUP;
-    }
-
-    public static ProblemGroup publishing() {
-        return PUBLISHING_PROBLEM_GROUP;
     }
 
     public static DaemonToolchainProblemGroup daemonToolchain() {

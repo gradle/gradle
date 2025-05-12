@@ -19,7 +19,6 @@ package org.gradle.api.publish.internal.service;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectDependencyPublicationResolver;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory;
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
@@ -44,8 +43,8 @@ public class PublishServices extends AbstractGradleModuleServices {
 
     private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareComponentFactory createSoftwareComponentFactory(ObjectFactory objectFactory, InternalProblems problemsService) {
-            return new DefaultSoftwareComponentFactory(objectFactory, problemsService);
+        SoftwareComponentFactory createSoftwareComponentFactory(ObjectFactory objectFactory) {
+            return new DefaultSoftwareComponentFactory(objectFactory);
         }
     }
 }

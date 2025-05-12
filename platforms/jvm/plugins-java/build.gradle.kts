@@ -9,7 +9,6 @@ dependencies {
     api(projects.coreApi)
     api(projects.languageJava)
     api(projects.pluginsJvmTestSuite)
-    api(projects.problemsApi)
     api(projects.publish)
 
     api(libs.inject)
