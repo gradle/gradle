@@ -5,14 +5,12 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.whenever
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.reflect.TypeOf
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -60,54 +58,6 @@ class ProjectExtensionsTest {
 
         inOrder(convention) {
             verify(convention).findByType(eq(extensionType))
-            verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `can get convention by type`() {
-
-        val project = mock<Project>()
-        val convention = mock<org.gradle.api.plugins.Convention>()
-        val javaConvention = mock<CustomConvention>()
-
-        whenever(project.extensions)
-            .thenReturn(convention)
-        whenever(project.convention)
-            .thenReturn(convention)
-        whenever(convention.findPlugin(eq(CustomConvention::class.java)))
-            .thenReturn(javaConvention)
-
-        project.the<CustomConvention>()
-
-        inOrder(convention) {
-            verify(convention).findByType(any<TypeOf<CustomConvention>>())
-            verify(convention, times(2)).findPlugin(eq(CustomConvention::class.java))
-            verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `can configure convention by type`() {
-
-        val project = mock<Project>()
-        val convention = mock<org.gradle.api.plugins.Convention>()
-        val javaConvention = mock<CustomConvention>()
-
-        whenever(project.extensions)
-            .thenReturn(convention)
-        whenever(project.convention)
-            .thenReturn(convention)
-        whenever(convention.findByType(any<TypeOf<*>>()))
-            .thenReturn(null)
-        whenever(convention.findPlugin(eq(CustomConvention::class.java)))
-            .thenReturn(javaConvention)
-
-        project.configure<CustomConvention> {}
-
-        inOrder(convention) {
-            verify(convention).findByType(any<TypeOf<CustomConvention>>())
-            verify(convention, times(2)).findPlugin(eq(CustomConvention::class.java))
             verifyNoMoreInteractions()
         }
     }
