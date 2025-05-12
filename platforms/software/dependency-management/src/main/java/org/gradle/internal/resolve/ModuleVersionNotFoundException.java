@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.NonNull;
 

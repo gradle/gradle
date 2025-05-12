@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.exceptions;
+package org.gradle.api;
 
 import org.jspecify.annotations.NullMarked;
 
@@ -22,10 +22,16 @@ import java.util.List;
 
 /**
  * A provider of resolutions for an exception.
- * Exceptions can be derived from this interface to provide a list of resolutions that are then displayed in the suggestion section of the error message.
+ * <p>
+ * Exceptions can implement this interface in order to provide a list of resolutions
+ * that are then displayed in the suggestion section of the error message.
  */
-
 @NullMarked
 public interface ResolutionProvider {
+    /**
+     * Returns a list of potential resolutions for this exception.
+     *
+     * @return a list of resolutions
+     */
     List<String> getResolutions();
 }

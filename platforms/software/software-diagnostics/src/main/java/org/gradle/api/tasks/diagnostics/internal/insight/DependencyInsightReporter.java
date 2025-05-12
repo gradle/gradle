@@ -41,7 +41,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependenc
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
 

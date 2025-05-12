@@ -16,12 +16,13 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.GradleException;
+import org.gradle.api.ResolutionProvider;
 
 import java.util.Collections;
 import java.util.List;
 
-public class InvalidLockFileException extends RuntimeException implements ResolutionProvider {
+public class InvalidLockFileException extends GradleException implements ResolutionProvider {
     private final String resolutionMessage;
 
     public InvalidLockFileException(String displayName, Exception cause, String resolutionMessage) {

@@ -105,7 +105,7 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValue;

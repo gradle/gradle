@@ -16,7 +16,7 @@
 
 package org.gradle.internal.exceptions
 
-
+import org.gradle.api.ResolutionProvider
 import spock.lang.Specification
 
 class DefaultMultiCauseExceptionTest extends Specification {

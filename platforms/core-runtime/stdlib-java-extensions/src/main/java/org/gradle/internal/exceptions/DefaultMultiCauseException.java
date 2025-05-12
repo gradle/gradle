@@ -16,6 +16,7 @@
 package org.gradle.internal.exceptions;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.ResolutionProvider;
 import org.gradle.internal.Factory;
 
 import java.io.IOException;

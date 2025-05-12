@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 
 import java.util.Collections;
 import java.util.List;

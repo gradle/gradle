@@ -35,7 +35,7 @@ import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;

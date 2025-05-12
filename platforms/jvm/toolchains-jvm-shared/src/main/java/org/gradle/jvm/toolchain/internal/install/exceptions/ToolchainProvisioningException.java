@@ -21,7 +21,7 @@ import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 
 import java.util.Arrays;
 import java.util.List;

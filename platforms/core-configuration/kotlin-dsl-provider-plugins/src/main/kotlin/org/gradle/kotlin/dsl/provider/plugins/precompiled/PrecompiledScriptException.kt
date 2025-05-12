@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 import org.gradle.api.GradleException
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
-import org.gradle.internal.exceptions.ResolutionProvider
+import org.gradle.api.ResolutionProvider
 import java.lang.reflect.InvocationTargetException
 
 

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 
 import java.util.Arrays;
 import java.util.List;

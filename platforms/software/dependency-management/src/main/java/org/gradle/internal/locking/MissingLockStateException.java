@@ -17,13 +17,14 @@
 package org.gradle.internal.locking;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 
 import java.util.List;
 
-public class MissingLockStateException extends RuntimeException implements ResolutionProvider {
+public class MissingLockStateException extends GradleException implements ResolutionProvider {
 
     private static final List<String> RESOLUTIONS;
     static {

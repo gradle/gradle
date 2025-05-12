@@ -28,7 +28,7 @@ import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;

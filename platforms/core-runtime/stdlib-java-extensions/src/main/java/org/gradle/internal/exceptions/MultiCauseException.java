@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.exceptions;
 
+import org.gradle.api.ResolutionProvider;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;

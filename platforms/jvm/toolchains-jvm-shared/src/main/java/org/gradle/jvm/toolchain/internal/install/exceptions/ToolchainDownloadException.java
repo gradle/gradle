@@ -18,7 +18,7 @@ package org.gradle.jvm.toolchain.internal.install.exceptions;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;

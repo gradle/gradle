@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 
 import java.util.Collections;
 import java.util.List;

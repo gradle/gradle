@@ -16,7 +16,6 @@
 
 package org.gradle.api;
 
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -51,10 +50,6 @@ public class GradleException extends RuntimeException implements ResolutionProvi
     public GradleException(String message, List<String> resolutions, @Nullable Throwable cause) {
         super(message, cause);
         this.resolutions.addAll(resolutions);
-    }
-
-    public void addResolution(String resolution) {
-        resolutions.add(resolution);
     }
 
     @Override

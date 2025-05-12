@@ -19,7 +19,7 @@ package org.gradle.api.tasks.wrapper.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.wrapper.WrapperVersionsResources;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.api.ResolutionProvider;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
