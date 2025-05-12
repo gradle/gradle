@@ -17,11 +17,8 @@
 @file:Suppress("DEPRECATION")
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.plugins.Convention
 //import org.gradle.kotlin.dsl.accessors.runtime.conventionOf
 //import org.gradle.kotlin.dsl.accessors.runtime.conventionPluginByName
-
-import kotlin.reflect.KClass
 
 
 /**
@@ -40,57 +37,57 @@ import kotlin.reflect.KClass
 //    }
 
 
-/**
- * Locates the plugin convention object with the given type.
- *
- * @param T the convention plugin type
- * @return the convention plugin
- * @throws [IllegalStateException] when there is no such object contained in this convention, or when there are multiple such objects
- * @see [Convention.getPlugin]
- */
-@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-inline fun <reified T : Any> Convention.getPlugin(): T =
-    getPlugin(T::class)
+///**
+// * Locates the plugin convention object with the given type.
+// *
+// * @param T the convention plugin type
+// * @return the convention plugin
+// * @throws [IllegalStateException] when there is no such object contained in this convention, or when there are multiple such objects
+// * @see [Convention.getPlugin]
+// */
+//@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
+//inline fun <reified T : Any> Convention.getPlugin(): T =
+//    getPlugin(T::class)
+//
 
+///**
+// * Locates the plugin convention object with the given type.
+// *
+// * @param conventionType the convention plugin type
+// * @return the convention plugin
+// * @throws [IllegalStateException] when there is no such object contained in this convention, or when there are multiple such objects
+// * @see [Convention.getPlugin]
+// */
+//@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
+//fun <T : Any> Convention.getPlugin(conventionType: KClass<T>): T =
+//    getPlugin(conventionType.java)
+//
 
-/**
- * Locates the plugin convention object with the given type.
- *
- * @param conventionType the convention plugin type
- * @return the convention plugin
- * @throws [IllegalStateException] when there is no such object contained in this convention, or when there are multiple such objects
- * @see [Convention.getPlugin]
- */
-@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-fun <T : Any> Convention.getPlugin(conventionType: KClass<T>): T =
-    getPlugin(conventionType.java)
+///**
+// * Locates the plugin convention object with the given type.
+// *
+// * @param T the convention plugin type.
+// * @return the convention plugin, or null if there is no such convention plugin
+// * @throws [IllegalStateException] when there are multiple matching objects
+// * @see [Convention.findPlugin]
+// */
+//@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
+//inline fun <reified T : Any> Convention.findPlugin(): T? =
+//    findPlugin(T::class)
+//
 
-
-/**
- * Locates the plugin convention object with the given type.
- *
- * @param T the convention plugin type.
- * @return the convention plugin, or null if there is no such convention plugin
- * @throws [IllegalStateException] when there are multiple matching objects
- * @see [Convention.findPlugin]
- */
-@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-inline fun <reified T : Any> Convention.findPlugin(): T? =
-    findPlugin(T::class)
-
-
-/**
- * Locates the plugin convention object with the given type.
- *
- * @param conventionType the convention plugin type.
- * @return the convention plugin, or null if there is no such convention plugin
- * @throws [IllegalStateException] when there are multiple matching objects
- * @see [Convention.findPlugin]
- */
-@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-fun <T : Any> Convention.findPlugin(conventionType: KClass<T>): T? =
-    findPlugin(conventionType.java)
-
+///**
+// * Locates the plugin convention object with the given type.
+// *
+// * @param conventionType the convention plugin type.
+// * @return the convention plugin, or null if there is no such convention plugin
+// * @throws [IllegalStateException] when there are multiple matching objects
+// * @see [Convention.findPlugin]
+// */
+//@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
+//fun <T : Any> Convention.findPlugin(conventionType: KClass<T>): T? =
+//    findPlugin(conventionType.java)
+//
 
 /**
  * Evaluates the given [function] against the convention plugin of the given [conventionType].

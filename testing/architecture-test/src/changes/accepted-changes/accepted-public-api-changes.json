@@ -762,8 +762,40 @@
         },
         {
             "type": "org.gradle.api.plugins.Convention",
+            "member": "Class org.gradle.api.plugins.Convention",
+            "acceptation": "remove convention",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.findPlugin(java.lang.Class)",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
             "member": "Method org.gradle.api.plugins.Convention.getExtensionsAsDynamicObject()",
             "acceptation": "Remove Convention interface",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.getPlugin(java.lang.Class)",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.getPlugins()",
+            "acceptation": "remove convention",
             "changes": [
                 "Method has been removed"
             ]
@@ -2533,6 +2565,46 @@
             "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.withDependencies(org.gradle.api.NamedDomainObjectProvider,kotlin.jvm.functions.Function1)",
             "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Class org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "acceptation": "remove convention",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
+            "acceptation": "remove convention",
             "changes": [
                 "Method has been removed"
             ]

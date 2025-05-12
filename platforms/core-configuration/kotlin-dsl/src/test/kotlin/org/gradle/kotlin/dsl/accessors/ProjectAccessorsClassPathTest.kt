@@ -331,9 +331,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         }
         val customConvention = mock<CustomConvention>()
         @Suppress("deprecation")
-        val convention = mock<org.gradle.api.plugins.Convention> {
-            on { plugins } doReturn mapOf("customConvention" to customConvention)
-        }
+//        val convention = mock<org.gradle.api.plugins.Convention> {
+//            on { plugins } doReturn mapOf("customConvention" to customConvention)
+//        }
         val project = mock<ProjectInternal> {
             on { getConfigurations() } doReturn configurations
             on { getExtensions() } doReturn extensions
@@ -416,7 +416,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             sourceSets,
             dependencies,
             tasks,
-            convention,
+//            convention,
             customConvention,
             constraints
         ) {

@@ -102,12 +102,12 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         file("plugin/src/main/kotlin/my-types.kt").text = """
             import org.gradle.api.provider.Property
             interface MyExtension { val some: Property<String> }
-            interface MyConvention { val more: Property<String> }
+//            interface MyConvention { val more: Property<String> }
             interface Unregistered
         """
         file("plugin/src/main/kotlin/my-plugin.gradle.kts").text = """
             extensions.create<MyExtension>("myExtension")
-            convention.plugins["myConvention"] = objects.newInstance<MyConvention>()
+//            convention.plugins["myConvention"] = objects.newInstance<MyConvention>()
             $usageCode
         """
 
@@ -158,11 +158,11 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
             // Accessing conventions
 
-            the<MyConvention>().more.set("less")
-            the(MyConvention::class).more.set("less")
-            configure<MyConvention> {
-                more.set("less")
-            }
+//            the<MyConvention>().more.set("less")
+//            the(MyConvention::class).more.set("less")
+//            configure<MyConvention> {
+//                more.set("less")
+//            }
 
             // Error cases
 

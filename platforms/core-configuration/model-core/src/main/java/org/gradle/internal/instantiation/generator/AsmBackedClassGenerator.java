@@ -815,12 +815,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addNoDeprecationConventionPrivateGetter() {
-        }
-
-        @Override
         public void addExtensionsProperty() {
-            // GENERATE public ExtensionContainer getExtensions() { return getConventionWhileDisabledDeprecationLogger(); }
+            // GENERATE public ExtensionContainer getExtensions() { return ((ExtensibleDynamicObject) getAsDynamicObject()).getExtensions(); }
             addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, "getAsDynamicObject", RETURN_DYNAMIC_OBJECT);
@@ -828,11 +824,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _INVOKEVIRTUAL(EXTENSIBLE_DYNAMIC_OBJECT_TYPE, "getExtensions", RETURN_EXTENSION_CONTAINER);
                 _ARETURN();
             }});
-//            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-//                // GENERATE getConventionWhileDisabledDeprecationLogger()
-//                _ALOAD(0);
-//                _INVOKEVIRTUAL(generatedType, "getExtensionContainer", RETURN_EXTENSION_CONTAINER);
-//            }});
         }
 
         @Override
@@ -856,7 +847,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     // GENERATE new MixInExtensibleDynamicObject(this, getClass().getSuperClass(), super.getAsDynamicObject(), this.services())
                     _NEW(EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE);
                     _DUP();
-
                     _ALOAD(0);
                     _ALOAD(0);
                     _INVOKEVIRTUAL(generatedType, "getClass", RETURN_CLASS);
@@ -1987,10 +1977,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void mixInDynamicAware() {
-        }
-
-        @Override
-        public void addNoDeprecationConventionPrivateGetter() {
         }
 
         @Override
