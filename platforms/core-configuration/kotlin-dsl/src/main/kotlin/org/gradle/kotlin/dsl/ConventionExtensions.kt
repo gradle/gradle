@@ -18,7 +18,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.plugins.Convention
-import org.gradle.kotlin.dsl.accessors.runtime.conventionOf
 import org.gradle.kotlin.dsl.accessors.runtime.conventionPluginByName
 
 import kotlin.reflect.KClass
@@ -90,21 +89,3 @@ inline fun <reified T : Any> Convention.findPlugin(): T? =
 @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
 fun <T : Any> Convention.findPlugin(conventionType: KClass<T>): T? =
     findPlugin(conventionType.java)
-
-
-/**
- * Evaluates the given [function] against the convention plugin of the given [conventionType].
- *
- * @param conventionType the type of the convention to be located.
- * @param function function to be evaluated.
- * @return the value returned by the given [function].
- * @throws [IllegalStateException] When the receiver does not support convention plugins, when there is no convention plugin of the given type, or when there are multiple such plugins.
- *
- * @see [Convention.getPlugin]
- */
-@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-inline fun <ConventionType : Any, ReturnType> Any.withConvention(
-    conventionType: KClass<ConventionType>,
-    function: ConventionType.() -> ReturnType
-): ReturnType =
-    conventionOf(this).getPlugin(conventionType.java).run(function)
