@@ -103,7 +103,8 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
                 pluginClass,
                 registeringPluginClass,
-                Cast.uncheckedCast(binding.getTransform())
+                Cast.uncheckedCast(binding.getTransform()),
+                binding.getNestedBindings()
             )
         );
     }

@@ -77,8 +77,9 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         if (!applied.contains(appliedFeature)) {
             T dslObject = createDslObject(target, softwareFeature);
             Object buildModelObject = createBuildModelObject((ExtensionAware) dslObject, softwareFeature);
+            Object parentBuildModelObject = getParentBuildModelObject(target);
             SoftwareFeatureApplicationContext context = objectFactory.newInstance(SoftwareFeatureApplicationContext.class);
-            softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(target), Cast.uncheckedCast(buildModelObject));
+            softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(parentBuildModelObject), Cast.uncheckedCast(buildModelObject));
 
             pluginManager.apply(softwareFeature.getPluginClass());
             Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(softwareFeature.getPluginClass());
@@ -87,6 +88,14 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             modelDefaultsApplicator.applyDefaultsTo(target, new ClassLoaderContextFromScope(classLoaderScope), plugin, softwareFeature);
         }
         return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getFeatureName()));
+    }
+
+    private Object getParentBuildModelObject(ExtensionAware parent) {
+        if (Project.class.isAssignableFrom(parent.getClass())) {
+            return Project.class;
+        } else {
+            return parent.getExtensions().getByName(SoftwareFeatureBinding.MODEL);
+        }
     }
 
     private <T> T createDslObject(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature) {

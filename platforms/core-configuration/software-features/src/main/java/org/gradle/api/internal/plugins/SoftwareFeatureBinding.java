@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.internal.Pair;
 import org.gradle.util.Path;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface SoftwareFeatureBinding {
@@ -28,6 +31,7 @@ public interface SoftwareFeatureBinding {
     Optional<Class<?>> getBuildModelImplementationType();
     Path getPath();
     SoftwareFeatureTransform<?, ?, ?> getTransform();
+    Map<Class<?>, Class<?>> getNestedBindings();
 
     String MODEL = "model";
 }

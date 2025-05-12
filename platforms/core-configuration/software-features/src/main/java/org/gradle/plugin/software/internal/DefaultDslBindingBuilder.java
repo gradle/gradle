@@ -20,10 +20,15 @@ import org.gradle.api.internal.plugins.DslBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Pair;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
     @Nullable private final Class<T> dslType;
@@ -34,6 +39,7 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
 
     @Nullable private Class<?> dslImplementationType;
     @Nullable private Class<?> buildModelImplementationType;
+    private final List<Pair<Class<?>, Class<?>>> nestedBindings = new ArrayList<>();
 
     public DefaultDslBindingBuilder(@Nullable Class<T> dslType, @Nullable Class<?> bindingTargetType, @Nullable Class<V> buildModelType, @Nullable Path path, @Nullable SoftwareFeatureTransform<T, ?, V> transform) {
         this.bindingTargetType = bindingTargetType;
@@ -43,7 +49,7 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
         this.transform = transform;
     }
 
-    private static <T, U> SoftwareFeatureBinding bindingOf(Class<T> dslType, @Nullable Class<? extends T> dslImplementationType, Path path, Class<?> bindingTargetType, Class<U> buildModelType, @Nullable Class<? extends U> buildModelImplementationType, SoftwareFeatureTransform<T, ?, ?> transform) {
+    private static <T, U> SoftwareFeatureBinding bindingOf(Class<T> dslType, @Nullable Class<? extends T> dslImplementationType, Path path, Class<?> bindingTargetType, Class<U> buildModelType, @Nullable Class<? extends U> buildModelImplementationType, SoftwareFeatureTransform<T, ?, ?> transform, Map<Class<?>, Class<?>> nestedBindings) {
         return new SoftwareFeatureBinding() {
             @Override
             public Class<?> getBindingTargetType() {
@@ -79,6 +85,11 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
             public Optional<Class<?>> getBuildModelImplementationType() {
                 return Optional.ofNullable(buildModelImplementationType);
             }
+
+            @Override
+            public Map<Class<?>, Class<?>> getNestedBindings() {
+                return nestedBindings;
+            }
         };
     }
 
@@ -91,6 +102,12 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
     @Override
     public DslBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType) {
         this.buildModelImplementationType = implementationType;
+        return this;
+    }
+
+    @Override
+    public DslBindingBuilder<T, V> withNestedBinding(Class<?> nestedDslType, Class<?> nestedImplementationType) {
+        nestedBindings.add(Pair.of(nestedDslType, nestedImplementationType));
         return this;
     }
 
@@ -108,6 +125,14 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
             throw new IllegalArgumentException("Implementation type " + buildModelImplementationType + " is not a subtype of build model type " + buildModelType);
         }
 
-        return DefaultDslBindingBuilder.bindingOf(dslType, Cast.uncheckedCast(dslImplementationType), path, bindingTargetType, buildModelType, Cast.uncheckedCast(buildModelImplementationType), Cast.uncheckedCast(transform));
+        return DefaultDslBindingBuilder.bindingOf(
+            dslType,
+            Cast.uncheckedCast(dslImplementationType),
+            path,
+            bindingTargetType,
+            buildModelType,
+            Cast.uncheckedCast(buildModelImplementationType),
+            Cast.uncheckedCast(transform),
+            nestedBindings.stream().collect(Collectors.toMap(Pair::getLeft, Pair::getRight)));
     }
 }

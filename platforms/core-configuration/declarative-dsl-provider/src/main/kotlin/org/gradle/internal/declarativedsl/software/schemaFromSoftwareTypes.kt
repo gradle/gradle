@@ -61,9 +61,12 @@ fun EvaluationSchemaBuilder.softwareFeaturesComponent(
     softwareFeatureRegistry: SoftwareFeatureRegistry,
     withDefaultsApplication: Boolean
 ) {
-    val softwareFeatureInfos: Map<KClass<*>, List<SoftwareFeatureInfo<*>>> = buildSoftwareFeatureInfo(softwareFeatureRegistry)
+    val buildModelTypeToPublicDslType = mapBuildModelTypesToPublicDslTypes(softwareFeatureRegistry)
+    val softwareFeatureInfos: Map<KClass<*>, List<SoftwareFeatureInfo<*>>> = buildSoftwareFeatureInfo(softwareFeatureRegistry) { bindingType ->
+        mapToSchemaType(bindingType, rootSchemaType, buildModelTypeToPublicDslType)
+    }
     softwareFeatureInfos.forEach { (bindingType, softwareFeatureInfoList) ->
-        registerAnalysisSchemaComponent(SoftwareFeatureComponent(mapToSchemaType(bindingType, rootSchemaType), softwareFeatureInfoList))
+        registerAnalysisSchemaComponent(SoftwareFeatureComponent(bindingType, softwareFeatureInfoList))
     }
 
     if (withDefaultsApplication) {
@@ -81,9 +84,21 @@ fun EvaluationSchemaBuilder.softwareFeaturesDefaultsComponent(
     schemaTypeToExtend: KClass<*>,
     softwareFeatureRegistry: SoftwareFeatureRegistry
 ) {
-    val softwareFeatureInfo = buildSoftwareTypeInfoWithoutResolution(softwareFeatureRegistry)
+    val buildModelTypeToPublicDslType = mapBuildModelTypesToPublicDslTypes(softwareFeatureRegistry)
+    val softwareFeatureInfo = buildSoftwareTypeInfoWithoutResolution(softwareFeatureRegistry) { bindingType ->
+        mapToSchemaType(bindingType, schemaTypeToExtend, buildModelTypeToPublicDslType)
+    }
     registerAnalysisSchemaComponent(SoftwareFeatureComponent(schemaTypeToExtend, softwareFeatureInfo))
 }
+
+private fun mapBuildModelTypesToPublicDslTypes(softwareFeatureRegistry: SoftwareFeatureRegistry) =
+    buildMap<KClass<*>, KClass<*>> {
+        softwareFeatureRegistry.getSoftwareFeatureImplementations().values.map { it.allDslBindings }.forEach { dslBinding ->
+            dslBinding.forEach {
+                put(it.value.kotlin, it.key.kotlin)
+            }
+        }
+    }
 
 
 private
@@ -114,25 +129,28 @@ class SoftwareFeatureConversionComponent(
 
 private
 fun buildSoftwareFeatureInfo(
-    softwareFeatureRegistry: SoftwareFeatureRegistry
+    softwareFeatureRegistry: SoftwareFeatureRegistry,
+    resolveSchemaType: (KClass<*>) -> KClass<*>
 ): Map<KClass<*>, List<SoftwareFeatureInfo<*>>> = softwareFeatureRegistry.getSoftwareFeatureImplementations().values
-        .map { SoftwareFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX) }
-        .groupBy { it.bindingType.kotlin }
+        .map {
+            SoftwareFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX, resolveSchemaType(it.bindingType.kotlin))
+        }.groupBy { resolveSchemaType(it.bindingType.kotlin) }
 
 
 private
 fun buildSoftwareTypeInfoWithoutResolution(
-    softwareFeatureRegistry: SoftwareFeatureRegistry
+    softwareFeatureRegistry: SoftwareFeatureRegistry,
+    resolveSchemaType: (KClass<*>) -> KClass<*>
 ): List<SoftwareFeatureInfo<*>> = softwareFeatureRegistry.getSoftwareFeatureImplementations().values.map {
-    SoftwareFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX)
+    SoftwareFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX, resolveSchemaType(it.bindingType.kotlin))
 }
 
 
 private
-fun mapToSchemaType(bindingType: KClass<*>, rootSchemaType: KClass<*>) : KClass<*>  {
+fun mapToSchemaType(bindingType: KClass<*>, rootSchemaType: KClass<*>, buildModelTypeToPublicDslType: Map<KClass<*>, KClass<*>>) : KClass<*>  {
     return when (bindingType) {
         Project::class -> rootSchemaType
-        else -> bindingType
+        else -> buildModelTypeToPublicDslType[bindingType]!!
     }
 }
 
@@ -141,8 +159,8 @@ private
 data class SoftwareFeatureInfo<T : Any>(
     val delegate: SoftwareFeatureImplementation<T>,
     val accessorIdPrefix: String,
+    val schemaTypeToExtend: KClass<*>
 ) : SoftwareFeatureImplementation<T> by delegate {
-    val schemaTypeToExtend: KClass<*> = delegate.bindingType.kotlin
     val customAccessorId = "$accessorIdPrefix:${delegate.featureName}"
 
     fun schemaFunction(host: SchemaBuildingHost) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
@@ -191,7 +209,12 @@ class RuntimeModelTypeAccessors(
     private
     fun applySoftwareFeaturePlugin(receiverObject: Any, softwareFeature: SoftwareFeatureImplementation<*>, softwareFeatureApplicator: SoftwareFeatureApplicator): Any {
         require(receiverObject is ExtensionAware) { "unexpected receiver, expected a ExtensionAware instance, got $receiverObject" }
-        require(softwareFeature.bindingType.isAssignableFrom(receiverObject::class.java)) { "unexpected receiver, expected a ${softwareFeature.bindingType}, got $receiverObject" }
+        require(isValidBindingType(softwareFeature.bindingType, receiverObject::class.java)) { "unexpected receiver, expected a DSL object bound to build model type '${softwareFeature.bindingType}', got '$receiverObject'" }
         return softwareFeatureApplicator.applyFeatureTo(receiverObject, softwareFeature)
+    }
+
+    private
+    fun isValidBindingType(bindingType: Class<*>, receiverType: Class<*>): Boolean {
+        return bindingType == Project::class.java || modelTypeById.values.any { it.hasBindingFor(receiverType, bindingType) }
     }
 }
