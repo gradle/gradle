@@ -49,7 +49,7 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
         warnings.forEach(warning -> {
             withDocumentation(warning, deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning, false, false)))
                     .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBecomeAnErrorInGradle10())
+                    .willBecomeAnErrorInNextMajorGradleVersion())
                     .nagUser();
             }
         );

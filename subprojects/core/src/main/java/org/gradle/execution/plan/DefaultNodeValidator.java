@@ -66,9 +66,6 @@ public class DefaultNodeValidator implements NodeValidator {
     }
 
     private void logWarnings(List<? extends InternalProblem> problems) {
-        // We are logging the warnings that we encountered, so this should be always the next Gradle version.
-        // What should happen when preparing the next major version is to change warnings to errors, so that we
-        // can start adding new warnings.
         problems.stream()
             .filter(DefaultNodeValidator::isWarning)
             .forEach(problem -> {
@@ -78,7 +75,7 @@ public class DefaultNodeValidator implements NodeValidator {
                 String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
                 withDocumentation(problem, DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBecomeAnErrorInGradle10())
+                    .willBecomeAnErrorInNextMajorGradleVersion())
                     .nagUser();
             });
     }
