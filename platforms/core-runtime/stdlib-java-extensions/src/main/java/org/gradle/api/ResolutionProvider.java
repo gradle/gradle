@@ -16,8 +16,6 @@
 
 package org.gradle.api;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.List;
 
 /**
@@ -26,7 +24,8 @@ import java.util.List;
  * Exceptions can implement this interface in order to provide a list of resolutions
  * that are then displayed in the suggestion section of the error message.
  */
-@NullMarked
+
+@Incubating
 public interface ResolutionProvider {
     /**
      * Returns a list of potential resolutions for this exception.

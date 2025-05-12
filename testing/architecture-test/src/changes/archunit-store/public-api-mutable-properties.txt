@@ -5,6 +5,7 @@ Method <org.gradle.api.AntBuilder.getProperties()> does not have raw return type
 Method <org.gradle.api.AntBuilder.getReferences()> does not have raw return type (java.util.Map) assignable to any of [Provider] in (AntBuilder.java:0)
 Method <org.gradle.api.BuildableComponentSpec.getBuildTask()> does not have raw return type (org.gradle.api.Task) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (BuildableComponentSpec.java:0)
 Method <org.gradle.api.CheckableComponentSpec.getCheckTask()> does not have raw return type (org.gradle.api.Task) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (CheckableComponentSpec.java:0)
+Method <org.gradle.api.GradleException.getResolutions()> does not have raw return type (java.util.List) assignable to any of [Provider] in (GradleException.java:0)
 Method <org.gradle.api.InvalidActionClosureException.getArgument()> does not have raw return type (java.lang.Object) assignable to any of [Provider] in (InvalidActionClosureException.java:0)
 Method <org.gradle.api.InvalidActionClosureException.getClosure()> does not have raw return type (groovy.lang.Closure) assignable to any of [Provider] in (InvalidActionClosureException.java:0)
 Method <org.gradle.api.Project.getAllTasks(boolean)> does not have raw return type (java.util.Map) assignable to any of [Provider] in (Project.java:0)

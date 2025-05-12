@@ -26,7 +26,7 @@ import java.util.List;
  * Intended to be the base class of all exceptions thrown by Gradle.
  * <p>
  * Implements {@link ResolutionProvider} to allow the thrower to provide potential resolutions for an exception
- * that Gradle will display.
+ * that Gradle will display upon failure.
  */
 public class GradleException extends RuntimeException implements ResolutionProvider {
     private final List<String> resolutions = new ArrayList<>();
@@ -52,6 +52,7 @@ public class GradleException extends RuntimeException implements ResolutionProvi
         this.resolutions.addAll(resolutions);
     }
 
+    @Incubating
     @Override
     public List<String> getResolutions() {
         return new ArrayList<>(resolutions);

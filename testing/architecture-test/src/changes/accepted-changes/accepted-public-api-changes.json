@@ -49,6 +49,26 @@
             ]
         },
         {
+            "type": "org.gradle.api.GradleException",
+            "member": "Class org.gradle.api.GradleException",
+            "acceptation": "Making ResolutionProvider public API",
+            "changes": [
+                "org.gradle.api.ResolutionProvider"
+            ]
+        },
+        {
+            "type": "org.gradle.api.GradleException",
+            "member": "Constructor org.gradle.api.GradleException(java.lang.String,java.util.List)",
+            "acceptation": "Making ResolutionProvider public API",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.GradleException",
+            "member": "Constructor org.gradle.api.GradleException(java.lang.String,java.util.List,java.lang.Throwable)",
+            "acceptation": "Making ResolutionProvider public API",
+            "changes": []
+        },
+        {
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.exec(groovy.lang.Closure)",
             "acceptation": "Remove deprecated method",
@@ -87,6 +107,18 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.ResolutionProvider",
+            "member": "Class org.gradle.api.ResolutionProvider",
+            "acceptation": "Making ResolutionProvider public API",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.ResolutionProvider",
+            "member": "Method org.gradle.api.ResolutionProvider.getResolutions()",
+            "acceptation": "Making ResolutionProvider public API",
+            "changes": []
         },
         {
             "type": "org.gradle.api.Script",
