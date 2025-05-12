@@ -357,8 +357,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     private
     fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
         classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
-            if (inaccessibilityReasons.isNotEmpty()) inaccessibilityReasons
-            else classNames.leaves.filter(::hasTypeParameter).map(::typeErasure)
+            inaccessibilityReasons.ifEmpty { classNames.leaves.filter(::hasTypeParameter).map(::typeErasure) }
         }
 
     private
@@ -596,7 +595,6 @@ fun classLoaderScopeOf(scriptTarget: Any) = when (scriptTarget) {
 
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
     putAll(schema.extensions)
-    putAll(schema.conventions)
     putAll(schema.tasks)
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
