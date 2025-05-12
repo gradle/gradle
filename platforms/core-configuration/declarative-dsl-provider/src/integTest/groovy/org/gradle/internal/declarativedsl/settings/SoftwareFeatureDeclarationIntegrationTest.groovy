@@ -94,13 +94,14 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
             import org.gradle.api.internal.plugins.software.SoftwareFeature;
             import org.gradle.api.plugins.ExtensionAware;
+            import org.gradle.test.SoftwareTypeImplPlugin.ModelType;
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding.class)
             public class SoftwareFeatureImplPlugin implements Plugin<Project> {
 
                 static class Binding implements SoftwareFeatureBindingRegistration {
                     @Override public void register(SoftwareFeatureBindingBuilder builder) {
-                        builder.bind("feature", FeatureDefinition.class, TestSoftwareTypeExtension.class, FeatureModel.class,
+                        builder.bind("feature", FeatureDefinition.class, ModelType.class, FeatureModel.class,
                             (context, feature, parent, model) -> {
                                 System.out.println("Binding FeatureDefinition");
                                 model.getText().set(feature.getText());
@@ -136,14 +137,14 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.api.internal.plugins.software.SoftwareFeature
             import org.gradle.api.plugins.ExtensionAware
             import org.gradle.api.internal.plugins.bind
-            import org.gradle.test.TestSoftwareTypeExtension
+            import org.gradle.test.SoftwareTypeImplPlugin.ModelType
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding::class)
             class SoftwareFeatureImplPlugin : Plugin<Project> {
 
                 class Binding : SoftwareFeatureBindingRegistration {
                     override fun register(builder: SoftwareFeatureBindingBuilder) {
-                        builder.bind<FeatureDefinition, TestSoftwareTypeExtension, FeatureModel>("feature") { feature, parent, model ->
+                        builder.bind<FeatureDefinition, ModelType, FeatureModel>("feature") { feature, parent, model ->
                             println("Binding FeatureDefinition")
                             model.getText().set(feature.getText())
                             getProject().getTasks().register("printTestSoftwareFeatureConfiguration") { task: Task ->
