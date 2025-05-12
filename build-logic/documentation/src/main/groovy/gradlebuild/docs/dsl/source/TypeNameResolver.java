@@ -47,6 +47,7 @@ public class TypeNameResolver {
         primitiveTypes.add("float");
         primitiveTypes.add("double");
         primitiveTypes.add("void");
+        // TODO: sync with the documentation in writing_build_scripts.adoc
         groovyImplicitImportPackages.add("java.util.");
         groovyImplicitImportPackages.add("java.io.");
         groovyImplicitImportPackages.add("java.net.");
