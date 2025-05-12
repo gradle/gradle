@@ -605,7 +605,7 @@ The automatically available `buildSrc` is great for rapid prototyping, but it co
 * The `buildSrc` project automatically applies the `java` plugin, which may be unnecessary.
 
 One important caveat to this recommendation is when creating `Settings` plugins.
-Defining these in a `build-logic` project requires it to be included in the `pluginManagement` block of the main build's `settings.gradle` file, in order to make these plugins available to the build early enough to be applied to the `Settings` instance.
+Defining these in a `build-logic` project requires it to be included in the `pluginManagement` block of the main build's `settings.gradle(.kts)` file, in order to make these plugins available to the build early enough to be applied to the `Settings` instance.
 This is possible, but imposes a significant performance penalty.
 If you need to create and apply a `Settings` plugin, you should create it in `buildSrc` for now.
 
