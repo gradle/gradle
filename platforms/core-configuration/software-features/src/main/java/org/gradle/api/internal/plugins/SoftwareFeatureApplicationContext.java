@@ -19,7 +19,6 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
 
@@ -32,9 +31,5 @@ public interface SoftwareFeatureApplicationContext {
 
     default void registerModel(Object definition, Object model) {
         ((ExtensionAware) definition).getExtensions().add(SoftwareFeatureBinding.MODEL, model);
-    }
-
-    default <T> T getModel(Object definition, Class<T> modelType) {
-        return Cast.uncheckedCast(((ExtensionAware) definition).getExtensions().getByName(SoftwareFeatureBinding.MODEL));
     }
 }
