@@ -52,4 +52,25 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         outputContains("Build finished callback from foo plugin")
         postBuildOutputContains("build file 'build.gradle': Foo plugin isn't CC compatible")
     }
+
+    def "cache should be store if a task that needs degradation is not requested"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register("a") {
+                gradle.requireConfigurationCacheDegradationIf("Task isn't CC compatible") { true }
+            }
+            tasks.register("b") {
+                gradle.requireConfigurationCacheDegradationIf("Task is CC compatible") { false }
+                doLast {
+                    println "Hello from B"
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "b"
+
+        then:
+        configurationCache.assertStateStored()
+    }
 }
