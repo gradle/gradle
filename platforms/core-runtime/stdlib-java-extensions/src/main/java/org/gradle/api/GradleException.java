@@ -16,21 +16,49 @@
 
 package org.gradle.api;
 
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
- * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
+ * Intended to be the base class of all exceptions thrown by Gradle.
+ * <p>
+ * Implements {@link ResolutionProvider} to allow the thrower to provide potential resolutions for an exception
+ * that Gradle will display.
  */
-public class GradleException extends RuntimeException {
+public class GradleException extends RuntimeException implements ResolutionProvider {
+    private final List<String> resolutions = new ArrayList<>();
+
     public GradleException() {
         super();
     }
 
     public GradleException(String message) {
-        super(message);
+        this(message, Collections.emptyList());
+    }
+
+    public GradleException(String message, List<String> resolutions) {
+        this(message, resolutions, null);
     }
 
     public GradleException(String message, @Nullable Throwable cause) {
+        this(message, Collections.emptyList(), cause);
+    }
+
+    public GradleException(String message, List<String> resolutions, @Nullable Throwable cause) {
         super(message, cause);
+        this.resolutions.addAll(resolutions);
+    }
+
+    public void addResolution(String resolution) {
+        resolutions.add(resolution);
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return new ArrayList<>(resolutions);
     }
 }

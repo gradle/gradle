@@ -19,3 +19,8 @@ dependencies {
 
     implementation(projects.buildProcessStartup)
 }
+
+packageCycles {
+    // Allows GradleException to implement ResolutionProvider
+    excludePatterns.add("org/gradle/internal/exceptions/**")
+}
