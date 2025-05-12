@@ -36,9 +36,9 @@ import org.jetbrains.kotlin.load.java.ReportLevel
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     compilerOptions {
         allWarningsAsErrors = true
-        apiVersion = KotlinVersion.KOTLIN_1_8
-        languageVersion = KotlinVersion.KOTLIN_1_8
-        jvmTarget = JvmTarget.JVM_1_8
+        apiVersion = KotlinVersion.KOTLIN_1_8 // FIXME: Java 17?
+        languageVersion = KotlinVersion.KOTLIN_1_8 // FIXME: Java 17?
+        jvmTarget = JvmTarget.JVM_1_8 // FIXME: Java 17?
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
             "-Xjspecify-annotations=strict",
@@ -54,8 +54,8 @@ fun CompilerConfiguration.configureKotlinCompilerForGradleBuild() {
     put(
         CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS,
         LanguageVersionSettingsImpl(
-            languageVersion = LanguageVersion.KOTLIN_1_8,
-            apiVersion = ApiVersion.KOTLIN_1_8,
+            languageVersion = LanguageVersion.KOTLIN_1_8, // FIXME: Java 17?
+            apiVersion = ApiVersion.KOTLIN_1_8, // FIXME: Java 17?
             analysisFlags = mapOf(
                 JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
                     Jsr305Settings(ReportLevel.STRICT, ReportLevel.STRICT)
@@ -66,5 +66,5 @@ fun CompilerConfiguration.configureKotlinCompilerForGradleBuild() {
 
     put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
     put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
-    put(JVMConfigurationKeys.JVM_TARGET, org.jetbrains.kotlin.config.JvmTarget.JVM_1_8)
+    put(JVMConfigurationKeys.JVM_TARGET, org.jetbrains.kotlin.config.JvmTarget.JVM_1_8) // FIXME: Java 17?
 }

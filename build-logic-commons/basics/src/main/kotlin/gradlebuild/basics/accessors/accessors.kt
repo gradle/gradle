@@ -25,5 +25,5 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 // TODO these accessors should be generated - https://github.com/gradle/gradle/issues/3191
 
-val Project.kotlinMainSourceSet: SourceDirectorySet
+val Project.kotlinMainSourceSet: SourceDirectorySet  // FIXME: can be removed??
     get() = the<KotlinJvmProjectExtension>().sourceSets.named("main").get().kotlin
