@@ -79,7 +79,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     entry<Project, (Int, Double) -> Boolean>("function2")
                 ),
                 containerElements = listOf(),
-                conventions = listOf(),
                 tasks = listOf(),
                 configurations = listOf(),
                 modelDefaults = listOf(),
@@ -135,7 +134,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val schema =
             TypedProjectSchema(
                 extensions = listOf(),
-                conventions = listOf(),
                 containerElements = listOf(),
                 tasks = listOf(),
                 configurations = listOf(
@@ -199,7 +197,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     extensions = listOf(
                         ProjectSchemaEntry(schemaTypeFor("ExtensionReceiver"), "extension", entryType)
                     ),
-                    conventions = listOf(),
                     containerElements = listOf(
                         ProjectSchemaEntry(namedDomainObjectContainerOf(entryType), "element", schemaTypeFor("Element"))
                     ),
@@ -283,7 +280,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 containerElements = listOf(
                     entry<SourceSetContainer, SourceSet>("main")
                 ),
-                conventions = listOf(),
                 tasks = listOf(
                     entry<TaskContainer, Delete>("clean")
                 ),

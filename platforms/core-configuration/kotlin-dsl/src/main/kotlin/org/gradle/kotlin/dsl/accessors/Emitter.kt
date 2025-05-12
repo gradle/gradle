@@ -171,7 +171,6 @@ private
 fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
     when (this) {
         is Accessor.ForExtension -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForConvention -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForTask -> importsRequiredBy(spec.type)
         is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
@@ -194,8 +193,6 @@ sealed class Accessor {
 
     data class ForExtension(val spec: TypedAccessorSpec) : Accessor()
 
-    data class ForConvention(val spec: TypedAccessorSpec) : Accessor()
-
     data class ForContainerElement(val spec: TypedAccessorSpec) : Accessor()
 
     data class ForTask(val spec: TypedAccessorSpec) : Accessor()
@@ -213,7 +210,6 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
     schema.run {
         AccessorScope().run {
             yieldAll(uniqueAccessorsFor(extensions).map(Accessor::ForExtension))
-            yieldAll(uniqueAccessorsFor(conventions).map(Accessor::ForConvention))
             yieldAll(uniqueAccessorsFor(tasks).map(Accessor::ForTask))
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
 
