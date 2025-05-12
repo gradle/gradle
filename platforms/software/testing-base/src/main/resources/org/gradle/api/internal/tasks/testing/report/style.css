@@ -82,3 +82,16 @@ ul.linkList li {
     list-style: none;
     margin-bottom: 5px;
 }
+
+.code {
+    position: relative;
+}
+
+.clipboard-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+}
