@@ -1011,14 +1011,9 @@
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.0.1">
-         <artifact name="gradle-errorprone-plugin-4.0.1.jar">
-            <sha256 value="4caa671392fd3675171e93c663f2642452819c68d3ef90206d7949bd8fee7d9e" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.1.0">
-         <artifact name="gradle-errorprone-plugin-4.1.0.jar">
-            <sha256 value="f1eab035c996e20b081bf3c18bd0e328bb553d465e4be2354d0af4dde070465d" origin="Verified" reason="Artifact is not signed"/>
+      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.2.0">
+         <artifact name="gradle-errorprone-plugin-4.2.0.jar">
+            <sha256 value="e731792b8cc7fbac9e6dac4cce29fcbac67c83f77e70582b78763c3adaab57e8" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">

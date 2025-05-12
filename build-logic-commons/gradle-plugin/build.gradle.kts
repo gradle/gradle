@@ -13,7 +13,7 @@ dependencies {
 
     implementation(projects.basics)
     implementation(projects.moduleIdentity)
-    implementation("net.ltgt.gradle:gradle-errorprone-plugin:4.1.0")
+    implementation("net.ltgt.gradle:gradle-errorprone-plugin:4.2.0")
 
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:6.1.2")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$embeddedKotlinVersion")
