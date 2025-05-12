@@ -18,17 +18,19 @@ package org.gradle.api.publish.internal.component;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 
 public class DefaultSoftwareComponentFactory implements SoftwareComponentFactory {
-
     private final ObjectFactory objectFactory;
+    private final InternalProblems problemsService;
 
-    public DefaultSoftwareComponentFactory(ObjectFactory objectFactory) {
+    public DefaultSoftwareComponentFactory(ObjectFactory objectFactory, InternalProblems problemsService) {
         this.objectFactory = objectFactory;
+        this.problemsService = problemsService;
     }
 
     @Override
     public AdhocComponentWithVariants adhoc(String name) {
-        return objectFactory.newInstance(DefaultAdhocSoftwareComponent.class, name, objectFactory);
+        return objectFactory.newInstance(DefaultAdhocSoftwareComponent.class, name, objectFactory, problemsService);
     }
 }

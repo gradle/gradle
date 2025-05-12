@@ -24,6 +24,7 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.publish.internal.component.DefaultAdhocSoftwareComponent;
 
 import javax.inject.Inject;
@@ -44,9 +45,10 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
     public DefaultJvmSoftwareComponent(
         String componentName,
         ObjectFactory objectFactory,
-        RoleBasedConfigurationContainerInternal configurations
+        RoleBasedConfigurationContainerInternal configurations,
+        InternalProblems problemsService
     ) {
-        super(componentName, objectFactory);
+        super(componentName, objectFactory, problemsService);
         this.configurations = configurations;
     }
 
