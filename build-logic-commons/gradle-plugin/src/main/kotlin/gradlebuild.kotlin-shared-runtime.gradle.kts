@@ -16,14 +16,14 @@ plugins {
 description = "A plugin that sets up a Kotlin DSL code that is shared between build-logic and runtime"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_8 // FIXME: 17
+    targetCompatibility = JavaVersion.VERSION_1_8 // FIXME: 17
 }
 
 kotlin {
     compilerOptions {
         allWarningsAsErrors = true
-        jvmTarget.set(JvmTarget.JVM_1_8)
+        jvmTarget.set(JvmTarget.JVM_1_8) // FIXME: 17
     }
 }
 
