@@ -65,10 +65,6 @@
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
-      <ignored-keys>
-         <ignored-key id="09A79E1E15A04694" reason="Key couldn't be downloaded from any key server"/>
-         <ignored-key id="74DAFDFD6DAE2441" reason="Key couldn't be downloaded from any key server"/>
-      </ignored-keys>
       <trusted-keys>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
          <trusted-key id="0181A4828FA27B6BE6F1F5A68611CD28F472E006" group="org.jline"/>
@@ -207,8 +203,8 @@
             <trusting group="org.eclipse.jgit" name="org.eclipse.jgit"/>
             <trusting group="org.eclipse.jgit" name="org.eclipse.jgit.ssh.apache"/>
          </trusted-key>
-         <trusted-key id="829D279BA9A3C503EB98A0E53C48F45A0E97AF7E" group="org.gebish"/>
          <trusted-key id="7FAA0F2206DE228F0DB01AD741321490758AAD6F" group="org.codehaus.groovy"/>
+         <trusted-key id="829D279BA9A3C503EB98A0E53C48F45A0E97AF7E" group="org.gebish"/>
          <trusted-key id="8446B9E902A3F3DDEE711FDB8E26FF248BC7AEAD">
             <trusting group="com.github.jnr"/>
             <trusting group="com.headius"/>
