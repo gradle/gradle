@@ -13,20 +13,201 @@
 // limitations under the License.
 
 [[declaring_dependencies_between_subprojects]]
-= Declaring Dependencies between Subprojects
+= Multi-Project Builds
 
-What if one subproject depends on another subproject?
-What if one project needs the artifact produced by another project?
+As projects grow, it's common to split them into smaller, focused modules that are built, tested, and released together.
+Gradle supports this through multi-project builds, allowing you to organize related codebases under a single build while keeping each module logically isolated.
+
+== Project Layout
+
+A multi-project build consists of a root project and one or more subprojects, all defined in a single `settings.gradle(.kts)` file.
+This structure supports modularization, parallel execution, and code reuse.
+
+A typical multi-project structure looks like this:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+my-project/
+├── settings.gradle.kts     // <1>
+├── build.gradle.kts            // <2>
+├── app/                    // <3>
+│   └── build.gradle.kts        // <4>
+├── core/                   // <3>
+│   └── build.gradle.kts        // <5>
+└── util/                   // <3>
+    └── build.gradle.kts        // <6>
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+my-project/
+├── settings.gradle         // <1>
+├── build.gradle        // <2>
+├── app/                    // <3>
+│   └── build.gradle    // <4>
+├── core/                   // <3>
+│   └── build.gradle    // <5>
+└── util/                   // <3>
+    └── build.gradle    // <6>
+----
+=====
+<1> Declares subprojects
+<2> Root project build logic (optional)
+<3> Subproject
+<4> App module
+<5> Shared core logic
+<6> Utility code
+
+Each subproject can define its own build logic, dependencies, and plugins.
+
+In `settings.gradle(.kts)`, you include subprojects by name using `include()`.
+The `include()` method takes <<intro_multi_project_builds#sec:project_path,project paths>> as arguments:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+rootProject.name = "my-project"
+include("app", "core", "util")
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+rootProject.name = 'my-project'
+include('app', 'core', 'util')
+----
+=====
+
+By default, a project path corresponds to the relative physical location of the project directory.
+For example, the path `services:api` maps to the directory `./services/api`, relative to the root project.
+
+You can find more examples and detailed usage in the DSL reference for link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[`Settings.include(String...)`].
+
+[[sub:modifying_element_of_the_project_tree]]
+=== Project Descriptors
+
+To further describe the project architecture to Gradle, the settings file provides _project descriptors_.
+
+You can modify these descriptors in the settings file at any time.
+
+To access a descriptor, you can:
+
+====
+include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
+====
+
+Using this descriptor, you can change the name, project directory, and build file of a project:
+
+====
+include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
+====
+
+Consult the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
+
+== Modifying a subproject path
+
+Let's take a hypothetical project with the following structure:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── settings.gradle.kts
+├── app/
+│   ├── build.gradle.kts
+│   └── src/
+└── subs/               // <1>
+    ├── build.gradle.kts
+    └── web             // <1>
+        └── my-web-module   // <2>
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── settings.gradle
+├── app/
+│   ├── build.gradle
+│   └── src/
+└── subs/               // <1>
+    ├── build.gradle
+    └── web             // <1>
+        └── my-web-module   // <2>
+
+----
+=====
+<1> Gradle may see this as a subproject
+<2> Actual intended subproject
+
+If your `settings.gradle(.kts)` looks like this:
+
+[source,groovy]
+----
+include(':subs:web:my-web-module')
+----
+
+Gradle sees a subproject with a logical project name of `:subs:web:my-web-module` and two, possibly unintentional, other subprojects logically named:
+
+1. `:subs`
+2. `:subs:web`
+
+This can lead to phantom build directories, especially when using `allprojects{}` or `subproject{}`.
+
+To avoid this, you can use:
+
+[source,kotlin]
+----
+include(':my-web-module')
+project(':my-web-module').projectDir = "subs/web/my-web-module"
+----
+
+So that you only end up with a single subproject named `:my-web-module`.
+
+So, while the physical project layout is the same, the logical results are different.
+
+[[sec:naming_recommendations]]
+== Naming recommendations
+
+As your project grows, naming and consistency get increasingly more important.
+To keep your builds maintainable, we recommend the following:
+
+1. *Keep default project names for subprojects*:
+It is possible to configure custom project names in the settings file.
+However, it’s an unnecessary extra effort for the developers to track which projects belong to what folders.
+
+2. *Use lower case hyphenation for all project names*:
+All letters are lowercase, and words are separated with a dash (`-`) character.
+
+3. *Define the root project name in the settings file*:
+The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scans.
+If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
+The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).
+
+== Declaring dependencies between Subprojects
+
+What if one subproject depends on another?
+What if one subproject depends on the artifact produced by another?
 
 image::structuring-builds-2.png[]
 
-This is a common use case for multi-project builds.
-Gradle offers <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependencies>> for this.
+This is a common use case in multi-project builds.
+Gradle supports this scenario with <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependencies>>.
 
 [[sec:project_jar_dependencies]]
-== Depending on another project
+=== Depending on another Project
 
-Let's explore a theoretical multi-project build with the following layout:
+Consider a multi-project build with the following layout:
 
 [.multi-language-sample]
 =====
@@ -71,13 +252,16 @@ Let's explore a theoretical multi-project build with the following layout:
 ----
 =====
 
-In this example, there are three subprojects called `shared`, `api`, and `person-service`:
+In this example:
 
-1. The `person-service` subproject depends on the other two subprojects, `shared` and `api`.
-2. The `api` subproject depends on the `shared` subproject.
+1. `person-service` depends on both `api` and `shared`
+2. `api` depends on `shared`
 
-We use the `:` separator to define a <<intro_multi_project_builds#sec:project_path,project path>> such as `services:person-service` or `:shared`.
-Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
+You declare these relationships using the project path, which uses colons (`:`) to indicate nesting.
+For example:
+
+- `:shared` refers to the `shared` subproject
+- `services:person-service` refers to a nested subproject
 
 [[javadependencies_2]]
 ====
@@ -85,17 +269,21 @@ include::sample[dir="snippets/multiproject/basic-dependencies/kotlin",files="set
 include::sample[dir="snippets/multiproject/basic-dependencies/groovy",files="settings.gradle[];shared/build.gradle[];api/build.gradle[];services/person-service/build.gradle[]"]
 ====
 
-A project dependency affects execution order.
-It causes the other project to be built first and adds the output with the classes of the other project to the classpath.
-It also adds the dependencies of the other project to the classpath.
+For more details on project paths, consult the DSL documentation for link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(String...)].
 
-If you execute `./gradlew :api:compile`, first the `shared` project is built, and then the `api` project is built.
+A project dependency affects both the build order and classpath:
+
+- The required project will be built first.
+- Its compiled classes and transitive dependencies are added to the consuming project’s classpath.
+
+For example, running `./gradlew :api:compileJava` will first build `shared`, then `api`.
 
 [[sec:depending_on_output_of_another_project]]
-== Depending on artifacts produced by another project
+=== Depending on Artifacts Produced by another Project
 
-Sometimes, you might want to depend on the output of a specific task within another project rather than the entire project.
-However, explicitly declaring a task dependency from one project to another is discouraged as it introduces unnecessary coupling between tasks.
+Sometimes, you only need the output of a specific task from another project—not the entire project itself.
 
-The recommended way to model dependencies, where a task in one project depends on the output of another, is to produce the output and mark it as an "outgoing" artifact.
-Gradle's <<variant_aware_resolution.adoc#sec:understanding-variant-selection,dependency management engine>> allows you to share arbitrary artifacts between projects and build them on demand.
+While you can create task-to-task dependencies between projects, Gradle discourages this because it creates tight coupling between tasks.
+
+Instead, use outgoing artifacts to expose a task’s output and model it as a dependency.
+Gradle’s <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant-aware dependency management>> allows one project to consume artifacts from another in a structured, on-demand way.

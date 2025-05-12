@@ -24,7 +24,7 @@ image::structuring-builds-3.png[]
 Instead of copying and pasting the same Java version and libraries in each subproject build script, Gradle provides a special directory for storing shared build logic that can be automatically applied to subprojects.
 
 [[sec:using_buildsrc]]
-== Share logic in `buildSrc`
+== The `buildSrc` directory
 
 `buildSrc` is a Gradle-recognized and protected directory which comes with some benefits:
 

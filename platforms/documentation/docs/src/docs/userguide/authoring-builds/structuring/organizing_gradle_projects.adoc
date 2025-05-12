@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[multi_project_builds]]
-= Structuring Projects
+= Structuring and Organizing Gradle Projects
 
 It is important to structure your Gradle project to optimize build performance.
 A multi-project build is the standard in Gradle.
@@ -75,9 +75,11 @@ my-project/     // <1>
 [[sec:creating_multi_project_builds]]
 == Single-Project Build
 
+image::structuring-builds-1.png[]
+
 Let's look at a _basic_ multi-project build example that contains a root project and a single subproject.
 
-The root project is called `basic-multiproject`, located somewhere on your machine.
+The root project is called `my-project`, located somewhere on your machine.
 From Gradle's perspective, the root is the top-level directory `.`.
 
 The project contains a single subproject called `./app`:
@@ -151,6 +153,8 @@ include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 [[sub:building_the_tree]]
 == Multi-Project Build (`include()`)
 
+image::structuring-builds-2.png[]
+
 In the settings file, you can use the `include` method to add another subproject to the root project:
 
 ====
@@ -208,109 +212,10 @@ Gradle will then look for the build file of the new `lib` subproject in the `./l
 <3> Subproject
 <4> Subproject build file
 
-[[sub:modifying_element_of_the_project_tree]]
-=== Project Descriptors
-
-To further describe the project architecture to Gradle, the settings file provides _project descriptors_.
-
-You can modify these descriptors in the settings file at any time.
-
-To access a descriptor, you can:
-
-====
-include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
-include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
-====
-
-Using this descriptor, you can change the name, project directory, and build file of a project:
-
-====
-include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
-include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
-====
-
-Consult the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
-
-=== Modifying a subproject path
-
-Let's take a hypothetical project with the following structure:
-
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-.
-├── settings.gradle.kts
-├── app/
-│   ├── build.gradle.kts
-│   └── src/
-└── subs/               // <1>
-    ├── build.gradle.kts
-    └── web             // <1>
-        └── my-web-module   // <2>
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-.
-├── settings.gradle
-├── app/
-│   ├── build.gradle
-│   └── src/
-└── subs/               // <1>
-    ├── build.gradle
-    └── web             // <1>
-        └── my-web-module   // <2>
-
-----
-=====
-<1> Gradle may see this as a subproject
-<2> Actual intended subproject
-
-If your `settings.gradle(.kts)` looks like this:
-
-[source,groovy]
-----
-include(':subs:web:my-web-module')
-----
-
-Gradle sees a subproject with a logical project name of `:subs:web:my-web-module` and two, possibly unintentional, other subprojects logically named `:subs` and `:subs:web`.
-This can lead to phantom build directories, especially when using `allprojects{}` or `subproject{}`.
-
-To avoid this, you can use:
-
-[source,kotlin]
-----
-include(':my-web-module')
-project(':my-web-module').projectDir = "subs/web/my-web-module"
-----
-
-So that you only end up with a single subproject named `:my-web-module`.
-
-So, while the physical project layout is the same, the logical results are different.
-
-[[sec:naming_recommendations]]
-=== Naming recommendations
-
-As your project grows, naming and consistency get increasingly more important.
-To keep your builds maintainable, we recommend the following:
-
-1. *Keep default project names for subprojects*:
-It is possible to configure custom project names in the settings file.
-However, it’s an unnecessary extra effort for the developers to track which projects belong to what folders.
-
-2. *Use lower case hyphenation for all project names*:
-All letters are lowercase, and words are separated with a dash (`-`) character.
-
-3. *Define the root project name in the settings file*:
-The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scans.
-If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
-The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).
-
 [[sec:build_sources]]
 == Sharing Build Logic (`buildSrc`)
+
+image::structuring-builds-3.png[]
 
 When projects grow in size and complexity, it's common to see the same logic repeated across multiple subprojects—like applying the same plugins, configuring the same tasks, or declaring the same dependencies.
 
@@ -410,6 +315,8 @@ It compiles and makes this plugin available to all other build scripts in the pr
 
 == Composite Builds (`includeBuild()`)
 
+image::structuring-builds-4.png[]
+
 In Gradle, composite builds (or included builds) are ways to compose multiple builds together.
 
 They allow you to work with multiple Gradle projects (builds) as if they were part of a single build, without needing to publish artifacts to a repository.
@@ -490,8 +397,14 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-capabil
 include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/groovy",files="settings.gradle[tags=inc]"]
 ====
 
+== Structuring Recommendations
+
+Source code and build logic should be organized in a clear, consistent, and meaningful way.
+This section outlines recommendations that lead to readable and maintainable Gradle projects.
+It also highlights common pitfalls and how to avoid them to ensure your builds stay robust and scalable.
+
 [[sec:separate_language_source_files]]
-== Use separate Language-specific Source Files
+=== Use separate Language-specific Source Files
 
 Gradle's language plugins define conventions for discovering and compiling source code.
 For example, when the <<java_plugin.adoc#java_plugin,Java plugin>> is applied, Gradle automatically compiles source files in `src/main/java`.
@@ -538,7 +451,7 @@ Here’s an example source layout for a project using both Java and Kotlin:
 ====
 
 [[sec:separate_test_type_source_files]]
-== Use separate Source Files per Test type
+=== Use separate Source Files per Test type
 
 It's common for a project to define and run multiple types of tests—such as unit tests, integration tests, functional tests, or smoke tests.
 To keep things maintainable and organized, Gradle recommends storing each test type’s source code in its own dedicated source directory.
@@ -562,7 +475,7 @@ link:../samples/sample_jvm_multi_project_with_additional_test_types.html[example
 NOTE: Gradle allows you to define multiple source sets and test tasks, so you can fully isolate and control each type of test in your build.
 
 [[sec:use_standard_conventions]]
-== Use standard Conventions
+=== Use standard Conventions
 
 All Gradle core plugins follow the *convention over configuration* principle, a well-known software engineering paradigm that favors sensible defaults over manual setup.
 You can read more about it here: link:https://en.wikipedia.org/wiki/Convention_over_configuration[Convention over configuration].
@@ -579,7 +492,7 @@ TIP: Stick to standard conventions unless you have a strong reason to deviate (e
 Refer to the reference documentation for each plugin to learn about its default conventions and behaviors.
 
 [[sec:settings_file]]
-== Use a Settings file
+=== Use a Settings file
 
 Every time you run a Gradle build, Gradle attempts to locate a `settings.gradle` (Groovy DSL) or `settings.gradle.kts` (Kotlin DSL) file.
 To do this, it walks up the directory hierarchy from the current working directory to the filesystem root.
@@ -619,7 +532,7 @@ The following example shows a standard Gradle project layout:
 =====
 ====
 
-== Use `gradle.properties`
+=== Use a `gradle.properties` file
 
 In Gradle, you can define properties in several ways:
 
@@ -639,6 +552,8 @@ Gradle automatically loads properties from:
 
 - A `gradle.properties` file in the project root
 - A `gradle.properties` file in your `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory (for user-wide settings)
+
+For example:
 
 ====
 [.multi-language-sample]
@@ -670,7 +585,7 @@ Gradle automatically loads properties from:
 ====
 
 [[sec:custom_gradle_distribution]]
-== Use a custom Gradle distribution
+=== Use a custom Gradle distribution
 
 Enterprises often want to standardize the build environment across all projects by enforcing common conventions and rules.
 One way to do this is by using <<init_scripts.adoc#init_scripts,Initialization scripts>>, which make it easy to apply shared build logic on a single machine—for example, by configuring an in-house repository and its credentials.
