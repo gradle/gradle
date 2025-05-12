@@ -32,13 +32,13 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails, ProblemUsageProgressDetails {
-    private final InternalProblem problem;
+    private final ProblemInternal problem;
 
-    public DefaultProblemProgressDetails(InternalProblem problem) {
+    public DefaultProblemProgressDetails(ProblemInternal problem) {
         this.problem = problem;
     }
 
-    public InternalProblem getProblem() {
+    public ProblemInternal getProblem() {
         return problem;
     }
 
@@ -157,7 +157,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         @Nullable
         @Override
         public DocumentationLink getDocumentationLink() {
-            InternalDocLink documentationLink = (InternalDocLink) definition.getDocumentationLink();
+            DocLinkInternal documentationLink = (DocLinkInternal) definition.getDocumentationLink();
             return documentationLink == null ? null : new DevelocityDocumentationLink(documentationLink);
         }
 
@@ -187,9 +187,9 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
 
         private static class DevelocityDocumentationLink implements DocumentationLink {
-            private final InternalDocLink documentationLink;
+            private final DocLinkInternal documentationLink;
 
-            public DevelocityDocumentationLink(InternalDocLink documentationLink) {
+            public DevelocityDocumentationLink(DocLinkInternal documentationLink) {
                 this.documentationLink = documentationLink;
             }
 

@@ -24,8 +24,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GeneralDataSpec;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
 import org.jspecify.annotations.NonNull;
@@ -48,7 +48,7 @@ public class DefaultTaskSelector implements TaskSelector {
     }
 
     @Inject
-    protected InternalProblems getProblemsService() {
+    protected ProblemsInternal getProblemsService() {
         throw new UnsupportedOperationException();
     }
 
@@ -112,7 +112,7 @@ public class DefaultTaskSelector implements TaskSelector {
     }
 
     private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
+        ((ProblemSpecInternal) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
         spec.severity(Severity.ERROR);
         return spec;
     }

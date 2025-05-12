@@ -73,7 +73,7 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -236,7 +236,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -388,7 +388,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         ProjectLayout projectLayout,
         SoftwareTypeRegistry softwareTypeRegistry,
         PluginScheme pluginScheme,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         return new ActionBasedModelDefaultsHandler(sharedModelDefaults, projectLayout, softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
     }

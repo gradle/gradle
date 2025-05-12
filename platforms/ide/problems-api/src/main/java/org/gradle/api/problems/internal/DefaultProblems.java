@@ -28,11 +28,11 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.jspecify.annotations.NonNull;
 
 @ServiceScope(Scope.BuildTree.class)
-public class DefaultProblems implements InternalProblems {
+public class DefaultProblems implements ProblemsInternal {
 
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemSummarizer problemSummarizer;
-    private final InternalProblemReporter internalReporter;
+    private final ProblemReporterInternal internalReporter;
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
     private final ProblemsInfrastructure infrastructure;
@@ -71,7 +71,7 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
-    public InternalProblemReporter getInternalReporter() {
+    public ProblemReporterInternal getInternalReporter() {
         return internalReporter;
     }
 
@@ -80,7 +80,7 @@ public class DefaultProblems implements InternalProblems {
         return infrastructure;
     }
     @Override
-    public InternalProblemBuilder getProblemBuilder() {
+    public ProblemBuilderInternal getProblemBuilder() {
         return new DefaultProblemBuilder(infrastructure);
     }
 }

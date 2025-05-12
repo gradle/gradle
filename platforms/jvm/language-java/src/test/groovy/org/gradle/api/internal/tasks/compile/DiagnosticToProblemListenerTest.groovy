@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile
 
 
-import org.gradle.api.problems.internal.InternalProblemSpec
+import org.gradle.api.problems.internal.ProblemSpecInternal
 import spock.lang.Specification
 
 import javax.tools.Diagnostic
@@ -29,7 +29,7 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     private static final String DIAGNOSTIC_DETAIL = "Error detail line 1${System.lineSeparator()}error detail line 2"
 
-    def spec = Mock(InternalProblemSpec)
+    def spec = Mock(ProblemSpecInternal)
 
     def diagnosticToProblemListener = new DiagnosticToProblemListener(null, null)
 

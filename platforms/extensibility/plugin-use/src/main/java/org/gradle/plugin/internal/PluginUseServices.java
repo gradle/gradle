@@ -30,7 +30,7 @@ import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -211,7 +211,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         SoftwareFeatureApplicator createSoftwareFeatureApplicator(
             ModelDefaultsApplicator modelDefaultsApplicator,
             PluginScheme pluginScheme,
-            InternalProblems problems,
+            ProblemsInternal problems,
             PluginManagerInternal pluginManager,
             ProjectInternal project
         ) {

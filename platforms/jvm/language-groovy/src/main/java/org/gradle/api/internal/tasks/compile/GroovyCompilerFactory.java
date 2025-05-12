@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
@@ -54,7 +54,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final ClassLoaderRegistry classLoaderRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final ProjectCacheDir projectCacheDir;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
     public GroovyCompilerFactory(
         WorkerDaemonFactory workerDaemonFactory,
@@ -67,7 +67,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         ClassLoaderRegistry classLoaderRegistry,
         ActionExecutionSpecFactory actionExecutionSpecFactory,
         ProjectCacheDir projectCacheDir,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         this.workerDaemonFactory = workerDaemonFactory;
         this.inProcessWorkerFactory = inProcessWorkerFactory;
@@ -99,10 +99,10 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {
         private final ObjectFactory objectFactory;
         private final List<File> javaCompilerPlugins;
-        private final InternalProblems problemsService;
+        private final ProblemsInternal problemsService;
 
         @Inject
-        public DaemonSideCompiler(ObjectFactory objectFactory, List<File> javaCompilerPlugins, InternalProblems problemsService) {
+        public DaemonSideCompiler(ObjectFactory objectFactory, List<File> javaCompilerPlugins, ProblemsInternal problemsService) {
             this.objectFactory = objectFactory;
             this.javaCompilerPlugins = javaCompilerPlugins;
             this.problemsService = problemsService;

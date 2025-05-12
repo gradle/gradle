@@ -23,7 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
@@ -384,8 +384,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
             resolutions.addAll(((ResolutionProvider) throwable).getResolutions());
         }
 
-        Collection<InternalProblem> all = problemLocator.findAll(throwable);
-        for (InternalProblem problem : all) {
+        Collection<ProblemInternal> all = problemLocator.findAll(throwable);
+        for (ProblemInternal problem : all) {
             resolutions.addAll(problem.getSolutions());
         }
 
@@ -422,7 +422,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         try {
             String msg = throwable instanceof CompilationFailedIndicator ? ((CompilationFailedIndicator) throwable).getShortMessage() : throwable.getMessage();
             StringBuilder builder = new StringBuilder();
-            Collection<InternalProblem> problems = problemLocator.findAll(throwable);
+            Collection<ProblemInternal> problems = problemLocator.findAll(throwable);
             if (!problems.isEmpty()) {
                 // Skip the exception message unless it is a compilation error
                 if (throwable instanceof CompilationFailedIndicator) {
