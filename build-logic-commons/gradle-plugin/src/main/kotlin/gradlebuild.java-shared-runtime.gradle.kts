@@ -13,8 +13,8 @@ plugins {
 description = "A plugin that sets up a Java code that is shared between build-logic and runtime"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_8 // FIXME: 17
+    targetCompatibility = JavaVersion.VERSION_1_8 // FIXME: 17
 }
 
 testing {
