@@ -1016,11 +1016,6 @@
             <sha256 value="e731792b8cc7fbac9e6dac4cce29fcbac67c83f77e70582b78763c3adaab57e8" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
-         <artifact name="zero-allocation-hashing-0.10.1.jar">
-            <pgp value="CB3808E03CD602A6DC5B882552931F4B72B4F54C"/>
-         </artifact>
-      </component>
       <component group="net.openhft" name="zero-allocation-hashing" version="0.16">
          <artifact name="zero-allocation-hashing-0.16.jar">
             <pgp value="A7D8BE3D575D6C5040E889331B6E3BDDD4415872"/>
