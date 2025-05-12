@@ -73,8 +73,8 @@ class ProjectExtensionsTest {
 
         whenever(project.extensions)
             .thenReturn(convention)
-        whenever(project.convention)
-            .thenReturn(convention)
+//        whenever(project.convention)
+//            .thenReturn(convention)
         whenever(convention.findPlugin(eq(CustomConvention::class.java)))
             .thenReturn(javaConvention)
 
@@ -96,8 +96,8 @@ class ProjectExtensionsTest {
 
         whenever(project.extensions)
             .thenReturn(convention)
-        whenever(project.convention)
-            .thenReturn(convention)
+//        whenever(project.convention)
+//            .thenReturn(convention)
         whenever(convention.findByType(any<TypeOf<*>>()))
             .thenReturn(null)
         whenever(convention.findPlugin(eq(CustomConvention::class.java)))
@@ -121,8 +121,8 @@ class ProjectExtensionsTest {
 
         whenever(project.extensions)
             .thenReturn(convention)
-        whenever(project.convention)
-            .thenReturn(convention)
+//        whenever(project.convention)
+//            .thenReturn(convention)
         whenever(convention.getByType(eq(conventionType)))
             .thenThrow(UnknownDomainObjectException::class.java)
 
@@ -150,8 +150,8 @@ class ProjectExtensionsTest {
 
         whenever(project.extensions)
             .thenReturn(convention)
-        whenever(project.convention)
-            .thenReturn(convention)
+//        whenever(project.convention)
+//            .thenReturn(convention)
         whenever(convention.configure(eq(conventionType), any<Action<CustomConvention>>()))
             .thenThrow(UnknownDomainObjectException::class.java)
 

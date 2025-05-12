@@ -26,9 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
-import org.gradle.internal.Factory
 import org.gradle.internal.declarativedsl.software.getSoftwareTypeModelInstance
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -41,21 +39,21 @@ fun extensionOf(target: Any, extensionName: String): Any =
     (target as ExtensionAware).extensions.getByName(extensionName)
 
 
-fun conventionPluginOf(target: Any, name: String) =
-    @Suppress("deprecation")
-    conventionPluginByName(conventionOf(target), name)
-
-
-@Suppress("deprecation")
-fun conventionPluginByName(convention: org.gradle.api.plugins.Convention, name: String): Any =
-    convention.plugins[name] ?: error("A convention named '$name' could not be found.")
-
-
-@Suppress("deprecation")
-fun conventionOf(target: Any): org.gradle.api.plugins.Convention = when (target) {
-    is Project -> DeprecationLogger.whileDisabled(Factory { target.convention })!!
-    else -> error("Object `$target` doesn't support conventions!")
-}
+//fun conventionPluginOf(target: Any, name: String) =
+//    @Suppress("deprecation")
+//    conventionPluginByName(conventionOf(target), name)
+//
+//
+//@Suppress("deprecation")
+//fun conventionPluginByName(convention: org.gradle.api.plugins.Convention, name: String): Any =
+//    convention.plugins[name] ?: error("A convention named '$name' could not be found.")
+//
+//
+//@Suppress("deprecation")
+//fun conventionOf(target: Any): org.gradle.api.plugins.Convention = when (target) {
+//    is Project -> DeprecationLogger.whileDisabled(Factory { target.convention })!!
+//    else -> error("Object `$target` doesn't support conventions!")
+//}
 
 
 fun <T : Dependency> addDependencyTo(

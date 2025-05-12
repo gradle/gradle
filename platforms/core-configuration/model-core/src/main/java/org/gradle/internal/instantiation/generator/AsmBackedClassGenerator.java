@@ -34,6 +34,7 @@ import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
@@ -42,6 +43,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -446,6 +448,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final static Type CONVENTION_AWARE_HELPER_TYPE = getType(ConventionAwareHelper.class);
         private final static Type DYNAMIC_OBJECT_AWARE_TYPE = getType(DynamicObjectAware.class);
         private final static Type EXTENSION_AWARE_TYPE = getType(ExtensionAware.class);
+        private static final Type EXTENSION_CONTAINER_TYPE = getType(ExtensionContainer.class);
+        private static final String RETURN_EXTENSION_CONTAINER = getMethodDescriptor(EXTENSION_CONTAINER_TYPE);
         private final static Type DYNAMIC_OBJECT_TYPE = getType(DynamicObject.class);
         private final static Type CONVENTION_MAPPING_TYPE = getType(ConventionMapping.class);
         private final static Type GROOVY_OBJECT_TYPE = getType(GroovyObject.class);
@@ -494,6 +498,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type METHOD_HANDLES_LOOKUP_TYPE = getType(MethodHandles.Lookup.class);
         private static final Type METHOD_TYPE_TYPE = getType(MethodType.class);
         private static final Type DEPRECATION_LOGGER_TYPE = getType(DeprecationLogger.class);
+        private static final Type EXTENSIBLE_DYNAMIC_OBJECT_TYPE = getType(ExtensibleDynamicObject.class);
         private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
         private static final String RETURN_DESCRIBABLE = getMethodDescriptor(DESCRIBABLE_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
@@ -609,7 +614,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             if (extensible) {
                 interfaceTypes.add(EXTENSION_AWARE_TYPE.getInternalName());
-//                interfaceTypes.add(HAS_CONVENTION_TYPE.getInternalName());
             }
 
             if (mixInDsl) {
@@ -816,6 +820,19 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void addExtensionsProperty() {
+            // GENERATE public ExtensionContainer getExtensions() { return getConventionWhileDisabledDeprecationLogger(); }
+            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, "getAsDynamicObject", RETURN_DYNAMIC_OBJECT);
+                _CHECKCAST(EXTENSIBLE_DYNAMIC_OBJECT_TYPE);
+                _INVOKEVIRTUAL(EXTENSIBLE_DYNAMIC_OBJECT_TYPE, "getExtensions", RETURN_EXTENSION_CONTAINER);
+                _ARETURN();
+            }});
+//            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+//                // GENERATE getConventionWhileDisabledDeprecationLogger()
+//                _ALOAD(0);
+//                _INVOKEVIRTUAL(generatedType, "getExtensionContainer", RETURN_EXTENSION_CONTAINER);
+//            }});
         }
 
         @Override

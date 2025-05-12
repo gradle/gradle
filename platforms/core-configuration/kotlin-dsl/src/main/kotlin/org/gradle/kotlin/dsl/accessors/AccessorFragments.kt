@@ -39,8 +39,6 @@ import org.gradle.kotlin.dsl.support.bytecode.InternalNameOf
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionAttributes
-import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyAttributes
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
@@ -54,9 +52,11 @@ import org.gradle.kotlin.dsl.support.bytecode.newValueParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.nullable
 import org.gradle.kotlin.dsl.support.bytecode.providerConvertibleOfStar
 import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionAttributes
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsAttributes
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
+import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyAttributes
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Type
@@ -927,7 +927,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
     return className to sequenceOf(
 
         AccessorFragment(
-            source = conventionAccessor(accessorSpec),
+            source = "<to be defined>",
             signature = jvmGetterSignatureFor(
                 propertyName,
                 accessorDescriptorFor(receiverTypeName, jvmConventionType)

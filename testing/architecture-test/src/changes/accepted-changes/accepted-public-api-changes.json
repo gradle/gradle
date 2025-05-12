@@ -49,6 +49,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "removal convention",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.getConvention()"
+            ]
+        },
+        {
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.exec(groovy.lang.Closure)",
             "acceptation": "Remove deprecated method",
@@ -60,6 +68,14 @@
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.exec(org.gradle.api.Action)",
             "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.getConvention()",
+            "acceptation": "removal convention",
             "changes": [
                 "Method has been removed"
             ]
@@ -116,6 +132,14 @@
             "type": "org.gradle.api.Script",
             "member": "Method org.gradle.api.Script.javaexec(org.gradle.api.Action)",
             "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Task",
+            "member": "Method org.gradle.api.Task.getConvention()",
+            "acceptation": "removal convention",
             "changes": [
                 "Method has been removed"
             ]
@@ -1619,14 +1643,6 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Class org.gradle.api.tasks.testing.Test",
-            "acceptation": "Opt-out for new behavior in 9.0",
-            "changes": [
-                "Abstract method has been added to a superclass"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
@@ -2522,6 +2538,22 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPluginByName(org.gradle.api.plugins.Convention,java.lang.String)",
+            "acceptation": "removal convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.withConvention(java.lang.Object,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "removal convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module$default(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
             "acceptation": "Remove deprecated method",
@@ -2661,10 +2693,11 @@
         {
             "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
             "member": "Class org.gradle.kotlin.dsl.KotlinBuildScript",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "removal convention",
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getConvention()",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
             ]
@@ -2779,10 +2812,11 @@
         {
             "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
             "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "removal convention",
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getConvention()",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
             ]

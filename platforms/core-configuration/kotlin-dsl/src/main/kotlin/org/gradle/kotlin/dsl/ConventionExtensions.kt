@@ -18,8 +18,8 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.plugins.Convention
-import org.gradle.kotlin.dsl.accessors.runtime.conventionOf
-import org.gradle.kotlin.dsl.accessors.runtime.conventionPluginByName
+//import org.gradle.kotlin.dsl.accessors.runtime.conventionOf
+//import org.gradle.kotlin.dsl.accessors.runtime.conventionPluginByName
 
 import kotlin.reflect.KClass
 
@@ -33,11 +33,11 @@ import kotlin.reflect.KClass
  * @return the convention plugin, never null
  * @throws [IllegalStateException] When the convention cannot be found or cast to the expected type.
  */
-@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
-    conventionPluginByName(this, name).let {
-        (it as T?) ?: error("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
-    }
+//@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
+//inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
+//    conventionPluginByName(this, name).let {
+//        (it as T?) ?: error("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
+//    }
 
 
 /**
@@ -102,9 +102,9 @@ fun <T : Any> Convention.findPlugin(conventionType: KClass<T>): T? =
  *
  * @see [Convention.getPlugin]
  */
-@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-inline fun <ConventionType : Any, ReturnType> Any.withConvention(
-    conventionType: KClass<ConventionType>,
-    function: ConventionType.() -> ReturnType
-): ReturnType =
-    conventionOf(this).getPlugin(conventionType.java).run(function)
+//@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
+//inline fun <ConventionType : Any, ReturnType> Any.withConvention(
+//    conventionType: KClass<ConventionType>,
+//    function: ConventionType.() -> ReturnType
+//): ReturnType =
+//    conventionOf(this).getPlugin(conventionType.java).run(function)

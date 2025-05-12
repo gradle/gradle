@@ -34,7 +34,7 @@ import static org.junit.Assert.assertTrue
 import static org.junit.Assert.fail
 
 class DefaultConventionTest {
-    DefaultConvention convention
+    DefaultExtensionContainer convention
 
     TestPluginConvention1 convention1
     TestPluginConvention2 convention2
@@ -42,7 +42,7 @@ class DefaultConventionTest {
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     @Before void setUp() {
-        convention = new DefaultConvention(instantiator)
+        convention = new DefaultExtensionContainer(instantiator)
         convention1 = new TestPluginConvention1()
         convention2 = new TestPluginConvention2()
         convention.plugins.plugin1 = convention1
@@ -123,7 +123,7 @@ class DefaultConventionTest {
 
     @Test void addsPropertyAndConfigureMethodForEachExtension() {
         //when
-        convention = new DefaultConvention(instantiator)
+        convention = new DefaultExtensionContainer(instantiator)
         def ext = new FooExtension()
         convention.add("foo", ext)
 
@@ -135,7 +135,7 @@ class DefaultConventionTest {
     }
 
     @Test void extensionsTakePrecedenceOverPluginConventions() {
-        convention = new DefaultConvention(instantiator)
+        convention = new DefaultExtensionContainer(instantiator)
         convention.plugins.foo = new FooPluginExtension()
         convention.add("foo", new FooExtension())
 
@@ -147,7 +147,7 @@ class DefaultConventionTest {
     }
 
     @Test void canCreateExtensions() {
-        convention = new DefaultConvention(instantiator)
+        convention = new DefaultExtensionContainer(instantiator)
         FooExtension extension = convention.create("foo", FooExtension)
         assert extension.is(convention.getByName("foo"))
     }
@@ -163,7 +163,7 @@ class DefaultConventionTest {
     }
 
     @Test void createWillExposeGivenTypeAsTheSchemaTypeEvenWhenInstantiatorReturnsDecoratedType() {
-        convention = new DefaultConvention(TestUtil.instantiatorFactory().decorateLenient())
+        convention = new DefaultExtensionContainer(TestUtil.instantiatorFactory().decorateLenient())
         assert convention.create("foo", FooExtension).class != FooExtension
         assert publicTypeOf("foo") == typeOf(FooExtension)
     }

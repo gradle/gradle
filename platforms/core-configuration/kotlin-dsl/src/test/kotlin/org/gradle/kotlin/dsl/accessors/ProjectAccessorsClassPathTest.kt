@@ -339,7 +339,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { getExtensions() } doReturn extensions
             on { getDependencies() } doReturn dependencies
             on { getTasks() } doReturn tasks
-            on { @Suppress("deprecation") getConvention() } doReturn convention
+//            on { @Suppress("deprecation") getConvention() } doReturn convention
         }
 
         // when:
@@ -455,16 +455,16 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             verify(extensions).configure(eq("buildTypes"), any<Action<*>>())
 
             // val i
-            @Suppress("deprecation")
-            verify(project).convention
-            @Suppress("deprecation")
-            verify(convention).plugins
+//            @Suppress("deprecation")
+//            verify(project).convention
+//            @Suppress("deprecation")
+//            verify(convention).plugins
 
             // val j
-            @Suppress("deprecation")
-            verify(project).convention
-            @Suppress("deprecation")
-            verify(convention).plugins
+//            @Suppress("deprecation")
+//            verify(project).convention
+//            @Suppress("deprecation")
+//            verify(convention).plugins
 
             // val k
             verify(project).dependencies

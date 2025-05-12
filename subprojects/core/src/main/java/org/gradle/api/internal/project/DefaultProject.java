@@ -87,7 +87,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -597,13 +596,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public Object getLifecycleActionsState() {
         return beforeProjectActionState;
     }
-
-    @Deprecated
-    @Override
-    public org.gradle.api.plugins.Convention getConvention() {
-        onMutableStateAccess();
-        return extensibleDynamicObject.getConvention();
-    }
+//
+//    @Deprecated
+//    @Override
+//    public org.gradle.api.plugins.Convention getConvention() {
+//        onMutableStateAccess();
+//        return extensibleDynamicObject.getConvention();
+//    }
 
     @Override
     public String getPath() {
@@ -1460,7 +1459,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ExtensionContainerInternal getExtensions() {
         onMutableStateAccess();
-        return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
+//        return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
+        return (ExtensionContainerInternal)extensibleDynamicObject.getExtensions();
     }
 
     // Not part of the public API
