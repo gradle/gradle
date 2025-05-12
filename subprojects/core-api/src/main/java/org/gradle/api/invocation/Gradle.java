@@ -31,6 +31,7 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
@@ -391,5 +392,16 @@ public interface Gradle extends PluginAware, ExtensionAware {
      */
     IncludedBuild includedBuild(String name) throws UnknownDomainObjectException;
 
+    //TODO-RC Closure should be avoided, use a Provider instead
     void requireConfigurationCacheDegradationIf(String reason, Closure<Boolean> spec);
+
+    default void requireConfigurationCacheDegradationIf(String reason, Provider<Boolean> spec) {
+        requireConfigurationCacheDegradationIf(reason, new Closure<Boolean>(null) {
+            @SuppressWarnings("UnusedDeclaration")
+            boolean doCall() {
+                return spec.getOrElse(false);
+            }
+        });
+    }
+
 }
