@@ -33,10 +33,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
                 }
                 })
         """)
-        buildFile("buildSrc/src/main/groovy/foo-cc-compatibility.gradle", """
-            gradle.requireConfigurationCacheDegradationIf("Foo plugin is not CC compatible", {true})
-            plugins.apply("foo")
-        """)
 
         buildFile("buildSrc/build.gradle", """
             plugins {
@@ -45,9 +41,8 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """)
 
         buildFile """
-            plugins {
-                id("foo-cc-compatibility")
-            }
+            gradle.requireConfigurationCacheDegradationIf("Foo plugin isn't CC compatible") { true }
+            plugins.apply("foo")
         """
 
         when:
@@ -55,5 +50,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         outputContains("Build finished callback from foo plugin")
+        postBuildOutputContains("build file 'build.gradle': Foo plugin isn't CC compatible")
     }
 }
