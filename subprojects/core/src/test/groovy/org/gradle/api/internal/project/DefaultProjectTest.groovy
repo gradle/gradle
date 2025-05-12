@@ -109,7 +109,6 @@ import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.lang.reflect.Type
-import java.text.FieldPosition
 import java.util.function.Consumer
 
 class DefaultProjectTest extends Specification {
@@ -330,7 +329,7 @@ class DefaultProjectTest extends Specification {
         assert project.antBuilderFactory.is(antBuilderFactoryMock)
         assert project.gradle.is(build)
         assert project.ant != null
-        assert project.convention != null
+        assert project.extensions != null
         assert project.defaultTasks == []
         assert project.configurations.is(configurationContainerMock)
         assert project.repositories.is(repositoryHandlerMock)
@@ -634,10 +633,10 @@ class DefaultProjectTest extends Specification {
         then:
         closureCalled
 
-        when:
-        project.convention.plugins.test = new TestConvention()
-        then:
-        project.scriptMethod(testConfigureClosure) == TestConvention.METHOD_RESULT
+//        when:
+//        project.convention.plugins.test = new TestConvention()
+//        then:
+//        project.scriptMethod(testConfigureClosure) == TestConvention.METHOD_RESULT
 
         when:
         project.script = createScriptForMethodMissingTest('projectScript')
@@ -667,50 +666,50 @@ def scriptMethod(Closure closure) {
         child1."$propertyName" == expectedValue
     }
 
-    def propertyMissingWithExistingConventionProperty() {
-        given:
-        String propertyName = 'conv'
-        String expectedValue = 'somevalue'
+//    def propertyMissingWithExistingConventionProperty() {
+//        given:
+//        String propertyName = 'conv'
+//        String expectedValue = 'somevalue'
+//
+//        when:
+//        project.convention.plugins.test = new TestConvention()
+//        project.convention.conv = expectedValue
+//
+//        then:
+//        project."$propertyName" == expectedValue
+//        project.convention."$propertyName" == expectedValue
+//        child1."$propertyName" == expectedValue
+//    }
 
-        when:
-        project.convention.plugins.test = new TestConvention()
-        project.convention.conv = expectedValue
+//    def setPropertyAndPropertyMissingWithConventionProperty() {
+//        given:
+//        String expectedValue = 'somevalue'
+//
+//        when:
+//        project.convention.plugins.test = new TestConvention()
+//        project.conv = expectedValue
+//
+//        then:
+//        project.conv == expectedValue
+//        project.convention.plugins.test.conv == expectedValue
+//        child1.conv == expectedValue
+//    }
 
-        then:
-        project."$propertyName" == expectedValue
-        project.convention."$propertyName" == expectedValue
-        child1."$propertyName" == expectedValue
-    }
-
-    def setPropertyAndPropertyMissingWithConventionProperty() {
-        given:
-        String expectedValue = 'somevalue'
-
-        when:
-        project.convention.plugins.test = new TestConvention()
-        project.conv = expectedValue
-
-        then:
-        project.conv == expectedValue
-        project.convention.plugins.test.conv == expectedValue
-        child1.conv == expectedValue
-    }
-
-    def setPropertyAndPropertyMissingWithProjectAndConventionProperty() {
-        given:
-        String propertyName = 'archivesBaseName'
-        String expectedValue = 'somename'
-
-        when:
-        project.ext.archivesBaseName = expectedValue
-        project.convention.plugins.test = new TestConvention()
-        project.convention.archivesBaseName = 'someothername'
-        project."$propertyName" = expectedValue
-
-        then:
-        project."$propertyName" == expectedValue
-        project.convention."$propertyName" == 'someothername'
-    }
+//    def setPropertyAndPropertyMissingWithProjectAndConventionProperty() {
+//        given:
+//        String propertyName = 'archivesBaseName'
+//        String expectedValue = 'somename'
+//
+//        when:
+//        project.ext.archivesBaseName = expectedValue
+//        project.convention.plugins.test = new TestConvention()
+//        project.convention.archivesBaseName = 'someothername'
+//        project."$propertyName" = expectedValue
+//
+//        then:
+//        project."$propertyName" == expectedValue
+//        project.convention."$propertyName" == 'someothername'
+//    }
 
     def propertyMissingWithNullProperty() {
         when:
@@ -754,12 +753,12 @@ def scriptMethod(Closure closure) {
         !project.hasProperty(propertyName)
         !child1.hasProperty(propertyName)
 
-        when:
-        project.convention.plugins.test = new FieldPosition(0)
-        project."$propertyName" = 5
-        then:
-        project.hasProperty(propertyName)
-        child1.hasProperty(propertyName)
+//        when:
+//        project.convention.plugins.test = new FieldPosition(0)
+//        project."$propertyName" = 5
+//        then:
+//        project.hasProperty(propertyName)
+//        child1.hasProperty(propertyName)
     }
 
     def properties() {
@@ -784,14 +783,14 @@ def scriptMethod(Closure closure) {
         project.inheritedScope.getProperty('somename') == 'somevalue'
     }
 
-    def conventionPropertiesAreInheritable() {
-        when:
-        project.convention.plugins.test = new TestConvention()
-        project.convention.plugins.test.conv = 'somevalue'
-        then:
-        project.inheritedScope.hasProperty('conv')
-        project.inheritedScope.getProperty('conv') == 'somevalue'
-    }
+//    def conventionPropertiesAreInheritable() {
+//        when:
+//        project.convention.plugins.test = new TestConvention()
+//        project.convention.plugins.test.conv = 'somevalue'
+//        then:
+//        project.inheritedScope.hasProperty('conv')
+//        project.inheritedScope.getProperty('conv') == 'somevalue'
+//    }
 
     def inheritedPropertiesAreInheritable() {
         when:

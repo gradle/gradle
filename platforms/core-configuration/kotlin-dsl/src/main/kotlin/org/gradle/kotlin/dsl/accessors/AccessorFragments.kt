@@ -934,7 +934,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             ),
             bytecode = {
                 publicStaticMethod(signature) {
-                    loadConventionOf(name, conventionType, jvmConventionType)
+//                    loadConventionOf(name, conventionType, jvmConventionType)
                     ARETURN()
                 }
             },
@@ -953,7 +953,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             bytecode = {
                 publicStaticMethod(signature) {
                     ALOAD(1)
-                    loadConventionOf(name, conventionType, jvmConventionType)
+//                    loadConventionOf(name, conventionType, jvmConventionType)
                     invokeAction()
                     RETURN()
                 }
@@ -1051,17 +1051,17 @@ fun MethodVisitor.invokeAction() {
 }
 
 
-private
-fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAccessibility, jvmReturnType: InternalName) {
-    ALOAD(0)
-    LDC(name.original)
-    invokeRuntime(
-        "conventionPluginOf",
-        "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
-    )
-    if (returnType is TypeAccessibility.Accessible)
-        CHECKCAST(jvmReturnType)
-}
+//private
+//fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAccessibility, jvmReturnType: InternalName) {
+//    ALOAD(0)
+//    LDC(name.original)
+//    invokeRuntime(
+//        "conventionPluginOf",
+//        "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
+//    )
+//    if (returnType is TypeAccessibility.Accessible)
+//        CHECKCAST(jvmReturnType)
+//}
 
 
 private
