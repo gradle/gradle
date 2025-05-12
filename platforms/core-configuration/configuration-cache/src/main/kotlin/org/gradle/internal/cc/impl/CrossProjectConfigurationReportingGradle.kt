@@ -298,6 +298,10 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun includedBuild(name: String): IncludedBuild =
         delegate.includedBuild(name)
 
+    override fun requireConfigurationCacheDegradationIf(reason: String, spec: Closure<Boolean>) {
+        delegate.requireConfigurationCacheDegradationIf(reason, spec)
+    }
+
     override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier =
         delegate.configurationTargetIdentifier
 
