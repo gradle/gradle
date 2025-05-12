@@ -5,7 +5,7 @@ plugins {
 
 description = "Asciidoctor extensions that work with all backends"
 
-val asciiDoctorVersion = "2.5.13"
+val asciiDoctorVersion = "3.0.0"
 
 errorprone {
     disabledChecks.addAll(
@@ -21,7 +21,6 @@ dependencies {
     testImplementation("org.spockframework:spock-core")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+tasks.withType<JavaCompile>().configureEach {
+    options.release = 17
 }

@@ -65,6 +65,9 @@
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
+      <ignored-keys>
+         <ignored-key id="3C03136EA34A60F7" reason="Key couldn't be downloaded from any key server"/>
+      </ignored-keys>
       <trusted-keys>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
          <trusted-key id="0181A4828FA27B6BE6F1F5A68611CD28F472E006" group="org.jline"/>
@@ -1161,39 +1164,24 @@
             <pgp value="223D3A74B068ECA354DC385CE126833F9CF64915"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor-gradle-base" version="4.0.2">
-         <artifact name="asciidoctor-gradle-base-4.0.2.jar">
-            <sha256 value="9e6cd8a7d5b660f4892ffa2e3311ab881d165ff9c8f3842b3915ce7c87603bfd" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.asciidoctor" name="asciidoctor-gradle-base" version="4.0.4">
+         <artifact name="asciidoctor-gradle-base-4.0.4.jar">
+            <sha256 value="a166d8ceab124de10093d65c63444cf6ce4015b564158a1cdce56e1c8864721c" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor-gradle-jvm" version="4.0.2">
-         <artifact name="asciidoctor-gradle-jvm-4.0.2.jar">
-            <sha256 value="836267bb69b39ab011c9dea4a33caa4526b3656eb1bd7e4b9e809fb8a179f460" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.asciidoctor" name="asciidoctor-gradle-jvm" version="4.0.4">
+         <artifact name="asciidoctor-gradle-jvm-4.0.4.jar">
+            <sha256 value="f3448ca295830c56202723d04347c7bb56240bf9143d047329083d9e41e166d6" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor-gradle-plugin" version="1.5.10">
-         <artifact name="asciidoctor-gradle-plugin-1.5.10.jar">
-            <sha256 value="5076611c14107ec0aa057842567db1e1c0c4e54cdad229c6e189b6503bda8b2e" reason="Artifact is not signed"/>
+      <component group="org.asciidoctor" name="asciidoctorj" version="3.0.0">
+         <artifact name="asciidoctorj-3.0.0.jar">
+            <sha256 value="866afb68d894497e9dc97a2c8c532668f97e5efa4ad7da09494cbbe96b526944" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor-gradle-plugin" version="1.5.9.2">
-         <artifact name="asciidoctor-gradle-plugin-1.5.9.2.jar">
-            <sha256 value="bde0e0ec5cec01e594ce776cf2276f926cde52c0375a2c31803f398aa69fbf09" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.asciidoctor" name="asciidoctorj" version="1.5.8.1">
-         <artifact name="asciidoctorj-1.5.8.1.jar">
-            <pgp value="36390DE6A0E61EE4C7B4BA02C1D3063467F1EBD1"/>
-         </artifact>
-      </component>
-      <component group="org.asciidoctor" name="asciidoctorj-groovy-dsl" version="1.0.0.Alpha3">
-         <artifact name="asciidoctorj-groovy-dsl-1.0.0.Alpha3.jar">
-            <sha256 value="19a944d3b4548a8e43049706947ccc481b5d241af9b7e1b8bae89d30bad16016" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.asciidoctor" name="asciidoctorj-groovy-dsl" version="2.0.0">
-         <artifact name="asciidoctorj-groovy-dsl-2.0.0.jar">
-            <sha256 value="6dd87a91ddfe71b12b139efe9b82624af0eb47e525bd5f10259ad54341e347bf" reason="Artifact is not signed"/>
+      <component group="org.asciidoctor" name="asciidoctorj-api" version="3.0.0">
+         <artifact name="asciidoctorj-api-3.0.0.jar">
+            <sha256 value="6ecef845884e74c90bfac5845ed57eb6cdbb8b073ea2a60279987c9ccbbb2998" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.assertj" name="assertj-core" version="3.16.1">
