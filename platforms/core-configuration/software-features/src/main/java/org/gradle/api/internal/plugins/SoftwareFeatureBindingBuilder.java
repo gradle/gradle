@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.plugins;
 
-public interface SoftwareFeatureBindingBuilder extends DslBindingBuilder {
-    @Override
-    <V> SoftwareFeatureBindingBuilder withDslImplementationType(Class<V> implementationType);
+import java.util.List;
 
-    @Override
-    <V> SoftwareFeatureBindingBuilder withBuildModelImplementationType(Class<V> implementationType);
+public interface SoftwareFeatureBindingBuilder {
+    <T, U, V> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform);
 
-    <T, U, V> SoftwareFeatureBindingBuilder bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform);
+    List<SoftwareFeatureBinding> build();
 }

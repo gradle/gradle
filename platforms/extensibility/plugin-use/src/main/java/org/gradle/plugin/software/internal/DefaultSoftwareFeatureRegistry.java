@@ -116,8 +116,9 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             SoftwareFeatureBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             SoftwareFeatureBindingBuilder builder = new DefaultSoftwareFeatureBindingBuilder();
             bindingRegistration.register(builder);
-            SoftwareFeatureBinding binding = builder.build();
-            registerFeature(registeringPluginClass, pluginClass, binding, softwareFeatureImplementationsBuilder);
+            builder.build().forEach(binding ->
+                registerFeature(registeringPluginClass, pluginClass, binding, softwareFeatureImplementationsBuilder)
+            );
         }
     }
 
@@ -129,8 +130,9 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             SoftwareTypeBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             SoftwareTypeBindingBuilder builder = new DefaultSoftwareTypeBindingBuilder();
             bindingRegistration.register(builder);
-            SoftwareFeatureBinding binding = builder.build();
-            registerFeature(registeringPluginClass, pluginClass, binding, softwareFeatureImplementationsBuilder);
+            builder.build().forEach(binding ->
+                registerFeature(registeringPluginClass, pluginClass, binding, softwareFeatureImplementationsBuilder)
+            );
         }
     }
 
