@@ -18,20 +18,26 @@ package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.plugins.DslBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareFeatureApplicationContext;
+import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
+import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareTypeTransform;
 import org.gradle.util.Path;
 
-public class DefaultSoftwareTypeBindingBuilder extends AbstractDslBindingBuilder implements SoftwareTypeBindingBuilder {
+import java.util.ArrayList;
+import java.util.List;
+
+public class DefaultSoftwareTypeBindingBuilder implements SoftwareTypeBindingBuilder {
+    private final List<DslBindingBuilder<?, ?>> bindings = new ArrayList<>();
+
     @Override
-    public <T, U> SoftwareTypeBindingBuilder bind(String name, Class<T> dslType, Class<U> buildModelType, SoftwareTypeTransform<T, U> transform) {
-        this.path = Path.path(name);
-        this.dslType = dslType;
-        this.buildModelType = buildModelType;
-        this.bindingTargetType = Project.class;
-        this.transform = (SoftwareFeatureApplicationContext context, T definition, Object parentDefinition, U buildModel) -> transform.transform(context, definition, buildModel);
-        return this;
+    public <T, V> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<V> buildModelType, SoftwareTypeTransform<T, V> transform) {
+        SoftwareFeatureTransform<T, ?, V> featureTransform = (SoftwareFeatureApplicationContext context, T definition, Object parentDefinition, V buildModel) -> transform.transform(context, definition, buildModel);
+        DslBindingBuilder<T, V> builder = new DefaultDslBindingBuilder<>(dslType, Project.class, buildModelType, Path.path(name), featureTransform);
+        bindings.add(builder);
+        return builder;
     }
 
     public SoftwareTypeBindingBuilder apply(Action<SoftwareTypeBindingBuilder> configuration) {
@@ -40,14 +46,11 @@ public class DefaultSoftwareTypeBindingBuilder extends AbstractDslBindingBuilder
     }
 
     @Override
-    public <V> SoftwareTypeBindingBuilder withDslImplementationType(Class<V> implementationType) {
-        super.withDslImplementationType(implementationType);
-        return this;
-    }
-
-    @Override
-    public <V> SoftwareTypeBindingBuilder withBuildModelImplementationType(Class<V> implementationType) {
-        super.withBuildModelImplementationType(implementationType);
-        return this;
+    public List<SoftwareFeatureBinding> build() {
+        List<SoftwareFeatureBinding> result = new ArrayList<>();
+        for (DslBindingBuilder<?, ?> binding : bindings) {
+            result.add(binding.build());
+        }
+        return result;
     }
 }
