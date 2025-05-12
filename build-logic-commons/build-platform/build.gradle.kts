@@ -33,7 +33,7 @@ dependencies {
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.10")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
         api("me.champeau.jmh:jmh-gradle-plugin:0.7.2")
-        api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
+        api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.4")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("com.autonomousapps:dependency-analysis-gradle-plugin:2.17.0")
@@ -64,8 +64,8 @@ dependencies {
         api("junit:junit:4.13.2")
         api("org.spockframework:spock-core:$spockVersion")
         api("org.spockframework:spock-junit4:$spockVersion")
-        api("org.asciidoctor:asciidoctorj:2.5.13")
-        api("org.asciidoctor:asciidoctorj-api:2.5.13")
+        api("org.asciidoctor:asciidoctorj:3.0.0")
+        api("org.asciidoctor:asciidoctorj-api:3.0.0")
         api("dev.adamko.dokkatoo:dokkatoo-plugin:2.3.1")
         api("org.jetbrains.dokka:dokka-core:1.9.20")
         api("com.fasterxml.woodstox:woodstox-core:6.4.0") {
