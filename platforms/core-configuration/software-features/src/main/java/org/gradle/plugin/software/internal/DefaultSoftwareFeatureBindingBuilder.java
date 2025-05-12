@@ -17,19 +17,23 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.plugins.DslBindingBuilder;
+import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 import org.gradle.util.Path;
 
-public class DefaultSoftwareFeatureBindingBuilder extends AbstractDslBindingBuilder implements SoftwareFeatureBindingBuilder {
+import java.util.List;
+import java.util.ArrayList;
+
+public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBindingBuilder {
+    private final List<DslBindingBuilder<?, ?>> bindings = new ArrayList<>();
+
     @Override
-    public <T, U, V> SoftwareFeatureBindingBuilder bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform) {
-        this.path = Path.path(name);
-        this.dslType = dslType;
-        this.bindingTargetType = bindingTargetType;
-        this.buildModelType = buildModelType;
-        this.transform = transform;
-        return this;
+    public <T, U, V> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform) {
+        DslBindingBuilder<T, V> builder = new DefaultDslBindingBuilder<>(dslType, bindingTargetType, buildModelType, Path.path(name), transform);
+        bindings.add(builder);
+        return builder;
     }
 
     public SoftwareFeatureBindingBuilder apply(Action<SoftwareFeatureBindingBuilder> configuration) {
@@ -38,14 +42,11 @@ public class DefaultSoftwareFeatureBindingBuilder extends AbstractDslBindingBuil
     }
 
     @Override
-    public <V> SoftwareFeatureBindingBuilder withDslImplementationType(Class<V> implementationType) {
-        super.withDslImplementationType(implementationType);
-        return this;
-    }
-
-    @Override
-    public <V> SoftwareFeatureBindingBuilder withBuildModelImplementationType(Class<V> implementationType) {
-        super.withBuildModelImplementationType(implementationType);
-        return this;
+    public List<SoftwareFeatureBinding> build() {
+        List<SoftwareFeatureBinding> result = new ArrayList<>();
+        for (DslBindingBuilder<?, ?> binding : bindings) {
+            result.add(binding.build());
+        }
+        return result;
     }
 }
