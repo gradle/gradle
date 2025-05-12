@@ -1,7 +1,5 @@
 // tag::do-this[]
-pluginManagement {  // <1>
-    includeBuild("build-logic")
-}
+includeBuild("build-logic") // <1>
 
 rootProject.name = "favor-composite-builds"
 // end::do-this[]
