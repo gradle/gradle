@@ -588,11 +588,11 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         succeeds(":a:assertCanResolve")
 
         when:
-        executer.expectDocumentedDeprecationWarning("The resCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         fails(":a:assertCanResolveRecursiveCopy")
 
         then:
-        failure.assertHasCause("Cannot select root node 'resCopy' as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
+        failure.assertHasCause("Could not resolve all files for configuration ':a:resCopy'.")
+        failure.assertHasErrorOutput("No variants exist.")
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
