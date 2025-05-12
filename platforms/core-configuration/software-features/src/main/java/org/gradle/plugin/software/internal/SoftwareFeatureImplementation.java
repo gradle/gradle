@@ -21,6 +21,8 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 
+import java.util.Map;
+
 /**
  * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
  */
@@ -49,4 +51,12 @@ public interface SoftwareFeatureImplementation<T> {
      * Visits all model defaults of the given type with the provided visitor.
      */
     <V extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<V>> type, V visitor);
+
+    boolean hasBindingFor(Class<?> dslType, Class<?> buildModelType);
+
+    /**
+     * Returns all the DSL to build model bindings that this software feature produces as a map where the key is the public DSL type and the
+     * value is the build model type.
+     */
+    Map<Class<?>, Class<?>> getAllDslBindings();
 }

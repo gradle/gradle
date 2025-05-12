@@ -16,14 +16,15 @@
 
 package org.gradle.plugin.software.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -41,6 +42,7 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
     private final SoftwareFeatureTransform<T, ?, ?> bindingTransform;
+    private final Map<Class<?>, Class<?>> allBindings;
 
     public DefaultSoftwareFeatureImplementation(String featureName,
                                                 Class<T> definitionPublicType,
@@ -50,7 +52,8 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
                                                 Class<?> buildModelImplementationType,
                                                 Class<? extends Plugin<Project>> pluginClass,
                                                 Class<? extends Plugin<Settings>> registeringPluginClass,
-                                                SoftwareFeatureTransform<T, ?, ?> bindingTransform) {
+                                                SoftwareFeatureTransform<T, ?, ?> bindingTransform,
+                                                Map<Class<?>, Class<?>> nestedBindings) {
         this.featureName = featureName;
         this.definitionPublicType = definitionPublicType;
         this.definitionImplementationType = definitionImplementationType;
@@ -60,6 +63,10 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
         this.pluginClass = pluginClass;
         this.registeringPluginClass = registeringPluginClass;
         this.bindingTransform = bindingTransform;
+        this.allBindings = ImmutableMap.<Class<?>, Class<?>>builder()
+            .put(bindingType, buildModelType)
+            .putAll(nestedBindings)
+            .build();;
     }
 
     @Override
@@ -88,7 +95,6 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     }
 
     @Override
-    @Nullable
     public Class<?> getBindingType() {
         return bindingType;
     }
@@ -119,6 +125,17 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
             .filter(type::isInstance)
             .map(type::cast)
             .forEach(modelDefault -> modelDefault.visit(visitor));
+    }
+
+    @Override
+    public boolean hasBindingFor(Class<?> receiverType, Class<?> buildModelType) {
+        return allBindings.entrySet().stream().anyMatch(entry ->
+            entry.getKey().isAssignableFrom(receiverType) && entry.getValue().isAssignableFrom(buildModelType));
+    }
+
+    @Override
+    public Map<Class<?>, Class<?>> getAllDslBindings() {
+        return allBindings;
     }
 
     @Override

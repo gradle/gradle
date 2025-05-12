@@ -21,5 +21,7 @@ public interface DslBindingBuilder<T, V> {
 
     DslBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType);
 
+    DslBindingBuilder<T, V> withNestedBinding(Class<?> nestedDslType, Class<?> nestedImplementationType);
+
     SoftwareFeatureBinding build();
 }
