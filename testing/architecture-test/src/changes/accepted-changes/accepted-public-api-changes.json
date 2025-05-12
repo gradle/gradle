@@ -49,6 +49,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.getConvention()"
+            ]
+        },
+        {
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.exec(groovy.lang.Closure)",
             "acceptation": "Remove deprecated method",
@@ -116,6 +124,14 @@
             "type": "org.gradle.api.Script",
             "member": "Method org.gradle.api.Script.javaexec(org.gradle.api.Action)",
             "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Task",
+            "member": "Method org.gradle.api.Task.getConvention()",
+            "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
             ]
@@ -1607,14 +1623,6 @@
             "changes": [
                 "Method added to public class",
                 "Abstract method has been added to this class"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Class org.gradle.api.tasks.testing.Test",
-            "acceptation": "Opt-out for new behavior in 9.0",
-            "changes": [
-                "Abstract method has been added to a superclass"
             ]
         },
         {
