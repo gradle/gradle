@@ -37,6 +37,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,6 +53,7 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     private Factory<List<PublishArtifact>> lazyArtifacts;
     @Nullable private String description;
 
+    @Inject
     public DefaultVariant(
         Describable parentDisplayName,
         String name,

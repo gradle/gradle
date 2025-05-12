@@ -36,12 +36,12 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ToBeImplemented
@@ -59,7 +59,7 @@ class DefaultConfigurationContainerTest extends Specification {
     }
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    private ObjectFactory objectFactory = TestUtil.objectFactory()
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
     private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
         getValidator() >> Mock(MutationValidator)
@@ -68,14 +68,14 @@ class DefaultConfigurationContainerTest extends Specification {
         create(_, _, _, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
-        instantiator,
+        objectFactory,
         resolver,
         listenerManager,
         StandaloneDomainObjectContext.ANONYMOUS,
         TestFiles.fileCollectionFactory(),
         buildOperationRunner,
         new PublishArtifactNotationParserFactory(
-                instantiator,
+                objectFactory,
                 metaDataProvider,
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
@@ -92,8 +92,8 @@ class DefaultConfigurationContainerTest extends Specification {
         TestUtil.problemsService(),
         new DocumentationRegistry()
     )
-    private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-        instantiator,
+    private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,
+        TestUtil.instantiatorFactory().decorateLenient(),
         callbackActionDecorator,
         metaDataProvider,
         StandaloneDomainObjectContext.ANONYMOUS,

@@ -106,7 +106,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
@@ -253,6 +252,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ResolutionExecutor.class);
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
+            registration.add(PublishArtifactNotationParserFactory.class);
         }
 
         @Provides
@@ -438,21 +438,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 defaultConfigurationFactory,
                 resolutionStrategyFactory,
                 problemsService
-            );
-        }
-
-        @Provides
-        PublishArtifactNotationParserFactory createPublishArtifactNotationParserFactory(
-            Instantiator instantiator,
-            DependencyMetaDataProvider metaDataProvider,
-            FileResolver fileResolver,
-            TaskDependencyFactory taskDependencyFactory
-        ) {
-            return new PublishArtifactNotationParserFactory(
-                instantiator,
-                metaDataProvider,
-                fileResolver,
-                taskDependencyFactory
             );
         }
 
