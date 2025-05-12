@@ -51,6 +51,20 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
                 if (scenario.isBuildFailed()) {
+                    System.out.println("Build failed for " + scenario.getName());
+                    System.out.println("TC executions");
+                    scenario.getTeamCityExecutions().forEach(teamCityExecution -> {
+                        System.out.println(teamCityExecution.getTeamCityBuildId());
+                    });
+                    System.out.println("Current executions");
+                    scenario.getCurrentExecutions().forEach(teamCityExecution -> {
+                        System.out.println(teamCityExecution.getTeamCityBuildId());
+                    });
+                    System.out.println("Historical executions");
+                    scenario.getHistoryExecutions().forEach(teamCityExecution -> {
+                        System.out.println(teamCityExecution.getTeamCityBuildId());
+                    });
+
                     failureCollector.scenarioFailed();
                 } else if (scenario.isRegressed()) {
                     Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getCurrentExecutions().stream()
