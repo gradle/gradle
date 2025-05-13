@@ -19,62 +19,16 @@ package org.gradle.api.plugins.quality.pmd
 import org.gradle.api.plugins.quality.PmdPlugin
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.internal.jvm.Jvm
 import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
-
-import javax.annotation.Nullable
 
 @TargetCoverage({ PmdCoverage.getSupportedVersionsByJdk() })
 class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     Set<String> calculateDefaultDependencyNotation() {
         return PmdPlugin.calculateDefaultDependencyNotation(versionNumber.toString())
-    }
-
-    /**
-     * Checks if the current PMD version supports the current Java version. If not,
-     * we set the sourceCompatibility to the max Java version supported by the current PMD version.
-     */
-    String requiredSourceCompatibility() {
-        return requiredSourceCompatibility(Jvm.current().javaVersionMajor, versionNumber)
-    }
-
-    static String requiredSourceCompatibility(int javaVersion, VersionNumber pmdVersion) {
-        def maxJavaVersion = getMaxJavaVersionFor(pmdVersion)
-        if (maxJavaVersion != null && javaVersion > maxJavaVersion) {
-            return "java.sourceCompatibility = ${maxJavaVersion}"
-        }
-
-        if (javaVersion > 22) {
-            return "java.sourceCompatibility = 22" // PMD doesn't support Java 23 yet
-        }
-
-        // do not set a source compatibility for the DEFAULT_PMD_VERSION running on latest Java, this way we will catch if it breaks with a new Java version
-        return ""
-    }
-
-    private static @Nullable Integer getMaxJavaVersionFor(VersionNumber pmdVersion) {
-        def versions = [
-            '6.0.0': 8,
-            '6.4.0': 9,
-            '6.6.0': 10,
-            '6.13.0': 11,
-            '6.18.0': 12,
-            '6.22.0': 13,
-            '6.48.0': 18,
-            '7.0.0': 20
-        ]
-
-        for (entry in versions) {
-            if (pmdVersion < VersionNumber.parse(entry.key)) {
-                return entry.value
-            }
-        }
-
-        return null
     }
 
     static boolean fileLockingIssuesSolved() {

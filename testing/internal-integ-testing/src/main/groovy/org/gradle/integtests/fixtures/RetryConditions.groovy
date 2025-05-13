@@ -172,7 +172,7 @@ class RetryConditions {
 
     static private boolean didSocketDisappearOnWindows(Throwable failure, Object specification, daemonsFixture, checkDaemonLogs = true) {
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): gradle/gradle#1111
-        if (runsOnWindowsAndJava7or8() && daemonsFixture != null) {
+        if (isAffectedBySocketDisappearanceIssue() && daemonsFixture != null) {
             if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
                 getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine" ||
                 getRootCauseMessage(failure) == "Connection refused: no further information") {
@@ -194,7 +194,7 @@ class RetryConditions {
     }
 
     static daemonStoppedWithSocketExceptionOnWindows(daemon) {
-        runsOnWindowsAndJava7or8() && (daemon.logContains("java.net.SocketException: Socket operation on nonsocket:")
+        isAffectedBySocketDisappearanceIssue() && (daemon.logContains("java.net.SocketException: Socket operation on nonsocket:")
             || daemon.logContains("java.io.IOException: An operation was attempted on something that is not a socket")
             || daemon.logContains("java.io.IOException: An existing connection was forcibly closed by the remote host"))
     }
@@ -213,7 +213,7 @@ class RetryConditions {
         list
     }
 
-    static boolean runsOnWindowsAndJava7or8() {
+    static boolean isAffectedBySocketDisappearanceIssue() {
         return new UnitTestPreconditions.IsKnownWindowsSocketDisappearanceIssue().isSatisfied()
     }
 }
