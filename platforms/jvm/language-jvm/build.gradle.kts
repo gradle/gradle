@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.modelReflect)
     implementation(projects.testSuitesBase)
 
+    implementation(libs.commonsLang3)
     implementation(libs.guava)
 
     testImplementation(projects.native)

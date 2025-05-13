@@ -51,7 +51,7 @@ val apiStubElements = configurations.consumable("apiStubElements") {
 
 // FIXME Publishing API stubs for mixed Java/Kotlin subprojects don't work currently;
 //       we only publish the Kotlin stubs for some reason
-pluginManager.withPlugin("gradlebuild.jvm-library") {
+pluginManager.withPlugin("gradlebuild.java-library") {
     val extractorClasspathConfig by configurations.creating
 
     dependencies {

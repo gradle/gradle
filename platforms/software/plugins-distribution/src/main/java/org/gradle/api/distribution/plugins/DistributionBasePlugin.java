@@ -125,8 +125,8 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
         addAssembleTask(project, dist, assembleTaskName, zipTask, tarTask);
 
         // Build zips and tars by default when running the build-wide assemble task.
-        defaultArtifactPublicationSet.addCandidate(new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
-        defaultArtifactPublicationSet.addCandidate(new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+        defaultArtifactPublicationSet.addCandidateInternal(new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+        defaultArtifactPublicationSet.addCandidateInternal(new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
     }
 
     /**

@@ -267,7 +267,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
         // Build the main jar when running `assemble`.
         DefaultArtifactPublicationSet publicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
-        publicationSet.addCandidate(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+        publicationSet.addCandidateInternal(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
 
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
         configureSourceSets(buildOutputCleanupRegistry, sourceSets);

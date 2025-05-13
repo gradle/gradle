@@ -9,6 +9,10 @@
   },
   "finalReleases": [
     {
+      "version": "8.13",
+      "buildTime": "20250225092214+0000"
+    },
+    {
       "version": "8.12.1",
       "buildTime": "20250124125512+0000"
     },

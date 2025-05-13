@@ -58,7 +58,7 @@ tasks {
         // Only use one fork, so freezing doesn't have concurrency issues
         maxParallelForks = 1
 
-        inputs.dir(ruleStoreDir)
+        inputs.dir(ruleStoreDir).withPathSensitivity(PathSensitivity.RELATIVE)
 
         systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
         systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))

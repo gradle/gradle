@@ -18,10 +18,21 @@ package org.gradle.api.internal.plugins
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+import org.junit.Rule
 
 class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
+    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     Configuration aggregateConf
     DefaultArtifactPublicationSet publication
@@ -33,7 +44,7 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
 
     def "adds provider to artifact set"() {
         when:
-        publication.addCandidate(artifact(artifactType))
+        publication.addCandidateInternal(artifact(artifactType))
 
         then:
         aggregateConf.artifacts.size() == 1
@@ -46,7 +57,7 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def artifact = artifact("jar")
 
         when:
-        publication.addCandidate(artifact)
+        publication.addCandidateInternal(artifact)
 
         then:
         publication.defaultArtifactProvider.get() == set(artifact)
@@ -56,7 +67,7 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def artifact = artifact("war")
 
         when:
-        publication.addCandidate(artifact)
+        publication.addCandidateInternal(artifact)
 
         then:
         publication.defaultArtifactProvider.get() == set(artifact)
@@ -66,7 +77,7 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def artifact = artifact("ear")
 
         when:
-        publication.addCandidate(artifact)
+        publication.addCandidateInternal(artifact)
 
         then:
         publication.defaultArtifactProvider.get() == set(artifact)
@@ -76,7 +87,7 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def artifact = artifact("zip")
 
         when:
-        publication.addCandidate(artifact)
+        publication.addCandidateInternal(artifact)
 
         then:
         publication.defaultArtifactProvider.get() == set(artifact)
@@ -87,19 +98,19 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def war = artifact("war")
 
         when:
-        publication.addCandidate(jar)
+        publication.addCandidateInternal(jar)
 
         then:
         publication.defaultArtifactProvider.get() == set(jar)
 
         when:
-        publication.addCandidate(war)
+        publication.addCandidateInternal(war)
 
         then:
         publication.defaultArtifactProvider.get() == set(war)
 
         when:
-        publication.addCandidate(jar)
+        publication.addCandidateInternal(jar)
 
         then:
         publication.defaultArtifactProvider.get() == set(war)
@@ -110,19 +121,19 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def ear = artifact("ear")
 
         when:
-        publication.addCandidate(jar)
+        publication.addCandidateInternal(jar)
 
         then:
         publication.defaultArtifactProvider.get() == set(jar)
 
         when:
-        publication.addCandidate(ear)
+        publication.addCandidateInternal(ear)
 
         then:
         publication.defaultArtifactProvider.get() == set(ear)
 
         when:
-        publication.addCandidate(jar)
+        publication.addCandidateInternal(jar)
 
         then:
         publication.defaultArtifactProvider.get() == set(ear)
@@ -133,19 +144,19 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def ear = artifact("ear")
 
         when:
-        publication.addCandidate(war)
+        publication.addCandidateInternal(war)
 
         then:
         publication.defaultArtifactProvider.get() == set(war)
 
         when:
-        publication.addCandidate(ear)
+        publication.addCandidateInternal(ear)
 
         then:
         publication.defaultArtifactProvider.get() == set(ear)
 
         when:
-        publication.addCandidate(war)
+        publication.addCandidateInternal(war)
 
         then:
         publication.defaultArtifactProvider.get() == set(ear)
@@ -157,31 +168,31 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def ear = artifact("ear")
 
         when:
-        publication.addCandidate(jar)
+        publication.addCandidateInternal(jar)
 
         then:
         publication.defaultArtifactProvider.get() == set(jar)
 
         when:
-        publication.addCandidate(war)
+        publication.addCandidateInternal(war)
 
         then:
         publication.defaultArtifactProvider.get() == set(war)
 
         when:
-        publication.addCandidate(ear)
+        publication.addCandidateInternal(ear)
 
         then:
         publication.defaultArtifactProvider.get() == set(ear)
 
         when:
-        publication.addCandidate(jar)
+        publication.addCandidateInternal(jar)
 
         then:
         publication.defaultArtifactProvider.get() == set(ear)
 
         when:
-        publication.addCandidate(war)
+        publication.addCandidateInternal(war)
 
         then:
         publication.defaultArtifactProvider.get() == set(ear)
@@ -192,13 +203,13 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def exe = artifact("exe")
 
         when:
-        publication.addCandidate(jarWarEar)
+        publication.addCandidateInternal(jarWarEar)
 
         then:
         publication.defaultArtifactProvider.get() == set(jarWarEar)
 
         when:
-        publication.addCandidate(exe)
+        publication.addCandidateInternal(exe)
 
         then:
         publication.defaultArtifactProvider.get() == set(jarWarEar, exe)
@@ -212,13 +223,13 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def exe = artifact("exe")
 
         when:
-        publication.addCandidate(zip)
+        publication.addCandidateInternal(zip)
 
         then:
         publication.defaultArtifactProvider.get() == set(zip)
 
         when:
-        publication.addCandidate(exe)
+        publication.addCandidateInternal(exe)
 
         then:
         publication.defaultArtifactProvider.get() == set(zip, exe)
@@ -230,19 +241,19 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def war = artifact("war")
 
         when:
-        publication.addCandidate(exe)
+        publication.addCandidateInternal(exe)
 
         then:
         publication.defaultArtifactProvider.get() == set(exe)
 
         when:
-        publication.addCandidate(jar)
+        publication.addCandidateInternal(jar)
 
         then:
         publication.defaultArtifactProvider.get() == set(exe)
 
         when:
-        publication.addCandidate(war)
+        publication.addCandidateInternal(war)
 
         then:
         publication.defaultArtifactProvider.get() == set(exe)
@@ -253,13 +264,13 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def ear = artifact("ear")
 
         when:
-        publication.addCandidate(exe)
+        publication.addCandidateInternal(exe)
 
         then:
         publication.defaultArtifactProvider.get() == set(exe)
 
         when:
-        publication.addCandidate(ear)
+        publication.addCandidateInternal(ear)
 
         then:
         publication.defaultArtifactProvider.get() == set(ear)
@@ -270,7 +281,7 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         def war = Mock(PublishArtifact)
 
         when:
-        publication.addCandidate(jar)
+        publication.addCandidateInternal(jar)
         def artifacts = publication.defaultArtifactProvider.get()
 
         then:
@@ -278,7 +289,7 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
         _ * jar.type >> "jar"
 
         when:
-        publication.addCandidate(war)
+        publication.addCandidateInternal(war)
         artifacts = publication.defaultArtifactProvider.get()
 
         then:
@@ -294,6 +305,23 @@ class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
 
         and:
         0 * _
+    }
+
+    def "emits deprecation warning when addCandidate is called"() {
+        given:
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), new NoOpProblemDiagnosticsFactory().newUnlimitedStream())
+
+        when:
+        publication.addCandidate(artifact("jar"))
+
+        then:
+        def warnings = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        warnings.find {
+            it.message == "Internal API DefaultArtifactPublicationSet.addCandidate(PublishArtifact) has been deprecated. This is scheduled to be removed in Gradle 9.0. Add the artifact as a direct dependency of the assemble task instead."
+        }
+
+        cleanup:
+        DeprecationLogger.reset()
     }
 
     def PublishArtifact artifact(String type) {

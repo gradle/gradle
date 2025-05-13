@@ -22,7 +22,7 @@ public class BaseForkOptionsTest extends Specification {
     def 'JVM options are filtered properly even with bad input'() {
 	    def options = new BaseForkOptions()
 
-        options.jvmArgs = ['', '', '']
+        options.jvmArgs = ['', '\n', ' ']
 
         expect:
         options.jvmArgs.isEmpty()
@@ -37,5 +37,15 @@ public class BaseForkOptionsTest extends Specification {
         options.jvmArgs.size() == 2
         options.jvmArgs[0] == 'x'
         options.jvmArgs[1] == 'y'
+    }
+
+    def 'JVM options preserve newline character at the end of an option'() {
+        def options = new BaseForkOptions()
+
+        options.jvmArgs = ['-Dline.separator=\n']
+
+        expect:
+        options.jvmArgs.size() == 1
+        options.jvmArgs[0] == '-Dline.separator=\n'
     }
 }

@@ -145,16 +145,26 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     // Used by generated code, see ^
     @SuppressWarnings("unused")
     public static ServiceLookup getServicesForNext() {
-        return SERVICES_FOR_NEXT_OBJECT.get().services;
+        return getDetails().services;
     }
 
     private static final String GET_FACTORY_FOR_NEXT_METHOD_NAME = "getFactoryForNext";
 
     // Used by generated code, see ^
+
     @SuppressWarnings("unused")
     public static ManagedObjectFactory getFactoryForNext() {
-        ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
+        ObjectCreationDetails details = getDetails();
         return new ManagedObjectFactory(details.services, details.instantiator, details.roleHandler);
+    }
+    @Nonnull
+    private static ObjectCreationDetails getDetails() {
+        ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
+        if (details == null) {
+            // something has gone wrong
+            throw new IllegalStateException(String.format("No object creation details have been provided for this context (clz: %s, cl: %s)", System.identityHashCode(AsmBackedClassGenerator.class), AsmBackedClassGenerator.class.getClassLoader()));
+        }
+        return details;
     }
 
     private AsmBackedClassGenerator(
