@@ -79,7 +79,7 @@ plugins.withId("java-base") {
         configurations.all {
             if (isCanBeResolved && !isCanBeConsumed) {
                 resolutionStrategy.dependencySubstitution {
-                    substitute(module("it.unimi.dsi:fastutil")).using(variant(module("it.unimi.dsi:fastutil:8.5.2")) {
+                    substitute(module("it.unimi.dsi:fastutil")).using(variant(module("it.unimi.dsi:fastutil:8.5.15")) {
                         attributes {
                             attribute(minified, true)
                         }
