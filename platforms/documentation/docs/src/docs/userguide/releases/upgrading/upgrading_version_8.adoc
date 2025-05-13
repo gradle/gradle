@@ -244,7 +244,6 @@ GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(Gro
 groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
 ----
 
-
 ==== Removal of select Groovy modules from the Gradle distribution
 
 Gradle 9.0 removes certain Groovy modules from its bundled distribution.
@@ -333,10 +332,10 @@ This property was deprecated in Gradle 8.0 and was replaced with the `destinatio
 
 The following helper methods for launching external processes were <<#deprecated_project_exec,deprecated in Gradle 8.11>> and have now been removed in Gradle 9.0:
 
-* `org.gradle.apiProject#exec(Closure)`
-* `org.gradle.apiProject#exec(Action)`
-* `org.gradle.apiProject#javaexec(Closure)`
-* `org.gradle.apiProject#javaexec(Action)`
+* `org.gradle.api.Project#exec(Closure)`
+* `org.gradle.api.Project#exec(Action)`
+* `org.gradle.api.Project#javaexec(Closure)`
+* `org.gradle.api.Project#javaexec(Action)`
 * `org.gradle.api.Script#exec(Closure)`
 * `org.gradle.api.Script#exec(Action)`
 * `org.gradle.api.Script#javaexec(Closure)`
