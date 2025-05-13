@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "can declare applied plugin as CC incompatible"() {
@@ -53,7 +55,55 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         postBuildOutputContains("build file 'build.gradle': Foo plugin isn't CC compatible")
     }
 
-    def "cache should be store if a task that needs degradation is not requested"() {
+    def "a plugin requesting graceful degradation won't hide an incompatible plugin's problems"() {
+        def fixture = new ConfigurationCacheFixture(this)
+        buildFile("buildSrc/src/main/groovy/plugin1.gradle", """
+            tasks.register("degrading") {
+                gradle.requireConfigurationCacheDegradationIf("Task isn't CC compatible") { true }
+            }
+        """)
+        buildFile("buildSrc/src/main/groovy/plugin2.gradle", """
+            tasks.register("incompatible") {
+                doLast {
+                    println("Hello from incompatible: \${project.path}")
+                }
+            }
+        """)
+        buildFile("buildSrc/build.gradle", """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+        """)
+        buildFile """
+            plugins.apply("plugin1")
+            plugins.apply("plugin2")
+        """
+
+        when:
+        configurationCacheFails "incompatible"
+
+        then:
+        fixture.configurationCacheBuildOperations.assertStateStored()
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 1
+            withProblem("Plugin 'plugin2': invocation of 'Task.project' at execution time is unsupported.")
+        }
+
+        when:
+        configurationCacheRun "degrading"
+
+        then:
+        fixture.configurationCacheBuildOperations.assertNoConfigurationCache()
+
+        when:
+        configurationCacheFails "degrading", "incompatible"
+
+        then:
+        fixture.configurationCacheBuildOperations.assertNoConfigurationCache()
+        //TODO-RC we should see problems here though
+    }
+
+    def "cache should be stored if a task that needs degradation is not requested"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
             tasks.register("a") {
@@ -72,5 +122,34 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+    }
+
+    def "should report problems but not fail build if CC-incompatible task requests degradation"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register("degrading") { task ->
+                gradle.requireConfigurationCacheDegradationIf("Task is not CC compatible") { true }
+                doLast {
+                    println "Hello from \${task.name}"
+                    println "This is legal in vintage: \${project.name}"
+                }
+            }
+        """
+
+        when:
+        //TODO-RC this should not fail, but does
+        configurationCacheRun "degrading"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        //TODO-RC we should have a CC report and assert expected problems
     }
 }
