@@ -95,7 +95,7 @@ data class FlameGraphGeneration(
     val buildSpecs: List<FlameGraphGenerationBuildSpec>
         get() =
             scenarios.flatMap { scenario ->
-                Os.values().flatMap { os ->
+                Os.entries.flatMap { os ->
                     val arch = if (os == Os.MACOS) Arch.AARCH64 else Arch.AMD64
                     if (os == Os.WINDOWS) {
                         listOf("jprofiler")
