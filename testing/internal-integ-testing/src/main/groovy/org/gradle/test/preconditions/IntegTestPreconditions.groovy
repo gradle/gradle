@@ -23,11 +23,6 @@ import org.gradle.integtests.fixtures.KillProcessAvailability
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.TestPrecondition
 
-// These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
-// permitted subtypes to use the parent type's methods without importing them
-import static org.gradle.test.precondition.TestPrecondition.satisfied;
-import static org.gradle.test.precondition.TestPrecondition.notSatisfied;
-
 class IntegTestPreconditions {
 
     static final class IsLongLivingProcess implements TestPrecondition {
@@ -47,14 +42,14 @@ class IntegTestPreconditions {
     static final class NotEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsEmbeddedExecutor)
+            return TestPrecondition.notSatisfied(IsEmbeddedExecutor)
         }
     }
 
     static final class NotEmbeddedExecutorOrNotWindows implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsEmbeddedExecutor) || notSatisfied(UnitTestPreconditions.Windows)
+            return TestPrecondition.notSatisfied(IsEmbeddedExecutor) || TestPrecondition.notSatisfied(UnitTestPreconditions.Windows)
         }
     }
 
@@ -89,7 +84,7 @@ class IntegTestPreconditions {
     static final class NotNoDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsNoDaemonExecutor)
+            return TestPrecondition.notSatisfied(IsNoDaemonExecutor)
         }
     }
 
@@ -110,7 +105,7 @@ class IntegTestPreconditions {
     static final class NotParallelOrConfigCacheExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsParallelExecutor) && notSatisfied(IsConfigCached)
+            return TestPrecondition.notSatisfied(IsParallelExecutor) && TestPrecondition.notSatisfied(IsConfigCached)
         }
     }
 
@@ -326,7 +321,7 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() {
             // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-            return satisfied(UnitTestPreconditions.Windows) && notSatisfied(IsEmbeddedExecutor)
+            return TestPrecondition.satisfied(UnitTestPreconditions.Windows) && TestPrecondition.notSatisfied(IsEmbeddedExecutor)
         }
     }
 
@@ -334,7 +329,7 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() {
             // The S3 publish tests require the following
-            return satisfied(UnitTestPreconditions.Jdk9OrLater) || notSatisfied(IsEmbeddedExecutor)
+            return TestPrecondition.satisfied(UnitTestPreconditions.Jdk9OrLater) || TestPrecondition.notSatisfied(IsEmbeddedExecutor)
         }
     }
 
