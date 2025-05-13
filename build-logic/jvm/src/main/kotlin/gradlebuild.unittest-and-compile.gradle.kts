@@ -44,7 +44,6 @@ import org.gradle.internal.jvm.JpmsConfiguration
 import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.Duration
-import java.util.Optional
 
 plugins {
     groovy
@@ -450,37 +449,4 @@ fun Test.configureAndroidUserHome() {
     val androidUserHomeForTest = project.layout.buildDirectory.dir("androidUserHomeForTest/$name").get().asFile.absolutePath
     environment["ANDROID_PREFS_ROOT"] = androidUserHomeForTest
     environment["ANDROID_USER_HOME"] = androidUserHomeForTest
-}
-
-/**
- * Reduces a map of boolean flags to a single property by applying the given combiner function
- * to the corresponding values of the properties that are true.
- *
- * @param flags The map of boolean properties to their values.
- * @param combiner The function to combine the values of the true properties.
- *
- * @return A property that contains the reduced value.
- */
-fun <T: Any> reduceBooleanFlagValues(flags: Map<Property<Boolean>, T>, combiner: (T, T) -> T): Provider<T> {
-    return flags.entries
-        .map { entry ->
-            entry.key.map {
-                when (it) {
-                    true -> Optional.of(entry.value)
-                    false -> Optional.empty()
-                }
-            }.orElse(provider {
-                throw GradleException("Expected boolean flag to be configured")
-            })
-        }
-        .reduce { acc, next ->
-            acc.zip(next) { left , right ->
-                when {
-                    !left.isPresent -> right
-                    !right.isPresent -> left
-                    else -> Optional.of(combiner(left.get(), right.get()))
-                }
-            }
-        }
-        .map { it.orElse(null) }
 }

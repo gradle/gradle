@@ -11,7 +11,7 @@ import java.io.FileFilter
 
 plugins {
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
-    id("gradlebuild.jvm-library")
+    id("gradlebuild.internal.java")
     // TODO: Apply asciidoctor in documentation plugin instead.
     id("org.asciidoctor.jvm.convert")
     id("gradlebuild.documentation")

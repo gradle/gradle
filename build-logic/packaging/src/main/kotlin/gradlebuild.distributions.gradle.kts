@@ -356,7 +356,7 @@ fun libraryResolver(extends: List<Configuration>) =
 fun startScriptResolver(defaultDependency: String) =
     configurations.creating {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named("start-scripts"))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named("start-scripts"))
         }
         isCanBeResolved = true
         isCanBeConsumed = false
