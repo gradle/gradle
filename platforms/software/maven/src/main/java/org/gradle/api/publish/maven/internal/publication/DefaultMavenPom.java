@@ -109,7 +109,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
 
     @Override
     public void license(Action<? super MavenPomLicense> action) {
-        configureAndAdd(DefaultMavenPomLicense.class, action, licenses);
+        configureAndAdd(MavenPomLicense.class, action, licenses);
     }
 
     @Override
@@ -120,7 +120,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void organization(Action<? super MavenPomOrganization> action) {
         if (organization == null) {
-            organization = objectFactory.newInstance(DefaultMavenPomOrganization.class, objectFactory);
+            organization = objectFactory.newInstance(MavenPomOrganization.class, objectFactory);
         }
         action.execute(organization);
     }
@@ -137,7 +137,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
 
     @Override
     public void developer(Action<? super MavenPomDeveloper> action) {
-        configureAndAdd(DefaultMavenPomDeveloper.class, action, developers);
+        configureAndAdd(MavenPomDeveloper.class, action, developers);
     }
 
     @Override
@@ -152,7 +152,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
 
     @Override
     public void contributor(Action<? super MavenPomContributor> action) {
-        configureAndAdd(DefaultMavenPomDeveloper.class, action, contributors);
+        configureAndAdd(MavenPomContributor.class, action, contributors);
     }
 
     @Override
@@ -168,7 +168,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void scm(Action<? super MavenPomScm> action) {
         if (scm == null) {
-            scm = objectFactory.newInstance(DefaultMavenPomScm.class, objectFactory);
+            scm = objectFactory.newInstance(MavenPomScm.class, objectFactory);
         }
         action.execute(scm);
     }
@@ -176,7 +176,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void issueManagement(Action<? super MavenPomIssueManagement> action) {
         if (issueManagement == null) {
-            issueManagement = objectFactory.newInstance(DefaultMavenPomProjectManagement.class, objectFactory);
+            issueManagement = objectFactory.newInstance(MavenPomIssueManagement.class, objectFactory);
         }
         action.execute(issueManagement);
     }
@@ -189,7 +189,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void ciManagement(Action<? super MavenPomCiManagement> action) {
         if (ciManagement == null) {
-            ciManagement = objectFactory.newInstance(DefaultMavenPomProjectManagement.class, objectFactory);
+            ciManagement = objectFactory.newInstance(MavenPomCiManagement.class, objectFactory);
         }
         action.execute(ciManagement);
     }
@@ -219,7 +219,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
 
     @Override
     public void mailingList(Action<? super MavenPomMailingList> action) {
-        configureAndAdd(DefaultMavenPomMailingList.class, action, mailingLists);
+        configureAndAdd(MavenPomMailingList.class, action, mailingLists);
     }
 
     @Override
@@ -239,7 +239,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     public abstract Property<MavenPomDependencies> getDependencies();
 
     private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {
-        T item = objectFactory.newInstance(clazz, objectFactory);
+        T item = objectFactory.newInstance(clazz);
         action.execute(item);
         items.add(item);
     }
