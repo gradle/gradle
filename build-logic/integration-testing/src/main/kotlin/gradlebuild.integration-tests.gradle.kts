@@ -42,4 +42,8 @@ createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATI
     // This test task runs only multi-version tests and is intended to be used in the late pipeline to sweep up versions not previously tested
     includeSpockAnnotation("org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory")
     (options as JUnitPlatformOptions).includeEngines("spock")
+    filter {
+        setFailOnNoMatchingTests(false)
+        includeTestsMatching("*")
+    }
 }
