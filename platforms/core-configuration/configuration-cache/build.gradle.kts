@@ -6,6 +6,14 @@ plugins {
 
 description = "Configuration cache implementation"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 // The integration tests in this project do not need to run in 'config cache' mode.
 tasks.configCacheIntegTest {
     enabled = false

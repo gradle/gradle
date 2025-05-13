@@ -4,6 +4,13 @@ plugins {
 
 description = "Implementation for interacting with Google Cloud Storage (GCS) repositories"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
 
 dependencies {
     api(projects.serviceProvider)

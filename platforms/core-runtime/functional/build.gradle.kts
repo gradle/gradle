@@ -5,6 +5,14 @@ plugins {
 
 description = "Tools to work with functional code, including data structures"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(libs.jspecify)
     api(libs.jsr305)

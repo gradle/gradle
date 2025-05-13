@@ -24,7 +24,8 @@ description = "Java 6-compatible entry point of the `gradle` command. Bootstraps
 
 gradleModule {
     targetRuntimes {
-        usedForStartup = true
+        usedInClient = true
+        usedInDaemon = true
     }
 }
 

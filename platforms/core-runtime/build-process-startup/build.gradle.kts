@@ -27,7 +27,9 @@ description = """
 
 gradleModule {
     targetRuntimes {
-        usedForStartup = true
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
     }
 }
 

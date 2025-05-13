@@ -4,6 +4,14 @@ plugins {
 
 description = "Services and utilities needed by Develocity plugin"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)

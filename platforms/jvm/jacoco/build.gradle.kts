@@ -4,6 +4,15 @@ plugins {
 
 description = "Plugin and integration with JaCoCo code coverage"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "ReferenceEquality", // 3 occurrences

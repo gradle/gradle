@@ -20,6 +20,13 @@ plugins {
 
 description = "Contains the java-library plugin, and its supporting classes.  This plugin is used to build java libraries."
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.coreApi)
 

@@ -4,6 +4,14 @@ plugins {
 
 description = "Implementation for interacting with HTTP build caches"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)

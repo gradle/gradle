@@ -4,6 +4,12 @@ plugins {
 
 description = "Included build controller and composite build infrastructure"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "FutureReturnValueIgnored", // 1 occurrences

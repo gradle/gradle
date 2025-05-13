@@ -5,6 +5,14 @@ plugins {
 
 description = "Build operations consumed by the Develocity plugin"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.buildOperations)
 

@@ -20,6 +20,14 @@ plugins {
 
 description = "Provides foundational types needed for building renderable reports"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.core)
 

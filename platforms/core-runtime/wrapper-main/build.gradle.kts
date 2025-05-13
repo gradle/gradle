@@ -28,7 +28,7 @@ description = "Entry point of the Gradle wrapper command"
 
 gradleModule {
     targetRuntimes {
-        usedForStartup = true
+        usedInDaemon = true
     }
 }
 

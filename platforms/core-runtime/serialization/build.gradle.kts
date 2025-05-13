@@ -23,6 +23,8 @@ description = "Tools to serialize data"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

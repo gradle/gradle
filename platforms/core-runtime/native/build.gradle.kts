@@ -7,6 +7,8 @@ description = "This project contains various native operating system integration
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

@@ -4,6 +4,14 @@ plugins {
 
 description = "Shared classes for projects requiring GPG support"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.resources)
 

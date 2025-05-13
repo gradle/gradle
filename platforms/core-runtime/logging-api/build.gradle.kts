@@ -22,6 +22,8 @@ description = "Logging API"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

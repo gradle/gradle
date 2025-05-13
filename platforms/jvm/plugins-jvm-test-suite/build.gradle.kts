@@ -20,6 +20,14 @@ plugins {
 
 description = "Contains the JVM Test Suite plugin"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "OverridesJavaxInjectableMethod", // 1 occurrences

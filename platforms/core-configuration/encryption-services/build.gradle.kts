@@ -20,6 +20,12 @@ plugins {
 
 description = "Gradle encryption services"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.hashing)

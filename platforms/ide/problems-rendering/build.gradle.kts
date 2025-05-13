@@ -20,6 +20,14 @@ plugins {
 
 description = "Problems API rendering infrastructure"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.problemsApi)
 

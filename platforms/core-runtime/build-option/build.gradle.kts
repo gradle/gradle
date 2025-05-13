@@ -6,6 +6,8 @@ description = "The Gradle build option parser."
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

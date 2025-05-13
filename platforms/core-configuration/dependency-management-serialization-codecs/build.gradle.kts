@@ -22,6 +22,12 @@ plugins {
 
 description = "Configuration Cache serialization codecs for :dependency-management types"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.buildOperations)
     api(projects.core)

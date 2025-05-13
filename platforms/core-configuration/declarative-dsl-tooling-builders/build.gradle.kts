@@ -4,6 +4,14 @@ plugins {
 
 description = "Declarative DSL Tooling Builders for IDEs"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.serviceProvider)
     api(projects.core)

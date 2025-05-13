@@ -4,6 +4,14 @@ plugins {
 
 description = "Provider-side implementation for running tooling model builders"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     implementation(projects.baseServicesGroovy) // for 'Specs'
     implementation(projects.coreApi)
