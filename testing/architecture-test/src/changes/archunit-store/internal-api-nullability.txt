@@ -4286,6 +4286,8 @@ Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk19OrEarlier> is no
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk21OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk21OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk23OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
+Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk24OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
+Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk24OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk8OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk9OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk9OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
