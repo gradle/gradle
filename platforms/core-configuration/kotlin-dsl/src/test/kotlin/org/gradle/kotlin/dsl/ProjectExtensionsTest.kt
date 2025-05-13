@@ -16,7 +16,7 @@ import org.junit.Test
 
 
 @Suppress("deprecation")
-class ProjectExtensionsTest {
+class ProjectExtensionsTest { // TODO: review and act
 
     abstract class CustomConvention
 

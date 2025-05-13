@@ -112,7 +112,7 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
                     findPlugin.create()
                     @Suppress("UNCHECKED_CAST")
                     configuration(plugin as T)
-                }
+                } // TODO: review and act
             }
             // Configure the non-existent extension for error handling
             ?: extensions.configure(type, configuration)
@@ -145,7 +145,7 @@ inline fun <reified T : Any> Project.the(): T =
                     findPlugin.create()
                     @Suppress("UNCHECKED_CAST")
                     plugin as T
-                }
+                } // TODO: review and act
             }
             // Get the non-existent extension for error handling
             ?: extensions.getByType(type)
@@ -177,7 +177,7 @@ fun <T : Any> Project.the(extensionType: KClass<T>): T =
                 findPlugin.create()
                 @Suppress("UNCHECKED_CAST")
                 plugin as T
-            }
+            } // TODO: review and act
         }
         // Get the non-existent extension for error handling
         ?: extensions.getByType(extensionType.java)
