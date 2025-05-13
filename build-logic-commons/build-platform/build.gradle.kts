@@ -42,7 +42,7 @@ dependencies {
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
         api("com.google.guava:guava:33.4.6-jre")
-        api("com.google.errorprone:error_prone_annotations:2.5.1")
+        api("com.google.errorprone:error_prone_annotations:2.38.0")
         api("com.google.code.gson:gson:2.13.1") // keep in sync with settings.gradle.kts
         api("org.mockito.kotlin:mockito-kotlin:5.4.0")
         api("com.thoughtworks.qdox:qdox:2.0.3")
