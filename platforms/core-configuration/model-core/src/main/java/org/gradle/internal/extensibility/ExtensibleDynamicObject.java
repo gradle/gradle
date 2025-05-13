@@ -17,6 +17,7 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -47,7 +48,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     private final AbstractDynamicObject dynamicDelegate;
     private DynamicObject parent;
-    private final org.gradle.api.plugins.Convention convention;
+    private final DefaultConvention convention;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
     private final DynamicObject extraPropertiesDynamicObject;
@@ -60,7 +61,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         this(delegate, dynamicDelegate, new DefaultConvention(instanceGenerator));
     }
 
-    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, org.gradle.api.plugins.Convention convention) {
+    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, DefaultConvention convention) {
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
         this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
@@ -139,6 +140,10 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
             .nagUser();
+        return convention;
+    }
+
+    public ExtensionContainer getExtensionContainer() {
         return convention;
     }
 

@@ -241,59 +241,6 @@ assert 'overridden value' == global
         succeeds("defaultTask")
     }
 
-    def canAddMixInsToCoreDomainObjects() {
-
-        buildFile '''
-            class Extension { def doStuff() { 'method' } }
-            class GroovyTask extends DefaultTask { }
-
-            task defaultTask {
-                convention.plugins.custom = new Extension()
-            }
-            task javaTask(type: Copy) {
-                convention.plugins.custom = new Extension()
-            }
-            task groovyTask(type: GroovyTask) {
-                convention.plugins.custom = new Extension()
-            }
-            configurations {
-                test {
-                    convention.plugins.custom = new Extension()
-                }
-            }
-            dependencies {
-                test('::name:') {
-                    convention.plugins.custom = new Extension()
-                }
-                test(project(':')) {
-                    convention.plugins.custom = new Extension()
-                }
-                test(files('src')) {
-                    convention.plugins.custom = new Extension()
-                }
-            }
-            repositories {
-                convention.plugins.custom = new Extension()
-            }
-            assert defaultTask.doStuff() == 'method'
-            assert javaTask.doStuff() == 'method'
-            assert groovyTask.doStuff() == 'method'
-            assert configurations.test.doStuff() == 'method'
-            configurations.test.dependencies.each {
-                assert it.doStuff() == 'method'
-            }
-            assert repositories.doStuff() == 'method'
-            repositories {
-                assert doStuff() == 'method'
-            }
-'''
-
-        expectConventionTypeDeprecationWarnings(8)
-
-        expect:
-        succeeds("defaultTask")
-    }
-
     def canAddExtensionsToCoreDomainObjects() {
 
         buildFile '''

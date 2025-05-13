@@ -401,30 +401,6 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.state.failure.cause.is(failure)
     }
 
-    def "get and set convention properties"() {
-        given:
-        def convention = new TestConvention()
-        defaultTask.convention.plugins.test = convention
-
-        expect:
-        defaultTask.hasProperty('conventionProperty')
-
-        when:
-        defaultTask.conventionProperty = 'value'
-
-        then:
-        defaultTask.conventionProperty == 'value'
-        convention.conventionProperty == 'value'
-    }
-
-    def "can call convention methods"() {
-        given:
-        defaultTask.convention.plugins.test = new TestConvention()
-
-        expect:
-        defaultTask.conventionMethod('a', 'b').toString() == "a.b"
-    }
-
     def "accessing missing property throws"() {
         when:
         defaultTask."unknownProp"
