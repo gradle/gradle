@@ -636,7 +636,7 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/kotlin",f
 include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/groovy",files="settings.gradle[tags=avoid-this]"]
 ====
 
-*BuildSrc products are automatically usable*: There is no additional configuration with this method.
+*`BuildSrc` products are automatically usable*: There is no additional configuration with this method.
 
 ==== Do This Instead
 
