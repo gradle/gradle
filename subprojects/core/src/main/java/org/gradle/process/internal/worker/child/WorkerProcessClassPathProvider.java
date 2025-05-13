@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.ResolutionProvider;
 import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.jvm.JavaVersionParser;
@@ -159,6 +160,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
                 JavaReflectionUtil.class,
                 JavaMethod.class,
                 GradleException.class,
+                ResolutionProvider.class,
                 NoSuchPropertyException.class,
                 NoSuchMethodException.class,
                 UncheckedException.class,
