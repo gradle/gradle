@@ -289,7 +289,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private Optional<TestIdentifier> getParent(TestIdentifier testIdentifier) {
         try {
             return testIdentifier.getParentIdObject().map(currentTestPlan::getTestIdentifier);
-        } catch (NoSuchMethodError ignore) {
+        // Some versions of the JDK throw a BootstrapMethodError
+        } catch (NoSuchMethodError | BootstrapMethodError ignore) {
             // To support pre-1.10 versions of the JUnit Platform
             return testIdentifier.getParentId().map(currentTestPlan::getTestIdentifier);
         }
