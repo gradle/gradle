@@ -56,19 +56,6 @@ class SupportedJavaVersionsExpectations {
     }
 
     /**
-     * To be used in conjunction with {@code GradleExecuter#withJvm(Jvm)},
-     * as either the client or the daemon may be incompatible, and the error message
-     * changes depending on the java version.
-     */
-    static String getIncompatibleJvmErrorMessageFor(String processType, int majorVersion) {
-        if (majorVersion < SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION) {
-            return getIncompatibleClientJvmVersionErrorMessage(processType, majorVersion)
-        } else {
-            return getMisconfiguredDaemonJavaVersionErrorMessage(majorVersion)
-        }
-    }
-
-    /**
      * To be used when the Gradle client is bypassed, therefore not checking
      * compatibility, and daemon classes may be loaded directly on an incompatible JVM.
      */
@@ -76,17 +63,6 @@ class SupportedJavaVersionsExpectations {
         getIncompatibleProcessJvmVersionErrorMessage(
             processType,
             SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-            majorVersion
-        )
-    }
-
-    /**
-     * The error message emitted when the client fails to start.
-     */
-    static String getIncompatibleClientJvmVersionErrorMessage(String processType, int majorVersion) {
-        getIncompatibleProcessJvmVersionErrorMessage(
-            processType,
-            SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION,
             majorVersion
         )
     }

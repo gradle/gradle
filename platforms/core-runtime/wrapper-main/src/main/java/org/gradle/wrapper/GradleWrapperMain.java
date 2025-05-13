@@ -16,12 +16,9 @@
 
 package org.gradle.wrapper;
 
-import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
-import org.gradle.internal.jvm.SupportedJavaVersions;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 
 import java.io.File;
 import java.net.URI;
@@ -39,16 +36,6 @@ public class GradleWrapperMain {
     public static final String GRADLE_QUIET_DETAILED_OPTION = "quiet";
 
     public static void main(String[] args) throws Exception {
-        int currentMajorJavaVersion = JavaVersionParser.parseCurrentMajorVersion();
-        if (currentMajorJavaVersion < SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION) {
-            System.err.printf(UnsupportedJavaRuntimeException.getIncompatibleJavaVersionForProcessErrorMessage(
-                "The Gradle Wrapper",
-                SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION,
-                currentMajorJavaVersion
-            ));
-            System.exit(1);
-        }
-
         File wrapperJar = wrapperJar();
         File propertiesFile = wrapperProperties(wrapperJar);
         File rootDir = rootDir(wrapperJar);

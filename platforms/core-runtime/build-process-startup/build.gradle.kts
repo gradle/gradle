@@ -27,7 +27,6 @@ description = """
 
 gradleModule {
     usedForStartup = true
-    usesIncompatibleDependencies = true // For testFixtures
 }
 
 dependencies {
