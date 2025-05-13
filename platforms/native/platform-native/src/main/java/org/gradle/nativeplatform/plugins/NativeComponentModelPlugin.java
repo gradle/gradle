@@ -69,7 +69,9 @@ import org.gradle.nativeplatform.Repositories;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.TargetedNativeComponent;
+import org.gradle.nativeplatform.internal.DefaultBuildTypeContainer;
 import org.gradle.nativeplatform.internal.DefaultFlavor;
+import org.gradle.nativeplatform.internal.DefaultFlavorContainer;
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableBinarySpec;
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec;
 import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec;
@@ -119,13 +121,15 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
     @Inject
     @SuppressWarnings("unused")
     public NativeComponentModelPlugin(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        
+
     }
 
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getExtensions().create(BuildTypeContainer.class, "buildTypes", DefaultBuildTypeContainer.class);
+        project.getExtensions().create(FlavorContainer.class, "flavors", DefaultFlavorContainer.class);
     }
 
     static class Rules extends RuleSource {

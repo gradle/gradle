@@ -181,12 +181,11 @@ toolChains {
     ${toolChain.buildScriptConfig}
 }
 
-flavors {
-    free
-    paid
-}
-
 model {
+    flavors {
+        free
+        paid
+    }
     platforms {
         i386 { architecture 'i386' }
         amd64 { architecture 'amd64' }
