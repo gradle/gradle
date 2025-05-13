@@ -50,9 +50,7 @@ class PrintAccessorsTest {
                         extensions = listOf(
                             entry<Project, ExtraPropertiesExtension>("extra")
                         ),
-                        conventions = listOf(
-                            entry<Project, CustomConvention>("customConvention")
-                        ),
+                        conventions = listOf(),
                         tasks = listOf(
                             entry<TaskContainer, Delete>("delete")
                         ),

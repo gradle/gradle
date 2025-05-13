@@ -13,24 +13,6 @@
 
 
     /**
-     * Retrieves the [customConvention][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention] convention.
-     *
-     * @deprecated The concept of conventions is deprecated. Use extensions instead.
-     */
-    val org.gradle.api.Project.`customConvention`: org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention get() =
-        ((this as? Project)?.convention ?: (this as org.gradle.api.internal.HasConvention).convention).getPluginByName<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention>("customConvention")
-
-    /**
-     * Configures the [customConvention][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention] convention.
-     *
-     * @deprecated The concept of conventions is deprecated. Use extensions instead.
-     */
-    fun org.gradle.api.Project.`customConvention`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention>): Unit =
-        configure.execute(`customConvention`)
-
-
-
-    /**
      * Provides the existing [delete][org.gradle.api.tasks.Delete] task.
      */
     val TaskContainer.`delete`: TaskProvider<org.gradle.api.tasks.Delete>
