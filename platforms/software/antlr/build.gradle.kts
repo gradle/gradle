@@ -4,6 +4,15 @@ plugins {
 
 description = "Adds support for generating parsers from Antlr grammars."
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInWorkers = true
+        usedInDaemon = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 1 occurrences

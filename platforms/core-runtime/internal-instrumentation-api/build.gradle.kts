@@ -18,6 +18,14 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseAsm)
 

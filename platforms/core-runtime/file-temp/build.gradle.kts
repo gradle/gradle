@@ -22,6 +22,8 @@ description = "Utilities for working with temporary files & directories"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

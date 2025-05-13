@@ -7,6 +7,16 @@ description = "Worker action that implements RequestHandler worker protocol. " +
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
         usedInWorkers = true
     }
 }

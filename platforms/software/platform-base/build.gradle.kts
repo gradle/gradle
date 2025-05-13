@@ -2,6 +2,14 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceLookup)

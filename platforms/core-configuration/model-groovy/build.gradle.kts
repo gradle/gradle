@@ -4,6 +4,14 @@ plugins {
 
 description = "Groovy specific adaptations to the model management."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.modelCore)

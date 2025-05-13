@@ -22,6 +22,12 @@ plugins {
 
 description = "Configuration Cache serialization based isolation for object graphs"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.graphSerialization)
 

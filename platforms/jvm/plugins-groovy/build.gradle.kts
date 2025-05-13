@@ -4,6 +4,14 @@ plugins {
 
 description = "Contains plugins for building Groovy projects."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(libs.jspecify)
     api(libs.inject)

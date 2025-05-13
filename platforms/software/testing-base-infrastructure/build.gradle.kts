@@ -6,6 +6,8 @@ description = """Generalized test infrastructure to support executing tests in t
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

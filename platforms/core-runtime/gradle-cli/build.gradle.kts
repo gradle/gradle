@@ -20,6 +20,14 @@ plugins {
 
 description = "Implementation of the `gradle` command"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInClient = true
+    }
+}
+
 dependencies {
     api(libs.jspecify)
     api(projects.baseServices)

@@ -20,6 +20,13 @@ plugins {
 
 description = "Useful extension methods for Kotlin"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(libs.kotlinStdlib)
     implementation(projects.stdlibJavaExtensions)

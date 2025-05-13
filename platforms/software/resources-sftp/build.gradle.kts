@@ -4,6 +4,14 @@ plugins {
 
 description = "Implementation for interacting with repositories over sftp"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)

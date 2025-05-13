@@ -22,6 +22,8 @@ description = "Operations on files, such as archiving, copying, deleting"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

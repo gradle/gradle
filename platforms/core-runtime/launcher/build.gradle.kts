@@ -5,6 +5,13 @@ plugins {
 
 description = "Implementation for launching, controlling and communicating with Gradle Daemon from CLI and TAPI"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildEvents)

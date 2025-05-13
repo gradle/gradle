@@ -23,6 +23,8 @@ description = "Monotonic clock implementation"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

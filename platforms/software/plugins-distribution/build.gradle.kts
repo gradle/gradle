@@ -20,6 +20,13 @@ plugins {
 
 description = "Plugin used to package a project as a distribution."
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(libs.inject)
 

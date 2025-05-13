@@ -7,6 +7,14 @@ description = """This project contains the Build Init plugin, which is automatic
 
 This project should NOT be used as an implementation dependency anywhere (except when building a Gradle distribution)."""
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 6 occurrences

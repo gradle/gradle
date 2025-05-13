@@ -4,6 +4,14 @@ plugins {
 
 description = "Execution engine that takes a unit of work and makes it happen"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(libs.guava)
     api(libs.jspecify)

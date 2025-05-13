@@ -4,6 +4,14 @@ plugins {
 
 description = "Kotlin DSL Tooling Builders for IDEs"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.coreApi)
     api(projects.core)

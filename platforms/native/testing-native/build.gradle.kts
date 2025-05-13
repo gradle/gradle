@@ -4,6 +4,12 @@ plugins {
 
 description = "Plugins, tasks and domain objects for testing native code"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseDiagnostics)
     api(projects.baseServices)

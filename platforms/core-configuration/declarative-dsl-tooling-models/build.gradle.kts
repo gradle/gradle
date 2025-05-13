@@ -24,6 +24,13 @@ plugins {
 
 description = "Declarative DSL Tooling Models for IDEs"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     compileOnly(projects.toolingApi)
 

@@ -6,6 +6,8 @@ description = "Internal API to declare services provided by Gradle modules"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

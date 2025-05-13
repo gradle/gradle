@@ -4,6 +4,14 @@ plugins {
 
 description = "Infrastructure for starting and managing worker processes"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)

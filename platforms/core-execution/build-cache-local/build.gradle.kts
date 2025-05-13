@@ -6,6 +6,14 @@ plugins {
 
 description = "Local build cache implementation"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.buildCache)
     api(projects.buildCacheSpi)

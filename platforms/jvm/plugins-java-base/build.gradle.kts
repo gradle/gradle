@@ -20,6 +20,14 @@ plugins {
 
 description = "Contains a basic JVM plugin used to compile, test, and assemble Java source; often applied by other JVM plugins (though named java-base, jvm-base would be a more proper name)."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "UnusedMethod", // 1 occurrences

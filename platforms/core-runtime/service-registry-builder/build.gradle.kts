@@ -6,6 +6,8 @@ description = "Internal API for composing service registries"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

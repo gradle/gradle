@@ -4,6 +4,14 @@ plugins {
 
 description = "Implementation of types that represent containers of files"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)

@@ -4,6 +4,14 @@ plugins {
 
 description = "Process execution abstractions."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.concurrent)
     api(projects.baseServices)

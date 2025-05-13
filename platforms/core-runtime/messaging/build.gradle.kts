@@ -6,6 +6,8 @@ description = "Implementation of messaging between Gradle processes"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

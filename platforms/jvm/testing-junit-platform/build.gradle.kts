@@ -10,6 +10,14 @@ Instead :testing-jvm-infrastructure loads classes from this project via reflecti
 We make sure to include this subproject as a runtime dependency in :distributions-core to ensure we include it with the Gradle distribution.
 """
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.testingBaseInfrastructure)
     api(projects.time)

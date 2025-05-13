@@ -20,6 +20,13 @@ plugins {
 
 description = "Services used by the Gradle client to interact with the daemon"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)

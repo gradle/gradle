@@ -18,6 +18,13 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
 }
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.core)
     api(projects.coreApi)

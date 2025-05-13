@@ -9,6 +9,8 @@ description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 gradleModule {
     targetRuntimes {
         usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
     }
 }
 

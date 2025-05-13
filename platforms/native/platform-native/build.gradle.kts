@@ -4,6 +4,12 @@ plugins {
 
 description = "Plugins, tasks and compiler infrastructure for compiling/linking code"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 2 occurrences

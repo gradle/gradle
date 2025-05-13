@@ -6,6 +6,14 @@ plugins {
 
 description = "Report type classes and plugins for reporting (build dashboard, report container)"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "EqualsUnsafeCast", // 1 occurrences

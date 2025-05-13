@@ -22,6 +22,14 @@ plugins {
 
 description = "Supporting services for the isolation of IsolatedAction instances"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     implementation(projects.baseServices)
     implementation(projects.configurationCacheBase)

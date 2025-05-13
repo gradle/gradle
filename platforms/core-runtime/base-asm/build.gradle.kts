@@ -22,6 +22,8 @@ description = "Base asm classes and utilities for Gradle's internal use"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

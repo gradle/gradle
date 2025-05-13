@@ -4,6 +4,14 @@ plugins {
 
 description = "Implementation of build event services and build event types (work item, tasks, tests, configuration, etc)"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.buildOperations)
     api(projects.concurrent)

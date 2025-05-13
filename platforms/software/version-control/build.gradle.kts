@@ -4,6 +4,12 @@ plugins {
 
 description = "Version control integration (with git) for source dependencies"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.concurrent)

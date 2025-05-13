@@ -4,6 +4,14 @@ plugins {
 
 description = "Public and internal 'core' Gradle APIs that are required by other subprojects"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "NonApiType", // 1 occurrences

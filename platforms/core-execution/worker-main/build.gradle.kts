@@ -6,7 +6,11 @@ description = "Contains the main class that is loaded in a worker process, which
     "These classes are loaded in a separate worker daemon process and should have a minimal dependency set."
 
 gradleModule {
+    entryPoint = true
+
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

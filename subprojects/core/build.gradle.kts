@@ -4,6 +4,14 @@ plugins {
 
 description = "Public and internal 'core' Gradle APIs with implementation"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 configurations {
     register("reports")
 }

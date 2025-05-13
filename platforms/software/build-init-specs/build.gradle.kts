@@ -20,6 +20,14 @@ plugins {
 
 description = "Contains specification registry classes used by the Build Init plugin to load additional init project specifications contributed by plugins."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.buildInitSpecsApi)
     api(projects.stdlibJavaExtensions)

@@ -6,6 +6,14 @@ plugins {
 description = """Base diagnostic reporting infrastructure and reports that are applicable to all Gradle builds.
 These reports and types do not require dependency management to be present."""
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.core)

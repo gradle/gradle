@@ -4,6 +4,14 @@ plugins {
 
 description = "Provides high-level insights into a Gradle build (--profile)"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)

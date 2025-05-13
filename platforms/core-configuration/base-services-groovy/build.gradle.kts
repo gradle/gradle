@@ -4,6 +4,14 @@ plugins {
 
 description = "A set of generic services and utilities specific for Groovy."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.stdlibJavaExtensions)

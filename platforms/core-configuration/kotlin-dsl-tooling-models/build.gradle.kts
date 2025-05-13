@@ -4,6 +4,15 @@ plugins {
 
 description = "Kotlin DSL Tooling Models for IDEs"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(libs.jspecify)
 }

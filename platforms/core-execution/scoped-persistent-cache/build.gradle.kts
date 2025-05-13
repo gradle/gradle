@@ -23,6 +23,14 @@ description = """
     This is separate from :persistent-cache which is consumed by the Maven cache plugin.
     """
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.persistentCache)

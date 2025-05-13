@@ -20,6 +20,14 @@ plugins {
 
 description = "Adds support for creating dependency platforms for JVM projects"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.coreApi)
 

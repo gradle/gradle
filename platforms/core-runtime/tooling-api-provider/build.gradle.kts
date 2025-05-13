@@ -20,6 +20,14 @@ plugins {
 
 description = "The Tooling API provider implementation (the version-specific part that is loaded into the client)"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInClient = true
+    }
+}
+
 dependencies {
     api(projects.toolingApi)
 

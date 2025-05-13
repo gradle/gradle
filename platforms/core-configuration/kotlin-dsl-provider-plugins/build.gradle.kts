@@ -4,6 +4,14 @@ plugins {
 
 description = "Kotlin DSL Provider Plugins"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.classloaders)
     api(projects.core)

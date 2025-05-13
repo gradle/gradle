@@ -20,6 +20,15 @@ plugins {
 
 description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInWorkers = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.core)

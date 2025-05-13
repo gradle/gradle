@@ -9,6 +9,14 @@ This project is a implementation dependency of many other testing-related subpro
 This project is separate from testing-base to avoid needing to be Java 6 compatible.
 """
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)

@@ -4,6 +4,13 @@ plugins {
 
 description = "The Build configuration properties modifiers and helpers."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(libs.jspecify)
     api(libs.inject)

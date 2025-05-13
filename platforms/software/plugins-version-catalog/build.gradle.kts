@@ -20,6 +20,14 @@ plugins {
 
 description = """Provides the version catalog plugin."""
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.core)

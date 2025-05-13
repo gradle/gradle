@@ -4,6 +4,14 @@ plugins {
 
 description = "Adds support for building Groovy projects"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOption)

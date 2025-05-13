@@ -20,6 +20,13 @@ plugins {
 
 description = "The messages and types sent between client and daemon"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(libs.jspecify)
     api(projects.baseServices)

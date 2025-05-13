@@ -21,6 +21,13 @@ plugins {
 
 description = "Basic components required by the IDE plugins project"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)

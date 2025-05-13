@@ -20,6 +20,14 @@ plugins {
 
 description = "Contains the API that plugins can implement to supply project specifications to be used to initialize new projects."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)

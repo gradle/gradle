@@ -7,6 +7,8 @@ description = "Base tools to work with files"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

@@ -7,6 +7,8 @@ description = "Develocity plugin dependencies that also need to be exposed to wo
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

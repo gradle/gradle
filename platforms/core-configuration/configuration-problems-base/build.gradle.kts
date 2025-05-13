@@ -21,6 +21,13 @@ plugins {
 
 description = "Base utilities and services to report and track configuration problems"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 val configurationCacheReportPath by configurations.creating {
     isVisible = false
     isCanBeConsumed = false

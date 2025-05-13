@@ -21,6 +21,14 @@ plugins {
 
 description = "Entry point for the Gradle daemon process. Bootstraps the daemon server implementation in :daemon-server."
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 app {
     mainClassName = "org.gradle.launcher.daemon.bootstrap.GradleDaemon"
 }

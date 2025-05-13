@@ -21,6 +21,12 @@ plugins {
 
 description = "Gradle Flow API implementation"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)

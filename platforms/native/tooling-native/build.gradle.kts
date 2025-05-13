@@ -4,6 +4,14 @@ plugins {
 
 description = "Tooling API model builders for native builds"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.serviceProvider)
     api(projects.coreApi)

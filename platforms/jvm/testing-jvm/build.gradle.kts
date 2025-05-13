@@ -10,6 +10,14 @@ This project is a implementation dependency of many other testing-related subpro
 dependency for any projects working directly with Test tasks.
 """
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)

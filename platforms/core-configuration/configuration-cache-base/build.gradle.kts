@@ -20,6 +20,12 @@ plugins {
 
 description = "Configuration cache internal API shared between :configuration-cache and codecs"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.configurationProblemsBase)
     api(projects.core)

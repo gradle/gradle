@@ -22,6 +22,12 @@ plugins {
 
 description = "Efficient and extensible serialization for object graphs, with the capability to isolate and manage portions of the graph independently"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.configurationProblemsBase)
     api(projects.stdlibJavaExtensions)

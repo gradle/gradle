@@ -23,6 +23,8 @@ description = "Tools to work with managed executors"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

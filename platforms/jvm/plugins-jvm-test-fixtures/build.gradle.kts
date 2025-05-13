@@ -27,6 +27,13 @@ plugins {
  */
 description = "Contains the Java Test Fixtures plugin"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.coreApi)
 

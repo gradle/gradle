@@ -4,6 +4,13 @@ plugins {
 
 description = "Adds support for assembling web application EAR files"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 2 occurrences

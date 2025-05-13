@@ -20,6 +20,14 @@ plugins {
 
 description = "JVM invocation and inspection abstractions"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 2 occurrences

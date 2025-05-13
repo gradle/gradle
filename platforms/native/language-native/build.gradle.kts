@@ -4,6 +4,12 @@ plugins {
 
 description = "Plugins and domain objects for building different native languages"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 1 occurrences

@@ -7,6 +7,8 @@ description = "Tools for creating secure hashes for files and other content"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

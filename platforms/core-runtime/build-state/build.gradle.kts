@@ -20,6 +20,13 @@ plugins {
 
 description = "Types for build process and session state management"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.classloaders)

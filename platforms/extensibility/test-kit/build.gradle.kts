@@ -6,6 +6,14 @@ plugins {
 
 description = "A library that aids in testing Gradle plugins and build logic in general"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInClient = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "CatchAndPrintStackTrace", // 1 occurrences

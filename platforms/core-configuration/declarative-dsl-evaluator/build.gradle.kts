@@ -26,6 +26,13 @@ plugins {
 
 description = "The evaluation pipeline for the Declarative language"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         apiVersion.set(KotlinVersion.KOTLIN_1_9)

@@ -20,6 +20,14 @@ plugins {
 
 description = "Versioned Gradle caches"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.persistentCache)

@@ -21,6 +21,14 @@ plugins {
 
 description = "Adds support for using JVM toolchains in projects"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)

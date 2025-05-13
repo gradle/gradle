@@ -2,6 +2,12 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.serviceProvider)
     api(projects.baseServices)

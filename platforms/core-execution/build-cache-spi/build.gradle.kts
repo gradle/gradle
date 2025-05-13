@@ -5,6 +5,14 @@ plugins {
 
 description = "Public API for extending the build cache"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     implementation(libs.jspecify)
 

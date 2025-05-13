@@ -23,6 +23,13 @@ plugins {
 
 description = "DCL-related utilities that are meant to be reused in the Gradle subprojects but not in DCL client applications"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         apiVersion.set(KotlinVersion.KOTLIN_1_9)

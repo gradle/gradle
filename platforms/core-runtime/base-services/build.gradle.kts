@@ -10,6 +10,8 @@ description = "A set of generic services and utilities."
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

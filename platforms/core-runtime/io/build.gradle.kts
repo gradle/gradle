@@ -23,6 +23,14 @@ description = "I/O utilities"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
+gradleModule {
+    targetRuntimes {
         usedInWorkers = true
     }
 }
