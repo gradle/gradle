@@ -45,6 +45,8 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ### Groovy 4 TO DO
 
+### SemVer TO DO
+
 <a name="config-cache"></a>
 ### Configuration Cache improvements
 
