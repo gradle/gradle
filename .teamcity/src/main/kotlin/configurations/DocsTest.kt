@@ -4,7 +4,6 @@ import common.JvmCategory
 import common.Os
 import common.applyDefaultSettings
 import common.buildScanTagParam
-import common.toCapitalized
 import configurations.TestSplitType.EXCLUDE
 import configurations.TestSplitType.INCLUDE
 import jetbrains.buildServer.configs.kotlin.BuildStep

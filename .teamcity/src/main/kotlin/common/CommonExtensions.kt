@@ -408,7 +408,7 @@ fun String.toCamelCase() = lowercase().replace(Regex("_[a-z]")) { it.value[1].up
  *
  * @param historyDays days number of days to store build history .
  * @param artifactsDays number of days to store artifacts. In the stored history, artifacts older than this number will be cleaned up.
- * @param artifactPatterns patterns for artifacts clean-up. If not specified, all artifacts will be removed.
+ * @param artifactsPatterns patterns for artifacts clean-up. If not specified, all artifacts will be removed.
  */
 fun Project.cleanupRule(
     historyDays: Int,

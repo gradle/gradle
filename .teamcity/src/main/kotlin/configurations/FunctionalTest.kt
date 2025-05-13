@@ -134,7 +134,7 @@ class FunctionalTest(
     })
 
 private fun determineFlakyTestStrategy(stage: Stage): String {
-    val stageName = StageName.values().first { it.stageName == stage.stageName.stageName }
+    val stageName = StageName.entries.first { it.stageName == stage.stageName.stageName }
     // See gradlebuild.basics.FlakyTestStrategy
     return if (stageName < StageName.READY_FOR_RELEASE) "exclude" else "include"
 }

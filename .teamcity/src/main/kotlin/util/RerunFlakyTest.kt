@@ -117,7 +117,7 @@ class RerunFlakyTest(
                 JvmVendor.OPENJDK.name.lowercase(),
                 display = ParameterDisplay.PROMPT,
                 description = "Java vendor to run the test with",
-                options = JvmVendor.values().map { it.displayName to it.name.lowercase() },
+                options = JvmVendor.entries.map { it.displayName to it.name.lowercase() },
             )
             text(
                 testTaskOptionsParameterName,
