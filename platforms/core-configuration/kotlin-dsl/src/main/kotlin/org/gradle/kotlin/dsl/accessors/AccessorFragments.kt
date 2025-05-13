@@ -927,7 +927,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
     return className to sequenceOf(
 
         AccessorFragment(
-            source = "<to be defined>",
+            source = "",
             signature = jvmGetterSignatureFor(
                 propertyName,
                 accessorDescriptorFor(receiverTypeName, jvmConventionType)
