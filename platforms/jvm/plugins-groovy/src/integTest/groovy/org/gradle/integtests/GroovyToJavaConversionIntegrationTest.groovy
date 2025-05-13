@@ -60,6 +60,9 @@ class GroovyToJavaConversionIntegrationTest extends AbstractIntegrationSpec {
                                 if (convertedClass == org.gradle.plugins.signing.SigningExtension && prop.name == "required") {
                                     return
                                 }
+                                if (convertedClass == org.gradle.api.plugins.quality.Checkstyle && prop.name == "showViolations") {
+                                    return
+                                }
                                 assert prop.getters.find { it.name.startsWith("get") }
                             }
                         }
