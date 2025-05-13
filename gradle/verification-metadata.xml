@@ -77,6 +77,7 @@
             <trusting group="org.glassfish.jaxb"/>
             <trusting group="^com[.]sun($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="051927E24FA091722E05A3B23C03136EA34A60F7" group="org.asciidoctor"/>
          <trusted-key id="06D34ED6FF73DE368A772A781063FE98BCECB758" group="com.puppycrawl.tools" name="checkstyle"/>
          <trusted-key id="073F7A9345756F3B40CDB99E6C70A3B7599C5736">
             <trusting group="org.apache.maven"/>
@@ -146,7 +147,6 @@
             <trusting group="org.codehaus.groovy" name="groovy"/>
          </trusted-key>
          <trusted-key id="34D6FF19930ADF43AC127792A50569C7CA7FA1F0" group="com.jcraft"/>
-         <trusted-key id="36390DE6A0E61EE4C7B4BA02C1D3063467F1EBD1" group="org.asciidoctor"/>
          <trusted-key id="3872ED7D5904493D23D78FA2C4C8CB73B1435348" group="^com[.]android[.]tools($|([.].*))" regex="true"/>
          <trusted-key id="3CAC6E7DC43343FF75ECBAC27E6EB7BB6A7712DC" group="net.sourceforge.nekohtml" name="nekohtml"/>
          <trusted-key id="4008F9DFF7DBC968F35F9E712642156411CCE8B3" group="com.vladsch.flexmark"/>
@@ -1184,14 +1184,9 @@
             <sha256 value="f3448ca295830c56202723d04347c7bb56240bf9143d047329083d9e41e166d6" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctorj" version="3.0.0">
-         <artifact name="asciidoctorj-3.0.0.jar">
-            <sha256 value="866afb68d894497e9dc97a2c8c532668f97e5efa4ad7da09494cbbe96b526944" origin="Verified" reason="A key couldn't be downloaded"/>
-         </artifact>
-      </component>
-      <component group="org.asciidoctor" name="asciidoctorj-api" version="3.0.0">
-         <artifact name="asciidoctorj-api-3.0.0.jar">
-            <sha256 value="6ecef845884e74c90bfac5845ed57eb6cdbb8b073ea2a60279987c9ccbbb2998" origin="Verified" reason="A key couldn't be downloaded"/>
+      <component group="org.asciidoctor" name="asciidoctorj" version="1.5.8.1">
+         <artifact name="asciidoctorj-1.5.8.1.jar">
+            <pgp value="36390DE6A0E61EE4C7B4BA02C1D3063467F1EBD1"/>
          </artifact>
       </component>
       <component group="org.assertj" name="assertj-core" version="3.16.1">
