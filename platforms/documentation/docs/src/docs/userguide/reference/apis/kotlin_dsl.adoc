@@ -397,14 +397,6 @@ Some of the Gradle core plugins expose configurability with the help of a so-cal
 These serve a similar purpose to — and have now been superseded by — _extensions_.
 Conventions are deprecated, so please avoid using convention objects when writing new plugins.
 
-As mentioned above, the Kotlin DSL provides accessors only for convention objects on `Project`.
-However, there are situations where you may need to interact with a Gradle plugin that uses convention objects on other types.
-The Kotlin DSL provides the `withConvention(T::class) {}` extension function for this:
-
-====
-include::sample[dir="snippets/kotlinDsl/sourceSetConvention/kotlin",files="build.gradle.kts[tags=source-set-convention]"]
-====
-
 This technique is primarily necessary for source sets added by language plugins that have yet to be migrated to extensions.
 
 [[kotdsl:containers]]
