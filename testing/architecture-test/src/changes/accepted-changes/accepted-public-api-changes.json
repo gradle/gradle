@@ -1578,6 +1578,14 @@
         },
         {
             "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getAntBuilder()",
+            "acceptation": "Removed deprecated accessor",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
             "member": "Method org.gradle.api.tasks.scala.ScalaDoc.setScalaDocOptions(org.gradle.api.tasks.scala.ScalaDocOptions)",
             "acceptation": "Remove deprecated method",
             "changes": [
@@ -2830,14 +2838,6 @@
         {
             "type": "org.gradle.plugins.ear.EarPluginConvention",
             "member": "Method org.gradle.plugins.ear.EarPluginConvention.appDirName(java.lang.String)",
-            "acceptation": "Remove deprecated API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ear.EarPluginConvention",
-            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure)",
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
