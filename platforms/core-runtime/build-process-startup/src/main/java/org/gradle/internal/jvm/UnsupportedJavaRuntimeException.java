@@ -37,28 +37,13 @@ public class UnsupportedJavaRuntimeException extends RuntimeException {
     public static void assertCurrentProcessSupportsDaemonJavaVersion() throws UnsupportedJavaRuntimeException {
         int currentVersion = JavaVersionParser.parseCurrentMajorVersion();
         if (currentVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
-            String message = getIncompatibleJavaVersionForProcessErrorMessage(
-                "Gradle", SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION, currentVersion
+            String message = String.format(
+                "Gradle requires JVM %d or later to run. You are currently using JVM %d.",
+                SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
+                currentVersion
             );
             throw new UnsupportedJavaRuntimeException(message);
         }
-    }
-
-    /**
-     * Used to indicate that the process with the given name was started with an
-     * incompatible java version.
-     */
-    public static String getIncompatibleJavaVersionForProcessErrorMessage(
-        String processName,
-        int minVersion,
-        int currentVersion
-    ) {
-        return String.format(
-            "%s requires JVM %d or later to run. You are currently using JVM %d.",
-            processName,
-            minVersion,
-            currentVersion
-        );
     }
 
     /**
