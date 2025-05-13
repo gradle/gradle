@@ -50,14 +50,6 @@ public abstract class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
 
-    /**
-     * Task group for web application related tasks.
-     *
-     * @deprecated This constant scheduled for removal in Gradle 9.0
-     */
-    @Deprecated
-    public static final String WEB_APP_GROUP = "web application";
-
     private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
 
