@@ -32,3 +32,9 @@ dependencies {
 
     implementation(libs.jspecify)
 }
+
+errorprone {
+    disabledChecks.addAll(
+        "AssignmentExpression"
+    )
+}

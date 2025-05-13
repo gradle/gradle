@@ -41,7 +41,7 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
         ));
         final Map<String, Object> emptyArgs = Collections.emptyMap();
         antBuilder.invokeMethod("jacocoReport", new Object[]{Collections.emptyMap(), new Closure<Object>(this, this) {
-            @SuppressWarnings("UnusedDeclaration")
+            @SuppressWarnings({"UnusedDeclaration", "UnusedVariable"})
             public Object doCall(Object ignore) {
                 antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
                     public Object doCall(Object ignore) {
@@ -53,6 +53,7 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
                 antBuilder.invokeMethod("structure", new Object[]{structureArgs, new Closure<Object>(this, this) {
                     public Object doCall(Object ignore) {
                         antBuilder.invokeMethod("classfiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                            @SuppressWarnings("UnusedVariable")
                             public Object doCall(Object ignore) {
                                 params.getAllClassesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
                                 return Void.class;

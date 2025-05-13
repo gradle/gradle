@@ -25,6 +25,7 @@ public class BuildProfileServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new ServiceRegistrationProvider() {
+            @SuppressWarnings("unused")
             public void configure(ServiceRegistration serviceRegistration, StartParameter startParameter) {
                 if (startParameter.isProfile()) {
                     serviceRegistration.add(BuildProfile.class);
@@ -38,6 +39,7 @@ public class BuildProfileServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ServiceRegistrationProvider() {
+            @SuppressWarnings("unused")
             public void configure(ServiceRegistration serviceRegistration, StartParameter startParameter) {
                 if (startParameter.isProfile()) {
                     serviceRegistration.add(ProfileService.class, ProfileEventAdapter.class);

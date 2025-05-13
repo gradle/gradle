@@ -210,10 +210,9 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
         }
 
         public String getDescription() {
-            StringBuilder stringBuilder = new StringBuilder("Test ")
-                .append(className).append("#").append(name)
-                .append(" (Task: ").append(taskPath).append(")");
-            return stringBuilder.toString();
+            return "Test " +
+                className + "#" + name +
+                " (Task: " + taskPath + ")";
 
         }
     }

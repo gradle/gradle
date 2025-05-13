@@ -58,3 +58,10 @@ packageCycles {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+errorprone {
+    disabledChecks.addAll(
+        "UnusedMethod",
+        "UnusedVariable"
+    )
+}
