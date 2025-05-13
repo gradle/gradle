@@ -4855,6 +4855,62 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Class org.gradle.workers.IsolationMode",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field AUTO",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field CLASSLOADER",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field NONE",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field PROCESS",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Method org.gradle.workers.IsolationMode.valueOf(java.lang.String)",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Method org.gradle.workers.IsolationMode.values()",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
