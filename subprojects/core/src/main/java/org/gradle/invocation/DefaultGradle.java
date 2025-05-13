@@ -45,6 +45,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -64,7 +65,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.resource.TextUriResourceLoader;
-import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -611,8 +611,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     public abstract PublicBuildPath getPublicBuildPath();
 
     @Override
-    public void requireConfigurationCacheDegradationIf(String reason, Closure<Boolean> spec) {
-        configurationCacheDegradationController.requireConfigurationCacheDegradationIf(reason, Cached.of(spec));
+    public void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec) {
+        configurationCacheDegradationController.requireConfigurationCacheDegradation(reason, spec);
     }
 
     /**

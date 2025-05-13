@@ -392,16 +392,5 @@ public interface Gradle extends PluginAware, ExtensionAware {
      */
     IncludedBuild includedBuild(String name) throws UnknownDomainObjectException;
 
-    //TODO-RC Closure should be avoided, use a Provider instead
-    void requireConfigurationCacheDegradationIf(String reason, Closure<Boolean> spec);
-
-    default void requireConfigurationCacheDegradationIf(String reason, Provider<Boolean> spec) {
-        requireConfigurationCacheDegradationIf(reason, new Closure<Boolean>(null) {
-            @SuppressWarnings("UnusedDeclaration")
-            boolean doCall() {
-                return spec.getOrElse(false);
-            }
-        });
-    }
-
+    void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec);
 }

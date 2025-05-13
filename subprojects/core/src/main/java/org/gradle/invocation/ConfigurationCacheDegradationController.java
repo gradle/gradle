@@ -16,11 +16,14 @@
 
 package org.gradle.invocation;
 
-import org.gradle.internal.serialization.Cached;
+import org.gradle.api.Task;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface ConfigurationCacheDegradationController {
-    void requireConfigurationCacheDegradationIf(String reason, Cached<Boolean> spec);
+    void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec);
+
+    void requireConfigurationCacheDegradation(Task task, String reason, Provider<Boolean> spec);
 }

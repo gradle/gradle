@@ -42,4 +42,6 @@ abstract class AbstractProblemsListener : ProblemsListener {
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
 
     override fun forBuildLogic(trace: PropertyTrace): ProblemsListener = this
+
+    override fun forTask(trace: PropertyTrace): ProblemsListener = this
 }

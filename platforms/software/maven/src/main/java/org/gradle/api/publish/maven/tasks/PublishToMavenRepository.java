@@ -98,7 +98,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     public void setRepository(MavenArtifactRepository repository) {
         this.repository.set((DefaultMavenArtifactRepository) repository);
         this.credentials.set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
-        getProject().getGradle().requireConfigurationCacheDegradationIf("Explicit credentials", degradationCondition());
+        getProject().getGradle().requireConfigurationCacheDegradation("Explicit credentials", degradationCondition());
     }
 
     @TaskAction

@@ -158,7 +158,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     public void setRepository(IvyArtifactRepository repository) {
         this.repository.set((DefaultIvyArtifactRepository) repository);
         this.credentials.set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
-        getProject().getGradle().requireConfigurationCacheDegradationIf("Explicit credentials", degradationCondition());
+        getProject().getGradle().requireConfigurationCacheDegradation("Explicit credentials", degradationCondition());
     }
 
     @TaskAction
