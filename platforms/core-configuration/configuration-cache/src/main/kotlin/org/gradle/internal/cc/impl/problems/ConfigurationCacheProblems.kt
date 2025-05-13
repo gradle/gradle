@@ -135,7 +135,7 @@ class ConfigurationCacheProblems(
 
     val shouldDegradeGracefully: Boolean
         get() {
-            degradationReasons = (degradationController as DefaultConfigurationCacheDegradationController).getDegradationReasons()
+            degradationReasons = (degradationController as DefaultConfigurationCacheDegradationController).getAllDegradationReasons()
             return degradationReasons.isNotEmpty()
         }
 
@@ -182,7 +182,21 @@ class ConfigurationCacheProblems(
     }
 
     override fun forBuildLogic(trace: PropertyTrace): ProblemsListener {
-        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getDegradationReasons().isNotEmpty()
+        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getAllDegradationReasons().isNotEmpty()
+        return if (shouldDegrade) object : AbstractProblemsListener() {
+            override fun onProblem(problem: PropertyProblem) {
+                onProblem(problem, ProblemSeverity.Suppressed)
+            }
+
+            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                val failure = failureFactory.create(error)
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+            }
+        } else this
+    }
+
+    override fun forTask(trace: PropertyTrace): ProblemsListener {
+        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getDegradationReasonsForTask(trace).isNotEmpty()
         return if (shouldDegrade) object : AbstractProblemsListener() {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)

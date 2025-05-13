@@ -30,6 +30,8 @@ interface ProblemsListener {
     fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener
 
     fun forBuildLogic(trace: PropertyTrace) : ProblemsListener
+
+    fun forTask(trace: PropertyTrace) : ProblemsListener
 }
 
 

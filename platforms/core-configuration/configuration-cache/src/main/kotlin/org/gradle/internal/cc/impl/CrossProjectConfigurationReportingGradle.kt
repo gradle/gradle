@@ -39,6 +39,7 @@ import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -298,8 +299,8 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun includedBuild(name: String): IncludedBuild =
         delegate.includedBuild(name)
 
-    override fun requireConfigurationCacheDegradationIf(reason: String, spec: Closure<Boolean>) {
-        delegate.requireConfigurationCacheDegradationIf(reason, spec)
+    override fun requireConfigurationCacheDegradation(reason: String, spec: Provider<Boolean>) {
+        delegate.requireConfigurationCacheDegradation(reason, spec)
     }
 
     override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier =
