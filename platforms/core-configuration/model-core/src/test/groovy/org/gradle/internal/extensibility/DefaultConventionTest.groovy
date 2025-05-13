@@ -17,7 +17,6 @@
 package org.gradle.internal.extensibility
 
 import org.gradle.api.Action
-import org.gradle.api.plugins.Convention
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.reflect.Instantiator
@@ -27,15 +26,15 @@ import org.junit.Test
 
 import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNull
 import static org.junit.Assert.assertSame
-import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 import static org.junit.Assert.fail
 
 class DefaultConventionTest {
-    Convention convention
+    DefaultConvention convention
 
     TestPluginConvention1 convention1
     TestPluginConvention2 convention2

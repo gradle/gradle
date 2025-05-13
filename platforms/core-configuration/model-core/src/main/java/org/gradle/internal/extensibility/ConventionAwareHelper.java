@@ -30,7 +30,6 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.jspecify.annotations.Nullable;
@@ -47,9 +46,8 @@ import java.util.concurrent.Callable;
 import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 @SuppressWarnings({"deprecation", "FieldNamingConvention"})
-public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
+public class ConventionAwareHelper implements ConventionMapping {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
-    private final org.gradle.api.plugins.Convention _convention;
     private final IConventionAware _source;
     // These are properties that could have convention mapping applied to them
     private final Set<String> _propertyNames;
@@ -58,9 +56,13 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
 
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<>();
 
+    @SuppressWarnings("unused") // TODO (donat) Removing this method breaks the Gradleception CI build. We can remove it after changes are merged to the `master` branch.
     public ConventionAwareHelper(IConventionAware source, org.gradle.api.plugins.Convention convention) {
+        this(source);
+    }
+
+    public ConventionAwareHelper(IConventionAware source) {
         this._source = source;
-        this._convention = convention;
         this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
         this._ineligiblePropertyNames = new HashSet<>();
     }
@@ -175,16 +177,6 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
             }
         }
         return returnValue;
-    }
-
-    @Deprecated
-    @Override
-    public org.gradle.api.plugins.Convention getConvention() {
-        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-            .nagUser();
-        return _convention;
     }
 
     private static abstract class MappedPropertyImpl implements MappedProperty {
