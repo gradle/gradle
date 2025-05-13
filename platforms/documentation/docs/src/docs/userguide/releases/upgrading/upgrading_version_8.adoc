@@ -321,7 +321,7 @@ We strongly encourage users to adopt the latest released version of the https://
 
 <<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated to no longer depend on software model plugin infrastructure.
 
-This unblocks the deprecation and removal of all remaining link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model based plugins and tasks].
+The impact of this change is that `toolChains` should be configured directly at the top-level of a build script and not inside a `model { }` block.
 
 ==== Removal of eager artifact configuration accessors in Kotlin DSL
 

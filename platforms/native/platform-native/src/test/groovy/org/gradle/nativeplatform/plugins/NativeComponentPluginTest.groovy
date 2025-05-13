@@ -16,8 +16,7 @@
 
 package org.gradle.nativeplatform.plugins
 
-import org.gradle.nativeplatform.BuildTypeContainer
-import org.gradle.nativeplatform.FlavorContainer
+
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -30,8 +29,6 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
 
     def "registers extensions and adds default compilers"() {
         expect:
-        project.buildTypes instanceof BuildTypeContainer
-        project.flavors instanceof FlavorContainer
         project.toolChains instanceof NativeToolChainRegistry
         project.plugins.hasPlugin(StandardToolChainsPlugin)
     }
