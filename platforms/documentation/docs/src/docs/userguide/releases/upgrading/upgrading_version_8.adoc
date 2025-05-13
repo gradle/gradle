@@ -250,6 +250,8 @@ Gradle 9.0 removes certain Groovy modules from its bundled distribution.
 They will no longer be available on the classpath or be available via `localGroovy`:
 
 - `groovy-test`
+- `groovy-console`
+- `groovy-sql`
 
 ==== Removal of `kotlinDslPluginOptions.jvmTarget`
 
