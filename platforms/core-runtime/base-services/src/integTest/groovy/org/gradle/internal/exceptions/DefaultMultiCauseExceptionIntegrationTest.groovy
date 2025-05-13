@@ -88,7 +88,7 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
 
     private String defineTestException() {
         return """
-            class TestResolutionProviderException extends RuntimeException implements org.gradle.internal.exceptions.ResolutionProvider {
+            class TestResolutionProviderException extends RuntimeException implements org.gradle.api.ResolutionProvider {
                 private final String resolution
 
                 TestResolutionProviderException(String resolution) {
