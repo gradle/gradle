@@ -16,11 +16,11 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "can declare applied plugin as CC incompatible"() {
+        def configurationCache = newConfigurationCacheFixture()
         buildFile("buildSrc/src/main/groovy/foo.gradle", """
             gradle.addBuildListener(new BuildListener() {
                 @Override
@@ -43,7 +43,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """)
 
         buildFile """
-            gradle.requireConfigurationCacheDegradationIf("Foo plugin isn't CC compatible") { true }
+            gradle.requireConfigurationCacheDegradation("Foo plugin isn't CC compatible", provider { true })
             plugins.apply("foo")
         """
 
@@ -51,66 +51,57 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCacheRun "help"
 
         then:
-        outputContains("Build finished callback from foo plugin")
-        postBuildOutputContains("build file 'build.gradle': Foo plugin isn't CC compatible")
-    }
-
-    def "a plugin requesting graceful degradation won't hide an incompatible plugin's problems"() {
-        def fixture = new ConfigurationCacheFixture(this)
-        buildFile("buildSrc/src/main/groovy/plugin1.gradle", """
-            tasks.register("degrading") {
-                gradle.requireConfigurationCacheDegradationIf("Task isn't CC compatible") { true }
-            }
-        """)
-        buildFile("buildSrc/src/main/groovy/plugin2.gradle", """
-            tasks.register("incompatible") {
-                doLast {
-                    println("Hello from incompatible: \${project.path}")
-                }
-            }
-        """)
-        buildFile("buildSrc/build.gradle", """
-            plugins {
-                id("groovy-gradle-plugin")
-            }
-        """)
-        buildFile """
-            plugins.apply("plugin1")
-            plugins.apply("plugin2")
-        """
-
-        when:
-        configurationCacheFails "incompatible"
-
-        then:
-        fixture.configurationCacheBuildOperations.assertStateStored()
-        problems.assertFailureHasProblems(failure) {
+        configurationCache.assertNoConfigurationCache()
+        problems.assertResultHasProblems(result) {
             totalProblemsCount = 1
-            withProblem("Plugin 'plugin2': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.addBuildListener' is unsupported")
         }
 
-        when:
-        configurationCacheRun "degrading"
-
-        then:
-        fixture.configurationCacheBuildOperations.assertNoConfigurationCache()
-
-        when:
-        configurationCacheFails "degrading", "incompatible"
-
-        then:
-        fixture.configurationCacheBuildOperations.assertNoConfigurationCache()
-        //TODO-RC we should see problems here though
+        and:
+        outputContains("Build finished callback from foo plugin")
+        postBuildOutputContains("""
+Configuration cache entry discarded because degradation was requested by:
+- build file 'build.gradle': Foo plugin isn't CC compatible""")
     }
 
-    def "cache should be stored if a task that needs degradation is not requested"() {
+    def "a task can require CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
             tasks.register("a") {
-                gradle.requireConfigurationCacheDegradationIf("Task isn't CC compatible") { true }
+               requireConfigurationCacheDegradation("Project access", provider { true })
+               doLast {
+                   println("Project path is \${project.path}")
+               }
+            }
+        """
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+        }
+
+        and:
+        outputContains("Project path is :")
+        postBuildOutputContains("""
+Configuration cache entry discarded because degradation was requested by:
+- task `:a` of type `org.gradle.api.DefaultTask`: Project access""")
+    }
+
+    def "no CC degradation if incompatible task is not presented in the task graph"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register("a") {
+                requireConfigurationCacheDegradation("Project access", provider { true })
+                doLast {
+                    println("Project path is \${project.path}")
+                }
             }
             tasks.register("b") {
-                gradle.requireConfigurationCacheDegradationIf("Task is CC compatible") { false }
                 doLast {
                     println "Hello from B"
                 }
@@ -122,34 +113,84 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertStateStored()
+        outputContains("Hello from B")
 
         when:
         configurationCacheRun "a"
 
         then:
         configurationCache.assertNoConfigurationCache()
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+        }
 
+        and:
+        outputContains("Project path is :")
+        postBuildOutputContains("""
+Configuration cache entry discarded because degradation was requested by:
+- task `:a` of type `org.gradle.api.DefaultTask`: Project access""")
     }
 
-    def "should report problems but not fail build if CC-incompatible task requests degradation"() {
+    def "a plugin requesting СС degradation hides an incompatible plugin's problems"() {
         def configurationCache = newConfigurationCacheFixture()
-        buildFile """
-            tasks.register("degrading") { task ->
-                gradle.requireConfigurationCacheDegradationIf("Task is not CC compatible") { true }
-                doLast {
-                    println "Hello from \${task.name}"
-                    println "This is legal in vintage: \${project.name}"
+        buildFile("buildSrc/src/main/groovy/degrading.gradle", """
+            gradle.requireConfigurationCacheDegradation("Build listener registration", project.provider { true })
+            gradle.addBuildListener(new BuildListener() {
+                @Override
+                void settingsEvaluated(Settings settings){}
+                @Override
+                void projectsLoaded(Gradle gradle){}
+                @Override
+                void projectsEvaluated(Gradle gradle){}
+                @Override
+                void buildFinished(BuildResult result){
+                    println("Build finished callback from degrading plugin")
                 }
+                })
+        """)
+        buildFile("buildSrc/src/main/groovy/incompatible.gradle", """
+            gradle.addBuildListener(new BuildListener() {
+                @Override
+                void settingsEvaluated(Settings settings){}
+                @Override
+                void projectsLoaded(Gradle gradle){}
+                @Override
+                void projectsEvaluated(Gradle gradle){}
+                @Override
+                void buildFinished(BuildResult result){
+                    println("Build finished callback from incompatible plugin")
+                }
+            })
+        """)
+        buildFile("buildSrc/build.gradle", """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+        """)
+        buildFile """
+            plugins {
+                id("degrading")
+                id("incompatible")
             }
         """
 
         when:
-        //TODO-RC this should not fail, but does
-        configurationCacheRun "degrading"
+        configurationCacheRun "help"
 
         then:
         configurationCache.assertNoConfigurationCache()
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 2
+            withProblem("Plugin 'degrading': registration of listener on 'Gradle.addBuildListener' is unsupported")
+            withProblem("Plugin 'incompatible': registration of listener on 'Gradle.addBuildListener' is unsupported")
+        }
 
-        //TODO-RC we should have a CC report and assert expected problems
+        and:
+        outputContains("Build finished callback from degrading plugin")
+        outputContains("Build finished callback from incompatible plugin")
+        postBuildOutputContains("""
+Configuration cache entry discarded because degradation was requested by:
+- plugin 'degrading': Build listener registration""")
     }
 }

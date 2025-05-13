@@ -16,9 +16,12 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.Task
+import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.provider.Provider
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.serialization.Cached
 import org.gradle.invocation.ConfigurationCacheDegradationController
 import java.util.concurrent.ConcurrentHashMap
 
@@ -29,13 +32,22 @@ class DefaultConfigurationCacheDegradationController(
 
     private val degradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
 
-    override fun requireConfigurationCacheDegradationIf(reason: String, spec: Cached<Boolean>) {
+    override fun requireConfigurationCacheDegradation(reason: String, spec: Provider<Boolean>) {
         val trace = userCodeApplicationContext.current()?.let { PropertyTrace.BuildLogic(it.source) }
             ?: PropertyTrace.Unknown
         degradationRequests.add(DegradationRequest(trace, reason, spec))
     }
 
-    fun getDegradationReasons(): Map<PropertyTrace, List<String>> =
+    override fun requireConfigurationCacheDegradation(task: Task, reason: String, spec: Provider<Boolean>) {
+        val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
+        degradationRequests.add(DegradationRequest(trace, reason, spec))
+    }
+
+    fun getDegradationReasonsForTask(trace: PropertyTrace): List<String> = degradationRequests
+        .filter { it.trace == trace && it.spec.get() }
+        .map { it.reason }
+
+    fun getAllDegradationReasons(): Map<PropertyTrace, List<String>> =
         degradationRequests
             .filter { it.spec.get() }
             .groupBy({ it.trace }, { it.reason })
@@ -43,6 +55,6 @@ class DefaultConfigurationCacheDegradationController(
     private data class DegradationRequest(
         val trace: PropertyTrace,
         val reason: String,
-        val spec: Cached<Boolean>
+        val spec: Provider<Boolean>
     )
 }
