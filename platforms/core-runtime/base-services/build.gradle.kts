@@ -65,7 +65,8 @@ tasks.isolatedProjectsIntegTest {
     enabled = false
 }
 
-// TODO: Why is base-services responsible for this?
+// TODO: Base services should not be responsible for generating the build receipt.
+//       Perhaps :api-metadata is a better fit
 val createBuildReceipt by tasks.registering(BuildReceipt::class) {
     this.version = gradleModule.identity.version.map { it.version }
     this.baseVersion = gradleModule.identity.version.map { it.baseVersion.version }
