@@ -41,7 +41,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
     override val forceLocallyBuiltKotlinDslPlugins = false
 
-    private val oldestSupportedKotlinDslPluginVersion = "4.2.0"
+    private val oldestSupportedKotlinDslPluginVersion = "4.3.0"
 
     @Test
     @Requires(NotEmbeddedExecutor::class)
@@ -62,7 +62,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings()
         withBuildScript("""plugins { id("some") }""")
 
-        expectConventionDeprecations()
+//        expectConventionDeprecations()
         expectConfigurationCacheRequestedDeprecation()
 
         build("help").apply {
@@ -112,11 +112,11 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings().appendText("""includeBuild("producer")""")
         withBuildScript("""plugins { id("some") }""")
 
-        expectConventionDeprecations()
+//        expectConventionDeprecations()
         expectConfigurationCacheRequestedDeprecation()
         executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
 
-        build("help").apply {
+        build("help", "--stacktrace").apply {
             assertThat(output, containsString("some!"))
         }
     }
