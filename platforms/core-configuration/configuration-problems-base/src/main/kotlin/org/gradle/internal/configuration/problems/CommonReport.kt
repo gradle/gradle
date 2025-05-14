@@ -83,15 +83,6 @@ class CommonReport(
         DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
     }
 
-    private
-    fun problemSeverity(kind: DiagnosticKind): ProblemSeverity {
-        return when (kind) {
-            DiagnosticKind.PROBLEM -> ProblemSeverity.Failure
-            DiagnosticKind.INCOMPATIBLE_TASK -> ProblemSeverity.Warning
-            DiagnosticKind.INPUT -> ProblemSeverity.Info
-        }
-    }
-
 
     sealed class State {
 
@@ -287,7 +278,7 @@ class CommonReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity, kind: String): JsonSource {
+    fun decorateProblem(problem: PropertyProblem, diagnosticKind: DiagnosticKind, kind: String): JsonSource {
         val failure = problem.stackTracingFailure
         val link = problem.documentationSection?.let { section ->
             this.documentationRegistry.documentationLinkFor(section)
@@ -296,7 +287,7 @@ class CommonReport(
             DecoratedReportProblem(
                 problem.trace,
                 decorateMessage(problem, failure),
-                decoratedFailureFor(failure, severity),
+                decoratedFailureFor(failure, diagnosticKind == DiagnosticKind.PROBLEM),
                 link,
                 kind
             )
@@ -304,10 +295,10 @@ class CommonReport(
     }
 
     private
-    fun decoratedFailureFor(failure: Failure?, severity: ProblemSeverity): DecoratedFailure? {
+    fun decoratedFailureFor(failure: Failure?, reportAsFailure: Boolean): DecoratedFailure? {
         return when {
             failure != null -> failureDecorator.decorate(failure)
-            severity == ProblemSeverity.Failure -> DecoratedFailure.MARKER
+            reportAsFailure -> DecoratedFailure.MARKER
             else -> null
         }
     }
@@ -348,7 +339,7 @@ class CommonReport(
         kind: DiagnosticKind,
         problem: PropertyProblem
     ) {
-        onProblem(decorateProblem(problem, problemSeverity(kind), keyFor(kind)))
+        onProblem(decorateProblem(problem, kind, keyFor(kind)))
     }
 
     fun onProblem(decoratedProblem: JsonSource) {

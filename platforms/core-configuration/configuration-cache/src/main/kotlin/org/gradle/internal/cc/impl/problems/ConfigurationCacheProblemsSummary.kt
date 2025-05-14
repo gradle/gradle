@@ -92,8 +92,6 @@ class ConfigurationCacheProblemsSummary(
             when (severity) {
                 ProblemSeverity.Failure -> failureCount += 1
                 ProblemSeverity.Suppressed -> suppressedCount += 1
-                ProblemSeverity.Warning -> {}
-                ProblemSeverity.Info -> {}
             }
             if (overflowed) {
                 return false
