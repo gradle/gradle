@@ -1168,9 +1168,14 @@
             <sha256 value="f3448ca295830c56202723d04347c7bb56240bf9143d047329083d9e41e166d6" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctorj" version="1.5.8.1">
-         <artifact name="asciidoctorj-1.5.8.1.jar">
-            <pgp value="36390DE6A0E61EE4C7B4BA02C1D3063467F1EBD1"/>
+      <component group="org.asciidoctor" name="asciidoctorj" version="3.0.0">
+         <artifact name="asciidoctorj-3.0.0.jar">
+            <sha256 value="866afb68d894497e9dc97a2c8c532668f97e5efa4ad7da09494cbbe96b526944" origin="Verified" reason="A key couldn't be downloaded"/>
+         </artifact>
+      </component>
+      <component group="org.asciidoctor" name="asciidoctorj-api" version="3.0.0">
+         <artifact name="asciidoctorj-api-3.0.0.jar">
+            <sha256 value="6ecef845884e74c90bfac5845ed57eb6cdbb8b073ea2a60279987c9ccbbb2998" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.assertj" name="assertj-core" version="3.16.1">
