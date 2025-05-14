@@ -371,7 +371,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     DeprecationLogger.deprecateAction("Declaring '" + propertyName + "' as a property using an 'is-' method with a Boolean type on " + method.getDeclaringClass().getCanonicalName())
                         .withContext("The combination of method name and return type is not consistent with Java Bean property rules.")
                         .withAdvice(String.format(
-                            "Add a method named '%s' with the same behavior and mark the old one with @Deprecated and @ReplaceBy, or change the type of '%s.%s' (and the setter) to 'boolean'.",
+                            "Add a method named '%s' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or change the type of '%s.%s' (and the setter) to 'boolean'.",
                             method.getName().replace("is", "get"),
                             method.getDeclaringClass().getCanonicalName(), method.getName()
                         ))

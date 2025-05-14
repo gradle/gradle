@@ -133,7 +133,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: Starting with Gradle 9.0, ${message}.
+     * Output: Starting with Gradle 10.0, ${message}.
      */
     public WithDeprecationTimeline startingWithGradle10(String message) {
         this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE10, message);
