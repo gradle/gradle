@@ -357,6 +357,17 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
+     * Get a JDK with a different version than the current JDK, which can
+     * execute the daemon for the given distribution.
+     */
+    @Nullable
+    public static Jvm getDifferentDaemonVersionFor(GradleDistribution distribution) {
+        return getDifferentVersion(
+            metadata -> distribution.daemonWorksWith(metadata.getJavaMajorVersion())
+        );
+    }
+
+    /**
      * Returns a JDK that has a different Java version to the current one and to the provided one,
      * and which is supported by the Gradle version under test.
      */
