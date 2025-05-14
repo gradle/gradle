@@ -17,7 +17,7 @@
 /**
  * Tasks for assisting with plugin development.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.plugin.devel.tasks;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

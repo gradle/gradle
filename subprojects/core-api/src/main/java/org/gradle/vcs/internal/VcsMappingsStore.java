@@ -23,8 +23,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface VcsMappingsStore {

@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -35,7 +36,7 @@ class ProviderConnectionTest extends Specification {
         }
 
         when:
-        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("12.7"), payloadSerializer)
+        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("12.7"), payloadSerializer, Mock(IsolatableSerializerRegistry))
 
         then:
         !configuration.clientSubscriptions.anyOperationTypeRequested
@@ -50,7 +51,7 @@ class ProviderConnectionTest extends Specification {
         }
 
         when:
-        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("5.0"), payloadSerializer)
+        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("5.0"), payloadSerializer, Mock(IsolatableSerializerRegistry))
 
         then:
         configuration.clientSubscriptions.anyOperationTypeRequested

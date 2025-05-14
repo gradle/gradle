@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
@@ -36,6 +35,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.nativeplatform.toolchain.internal.swift.SwiftcToolChain;
 import org.gradle.process.internal.ExecActionFactory;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A {@link Plugin} which makes the <a href="https://swift.org/compiler-stdlib/">Swiftc</a> compiler available for compiling Swift code.
@@ -43,7 +43,7 @@ import org.gradle.process.internal.ExecActionFactory;
  * @since 4.1
  */
 @Incubating
-@NonNullApi
+@NullMarked
 public abstract class SwiftCompilerPlugin implements Plugin<Project> {
 
     @Override

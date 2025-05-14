@@ -79,7 +79,9 @@ fun findUsedSoftwareTypeNames(resolutionResult: ResolutionResult): Set<String> {
         else null
 
     return resolutionResult.nestedObjectAccess
-        .mapNotNullTo(mutableSetOf()) { it.dataObject.accessor.softwareTypeNameOrNull() }
+        .mapNotNullTo(mutableSetOf()) {
+            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.softwareTypeNameOrNull()
+        }
 }
 
 
@@ -120,7 +122,7 @@ class DefaultsTransformer(
     ): List<DataAdditionRecord> =
         defaultsResolutionResults.flatMap { modelDefault ->
             modelDefault.additions.map { additionRecord ->
-                DataAdditionRecord(transfer(additionRecord.container), transfer(additionRecord.dataObject))
+                DataAdditionRecord(transfer(additionRecord.container), transfer(additionRecord.dataObject), additionRecord.operationId)
             }
         }
 
@@ -132,7 +134,8 @@ class DefaultsTransformer(
                 NestedObjectAccessRecord(
                     container = transfer(accessRecord.container),
                     // Expect that the type remains the same: the only thing that will be mapped to a different type is the `defaults { ... }`
-                    dataObject = transfer(accessRecord.dataObject) as ObjectOrigin.AccessAndConfigureReceiver
+                    dataObject = transfer(accessRecord.dataObject) as ObjectOrigin.AccessAndConfigureReceiver,
+                    operationId = accessRecord.operationId
                 )
             }
         }

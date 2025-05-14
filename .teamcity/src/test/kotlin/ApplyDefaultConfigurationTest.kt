@@ -169,7 +169,6 @@ class ApplyDefaultConfigurationTest {
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
-                "%linux.java23.openjdk.64bit%",
                 "%linux.java24.openjdk.64bit%",
             )
         val windowsPaths =
@@ -178,7 +177,6 @@ class ApplyDefaultConfigurationTest {
                 "%windows.java11.openjdk.64bit%",
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
-                "%windows.java23.openjdk.64bit%",
                 "%windows.java24.openjdk.64bit%",
             )
         val expectedInstallationPaths = (if (os == Os.WINDOWS) windowsPaths else linuxPaths).joinToString(",")

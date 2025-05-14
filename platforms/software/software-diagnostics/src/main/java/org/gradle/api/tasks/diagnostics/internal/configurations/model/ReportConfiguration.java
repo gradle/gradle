@@ -18,8 +18,8 @@ package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

@@ -341,22 +341,22 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private static String expected(String text) {
-        return emphatize(text, "blue");
+        return emphasize(text, "blue");
     }
 
     private static String actual(String text) {
-        return emphatize(text, "#ee442f");
+        return emphasize(text, "#ee442f");
     }
 
     private static String warning(String text) {
-        return emphatize(text, "#c59434");
+        return emphasize(text, "#c59434");
     }
 
     private static String grey(String text) {
-        return emphatize(text, "#cccccc");
+        return emphasize(text, "#cccccc");
     }
 
-    private static String emphatize(String text, String color) {
+    private static String emphasize(String text, String color) {
         return "<span style=\"font-weight:bold; color: " + color + "\">" + text + "</span>";
     }
 

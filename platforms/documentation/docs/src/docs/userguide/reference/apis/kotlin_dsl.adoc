@@ -145,6 +145,12 @@ All Kotlin DSL build scripts come with implicit imports, including:
 ** `org.gradle.kotlin.dsl`
 ** `org.gradle.kotlin.dsl.plugins.dsl`
 ** `org.gradle.kotlin.dsl.precompile`
+** `java.util.concurrent.Callable`
+** `java.util.concurrent.TimeUnit`
+** `java.math.BigDecimal`
+** `java.math.BigInteger`
+** `java.io.File`
+** `javax.inject.Inject`
 
 === Avoid Using Internal Kotlin DSL APIs
 
@@ -690,8 +696,8 @@ Sets up the implementation strategy for SAM (single abstract method) conversion 
 This is to provide a better support for configuration cache and incremental build.
 See link:https://youtrack.jetbrains.com/issue/KT-44912[KT-44912] in the Kotlin issue tracker for more information.
 
-`-Xjsr305=strict`::
-Sets up Kotlin's Java interoperability to strictly follow JSR-305 annotations for increased null safety.
+`-Xjsr305=strict` & `-Xjspecify-annotations=strict`::
+Sets up Kotlin's Java interoperability to strictly follow JSR-305 and JSpecify annotations for increased null safety.
 See link:https://kotlinlang.org/docs/reference/java-interop.html#compiler-configuration[Calling Java code from Kotlin] in the Kotlin documentation for more information.
 
 [[sec:interoperability]]

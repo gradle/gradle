@@ -30,14 +30,13 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
-import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.cache.internal.WrapperDistributionCleanupAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.time.Instant;
@@ -62,30 +61,24 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final CacheResourceConfigurationInternal buildCacheConfiguration;
     private final Property<Cleanup> cleanup;
     private final Property<MarkingStrategy> markingStrategy;
-    private final LegacyCacheCleanupEnablement legacyCacheCleanupEnablement;
 
     private boolean cleanupHasBeenConfigured;
 
     @Inject
-    public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement, Clock clock) {
+    public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost, Clock clock) {
         this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, RELEASED_WRAPPERS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
         this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, SNAPSHOT_WRAPPERS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
         this.buildCacheConfiguration = createResourceConfiguration(objectFactory, BUILD_CACHE, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES);
-        this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(createCleanupConvention());
+        this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(Cleanup.DEFAULT);
         this.markingStrategy = new ContextualErrorMessageProperty<>(propertyHost, MarkingStrategy.class, "markingStrategy").convention(MarkingStrategy.CACHEDIR_TAG);
-        this.legacyCacheCleanupEnablement = legacyCacheCleanupEnablement;
     }
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, Clock clock, int defaultDays) {
         CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name, clock);
         resourceConfiguration.getEntryRetention().convention(CacheResourceConfigurationInternal.EntryRetention.relative(TimeUnit.DAYS.toMillis(defaultDays)));
         return resourceConfiguration;
-    }
-
-    private Provider<Cleanup> createCleanupConvention() {
-        return providerFromSupplier(() -> legacyCacheCleanupEnablement.isDisabledByProperty() ? Cleanup.DISABLED : Cleanup.DEFAULT);
     }
 
     @Override
@@ -248,7 +241,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         @Override
         public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
             if (removeUnusedEntriesAfterDays < 1) {
-                throw new IllegalArgumentException(name + " cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days.  For time frames shorter than one day, use the 'removeUnusedEntriesOlderThan' property.");
+                throw new IllegalArgumentException("Cache '" + name + "' cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days. For time frames shorter than one day, use the 'removeUnusedEntriesOlderThan' property.");
             }
             long daysInMillis = TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays);
             getEntryRetention().set(EntryRetention.relative(daysInMillis));
@@ -279,7 +272,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
 
         @Override
-        @Nonnull
+        @NonNull
         protected DisplayName getDisplayName() {
             if (displayName != null) {
                 return Describables.of(displayName);

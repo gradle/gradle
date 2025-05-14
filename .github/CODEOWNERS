@@ -23,16 +23,16 @@
 /settings.gradle*                           @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
 platforms/build-infrastructure/             @gradle/bt-developer-productivity
-subprojects/internal-build-reports/         @gradle/bt-developer-productivity
+packaging/internal-build-reports/           @gradle/bt-developer-productivity
 testing/internal-architecture-testing/      @gradle/bt-developer-productivity
 testing/internal-integ-testing/             @gradle/bt-developer-productivity
 testing/internal-performance-testing/       @gradle/bt-developer-productivity
 testing/internal-testing/                   @gradle/bt-developer-productivity
 
 # Release coordination
-subprojects/core-platform/              @gradle/bt-product-operations
-subprojects/distributions-dependencies/ @gradle/bt-product-operations
-subprojects/distributions-full/         @gradle/bt-product-operations
+packaging/core-platform/                @gradle/bt-product-operations
+packaging/distributions-dependencies/   @gradle/bt-product-operations
+packaging/distributions-full/           @gradle/bt-product-operations
 testing/performance/                    @gradle/bt-product-operations
 testing/smoke-test/                     @gradle/bt-product-operations
 testing/soak/                           @gradle/bt-product-operations
@@ -96,7 +96,6 @@ platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 # JVM platform
 build-logic/java-api-extractor              @gradle/bt-jvm
 platforms/jvm/                              @gradle/bt-jvm
-subprojects/plugins/                        @gradle/bt-jvm
 
 # JVM testing services also shared by GE testing plugins
 platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/dv-testing-team

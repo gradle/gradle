@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.util.Context;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;

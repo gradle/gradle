@@ -17,37 +17,34 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 class PropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build property set on command line takes precedence over properties file"() {
         when:
         file('gradle.properties') << """
 org.gradle.configureondemand=true
 """
-        buildFile << """
-task assertCodEnabled {
-    doLast {
-        assert gradle.startParameter.configureOnDemand
-    }
-}
+        buildFile """
+            def codStatus = provider { gradle.startParameter.configureOnDemand }
+            task assertCodEnabled {
+                doLast {
+                    assert codStatus.get()
+                }
+            }
 
-task assertCodDisabled {
-    doLast {
-        assert !gradle.startParameter.configureOnDemand
-    }
-}
-"""
+            task assertCodDisabled {
+                doLast {
+                    assert !codStatus.get()
+                }
+            }
+        """
 
         then:
         succeeds ':assertCodEnabled'
@@ -86,23 +83,23 @@ task printSystemProp {
     }
 
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // needs to run Gradle from command line
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build property set on command line takes precedence over jvm args"() {
         when:
         executer.withEnvironmentVars 'GRADLE_OPTS': '-Dorg.gradle.configureondemand=true'
 
-        buildFile << """
-task assertCodEnabled {
-    doLast {
-        assert gradle.startParameter.configureOnDemand
-    }
-}
+        buildFile """
+            def codStatus = provider { gradle.startParameter.configureOnDemand }
+            task assertCodEnabled {
+                doLast {
+                    assert codStatus.get()
+                }
+            }
 
-task assertCodDisabled {
-    doLast {
-        assert !gradle.startParameter.configureOnDemand
-    }
-}
+            task assertCodDisabled {
+                doLast {
+                    assert !codStatus.get()
+                }
+            }
 """
 
         then:

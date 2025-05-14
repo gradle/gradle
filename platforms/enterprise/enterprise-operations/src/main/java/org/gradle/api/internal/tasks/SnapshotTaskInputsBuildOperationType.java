@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.operations.execution.FilePropertyVisitor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,16 +50,14 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * <p>
          * Null if the overall key was not calculated because the inputs were invalid.
          */
-        @Nullable
-        byte[] getHashBytes();
+        byte @Nullable [] getHashBytes();
 
         /**
          * The hash of the classloader that loaded the task implementation.
          * <p>
          * Null if the classloader is not managed by Gradle.
          */
-        @Nullable
-        byte[] getClassLoaderHashBytes();
+        byte @Nullable [] getClassLoaderHashBytes();
 
 
         /**

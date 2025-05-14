@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileFactory;
@@ -162,7 +163,7 @@ public class JavaToolchainQueryService {
         // Currently this issues a new query for each required capability set, which usually means at least 2 queries for a normal Java project (compiler + tests or application)
         Object resolutionResult = matchingToolchains.computeIfAbsent(actualKey, key -> {
             try {
-                return query(actualSpec, requiredCapabilities, useFallback);
+                return query(actualSpec, transformCapabilities(actualSpec, requiredCapabilities), useFallback);
             } catch (Exception e) {
                 return e;
             }
@@ -172,6 +173,17 @@ public class JavaToolchainQueryService {
             throw (Exception) resolutionResult;
         } else {
             return (JavaToolchain) resolutionResult;
+        }
+    }
+
+    private Set<JavaInstallationCapability> transformCapabilities(JavaToolchainSpec actualSpec, Set<JavaInstallationCapability> requiredCapabilities) {
+        if (actualSpec.getNativeImageCapable().getOrElse(false)) {
+            ImmutableSet.Builder<JavaInstallationCapability> capabilityBuilder = new ImmutableSet.Builder<>();
+            capabilityBuilder.addAll(requiredCapabilities);
+            capabilityBuilder.add(JavaInstallationCapability.NATIVE_IMAGE);
+            return capabilityBuilder.build();
+        } else {
+            return requiredCapabilities;
         }
     }
 

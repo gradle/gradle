@@ -26,9 +26,10 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
@@ -236,9 +237,9 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     @Nullable
-    private ExecException execExceptionFor(Throwable failureCause, ExecHandleState currentState) {
+    private ProcessExecutionException execExceptionFor(Throwable failureCause, ExecHandleState currentState) {
         return failureCause != null
-            ? new ExecException(failureMessageFor(failureCause, currentState), failureCause)
+            ? new ProcessExecutionException(failureMessageFor(failureCause, currentState), failureCause)
             : null;
     }
 
@@ -422,10 +423,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private static class ExecResultImpl implements ExecResult {
         private final int exitValue;
-        private final ExecException failure;
+        private final ProcessExecutionException failure;
         private final String displayName;
 
-        ExecResultImpl(int exitValue, ExecException failure, String displayName) {
+        ExecResultImpl(int exitValue, ProcessExecutionException failure, String displayName) {
             this.exitValue = exitValue;
             this.failure = failure;
             this.displayName = displayName;
@@ -437,15 +438,15 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
 
         @Override
-        public ExecResult assertNormalExitValue() throws ExecException {
+        public ExecResult assertNormalExitValue() throws ProcessExecutionException {
             if (exitValue != 0) {
-                throw new ExecException(format("Process '%s' finished with non-zero exit value %d", displayName, exitValue));
+                throw new ProcessExecutionException(format("Process '%s' finished with non-zero exit value %d", displayName, exitValue));
             }
             return this;
         }
 
         @Override
-        public ExecResult rethrowFailure() throws ExecException {
+        public ExecResult rethrowFailure() throws ProcessExecutionException {
             if (failure != null) {
                 throw failure;
             }

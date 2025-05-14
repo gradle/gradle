@@ -23,8 +23,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.IoActions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -182,6 +182,7 @@ public class GUtil {
     }
 
     @Deprecated
+    @SuppressWarnings("unchecked")
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V>... srcs) {
         for (Iterable<? extends V> src : srcs) {
             for (V v : src) {
@@ -195,6 +196,7 @@ public class GUtil {
     }
 
     @Deprecated
+    @SuppressWarnings("unchecked")
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
         return addToCollection(dest, false, srcs);
     }

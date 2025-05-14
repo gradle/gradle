@@ -38,6 +38,7 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,7 +51,7 @@ import java.util.Set;
  *
  * @since 4.0
  */
-@ServiceScope({Scope.Global.class, Scope.Project.class})
+@ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Project.class})
 public interface ObjectFactory {
     /**
      * Creates a simple immutable {@link Named} object of the given type and name.
@@ -204,6 +205,7 @@ public interface ObjectFactory {
      * <li>For {@link Map} properties, you should use {@link #mapProperty(Class, Class)}.</li>
      * <li>For {@link org.gradle.api.file.Directory} properties, you should use {@link #directoryProperty()}.</li>
      * <li>For {@link org.gradle.api.file.RegularFile} properties, you should use {@link #fileProperty()}.</li>
+     * <li>For {@link File} properties, you should use {@link #fileProperty()} for regular files and {@link #directoryProperty()} for directories.</li>
      * </ul>
      *
      * @param valueType The type of the property.

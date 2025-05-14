@@ -28,6 +28,7 @@ import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.operations.overlay.DocumentOverlay.overlayResolvedDocuments
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
+import org.gradle.internal.declarativedsl.fakeListAugmentationProvider
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -297,11 +298,7 @@ class DocumentOverlayTest {
 
         val result = overlayResolvedDocuments(underlay, overlay)
 
-        val overlayOriginDump = DomTestUtil.printDomByTraversal(
-            result.document,
-            { "* $it -> ${result.overlayNodeOriginContainer.data(it)}" },
-            { "- $it -> ${result.overlayNodeOriginContainer.data(it)}" },
-        )
+        val overlayOriginDump = dumpDocumentWithOverlayData(result)
 
         result.overlayNodeOriginContainer.collectToMap(result.document).entries.joinToString("\n") { "${it.key} -> ${it.value}" }
 
@@ -327,7 +324,7 @@ class DocumentOverlayTest {
                 * element(unresolved2, [], content.size = 0) -> FromUnderlay(documentNode=element(unresolved2, [], content.size = 0))
                 * error(SyntaxError(parsingError=ParsingError(potentialElementSource=LightTreeSourceData(test:164..170), erroneousSource=LightTreeSourceData(test:164..170), message=Unsupported operation in unary expression: !))) -> FromUnderlay(documentNode=error(SyntaxError(parsingError=ParsingError(potentialElementSource=LightTreeSourceData(test:164..170), erroneousSource=LightTreeSourceData(test:164..170), message=Unsupported operation in unary expression: !))))
                 * error(SyntaxError(parsingError=ParsingError(potentialElementSource=LightTreeSourceData(test:171..185), erroneousSource=LightTreeSourceData(test:171..185), message=Unexpected tokens (use ';' to separate expressions on the same line)))) -> FromUnderlay(documentNode=error(SyntaxError(parsingError=ParsingError(potentialElementSource=LightTreeSourceData(test:171..185), erroneousSource=LightTreeSourceData(test:171..185), message=Unexpected tokens (use ';' to separate expressions on the same line)))))
-                * property(a, literal(33)) -> ShadowedProperty(underlayProperty=property(a, literal(3)), overlayProperty=property(a, literal(33)))
+                * property(a, literal(33)) -> MergedProperties(shadowedPropertiesFromUnderlay=[property(a, literal(3))], effectivePropertiesFromUnderlay=[], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(a, literal(33))])
                     - literal(33) -> FromOverlay(documentNode=property(a, literal(33)))
                 * property(b, literal(6)) -> FromOverlay(documentNode=property(b, literal(6)))
                     - literal(6) -> FromOverlay(documentNode=property(b, literal(6)))
@@ -340,6 +337,188 @@ class DocumentOverlayTest {
         )
     }
 
+    @Test
+    fun `the overlay has nodes for the same property merged and put in place of the last one`() {
+        val underlay = resolvedDocument(
+            """
+            configuringById(123) {
+                b = 1 // this is shadowed by b = 2 below
+            }
+            """.trimIndent()
+        )
+
+        val overlay = resolvedDocument(
+            """
+            y = 1 // this is shadowed by y = 3
+            y = 2 // this is shadowed by y = 3
+            configuringById(123) {
+                b = 2
+            }
+            adding(1234) {
+                b = 1 // as the `adding` block is not merged but copied from overlay, this is not shadowed because the block content is kept intact
+                b = 2
+            }
+            y = 3
+            """.trimIndent()
+        )
+
+        val result = overlayResolvedDocuments(underlay, overlay)
+
+        assertEquals(
+            """
+            * element(configuringById, [literal(123)], content.size = 1) -> MergedElements(underlayElement=element(configuringById, [literal(123)], content.size = 1), overlayElement=element(configuringById, [literal(123)], content.size = 1))
+                - literal(123) -> FromOverlay(documentNode=element(configuringById, [literal(123)], content.size = 1))
+                * property(b, literal(2)) -> MergedProperties(shadowedPropertiesFromUnderlay=[property(b, literal(1))], effectivePropertiesFromUnderlay=[], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(b, literal(2))])
+                    - literal(2) -> FromOverlay(documentNode=property(b, literal(2)))
+            * element(adding, [literal(1234)], content.size = 2) -> FromOverlay(documentNode=element(adding, [literal(1234)], content.size = 2))
+                - literal(1234) -> FromOverlay(documentNode=element(adding, [literal(1234)], content.size = 2))
+                * property(b, literal(1)) -> FromOverlay(documentNode=property(b, literal(1)))
+                    - literal(1) -> FromOverlay(documentNode=property(b, literal(1)))
+                * property(b, literal(2)) -> FromOverlay(documentNode=property(b, literal(2)))
+                    - literal(2) -> FromOverlay(documentNode=property(b, literal(2)))
+            * property(y, literal(3)) -> MergedProperties(shadowedPropertiesFromUnderlay=[], effectivePropertiesFromUnderlay=[], shadowedPropertiesFromOverlay=[property(y, literal(1)), property(y, literal(2))], effectivePropertiesFromOverlay=[property(y, literal(3))])
+                - literal(3) -> FromOverlay(documentNode=property(y, literal(3)))
+
+            """.trimIndent(), dumpDocumentWithOverlayData(result)
+        )
+    }
+
+    @Test
+    fun `augmented assignments are kept as effective in the results`() {
+        val underlay = resolvedDocument(
+            """
+            configuringById(123) {
+                s = myStringList("one")
+            }
+            """.trimIndent()
+        )
+
+        val overlay = resolvedDocument(
+            """
+            configuringById(123) {
+                s += myStringList("two", "three")
+            }
+            """.trimIndent()
+        )
+
+        val result = overlayResolvedDocuments(underlay, overlay)
+
+        assertEquals(
+            """
+            * element(configuringById, [literal(123)], content.size = 2) -> MergedElements(underlayElement=element(configuringById, [literal(123)], content.size = 1), overlayElement=element(configuringById, [literal(123)], content.size = 1))
+                - literal(123) -> FromOverlay(documentNode=element(configuringById, [literal(123)], content.size = 1))
+                * property(s, valueFactory(myStringList, [literal(one)])) -> MergedProperties(shadowedPropertiesFromUnderlay=[], effectivePropertiesFromUnderlay=[property(s, valueFactory(myStringList, [literal(one)]))], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(s, += valueFactory(myStringList, [literal(two), literal(three)]))])
+                    - valueFactory(myStringList, [literal(one)]) -> FromUnderlay(documentNode=property(s, valueFactory(myStringList, [literal(one)])))
+                * property(s, += valueFactory(myStringList, [literal(two), literal(three)])) -> MergedProperties(shadowedPropertiesFromUnderlay=[], effectivePropertiesFromUnderlay=[property(s, valueFactory(myStringList, [literal(one)]))], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(s, += valueFactory(myStringList, [literal(two), literal(three)]))])
+                    - valueFactory(myStringList, [literal(two), literal(three)]) -> FromOverlay(documentNode=property(s, += valueFactory(myStringList, [literal(two), literal(three)])))
+
+            """.trimIndent(), dumpDocumentWithOverlayData(result)
+        )
+    }
+
+    @Test
+    fun `augmentation from underlay is shadowed by a reassignment in the overlay`() {
+        val underlay = resolvedDocument(
+            """
+            configuringById(123) {
+                s += myStringList("one")
+            }
+            """.trimIndent()
+        )
+
+        val overlay = resolvedDocument(
+            """
+            configuringById(123) {
+                s = myStringList("two", "three")
+            }
+            """.trimIndent()
+        )
+
+        val result = overlayResolvedDocuments(underlay, overlay)
+
+        assertEquals(
+            """
+            * element(configuringById, [literal(123)], content.size = 1) -> MergedElements(underlayElement=element(configuringById, [literal(123)], content.size = 1), overlayElement=element(configuringById, [literal(123)], content.size = 1))
+                - literal(123) -> FromOverlay(documentNode=element(configuringById, [literal(123)], content.size = 1))
+                * property(s, valueFactory(myStringList, [literal(two), literal(three)])) -> MergedProperties(shadowedPropertiesFromUnderlay=[property(s, += valueFactory(myStringList, [literal(one)]))], effectivePropertiesFromUnderlay=[], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(s, valueFactory(myStringList, [literal(two), literal(three)]))])
+                    - valueFactory(myStringList, [literal(two), literal(three)]) -> FromOverlay(documentNode=property(s, valueFactory(myStringList, [literal(two), literal(three)])))
+
+            """.trimIndent(), dumpDocumentWithOverlayData(result)
+        )
+    }
+
+    @Test
+    fun `a series of overlays keeps augmentation`() {
+        val docs = listOf(
+            resolvedDocument("""configuring { s += myStringList("one")"""),
+            resolvedDocument("""configuring { s += myStringList("two")"""),
+            resolvedDocument("""configuring { s += myStringList("three")"""),
+            resolvedDocument("""configuring { s += myStringList("four")"""),
+        )
+
+        val result = docs.fold(overlayResolvedDocuments(resolvedDocument(""), resolvedDocument(""))) { acc, it ->
+            overlayResolvedDocuments(acc.result, it)
+        }
+
+        assertEquals(
+            """
+            * element(configuring, [], content.size = 4) -> MergedElements(underlayElement=element(configuring, [], content.size = 3), overlayElement=element(configuring, [], content.size = 1))
+                * property(s, += valueFactory(myStringList, [literal(one)])) -> MergedProperties(shadowedPropertiesFromUnderlay=[], effectivePropertiesFromUnderlay=[property(s, += valueFactory(myStringList, [literal(one)])), property(s, += valueFactory(myStringList, [literal(two)])), property(s, += valueFactory(myStringList, [literal(three)]))], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(s, += valueFactory(myStringList, [literal(four)]))])
+                    - valueFactory(myStringList, [literal(one)]) -> FromUnderlay(documentNode=property(s, += valueFactory(myStringList, [literal(one)])))
+                * property(s, += valueFactory(myStringList, [literal(two)])) -> MergedProperties(shadowedPropertiesFromUnderlay=[], effectivePropertiesFromUnderlay=[property(s, += valueFactory(myStringList, [literal(one)])), property(s, += valueFactory(myStringList, [literal(two)])), property(s, += valueFactory(myStringList, [literal(three)]))], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(s, += valueFactory(myStringList, [literal(four)]))])
+                    - valueFactory(myStringList, [literal(two)]) -> FromUnderlay(documentNode=property(s, += valueFactory(myStringList, [literal(two)])))
+                * property(s, += valueFactory(myStringList, [literal(three)])) -> MergedProperties(shadowedPropertiesFromUnderlay=[], effectivePropertiesFromUnderlay=[property(s, += valueFactory(myStringList, [literal(one)])), property(s, += valueFactory(myStringList, [literal(two)])), property(s, += valueFactory(myStringList, [literal(three)]))], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(s, += valueFactory(myStringList, [literal(four)]))])
+                    - valueFactory(myStringList, [literal(three)]) -> FromUnderlay(documentNode=property(s, += valueFactory(myStringList, [literal(three)])))
+                * property(s, += valueFactory(myStringList, [literal(four)])) -> MergedProperties(shadowedPropertiesFromUnderlay=[], effectivePropertiesFromUnderlay=[property(s, += valueFactory(myStringList, [literal(one)])), property(s, += valueFactory(myStringList, [literal(two)])), property(s, += valueFactory(myStringList, [literal(three)]))], shadowedPropertiesFromOverlay=[], effectivePropertiesFromOverlay=[property(s, += valueFactory(myStringList, [literal(four)]))])
+                    - valueFactory(myStringList, [literal(four)]) -> FromOverlay(documentNode=property(s, += valueFactory(myStringList, [literal(four)])))
+
+            """.trimIndent(),
+            dumpDocumentWithOverlayData(result)
+        )
+    }
+
+    @Test
+    fun `multiple property nodes from underlay are kept as-is if the overlay has nothing to merge with them`() {
+        val underlay = resolvedDocument(
+            """
+            configuringById(1) {
+                s = myStringList("one")
+                s += myStringList("two")
+            }
+            """.trimIndent()
+        )
+
+        val overlay = resolvedDocument(
+            """
+            configuringById(1) {
+                b = 1
+            }
+            configuringById(2) {
+                s = myStringList("unrelated")
+            }
+            """.trimIndent()
+        )
+
+        val result = overlayResolvedDocuments(underlay, overlay)
+
+        assertEquals(
+            """
+            * element(configuringById, [literal(1)], content.size = 3) -> MergedElements(underlayElement=element(configuringById, [literal(1)], content.size = 2), overlayElement=element(configuringById, [literal(1)], content.size = 1))
+                - literal(1) -> FromOverlay(documentNode=element(configuringById, [literal(1)], content.size = 1))
+                * property(s, valueFactory(myStringList, [literal(one)])) -> FromUnderlay(documentNode=property(s, valueFactory(myStringList, [literal(one)])))
+                    - valueFactory(myStringList, [literal(one)]) -> FromUnderlay(documentNode=property(s, valueFactory(myStringList, [literal(one)])))
+                * property(s, += valueFactory(myStringList, [literal(two)])) -> FromUnderlay(documentNode=property(s, += valueFactory(myStringList, [literal(two)])))
+                    - valueFactory(myStringList, [literal(two)]) -> FromUnderlay(documentNode=property(s, += valueFactory(myStringList, [literal(two)])))
+                * property(b, literal(1)) -> FromOverlay(documentNode=property(b, literal(1)))
+                    - literal(1) -> FromOverlay(documentNode=property(b, literal(1)))
+            * element(configuringById, [literal(2)], content.size = 1) -> FromOverlay(documentNode=element(configuringById, [literal(2)], content.size = 1))
+                - literal(2) -> FromOverlay(documentNode=element(configuringById, [literal(2)], content.size = 1))
+                * property(s, valueFactory(myStringList, [literal(unrelated)])) -> FromOverlay(documentNode=property(s, valueFactory(myStringList, [literal(unrelated)])))
+                    - valueFactory(myStringList, [literal(unrelated)]) -> FromOverlay(documentNode=property(s, valueFactory(myStringList, [literal(unrelated)])))
+
+        """.trimIndent(), dumpDocumentWithOverlayData(result)
+        )
+    }
 
     @Test
     fun `the overlay result can be resolved with the merged container`() {
@@ -353,6 +532,7 @@ class DocumentOverlayTest {
             configuring {
                 a = 3
                 unresolved2()
+                s = myStringList("one")
             }
             unresolved3()
             """.trimIndent()
@@ -368,6 +548,7 @@ class DocumentOverlayTest {
             configuring {
                 b = myInt()
                 unresolved5()
+                s += myStringList("two", "three")
             }
             unresolved6()
             """.trimIndent()
@@ -394,13 +575,17 @@ class DocumentOverlayTest {
                 * property(b, valueFactory(myInt, [])) -> property(Int)
                     - valueFactory(myInt, []) -> valueFactory
                 * element(unresolved4, [], content.size = 0) -> notResolved(UnresolvedSignature)
-            * element(configuring, [], content.size = 4) -> configuring(NestedReceiver)
+            * element(configuring, [], content.size = 6) -> configuring(NestedReceiver)
                 * property(a, literal(3)) -> property(Int)
                     - literal(3) -> literal
                 * element(unresolved2, [], content.size = 0) -> notResolved(UnresolvedSignature)
                 * property(b, valueFactory(myInt, [])) -> property(Int)
                     - valueFactory(myInt, []) -> valueFactory
                 * element(unresolved5, [], content.size = 0) -> notResolved(UnresolvedSignature)
+                * property(s, valueFactory(myStringList, [literal(one)])) -> property(List<String>)
+                    - valueFactory(myStringList, [literal(one)]) -> valueFactory
+                * property(s, += valueFactory(myStringList, [literal(two), literal(three)])) -> property(List<String>)
+                    - valueFactory(myStringList, [literal(two), literal(three)]) -> valueFactory
             * element(unresolved6, [], content.size = 0) -> notResolved(UnresolvedSignature)
 
             """.trimIndent(),
@@ -447,8 +632,14 @@ class DocumentOverlayTest {
             { "- $it -> ${prettyPrintResolution(documentWithResolution.resolutionContainer.data(it))}" },
         )
 
+    private fun dumpDocumentWithOverlayData(result: DocumentOverlayResult): String = DomTestUtil.printDomByTraversal(
+        result.document,
+        { "* $it -> ${result.overlayNodeOriginContainer.data(it)}" },
+        { "- $it -> ${result.overlayNodeOriginContainer.data(it)}" },
+    )
+
     private
-    val schema = schemaFromTypes(TopLevelReceiver::class, listOf(TopLevelReceiver::class, NestedReceiver::class))
+    val schema = schemaFromTypes(TopLevelReceiver::class, listOf(TopLevelReceiver::class, NestedReceiver::class), augmentationsProvider = fakeListAugmentationProvider())
 
     private
     fun DeclarativeDocument.assertMergeResult(expectedDomContent: String) {
@@ -477,6 +668,9 @@ class DocumentOverlayTest {
 
         @Restricted
         fun myInt(): Int
+
+        @Restricted
+        fun myStringList(vararg strings: String): List<String>
     }
 
     interface NestedReceiver {
@@ -485,6 +679,9 @@ class DocumentOverlayTest {
 
         @get:Restricted
         var b: Int
+
+        @get:Restricted
+        var s: List<String>
 
         @Configuring
         fun configuringNested(nestedReceiver: NestedReceiver.() -> Unit)

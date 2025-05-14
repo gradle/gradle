@@ -58,13 +58,13 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun <T : Any, U : ExternalModuleDependency> addProvider(configurationName: String, dependencyNotation: Provider<T>, configuration: Action<in U>) =
         delegate.addProvider(configurationName, dependencyNotation, configuration)
 
-    override fun <T : Any?> addProvider(configurationName: String, dependencyNotation: Provider<T>) =
+    override fun <T : Any> addProvider(configurationName: String, dependencyNotation: Provider<T>) =
         delegate.addProvider(configurationName, dependencyNotation)
 
     override fun <T : Any, U : ExternalModuleDependency> addProviderConvertible(configurationName: String, dependencyNotation: ProviderConvertible<T>, configuration: Action<in U>) =
         delegate.addProviderConvertible(configurationName, dependencyNotation, configuration)
 
-    override fun <T : Any?> addProviderConvertible(configurationName: String, dependencyNotation: ProviderConvertible<T>) =
+    override fun <T : Any> addProviderConvertible(configurationName: String, dependencyNotation: ProviderConvertible<T>) =
         delegate.addProviderConvertible(configurationName, dependencyNotation)
 
     override fun create(dependencyNotation: Any): Dependency =
@@ -72,16 +72,6 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
 
     override fun create(dependencyNotation: Any, configureClosure: Closure<Any>): Dependency =
         delegate.create(dependencyNotation, configureClosure)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Will be removed in Gradle 9.0")
-    override fun module(notation: Any): Dependency =
-        delegate.module(notation)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Will be removed in Gradle 9.0")
-    override fun module(notation: Any, configureClosure: Closure<Any>): Dependency =
-        delegate.module(notation, configureClosure)
 
     override fun project(notation: Map<String, *>): Dependency =
         delegate.project(notation)
@@ -128,7 +118,7 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun artifactTypes(configureAction: Action<in ArtifactTypeContainer>) =
         delegate.artifactTypes(configureAction)
 
-    override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
+    override fun <T : TransformParameters> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
         delegate.registerTransform(actionType, registrationAction)
 
     override fun platform(notation: Any): Dependency =

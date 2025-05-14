@@ -79,7 +79,6 @@ class PerformanceTestBuildTypeTest {
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
-                "%linux.java23.openjdk.64bit%",
                 "%linux.java24.openjdk.64bit%",
             )
         val expectedInstallationPaths = linuxPaths.joinToString(",")
@@ -154,7 +153,6 @@ class PerformanceTestBuildTypeTest {
                 "%windows.java11.openjdk.64bit%",
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
-                "%windows.java23.openjdk.64bit%",
                 "%windows.java24.openjdk.64bit%",
             )
         val expectedInstallationPaths = windowsPaths.joinToString(",")

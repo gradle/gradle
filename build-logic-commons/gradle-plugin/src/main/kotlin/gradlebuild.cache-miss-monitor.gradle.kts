@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("UNCHECKED_CAST")
-
+import com.gradle.develocity.agent.gradle.scan.BuildScanConfiguration
 import gradlebuild.AbstractBuildScanInfoCollectingService
 import gradlebuild.registerBuildScanInfoCollectingService
 import org.gradle.tooling.events.task.TaskOperationResult
@@ -27,10 +26,12 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Register a build service that monitors a list of tasks and reports CACHE_MISS if they're actually executed.
  */
 if (buildCacheEnabled()) {
-    registerBuildScanInfoCollectingService(CacheMissMonitorBuildService::class.java, ::isCacheMissMonitoredTask) { cacheMissInBuildLogic, cacheMissInMainBuild ->
-        buildFinished {
-            if ((cacheMissInBuildLogic as AtomicBoolean).get() || (cacheMissInMainBuild as AtomicBoolean).get()) {
-                tag("CACHE_MISS")
+    registerBuildScanInfoCollectingService(CacheMissMonitorBuildService::class.java, ::isCacheMissMonitoredTask) { gradleRootProject, cacheMissInBuildLogic, cacheMissInMainBuild ->
+        gradleRootProject.extensions.findByType<BuildScanConfiguration>()?.run {
+            buildFinished {
+                if ((cacheMissInBuildLogic as AtomicBoolean).get() || (cacheMissInMainBuild as AtomicBoolean).get()) {
+                    tag("CACHE_MISS")
+                }
             }
         }
     }

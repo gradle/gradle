@@ -161,6 +161,25 @@ For more information, see the sections on <<dependency_constraints.adoc#dependen
 
 == E
 
+[[sub:terminology_eager]]
+Eager::
+Many Gradle APIs come in two forms: `eager` and <<sub:terminology_lazy,`lazy`>>.
+The difference lies in when values are calculated or resolved.
++
+Eager means immediate.
+Values are evaluated right away during the configuration phase.
+This can lead to unnecessary work, especially in large builds.
+It’s more prone to performance issues.
++
+[source,kotlin]
+.build.gradle.kts
+----
+// Eager: evaluated as soon as the build script runs
+val myValue = file("output.txt")
+// Lazy: evaluated only when required
+val myValue = layout.buildDirectory.file("output.txt")
+----
+
 [[sub:terminology_ecosystem_plugin]]
 Ecosystem Plugin::
 A <<sub:terminology_plugin>> responsible for building a language, such as Java (`java` and `java-library`), Groovy, Scala, Android, Kotlin, etc.
@@ -180,7 +199,7 @@ This phase has multiple levels of parallelism.
 Feature Variant::
 A feature variant is a <<#sub:terminology_variant, variant>> representing a feature of a component that can be individually selected or not.
 A feature variant is identified by one or more <<#sub:terminology_capability, capabilities>>.
-For more information, see the sections on <<feature_variants.adoc#feature_variants, modeling feature variants, and optional dependencies>>.
+For more information, see the sections on <<how_to_create_feature_variants_of_a_library#feature_variants, modeling feature variants, and optional dependencies>>.
 
 == G
 
@@ -209,6 +228,24 @@ An init or initialization script, is backed by an instance of the `Gradle` type.
 == K
 
 == L
+
+[[sub:terminology_lazy]]
+Lazy::
+Many Gradle APIs come in two forms: <<sub:terminology_eager,`eager`>> and `lazy`.
+The difference lies in when values are calculated or resolved.
++
+Lazy means deferred.
+Values are deferred until they’re actually needed, usually during the execution phase.
+This is more efficient and supports things like configuration caching and up-to-date checking.
++
+[source,kotlin]
+.build.gradle.kts
+----
+// Lazy: evaluated only when required
+val myValue = layout.buildDirectory.file("output.txt")
+// Eager: evaluated as soon as the build script runs
+val myValue = file("output.txt")
+----
 
 == M
 
@@ -254,7 +291,7 @@ A platform is a set of modules aimed to be used together. There are different ca
 - runtime environment: a set of libraries known to work well together, such as the Spring Platform, which recommends versions for both Spring and components that work well with Spring.
 - deployment environment: Java runtime, application server, etc ...
 +
-In addition, Gradle defines <<dependency_version_alignment.adoc#sec:virtual_platform,virtual platforms>>.
+In addition, Gradle defines <<how_to_align_dependency_versions.adoc#sec:virtual_platform,virtual platforms>>.
 +
 NOTE: Maven's BOM (bill-of-material) is a popular platform that <<platforms.adoc#sec:bom-import, Gradle supports>>.
 
@@ -354,7 +391,7 @@ It may also fail if the variant selection result is ambiguous, meaning that Grad
 In that case, more information can be provided through <<#sub:terminology_attribute, variant attributes>>.
 Examples of variants each Java components typically offers are _api_ and _runtime_ variants.
 Other examples are JDK8 and JDK11 variants.
-For more information, see the section on <<variant_model.adoc#sec:understanding-variant-selection, variant selection>>.
+For more information, see the section on <<variant_aware_resolution.adoc#sec:understanding-variant-selection, variant selection>>.
 
 [[sub:terminology_attribute]]
 Variant Attribute::
@@ -363,7 +400,7 @@ A variant has one or more attributes defined, for example `org.gradle.usage=java
 When dependencies are resolved, a set of attributes are requested and Gradle finds the best fitting variant(s) for each component in the dependency graph.
 Compatibility and disambiguation rules can be implemented for an attribute to express compatibility between values (e.g., Java 8 is compatible with Java 11, but Java 11 should be preferred if the requested version is 11 or higher).
 Such rules are typically provided by plugins.
-For more information, see the sections on <<variant_model.adoc#sec:understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant-attributes,declaring attributes>>.
+For more information, see the sections on <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant-attributes,declaring attributes>>.
 
 == W
 

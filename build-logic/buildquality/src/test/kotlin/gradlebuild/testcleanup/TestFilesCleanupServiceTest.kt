@@ -99,6 +99,7 @@ class TestFilesCleanupServiceTest {
 
                 dependencies {
                     "testImplementation"("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+                    "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
                 }
 
                 tasks.named<Test>("test").configure {
@@ -142,6 +143,7 @@ class TestFilesCleanupServiceTest {
                     override fun stopNow() {}
                 }
                 protected override fun createTestExecutionSpec() = object: TestExecutionSpec {}
+                public override fun getFailOnNoDiscoveredTests() = project.objects.property(Boolean::class.java).apply { convention(true) }
             }
 
             fun Project.registerTestWithLeftover() {

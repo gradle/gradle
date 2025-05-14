@@ -24,7 +24,6 @@ enum class JvmVersion(
     JAVA_11(11),
     JAVA_17(17),
     JAVA_21(21),
-    JAVA_23(23),
     JAVA_24(24),
     ;
 

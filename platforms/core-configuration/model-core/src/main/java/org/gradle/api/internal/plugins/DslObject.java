@@ -24,7 +24,6 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -39,12 +38,11 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * if the backing object does not implement {@link IConventionAware}.
  */
 @SuppressWarnings("deprecation")
-public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware, org.gradle.api.internal.HasConvention {
+public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware {
 
     private DynamicObject dynamicObject;
     private ExtensionContainer extensionContainer;
     private ConventionMapping conventionMapping;
-    private org.gradle.api.plugins.Convention convention;
 
     private final Object object;
 
@@ -61,22 +59,6 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     }
 
     @Override
-    @Deprecated
-    public org.gradle.api.plugins.Convention getConvention() {
-// TODO nag once KGP doesn't register conventions anymore
-//        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
-//            .willBeRemovedInGradle9()
-//            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-//            .nagUser();
-        if (convention == null) {
-            this.convention = DeprecationLogger.whileDisabled(() ->
-                toType(object, org.gradle.api.internal.HasConvention.class).getConvention()
-            );
-        }
-        return convention;
-    }
-
-    @Override
     public ExtensionContainer getExtensions() {
         if (extensionContainer == null) {
             this.extensionContainer = toType(object, ExtensionAware.class).getExtensions();
@@ -87,9 +69,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     @Override
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
-            this.conventionMapping = DeprecationLogger.whileDisabled(() ->
-                toType(object, IConventionAware.class).getConventionMapping()
-            );
+            this.conventionMapping = toType(object, IConventionAware.class).getConventionMapping();
         }
         return conventionMapping;
     }

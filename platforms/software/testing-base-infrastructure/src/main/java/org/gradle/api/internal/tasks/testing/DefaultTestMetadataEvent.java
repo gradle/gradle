@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
 /**
  * Default implementation of the {@code TestMetadataEvent} interface.
  */
-@NonNullApi
+@NullMarked
 public final class DefaultTestMetadataEvent implements TestMetadataEvent {
     private final long logTime;
 

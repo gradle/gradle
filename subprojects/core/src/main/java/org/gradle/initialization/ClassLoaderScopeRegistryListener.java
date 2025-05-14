@@ -22,8 +22,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 
 /**

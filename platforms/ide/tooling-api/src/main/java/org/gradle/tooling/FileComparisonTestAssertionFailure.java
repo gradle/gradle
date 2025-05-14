@@ -16,8 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represent a test assertion failure where the test fails due to a broken assertion.
@@ -32,14 +31,12 @@ public interface FileComparisonTestAssertionFailure extends TestAssertionFailure
      *
      * @return the expected value or {@code null} if the test framework doesn't supply detailed information on assertion failures
      */
-    @Nullable
-    byte[] getExpectedContent();
+    byte @Nullable [] getExpectedContent();
 
     /**
      * Returns the string representation of the actual value.
      *
      * @return the actual value or {@code null} if the test framework doesn't supply detailed information on assertion failures
      */
-    @Nullable
-    byte[] getActualContent();
+    byte @Nullable [] getActualContent();
 }

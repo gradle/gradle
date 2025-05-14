@@ -132,30 +132,27 @@ public interface ProblemSpec {
      * @param type The type of the additional data.
      * This can be any type that implements {@link AdditionalData} including {@code abstract} classes and interfaces.
      * This type will be instantiated and provided as an argument for the {@code Action} passed as the second argument.
-     *
-     * <p>The limitations for this type are:</p>
+     * <p>
+     * The type can have the following properties:
      * <ul>
-     *  <li>Only {@code get<VALUE>} and {@code set<VALUE>} methods are allowed.
-     *  <li>These are only allowed to use these types:
-     *    <ul>
-     *         <li>{@code String}</li>
-     *         <li>{@code Boolean}</li>
-     *         <li>{@code Character}</li>
-     *         <li>{@code Byte}</li>
-     *         <li>{@code Short}</li>
-     *         <li>{@code Integer}</li>
-     *         <li>{@code Float}</li>
-     *         <li>{@code Long}</li>
-     *         <li>{@code Double}</li>
-     *         <li>{@code BigInteger}</li>
-     *         <li>{@code BigDecimal}</li>
-     *         <li>{@code File}</li>
-     *   </ul>
+     *     <li>getters and setters for collections, simple types and other types that itself follow these restrictions
+     *         <ul>
+     *            <li>simple types: {@link String}, {@link Integer}, {@link Boolean}, etc.</li>
+     *            <li>collections: {@link java.util.List}, {@link java.util.Set}, {@link java.util.Map}</li>
+     *            <li>primitives: {@code int}, {@code boolean}, etc.</li>
+     *         </ul>
+     *     </li>
+     *     <li>Provider API types
+     *       <ul>
+     *           <li>{@link org.gradle.api.provider.Property}</li>
+     *           <li>{@link org.gradle.api.provider.ListProperty}</li>
+     *           <li>{@link org.gradle.api.provider.SetProperty}</li>
+     *           <li>{@link org.gradle.api.provider.MapProperty}</li>
+     *       </ul>
+     *     </li>
      * </ul>
      *
      * @param config The configuration action for the additional data.
-     *
-     * @throws IllegalArgumentException if the conditions for the type are not met or if a different type for the same problem id is used.
      *
      * @return this
      * @since 8.13

@@ -1,3 +1,4 @@
+import com.google.gson.Gson
 import org.gradle.api.internal.FeaturePreviews
 import java.io.PrintWriter
 import java.io.Serializable
@@ -26,12 +27,20 @@ pluginManagement {
     includeBuild("build-logic-settings")
 }
 
+buildscript {
+    dependencies {
+        // update Gson to the desired version, needed here as org.gradle.toolchains.foojay-resolver-convention brings in an older version below
+        // https://github.com/gradle/foojay-toolchains/issues/99
+        classpath("com.google.code.gson:gson:2.13.1") // keep in sync with build-logic-commons/build-platform/build.gradle.kts
+    }
+}
+
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("3.19.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("4.0.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("0.10.0")
 }
 
 includeBuild("build-logic-commons")
@@ -42,21 +51,6 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
-
-unassigned {
-    subproject("distributions-dependencies") // platform for dependency versions
-    subproject("core-platform")              // platform for Gradle distribution core
-}
-
-// Gradle Distributions - for testing and for publishing a full distribution
-unassigned {
-    subproject("distributions-full")
-}
-
-// Public API publishing
-unassigned {
-    subproject("public-api")
-}
 
 // Gradle implementation projects
 unassigned {
@@ -78,6 +72,7 @@ val core = platform("core") {
         subproject("build-operations-trace")
         subproject("build-option")
         subproject("build-process-services")
+        subproject("build-process-startup")
         subproject("build-profile")
         subproject("build-state")
         subproject("classloaders")
@@ -147,9 +142,11 @@ val core = platform("core") {
         subproject("file-collections")
         subproject("file-operations")
         subproject("flow-services")
+        subproject("graph-isolation")
         subproject("graph-serialization")
         subproject("guava-serialization-codecs")
         subproject("input-tracking")
+        subproject("isolated-action-services")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
         subproject("kotlin-dsl-tooling-builders")
@@ -179,6 +176,7 @@ val core = platform("core") {
         subproject("hashing")
         subproject("persistent-cache")
         subproject("request-handler-worker")
+        subproject("scoped-persistent-cache")
         subproject("snapshots")
         subproject("worker-main")
         subproject("workers")
@@ -300,6 +298,14 @@ module("enterprise") {
     subproject("enterprise-workers")
 }
 
+packaging {
+    subproject("distributions-dependencies") // platform for dependency versions
+    subproject("core-platform")              // platform for Gradle distribution core
+    subproject("distributions-full")
+    subproject("public-api")                 // Public API publishing
+    subproject("internal-build-reports")     // Internal utility and verification projects
+}
+
 testing {
     subproject("architecture-test")
     subproject("distributions-integ-tests")
@@ -314,11 +320,6 @@ testing {
     subproject("soak")
     subproject("smoke-ide-test") // eventually should be owned by IDEX team
     subproject("smoke-test")
-}
-
-// Internal utility and verification projects
-unassigned {
-    subproject("internal-build-reports")
 }
 
 rootProject.name = "gradle"
@@ -350,6 +351,35 @@ gradle.rootProject {
         description = "Generates the architecture documentation"
         outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
+    }
+    tasks.register("platformsData", GeneratePlatformsDataTask::class) {
+        description = "Generates the platforms data"
+        outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
+        platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
+    }
+}
+
+abstract class GeneratePlatformsDataTask : DefaultTask() {
+
+    data class PlatformData(val name: String, val dirs: List<String>, val uses: List<String>)
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @get:Input
+    abstract val platforms: ListProperty<Platform>
+
+    @TaskAction
+    fun action() {
+        val allPlatforms = platforms.get()
+        val data = allPlatforms.map { platform ->
+            PlatformData(
+                name = platform.name,
+                dirs = platform.children.takeIf { it.isNotEmpty() }?.map { it.name } ?: listOf(platform.name),
+                uses = platform.uses.map { use -> allPlatforms.single { it.id == use }.name },
+            )
+        }
+        outputFile.get().asFile.writeText(Gson().toJson(data))
     }
 }
 
@@ -469,6 +499,12 @@ fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> 
 }
 
 /**
+ * Defines the packaging module, for project helping package Gradle.
+ */
+fun packaging(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("packaging").moduleConfiguration()
+
+/**
  * Defines the testing module, for project helping test Gradle.
  */
 fun testing(moduleConfiguration: ProjectScope.() -> Unit) =
@@ -514,9 +550,8 @@ sealed class ArchitectureElementBuilder(
 
 class ArchitectureModuleBuilder(
     name: String,
-    private val projectScope: ProjectScope
+    private val projectScope: ProjectScope = ProjectScope("platforms/$name"),
 ) : ArchitectureElementBuilder(name) {
-    constructor(name: String) : this(name, ProjectScope("platforms/$name"))
 
     fun subproject(projectName: String) {
         projectScope.subproject(projectName)
@@ -529,12 +564,10 @@ class ArchitectureModuleBuilder(
 
 class PlatformBuilder(
     name: String,
-    private val projectScope: ProjectScope
+    private val projectScope: ProjectScope = ProjectScope("platforms/$name"),
 ) : ArchitectureElementBuilder(name) {
     private val modules = mutableListOf<ArchitectureModuleBuilder>()
     private val uses = mutableListOf<PlatformBuilder>()
-
-    constructor(name: String) : this(name, ProjectScope("platforms/$name"))
 
     fun subproject(projectName: String) {
         projectScope.subproject(projectName)

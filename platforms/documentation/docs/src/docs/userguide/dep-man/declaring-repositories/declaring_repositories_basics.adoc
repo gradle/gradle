@@ -91,6 +91,31 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo]"]
 ====
 
+[[sec:declaring-local-repositories]]
+== Declaring a local repository
+
+You can declare local repositories using the `mavenLocal()` or `flatDir` methods inside the repositories block:
+
+[source,kotlin]
+----
+repositories {
+    mavenLocal()  // Uses the local Maven repository (~/.m2/repository)
+    maven {
+        url = uri("/path/to/local/repo")  // Replace with your actual local repo path
+    }
+    flatDir {
+        dirs 'libs'  // Assumes JARs are in the 'libs' directory
+    }
+}
+----
+
+Maven or Ivy can be declared as local repositories by specifying a local filesystem path. Unlike a flat directory repository, they adhere to a structured format and include metadata.
+
+When such a repository is configured, Gradle completely bypasses its dependency cache for it, as there is no guarantee that the content will remain unchanged between executions. This limitation can negatively impact performance.
+
+Additionally, using local Maven or Ivy repositories makes build reproducibility much harder to achieve.
+Therefore, their use should be restricted to prototyping rather than production builds.
+
 [[sec:declaring-multiple-repositories]]
 == Declaring multiple repositories
 
@@ -107,17 +132,17 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipl
 The order of repository declaration determines the order that Gradle will search for dependencies during resolution.
 If Gradle finds a dependency's metadata in a particular repository, it will attempt to download all the artifacts for that module from _the same repository_.
 
-You can learn more about the inner workings of <<dependency_resolution_model.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
+You can learn more about the inner workings of <<graph_resolution.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
 
 [[sec:plugin-repos]]
-== Plugin repositories
+== Declaring plugin repositories
 
 [[sec:plugin-vs-build-repos]]
 Gradle uses a different set of repositories for resolving Gradle plugins and resolving project dependencies:
 
 1. **Plugin dependencies:** When resolving plugins for build scripts, Gradle uses a distinct set of repositories to locate and load the required plugins.
 
-2. **Project dependencies:** When resolving project dependencies, Gradle only uses the repositories declared in the build script  and ignores the plugin repositories.
+2. **Project dependencies:** When resolving project dependencies, Gradle only uses the repositories declared in the build script and ignores the plugin repositories.
 
 By default, Gradle uses the http://plugins.gradle.org[Gradle Plugin Portal] to search for plugins:
 

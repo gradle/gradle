@@ -22,18 +22,31 @@ plugins {
 
 description = "Java 6-compatible entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
-gradlebuildJava.usedForStartup()
+gradleModule {
+    usedForStartup = true
+    usesIncompatibleDependencies = true
+}
+
+tasks.jar {
+    manifest {
+        // Allow launcher to access JNI: https://openjdk.org/jeps/472
+        attributes("Enable-Native-Access" to "ALL-UNNAMED")
+    }
+}
 
 app {
     mainClassName = "org.gradle.launcher.GradleMain"
 }
 
 dependencies {
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.buildProcessServices)
+    implementation(projects.buildProcessStartup)
+
+    implementation(libs.jspecify)
 
     manifestClasspath(projects.stdlibJavaExtensions)
     manifestClasspath(projects.buildProcessServices)
+    manifestClasspath(projects.buildProcessStartup)
     manifestClasspath(projects.baseServices)
     manifestClasspath(projects.classloaders)
     manifestClasspath(projects.concurrent)

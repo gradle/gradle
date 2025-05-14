@@ -34,11 +34,12 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetad
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.ref.SoftReference;
 
@@ -106,22 +107,21 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         LocalComponentGraphResolveState rootComponent = getComponentState(owner, metadata);
 
-        // `Lazy` can be removed when we remove `hasRootVariant` below.
-        Lazy<LocalVariantGraphResolveState> rootVariant = Lazy.unsafe().of(() -> {
-            ConfigurationInternal resolvedConf = configurationsProvider.findByName(configurationName);
-            if (resolvedConf == null) {
-                throw new IllegalStateException(String.format("Expected root variant '%s' to be present in %s", configurationName, rootComponent.getId()));
-            }
-            return variantStateBuilder.createRootVariantState(
-                resolvedConf,
-                componentIdentifier,
-                new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache(),
-                owner.getModel(),
-                calculatedValueContainerFactory
-            );
-        });
+        ConfigurationInternal resolvedConf = configurationsProvider.findByName(configurationName);
+        if (resolvedConf == null || !resolvedConf.isCanBeResolved()) {
+            throw new IllegalStateException(String.format("Expected resolvable configuration '%s' to be present in %s", configurationName, owner.getDisplayName()));
+        }
+
+        LocalVariantGraphResolveState rootVariant = variantStateBuilder.createRootVariantState(
+            resolvedConf,
+            componentIdentifier,
+            new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache(),
+            owner.getModel(),
+            calculatedValueContainerFactory
+        );
 
         return new RootComponentState() {
+
             @Override
             public LocalComponentGraphResolveState getRootComponent() {
                 return rootComponent;
@@ -129,13 +129,9 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
             @Override
             public LocalVariantGraphResolveState getRootVariant() {
-                return rootVariant.get();
+                return rootVariant;
             }
 
-            @Override
-            public boolean hasRootVariant() {
-                return configurationsProvider.findByName(configurationName) != null;
-            }
         };
     }
 
@@ -247,6 +243,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         }
     }
 
+    @ServiceScope(Scope.Project.class)
     public static class Factory {
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final LocalComponentGraphResolveStateFactory localResolveStateFactory;

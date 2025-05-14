@@ -17,8 +17,7 @@
 package org.gradle.api.credentials;
 
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents credentials used to authenticate with Amazon Web Services.

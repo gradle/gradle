@@ -16,43 +16,16 @@
 
 package org.gradle.api.tasks.util.internal;
 
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
-
 public class PatternSets {
-    private static final Factory<PatternSet> PATTERN_SET_FACTORY = new PatternSetFactory(PatternSpecFactory.INSTANCE);
+    private static final PatternSetFactory PATTERN_SET_FACTORY = new DefaultPatternSetFactory(PatternSpecFactory.INSTANCE);
 
     /**
      * Should use as an injected service instead.
+     *
      * @deprecated Should use as an injected service instead.
      */
     @Deprecated
-    public static Factory<PatternSet> getNonCachingPatternSetFactory() {
+    public static PatternSetFactory getNonCachingPatternSetFactory() {
         return PATTERN_SET_FACTORY;
     }
-
-    public static Factory<PatternSet> getPatternSetFactory(PatternSpecFactory patternSpecFactory) {
-        return new PatternSetFactory(patternSpecFactory);
-    }
-
-    private static final class PatternSetFactory implements Factory<PatternSet> {
-        private final PatternSpecFactory patternSpecFactory;
-
-        private PatternSetFactory(PatternSpecFactory patternSpecFactory) {
-            this.patternSpecFactory = patternSpecFactory;
-        }
-
-        @Override
-        public PatternSet create() {
-            return new InternalPatternSet(patternSpecFactory);
-        }
-    }
-
-    // This is only required to avoid adding a new public constructor to the public `PatternSet` type.
-    private static class InternalPatternSet extends PatternSet {
-        public InternalPatternSet(PatternSpecFactory patternSpecFactory) {
-            super(patternSpecFactory);
-        }
-    }
-
 }

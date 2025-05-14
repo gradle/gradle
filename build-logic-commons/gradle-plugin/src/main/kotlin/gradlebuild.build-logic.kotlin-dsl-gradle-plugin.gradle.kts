@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import gradlebuild.basics.skipBuildLogicTests
 
 plugins {
     id("java-library")
@@ -30,6 +31,8 @@ dependencies {
     implementation("gradlebuild:gradle-plugin")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -53,5 +56,6 @@ tasks.validatePlugins {
 }
 
 tasks.withType<Test>().configureEach {
+    enabled = !skipBuildLogicTests
     useJUnitPlatform()
 }

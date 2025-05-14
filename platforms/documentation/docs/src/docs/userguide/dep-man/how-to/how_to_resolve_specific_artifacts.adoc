@@ -1,0 +1,73 @@
+// Copyright 2025 Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[how_to_resolve_specific_artifacts]]
+= How to Resolve Specific Artifacts from a Module Dependency with Gradle
+
+Gradle resolves module dependencies by looking for metadata files (`.module`, `.pom`, or `ivy.xml`) and a default artifact (usually a JAR).
+If none of these files are found, the build fails.
+In some cases, you may need to customize how Gradle resolves artifacts.
+
+== Why Use Custom Artifact Resolution?
+
+You might need to tweak artifact resolution in the following scenarios:
+
+* The dependency provides a **non-standard artifact** (e.g., a ZIP file) without metadata.
+* The module metadata declares **multiple artifacts** (e.g., an Ivy dependency descriptor).
+* You want to **download only a specific artifact** without transitive dependencies.
+
+== Step 1: Resolving an Artifact Without Metadata
+
+Let’s say you want to build a web application that uses JavaScript libraries, such as **jQuery**, and download them from a repository instead of checking them into version control.
+
+Google Hosted Libraries provides open-source JavaScript libraries.
+Using **artifact-only notation**, you can fetch a JavaScript file like `jquery.js`.
+
+The `@` character separates the dependency’s coordinates from the artifact’s file extension:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnly/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnly/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+====
+
+== Step 2: Resolving an Artifact with a Classifier
+
+Some libraries provide multiple variations or **flavors** of an artifact.
+In Java, a library may publish:
+
+* A compiled artifact with class files.
+* A separate artifact containing **source code**.
+* Another one with **Javadocs**.
+
+Similarly, in JavaScript, libraries often have:
+
+* An **uncompressed** version.
+* A **minified** version (optimized for production).
+
+To specify a particular variation, you can use a **classifier**.
+In Gradle, classifiers allow you to fetch a **specific** artifact within a module.
+
+Instead of downloading the uncompressed `jquery.js` file, you can fetch the **minified** version (`jquery.min.js`) by specifying the classifier `min`:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnlyWithClassifier/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+====
+
+== Summary
+
+Gradle can fetch **non-Java** artifacts like JavaScript libraries from external repositories:
+
+* Use **artifact-only notation (`@`)** when resolving dependencies that lack metadata.
+* Use **classifiers** to specify different versions or variations of an artifact.

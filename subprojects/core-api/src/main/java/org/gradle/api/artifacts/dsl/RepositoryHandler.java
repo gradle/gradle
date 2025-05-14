@@ -28,6 +28,8 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
@@ -35,6 +37,7 @@ import java.util.Map;
  * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
  */
 @HasInternalProtocol
+@ServiceScope(Scope.Project.class)
 public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
@@ -105,52 +108,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @since 5.4
      */
     ArtifactRepository gradlePluginPortal(Action<? super ArtifactRepository> action);
-
-    /**
-     * Adds a repository which looks in Bintray's JCenter repository for dependencies.
-     * <p>
-     * The URL used to access this repository is {@literal "https://jcenter.bintray.com/"}.
-     * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
-     * <p>
-     * Examples:
-     * <pre class='autoTestedWithDeprecations'>
-     * repositories {
-     *   jcenter {
-     *     artifactUrls = ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
-     *   }
-     *   jcenter {
-     *     name = "nonDefaultName"
-     *     artifactUrls = ["http://www.mycompany.com/artifacts1"]
-     *   }
-     * }
-     * </pre>
-     *
-     * @param action a configuration action
-     * @return the added repository
-     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">sunset</a> in February 2021. Use {@link #mavenCentral()} instead.
-     */
-    @Deprecated
-    MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action);
-
-    /**
-     * Adds a repository which looks in Bintray's JCenter repository for dependencies.
-     * <p>
-     * The URL used to access this repository is {@literal "https://jcenter.bintray.com/"}.
-     * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
-     * <p>
-     * Examples:
-     * <pre class='autoTestedWithDeprecations'>
-     * repositories {
-     *     jcenter()
-     * }
-     * </pre>
-     *
-     * @return the added resolver
-     * @see #jcenter(Action)
-     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">sunset</a> in February 2021. Use {@link #mavenCentral()} instead.
-     */
-    @Deprecated
-    MavenArtifactRepository jcenter();
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is

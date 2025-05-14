@@ -16,9 +16,9 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
@@ -36,13 +36,13 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)
-        replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
+        replaceCssSupportBlocksInBuildFile()
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
-            .expectDeprecationWarning(
+            .expectLegacyDeprecationWarningIf(
+                kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_21,
                 "Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named 'getMpp' with the same behavior and mark the old one with @Deprecated, or change the type of 'org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget.isMpp' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties",
-                "https://youtrack.jetbrains.com/issue/KT-71879"
             )
             .build()
 
@@ -53,6 +53,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4643")
     def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
@@ -60,16 +61,16 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)
-        replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
+        replaceCssSupportBlocksInBuildFile()
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':allTests', '-s')
-            .expectDeprecationWarning(
+            .expectLegacyDeprecationWarningIf(
+                kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_21,
                 "Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named 'getMpp' with the same behavior and mark the old one with @Deprecated, or change the type of 'org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget.isMpp' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties",
-                "https://youtrack.jetbrains.com/issue/KT-71879"
             )
             .expectDeprecationWarningIf(
-                kotlinVersionNumber >= VersionNumber.parse('1.9.22') && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
+                kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
                 "Internal API BuildOperationExecutor.getCurrentOperation() has been deprecated. This is scheduled to be removed in Gradle 9.0.",
                 "https://youtrack.jetbrains.com/issue/KT-67110"
             )
@@ -84,13 +85,8 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions.findAll {
-            def version = VersionNumber.parse(it)
-            // versions prior to 1.7.0 use the removed 'void org.gradle.api.reporting.DirectoryReport.setEnabled(boolean)' method
-            // 1.7.22 does not define implementation of the 'abstract void failure(java.lang.Object, org.gradle.api.tasks.testing.TestFailure)' of interface org.gradle.api.internal.tasks.testing.TestResultProcessor.
-            // 1.8.0 now has a nodeJs compatibility error
-            // versions prior to 2.0.0 don't support java 21
-            version > VersionNumber.parse('1.8.0') &&
-                (JavaVersion.current() < JavaVersion.VERSION_21 || version >= VersionNumber.parse('2.0.0-Beta1'))
+            // versions prior to 2.0.20 use deprecated APIs removed in Gradle 9.0
+            VersionNumber.parse(it) >= KotlinGradlePluginVersions.KOTLIN_2_0_20
         }
     }
 
@@ -176,8 +172,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         result.output.contains("other-jvm.jar")
 
         where:
-        // withJava is incompatible pre 1.6.20 since it attempts to set the `archiveName` convention property on the Jar task.
-        kotlinVersion << TestedVersions.kotlin.versions.findAll { VersionNumber.parse(it) > VersionNumber.parse("1.6.10") }
+        kotlinVersion << TestedVersions.kotlin.versions
     }
 
     @Override
@@ -187,23 +182,16 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         ]
     }
 
-    private void replaceCssSupportBlocksInBuildFile(VersionNumber kotlinVersionNumber) {
+    private void replaceCssSupportBlocksInBuildFile() {
         Map<String, String> replacementMap = [:]
-        if (kotlinVersionNumber >= VersionNumber.parse('1.8.0')) {
-            replacementMap['enableCssSupportNew'] = """
-            commonWebpackConfig {
-                cssSupport {
-                    enabled.set(true)
-                }
+        replacementMap['enableCssSupportNew'] = """
+        commonWebpackConfig {
+            cssSupport {
+                enabled.set(true)
             }
-            """
-            replacementMap['enableCssSupportOld'] = ''
-        } else {
-            replacementMap['enableCssSupportOld'] = """
-                    webpackConfig.cssSupport.enabled = true
-            """
-            replacementMap['enableCssSupportNew'] = ''
         }
+        """
+        replacementMap['enableCssSupportOld'] = ''
 
         replaceVariablesInBuildFile(replacementMap)
     }

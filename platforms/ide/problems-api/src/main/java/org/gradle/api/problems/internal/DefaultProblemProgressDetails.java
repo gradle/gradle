@@ -26,9 +26,9 @@ import org.gradle.operations.problems.ProblemGroup;
 import org.gradle.operations.problems.ProblemLocation;
 import org.gradle.operations.problems.ProblemSeverity;
 import org.gradle.operations.problems.ProblemUsageProgressDetails;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails, ProblemUsageProgressDetails {
@@ -88,7 +88,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         return convertProblemLocations(problem.getContextualLocations());
     }
 
-    @Nonnull
+    @NonNull
     private ImmutableList<ProblemLocation> convertProblemLocations(List<org.gradle.api.problems.ProblemLocation> locations) {
         ImmutableList.Builder<ProblemLocation> builder = ImmutableList.builder();
         for (org.gradle.api.problems.ProblemLocation location : locations) {
@@ -115,7 +115,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
     }
 
-    @Nonnull
+    @NonNull
     private static FileLocation convertToDevelocityFileLocation(org.gradle.api.problems.ProblemLocation location) {
         if (location instanceof org.gradle.api.problems.LineInFileLocation) {
             return new DevelocityLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);

@@ -19,10 +19,10 @@ package org.gradle.internal.classpath;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.specs.Spec;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
@@ -47,7 +47,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class TransformedClassPath implements ClassPath {
 
-    @NonNullApi
+    @NullMarked
     public enum FileMarker {
         /**
          * A marker file put next to the instrumentation entry to indicate that this is part of instrumentation.

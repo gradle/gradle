@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class PluginApplyingBuilder implements ParameterizedToolingModelBuilder<PluginApplyingParameter> {
 
     public static final String MODEL_NAME = PluginApplyingBuilder.class.getName() + "$sideEffect";

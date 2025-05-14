@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Arrays;
@@ -60,55 +60,14 @@ import java.util.Set;
  * @since 2.13
  */
 public abstract class GradlePluginDevelopmentExtension {
-
-    private final Property<String> website;
-
-    private final Property<String> vcsUrl;
-
     private final SourceSetContainer testSourceSets;
-    private SourceSet pluginSourceSet;
+    private final SourceSet pluginSourceSet;
     private boolean automatedPublishing = true;
 
-    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
-
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
-        this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
-        this.website = project.getObjects().property(String.class);
-        this.vcsUrl = project.getObjects().property(String.class);
         testSourceSets(testSourceSet);
-    }
-
-    @Deprecated
-    public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
-        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "<init>(Project, SourceSet, SourceSet[])")
-            .withAdvice("Do not create this object directly.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_plugin_development_methods")
-            .nagUser();
-
-        this.plugins = project.container(PluginDeclaration.class);
-        this.pluginSourceSet = pluginSourceSet;
-        this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
-        this.website = project.getObjects().property(String.class);
-        this.vcsUrl = project.getObjects().property(String.class);
-        testSourceSets(testSourceSets);
-    }
-
-    /**
-     * Provides the source set that compiles the code under test.
-     *
-     * @param pluginSourceSet the plugin source set
-     */
-    @Deprecated
-    public void pluginSourceSet(SourceSet pluginSourceSet) {
-        this.pluginSourceSet = pluginSourceSet;
-        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "pluginSourceSet(SourceSet)")
-            .withAdvice("Use the main source set.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_plugin_development_methods")
-            .nagUser();
     }
 
      /**
@@ -144,7 +103,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the plugin source set
      */
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because="this property will be made non-configurable")
     public SourceSet getPluginSourceSet() {
         return pluginSourceSet;
     }
@@ -154,7 +113,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the test source sets
      */
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because="this property will be replaced by another API")
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
     }
@@ -164,27 +123,21 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @since 7.6
      */
-    public Property<String> getWebsite() {
-        return website;
-    }
+    public abstract Property<String> getWebsite();
 
     /**
      * Returns the property holding the URL for the plugin's VCS repository.
      *
      * @since 7.6
      */
-    public Property<String> getVcsUrl() {
-        return vcsUrl;
-    }
+    public abstract Property<String> getVcsUrl();
 
     /**
      * Returns the declared plugins.
      *
      * @return the declared plugins, never null
      */
-    public NamedDomainObjectContainer<PluginDeclaration> getPlugins() {
-        return plugins;
-    }
+    public abstract NamedDomainObjectContainer<PluginDeclaration> getPlugins();
 
     /**
      * Configures the declared plugins.
@@ -192,7 +145,7 @@ public abstract class GradlePluginDevelopmentExtension {
      * @param action the configuration action to invoke on the plugins
      */
     public void plugins(Action<? super NamedDomainObjectContainer<PluginDeclaration>> action) {
-        action.execute(plugins);
+        action.execute(getPlugins());
     }
 
     /**

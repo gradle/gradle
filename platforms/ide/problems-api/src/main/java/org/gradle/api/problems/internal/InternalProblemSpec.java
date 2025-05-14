@@ -25,8 +25,7 @@ import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.problems.ProblemDiagnostics;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface InternalProblemSpec extends ProblemSpec {
 
@@ -46,8 +45,6 @@ public interface InternalProblemSpec extends ProblemSpec {
 
     @Override
     <T extends AdditionalData> InternalProblemSpec additionalData(Class<T> type, Action<? super T> config);
-
-    <T extends AdditionalData> InternalProblemSpec additionalDataInternal(T additionalDataInstance);
 
     /**
      * Declares that this problem was emitted by a task with the given path.

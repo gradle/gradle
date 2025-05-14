@@ -17,8 +17,8 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**

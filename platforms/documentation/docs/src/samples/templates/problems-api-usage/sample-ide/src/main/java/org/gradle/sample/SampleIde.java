@@ -63,7 +63,7 @@ public class SampleIde {
         File projectDir = projectPath.toFile();
 
         // Initialize the Tooling API
-        return GradleConnector.newConnector().useGradleVersion("8.12").forProjectDirectory(projectDir).connect();
+        return GradleConnector.newConnector().useGradleVersion("8.13").forProjectDirectory(projectDir).connect();
     }
 
     private void prettyPrintFailures(List<? extends Failure> failures) {
@@ -75,14 +75,23 @@ public class SampleIde {
         }
     }
 
+    // tag::problems-tapi-additional-data-type[]
+    interface SomeDataView {
+        String getName();
+
+        List<String> getNames();
+    }
+    // end::problems-tapi-additional-data-type[]
+
     static void prettyPrint(Problem problem, String prefix) {
         System.out.println(prefix + "Problem:");
-        System.out.println(" - id: " + fqId(problem.getDefinition()));
-        System.out.println(" - display name: " + problem.getDefinition().getId().getDisplayName());
+        ProblemDefinition definition = problem.getDefinition();
+        System.out.println(" - id: " + fqId(definition));
+        System.out.println(" - display name: " + definition.getId().getDisplayName());
         if (problem.getDetails() != null) {
             System.out.println(" - details: " + problem.getDetails().getDetails());
         }
-        System.out.println(" - severity: " + toString(problem.getDefinition().getSeverity()));
+        System.out.println(" - severity: " + toString(definition.getSeverity()));
         for (Location location : problem.getOriginLocations()) {
             if (location instanceof PluginIdLocation) {
                 System.out.println(" - plugin ID: " + ((PluginIdLocation) location).getPluginId());
@@ -95,8 +104,8 @@ public class SampleIde {
             System.out.println(" - exception: " + exception.getMessage());
         }
 
-        if (problem.getDefinition().getDocumentationLink() != null) {
-            String url = problem.getDefinition().getDocumentationLink().getUrl();
+        if (definition.getDocumentationLink() != null) {
+            String url = definition.getDocumentationLink().getUrl();
             if (url != null) {
                 System.out.println(" - documentation: " + url);
             }
@@ -109,6 +118,13 @@ public class SampleIde {
                 System.out.println("   - " + solution.getSolution());
             }
         }
+
+        // tag::problems-tapi-additional-data-read[]
+        AdditionalData data = problem.getAdditionalData();
+        if (data instanceof CustomAdditionalData) {
+            System.out.println(" - additional data: " + ((CustomAdditionalData) data).get(SomeDataView.class).getName());
+        }
+        // end::problems-tapi-additional-data-read[]
     }
 
     static String fqId(ProblemDefinition definition) {
@@ -159,6 +175,7 @@ public class SampleIde {
         System.out.println("=== Running failing task " + failingTaskPath + " on imported project ===");;
         main.runBuild(failingTaskPath);
     }
+
     private static class ProblemListener implements ProgressListener {
 
         static void createAndRegister(LongRunningOperation operation) {

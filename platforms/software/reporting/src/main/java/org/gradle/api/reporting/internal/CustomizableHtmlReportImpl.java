@@ -19,8 +19,7 @@ package org.gradle.api.reporting.internal;
 import org.gradle.api.Describable;
 import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.resources.TextResource;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public abstract class CustomizableHtmlReportImpl extends DefaultSingleFileReport implements CustomizableHtmlReport {
 

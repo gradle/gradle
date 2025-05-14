@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.HasherExtensions;
 import org.gradle.internal.isolation.Isolatable;
@@ -27,12 +26,13 @@ import org.gradle.internal.serialize.EncoderExtensions;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Arrays;
 
-@NonNullApi
+@NullMarked
 public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     private final PrimitiveType primitiveType;
     private final Object array;

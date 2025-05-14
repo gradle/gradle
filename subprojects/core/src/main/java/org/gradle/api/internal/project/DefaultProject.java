@@ -46,7 +46,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DeprecatedProcessOperations;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
@@ -54,7 +53,6 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -126,16 +124,13 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -191,7 +186,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ProjectStateInternal state;
 
-    private Factory<AntBuilder> antBuilderFactory;
+    private AntBuilderFactory antBuilderFactory;
 
     private AntBuilder ant;
 
@@ -658,7 +653,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return owner.getProjectPath();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public ProjectIdentity getProjectIdentity() {
         return owner.getIdentity();
@@ -800,7 +795,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public AntBuilder createAntBuilder() {
         onMutableStateAccess();
-        return getAntBuilderFactory().create();
+        return getAntBuilderFactory().createAntBuilder();
     }
 
     /**
@@ -883,7 +878,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Deprecated
     public void setBuildDir(Object path) {
-        getLayout().setBuildDirectory(path);
+        getLayout().getBuildDirectory().set(getFileResolver().resolve(path));
     }
 
     @Override
@@ -917,17 +912,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder();
-        if (parent == null && gradle.isRootBuild()) {
-            builder.append("root project '");
-            builder.append(name);
-            builder.append('\'');
-        } else {
-            builder.append("project '");
-            builder.append(getIdentityPath());
-            builder.append("'");
-        }
-        return builder.toString();
+        return owner.getDisplayName().getDisplayName();
     }
 
     @Override
@@ -998,7 +983,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     // onMutableStateAccess() triggered by #getServices()
-    public abstract DefaultProjectLayout getLayout();
+    public abstract ProjectLayout getLayout();
 
     @Override
     public File file(Object path) {
@@ -1094,9 +1079,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return getFileOperations().delete(action);
     }
 
-    public Factory<AntBuilder> getAntBuilderFactory() {
+    public AntBuilderFactory getAntBuilderFactory() {
         if (antBuilderFactory == null) {
-            antBuilderFactory = services.getFactory(AntBuilder.class);
+            antBuilderFactory = services.get(AntBuilderFactory.class);
         }
         return antBuilderFactory;
     }
@@ -1227,7 +1212,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
     }
 
@@ -1264,34 +1249,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     public abstract ProcessOperations getProcessOperations();
-
-    private DeprecatedProcessOperations getDeprecatedProcessOperations() {
-        return new DeprecatedProcessOperations(Project.class, getProcessOperations());
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult javaexec(Closure closure) {
-        return getDeprecatedProcessOperations().javaexec(closure);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        return getDeprecatedProcessOperations().javaexec(action);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult exec(Closure closure) {
-        return getDeprecatedProcessOperations().exec(closure);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult exec(Action<? super ExecSpec> action) {
-        return getDeprecatedProcessOperations().exec(action);
-    }
 
     @Override
     public ServiceRegistry getServices() {
@@ -1612,7 +1569,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     /**
      * Assert that the current thread is not running a lazy action on a domain object within this project.
-     *  This method should be called by methods that must not be called in lazy actions.
+     * This method should be called by methods that must not be called in lazy actions.
      */
     private void assertEagerContext(String methodName) {
         getProjectConfigurator().getLazyBehaviorGuard().assertEagerContext(methodName, this, Project.class);

@@ -19,7 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
@@ -36,7 +35,6 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -51,14 +49,6 @@ public abstract class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
-
-    /**
-     * Task group for web application related tasks.
-     *
-     * @deprecated This constant scheduled for removal in Gradle 9.0
-     */
-    @Deprecated
-    public static final String WEB_APP_GROUP = "web application";
 
     private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
@@ -78,10 +68,8 @@ public abstract class WarPlugin implements Plugin<Project> {
         this.project = project;
         this.mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
-        @SuppressWarnings("deprecation") final WarPluginConvention pluginConvention = setupPluginConvention(project);
-
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(pluginConvention::getWebAppDir))));
+            task.getWebAppDirectory().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
             task.from(task.getWebAppDirectory());
             task.dependsOn((Callable<FileCollection>) () -> mainFeature.getSourceSet().getRuntimeClasspath());
             task.classpath((Callable<FileCollection>) () -> {
@@ -96,39 +84,17 @@ public abstract class WarPlugin implements Plugin<Project> {
         });
 
         PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidateInternal(warArtifact);
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(warArtifact);
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
     }
 
     @SuppressWarnings("deprecation")
-    private WarPluginConvention setupPluginConvention(Project project) {
-        final WarPluginConvention pluginConvention = objectFactory.newInstance(org.gradle.api.plugins.internal.DefaultWarPluginConvention.class, project);
-        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
-        return pluginConvention;
-    }
-
-    /**
-     * This method is intended for internal use and should not be called.
-     *
-     * @deprecated This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public void configureConfigurations(ConfigurationContainer configurationContainer) {
-        DeprecationLogger.deprecateMethod(WarPlugin.class, "configureConfigurations(ConfigurationContainer)")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "war_plugin_configure_configurations")
-            .nagUser();
-
-        configureConfigurations((RoleBasedConfigurationContainerInternal) configurationContainer, mainFeature);
-    }
-
-    @SuppressWarnings("deprecation")
     private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
-        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeUnlocked(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
+        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
             setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
 
-        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeUnlocked(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
+        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
             extendsFrom(providedCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
 

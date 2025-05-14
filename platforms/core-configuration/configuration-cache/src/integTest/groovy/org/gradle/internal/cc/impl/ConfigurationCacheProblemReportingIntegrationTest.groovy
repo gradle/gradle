@@ -1025,7 +1025,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         executer.expectDocumentedDeprecationWarning("The Gradle.useLogger(Object) method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
+            "This is scheduled to be removed in Gradle 10.0. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_use_logger")
 
@@ -1134,9 +1134,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 19 problems")
+        outputContains("Configuration cache entry discarded with 16 problems")
         problems.assertFailureHasProblems(failure) {
-            totalProblemsCount = 19
+            totalProblemsCount = 16
             withInput("Script 'script.gradle': system property 'PROP'")
             withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }

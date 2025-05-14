@@ -16,9 +16,8 @@
 
 package org.gradle.internal.reflect;
 
-import groovy.lang.GroovySystem;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -107,7 +106,7 @@ public enum PropertyAccessorType {
                 return GET_GETTER;
             }
             // is method that returns Boolean is not a getter according to JavaBeans, but include it for compatibility with Groovy 3
-            if (isIsGetterName(methodName) && (method.getReturnType().equals(Boolean.TYPE) || (isGroovy3() && method.getReturnType().equals(Boolean.class)))) {
+            if (isIsGetterName(methodName) && (method.getReturnType().equals(Boolean.TYPE) || method.getReturnType().equals(Boolean.class))) {
                 return IS_GETTER;
             }
         }
@@ -115,14 +114,6 @@ public enum PropertyAccessorType {
             return SETTER;
         }
         return null;
-    }
-
-    /**
-     * Convenience method org.gradle.util.internal.VersionNumber#parse(String) is not available, therefore check {@link GroovySystem#getVersion()} directly.
-     * @return true if Groovy 3 is bundled, false otherwise
-     */
-    private static boolean isGroovy3() {
-        return GroovySystem.getVersion().startsWith("3.");
     }
 
     public static PropertyAccessorType fromName(String methodName) {

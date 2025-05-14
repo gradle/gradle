@@ -95,7 +95,7 @@ class EarTest extends AbstractArchiveTaskTest {
 
         then:
         def someEar = project.tasks.create('someEar', Ear)
-        someEar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        someEar.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
     }
 
     private static DeploymentDescriptor makeDeploymentDescriptor(Ear e) {

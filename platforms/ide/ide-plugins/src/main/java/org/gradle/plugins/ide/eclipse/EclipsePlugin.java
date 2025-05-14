@@ -213,7 +213,11 @@ public abstract class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
-        model.setClasspath(project.getObjects().newInstance(EclipseClasspath.class, project));
+        EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
+        classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
+
+        model.setClasspath(classpath);
+
         ((IConventionAware) model.getClasspath()).getConventionMapping().map("defaultOutputDir", new Callable<File>() {
             @Override
             public File call() {

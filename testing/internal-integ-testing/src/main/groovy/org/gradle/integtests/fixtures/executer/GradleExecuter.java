@@ -85,21 +85,12 @@ public interface GradleExecuter extends Stoppable {
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
-    @Deprecated
-    GradleExecuter usingSettingsFile(File settingsFile);
-
     GradleExecuter usingInitScript(File initScript);
 
     /**
      * Uses the given project directory
      */
     GradleExecuter usingProjectDirectory(File projectDir);
-
-    /**
-     * Uses the given build script
-     */
-    @Deprecated
-    GradleExecuter usingBuildScript(File buildScript);
 
     /**
      * Sets the user's home dir to use when running the build. Implementations are not 100% accurate.

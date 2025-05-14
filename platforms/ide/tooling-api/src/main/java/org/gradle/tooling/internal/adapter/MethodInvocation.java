@@ -16,7 +16,8 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.lang.reflect.Type;
 
 class MethodInvocation {

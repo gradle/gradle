@@ -362,4 +362,4 @@ The two most common uses of cross-project configuration can be better modeled us
 Often, the cross-project configuration logic is `if subproject is of type X, then configure Y`.
 This is equivalent to applying `X-conventions` plugin directly to a subproject.
 2. Extracting information from subprojects of a certain type. +
-This use case can be modeled using <<variant_model.adoc#sec:variant-aware-matching,outgoing configuration variants>>.
+This use case can be modeled using <<variant_aware_resolution.adoc#sec:variant-aware-matching,outgoing configuration variants>>.

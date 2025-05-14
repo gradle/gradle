@@ -17,30 +17,29 @@
 package org.gradle.integtests.samples
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
-import org.junit.Test
 
 import static org.hamcrest.CoreMatchers.containsString
 
-class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
+@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
+class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/mixedJavaAndScala')
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
-    @Before
-    void setup() {
+    def setup() {
         executer.withRepositoryMirrors()
     }
 
-    @Test
-    void canBuildJar() {
+    def "can build jar"() {
         TestFile projectDir = sample.dir.file('groovy')
 
         // Build and test projects
@@ -63,8 +62,7 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test
-    void canBuildDocs() {
+    def "can build docs"() {
         if (GradleContextualExecuter.isDaemon()) {
             // don't load scala into the daemon as it exhausts permgen
             return

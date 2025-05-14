@@ -29,14 +29,16 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.state.ManagedFactory;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+@NullMarked
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private static final int MANAGED_FACTORY_ID = Objects.hashCode(ManagedTypeFactory.class.getName());
 

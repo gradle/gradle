@@ -52,8 +52,10 @@ import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProc
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
@@ -65,7 +67,6 @@ import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -189,6 +190,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         reports.getHtml().getRequired().set(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
+        getFailOnNoDiscoveredTests().convention(true);
     }
 
     @Inject
@@ -544,8 +546,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
+            // No tests were executed, the following rules apply:
+            // - If there are no filters, and no tests or test suites were discovered, fail
+            // - If there are filters and the task is configured to fail when no tests match the filters, throw an exception
+            // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
-                emitDeprecationMessage();
+                if (testCountLogger.getTotalDiscoveredItems() == 0 && getFailOnNoDiscoveredTests().get()) {
+                    throw new TestExecutionException("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.");
+                }
             } else if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
@@ -554,14 +562,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     private boolean shouldFailOnNoMatchingTests() {
         return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
-    }
-
-    private void emitDeprecationMessage() {
-        DeprecationLogger.deprecateBehaviour("No test executed.")
-            .withAdvice("There are test sources present but no test was executed. Please check your test configuration.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "test_task_fail_on_no_test_executed")
-            .nagUser();
     }
 
     boolean testsAreNotFiltered() {
@@ -725,4 +725,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public TestFilter getFilter() {
         return filter;
     }
+
+    /**
+     * Whether the task should fail if test sources are present, but no tests are discovered during test execution.  Defaults to true.
+     *
+     * @since 9.0
+     */
+    @Input
+    abstract public Property<Boolean> getFailOnNoDiscoveredTests();
 }

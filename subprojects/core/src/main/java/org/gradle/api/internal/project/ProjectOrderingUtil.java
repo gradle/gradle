@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project;
 
-import com.google.common.primitives.Ints;
 import org.gradle.api.Project;
 
 public class ProjectOrderingUtil {
@@ -37,7 +36,7 @@ public class ProjectOrderingUtil {
     }
 
     public static int depthCompare(ProjectState left, ProjectState right) {
-        return Ints.compare(left.getDepth(), right.getDepth());
+        return Integer.compare(left.getDepth(), right.getDepth());
     }
 
     private static ProjectState owner(Project project) {

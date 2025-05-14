@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures;
 import org.hamcrest.Matcher;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface TestClassExecutionResult {
     /**
@@ -93,6 +94,11 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertTestSkipped(String name, String displayName);
 
     TestClassExecutionResult assertTestSkipped(String name);
+
+    /**
+     * Asserts that the given test was skipped and its details match the assertions checked.
+     */
+    TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions);
 
     /**
      * Asserts that the given config method passed.

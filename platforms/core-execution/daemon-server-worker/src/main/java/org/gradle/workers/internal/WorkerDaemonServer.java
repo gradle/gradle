@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -62,14 +61,16 @@ import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
+import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -156,7 +157,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             return new ClassLoaderHierarchyHasher() {
                 @Nullable
                 @Override
-                public HashCode getClassLoaderHash(@Nonnull ClassLoader classLoader) {
+                public HashCode getClassLoaderHash(@NonNull ClassLoader classLoader) {
                     throw new UnsupportedOperationException();
                 }
             };
@@ -185,7 +186,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
      * However, workers do not observe the same lifecycle as the build and do not stop or recreate build session services between builds.
      * This works around that by recreating the build session scope services for every request.
      */
-    @NonNullApi
+    @NullMarked
     static class WorkerBuildSessionScopeWorkaroundServices implements ServiceRegistrationProvider {
         private final File projectCacheDir;
 
@@ -213,6 +214,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
                 .provider(new WorkerProjectServices())
                 .provider(new WorkerSharedProjectScopeServices(baseDir))
                 .provider(new WorkerBuildSessionScopeWorkaroundServices(projectCacheDir))
+                .provider(new WorkerProcessIsolationProblemsServiceProvider())
                 .build();
         }
 

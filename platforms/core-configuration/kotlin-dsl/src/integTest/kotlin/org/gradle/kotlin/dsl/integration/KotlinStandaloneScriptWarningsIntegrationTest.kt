@@ -111,7 +111,7 @@ class KotlinStandaloneScriptWarningsIntegrationTest : AbstractKotlinIntegrationT
 
     private
     fun warningLineFor(script: File) =
-        "w: ${clickableUrlFor(script)}:3:1: 'SomeDeprecatedType' is deprecated. BECAUSE"
+        "w: ${clickableUrlFor(script)}:3:1: 'constructor(): SomeDeprecatedType' is deprecated. BECAUSE"
 
     private
     fun ExecutionFailure.assertHasDetailedErrorOutput() =
@@ -121,7 +121,7 @@ class KotlinStandaloneScriptWarningsIntegrationTest : AbstractKotlinIntegrationT
             Script compilation error:
 
               Line 3: SomeDeprecatedType()
-                      ^ 'SomeDeprecatedType' is deprecated. BECAUSE
+                      ^ 'constructor(): SomeDeprecatedType' is deprecated. BECAUSE.
 
             1 error
             """.trimIndent()

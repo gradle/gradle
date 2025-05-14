@@ -17,8 +17,8 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 

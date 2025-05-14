@@ -17,8 +17,8 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Include;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 

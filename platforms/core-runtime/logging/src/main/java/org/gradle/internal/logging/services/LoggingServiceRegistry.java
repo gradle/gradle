@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.config.LoggingSystemAdapter;
@@ -79,7 +80,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
      */
     public static ServiceRegistry newCommandLineProcessLogging() {
         ServiceRegistry loggingServices = createCommandLineLogging();
-        LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
+        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
         rootLoggingManager.captureSystemSources();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
@@ -145,7 +146,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
     }
 
     @Provides
-    protected DefaultLoggingManagerFactory createLoggingManagerFactory(Clock clock) {
+    protected LoggingManagerFactory createLoggingManagerFactory(Clock clock) {
         OutputEventListener outputEventBroadcaster = outputEventListenerManager.getBroadcaster();
 
         LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), clock);
@@ -189,7 +190,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
 
         @Provides
         @Override
-        protected DefaultLoggingManagerFactory createLoggingManagerFactory(Clock clock) {
+        protected LoggingManagerFactory createLoggingManagerFactory(Clock clock) {
             // Don't configure anything
             return new DefaultLoggingManagerFactory(
                 renderer,

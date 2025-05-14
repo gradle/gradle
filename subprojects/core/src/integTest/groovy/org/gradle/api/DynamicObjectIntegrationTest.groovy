@@ -17,11 +17,11 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -130,7 +130,7 @@ class ConventionBean {
 }
 '''
 
-        expectConventionTypeDeprecationWarnings()
+        expectConventionTypeDeprecationWarnings(GradleContextualExecuter.isolatedProjects ? 2 : 1)
 
         expect:
         succeeds()
@@ -204,9 +204,6 @@ assert 'overridden value' == global
                 test('::name:') {
                     ext.custom = 'value';
                 }
-                test(module('::other')) {
-                    ext.custom = 'value';
-                }
                 test(project(':')) {
                     ext.custom = 'value';
                 }
@@ -241,64 +238,6 @@ assert 'overridden value' == global
 
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
-        succeeds("defaultTask")
-    }
-
-    def canAddMixInsToCoreDomainObjects() {
-
-        buildFile '''
-            class Extension { def doStuff() { 'method' } }
-            class GroovyTask extends DefaultTask { }
-
-            task defaultTask {
-                convention.plugins.custom = new Extension()
-            }
-            task javaTask(type: Copy) {
-                convention.plugins.custom = new Extension()
-            }
-            task groovyTask(type: GroovyTask) {
-                convention.plugins.custom = new Extension()
-            }
-            configurations {
-                test {
-                    convention.plugins.custom = new Extension()
-                }
-            }
-            dependencies {
-                test('::name:') {
-                    convention.plugins.custom = new Extension()
-                }
-                test(module('::other')) {
-                    convention.plugins.custom = new Extension()
-                }
-                test(project(':')) {
-                    convention.plugins.custom = new Extension()
-                }
-                test(files('src')) {
-                    convention.plugins.custom = new Extension()
-                }
-            }
-            repositories {
-                convention.plugins.custom = new Extension()
-            }
-            assert defaultTask.doStuff() == 'method'
-            assert javaTask.doStuff() == 'method'
-            assert groovyTask.doStuff() == 'method'
-            assert configurations.test.doStuff() == 'method'
-            configurations.test.dependencies.each {
-                assert it.doStuff() == 'method'
-            }
-            assert repositories.doStuff() == 'method'
-            repositories {
-                assert doStuff() == 'method'
-            }
-'''
-
-        expectConventionTypeDeprecationWarnings(9)
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -326,9 +265,6 @@ assert 'overridden value' == global
                 test('::name:') {
                     extensions.test = new Extension()
                 }
-                test(module('::other')) {
-                    extensions.test = new Extension()
-                }
                 test(project(':')) {
                     extensions.test = new Extension()
                 }
@@ -354,7 +290,6 @@ assert 'overridden value' == global
 
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -506,7 +441,7 @@ assert 'overridden value' == global
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForIsolatedProjects(because = "Parent project configures children")
     def canInjectMethodsFromParentProject() {
         createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
@@ -516,11 +451,14 @@ assert 'overridden value' == global
                 ext.useSomeMethod = { file(it) }
             }
         """
-        file("child1/build.gradle") << """
+        buildFile "child1/build.gradle", """
             task testTask {
+                def propertyResult = provider { useSomeProperty() }
+                def methodResult = provider { useSomeMethod('f') }
+                def expectedMethodResult = file('f')
                 doLast {
-                    assert useSomeProperty() == 'child1'
-                    assert useSomeMethod('f') == file('f')
+                    assert propertyResult.get() == 'child1'
+                    assert methodResult.get() == expectedMethodResult
                 }
             }
         """
@@ -854,7 +792,6 @@ task print(type: MyTask) {
     }
 
     @Issue("GRADLE-2163")
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canDecorateBooleanPrimitiveProperties() {
 
         buildFile """
@@ -866,7 +803,9 @@ task print(type: MyTask) {
             extensions.create('bean', CustomBean)
 
             task run {
+                def beanProvider = provider { bean }
                 doLast {
+                    def bean = beanProvider.get()
                     assert bean.b == false
                     bean.conventionMapping.b = { true }
                     assert bean.b == true
@@ -927,7 +866,7 @@ task print(type: MyTask) {
             }
         """
 
-        expectConventionTypeDeprecationWarnings(4)
+        expectConventionTypeDeprecationWarnings(GradleContextualExecuter.isolatedProjects ? 8 : 4)
 
         expect:
         succeeds()

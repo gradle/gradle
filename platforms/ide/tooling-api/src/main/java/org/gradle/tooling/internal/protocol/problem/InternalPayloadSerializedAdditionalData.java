@@ -21,4 +21,6 @@ package org.gradle.tooling.internal.protocol.problem;
  */
 public interface InternalPayloadSerializedAdditionalData extends InternalAdditionalData {
     Object getSerializedType();
+
+    byte[] getBytesForIsolatadObject();
 }

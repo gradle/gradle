@@ -16,19 +16,18 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalData;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
-import java.util.Map;
 
-@NonNullApi
+@NullMarked
 public class DefaultInternalProxiedAdditionalData extends DefaultInternalPayloadSerializedAdditionalData implements InternalProxiedAdditionalData, Serializable {
     private final Object proxy;
 
-    public DefaultInternalProxiedAdditionalData(Map<String, Object> additionalData, Object proxy, SerializedPayload payload) {
-        super(additionalData, payload);
+    public DefaultInternalProxiedAdditionalData(Object proxy, SerializedPayload payload) {
+        super(null, payload);
         this.proxy = proxy;
     }
 

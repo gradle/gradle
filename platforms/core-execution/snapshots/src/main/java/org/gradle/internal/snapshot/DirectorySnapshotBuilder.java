@@ -17,8 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileMetadata;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A builder for {@link DirectorySnapshot}.

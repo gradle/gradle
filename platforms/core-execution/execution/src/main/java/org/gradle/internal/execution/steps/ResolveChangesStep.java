@@ -28,8 +28,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
 import org.gradle.internal.properties.InputBehavior;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
 
 import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.nonIncremental;
 
@@ -65,7 +64,7 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
         return delegate.execute(work, delegateContext);
     }
 
-    @Nonnull
+    @NullMarked
     private ExecutionStateChanges resolveExecutionStateChanges(UnitOfWork work, ValidationFinishedContext context, BeforeExecutionState beforeExecution) {
         IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
         return context.getNonIncrementalReason()

@@ -120,10 +120,9 @@ You'll learn more about source sets and the features they provide in:
 When a source set is created, it also creates a number of configurations as described above.
 Build logic should **not** attempt to create or access these configurations until they are first created by the source set.
 
-When creating a source set, if one of these automatically created configurations already exists, Gradle will emit a deprecation warning.
-If the existing configuration's role is different than the role that the source set would have assigned, its role will be mutated to the correct value and another deprecation warning will be emitted.
+When creating a source set, if one of these automatically created configurations already exists, and its role is different than the role that the source set would have assigned, the build will fail.
 
-The build below demonstrates this unwanted behavior.
+The build below demonstrates this behavior.
 
 .Configurations created prior to their associated source sets
 ====
@@ -131,16 +130,7 @@ include::sample[dir="snippets/java/sourceSets-badConfNames/kotlin",files="build.
 include::sample[dir="snippets/java/sourceSets-badConfNames/groovy",files="build.gradle[tags=create-configurations]"]
 ====
 
-In this case, the following deprecation warning is emitted:
-
-```
-When creating configurations during sourceSet custom setup, Gradle found that configuration customCompileClasspath already exists with permitted usage(s):
-	Consumable - this configuration can be selected by another project as a dependency
-	Resolvable - this configuration can be resolved by this project to a set of files
-	Declarable - this configuration can have dependencies added to it
-Yet Gradle expected to create it with the usage(s):
-	Resolvable - this configuration can be resolved by this project to a set of files
-```
+In this case, the build will fail.
 
 Following two simple best practices will avoid this problem:
 

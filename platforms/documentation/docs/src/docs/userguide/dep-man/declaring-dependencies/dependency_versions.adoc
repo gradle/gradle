@@ -89,14 +89,14 @@ Version ordering is used to:
 
 * Determine if a particular *version is included in a range*.
 * Determine which *version is newest* when performing conflict resolution (using
-<<dependency_resolution_model.adoc#sec:base-version-comparison,"base versions">>).
+<<graph_resolution.adoc#sec:base-version-comparison,"base versions">>).
 
 Versions are ordered based on the following rules:
 
 * **Splitting Versions into Parts:**
 ** Versions are divided into parts using the characters `[. - _ +]`.
 ** Parts containing both digits and letters are split further, e.g., `1a1` becomes `1.a.1`.
-** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<dependency_resolution_model.adoc#sec:base-version-comparison,exceptions>> during conflict resolution).
+** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<graph_resolution.adoc#sec:base-version-comparison,exceptions>> during conflict resolution).
 * **Comparing Equivalent Parts:**
 ** **Numeric vs. Numeric:** Higher numeric value is considered higher: `1.1 < 1.2`.
 ** **Numeric vs. Non-numeric:** Numeric parts are higher than non-numeric parts: `1.a < 1.1`.
@@ -380,3 +380,18 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-changin
 
 Gradle is flexible enough to treat any version as a changing version.
 All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
+
+[[sec:versioning_file_dependencies]]
+== Versioning file dependencies
+
+It is recommended to clearly express the intention and specify a concrete version when using <<declaring_dependencies_basics.adoc#sec:file-dependencies,file dependencies>>.
+
+File dependencies are not considered by Gradle's <<graph_resolution.adoc#sec:how-gradle-downloads-deps,version conflict resolution>>.
+Therefore, assigning a version to the file name is crucial to indicate the distinct set of changes included in each release.
+
+For example, using `commons-beanutils-1.3.jar` allows tracking changes in the library through its release notes.
+
+By following this practice:
+
+* Project dependencies become easier to maintain and organize.
+* Potential API incompatibilities are easier to identify through the assigned version.

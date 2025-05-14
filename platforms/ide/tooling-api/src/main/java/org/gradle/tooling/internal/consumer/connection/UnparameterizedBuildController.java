@@ -35,8 +35,8 @@ import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;

@@ -16,13 +16,17 @@
 
 package org.gradle.internal.watch
 
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 @LocalOnly
-@Requires(UnitTestPreconditions.Symlinks)
+@Requires(value = [
+    UnitTestPreconditions.Symlinks,
+    IntegTestPreconditions.NotEmbeddedExecutor
+], reason = "explicitly requests a daemon")
 class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     def setup() {
         // The daemon manages the cleanup of symlinks in the VFS between builds

@@ -16,8 +16,12 @@
 
 package org.gradle.internal.component.external.model
 
-import org.gradle.api.Project
 import org.gradle.api.capabilities.Capability
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class ProjectDerivedCapabilityTest extends Specification {
@@ -42,11 +46,14 @@ class ProjectDerivedCapabilityTest extends Specification {
         return capability1 == capability2 && capability1.hashCode() == capability2.hashCode()
     }
 
-    Project project(String group, String name, String version) {
-        Mock(Project) {
+    ProjectInternal project(String group, String name, String version) {
+        Mock(ProjectInternal) {
             getGroup() >> group
             getName() >> name
             getVersion() >> version
+            getOwner() >> Mock(ProjectState) {
+                getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, name)
+            }
         }
     }
 }

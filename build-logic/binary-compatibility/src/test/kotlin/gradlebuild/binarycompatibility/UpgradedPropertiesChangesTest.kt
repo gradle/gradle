@@ -25,7 +25,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
     fun `should report binary incompatibility for upgraded property without any metadata`() {
         checkNotBinaryCompatible(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -41,7 +41,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -65,7 +65,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
     fun `should automatically accept binary incompatibilities for upgraded properties`() {
         checkBinaryCompatible(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/TaskInterface.java",
                     """
                         package com.example;
@@ -76,7 +76,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -92,7 +92,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -103,7 +103,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJavaFile(
                     "java/com/example/TaskInterface.java",
                     """
                         package com.example;
@@ -114,7 +114,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJsonFile(
                     "resources/upgraded-properties.json",
                     """
                         [{
@@ -165,7 +165,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
     fun `should automatically accept binary incompatibilities for boolean upgraded properties`() {
         checkBinaryCompatible(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -179,7 +179,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJavaFile(
                     "java/com/example/TaskInterface.java",
                     """
                         package com.example;
@@ -192,7 +192,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -206,7 +206,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJavaFile(
                     "java/com/example/TaskInterface.java",
                     """
                         package com.example;
@@ -220,7 +220,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJsonFile(
                     "resources/upgraded-properties.json",
                     """
                         [{
@@ -281,7 +281,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
     fun `should report an error if newly added method with different name does not have @since`() {
         checkNotBinaryCompatible(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -295,7 +295,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -306,7 +306,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJsonFile(
                     "resources/upgraded-properties.json",
                     """
                         [{
@@ -336,7 +336,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
     fun `should fail if some method was upgraded but it was not actually changed`() {
         checkBinaryCompatibleFailsWithoutReport(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -352,7 +352,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -365,7 +365,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJsonFile(
                     "resources/upgraded-properties.json",
                     """
                         [{
@@ -395,7 +395,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
     fun `should not fail if some method was upgraded and not removed but marked as kept`() {
         checkBinaryCompatible(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -411,7 +411,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -424,7 +424,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJsonFile(
                     "resources/upgraded-properties.json",
                     """
                         [{
@@ -457,7 +457,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
     fun `should not fail if some method was upgraded and removed but marked as kept`() {
         checkBinaryCompatible(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -473,7 +473,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -486,7 +486,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJsonFile(
                     "resources/upgraded-properties.json",
                     """
                         [{
@@ -519,7 +519,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
     fun `should accept upgraded property that used different name`() {
         checkBinaryCompatible(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -535,7 +535,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -549,7 +549,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
+                withJsonFile(
                     "resources/upgraded-properties.json",
                     """
                         [{

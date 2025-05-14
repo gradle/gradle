@@ -16,7 +16,8 @@
 
 package org.gradle.configuration.internal;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
+
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -32,13 +33,13 @@ public class DefaultDynamicCallContextTracker implements DynamicCallContextTrack
     private final List<Consumer<Object>> leaveListeners = new CopyOnWriteArrayList<>();
 
     @Override
-    public void enterDynamicCall(@Nonnull Object entryPoint) {
+    public void enterDynamicCall(@NonNull Object entryPoint) {
         currentEntryPointStack().push(entryPoint);
         enterListeners.forEach(listener -> listener.accept(entryPoint));
     }
 
     @Override
-    public void leaveDynamicCall(@Nonnull Object entryPoint) {
+    public void leaveDynamicCall(@NonNull Object entryPoint) {
         Stack<Object> entryPointsStack = currentEntryPointStack();
         Object top = entryPointsStack.peek();
         if (top != entryPoint) {

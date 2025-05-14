@@ -21,9 +21,10 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 
@@ -42,6 +43,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private int configurationCacheEntriesPerKey = 1;
+    private boolean configurationCacheIntegrityCheckEnabled;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
@@ -80,6 +82,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
+        p.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheckEnabled;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
@@ -127,14 +130,6 @@ public class StartParameterInternal extends StartParameter {
     }
 
     /**
-     * Used by the Kotlin plugin, via reflection.
-     */
-    @Deprecated
-    public boolean isConfigurationCache() {
-        return getConfigurationCache().get();
-    }
-
-    /**
      * Is the configuration cache requested? Note: depending on the build action, this may not be the final value for this option.
      *
      * Consider querying {@link BuildModelParameters} instead.
@@ -154,6 +149,7 @@ public class StartParameterInternal extends StartParameter {
     @SuppressWarnings("deprecation")
     @Override
     public boolean isConfigurationCacheRequested() {
+        StartParameterDeprecations.nagOnIsConfigurationCacheRequested();
         return configurationCache.get();
     }
 
@@ -232,6 +228,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
         this.configurationCacheQuiet = configurationCacheQuiet;
+    }
+
+    public void setConfigurationCacheIntegrityCheckEnabled(boolean configurationCacheIntegrityCheck) {
+        this.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheck;
+    }
+
+    public boolean isConfigurationCacheIntegrityCheckEnabled() {
+        return configurationCacheIntegrityCheckEnabled;
     }
 
     public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {

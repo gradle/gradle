@@ -417,6 +417,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         return gradle.getParent();
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<String> calculateReservedProjectNames(ProjectInternal rootProject, EclipseRuntime parameter) {
         if (parameter == null) {
             return Collections.emptyList();

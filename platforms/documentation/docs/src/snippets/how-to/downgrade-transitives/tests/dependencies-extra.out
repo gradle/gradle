@@ -1,0 +1,12 @@
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_downgrade_transitive_dependencies'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.httpcomponents:httpclient:4.5.4
+|    +--- org.apache.httpcomponents:httpcore:4.4.7
+|    +--- commons-logging:commons-logging:1.2
+|    \--- commons-codec:commons-codec:1.10 -> 1.9
+\--- commons-codec:commons-codec:{strictly [1.9,2.0[; prefer 1.9} -> 1.9

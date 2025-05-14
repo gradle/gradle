@@ -21,7 +21,7 @@ plugins {
 
 description = "Configuration Cache services supporting bean serialization"
 
-gradlebuildJava {
+gradleModule {
     usesJdkInternals = true
 }
 
@@ -46,4 +46,7 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.guava)
+
+    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(testFixtures(projects.persistentCache))
 }

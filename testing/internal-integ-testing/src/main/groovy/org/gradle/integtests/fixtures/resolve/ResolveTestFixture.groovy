@@ -331,7 +331,7 @@ $END_MARKER
                 }
             }.toSet()
             if (actualReasons != reasons) {
-                errors << "Expected reasons ${reasons} but was: ${actual.reasons}"
+                errors << "Expected reasons ${reasons} but was: ${actualReasons}"
             }
             this.variants.each { variant ->
                 def actualVariant = actual.variants.find { it.name == variant.name }
@@ -395,7 +395,11 @@ $END_MARKER
         if (!equals) {
             def actualFormatted = Joiner.on("\n").join(actualSorted)
             def expectedFormatted = Joiner.on("\n").join(expectedSorted)
-            throw new ComparisonFailure("Result contains unexpected $compType", expectedFormatted, actualFormatted);
+
+            def missingFromActual = Joiner.on("\n").join(expectedSorted - actualSorted)
+            def missingFromExpected = Joiner.on("\n").join(actualSorted - expectedSorted)
+
+            throw new ComparisonFailure("Result contains unexpected $compType\n\nMissing from actual:\n" + missingFromActual + "\nMissing from expected:\n" + missingFromExpected + "\n\n", expectedFormatted, actualFormatted);
         }
     }
 
@@ -679,7 +683,7 @@ $END_MARKER
         private boolean implicitArtifact = true
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
-        private final Set<String> reasons = new TreeSet<String>()
+        private final Set<String> reasons = new LinkedHashSet<String>()
         private boolean ignoreRequested
         private final Set<String> ignoreReasons = new HashSet<>()
         private final Set<String> ignoreReasonPrefixes = new HashSet<>()

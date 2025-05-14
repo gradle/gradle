@@ -16,13 +16,13 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.ProblemGroup;
 import org.gradle.tooling.events.problems.ProblemId;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Objects;
 
-@NonNullApi
+@NullMarked
 public class DefaultProblemId implements ProblemId {
 
     private final String name;

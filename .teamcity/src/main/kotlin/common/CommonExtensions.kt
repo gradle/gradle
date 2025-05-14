@@ -159,7 +159,7 @@ fun BuildType.applyDefaultSettings(
         if (this@applyDefaultSettings.type != BuildTypeSettings.Type.COMPOSITE) {
             executionTimeoutMin = timeout
         }
-        testFailure = false
+        testFailure = true
         supportTestRetry = true
         add {
             failOnText {
@@ -211,8 +211,8 @@ fun BuildType.paramsForBuildToolBuild(
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
-        if (os == Os.MACOS) {
-            // Use fewer parallel forks on macOs, since the agents are not very powerful.
+        if (os == Os.MACOS && arch == Arch.AMD64) {
+            // Use fewer parallel forks only on Intel macOS builds, since they are not very powerful.
             param("maxParallelForks", "2")
         }
         if (os == Os.LINUX || os == Os.MACOS) {

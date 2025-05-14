@@ -8,6 +8,16 @@
 [
     // Soft upgrades: only in case of conflict, will use the latest version of the selected module in the graph
     {
+        // hamcrest packaging changes, see https://hamcrest.org/JavaHamcrest/distributables#previous-versions-of-hamcrest
+        "name": "hamcrest",
+        "providedBy": [
+            "org.hamcrest:hamcrest-core",
+            "org.hamcrest:hamcrest-library",
+            "org.hamcrest:hamcrest-all"
+        ],
+        "selected": "org.hamcrest:hamcrest"
+    },
+    {
         "name": "guava",
         "providedBy": [
             "com.google.collections:google-collections"

@@ -15,7 +15,8 @@
  */
 package org.gradle.internal.lazy;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.Supplier;
 

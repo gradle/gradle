@@ -190,7 +190,20 @@ A configuration can extend any other configuration other than a link:{kotlinDslP
 
 TIP: Avoid extending consumable or resolvable configurations with configurations that are not consumable or resolvable, respectively.
 
-Configurations can only extend configurations within the same project.
+For example, in a project that already uses JUnit for testing, you can define a dedicated configuration named `smokeTest` to run smoke tests.
+Each smoke test performs an HTTP request to verify a web service endpoint.
+To reuse the existing test framework dependencies, the `smokeTest` configuration should extend from `testImplementation`.
+This allows smoke tests to leverage the same dependencies as unit tests without duplication.
+The configuration can be declared in `build.gradle(.kts)` as follows:
+
+====
+include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
+include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-inheritance/groovy",files="build.gradle[tags=configuration-definition]"]
+====
+
+This setup enables the `smokeTest` source set to inherit JUnit and any other testing dependencies, making it easier to define and execute smoke tests while keeping them separate from unit tests.
+
+TIP: Configurations can only extend configurations within the same project.
 
 When extending a configuration, the new configuration inherits:
 
@@ -228,9 +241,9 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-resoluti
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declaring-dependencies]"]
 ====
 
-Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution_basics.adoc#dependency-resolution-basics,dependency resolution APIs>> to access the results of resolution.
+Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution APIs>> to access the results of resolution.
 
-[[sub:resolving-unsafe-configuration-resolution-errors]]
+[[sub:unsafe-configuration-resolution-errors]]
 == Unsafe configuration resolution errors
 
 Resolving a configuration can have side effects on Gradle's project model.
@@ -249,4 +262,4 @@ Gradle produces a deprecation warning for each unsafe access.
 Unsafe access can cause indeterminate errors.
 You should <<command_line_interface.adoc#sec:command_line_warnings,fix unsafe access warnings>> in your build.
 
-In most cases, you can resolve unsafe accesses by creating a <<variant_model.adoc#sec:variant-aware-matching,proper cross-project dependency>>.
+In most cases, you can resolve unsafe accesses by creating a <<variant_aware_resolution.adoc#sec:variant-aware-matching,proper cross-project dependency>>.

@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "5.2.1"
+version = "6.1.2"
 
 base.archivesName = "plugins"
 
@@ -27,6 +27,7 @@ dependencies {
 
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
+    compileOnly(libs.jspecify)
 
     api(libs.kotlinStdlib)
 

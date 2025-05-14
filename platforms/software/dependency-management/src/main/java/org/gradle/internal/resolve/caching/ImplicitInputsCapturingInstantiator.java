@@ -15,17 +15,16 @@
  */
 package org.gradle.internal.resolve.caching;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -42,9 +41,8 @@ import java.util.List;
  *
  * If recording inputs is not required, the {@link #newInstance(Class, Object...)}
  * method can still be called, in which case it creates a non capturing instance.
- *
  */
-@NonNullApi
+@NullMarked
 public class ImplicitInputsCapturingInstantiator implements Instantiator {
     private final ServiceRegistry serviceRegistry;
     private final InstantiatorFactory factory;
@@ -55,14 +53,14 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
     }
 
     @Override
-    public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
+    public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException {
         return factory.inject(serviceRegistry).newInstance(type, parameters);
     }
 
     public Instantiator capturing(final ImplicitInputRecorder registrar) {
         return new Instantiator() {
             @Override
-            public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
+            public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException {
                 return factory.inject(capturingRegistry(registrar)).newInstance(type, parameters);
             }
         };
@@ -117,16 +115,6 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
                 return ((ImplicitInputsProvidingService)service).withImplicitInputRecorder(registrar);
             }
             return service;
-        }
-
-        @Override
-        public <T> Factory<T> getFactory(Class<T> type) throws UnknownServiceException, ServiceLookupException {
-            return serviceRegistry.getFactory(type);
-        }
-
-        @Override
-        public <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException {
-            return serviceRegistry.newInstance(type);
         }
     }
 }

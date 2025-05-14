@@ -50,7 +50,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
             assertOutputContains("[bar, foo]")
             assertTrue {
                 output.lines().single { "Failed to interpret Kotlin DSL script ${file("build.gradle.kts").absolutePath} with DCL." in it }
-                    .contains("FailuresInResolution(errors=[ResolutionError(element=println() with args: \"not declarative anymore!\"")
+                    .contains("FailuresInResolution(errors=[ResolutionError(element=println(\"not declarative anymore!\")")
             }
         }
     }

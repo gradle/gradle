@@ -588,12 +588,14 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         file("sub/sub-sub/build.gradle") << """
             println(bar)
         """
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-        )
+        2.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+            )
+        }
 
         when:
         isolatedProjectsFails(":sub:sub-sub:help")
@@ -801,9 +803,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        if (expr == "dependencies.project([path: ':', configuration: 'test'])") {
-            executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of project dependency ':' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
-        }
         isolatedProjectsFails(":help")
 
         then:
@@ -821,7 +820,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "resources.text.fromFile('1.txt', 'UTF-8')"                | ""
         "fromTask"                                                 | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
         "artifacts.add('default', new File('a.txt'))"              | "configurations.create('default')"
-        "dependencies.project([path: ':', configuration: 'test'])" | "plugins { id('java') }"
         "configurations.compileClasspath"                          | "plugins { id('java') }"
         "configurations.compileClasspath.dependencies"             | "plugins { id('java') }"
         "sourceSets.main.java"                                     | "plugins { id('java') }"

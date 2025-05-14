@@ -17,7 +17,7 @@
 /**
  * Classes that enable JVM application script generation.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.jvm.application.scripts;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

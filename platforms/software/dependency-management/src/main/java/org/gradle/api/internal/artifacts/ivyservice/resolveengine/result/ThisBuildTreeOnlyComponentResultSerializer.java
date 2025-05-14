@@ -28,6 +28,8 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,6 +43,7 @@ import java.util.List;
  * This serializer is intended for {@link ComponentGraphResolveState#isAdHoc() non-adhoc} components, as holding references
  * to adhoc components would prevent them from being garbage collected.
  */
+@ServiceScope(Scope.BuildTree.class)
 public class ThisBuildTreeOnlyComponentResultSerializer implements ComponentResultSerializer {
 
     private final Long2ObjectMap<ComponentGraphResolveState> components = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());

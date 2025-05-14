@@ -18,8 +18,8 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Buildable;
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 

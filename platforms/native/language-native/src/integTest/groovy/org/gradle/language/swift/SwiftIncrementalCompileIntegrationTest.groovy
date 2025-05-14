@@ -62,10 +62,11 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         when:
         outputs.snapshot()
-        main.replace("a: 21, b: 21", "a: 5, b: 7")
+        main.replace("a: 21, b: 21", "a: 22, b: 22")
         succeeds("compileDebugSwift")
 
         then:
+        Thread.sleep(5000) // https://github.com/gradle/gradle-private/issues/4653
         outputs.recompiledFile(main)
     }
 

@@ -78,7 +78,7 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
 
     private
     fun kotlinPropertySetter(property: KMutableProperty<*>) =
-        DeclarativeRuntimePropertySetter { receiver, value -> property.setter.call(receiver, value) }
+        declarativeRuntimePropertySetter { receiver, value -> property.setter.call(receiver, value) }
 
     private
     fun findKotlinFunctionGetter(receiverClass: KClass<*>, name: String) =
@@ -90,7 +90,7 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
     private
     fun findKotlinFunctionSetter(receiverClass: KClass<*>, name: String) =
         receiverClass.memberFunctions.find { it.name == setterName(name) && it.visibility == KVisibility.PUBLIC }
-            ?.let { function -> DeclarativeRuntimePropertySetter { receiver: Any, value: Any? -> function.call(receiver, value) } }
+            ?.let { function -> declarativeRuntimePropertySetter { receiver: Any, value: Any? -> function.call(receiver, value) } }
 
     private
     fun findJavaGetter(receiverClass: KClass<*>, name: String) =
@@ -102,7 +102,7 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
     private
     fun findJavaSetter(receiverClass: KClass<*>, name: String) =
         receiverClass.java.methods.find { it.name == setterName(name) && it.parameters.size == 1 && it.modifiers.and(Modifier.PUBLIC) != 0 }
-            ?.let { method -> DeclarativeRuntimePropertySetter { receiver: Any, value: Any? -> method.invoke(receiver, value) } }
+            ?.let { method -> declarativeRuntimePropertySetter { receiver: Any, value: Any? -> method.invoke(receiver, value) } }
 
     private
     fun getterName(propertyName: String) = "get" + capitalize(propertyName)

@@ -204,7 +204,7 @@ tasks.register<Copy>("rename") {
     rename("(.+)-staging(.+)".toRegex().pattern, "$1$2")
     // Use a closure to convert all file names to upper case
     rename { fileName: String ->
-        fileName.toUpperCase()
+        fileName.uppercase()
     }
 }
 // end::rename-files[]

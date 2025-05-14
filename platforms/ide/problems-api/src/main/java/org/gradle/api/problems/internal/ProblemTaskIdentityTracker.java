@@ -16,7 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This class tracks the currently executed task. The implementation is a naive workaround for capturing the currently executed task based on the assumption that a current thread can execute at most

@@ -20,7 +20,6 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.input.NullReader;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -33,8 +32,9 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +62,7 @@ import java.util.zip.ZipOutputStream;
 /**
  * An object that can store test results and their outputs.
  */
-@NonNullApi
+@NullMarked
 public final class SerializableTestResultStore {
 
     /**
@@ -90,7 +90,7 @@ public final class SerializableTestResultStore {
         return new Writer(serializedResultsFile, outputZipFile);
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class Writer implements Closeable, TestListenerInternal {
         private final Map<Object, Long> assignedIds = new HashMap<>();
         private final Path serializedResultsFile;
@@ -237,7 +237,7 @@ public final class SerializableTestResultStore {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class OutputTrackedResult {
         private final long id;
         private final SerializableTestResult testResult;
@@ -312,7 +312,7 @@ public final class SerializableTestResultStore {
         return new OutputReader(outputZipFile);
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class OutputReader implements Closeable {
         private final ZipFile outputZipFile;
 

@@ -55,30 +55,6 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void handlesTestSrcWhichDoesNotContainAnyTestCases() {
-        given:
-        testFile("build.gradle") << """
-            plugins {
-                id("java")
-            }
-
-            ${mavenCentralRepository()}
-
-            testing.suites.test.useJUnit()
-        """
-        testFile("src/test/java/org/gradle/NotATest.java") << """
-            package org.gradle;
-            public class NotATest {}
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
-        executer.withTasks("build").run()
-    }
-
-    @Test
     void javadocGenerationFailureBreaksBuild() throws IOException {
         TestFile buildFile = testFile("build.gradle")
         buildFile.write("apply plugin: 'java'")

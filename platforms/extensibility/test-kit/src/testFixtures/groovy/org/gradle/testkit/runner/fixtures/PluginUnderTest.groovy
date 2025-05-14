@@ -108,30 +108,36 @@ class PluginUnderTest {
     }
 
     PluginUnderTest writeSourceFiles() {
-        pluginClassSourceFile() << """
-            package org.gradle.test
+        pluginClassSourceFile().java """
+            package org.gradle.test;
 
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
 
-            class HelloWorldPlugin$suffix implements Plugin<Project> {
-                void apply(Project project) {
-                    project.task('helloWorld$suffix', type: HelloWorld$suffix)
+            public class HelloWorldPlugin$suffix implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getTasks().create("helloWorld$suffix", HelloWorld${suffix}.class);
                 }
             }
         """
 
-        projectDir.file("src/main/groovy/org/gradle/test/HelloWorld${suffix}.groovy") << """
-            package org.gradle.test
+        projectDir.file("src/main/java/org/gradle/test/HelloWorld${suffix}.java").java """
+            package org.gradle.test;
 
-            import org.gradle.api.DefaultTask
-            import org.gradle.api.tasks.TaskAction
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
 
-            class HelloWorld$suffix extends DefaultTask {
+            import java.io.IOException;
+            import java.nio.charset.StandardCharsets;
+            import java.nio.file.Files;
+            import java.util.Collections;
+
+            public class HelloWorld$suffix extends DefaultTask {
                 @TaskAction
-                void doSomething() {
-                    println 'Hello world!$suffix'
-                    project.file("out.txt").text = "Hello world!$suffix"
+                public void doSomething() throws IOException {
+                    System.out.println("Hello world!$suffix");
+                    Files.write(getProject().file("out.txt").toPath(), "Hello world!$suffix".getBytes(StandardCharsets.UTF_8));
                 }
             }
         """
@@ -144,7 +150,7 @@ class PluginUnderTest {
     }
 
     TestFile pluginClassSourceFile() {
-        projectDir.file("src/main/groovy/org/gradle/test/HelloWorldPlugin${suffix}.groovy")
+        projectDir.file("src/main/java/org/gradle/test/HelloWorldPlugin${suffix}.java")
     }
 
     PluginUnderTest writeBuildScript() {
@@ -152,7 +158,6 @@ class PluginUnderTest {
             apply plugin: 'groovy'
             dependencies {
                 implementation gradleApi()
-                implementation localGroovy()
             }
         """
 

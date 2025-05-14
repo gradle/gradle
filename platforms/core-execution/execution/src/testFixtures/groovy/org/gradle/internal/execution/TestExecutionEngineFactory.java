@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution;
 
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
@@ -61,7 +62,8 @@ public class TestExecutionEngineFactory {
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         ValidateStep.ValidationWarningRecorder validationWarningReporter,
-        VirtualFileSystem virtualFileSystem
+        VirtualFileSystem virtualFileSystem,
+        InternalProblems problems
     ) {
         NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
         // @formatter:off
@@ -82,7 +84,8 @@ public class TestExecutionEngineFactory {
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationRunner
-        )))))))))))))))));
+        )))))))))))))))),
+            problems);
         // @formatter:on
     }
 }

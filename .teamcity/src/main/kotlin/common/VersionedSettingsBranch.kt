@@ -45,9 +45,15 @@ data class VersionedSettingsBranch(
 
         private const val EXPERIMENTAL_BRANCH = "experimental"
 
+        // master branch of gradle/gradle-promote
+        private const val GRADLE_PROMOTE_MASTER_VCS_ROOT_ID = "Gradle_GradlePromoteMaster"
+
+        // experimental branch of gradle/gradle-promote
+        private const val GRADLE_PROMOTE_EXPERIMENTAL_VCS_ROOT_ID = "Gradle_GradlePromoteExperimental"
+
         private val OLD_RELEASE_PATTERN = "release(\\d+)x".toRegex()
 
-        fun fromDslContext(): VersionedSettingsBranch = VersionedSettingsBranch(DslContext.getParameter("Branch", "placeholder"))
+        fun fromDslContext(): VersionedSettingsBranch = VersionedSettingsBranch(DslContext.getParameter("branch"))
 
         private fun determineNightlyPromotionTriggerHour(branchName: String) =
             when (branchName) {
@@ -76,6 +82,8 @@ data class VersionedSettingsBranch(
         get() = branchName == EXPERIMENTAL_BRANCH
 
     fun vcsRootId() = DslContext.settingsRoot.id.toString()
+
+    fun gradlePromoteVcsRootId() = if (isExperimental) GRADLE_PROMOTE_EXPERIMENTAL_VCS_ROOT_ID else GRADLE_PROMOTE_MASTER_VCS_ROOT_ID
 
     fun promoteNightlyTaskName() = nightlyTaskName("promote")
 

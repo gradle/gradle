@@ -17,24 +17,21 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.AdditionalDataSpec;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.problems.internal.ProblemsInfrastructure;
 import org.gradle.problems.ProblemDiagnostics;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 class DelegatingProblemBuilder implements InternalProblemBuilder {
 
     private final InternalProblemBuilder delegate;
@@ -129,11 +126,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public <T extends AdditionalData> InternalProblemBuilder additionalDataInternal(T additionalDataInstance) {
-        return validateDelegate(delegate.additionalDataInternal(additionalDataInstance));
-    }
-
-    @Override
     public InternalProblemBuilder withException(Throwable t) {
         return validateDelegate(delegate.withException(t));
     }
@@ -144,23 +136,13 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
+    public ProblemsInfrastructure getInfrastructure() {
+        return delegate.getInfrastructure();
+    }
+
+    @Override
     public InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics) {
         return delegate.diagnostics(diagnostics);
-    }
-
-    @Override
-    public AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
-        return delegate.getAdditionalDataBuilderFactory();
-    }
-
-    @Override
-    public Instantiator getInstantiator() {
-        return delegate.getInstantiator();
-    }
-
-    @Override
-    public PayloadSerializer getPayloadSerializer() {
-        return delegate.getPayloadSerializer();
     }
 
     private <T> T validateDelegate(T newDelegate) {

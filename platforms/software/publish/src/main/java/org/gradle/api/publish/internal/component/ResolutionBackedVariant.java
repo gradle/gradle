@@ -18,8 +18,7 @@ package org.gradle.api.publish.internal.component;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.SoftwareComponentVariant;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link SoftwareComponentVariant} which is optionally backed by resolution during publication.

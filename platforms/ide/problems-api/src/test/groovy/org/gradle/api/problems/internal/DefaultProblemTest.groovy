@@ -21,9 +21,11 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Specification
 
@@ -50,7 +52,7 @@ class DefaultProblemTest extends Specification {
     }
 
     def InternalProblemBuilder toBuilder(DefaultProblem problem) {
-        problem.toBuilder(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer))
+        problem.toBuilder(new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer), Mock(IsolatableFactory), Mock(IsolatableToBytesSerializer), Mock(ProblemStream)))
     }
 
     def "unbound builder result with modified #changedAspect is not equal"() {
@@ -77,7 +79,20 @@ class DefaultProblemTest extends Specification {
     def "unbound builder result with a change and check report"() {
         given:
         def emitter = Mock(ProblemSummarizer)
-        def problemReporter = new DefaultProblemReporter(emitter, null, CurrentBuildOperationRef.instance(), new AdditionalDataBuilderFactory(), new ExceptionProblemRegistry(), null, Mock(Instantiator), Mock(PayloadSerializer))
+        def problemReporter = new DefaultProblemReporter(
+            emitter,
+            CurrentBuildOperationRef.instance(),
+            new ExceptionProblemRegistry(),
+            null,
+            new ProblemsInfrastructure(
+                new AdditionalDataBuilderFactory(),
+                Mock(Instantiator),
+                Mock(PayloadSerializer),
+                Mock(IsolatableFactory),
+                Mock(IsolatableToBytesSerializer),
+                Mock(ProblemStream)
+            )
+        )
         def problem = createTestProblem(Severity.WARNING)
         def builder = toBuilder(problem)
         def newProblem = builder

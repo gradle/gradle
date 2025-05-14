@@ -19,7 +19,7 @@
  * integration of Java plugins. It provides the implementation of the
  * {@link org.gradle.api.plugins.jvm.internal.JvmPluginServices} service.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.testing.toolchains.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

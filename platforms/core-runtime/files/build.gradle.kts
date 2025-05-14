@@ -5,11 +5,14 @@ plugins {
 
 description = "Base tools to work with files"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)
 
+    api(libs.jspecify)
     api(libs.jsr305)
 
     implementation(libs.guava)

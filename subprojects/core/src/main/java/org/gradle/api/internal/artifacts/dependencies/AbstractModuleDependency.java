@@ -36,8 +36,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -45,22 +45,35 @@ import java.util.Set;
 
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
-public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
+public abstract class AbstractModuleDependency implements ModuleDependency {
+
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
 
+    // TODO: Require these to be provided upon construction
     private AttributesFactory attributesFactory;
     private NotationParser<Object, Capability> capabilityNotationParser;
     private ObjectFactory objectFactory;
+
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new LinkedHashSet<>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
-    private AttributeContainerInternal attributes;
-    private ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
-
-    @Nullable
-    private String configuration;
+    private @Nullable AttributeContainerInternal attributes;
+    private @Nullable ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
+    private @Nullable String configuration;
+    private @Nullable String reason;
     private boolean transitive = true;
     private boolean endorsing;
+
+    @Nullable
+    @Override
+    public String getReason() {
+        return reason;
+    }
+
+    @Override
+    public void because(@Nullable String reason) {
+        this.reason = reason;
+    }
 
     @Override
     public boolean isTransitive() {
@@ -75,7 +88,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     @Override
-    public String getTargetConfiguration() {
+    public @Nullable String getTargetConfiguration() {
         return configuration;
     }
 
@@ -124,7 +137,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     @Override
-    public DependencyArtifact artifact(Closure configureClosure) {
+    public DependencyArtifact artifact(@SuppressWarnings("rawtypes") Closure configureClosure) {
         return artifact(configureUsing(configureClosure));
     }
 
@@ -149,7 +162,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     protected void copyTo(AbstractModuleDependency target) {
-        super.copyTo(target);
+        target.because(reason);
         target.setArtifacts(new LinkedHashSet<>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
@@ -169,47 +182,15 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         }
     }
 
-    protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
-        if (getGroup() != null ? !getGroup().equals(dependencyRhs.getGroup()) : dependencyRhs.getGroup() != null) {
-            return false;
-        }
-        if (!getName().equals(dependencyRhs.getName())) {
-            return false;
-        }
-        if (getTargetConfiguration() != null ? !getTargetConfiguration().equals(dependencyRhs.getTargetConfiguration())
-            : dependencyRhs.getTargetConfiguration()!=null) {
-            return false;
-        }
-        if (getVersion() != null ? !getVersion().equals(dependencyRhs.getVersion())
-                : dependencyRhs.getVersion() != null) {
-            return false;
-        }
-        return true;
-    }
-
     protected boolean isCommonContentEquals(ModuleDependency dependencyRhs) {
-        if (!isKeyEquals(dependencyRhs)) {
-            return false;
-        }
-        if (isTransitive() != dependencyRhs.isTransitive()) {
-            return false;
-        }
-        if (isEndorsingStrictVersions() != dependencyRhs.isEndorsingStrictVersions()) {
-            return false;
-        }
-        if (!Objects.equal(getArtifacts(), dependencyRhs.getArtifacts())) {
-            return false;
-        }
-        if (!Objects.equal(getExcludeRules(), dependencyRhs.getExcludeRules())) {
-            return false;
-        }
-        if (!Objects.equal(getAttributes(), dependencyRhs.getAttributes())) {
-            return false;
-        }
-        if (!Objects.equal(getCapabilitySelectors(), dependencyRhs.getCapabilitySelectors())) {
-            return false;
-        }
-        return true;
+        return Objects.equal(getTargetConfiguration(), dependencyRhs.getTargetConfiguration()) &&
+            isTransitive() == dependencyRhs.isTransitive() &&
+            isEndorsingStrictVersions() == dependencyRhs.isEndorsingStrictVersions() &&
+            Objects.equal(getReason(), dependencyRhs.getReason()) &&
+            Objects.equal(getArtifacts(), dependencyRhs.getArtifacts()) &&
+            Objects.equal(getExcludeRules(), dependencyRhs.getExcludeRules()) &&
+            getAttributes().equals(dependencyRhs.getAttributes()) &&
+            getCapabilitySelectors().equals(dependencyRhs.getCapabilitySelectors());
     }
 
     @Override
@@ -305,7 +286,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.attributes = attributes;
     }
 
-    @SuppressWarnings("unchecked")
     public void addMutationValidator(Action<? super ModuleDependency> action) {
         this.onMutate = onMutate.add(action);
     }
@@ -314,7 +294,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         onMutate.execute(this);
     }
 
-    protected void validateMutation(Object currentValue, Object newValue) {
+    protected void validateMutation(@Nullable Object currentValue, @Nullable Object newValue) {
         if (!Objects.equal(currentValue, newValue)) {
             validateMutation();
         }

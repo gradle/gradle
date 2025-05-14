@@ -23,8 +23,7 @@ import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The result of resolving some dynamic version selector to a particular component id.

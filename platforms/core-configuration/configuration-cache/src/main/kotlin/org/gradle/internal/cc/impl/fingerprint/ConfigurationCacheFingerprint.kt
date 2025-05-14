@@ -44,6 +44,7 @@ sealed class ConfigurationCacheFingerprint {
          * With the agent, the class paths may be stored differently, making the caches incompatible with one another.
          */
         val instrumentationAgentUsed: Boolean,
+
         /**
          * The file system paths that will be ignored during file system checks tracking for the cache fingerprint.
          * @see org.gradle.internal.cc.impl.DefaultIgnoredConfigurationInputs

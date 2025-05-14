@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.core;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface GradleEnterprisePluginAdapter {
 

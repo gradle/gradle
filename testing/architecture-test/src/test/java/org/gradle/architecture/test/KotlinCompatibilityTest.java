@@ -25,8 +25,10 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 
 @AnalyzeClasses(packages = "org.gradle")
+@NullMarked
 public class KotlinCompatibilityTest {
 
     @ArchTest
@@ -151,8 +154,8 @@ public class KotlinCompatibilityTest {
         }
 
         public boolean nullableIsSymmetric() {
-            long nullableGetterCount = getters.stream().filter(this::getterAnnotatedWithNullable).count();
-            long nullableSetterCount = setters.stream().filter(this::setterAnnotatedWithNullable).count();
+            long nullableGetterCount = getters.stream().filter(Accessors::getterAnnotatedWithNullable).count();
+            long nullableSetterCount = setters.stream().filter(Accessors::setterAnnotatedWithNullable).count();
 
             boolean gettersArePartiallyNull = 0 < nullableGetterCount && nullableGetterCount < getters.size();
             boolean settersArePartiallyNull = 0 < nullableSetterCount && nullableSetterCount < setters.size();
@@ -166,12 +169,19 @@ public class KotlinCompatibilityTest {
             return nonNullGetters == nonNullSetters;
         }
 
-        private boolean getterAnnotatedWithNullable(JavaMethod getter) {
-            return getter.isAnnotatedWith(Nullable.class);
+        private static boolean getterAnnotatedWithNullable(JavaMethod getter) {
+            try {
+                Method method = getter.reflect();
+                return method.getAnnotatedReturnType().getAnnotation(Nullable.class) != null;
+            } catch (NoClassDefFoundError e) {
+                return getter.isAnnotatedWith(Nullable.class);
+            }
         }
 
-        private boolean setterAnnotatedWithNullable(JavaMethod setter) {
-            return Arrays.stream(setter.reflect().getParameterAnnotations()[0]).anyMatch(a -> a instanceof Nullable);
+        private static boolean setterAnnotatedWithNullable(JavaMethod setter) {
+            return Arrays.stream(setter.reflect().getAnnotatedParameterTypes()[0].getAnnotations()).anyMatch(a ->
+                a instanceof Nullable
+            );
         }
 
         @Override
@@ -184,7 +194,7 @@ public class KotlinCompatibilityTest {
         // We avoid using reflect, since that leads to class loading exceptions
         return !m.getModifiers().contains(JavaModifier.STATIC)
             && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
-            && m.getRawParameterTypes().size() == 0
+            && m.getRawParameterTypes().isEmpty()
             && (accessorType != PropertyAccessorType.IS_GETTER || m.getRawReturnType().isEquivalentTo(Boolean.TYPE) || m.getRawReturnType().isEquivalentTo(Boolean.class));
     }
 

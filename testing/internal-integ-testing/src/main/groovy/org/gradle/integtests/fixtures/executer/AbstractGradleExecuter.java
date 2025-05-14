@@ -43,12 +43,13 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -156,9 +157,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private File userHomeDir;
     private String javaHome;
     private Jvm jvm;
-    private File buildScript;
     private File projectDir;
-    private File settingsFile;
     private boolean ignoreMissingSettingsFile;
     private boolean ignoreCleanupAssertions;
     private PipedOutputStream stdinPipe;
@@ -245,8 +244,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         initScripts.clear();
         workingDir = null;
         projectDir = null;
-        buildScript = null;
-        settingsFile = null;
         ignoreMissingSettingsFile = false;
         // ignoreCleanupAssertions is intentionally sticky
         // ignoreCleanupAssertions = false;
@@ -334,12 +331,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (projectDir != null) {
             executer.usingProjectDirectory(projectDir);
         }
-        if (buildScript != null) {
-            executer.usingBuildScript(buildScript);
-        }
-        if (settingsFile != null) {
-            executer.usingSettingsFile(settingsFile);
-        }
         if (ignoreMissingSettingsFile) {
             executer.ignoreMissingSettingsFile();
         }
@@ -425,10 +416,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        if (debug.isEnabled()){
+        if (debug.isEnabled()) {
             executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts));
         }
-        if (debugLauncher.isEnabled()){
+        if (debugLauncher.isEnabled()) {
             executer.startLauncherInDebugger(opts -> debugLauncher.copyTo(opts));
         }
 
@@ -479,22 +470,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    @Deprecated
-    public GradleExecuter usingBuildScript(File buildScript) {
-        this.buildScript = buildScript;
-        return this;
-    }
-
-    @Override
     public GradleExecuter usingProjectDirectory(File projectDir) {
         this.projectDir = projectDir;
-        return this;
-    }
-
-    @Override
-    @Deprecated
-    public GradleExecuter usingSettingsFile(File settingsFile) {
-        this.settingsFile = settingsFile;
         return this;
     }
 
@@ -605,6 +582,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
+
+        // Note: it's possible we shouldn't calculate _any_ implicit JVM args when requested to use only the specified ones, but to preserve behavior I only excluded the new flag here
+        if (useOnlyRequestedJvmOpts) {
+            return;
+        }
+
+        JavaVersion javaVersion = getJavaVersionFromJavaHome();
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            // Remove known warning that occurs in the launcher. This can be fixed by refactoring the bin/gradle start script to pass the flag or by adding the flag to the launcher JAR
+            // and refactoring the start script to use that JAR instead of a main class.
+            gradleInvocation.implicitLauncherJvmArgs.add("--enable-native-access=ALL-UNNAMED");
+        }
     }
 
     protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
@@ -1084,10 +1073,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     protected List<String> getAllArgs() {
         List<String> allArgs = new ArrayList<>();
-        if (buildScript != null) {
-            allArgs.add("--build-file");
-            allArgs.add(buildScript.getAbsolutePath());
-        }
         if (projectDir != null) {
             allArgs.add("--project-dir");
             allArgs.add(projectDir.getAbsolutePath());
@@ -1095,10 +1080,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         for (File initScript : initScripts) {
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
-        }
-        if (settingsFile != null) {
-            allArgs.add("--settings-file");
-            allArgs.add(settingsFile.getAbsolutePath());
         }
         if (quiet) {
             allArgs.add("--quiet");
@@ -1120,7 +1101,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("dependencies");
         }
 
-        if (settingsFile == null && !ignoreMissingSettingsFile) {
+        if (!ignoreMissingSettingsFile) {
             ensureSettingsFileAvailable();
         }
 
@@ -1386,14 +1367,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings = new ArrayList<>();
         if (filterJavaVersionDeprecation) {
-            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(normalizeDocumentationLink(
-                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-                    "This will fail with an error in Gradle 9.0. " +
-                    "Use JVM 17 or greater to execute Gradle. " +
-                    "Projects can continue to use older JVM versions via toolchains. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
-            )));
+            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(
+                SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(getComputedGradleVersion())
+            ));
         }
 
         return new ResultAssertion(
@@ -1438,11 +1414,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     private String normalizeDocumentationLink(String warning) {
-        if (gradleVersionOverride != null) {
-            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersionOverride);
-        } else {
-            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersion);
-        }
+        return DocumentationUtils.normalizeDocumentationLink(warning, getComputedGradleVersion());
+    }
+
+    private GradleVersion getComputedGradleVersion() {
+        return gradleVersionOverride != null ? gradleVersionOverride : gradleVersion;
     }
 
     @Override
@@ -1664,7 +1640,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private static ServiceRegistry newCommandLineProcessLogging() {
         ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
+        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
     }

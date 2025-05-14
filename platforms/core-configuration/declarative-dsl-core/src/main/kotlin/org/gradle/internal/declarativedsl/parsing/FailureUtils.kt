@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Element
 import org.gradle.internal.declarativedsl.language.ElementResult
@@ -49,6 +50,10 @@ fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResu
             is ErroneousStatement -> addExpanded(current.failingResult)
             is Block -> current.content.forEach(::collectFrom)
             is Assignment -> {
+                collectFrom(current.lhs)
+                collectFrom(current.rhs)
+            }
+            is AugmentingAssignment -> {
                 collectFrom(current.lhs)
                 collectFrom(current.rhs)
             }

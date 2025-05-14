@@ -18,27 +18,24 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
-    private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemSummarizer problemSummarizer;
     private final InternalProblemReporter internalReporter;
-    private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
-    private final Instantiator instantiator;
-    private final PayloadSerializer payloadSerializer;
+    private final ProblemsInfrastructure infrastructure;
 
     public DefaultProblems(
         ProblemSummarizer problemSummarizer,
@@ -47,15 +44,15 @@ public class DefaultProblems implements InternalProblems {
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        IsolatableFactory isolatableFactory,
+        IsolatableToBytesSerializer isolatableSerializer
     ) {
         this.problemSummarizer = problemSummarizer;
-        this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
-        this.instantiator = instantiator;
-        this.payloadSerializer = payloadSerializer;
+        this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
         this.internalReporter = createReporter();
     }
 
@@ -63,18 +60,14 @@ public class DefaultProblems implements InternalProblems {
     public ProblemReporter getReporter() {
         return createReporter();
     }
-
-    @Nonnull
+    @NonNull
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
             problemSummarizer,
-            problemStream,
             currentBuildOperationRef,
-            additionalDataBuilderFactory,
             exceptionProblemRegistry,
             exceptionAnalyser,
-            instantiator,
-            payloadSerializer);
+            infrastructure);
     }
 
     @Override
@@ -83,17 +76,11 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
-    public AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
-        return additionalDataBuilderFactory;
+    public ProblemsInfrastructure getInfrastructure() {
+        return infrastructure;
     }
-
-    @Override
-    public Instantiator getInstantiator() {
-        return instantiator;
-    }
-
     @Override
     public InternalProblemBuilder getProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer);
+        return new DefaultProblemBuilder(infrastructure);
     }
 }

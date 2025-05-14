@@ -26,15 +26,13 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.PluginIdLocation
+import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
@@ -146,11 +144,19 @@ class ReceivedProblem implements InternalProblem {
         contextualLocations
     }
 
-    <T extends ProblemLocation> T getSingleLocation(Class<T> locationType) {
-        def location = originLocations.find {
+    <T extends ProblemLocation> T getSingleOriginLocation(Class<T> locationType) {
+        return getSingleLocation(locationType, originLocations)
+    }
+
+    <T extends ProblemLocation> T getSingleContextualLocation(Class<T> locationType) {
+        return getSingleLocation(locationType, contextualLocations)
+    }
+
+    private static <T extends ProblemLocation> T getSingleLocation(Class<T> locationType, List<ProblemLocation> locations) {
+        def location = locations.find {
             locationType.isInstance(it)
         }
-        assert location != null : "Expected a location of type $locationType, but found none."
+        assert location != null : "Expected a location of type $locationType, but found none. Available locations: ${locations.collect { it.getClass().name }}"
         return locationType.cast(location)
     }
 
@@ -166,7 +172,48 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
+    String toString() {
+        String originLocationsStr = originLocations.collect { formatLocation(it) }.join(", ")
+        String contextualLocationsStr = contextualLocations.collect { formatLocation(it) }.join(", ")
+        String solutionsStr = solutions.collect { "'${it}'" }.join(", ")
+
+        return "ReceivedProblem{" +
+            "id=${definition.id.fqid}" +
+            ", severity=${severity}" +
+            ", label='${contextualLabel}'" +
+            ", details='${details}'" +
+            ", originLocations=[${originLocationsStr}]" +
+            ", contextualLocations=[${contextualLocationsStr}]" +
+            ", solutions=[${solutionsStr}]" +
+            "}"
+    }
+
+    private String formatLocation(ProblemLocation location) {
+        if (location instanceof FileLocation) {
+            String result = "File(" + ((FileLocation) location).path
+            if (location instanceof LineInFileLocation) {
+                LineInFileLocation lineLocation = (LineInFileLocation) location
+                result += ", line=" + lineLocation.line + ", column=" + lineLocation.column
+            } else if (location instanceof OffsetInFileLocation) {
+                OffsetInFileLocation offsetLocation = (OffsetInFileLocation) location
+                result += ", offset=" + offsetLocation.offset
+            }
+            result += ")"
+            return result
+        } else if (location instanceof PluginIdLocation) {
+            return "Plugin(" + ((PluginIdLocation) location).pluginId + ")"
+        } else if (location instanceof TaskLocation) {
+            return "Task(" + ((TaskLocation) location).buildTreePath + ")"
+        } else if (location instanceof StackTraceLocation) {
+            StackTraceLocation stackLocation = (StackTraceLocation) location
+            return "StackTrace(elements=" + stackLocation.stackTrace.size() + ")"
+        } else {
+            return location.toString()
+        }
+    }
+
+    @Override
+    InternalProblemBuilder toBuilder(ProblemsInfrastructure infrastructure) {
         throw new UnsupportedOperationException("Not implemented")
     }
 

@@ -33,6 +33,8 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     implementation(projects.buildOperationsTrace)
+    implementation(projects.buildProcessServices)
+    implementation(projects.buildProcessStartup)
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.loggingApi)
@@ -40,4 +42,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serialization)
 
+    implementation(libs.jspecify)
+
+    testImplementation(projects.serviceRegistryImpl)
 }

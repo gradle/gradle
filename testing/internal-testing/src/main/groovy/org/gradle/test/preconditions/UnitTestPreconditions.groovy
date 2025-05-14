@@ -213,7 +213,7 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             def currentMajor = Integer.parseInt(JavaVersion.current().majorVersion)
-            return currentMajor < SupportedJavaVersions.MINIMUM_JAVA_VERSION
+            return currentMajor < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION
         }
     }
 
@@ -224,8 +224,8 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             def currentMajor = Integer.parseInt(JavaVersion.current().majorVersion)
-            return (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION) &&
-                (currentMajor >= SupportedJavaVersions.MINIMUM_JAVA_VERSION)
+            return (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) &&
+                (currentMajor >= SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)
         }
     }
 
@@ -236,7 +236,7 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             def currentMajor = Integer.parseInt(JavaVersion.current().majorVersion)
-            return currentMajor >= SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION
+            return currentMajor >= SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION
         }
     }
 
@@ -612,20 +612,6 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             notSatisfied(StableGroovy)
-        }
-    }
-
-    static final class IsGroovy3 implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            GroovySystem.version.startsWith("3.")
-        }
-    }
-
-    static final class IsGroovy4 implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            GroovySystem.version.startsWith("4.")
         }
     }
 

@@ -18,8 +18,7 @@ package org.gradle.internal.isolation;
 
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.snapshot.ValueSnapshot;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Isolatable objects can return an isolated instance of the given type T from which this object was created.

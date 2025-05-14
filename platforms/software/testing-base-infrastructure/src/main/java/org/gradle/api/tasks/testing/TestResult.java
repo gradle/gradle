@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -65,6 +65,16 @@ public interface TestResult {
      * @return The exceptions, if any, logged for this test. If none, an empty list is returned.
      */
     List<Throwable> getExceptions();
+
+    /**
+     * If the test failed with assumption violation, this will contain the failure.
+     *
+     * @return the failure, if any, logged for this test. If none, null is returned.
+     *
+     * @since 8.14
+     */
+    @Incubating
+    TestFailure getAssumptionFailure();
 
     /**
      * Returns the time when this test started execution.

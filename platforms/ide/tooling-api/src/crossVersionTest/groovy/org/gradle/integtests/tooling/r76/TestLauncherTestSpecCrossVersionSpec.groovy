@@ -18,14 +18,12 @@ package org.gradle.integtests.tooling.r76
 
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.TestSpecs
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 
-@ToolingApiVersion('>=7.6')
 @TargetGradleVersion(">=7.6")
 class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
@@ -33,7 +31,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         withFailingTest() // ensures that withTestsFor statements are not ignored
     }
 
-    @TargetGradleVersion('>=3.0 <7.6')
+    @TargetGradleVersion('>=4.0 <7.6')
     def "older Gradle versions ignore withTestsFor calls"() {
         when:
         launchTests { TestLauncher launcher ->

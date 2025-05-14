@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
@@ -37,7 +37,7 @@ import java.util.function.Consumer;
 public class FileCollectionBackedFileTree extends AbstractFileTree {
     private final AbstractFileCollection collection;
 
-    public FileCollectionBackedFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, AbstractFileCollection collection) {
+    public FileCollectionBackedFileTree(TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, AbstractFileCollection collection) {
         super(taskDependencyFactory, patternSetFactory);
         this.collection = collection;
     }
@@ -57,7 +57,7 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
     @Override
     public FileTreeInternal matching(PatternFilterable patterns) {
         return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, () -> {
-            PatternSet patternSet = patternSetFactory.create();
+            PatternSet patternSet = patternSetFactory.createPatternSet();
             patternSet.copyFrom(patterns);
             return patternSet;
         });
@@ -96,7 +96,7 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
 
             @Override
             public void visitCollection(Source source, Iterable<File> contents) {
-                PatternSet patterns = patternSetFactory.create();
+                PatternSet patterns = patternSetFactory.createPatternSet();
                 for (File file : contents) {
                     if (seen.add(file)) {
                         new FileTreeAdapter(new DirectoryFileTree(file, patterns, FileSystems.getDefault()), taskDependencyFactory, patternSetFactory).visitStructure(visitor);

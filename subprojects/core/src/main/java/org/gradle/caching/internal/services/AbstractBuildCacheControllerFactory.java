@@ -38,10 +38,10 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -152,14 +152,14 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         Describer describer = new Describer();
         S service = Cast.uncheckedNonnullCast(factory.createBuildCacheService(configuration, describer));
         ImmutableSortedMap<String, String> config = ImmutableSortedMap.copyOf(describer.configParams);
-        BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, config);
+        BuildCacheDescriptionImpl description = new BuildCacheDescriptionImpl(configuration, describer.type, config);
 
         logConfig(buildIdentityPath, role, description);
 
         return new DescribedBuildCacheService<>(configuration, service, description);
     }
 
-    private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescription description) {
+    private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescriptionImpl description) {
         if (LOGGER.isInfoEnabled()) {
             StringBuilder config = new StringBuilder();
             boolean pullOnly = !description.isPush();
@@ -200,14 +200,14 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         }
     }
 
-    private static final class BuildCacheDescription implements FinalizeBuildCacheConfigurationBuildOperationType.Result.BuildCacheDescription {
+    private static final class BuildCacheDescriptionImpl implements FinalizeBuildCacheConfigurationBuildOperationType.Result.BuildCacheDescription {
 
         private final String className;
         private final boolean push;
         private final String type;
         private final ImmutableSortedMap<String, String> config;
 
-        private BuildCacheDescription(BuildCache buildCache, String type, ImmutableSortedMap<String, String> config) {
+        private BuildCacheDescriptionImpl(BuildCache buildCache, String type, ImmutableSortedMap<String, String> config) {
             this.className = GeneratedSubclasses.unpackType(buildCache).getName();
             this.push = buildCache.isPush();
             this.type = type;
@@ -258,9 +258,9 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
     protected static class DescribedBuildCacheService<C, S> {
         public final C config;
         public final S service;
-        public final BuildCacheDescription description;
+        public final BuildCacheDescriptionImpl description;
 
-        public DescribedBuildCacheService(C config, S service, BuildCacheDescription description) {
+        public DescribedBuildCacheService(C config, S service, BuildCacheDescriptionImpl description) {
             this.config = config;
             this.service = service;
             this.description = description;

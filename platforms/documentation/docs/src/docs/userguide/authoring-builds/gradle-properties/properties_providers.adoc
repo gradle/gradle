@@ -18,8 +18,6 @@
 Gradle provides properties that are important for <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
 When implementing a custom task or plugin, it's imperative that you use these lazy properties.
 
-image::prop-prov-1.png[]
-
 Gradle represents lazy properties with two interfaces:
 
 1. link:{javadocPath}/org/gradle/api/provider/Property.html[Property] - Represents a value that can be queried and changed.

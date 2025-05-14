@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.common
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
@@ -82,7 +83,7 @@ class GradlePropertyApiPropertyExtractor(
                     property.returnType,
                     property.returnTypeToRefOrError(host) { propertyValueType(property.returnType) },
                     DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
-                    hasDefaultValue = false,
+                    hasDefaultValue = true,
                     isHiddenInDeclarativeDsl = isHidden,
                     isDirectAccessOnly = isDirectAccessOnly,
                     claimedFunctions = emptyList()
@@ -106,7 +107,13 @@ class GradlePropertyApiPropertyExtractor(
                 val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
                 val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
                 CollectedPropertyInformation(
-                    propertyName, getter.returnType, type, DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly, false, isHidden, isDirectAccessOnly,
+                    propertyName,
+                    getter.returnType,
+                    type,
+                    DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
+                    hasDefaultValue = true,
+                    isHidden,
+                    isDirectAccessOnly,
                     claimedFunctions = listOf(getter)
                 )
             }
@@ -125,7 +132,7 @@ class PropertyReturnTypeDiscovery : TypeDiscovery {
 
 
 private
-val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, RegularFileProperty::class, ListProperty::class)
+val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, RegularFileProperty::class, ListProperty::class, MapProperty::class)
 
 
 private
@@ -136,6 +143,10 @@ private
 fun propertyValueType(type: KType): KType {
     if (type.classifier == ListProperty::class) {
         return List::class.createType(type.arguments)
+    }
+
+    if (type.classifier == MapProperty::class) {
+        return Map::class.createType(type.arguments)
     }
 
     fun searchClassHierarchyForPropertyType(type: KType): KType? {

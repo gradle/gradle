@@ -17,8 +17,8 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Throwables;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+import org.gradle.internal.UncheckedException;
 
 /**
  * A helper to handle transform errors in {@link InstrumentingClassLoader}.
@@ -117,8 +117,8 @@ public class TransformErrorHandler {
         if (pendingException != null) {
             addSuppressedIfAvailable(th, pendingException);
         }
-        Throwables.propagateIfPossible(th, ClassNotFoundException.class);
-        throw new RuntimeException("Unexpected exception type", th);
+        Throwables.throwIfInstanceOf(th, ClassNotFoundException.class);
+        throw UncheckedException.throwAsUncheckedException(th);
     }
 
     @Nullable

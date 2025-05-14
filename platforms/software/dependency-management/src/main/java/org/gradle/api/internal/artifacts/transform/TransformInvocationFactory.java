@@ -20,10 +20,13 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 
+@ServiceScope(Scope.Project.class)
 @ThreadSafe
 public interface TransformInvocationFactory {
     /**

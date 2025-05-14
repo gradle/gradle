@@ -28,8 +28,8 @@ import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.Map;
 import java.util.Objects;
@@ -98,7 +98,7 @@ public class DefaultTaskSelector implements TaskSelector {
         if (context.getOriginalPath().getPath().equals(taskName)) {
             String message = matcher.formatErrorMessage("Task", searchContext);
             throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), matcher.problemId(), spec -> {
-                configureProblem(spec, matcher, context);
+                configureProblem(spec, context);
                 spec.contextualLabel(message);
             });
         }
@@ -106,18 +106,18 @@ public class DefaultTaskSelector implements TaskSelector {
             matcher.formatErrorMessage("task", searchContext));
 
         throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(), spec ->
-            configureProblem(spec, matcher, context)
+            configureProblem(spec, context)
               .contextualLabel(message)
         );
     }
 
-    private static ProblemSpec configureProblem(ProblemSpec spec, NameMatcher matcher, SelectionContext context) {
+    private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
         ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
         spec.severity(Severity.ERROR);
         return spec;
     }
 
-    @Nonnull
+    @NonNull
     private static String getSearchContext(ProjectState targetProject, boolean includeSubprojects) {
         if (includeSubprojects && !targetProject.getChildProjects().isEmpty()) {
             return targetProject.getDisplayName() + " and its subprojects";

@@ -18,8 +18,8 @@ package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.dd.plist.NSArray;
 import com.dd.plist.NSString;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

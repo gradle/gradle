@@ -16,17 +16,9 @@
 
 package org.gradle.api.internal.component;
 
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponentVariant;
 
 /**
  * This is a legacy type and should be avoided if possible. Use {@link SoftwareComponentVariant} instead.
  */
-public interface UsageContext extends SoftwareComponentVariant {
-    @Deprecated
-    default Usage getUsage(){
-        // This method kept for backwards compatibility of plugins (like kotlin-multiplatform) using internal APIs.
-        // KMP has recently stopped using this method, so we should be able to remove it
-        throw new UnsupportedOperationException("This method has been deprecated and should never be called");
-    }
-}
+public interface UsageContext extends SoftwareComponentVariant {}

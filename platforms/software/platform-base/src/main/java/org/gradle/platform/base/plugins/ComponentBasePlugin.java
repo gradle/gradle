@@ -55,6 +55,8 @@ public abstract class ComponentBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
+        project.getPluginManager().apply("org.gradle.model-reporting-tasks");
+        project.getPluginManager().apply("org.gradle.component-reporting-tasks");
     }
 
     @SuppressWarnings("UnusedDeclaration")

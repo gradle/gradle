@@ -120,7 +120,7 @@ idea.module.testOutputDir = file('someTestDir')
         module.compilerOutput.testOutputDir == file('someTestDir')
     }
 
-    @TargetGradleVersion(">=3.0 <5.0")
+    @TargetGradleVersion(">=4.0 <5.0")
     def "provides source dir information"() {
 
         file('build.gradle').text = "apply plugin: 'java'"

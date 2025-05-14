@@ -22,6 +22,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
+// TODO: We should consider renaming every concat method here to "merge" or something,
+//       as these are not concatenation operations, and it is confusing to expect them
+//       to behave as such.  They REPLACE duplicate keys, and sometimes result in adding
+//       MULTIPLE values to the result for a single key.
 @ServiceScope(Scope.BuildSession.class)
 public interface AttributesFactory {
     /**
@@ -64,12 +68,12 @@ public interface AttributesFactory {
     ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes);
 
     /**
-     * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
+     * Merges the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
     <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value);
 
     /**
-     * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
+     * Merges the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
     <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
 

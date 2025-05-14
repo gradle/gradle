@@ -26,8 +26,8 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.DeferredUtil;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 import java.util.function.Supplier;
 

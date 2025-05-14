@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -25,6 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * These components may be produced within the same project, another project in the same multi-project build,
  * or in another build within a composite.
  */
+@ServiceScope(Scope.Project.class)
 @ThreadSafe
 public interface LocalComponentRegistry {
     /**

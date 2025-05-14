@@ -15,9 +15,8 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.internal.metaobject.DynamicObject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -68,11 +67,4 @@ public interface Convention extends ExtensionContainer {
     @Deprecated
     <T> T findPlugin(Class<T> type) throws IllegalStateException;
 
-    /**
-     * Returns a dynamic object which represents the properties and methods contributed by the extensions and convention objects contained in this
-     * convention.
-     *
-     * @return The dynamic object
-     */
-    DynamicObject getExtensionsAsDynamicObject();
 }

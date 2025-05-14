@@ -19,8 +19,8 @@ package org.gradle.tooling.events.task.internal.java;
 import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
 import org.gradle.tooling.events.task.internal.TaskExecutionDetails;
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResult implements JavaCompileTaskOperationResult {

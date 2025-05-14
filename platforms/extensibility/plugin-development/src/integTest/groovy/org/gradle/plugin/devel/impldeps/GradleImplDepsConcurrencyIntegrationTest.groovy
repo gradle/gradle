@@ -96,13 +96,15 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
 
     static String gradleApiAndTestKitClassLoadingTestClass() {
         """
-            class MyTest extends groovy.test.GroovyTestCase {
+            class MyTest {
 
+                @org.junit.jupiter.api.Test
                 void testUsageOfGradleApiAndTestKitClasses() {
                     def classLoader = getClass().classLoader
                     classLoader.loadClass('${Plugin.class.getName()}')
                     classLoader.loadClass('org.gradle.testkit.runner.GradleRunner')
                 }
+
             }
         """
     }
