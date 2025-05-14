@@ -14,12 +14,12 @@ gradleModule {
  * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well
  */
 tasks.named<JavaCompile>("compileTestJava") {
-    options.release = 8
+    options.release = 8 // FIXME: can this be removed?
 }
 afterEvaluate {
     tasks.named<GroovyCompile>("compileTestGroovy") {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "1.8" // FIXME: can this be removed?
+        targetCompatibility = "1.8" // FIXME: can this be removed?
     }
 }
 
@@ -27,7 +27,7 @@ afterEvaluate {
  * Use Java 8 compatibility for JMH benchmarks
  */
 tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
-    options.release = 8
+    options.release = 8 // FIXME: can this be removed?
 }
 
 moduleIdentity.createBuildReceipt()
