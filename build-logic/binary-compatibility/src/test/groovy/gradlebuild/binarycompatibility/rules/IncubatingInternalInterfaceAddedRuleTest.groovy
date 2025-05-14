@@ -21,7 +21,6 @@ import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
 import japicmp.model.JApiImplementedInterface
 import japicmp.model.JApiMethod
-import japicmp.util.Optional
 import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.api.Incubating

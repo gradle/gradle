@@ -18,6 +18,7 @@ package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.AcceptedApiChanges;
 import gradlebuild.binarycompatibility.ApiChange;
+import groovy.transform.CompileStatic;
 import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
@@ -25,6 +26,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@CompileStatic
 public class AcceptedRegressionsRuleSetup implements SetupRule {
 
     private final Set<ApiChange> acceptedApiChanges;

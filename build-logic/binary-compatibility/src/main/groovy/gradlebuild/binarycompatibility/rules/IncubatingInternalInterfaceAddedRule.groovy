@@ -19,6 +19,7 @@ package gradlebuild.binarycompatibility.rules
 import japicmp.model.JApiChangeStatus
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
+import japicmp.model.JApiHasChangeStatus
 import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 
@@ -29,7 +30,10 @@ class IncubatingInternalInterfaceAddedRule extends AbstractSuperClassChangesRule
     }
 
     protected boolean changed(JApiCompatibility member) {
-        return member.getChangeStatus() == JApiChangeStatus.MODIFIED
+        if (member instanceof JApiHasChangeStatus) {
+            return member.getChangeStatus() == JApiChangeStatus.MODIFIED
+        }
+        return false
     }
 
     protected Violation checkSuperClassChanges(JApiClass c, CtClass oldClass, CtClass newClass) {

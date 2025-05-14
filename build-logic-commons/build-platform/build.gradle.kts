@@ -31,7 +31,7 @@ dependencies {
         api("com.gradle:develocity-gradle-plugin:4.0.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.3.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.10")
-        api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
+        api("me.champeau.gradle:japicmp-gradle-plugin:0.4.6")
         api("me.champeau.jmh:jmh-gradle-plugin:0.7.2")
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.4")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }

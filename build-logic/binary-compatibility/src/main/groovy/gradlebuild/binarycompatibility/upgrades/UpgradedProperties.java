@@ -37,11 +37,11 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static gradlebuild.binarycompatibility.rules.SinceAnnotationRule.SINCE_ERROR_MESSAGE;
-import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_INTERFACE;
-import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
-import static japicmp.model.JApiCompatibilityChange.METHOD_NEW_DEFAULT;
-import static japicmp.model.JApiCompatibilityChange.METHOD_REMOVED;
-import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_ADDED_TO_INTERFACE;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_ADDED_TO_PUBLIC_CLASS;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_NEW_DEFAULT;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_REMOVED;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_RETURN_TYPE_CHANGED;
 
 public class UpgradedProperties {
 

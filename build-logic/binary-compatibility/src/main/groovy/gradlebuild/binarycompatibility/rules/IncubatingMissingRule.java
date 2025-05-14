@@ -16,6 +16,7 @@
 
 package gradlebuild.binarycompatibility.rules;
 
+import groovy.transform.CompileStatic;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiConstructor;
@@ -26,6 +27,7 @@ import me.champeau.gradle.japicmp.report.Violation;
 
 import java.util.Map;
 
+@CompileStatic
 public class IncubatingMissingRule extends AbstractGradleViolationRule {
 
     public IncubatingMissingRule(Map<String, Object> params) {

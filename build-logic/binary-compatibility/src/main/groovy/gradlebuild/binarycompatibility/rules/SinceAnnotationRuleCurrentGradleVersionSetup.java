@@ -16,11 +16,13 @@
 
 package gradlebuild.binarycompatibility.rules;
 
+import groovy.transform.CompileStatic;
 import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 import java.util.Map;
 
+@CompileStatic
 public class SinceAnnotationRuleCurrentGradleVersionSetup implements SetupRule {
 
     private final String currentVersion;

@@ -16,14 +16,16 @@
 
 package gradlebuild.binarycompatibility.rules
 
+import groovy.transform.CompileStatic
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
-import japicmp.model.JApiCompatibilityChange
+import japicmp.model.JApiCompatibilityChangeType
 import javassist.CtClass
 import javassist.CtMethod
 import javassist.Modifier
 import me.champeau.gradle.japicmp.report.Violation
 
+@CompileStatic
 class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRule {
 
     MethodsRemovedInInternalSuperClassRule(Map<String, Object> params) {
@@ -31,7 +33,7 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
     }
 
     protected boolean changed(JApiCompatibility member) {
-        return member.compatibilityChanges.contains(JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS)
+        return member.compatibilityChanges.contains(JApiCompatibilityChangeType.METHOD_REMOVED_IN_SUPERCLASS)
     }
 
     protected Violation checkSuperClassChanges(JApiClass c, CtClass oldClass, CtClass newClass) {

@@ -18,8 +18,9 @@ package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperties;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
+import groovy.transform.CompileStatic;
 import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
@@ -36,6 +37,7 @@ import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_RE
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.BinaryCompatibility.ACCESSORS_REMOVED;
 
+@CompileStatic
 public class UpgradePropertiesRuleSetup implements SetupRule {
 
     private static final String CURRENT_UPGRADED_PROPERTIES_KEY = "currentUpgradedProperties";

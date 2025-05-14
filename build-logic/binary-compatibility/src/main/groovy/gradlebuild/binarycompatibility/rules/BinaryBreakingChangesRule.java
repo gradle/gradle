@@ -17,9 +17,11 @@
 package gradlebuild.binarycompatibility.rules;
 
 import com.google.common.collect.ImmutableList;
+import groovy.transform.CompileStatic;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiCompatibilityChange;
+import japicmp.model.JApiCompatibilityChangeType;
 import japicmp.model.JApiConstructor;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiImplementedInterface;
@@ -28,12 +30,13 @@ import me.champeau.gradle.japicmp.report.Violation;
 import java.util.List;
 import java.util.Map;
 
+@CompileStatic
 public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
 
-    private static final List<JApiCompatibilityChange> IGNORED_CHANGE_TYPES = ImmutableList.of(
-        JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS, // the removal of the method will be reported
-        JApiCompatibilityChange.INTERFACE_REMOVED,            // the removed methods will be reported
-        JApiCompatibilityChange.INTERFACE_ADDED               // the added methods will be reported
+    private static final List<JApiCompatibilityChangeType> IGNORED_CHANGE_TYPES = ImmutableList.of(
+        JApiCompatibilityChangeType.METHOD_REMOVED_IN_SUPERCLASS, // the removal of the method will be reported
+        JApiCompatibilityChangeType.INTERFACE_REMOVED,            // the removed methods will be reported
+        JApiCompatibilityChangeType.INTERFACE_ADDED               // the added methods will be reported
     );
 
     public BinaryBreakingChangesRule(Map<String, Object> params) {
