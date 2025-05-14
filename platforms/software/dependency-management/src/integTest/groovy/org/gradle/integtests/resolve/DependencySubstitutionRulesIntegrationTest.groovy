@@ -1680,22 +1680,17 @@ Required by:
                 implementation("com.external:libB:1.0")
             }
 
+            def withoutArtifacts = providers.systemProperty("withoutArtifacts")
             configurations.runtimeClasspath.resolutionStrategy.dependencySubstitution {
                 def sub = substitute(module("com.external:libC:1.0"))
                     .using(project(":libC"))
 
-                if (${withoutArtifactSelectors}) {
+                if (withoutArtifacts.isPresent()) {
                     sub.withoutArtifactSelectors()
                 }
             }
-
-            tasks.register("resolve") {
-                def files = configurations.runtimeClasspath.incoming.files
-                doLast {
-                    println(files*.name)
-                }
-            }
         """
+        resolve.prepare("runtimeClasspath")
 
         file("libC/build.gradle") << """
             plugins {
@@ -1703,19 +1698,25 @@ Required by:
             }
         """
 
-        expect:
-        if (withoutArtifactSelectors) {
-            succeeds(":resolve")
-            outputContains("[libB-1.0.jar, libC.jar]")
-        } else {
-            fails(":resolve")
-            failure.assertHasCause("Could not find libC.type (project :libC)")
+        when:
+        fails(":checkDeps")
+
+        then:
+        failure.assertHasCause("Could not find libC.type (project :libC)")
+
+        when:
+        succeeds(":checkDeps", "-DwithoutArtifacts=true")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("com.external:libB:1.0") {
+                    edge("com.external:libC:1.0", ":libC", "depsub:libC:") {
+                        selectedByRule()
+                    }
+                }
+            }
         }
 
-        where:
-        withoutArtifactSelectors << [
-            false,
-            true
-        ]
     }
 }
