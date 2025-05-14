@@ -638,10 +638,6 @@ tasks.named<Test>("docsTest") {
         if (!OperatingSystem.current().isMacOsX) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-swift-*.sample")
         }
-        // We don't maintain Java 7 on Windows and Mac
-        if (OperatingSystem.current().isWindows || OperatingSystem.current().isMacOsX) {
-            excludeTestsMatching("*java7CrossCompilation.sample")
-        }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
         if (javaVersion.isJava9Compatible) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*.sample")
