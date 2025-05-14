@@ -321,7 +321,7 @@ We strongly encourage users to adopt the latest released version of the https://
 
 <<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
 
-The impact of this change is that `toolChains` should be configured directly at the top-level of a build script and not inside a `model { }` block.
+As a result, `toolChains` should now be configured directly at the top-level of your build script instead of within a `model { }` block.
 
 ==== Removal of eager artifact configuration accessors in Kotlin DSL
 
