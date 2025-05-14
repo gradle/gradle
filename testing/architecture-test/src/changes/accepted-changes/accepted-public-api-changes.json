@@ -2475,23 +2475,7 @@
         },
         {
             "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
-            "member": "Class org.gradle.kotlin.dsl.ConventionExtensionsKt",
-            "acceptation": "Remove deprecated Convention",
-            "changes": [
-                "Class has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention)",
-            "acceptation": "Remove deprecated Convention",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
             "acceptation": "Remove deprecated Convention",
             "changes": [
                 "Method has been removed"
