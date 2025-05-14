@@ -24,12 +24,10 @@ import spock.lang.Issue
 import java.util.concurrent.CopyOnWriteArrayList
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
-    def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
+    def resolve = new ResolveTestFixture(buildFile, "conf")
 
     def setup() {
         settingsFile << "rootProject.name='depsub'\n"
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "forces multiple modules by rule"() {
@@ -65,6 +63,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 failOnVersionConflict()
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -112,6 +111,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -162,6 +162,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -212,6 +213,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -251,6 +253,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -292,6 +295,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -334,6 +338,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -348,7 +353,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
     void "can substitute modules with project dependency using #name"() {
         settingsFile << 'include "api", "impl"'
+
         buildFile << common
+        resolve.prepare()
+
         file("api/build.gradle") << common
         file("impl/build.gradle") << """
             $common
@@ -388,6 +396,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
+        resolve.prepare()
 
         file("api/build.gradle") << """
             $common
@@ -440,6 +449,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
+        resolve.prepare()
 
         file("api/build.gradle") << """
             $common
@@ -486,6 +496,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "api", "test"'
 
         buildFile << common
+        resolve.prepare()
+
         file("api/build.gradle") << common
 
         file("test/build.gradle") << """
@@ -527,6 +539,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
+        resolve.prepare()
+
         file("api/build.gradle") << common
 
         file("impl/build.gradle") << """
@@ -564,6 +578,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
+        resolve.prepare()
+
         file("api/build.gradle") << common
 
         file("impl/build.gradle") << """
@@ -601,6 +617,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
+        resolve.prepare()
+
         file("api/build.gradle") << common
 
         file("impl/build.gradle") << """
@@ -631,6 +649,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
+        resolve.prepare()
+
         file("api/build.gradle") << common
 
         file("impl/build.gradle") << """
@@ -664,6 +684,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "impl", "test"'
 
         buildFile << common
+        resolve.prepare()
+
         file("impl/build.gradle") << common
 
         file("test/build.gradle") << """
@@ -698,6 +720,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
+        resolve.prepare()
+
         file("api/build.gradle") << common
 
         file("impl/build.gradle") << """
@@ -758,6 +782,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         settingsFile << 'include "impl", "dep1", "dep2"'
 
         buildFile << common
+        resolve.prepare()
 
         file("dep1/build.gradle") << """
             $common
@@ -832,6 +857,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 substitute module('org.utils:a:1.2') using module('org.utils:a:1.4')
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -863,6 +889,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 substitute module('org.utils:a:1.2') using module('org.utils:a:1.2.1')
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -897,6 +924,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -926,6 +954,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -968,6 +997,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         succeeds "check"
@@ -1024,6 +1054,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         expect:
         succeeds "check"
@@ -1054,6 +1085,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+        resolve.prepare()
 
         when:
         fails "checkDeps"
@@ -1080,7 +1112,8 @@ Required by:
             configurations.conf.resolutionStrategy.dependencySubstitution {
                 substitute project(":") using module("org.gradle:test")
             }
-"""
+        """
+        resolve.prepare()
 
         when:
         fails "checkDeps"
@@ -1105,6 +1138,7 @@ Required by:
                 substitute module(":foo:bar:baz:") using module("")
             }
         """
+        resolve.prepare()
 
         when:
         fails "checkDeps"
@@ -1131,6 +1165,7 @@ Required by:
                 }
             }
         """
+        resolve.prepare()
 
         when:
         fails "checkDeps"
@@ -1155,6 +1190,7 @@ Required by:
                 substitute module('org.utils:a:1.2') using module('org.utils:b:2.1')
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -1189,6 +1225,7 @@ Required by:
                 }
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -1227,6 +1264,7 @@ Required by:
                 substitute module('foo:bar:baz') using module('org:b:1.0')
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -1258,6 +1296,7 @@ Required by:
                 it.useTarget "foobar"
             }
         """
+        resolve.prepare()
 
         when:
         fails "checkDeps"
@@ -1283,6 +1322,7 @@ Required by:
                 substitute module('org:a:1.0') using module('org:c:1.1')
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -1353,6 +1393,7 @@ Required by:
                 substitute module('foo:bar:baz') because('we need integration tests') using module('org:b:1.0')
             }
         """
+        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -1392,6 +1433,7 @@ Required by:
                 }
             }
         """
+        resolve.prepare()
 
         file("sub/build.gradle") << """
             version = '0.0.1'
@@ -1434,13 +1476,13 @@ Required by:
                 }
             }
         """
+        resolve.prepare()
 
         when:
         fails ':checkDeps'
 
         then:
         failure.assertHasCause("Substitution exception")
-
     }
 
     def "can substitute a classified dependency with a non classified version"() {
@@ -1470,6 +1512,7 @@ Required by:
                 conf 'org:other:1.0'
             }
         """
+        resolve.prepare()
 
         when:
         succeeds ':checkDeps'
@@ -1527,7 +1570,6 @@ Required by:
             .publish()
 
         buildFile << """
-
             repositories {
                 maven { url = "${mavenRepo.uri}" }
             }
@@ -1545,6 +1587,7 @@ Required by:
                 conf 'org:other:1.0'
             }
         """
+        resolve.prepare()
 
         when:
         succeeds ':checkDeps'
@@ -1577,12 +1620,14 @@ Required by:
 
         file('lib/build.gradle') << """
             plugins {
-                id 'java-library'
+                id("java-library")
             }
         """
 
         buildFile << """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 maven { url = "${mavenRepo.uri}" }
@@ -1598,6 +1643,7 @@ Required by:
                 }
             }
         """
+        resolve.prepare()
 
         when:
         resolve.prepare("runtimeClasspath")
@@ -1611,5 +1657,65 @@ Required by:
                 }
             }
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/7594")
+    def "can substitute module with project and use withoutArtifactSelectors"() {
+        mavenRepo.module("com.external", "libB", "1.0")
+            .dependsOn("com.external", "libC", "1.0", "type")
+            .publish()
+
+        settingsFile << """
+            include("libC")
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("com.external:libB:1.0")
+            }
+
+            configurations.runtimeClasspath.resolutionStrategy.dependencySubstitution {
+                def sub = substitute(module("com.external:libC:1.0"))
+                    .using(project(":libC"))
+
+                if (${withoutArtifactSelectors}) {
+                    sub.withoutArtifactSelectors()
+                }
+            }
+
+            tasks.register("resolve") {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    println(files*.name)
+                }
+            }
+        """
+
+        file("libC/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        expect:
+        if (withoutArtifactSelectors) {
+            succeeds(":resolve")
+            outputContains("[libB-1.0.jar, libC.jar]")
+        } else {
+            fails(":resolve")
+            failure.assertHasCause("Could not find libC.type (project :libC)")
+        }
+
+        where:
+        withoutArtifactSelectors << [
+            false,
+            true
+        ]
     }
 }
