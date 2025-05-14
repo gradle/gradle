@@ -54,7 +54,7 @@ abstract class SettingsScriptApi(
         @Suppress("DEPRECATION")
         if (!KotlinSettingsScript::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(SettingsScriptApi::class.java)
-                .willBeRemovedInGradle9()
+                .willBeRemovedInGradle10()
                 .undocumented()
                 .nagUser()
         }

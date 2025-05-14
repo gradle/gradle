@@ -53,7 +53,7 @@ abstract class InitScriptApi(
         @Suppress("DEPRECATION")
         if (!KotlinInitScript::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(InitScriptApi::class.java)
-                .willBeRemovedInGradle9()
+                .willBeRemovedInGradle10()
                 .undocumented()
                 .nagUser()
         }

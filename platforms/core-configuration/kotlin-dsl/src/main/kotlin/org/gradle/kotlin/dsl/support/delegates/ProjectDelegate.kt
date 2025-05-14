@@ -65,13 +65,13 @@ import java.util.concurrent.Callable
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10.0")
 abstract class ProjectDelegate : Project {
 
     init {
         @Suppress("DEPRECATION")
         DeprecationLogger.deprecateType(ProjectDelegate::class.java)
-            .willBeRemovedInGradle9()
+            .willBeRemovedInGradle10()
             .undocumented()
             .nagUser()
     }
