@@ -72,6 +72,7 @@ public abstract class JapicmpTask extends DefaultTask {
         getIgnoreMissingClasses().convention(false);
         getIncludeSynthetic().convention(false);
         getOnlyBinaryIncompatibleModified().convention(false);
+        getReportOnlySummary().convention(false);
         getOnlyModified().convention(false);
         getAccessModifier().convention("public");
         ConfigurableFileCollection classpath = getProject().getObjects().fileCollection();
@@ -146,11 +147,14 @@ public abstract class JapicmpTask extends DefaultTask {
                 current,
                 getOnlyModified().get(),
                 getOnlyBinaryIncompatibleModified().get(),
+                getReportOnlySummary().get(),
                 getFailOnSourceIncompatibility().get(),
                 getAccessModifier().get(),
                 maybeFile(getXmlOutputFile()),
                 maybeFile(getHtmlOutputFile()),
+                maybeFile(getMdOutputFile()),
                 maybeFile(getTxtOutputFile()),
+                maybeFile(getSemverOutputFile()),
                 getFailOnModification().get(),
                 reportConfigurationOf(getRichReport())
         );
@@ -325,6 +329,9 @@ public abstract class JapicmpTask extends DefaultTask {
     public abstract Property<Boolean> getOnlyBinaryIncompatibleModified();
 
     @Input
+    public abstract Property<Boolean> getReportOnlySummary();
+
+    @Input
     public abstract Property<Boolean> getFailOnSourceIncompatibility();
 
     @OutputFile
@@ -337,7 +344,15 @@ public abstract class JapicmpTask extends DefaultTask {
 
     @OutputFile
     @Optional
+    public abstract RegularFileProperty getMdOutputFile();
+
+    @OutputFile
+    @Optional
     public abstract RegularFileProperty getTxtOutputFile();
+
+    @OutputFile
+    @Optional
+    public abstract RegularFileProperty getSemverOutputFile();
 
     @Input
     public abstract Property<Boolean> getFailOnModification();
