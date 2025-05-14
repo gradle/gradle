@@ -82,7 +82,7 @@ Let's look at a _basic_ multi-project build example that contains a root project
 The root project is called `my-project`, located somewhere on your machine.
 From Gradle's perspective, the root is the top-level directory `.`.
 
-The project contains a single subproject called `./app`:
+The project contains a single subproject called `app`:
 
 [.multi-language-sample]
 =====
@@ -113,7 +113,7 @@ The project contains a single subproject called `./app`:
 <5> Source code and more
 
 This is the recommended project structure for starting any Gradle project.
-The <<build_init_plugin#build_init_plugin,build init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject:
+The <<build_init_plugin#build_init_plugin,Build Init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject:
 
 The `settings.gradle(.kts)` file describes the project structure to Gradle:
 
@@ -131,7 +131,8 @@ $ ./gradlew -q projects
 include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
 ----
 
-In this example, the `app` subproject is a Java application that applies the <<application_plugin#application_plugin,application plugin>> and configures the main class.
+In this example, the `app` subproject is a Java application that applies the <<application_plugin#application_plugin,Java Application plugin>> and configures the main class.
+
 The application prints `Hello World` to the console:
 
 ====
@@ -144,7 +145,7 @@ include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java
 ----
 ====
 
-You can run the application by executing the `run` task from the <<application_plugin#application_plugin,application plugin>> in the project root:
+You can run the application by executing the `run` task from the <<application_plugin#application_plugin,Application plugin>> in the project root:
 ----
 $ ./gradlew -q run
 include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
@@ -236,10 +237,7 @@ Let's take a look at our multi-project build:
 ├── app/
 │   ├── build.gradle.kts    // <1>
 │   └── src/
-├── core/
-│   ├── build.gradle.kts    // <1>
-│   └── src/
-└── util/
+└── lib/
     ├── build.gradle.kts    // <1>
     └── src/
 ----
@@ -253,10 +251,7 @@ Let's take a look at our multi-project build:
 ├── app/
 │   ├── build.gradle    // <1>
 │   └── src/
-├── core/
-│   ├── build.gradle    // <1>
-│   └── src/
-└── util/
+└── lib/
     ├── build.gradle    // <1>
     └── src/
 ----
@@ -281,10 +276,7 @@ It compiles and makes this plugin available to all other build scripts in the pr
 ├── app/
 │   ├── build.gradle.kts    // <2>
 │   └── src/
-├── core/
-│   ├── build.gradle.kts    // <2>
-│   └── src/
-└── util/
+└── lib/
     ├── build.gradle.kts    // <2>
     └── src/
 ----
@@ -302,10 +294,7 @@ It compiles and makes this plugin available to all other build scripts in the pr
 ├── app/
 │   ├── build.gradle    // <2>
 │   └── src/
-├── core/
-│   ├── build.gradle    // <2>
-│   └── src/
-└── util/
+└── lib/
     ├── build.gradle    // <2>
     └── src/
 ----
