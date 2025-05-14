@@ -203,9 +203,9 @@ However, you should typically err on the side of adding more projects rather tha
 
 ==== Don't Do This
 
-.A common way to structure new builds
 [.multi-language-sample]
 =====
+.A common way to structure new builds
 [source, kotlin]
 ----
 ├── app // This project contains a mix of classes
@@ -216,7 +216,7 @@ However, you should typically err on the side of adding more projects rather tha
 │                └── org
 │                    └── example
 │                        └── CommonsUtil.java
-                         └── GuavaUtil.java
+│                        └── GuavaUtil.java
 │                        └── Main.java
 │                        └── Util.java
 ├── settings.gradle.kts
@@ -224,6 +224,7 @@ However, you should typically err on the side of adding more projects rather tha
 =====
 [.multi-language-sample]
 =====
+.A common way to structure new builds
 [source, groovy]
 ----
 ├── app // This project contains a mix of classes
@@ -234,7 +235,7 @@ However, you should typically err on the side of adding more projects rather tha
 │                └── org
 │                    └── example
 │                        └── CommonsUtil.java
-                         └── GuavaUtil.java
+│                        └── GuavaUtil.java
 │                        └── Main.java
 │                        └── Util.java
 ├── settings.gradle
@@ -256,9 +257,9 @@ include::sample[dir="snippets/bestPractices/modularizeYourBuild-avoid/groovy/app
 
 ==== Do This Instead
 
-.A better way to structure this build
 [.multi-language-sample]
 =====
+.A better way to structure this build
 [source, kotlin]
 ----
 ├── app
@@ -298,6 +299,7 @@ include::sample[dir="snippets/bestPractices/modularizeYourBuild-avoid/groovy/app
 =====
 [.multi-language-sample]
 =====
+.A better way to structure this build
 [source, groovy]
 ----
 ├── app // App contains only the core application logic
