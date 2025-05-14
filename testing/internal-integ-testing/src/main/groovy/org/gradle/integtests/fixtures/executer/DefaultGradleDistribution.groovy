@@ -74,105 +74,7 @@ class DefaultGradleDistribution implements GradleDistribution {
             throw new IllegalArgumentException();
         }
 
-        return doesWorkWith(javaVersion);
-    }
-
-    private boolean doesWorkWith(JavaVersion javaVersion) {
-        // 0.9-rc-1 was broken for Java 5
-        if (isVersion("0.9-rc-1") && javaVersion == JavaVersion.VERSION_1_5) {
-            return false
-        }
-
-        if (isSameOrOlder("1.0")) {
-            return javaVersion >= JavaVersion.VERSION_1_5 && javaVersion <= JavaVersion.VERSION_1_7
-        }
-
-        // 1.x works on Java 5 - 8
-        if (isSameOrOlder("1.12")) {
-            return javaVersion >= JavaVersion.VERSION_1_5 && javaVersion <= JavaVersion.VERSION_1_8
-        }
-
-        // 2.x and 3.0-milestone-1 work on Java 6 - 8
-        if (isSameOrOlder("3.0-milestone-1")) {
-            return javaVersion >= JavaVersion.VERSION_1_6 && javaVersion <= JavaVersion.VERSION_1_8
-        }
-
-        // 3.x - 4.6 works on Java 7 - 8
-        if (isSameOrOlder("4.6")) {
-            return javaVersion >= JavaVersion.VERSION_1_7 && javaVersion <= JavaVersion.VERSION_1_8
-        }
-
-        if (isSameOrOlder("4.11")) {
-            return javaVersion >= JavaVersion.VERSION_1_7 && javaVersion <= JavaVersion.VERSION_1_10
-        }
-
-        // 5.4 officially added support for JDK 12, but it worked before then.
-        if (isSameOrOlder("5.7")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_12
-        }
-
-        if (isSameOrOlder("6.0")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_13
-        }
-
-        // 6.7 added official support for JDK15
-        if (isSameOrOlder("6.6.1")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_14
-        }
-
-        // 7.0 added official support for JDK16
-        // milestone 2 was published with Groovy 3 upgrade and without asm upgrade yet
-        // subsequent milestones and RCs will support JDK16
-        if (isSameOrOlder("7.0-milestone-2")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_15
-        }
-
-        // 7.3 added JDK 17 support
-        if (isSameOrOlder("7.2")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_16
-        }
-
-        // 7.5 added JDK 18 support
-        if (isSameOrOlder("7.4.2")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_17
-        }
-
-        // 7.6 added JDK 19 support
-        if (isSameOrOlder("7.5.1")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_18
-        }
-
-        // 8.3 added JDK 20 support
-        if (isSameOrOlder("8.2.1")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_19
-        }
-
-        // 8.5 added JDK 21 support
-        if (isSameOrOlder("8.4")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_20
-        }
-
-        // 8.8 added JDK 22 support
-        if (isSameOrOlder("8.7")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_21
-        }
-
-        // 8.10 added JDK 23 support
-        if (isSameOrOlder("8.9")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_22
-        }
-
-        // 8.14 added JDK 24 support
-        if (isSameOrOlder("8.13")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_23
-        }
-
-        // 9.0+ requires Java 17
-        if (isSameOrOlder("8.14")) {
-            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_24
-        }
-
-        return javaVersion >= JavaVersion.VERSION_17 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_24)
+        return GradleJavaCompatibility.isGradleCompatibleWithJava(version, javaVersion);
     }
 
     @Override
@@ -184,15 +86,6 @@ class DefaultGradleDistribution implements GradleDistribution {
         } else {
             return true;
         }
-    }
-
-    /**
-     * Returns true if the given java version is less than the given highest version bound.  Always returns
-     * true if the highest version check is disabled via system property.
-     */
-    private boolean maybeEnforceHighestVersion(JavaVersion javaVersion, JavaVersion highestVersion) {
-        boolean disableHighest = System.getProperty(DISABLE_HIGHEST_JAVA_VERSION) != null;
-        return disableHighest || javaVersion.compareTo(highestVersion) <= 0;
     }
 
     @Override
