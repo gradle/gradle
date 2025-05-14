@@ -44,12 +44,12 @@ class DefaultConfigurationCacheDegradationController(
     }
 
     fun getDegradationReasonsForTask(trace: PropertyTrace): List<String> = degradationRequests
-        .filter { it.trace == trace && it.spec.get() }
+        .filter { it.trace == trace && it.spec.getOrElse(false) }
         .map { it.reason }
 
     fun getAllDegradationReasons(): Map<PropertyTrace, List<String>> =
         degradationRequests
-            .filter { it.spec.get() }
+            .filter { it.spec.getOrElse(false) }
             .groupBy({ it.trace }, { it.reason })
 
     private data class DegradationRequest(
