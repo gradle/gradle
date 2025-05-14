@@ -123,4 +123,60 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
             "${IsolatedProjectsOption.PROPERTY_NAME}=true",
         ]
     }
+
+    def "shows no promo message if configuration is not cc compatible"() {
+        given:
+        buildFile """
+            gradle.taskGraph.beforeTask {
+                println("I break CC contract")
+            }
+
+            tasks.register("greet") { doLast { println("Hello") } }
+        """
+
+        executer.noDeprecationChecks()
+
+        when:
+        run("greet")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_MESSAGE)
+    }
+
+    def "shows no promo message if execution is not cc compatible"() {
+        given:
+        buildFile """
+            tasks.register("greet") {
+                doLast { task ->
+                    println("Hello from " + task.project.name)
+                }
+            }
+        """
+
+        executer.noDeprecationChecks()
+
+        when:
+        run("greet")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_MESSAGE)
+    }
+
+    def "shows promo message if configuration-only calls are used correctly"() {
+        given:
+        buildFile """
+            tasks.register("greet") { task ->
+                def myName = task.project.name
+                doLast {
+                    println("Hello from " + myName)
+                }
+            }
+        """
+
+        when:
+        run("greet")
+
+        then:
+        postBuildOutputContains(PROMO_MESSAGE)
+    }
 }
