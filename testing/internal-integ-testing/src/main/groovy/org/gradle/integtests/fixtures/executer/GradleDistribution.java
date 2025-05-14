@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.cache.internal.CacheVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
@@ -50,6 +49,11 @@ public interface GradleDistribution {
     boolean worksWith(Jvm jvm);
 
     /**
+     * Returns true if this distribution's daemon supports the given JVM version.
+     */
+    boolean daemonWorksWith(int jvmVersion);
+
+    /**
      * Returns true if this distribution supports the given Operating system.
      */
     boolean worksWith(OperatingSystem os);
@@ -63,11 +67,6 @@ public interface GradleDistribution {
      * Returns true if the tooling API is supported by this distribution.
      */
     boolean isToolingApiSupported();
-
-    /**
-     * Returns true if the tooling API of this distribution supports the given target JVM.
-     */
-    boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion);
 
     /**
      * Returns true if the tooling API of this distribution correctly handles logging in embedded mode.
