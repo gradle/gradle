@@ -394,6 +394,16 @@ abstract class AbstractIsolateContext<T>(
         }
     }
 
+    override suspend fun forTask(trace: PropertyTrace, action: suspend () -> Unit) {
+        val previousListener = currentProblemsListener
+        currentProblemsListener = previousListener.forTask(trace)
+        try {
+            action()
+        } finally {
+            currentProblemsListener = previousListener
+        }
+    }
+
     override fun toString(): String {
         return "$name ${this::class.simpleName}"
     }

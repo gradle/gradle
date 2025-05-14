@@ -588,7 +588,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun degradeGracefullyOr(action: () -> Unit) {
-        if (!problems.shouldDegradeGracefully) {
+        if (!problems.isGracefulDegradationRequestedByBuildLogic) {
             action()
         }
         crossConfigurationTimeBarrier()

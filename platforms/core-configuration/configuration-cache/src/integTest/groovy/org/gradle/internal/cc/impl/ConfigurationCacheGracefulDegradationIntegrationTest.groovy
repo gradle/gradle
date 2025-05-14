@@ -79,7 +79,7 @@ Configuration cache entry discarded because degradation was requested by:
         configurationCacheRun "a"
 
         then:
-        configurationCache.assertNoConfigurationCache()
+        configurationCache.assertStateStored(false)
         problems.assertResultHasProblems(result) {
             totalProblemsCount = 1
             withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
@@ -106,6 +106,10 @@ Configuration cache entry discarded because degradation was requested by:
                     println "Hello from B"
                 }
             }
+
+            tasks.all {
+                println "\$it configured"
+            }
         """
 
         when:
@@ -113,23 +117,9 @@ Configuration cache entry discarded because degradation was requested by:
 
         then:
         configurationCache.assertStateStored()
+        outputContains("task ':a' configured")
+        outputContains("task ':b' configured")
         outputContains("Hello from B")
-
-        when:
-        configurationCacheRun "a"
-
-        then:
-        configurationCache.assertNoConfigurationCache()
-        problems.assertResultHasProblems(result) {
-            totalProblemsCount = 1
-            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
-        }
-
-        and:
-        outputContains("Project path is :")
-        postBuildOutputContains("""
-Configuration cache entry discarded because degradation was requested by:
-- task `:a` of type `org.gradle.api.DefaultTask`: Project access""")
     }
 
     def "a plugin requesting СС degradation hides an incompatible plugin's problems"() {
@@ -192,5 +182,38 @@ Configuration cache entry discarded because degradation was requested by:
         postBuildOutputContains("""
 Configuration cache entry discarded because degradation was requested by:
 - plugin 'degrading': Build listener registration""")
+    }
+
+    def "skip work graph serialization if CC degradation was requested by the build logic"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            class Bar implements Serializable {
+                Object writeReplace() {
+                    throw new IllegalStateException("Bad serialization!")
+                }
+            }
+
+            abstract class FooTask extends DefaultTask {
+                @Input
+                abstract Property<Bar> getBar()
+            }
+
+            tasks.register("foo", FooTask) {
+                getBar().set(new Bar())
+            }
+
+            gradle.requireConfigurationCacheDegradation("Build logic isn't CC compatible", provider { true })
+        """
+
+        when:
+        configurationCacheRun "foo"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        postBuildOutputContains("""
+Configuration cache entry discarded because degradation was requested by:
+- build file 'build.gradle': Build logic isn't CC compatible""")
     }
 }
