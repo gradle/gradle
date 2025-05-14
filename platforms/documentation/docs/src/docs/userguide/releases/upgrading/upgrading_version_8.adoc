@@ -596,6 +596,11 @@ The `model` and `component` tasks report on the structure of legacy software mod
 Previously, these tasks were automatically added to the project for every build.
 These tasks are now only added to a project when a rule-based plugin is applied (such as those provided by Gradle's support for building native software).
 
+==== Methods on public API types have been made final
+
+The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(java.lang.Object)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] are now final, as required to have the `@SafeVarargs` annotation.
+
+While these type should not be inherited from, if you build logic or a plugin does it, the build will fail at runtime.
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
