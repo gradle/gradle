@@ -40,6 +40,7 @@ abstract class ToColor implements TransformAction<Parameters> {
     abstract Provider<FileSystemLocation> getInputArtifact()
 
     void transform(TransformOutputs outputs) {
+        Thread.sleep(1000)
         def input = inputArtifact.get().asFile
         def color = parameters.color.get()
         println "Transforming \$input.name to \$color"
