@@ -177,4 +177,8 @@ abstract class GradleDelegate : Gradle {
 
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
+
+    override fun notCompatibleWithConfigurationCache(reason: String, action: Runnable) {
+        delegate.notCompatibleWithConfigurationCache(reason, action)
+    }
 }
