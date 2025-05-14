@@ -64,7 +64,7 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
         this.registeringPluginClass = registeringPluginClass;
         this.bindingTransform = bindingTransform;
         this.allBindings = ImmutableMap.<Class<?>, Class<?>>builder()
-            .put(bindingType, buildModelType)
+            .put(definitionPublicType, buildModelType)
             .putAll(nestedBindings)
             .build();;
     }

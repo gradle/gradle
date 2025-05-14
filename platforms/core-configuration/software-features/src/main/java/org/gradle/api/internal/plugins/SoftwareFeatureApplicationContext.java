@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 
 import javax.inject.Inject;
@@ -29,7 +30,10 @@ public interface SoftwareFeatureApplicationContext {
     @Inject
     Project getProject();
 
-    default void registerModel(Object definition, Object model) {
-        ((ExtensionAware) definition).getExtensions().add(SoftwareFeatureBinding.MODEL, model);
+    @Inject
+    ObjectFactory getObjectFactory();
+
+    default <T> T getModel(Object definition, Class<T> modelType) {
+        return ((ExtensionAware) definition).getExtensions().create(SoftwareFeatureBinding.MODEL, modelType);
     }
 }
