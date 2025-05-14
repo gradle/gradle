@@ -60,7 +60,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *   }
  *
  *   dependencies {
- *       implementation 'org.slf4j:slf4j-api:1.7.26'
+ *       implementation 'org.slf4j:slf4j-api:2.0.17'
  *   }
  *
  *   //copying all dependencies attached to 'compileClasspath' into a specific folder
