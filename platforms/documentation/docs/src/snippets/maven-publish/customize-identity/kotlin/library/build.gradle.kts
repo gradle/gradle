@@ -17,7 +17,7 @@ publishing {
 }
 
 dependencies {
-    api("org.slf4j:slf4j-api:1.7.10")
+    api("org.slf4j:slf4j-api:2.0.17")
 }
 
 // tag::customize-identity[]
