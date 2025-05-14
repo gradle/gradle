@@ -713,6 +713,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
     // endregion Migrating configurations
 
     // region Detached configurations
+
+    // Note that this is not desired behavior and ideally any change to a detached configuration's
+    // usage should fail, however we have to allow changes to false for now as KGP does this.
     def "changing usage #property = #change (change property to false) on detached configurations is permitted"() {
         given:
         buildFile << """

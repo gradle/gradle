@@ -637,8 +637,9 @@ class DefaultConfigurationSpec extends Specification {
         def copy = configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
-        // Role of copies are currently set to RESOLVABLE_DEPENDENCY_SCOPE
+        // This is not desired behavior. Ideally the copy method should copy the role of the original.
+        // Instead, the role of copies are currently always set to RESOLVABLE_DEPENDENCY_SCOPE, as
+        // currently copies are detached configurations, and this is the role of all detached configurations.
         copy.canBeDeclared
         copy.canBeResolved
         !copy.canBeConsumed
@@ -795,9 +796,11 @@ This method is only meant to be called on configurations which allow the (non-de
         original.attributes.keySet().each {
             assert copy.attributes.getAttribute(it) == original.attributes.getAttribute(it)
         }
-        assert copy.canBeResolved == original.canBeResolved
-        assert !copy.canBeConsumed // Copies are now made as RESOLVABLE_DEPENDENCY_SCOPE, so are non-consumable regardless of the usage of the original
-        true
+
+        // Copies are now always made as RESOLVABLE_DEPENDENCY_SCOPE, regardless of the usage of the original
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
     }
 
     def "incoming dependencies set has same name and path as owner configuration"() {
