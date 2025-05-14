@@ -61,16 +61,13 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         assumeTrue(previous.version >= GradleVersion.version('6.8'))
 
         when:
-        pluginBuiltWith(current, "KOTLIN_1_7",
-            "w: Language version 1.7 is deprecated and its support will be removed in a future version of Kotlin",
-            "w: Language version 1.7 is deprecated and its support will be removed in a future version of Kotlin"
-        )
+        pluginBuiltWith(current, "KOTLIN_1_7")
 
         then:
         pluginAppliedWith(previous)
     }
 
-    private void pluginBuiltWith(GradleDistribution distribution, String kotlinVersion = null, String... expectedDeprecations) {
+    private void pluginBuiltWith(GradleDistribution distribution, String kotlinVersion = null) {
         file("plugin/settings.gradle.kts").text = """
             println("Publishing plugin with ${'$'}{org.gradle.util.GradleVersion.current()}")
         """
@@ -112,14 +109,13 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             $usageCode
         """
 
-
-        def executer = version(distribution)
+        version(distribution)
             .inDirectory(file("plugin"))
             .withTasks("publish")
-        for (String deprecation : expectedDeprecations) {
-            executer = executer.expectDeprecationWarning(deprecation)
-        }
-        executer.run()
+            .withArgument("-s")
+            // The expected deprecations change too much between versions for checking deprecations to be worthwhile.
+            .noDeprecationChecks()
+            .run()
     }
 
     private void pluginAppliedWith(GradleDistribution distribution) {
@@ -142,6 +138,8 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             .inDirectory(file("consumer"))
             .withTasks("myTask")
             .withArgument("-s")
+            // The expected deprecations change too much between versions for checking deprecations to be worthwhile.
+            .noDeprecationChecks()
             .run()
     }
 
