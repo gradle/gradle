@@ -31,7 +31,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -174,7 +173,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     ProjectStateInternal getState();
 
     @Override
-    ExtensionContainerInternal getExtensions();
+    @SuppressWarnings("deprecation")
+    org.gradle.api.internal.plugins.ExtensionContainerInternal getExtensions();
 
     ProjectConfigurationActionContainer getConfigurationActions();
 

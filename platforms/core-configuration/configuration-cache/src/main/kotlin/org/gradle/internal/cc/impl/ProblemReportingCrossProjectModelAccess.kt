@@ -274,6 +274,11 @@ class ProblemReportingCrossProjectModelAccess(
             return super.delete(action)
         }
 
+        @Suppress("DEPRECATION")
+        override fun getConvention(): org.gradle.api.plugins.Convention {
+            TODO("Not yet implemented")
+        }
+
         override fun getResources(): ResourceHandler {
             onIsolationViolation("resources")
             return super.getResources()

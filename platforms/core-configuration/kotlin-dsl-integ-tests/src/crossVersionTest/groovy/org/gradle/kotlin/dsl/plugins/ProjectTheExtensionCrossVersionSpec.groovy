@@ -21,20 +21,18 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import static org.junit.Assume.assumeFalse
 
 //import org.junit.Ignore
 
-import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
-import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
 
 @TargetVersions("5.0+")
 class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
-    @Ignore
     def "can access extensions and conventions with current Gradle version from plugin built with Gradle 5.0+"() {
 
         def isFlaky = OperatingSystem.current().isWindows() &&
@@ -107,12 +105,10 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         file("plugin/src/main/kotlin/my-types.kt").text = """
             import org.gradle.api.provider.Property
             interface MyExtension { val some: Property<String> }
-//            interface MyConvention { val more: Property<String> }
             interface Unregistered
         """
         file("plugin/src/main/kotlin/my-plugin.gradle.kts").text = """
             extensions.create<MyExtension>("myExtension")
-//            convention.plugins["myConvention"] = objects.newInstance<MyConvention>()
             $usageCode
         """
 
@@ -160,14 +156,6 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             configure<MyExtension> {
                 some.set("thing")
             }
-
-            // Accessing conventions
-
-//            the<MyConvention>().more.set("less")
-//            the(MyConvention::class).more.set("less")
-//            configure<MyConvention> {
-//                more.set("less")
-//            }
 
             // Error cases
 

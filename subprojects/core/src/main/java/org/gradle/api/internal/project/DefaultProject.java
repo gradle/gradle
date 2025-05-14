@@ -596,13 +596,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public Object getLifecycleActionsState() {
         return beforeProjectActionState;
     }
-//
-//    @Deprecated
-//    @Override
-//    public org.gradle.api.plugins.Convention getConvention() {
-//        onMutableStateAccess();
-//        return extensibleDynamicObject.getConvention();
-//    }
+
+    @Deprecated
+    @Override
+    public org.gradle.api.plugins.Convention getConvention() {
+        onMutableStateAccess();
+
+//        UnsupportedOperationException unsupportedOperationException = new UnsupportedOperationException("Project.getConvention() has been deprecated. This is scheduled to be removed in Gradle 5.0. Use Project.getExtensions().getExtraProperties() instead.");
+//        System.err.println("it is me mario");
+//        unsupportedOperationException.printStackTrace();
+//        throw unsupportedOperationException;
+        return (org.gradle.api.plugins.Convention) getExtensions();
+    }
 
     @Override
     public String getPath() {
@@ -1459,7 +1464,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ExtensionContainerInternal getExtensions() {
         onMutableStateAccess();
-//        return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
         return (ExtensionContainerInternal)extensibleDynamicObject.getExtensions();
     }
 

@@ -222,6 +222,12 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
         return instanceGenerator.newInstanceWithDisplayName(instanceType, Describables.withTypeAndName("extension", name), constructionArguments);
     }
 
+    @Override
+    @SuppressWarnings("deprecation")
+    public <T> @Nullable T findPlugin(Class<T> type) throws IllegalStateException {
+        return null;
+    }
+
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
         @Override
         public String getDisplayName() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+
 import org.gradle.api.IsolatedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
@@ -31,6 +32,7 @@ import org.jspecify.annotations.Nullable;
  * When mutable state accessed - executes previously registered {@link org.gradle.api.invocation.GradleLifecycle#beforeProject(IsolatedAction)}
  * actions <b>eagerly</b>.
  */
+@SuppressWarnings("all")
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     public static ProjectInternal from(
@@ -86,5 +88,11 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
         }
 
         throw dynamicDelegate.methodMissingException(name, varargs);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public org.gradle.api.plugins.Convention getConvention() {
+        return null;
     }
 }
