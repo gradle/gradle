@@ -55,8 +55,8 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
     @Override
     public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
-        ProjectIdentity targetProject = ((ProjectComponentIdentifierInternal) projectIdentifier).getProjectIdentity();
-        Path targetProjectPath = targetProject.getBuildTreePath();
+        ProjectIdentity targetProjectId = ((ProjectComponentIdentifierInternal) projectIdentifier).getProjectIdentity();
+        Path targetProjectPath = targetProjectId.getBuildTreePath();
         if (!targetProjectPath.equals(currentProjectPath)) {
             // TODO: We should relax this check. For legacy reasons we are not tracking cross-build project
             // dependencies, but we should be. Removing this condition breaks some Isolated Projects tests,
@@ -68,7 +68,7 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
             }
         }
 
-        return componentProvider.getComponent(targetProject, currentBuildPath);
+        return componentProvider.getComponent(targetProjectId, currentBuildPath);
     }
 
     @Nullable

@@ -36,9 +36,9 @@ public interface BuildTreeLocalComponentProvider {
     /**
      * Get the local component for the target project.
      *
-     * @param targetProject the project to get the local component for
+     * @param targetProjectId the project to get the local component for
      * @param sourceBuild the build that is requesting the local component
      */
-    LocalComponentGraphResolveState getComponent(ProjectIdentity targetProject, Path sourceBuild);
+    LocalComponentGraphResolveState getComponent(ProjectIdentity targetProjectId, Path sourceBuild);
 
 }

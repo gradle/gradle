@@ -35,7 +35,6 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.model.InMemoryCacheFactory;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -69,8 +68,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         AttributeDesugaring attributeDesugaring,
         boolean adHoc,
         LocalVariantGraphResolveStateFactory variantFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        InMemoryCacheFactory cacheFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         super(instanceId, metadata, attributeDesugaring);
         this.adHoc = adHoc;

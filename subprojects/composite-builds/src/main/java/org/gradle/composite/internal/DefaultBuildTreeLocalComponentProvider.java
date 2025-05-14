@@ -91,9 +91,9 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     }
 
     @Override
-    public LocalComponentGraphResolveState getComponent(ProjectIdentity targetProject, Path sourceBuild) {
-        Path projectIdentityPath = targetProject.getBuildTreePath();
-        ensureBuildConfigured(targetProject.getBuildPath(), sourceBuild);
+    public LocalComponentGraphResolveState getComponent(ProjectIdentity targetProjectId, Path sourceBuild) {
+        Path projectIdentityPath = targetProjectId.getBuildTreePath();
+        ensureBuildConfigured(targetProjectId.getBuildPath(), sourceBuild);
         return components.get(projectIdentityPath);
     }
 
@@ -105,11 +105,12 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
             // or if a parent project resolves a dependency on this project during configuration-time.
             projectState.ensureConfigured();
 
-            return projectState.fromMutableState(p -> createLocalComponentState(projectState, p));
+            return projectState.fromMutableState(this::createLocalComponentState);
         });
     }
 
-    private LocalComponentGraphResolveState createLocalComponentState(ProjectState projectState, ProjectInternal project) {
+    private LocalComponentGraphResolveState createLocalComponentState(ProjectInternal project) {
+        ProjectState projectState = project.getOwner();
         Module module = project.getServices().get(DependencyMetaDataProvider.class).getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
