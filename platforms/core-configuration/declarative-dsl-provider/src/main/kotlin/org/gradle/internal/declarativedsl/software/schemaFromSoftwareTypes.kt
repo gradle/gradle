@@ -63,7 +63,7 @@ fun EvaluationSchemaBuilder.softwareFeaturesComponent(
 ) {
     val buildModelTypeToPublicDslType = mapBuildModelTypesToPublicDslTypes(softwareFeatureRegistry)
     val softwareFeatureInfos: Map<KClass<*>, List<SoftwareFeatureInfo<*>>> = buildSoftwareFeatureInfo(softwareFeatureRegistry) { bindingType ->
-        mapToSchemaType(bindingType, rootSchemaType, buildModelTypeToPublicDslType)
+        mapToSchemaType(buildModelTypeToPublicDslType[bindingType] ?: bindingType, rootSchemaType)
     }
     softwareFeatureInfos.forEach { (bindingType, softwareFeatureInfoList) ->
         registerAnalysisSchemaComponent(SoftwareFeatureComponent(bindingType, softwareFeatureInfoList))
@@ -86,7 +86,7 @@ fun EvaluationSchemaBuilder.softwareFeaturesDefaultsComponent(
 ) {
     val buildModelTypeToPublicDslType = mapBuildModelTypesToPublicDslTypes(softwareFeatureRegistry)
     val softwareFeatureInfo = buildSoftwareTypeInfoWithoutResolution(softwareFeatureRegistry) { bindingType ->
-        mapToSchemaType(bindingType, schemaTypeToExtend, buildModelTypeToPublicDslType)
+        mapToSchemaType(buildModelTypeToPublicDslType[bindingType] ?: bindingType, schemaTypeToExtend)
     }
     registerAnalysisSchemaComponent(SoftwareFeatureComponent(schemaTypeToExtend, softwareFeatureInfo))
 }
@@ -147,10 +147,10 @@ fun buildSoftwareTypeInfoWithoutResolution(
 
 
 private
-fun mapToSchemaType(bindingType: KClass<*>, rootSchemaType: KClass<*>, buildModelTypeToPublicDslType: Map<KClass<*>, KClass<*>>) : KClass<*>  {
+fun mapToSchemaType(bindingType: KClass<*>, rootSchemaType: KClass<*>) : KClass<*>  {
     return when (bindingType) {
         Project::class -> rootSchemaType
-        else -> buildModelTypeToPublicDslType[bindingType]!!
+        else -> bindingType
     }
 }
 
