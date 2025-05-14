@@ -16,11 +16,9 @@
 package org.gradle.java.compile.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.jvm.Jvm
 import org.gradle.java.compile.AbstractJavaCompilerIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import spock.lang.Issue
 
 class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
@@ -73,20 +71,6 @@ class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationS
         buildFile << """
             tasks.withType(JavaCompile) {
                 options.sourcepath = project.layout.files()
-            }
-        """
-
-        expect:
-        succeeds "compileJava"
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/3098")
-    @Requires(IntegTestPreconditions.BestJreAvailable)
-    def "handles -bootclasspath being specified"() {
-        goodCode()
-        buildFile << """
-            tasks.withType(JavaCompile) {
-                ${configureBoostrapClasspath(Jvm.current())}
             }
         """
 

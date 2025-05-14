@@ -129,7 +129,7 @@ public abstract class AvailableJavaHomes {
      * Get a JDK for each major Java version installed on this machine.
      */
     public static List<Jvm> getAllJdkVersions() {
-        return getJdksInRange(Range.atLeast(0));
+        return getJdksInRange(Range.all());
     }
 
     /**
@@ -239,6 +239,19 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
+     * Return any JDK installation that falls within the given JVM version range.
+     */
+    @Nullable
+    public static Jvm getJdkInRange(Range<Integer> range) {
+        return getAvailableJvmMetadatas().stream()
+            .filter(input -> input.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES))
+            .filter(element -> range.contains(element.getJavaMajorVersion()))
+            .map(AvailableJavaHomes::jvmFromMetadata)
+            .findFirst()
+            .orElse(null);
+    }
+
+    /**
      * Return a list of JDK installations, containing one installation per version
      * in the specified range, if such a version is available on this machine.
      */
@@ -341,6 +354,17 @@ public abstract class AvailableJavaHomes {
     @Nullable
     public static Jvm getDifferentVersion(final Spec<? super JvmInstallationMetadata> filter) {
         return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && filter.isSatisfiedBy(element));
+    }
+
+    /**
+     * Get a JDK with a different version than the current JDK, which can
+     * execute the daemon for the given distribution.
+     */
+    @Nullable
+    public static Jvm getDifferentDaemonVersionFor(GradleDistribution distribution) {
+        return getDifferentVersion(
+            metadata -> distribution.daemonWorksWith(metadata.getJavaMajorVersion())
+        );
     }
 
     /**

@@ -18,6 +18,7 @@ package org.gradle.test.preconditions
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.TestPrecondition
@@ -116,10 +117,25 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class NotWindowsJavaBefore9 implements TestPrecondition {
+    /**
+     * @see <a href="https://github.com/gradle/gradle/issues/1111">Link</a>
+     */
+    static final class IsKnownWindowsSocketDisappearanceIssue implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return Jvm.current().javaVersionMajor >= 7 &&
+                Jvm.current().javaVersionMajor <= 8 &&
+                OperatingSystem.current().isWindows()
+        }
+    }
+
+    /**
+     * @see <a href="https://github.com/gradle/gradle/issues/1111">Link</a>
+     */
+    static final class IsNotKnownWindowsSocketDisappearanceIssue implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(Windows) || satisfied(Jdk9OrLater)
+            return notSatisfied(IsKnownWindowsSocketDisappearanceIssue)
         }
     }
 
@@ -137,17 +153,10 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Java8OnMacOs implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return satisfied(MacOs) && JavaVersion.current() == JavaVersion.VERSION_1_8
-        }
-    }
-
     static final class NotJava8OnMacOs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(Java8OnMacOs)
+            return !satisfied(MacOs) || JavaVersion.current() != JavaVersion.VERSION_1_8
         }
     }
 
@@ -240,41 +249,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk6OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_1_6
-        }
-    }
-
-    static final class Jdk6OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_1_6
-        }
-    }
-
-    static final class Jdk7OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_1_7
-        }
-    }
-
-    static final class Jdk7OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_1_7
-        }
-    }
-
-    static final class Jdk8OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_1_8
-        }
-    }
-
     static final class Jdk8OrEarlier implements TestPrecondition {
         @Override
         boolean isSatisfied() {
@@ -293,13 +267,6 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() <= JavaVersion.VERSION_1_9
-        }
-    }
-
-    static final class Jdk10OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_1_10
         }
     }
 
@@ -331,20 +298,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk12OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_12
-        }
-    }
-
-    static final class Jdk13OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_13
-        }
-    }
-
     static final class Jdk13OrEarlier implements TestPrecondition {
         @Override
         boolean isSatisfied() {
@@ -356,20 +309,6 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() >= JavaVersion.VERSION_14
-        }
-    }
-
-    static final class Jdk14OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_14
-        }
-    }
-
-    static final class Jdk15OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_15
         }
     }
 
@@ -387,13 +326,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk16OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_16
-        }
-    }
-
     static final class Jdk17OrLater implements TestPrecondition {
         @Override
         boolean isSatisfied() {
@@ -401,52 +333,10 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk17OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_17
-        }
-    }
-
-    static final class Jdk18OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_18
-        }
-    }
-
-    static final class Jdk18OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_18
-        }
-    }
-
-    static final class Jdk19OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_19
-        }
-    }
-
     static final class Jdk19OrEarlier implements TestPrecondition {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() <= JavaVersion.VERSION_19
-        }
-    }
-
-    static final class Jdk20OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_20
-        }
-    }
-
-    static final class Jdk20OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_20
         }
     }
 
@@ -461,27 +351,6 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() <= JavaVersion.VERSION_21
-        }
-    }
-
-    static final class Jdk22OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_22
-        }
-    }
-
-    static final class Jdk22OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_22
-        }
-    }
-
-    static final class Jdk23OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_23
         }
     }
 
