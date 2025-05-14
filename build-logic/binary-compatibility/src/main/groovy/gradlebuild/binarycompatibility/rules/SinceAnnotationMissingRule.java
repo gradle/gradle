@@ -17,6 +17,7 @@
 package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.metadata.KotlinMetadataQueries;
+import groovy.transform.CompileStatic;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiConstructor;
@@ -27,6 +28,7 @@ import me.champeau.gradle.japicmp.report.Violation;
 
 import java.util.Map;
 
+@CompileStatic
 public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
     public static final String SINCE_ERROR_MESSAGE = "Is not annotated with @since ";

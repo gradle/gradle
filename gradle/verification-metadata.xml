@@ -599,8 +599,8 @@
             <pgp value="D4D4DEC73685B1A135E45E5C47933D17F199636B"/>
          </artifact>
       </component>
-      <component group="com.github.siom79.japicmp" name="japicmp" version="0.15.7">
-         <artifact name="japicmp-0.15.7.jar">
+      <component group="com.github.siom79.japicmp" name="japicmp" version="0.23.1">
+         <artifact name="japicmp-0.23.1.jar">
             <pgp value="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5"/>
          </artifact>
       </component>
@@ -996,9 +996,9 @@
             <pgp value="D4C89EA4AAF455FD88B22087EFE8086F9E93774E"/>
          </artifact>
       </component>
-      <component group="me.champeau.gradle" name="japicmp-gradle-plugin" version="0.4.1">
-         <artifact name="japicmp-gradle-plugin-0.4.1.jar">
-            <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff2b482ba" origin="Verified" reason="Artifact is not signed"/>
+      <component group="me.champeau.gradle" name="japicmp-gradle-plugin" version="0.4.6">
+         <artifact name="japicmp-gradle-plugin-0.4.6.jar">
+            <pgp value="331224E1D7BE883D16E8A685825C06C827AF6B66"/>
          </artifact>
       </component>
       <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.7.2">

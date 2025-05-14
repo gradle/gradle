@@ -16,9 +16,10 @@
 
 package gradlebuild.binarycompatibility.rules;
 
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.BinaryCompatibility;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
+import groovy.transform.CompileStatic;
 import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
 import org.gradle.util.internal.CollectionUtils;
@@ -30,6 +31,7 @@ import java.util.Set;
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
 
+@CompileStatic
 public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRule {
 
     @Override
