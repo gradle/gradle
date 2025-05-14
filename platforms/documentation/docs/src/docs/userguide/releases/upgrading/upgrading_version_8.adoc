@@ -615,6 +615,12 @@ Previously, these tasks were automatically added to the project for every build.
 These tasks are now only added to a project when a rule-based plugin is applied (such as those provided by Gradle's support for building native software).
 
 
+==== Incubating API `ConfigurationVariant.getDescription` is now a `Property<String>`
+
+This method was added in Gradle 7.5 and was previously a `Optional<String>`. This property was not configurable by public APIs.
+
+By making the description a `Property<String>`, secondary variants have a user configurable description that appears in the <<variant_aware_resolution.adoc#outgoing_variants_report,`outgoingVariants` report>>.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
