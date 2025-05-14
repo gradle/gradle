@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
+import org.junit.Assume
 
 // 8.8 did not support configuring the set of available Java homes or disabling auto-detection
 @TargetGradleVersion(">=8.9")
@@ -31,7 +32,8 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given toolchain properties are provided then build succeeds"() {
         given:
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = AvailableJavaHomes.getDifferentVersion { it.javaMajorVersion <= 22 }
+        Assume.assumeTrue(otherJvm != null)
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
 
@@ -52,7 +54,8 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
         given:
         // We don't want to be able to find an already running compatible daemon
         requireIsolatedDaemons()
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = AvailableJavaHomes.getDifferentVersion { it.javaMajorVersion <=22 }
+        Assume.assumeTrue(otherJvm != null)
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
 
@@ -69,7 +72,8 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined org.gradle.java.home gradle property When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
         given:
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = AvailableJavaHomes.getDifferentVersion { it.javaMajorVersion <= 22 }
+        Assume.assumeTrue(otherJvm != null)
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
         file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.canonicalPath)
