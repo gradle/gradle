@@ -98,6 +98,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         LOGGER.debug("Java compiler arguments: {}", joinedArgs);
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private WorkResult delegateAndHandleErrors(GroovyJavaJointCompileSpec spec) {
         try {
             return delegate.execute(spec);

@@ -47,7 +47,7 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
     @SuppressWarnings("unchecked")
     public Violation maybeViolation(final JApiCompatibility member) {
         if (!member.isBinaryCompatible()) {
-            if ((member instanceof JApiClass) && (member.getCompatibilityChanges().isEmpty())) {
+            if (member instanceof JApiClass && member.getCompatibilityChanges().isEmpty()) {
                 // A member of the class breaks binary compatibility.
                 // That will be handled when the member is passed to `maybeViolation`.
                 return null;

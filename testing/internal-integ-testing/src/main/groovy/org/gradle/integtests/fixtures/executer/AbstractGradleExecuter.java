@@ -1172,6 +1172,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     /**
      * Returns the set of system properties that should be set on every JVM used by this executer.
      */
+    @SuppressWarnings("UnnecessaryParentheses")
     protected Map<String, String> getImplicitJvmSystemProperties() {
         Map<String, String> properties = new LinkedHashMap<>();
 

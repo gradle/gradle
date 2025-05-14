@@ -51,6 +51,7 @@ public class TransformChain {
         return last;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     public boolean requiresDependencies() {
         return (init != null && init.requiresDependencies()) || last.requiresDependencies();
     }

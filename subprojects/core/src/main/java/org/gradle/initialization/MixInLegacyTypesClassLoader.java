@@ -146,6 +146,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         }
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
             if (((access & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL) && Type.getDescriptor(String.class).equals(desc)) {
                 missingStaticStringConstantGetters.put("get" + name, name);
@@ -157,6 +158,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         }
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
             if (missingStaticStringConstantGetters.containsKey(name)) {
                 missingStaticStringConstantGetters.remove(name);

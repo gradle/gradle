@@ -31,6 +31,7 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
     }
 
     @Override
+    @SuppressWarnings("UnnecessaryParentheses")
     public ConsoleMetaData getConsole() {
         // Dumb terminal doesn't support ANSI control codes.
         // TODO - remove this when we use Terminal rather than JAnsi to render to console

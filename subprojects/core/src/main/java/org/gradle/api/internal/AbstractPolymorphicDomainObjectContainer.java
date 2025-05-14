@@ -154,6 +154,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
             return DynamicInvokeResult.notFound();
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
             return ((arguments.length == 1 && arguments[0] instanceof Closure)
                 || (arguments.length == 1 && arguments[0] instanceof Class)

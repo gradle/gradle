@@ -142,6 +142,7 @@ class SelectorStateResolverResults {
         return false;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult candidate, boolean isFromLock) {
         // Check already-resolved dependencies and use this version if it's compatible
         boolean replaces = false;
