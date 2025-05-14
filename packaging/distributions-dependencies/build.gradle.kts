@@ -25,7 +25,7 @@ val bouncycastleVersion = "1.78.1"
 val hamcrestVersion = "3.0"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
-val junit5Version = "5.10.5"
+val junit5Version = "5.12.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-28"
@@ -137,8 +137,8 @@ dependencies {
         api(libs.junitJupiter)          { version { strictly(junit5Version) }}
         api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
-        api(libs.junitPlatform)         { version { strictly("1.10.5") }}
-        api(libs.junitPlatformEngine)   { version { strictly("1.10.5") }}
+        api(libs.junitPlatform)         { version { strictly("1.12.2") }}
+        api(libs.junitPlatformEngine)   { version { strictly("1.12.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
