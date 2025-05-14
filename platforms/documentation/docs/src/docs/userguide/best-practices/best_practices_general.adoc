@@ -180,7 +180,7 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 == Do Not Put Source Files in the Root Project
 :keywords: structuring-builds
 
-Do not put source files in your root project, instead put them in an included (sub)project.
+Do not put source files in your root project; instead, put them in an included (sub)project.
 
 === Explanation
 
