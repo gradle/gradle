@@ -25,6 +25,8 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
@@ -46,12 +48,14 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.deprecation.DeprecationMessageBuilder
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
+import java.io.IOException
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -143,6 +147,18 @@ class ConfigurationCacheProblems(
     fun projectStateStats(reusedProjects: Int, updatedProjects: Int) {
         this.reusedProjects = reusedProjects
         this.updatedProjects = updatedProjects
+    }
+
+    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+        // Let IO and configuration cache exceptions surface to the top.
+        if (error is IOException || error is ConfigurationCacheThrowable) {
+            throw error
+        }
+        throw ConfigurationCacheError(
+            // TODO: the message is not precise, since some errors can happen during load
+            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message).render()}",
+            error.maybeUnwrapInvocationTargetException()
+        )
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
