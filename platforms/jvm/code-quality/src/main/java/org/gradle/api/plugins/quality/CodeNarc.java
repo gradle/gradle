@@ -22,6 +22,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.quality.internal.CodeNarcAction;
 import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -46,24 +47,26 @@ import java.util.stream.Collectors;
 @CacheableTask
 public abstract class CodeNarc extends AbstractCodeQualityTask implements Reporting<CodeNarcReports> {
 
-    private FileCollection codenarcClasspath;
-
+    Property<FileCollection> codenarcClasspath;
     private FileCollection compilationClasspath;
-
-    private TextResource config;
-
-    private int maxPriority1Violations;
-
-    private int maxPriority2Violations;
-
-    private int maxPriority3Violations;
-
+    Property<TextResource> config;
+    Property<Integer> maxPriority1Violations;
+    Property<Integer> maxPriority2Violations;
+    Property<Integer> maxPriority3Violations;
     private final CodeNarcReports reports;
 
     public CodeNarc() {
         super();
         reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
+        codenarcClasspath = getObjectFactory().property(FileCollection.class);
         compilationClasspath = getProject().files();
+        config = getObjectFactory().property(TextResource.class);
+        maxPriority1Violations = getObjectFactory().property(Integer.class);
+        maxPriority1Violations.convention(0);
+        maxPriority2Violations = getObjectFactory().property(Integer.class);
+        maxPriority2Violations.convention(0);
+        maxPriority3Violations = getObjectFactory().property(Integer.class);
+        maxPriority3Violations.convention(0);
         // Set default JavaLauncher to current JVM in case
         // CodeNarcPlugin that sets Java launcher convention is not applied
     }
@@ -140,14 +143,14 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     @Classpath
     @ToBeReplacedByLazyProperty
     public FileCollection getCodenarcClasspath() {
-        return codenarcClasspath;
+        return codenarcClasspath.getOrNull();
     }
 
     /**
      * The class path containing the CodeNarc library to be used.
      */
     public void setCodenarcClasspath(FileCollection codenarcClasspath) {
-        this.codenarcClasspath = codenarcClasspath;
+        this.codenarcClasspath.set(codenarcClasspath);
     }
 
     /**
@@ -177,7 +180,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      */
     @Nested
     public TextResource getConfig() {
-        return config;
+        return config.getOrNull();
     }
 
     /**
@@ -186,7 +189,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 2.2
      */
     public void setConfig(TextResource config) {
-        this.config = config;
+        this.config.set(config);
     }
 
     /**
@@ -195,14 +198,14 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxPriority1Violations() {
-        return maxPriority1Violations;
+        return maxPriority1Violations.get();
     }
 
     /**
      * The maximum number of priority 1 violations allowed before failing the build.
      */
     public void setMaxPriority1Violations(int maxPriority1Violations) {
-        this.maxPriority1Violations = maxPriority1Violations;
+        this.maxPriority1Violations.set(maxPriority1Violations);
     }
 
     /**
@@ -211,14 +214,14 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxPriority2Violations() {
-        return maxPriority2Violations;
+        return maxPriority2Violations.get();
     }
 
     /**
      * The maximum number of priority 2 violations allowed before failing the build.
      */
     public void setMaxPriority2Violations(int maxPriority2Violations) {
-        this.maxPriority2Violations = maxPriority2Violations;
+        this.maxPriority2Violations.set(maxPriority2Violations);
     }
 
     /**
@@ -227,14 +230,14 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxPriority3Violations() {
-        return maxPriority3Violations;
+        return maxPriority3Violations.get();
     }
 
     /**
      * The maximum number of priority 3 violations allowed before failing the build.
      */
     public void setMaxPriority3Violations(int maxPriority3Violations) {
-        this.maxPriority3Violations = maxPriority3Violations;
+        this.maxPriority3Violations.set(maxPriority3Violations);
     }
 
     /**
