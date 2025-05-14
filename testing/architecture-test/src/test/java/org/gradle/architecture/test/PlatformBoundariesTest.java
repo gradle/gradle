@@ -28,13 +28,11 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jspecify.annotations.Nullable;
 
 import java.io.FileReader;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,7 +45,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
-import static org.gradle.architecture.test.ArchUnitFixture.safeReflect;
+import static org.gradle.architecture.test.ArchUnitFixture.getClassFile;
 
 /**
  * Keep lower level platforms from depending on higher level platform projects.
@@ -191,19 +189,6 @@ public class PlatformBoundariesTest {
     private static String platformNameOf(Path classFile, String className) {
         return dirsByPlatform.entrySet().stream().filter(e -> e.getValue().stream().anyMatch(classFile::startsWith)).map(Map.Entry::getKey).findFirst()
             .orElseThrow(() -> new IllegalStateException("Could not find platform for class " + className));
-    }
-
-    @Nullable
-    private static Path getClassFile(JavaClass javaClass) {
-        Class<?> reflectedClass = safeReflect(javaClass);
-        if (reflectedClass == null) {
-            return null;
-        }
-        CodeSource codeSource = reflectedClass.getProtectionDomain().getCodeSource();
-        if (codeSource == null) {
-            return null;
-        }
-        return Paths.get(codeSource.getLocation().getPath());
     }
 
     private static <T> Predicate<T> distinctBy(Function<? super T, ?> keyExtractor) {
