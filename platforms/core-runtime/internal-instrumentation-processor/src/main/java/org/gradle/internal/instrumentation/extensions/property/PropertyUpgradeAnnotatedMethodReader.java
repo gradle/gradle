@@ -213,6 +213,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         return requests;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private static boolean isGroovyPropertyGetter(AccessorSpec accessor, List<AccessorSpec> accessors) {
         if (accessor.accessorType != AccessorType.GETTER) {
             return false;

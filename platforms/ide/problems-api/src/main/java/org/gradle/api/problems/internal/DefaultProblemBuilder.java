@@ -113,6 +113,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Nullable
+    @SuppressWarnings("UnnecessaryParentheses")
     private ProblemDiagnostics determineDiagnostics() {
         if (diagnostics != null) {
             return diagnostics;
