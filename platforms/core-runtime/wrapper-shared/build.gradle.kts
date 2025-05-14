@@ -6,7 +6,6 @@ description = "Utility code shared between the wrapper and the Gradle distributi
 
 gradleModule {
     usedInWrapper = true
-    usesIncompatibleDependencies = true // For :files, test dependencies
 }
 
 dependencies {

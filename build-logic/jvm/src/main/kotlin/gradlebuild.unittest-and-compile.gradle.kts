@@ -76,7 +76,6 @@ val gradleModule = extensions.create<UnitTestAndCompileExtension>("gradleModule"
     // And assume it does not use any workarounds
     usesJdkInternals = false
     usesFutureStdlib = false
-    usesIncompatibleDependencies = false
 }
 
 enforceCompatibility(gradleModule)
@@ -127,15 +126,6 @@ fun enforceCompatibility(gradleModule: UnitTestAndCompileExtension) {
     enforceJavaCompatibility(productionJvmVersion, useRelease)
     enforceGroovyCompatibility(productionJvmVersion)
     enforceKotlinCompatibility(productionJvmVersion, useRelease)
-
-    project.afterEvaluate {
-        if (gradleModule.usesIncompatibleDependencies.get()) {
-            // Some projects use dependencies that target higher JVM versions
-            // than the projects target. Disable dependency management checks
-            // that verify these dependencies have compatible java versions.
-            java.disableAutoTargetJvm()
-        }
-    }
 }
 
 /**
