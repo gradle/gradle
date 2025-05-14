@@ -30,7 +30,7 @@ import static org.junit.Assume.assumeTrue
 @TargetVersions("5.0+")
 class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
-    def "can access extensions and conventions with current Gradle version from plugin built with Gradle 5.0+"() {
+    def "can access extensions with current Gradle version from plugin built with Gradle 5.0+"() {
 
         def isFlaky = OperatingSystem.current().isWindows() &&
             previous.version >= GradleVersion.version("6.5") &&
@@ -44,7 +44,7 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         pluginAppliedWith(current)
     }
 
-    def "can access extensions and conventions with Gradle 8.11+ from plugin built with current Gradle version"() {
+    def "can access extensions with Gradle 8.11+ from plugin built with current Gradle version"() {
 
         // 8.11 is the first version that embeds Kotlin 2.0 and can execute code compiled for Kotlin 2.0
         assumeTrue(previous.version >= GradleVersion.version('8.11'))
@@ -56,18 +56,21 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         pluginAppliedWith(previous)
     }
 
-    def "can access extensions and conventions with Gradle 6.8+ from plugin built with current Gradle version targeting Kotlin 1.7"() {
+    def "can access extensions with Gradle 6.8+ from plugin built with current Gradle version targeting Kotlin 1.7"() {
 
         assumeTrue(previous.version >= GradleVersion.version('6.8'))
 
         when:
-        pluginBuiltWith(current, "KOTLIN_1_7")
+        pluginBuiltWith(current, "KOTLIN_1_7",
+            "w: Language version 1.7 is deprecated and its support will be removed in a future version of Kotlin",
+            "w: Language version 1.7 is deprecated and its support will be removed in a future version of Kotlin"
+        )
 
         then:
         pluginAppliedWith(previous)
     }
 
-    private void pluginBuiltWith(GradleDistribution distribution, String kotlinVersion = null) {
+    private void pluginBuiltWith(GradleDistribution distribution, String kotlinVersion = null, String... expectedDeprecations) {
         file("plugin/settings.gradle.kts").text = """
             println("Publishing plugin with ${'$'}{org.gradle.util.GradleVersion.current()}")
         """
@@ -102,22 +105,21 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         file("plugin/src/main/kotlin/my-types.kt").text = """
             import org.gradle.api.provider.Property
             interface MyExtension { val some: Property<String> }
-            interface MyConvention { val more: Property<String> }
             interface Unregistered
         """
         file("plugin/src/main/kotlin/my-plugin.gradle.kts").text = """
             extensions.create<MyExtension>("myExtension")
-            convention.plugins["myConvention"] = objects.newInstance<MyConvention>()
             $usageCode
         """
 
-        version(distribution)
+
+        def executer = version(distribution)
             .inDirectory(file("plugin"))
             .withTasks("publish")
-            // The expected deprecations for conventions change too much between versions
-            // for checking deprecations to be worthwhile.
-            .noDeprecationChecks()
-            .run()
+        for (String deprecation : expectedDeprecations) {
+            executer = executer.expectDeprecationWarning(deprecation)
+        }
+        executer.run()
     }
 
     private void pluginAppliedWith(GradleDistribution distribution) {
@@ -135,13 +137,11 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             $usageCode
         """
 
+
         version(distribution)
             .inDirectory(file("consumer"))
             .withTasks("myTask")
             .withArgument("-s")
-            // The expected deprecations for conventions change too much between versions
-            // for checking deprecations to be worthwhile.
-            .noDeprecationChecks()
             .run()
     }
 
@@ -154,14 +154,6 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             the(MyExtension::class).some.set("thing")
             configure<MyExtension> {
                 some.set("thing")
-            }
-
-            // Accessing conventions
-
-            the<MyConvention>().more.set("less")
-            the(MyConvention::class).more.set("less")
-            configure<MyConvention> {
-                more.set("less")
             }
 
             // Error cases
