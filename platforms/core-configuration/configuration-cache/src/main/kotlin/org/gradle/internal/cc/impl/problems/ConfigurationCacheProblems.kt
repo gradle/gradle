@@ -54,6 +54,7 @@ import org.gradle.invocation.ConfigurationCacheDegradationController
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -110,7 +111,10 @@ class ConfigurationCacheProblems(
     val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
-    var degradationReasons = emptyMap<PropertyTrace, List<String>>()
+    var buildLogicDegradationReasons = ConcurrentHashMap<PropertyTrace, List<String>>()
+
+    private
+    val taskDegradationReasons = ConcurrentHashMap<PropertyTrace, List<String>>()
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -126,16 +130,17 @@ class ConfigurationCacheProblems(
             if (isFailingBuildDueToSerializationError) {
                 return true
             }
-            if (shouldDegradeGracefully) {
+            if (buildLogicDegradationReasons.isNotEmpty() || taskDegradationReasons.isNotEmpty()) {
                 return true
             }
             val summary = summarizer.get()
             return discardStateDueToProblems(summary) || hasTooManyProblems(summary)
         }
 
-    val shouldDegradeGracefully: Boolean
+    val isGracefulDegradationRequestedByBuildLogic: Boolean
         get() {
-            degradationReasons = (degradationController as DefaultConfigurationCacheDegradationController).getAllDegradationReasons()
+            val degradationReasons = (degradationController as DefaultConfigurationCacheDegradationController).getBuildLogicDegradationReasons()
+            buildLogicDegradationReasons.putAll(degradationReasons)
             return degradationReasons.isNotEmpty()
         }
 
@@ -182,36 +187,34 @@ class ConfigurationCacheProblems(
     }
 
     override fun forBuildLogic(trace: PropertyTrace): ProblemsListener {
-        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getAllDegradationReasons().isNotEmpty()
-        return if (shouldDegrade) object : AbstractProblemsListener() {
-            override fun onProblem(problem: PropertyProblem) {
-                onProblem(problem, ProblemSeverity.Suppressed)
-            }
-
-            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-                val failure = failureFactory.create(error)
-                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
-            }
-        } else this
+        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getBuildLogicDegradationReasons().isNotEmpty()
+        return if (shouldDegrade) suppressingProblemsListener() else this
     }
 
     override fun forTask(trace: PropertyTrace): ProblemsListener {
-        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getDegradationReasonsForTask(trace).isNotEmpty()
-        return if (shouldDegrade) object : AbstractProblemsListener() {
-            override fun onProblem(problem: PropertyProblem) {
-                onProblem(problem, ProblemSeverity.Suppressed)
+        val degradationReasons = (degradationController as DefaultConfigurationCacheDegradationController).getDegradationReasonsForTask(trace)
+        return if (degradationReasons.isNotEmpty()) {
+            taskDegradationReasons.computeIfAbsent(trace) {
+                reportIncompatibleTask(trace, degradationReasons.joinToString())
+                degradationReasons
             }
-
-            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-                val failure = failureFactory.create(error)
-                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
-            }
+            suppressingProblemsListener()
         } else this
+    }
+
+    private fun suppressingProblemsListener() = object : AbstractProblemsListener() {
+        override fun onProblem(problem: PropertyProblem) {
+            onProblem(problem, ProblemSeverity.Suppressed)
+        }
+
+        override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+            val failure = failureFactory.create(error)
+            onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+        }
     }
 
     private
     fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
-
         val problem = problemFactory
             .problem {
                 message(trace.containingUserCodeMessage)
@@ -377,7 +380,8 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && shouldDegradeGracefully -> log("Configuration cache entry discarded${degradationSummary()}")
+                cacheAction == Store && isGracefulDegradationRequestedByBuildLogic -> log("Configuration cache entry discarded${degradationSummary(buildLogicDegradationReasons)}")
+                cacheAction == Store && taskDegradationReasons.isNotEmpty() -> log("Configuration cache entry discarded${degradationSummary(taskDegradationReasons)}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -395,7 +399,7 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun degradationSummary() =
+    fun degradationSummary(degradationReasons: Map<PropertyTrace, List<String>>) =
         " because degradation was requested by:\n${degradationReasons.entries.joinToString("\n") { "- ${it.key.render()}: ${it.value.joinToString()}" }}"
 
     private

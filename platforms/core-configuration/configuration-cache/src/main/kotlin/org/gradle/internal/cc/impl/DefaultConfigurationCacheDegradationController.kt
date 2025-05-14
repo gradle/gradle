@@ -30,25 +30,27 @@ class DefaultConfigurationCacheDegradationController(
     private val userCodeApplicationContext: UserCodeApplicationContext
 ) : ConfigurationCacheDegradationController {
 
-    private val degradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
+    private val buildLogicDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
+    private val tasksDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
 
     override fun requireConfigurationCacheDegradation(reason: String, spec: Provider<Boolean>) {
         val trace = userCodeApplicationContext.current()?.let { PropertyTrace.BuildLogic(it.source) }
             ?: PropertyTrace.Unknown
-        degradationRequests.add(DegradationRequest(trace, reason, spec))
+        buildLogicDegradationRequests.add(DegradationRequest(trace, reason, spec))
     }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: String, spec: Provider<Boolean>) {
         val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
-        degradationRequests.add(DegradationRequest(trace, reason, spec))
+        tasksDegradationRequests.add(DegradationRequest(trace, reason, spec))
     }
 
-    fun getDegradationReasonsForTask(trace: PropertyTrace): List<String> = degradationRequests
-        .filter { it.trace == trace && it.spec.getOrElse(false) }
-        .map { it.reason }
+    fun getDegradationReasonsForTask(trace: PropertyTrace): List<String> =
+        tasksDegradationRequests
+            .filter { it.trace == trace && it.spec.getOrElse(false) }
+            .map { it.reason }
 
-    fun getAllDegradationReasons(): Map<PropertyTrace, List<String>> =
-        degradationRequests
+    fun getBuildLogicDegradationReasons(): Map<PropertyTrace, List<String>> =
+        buildLogicDegradationRequests
             .filter { it.spec.getOrElse(false) }
             .groupBy({ it.trace }, { it.reason })
 
