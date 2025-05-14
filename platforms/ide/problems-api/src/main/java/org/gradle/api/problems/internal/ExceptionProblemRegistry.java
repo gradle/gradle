@@ -144,6 +144,7 @@ public class ExceptionProblemRegistry {
             return deepEquals(t1.getCause(), t2.getCause(), seen);
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         private boolean isStackTraceElementEquals(StackTraceElement s1, StackTraceElement s2) {
             if (!s1.getClassName().equals(s2.getClassName())) {
                 return false;

@@ -359,6 +359,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
+    @SuppressWarnings("UnnecessaryParentheses")
     public boolean hasStrongOpinion() {
         return forced || (versionConstraint != null && versionConstraint.isStrict());
     }

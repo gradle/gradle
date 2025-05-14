@@ -135,6 +135,7 @@ public abstract class TypeOf<T> {
      * @return true if this object represents an array.
      * @see #getComponentType()
      */
+    @SuppressWarnings("UnnecessaryParentheses")
     public boolean isArray() {
         return type.isGenericArray()
             || (type.isClass() && rawClass().isArray());

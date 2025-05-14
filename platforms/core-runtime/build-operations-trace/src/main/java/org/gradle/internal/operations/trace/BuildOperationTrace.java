@@ -597,6 +597,7 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
             if ((buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName())) ||
                 (finishEvent.getResult() != null && filter.contains(finishEvent.getResult().getClass().getName()))

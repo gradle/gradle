@@ -260,6 +260,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             }
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         private boolean nothingMoreToStart() {
             return finished || (autoFinish && queues.isEmpty());
         }

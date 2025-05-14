@@ -55,6 +55,7 @@ public abstract class PublicationFieldValidator<T extends PublicationFieldValida
         return type.cast(this);
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     public T doesNotContainSpecialCharacters(boolean allowSlash) {
         if (value == null || value.length() == 0) {
             return type.cast(this);

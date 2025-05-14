@@ -300,6 +300,7 @@ public class DefaultManifest implements ManifestInternal {
      * without prior blank lines, Java Manifest class doesn't. Ant Manifest class supports manifest without last line blank, Java Manifest class doesn't. Therefore we need to insert blank lines before
      * entries named 'Name' and before EOF if needed. This without decoding characters as this would break split multi-bytes characters, hence working on the bytes level.
      */
+    @SuppressWarnings("UnnecessaryParentheses")
     private byte[] prepareManifestBytesForInteroperability(byte[] original) {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         boolean useCarriageReturns = false;

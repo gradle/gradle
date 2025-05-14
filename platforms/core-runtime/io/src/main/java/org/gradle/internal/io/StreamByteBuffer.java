@@ -410,6 +410,7 @@ public class StreamByteBuffer {
         private boolean closed;
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         public void write(byte[] b, int off, int len) throws IOException {
             if (b == null) {
                 throw new NullPointerException();
@@ -467,6 +468,7 @@ public class StreamByteBuffer {
             return readImpl(b, off, len);
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         int readImpl(byte[] b, int off, int len) {
             if (b == null) {
                 throw new NullPointerException();

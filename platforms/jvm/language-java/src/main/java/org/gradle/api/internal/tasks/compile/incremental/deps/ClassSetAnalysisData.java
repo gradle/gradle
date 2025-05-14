@@ -251,6 +251,7 @@ public class ClassSetAnalysisData {
         return dependentsSet == null ? DependentsSet.empty() : dependentsSet;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private DependentsSet getDependentsOfPackage(String packageName) {
         Set<String> typesInPackage = new HashSet<>();
         for (String type : classHashes.keySet()) {

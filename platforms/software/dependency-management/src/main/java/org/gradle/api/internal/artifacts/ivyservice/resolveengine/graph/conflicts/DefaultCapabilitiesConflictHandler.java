@@ -387,6 +387,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * Record this fact, so that later if we see the conflict again, we can compute node relationships
          * between conflict participants.
          */
+        @SuppressWarnings("UnnecessaryParentheses")
         private CapabilityConflict updateClearAndReturnConflict() {
             CapabilityConflict currentConflict = pendingConflict;
             this.pendingConflict = null;

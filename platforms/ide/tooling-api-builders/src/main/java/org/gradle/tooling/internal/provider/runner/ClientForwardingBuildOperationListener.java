@@ -69,6 +69,7 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     }
 
     @Override
+    @SuppressWarnings("UnnecessaryParentheses")
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         // RunBuildBuildOperationType.Details is the type of the details object associated with the root build operation
         if ((rootRequested && buildOperation.getDetails() instanceof RunBuildBuildOperationType.Details) || genericRequested) {

@@ -126,6 +126,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         return this;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private boolean isEntryValid(File file) {
         return file.exists() || ("*".equals(file.getName()) && file.getParentFile() != null && file.getParentFile().exists());
     }

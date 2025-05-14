@@ -62,6 +62,7 @@ public class GroovySystemLoaderFactory {
         }
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private boolean isGroovy24OrLater(VersionNumber groovyVersion) {
         if (groovyVersion == null) {
             return false;

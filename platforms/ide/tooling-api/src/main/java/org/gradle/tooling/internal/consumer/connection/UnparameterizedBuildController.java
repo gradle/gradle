@@ -135,6 +135,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
         }
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private <P> void validateParameters(Class<P> parameterType, Action<? super P> parameterInitializer) {
         if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null)) {
             throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parameterized model request.");

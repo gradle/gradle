@@ -222,7 +222,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             return;
         }
         for (Method declaredMethod : declaredMethods) {
-            if ((isDefaultInterfaceMethod(declaredMethod) && !isAcceptable(declaredMethod)) && PropertyAccessorType.of(declaredMethod) == null) {
+            if (isDefaultInterfaceMethod(declaredMethod) && !isAcceptable(declaredMethod) && PropertyAccessorType.of(declaredMethod) == null) {
                 problems.add(declaredMethod, "Default interface methods are only supported for getters and setters.");
             }
         }

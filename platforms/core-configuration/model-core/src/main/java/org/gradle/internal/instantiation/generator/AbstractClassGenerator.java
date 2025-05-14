@@ -1209,6 +1209,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final List<PropertyMetadata> lazyGroovySupportTyped = new ArrayList<>();
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         void visitProperty(PropertyMetadata property) {
             // For ConfigurableFileCollection we generate setters just for readonly properties,
             // since we want to support += for mutable FileCollection properties, but we don't support += for ConfigurableFileCollection (yet).

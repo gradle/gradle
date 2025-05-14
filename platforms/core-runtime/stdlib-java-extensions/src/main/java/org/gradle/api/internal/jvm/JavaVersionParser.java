@@ -83,6 +83,7 @@ public class JavaVersionParser {
         return s.length();
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private static boolean isDigitOrPeriod(char c) {
         return (c >= '0' && c <= '9') || c == '.';
     }

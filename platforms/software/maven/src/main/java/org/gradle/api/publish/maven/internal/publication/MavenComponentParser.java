@@ -389,6 +389,7 @@ public class MavenComponentParser {
             }
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         private ResolvedCoordinates convertDeclaredCoordinates(String groupId, String artifactId, @Nullable String version) {
             if (version == null) {
                 return ResolvedCoordinates.create(groupId, artifactId, null);

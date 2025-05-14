@@ -40,7 +40,7 @@ public class BufferingStyledTextOutput extends AbstractStyledTextOutput {
 
     @Override
     protected void doStyleChange(final StyledTextOutput.Style style) {
-        if (!events.isEmpty() && (events.get(events.size() - 1) instanceof ChangeStyleAction)) {
+        if (!events.isEmpty() && events.get(events.size() - 1) instanceof ChangeStyleAction) {
             events.remove(events.size() - 1);
         }
         events.add(new ChangeStyleAction(style));

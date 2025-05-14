@@ -165,6 +165,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             || packagePrefixes.find(packageName);
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private boolean classAllowed(String className) {
         if (disallowedClassNames.contains(className)) {
             return false;

@@ -1900,6 +1900,7 @@ public class BuildScriptBuilder {
             }
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         private void printStatement(Statement statement) {
             Statement.Type type = statement.type();
             if (type == Statement.Type.Empty) {

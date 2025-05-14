@@ -361,6 +361,7 @@ public abstract class JacocoTaskExtension {
             this.workingDirectory = workingDirectory;
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         public void append(String name, @Nullable Object value) {
             if (value != null
                 && !((value instanceof Collection) && ((Collection) value).isEmpty())

@@ -347,6 +347,7 @@ public class Project extends XmlPersistableConfigurationObject {
         return type;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private ResourceFilterAppliesTo resourceFilterTypeBitmaskToAppliesTo(int type) {
         Preconditions.checkArgument(type >= 0);
         if (((type & 8) != 0) && ((type & 4) != 0)) { // order is important here, this must come first

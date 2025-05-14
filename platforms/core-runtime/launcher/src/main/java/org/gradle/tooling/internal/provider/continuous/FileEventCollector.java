@@ -55,6 +55,7 @@ public class FileEventCollector implements FileChangeListener {
         onRelevantChangeAction.run();
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     public void onChangeToInputs(FileWatcherRegistry.Type type, Path path) {
         FileWatcherRegistry.Type existingEvent = aggregatedEvents.get(path);
         if (existingEvent == type ||

@@ -29,6 +29,7 @@ public class Methods {
      */
     public static final Equivalence<Method> SIGNATURE_EQUIVALENCE = new Equivalence<Method>() {
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         protected boolean doEquivalent(Method a, Method b) {
             if (a.getName().equals(b.getName())) {
                 if (a.getReturnType().equals(b.getReturnType())

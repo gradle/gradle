@@ -93,6 +93,7 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     @Override
+    @SuppressWarnings("UnnecessaryParentheses")
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         if ("<clinit>".equals(name)) {
             // discard static initializers
@@ -126,6 +127,7 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     @Override
+    @SuppressWarnings("UnnecessaryParentheses")
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers)) {
             Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
@@ -168,6 +170,7 @@ public class ApiMemberSelector extends ClassVisitor {
         super.visitPermittedSubclass(permittedSubclass);
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {
         return isPublicMember(access)
             || isProtectedMember(access)

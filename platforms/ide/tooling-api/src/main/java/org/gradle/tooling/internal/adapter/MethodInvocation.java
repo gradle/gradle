@@ -65,6 +65,7 @@ class MethodInvocation {
         return parameterTypes.length == 0 && isIsOrGet();
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     public boolean isIsOrGet() {
         return (name.startsWith("get") && name.length() > 3) || (name.startsWith("is") && name.length() > 2);
     }

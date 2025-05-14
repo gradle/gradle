@@ -52,7 +52,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         ModelType<T> type = schema.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
-        if (TYPES.contains(rawCollectionType) && (schema.getElementTypeSchema() instanceof ScalarValueSchema)) {
+        if (TYPES.contains(rawCollectionType) && schema.getElementTypeSchema() instanceof ScalarValueSchema) {
             Optional<NodeInitializerContext.PropertyContext> propertyContext = context.getPropertyContextOptional();
             boolean writable = !propertyContext.isPresent() || propertyContext.get().isWritable();
             if (schema.getType().getRawClass() == List.class) {

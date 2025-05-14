@@ -41,6 +41,7 @@ public class PathTraversalChecker {
         return name;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     public static boolean isUnsafePathName(String name) {
         return name.isEmpty()
             || name.startsWith("/")

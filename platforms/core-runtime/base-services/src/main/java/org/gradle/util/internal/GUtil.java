@@ -87,7 +87,7 @@ public class GUtil {
             Object element = iter.next();
             if (element instanceof Collection) {
                 flatten((Collection<?>) element, addTo, flattenMaps, flattenArrays);
-            } else if ((element instanceof Map) && flattenMaps) {
+            } else if (element instanceof Map && flattenMaps) {
                 flatten(((Map<?, ?>) element).values(), addTo, flattenMaps, flattenArrays);
             } else if (element.getClass().isArray() && flattenArrays) {
                 flatten(asList((Object[]) element), addTo, flattenMaps, flattenArrays);

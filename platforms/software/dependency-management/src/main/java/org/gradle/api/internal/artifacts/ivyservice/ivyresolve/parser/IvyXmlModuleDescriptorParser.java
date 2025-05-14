@@ -584,6 +584,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         public void startElement(String uri, String localName, String qName, Attributes attributes)
                 throws SAXException {
             try {
@@ -867,7 +868,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     String description = substitute(attributes.getValue("description"));
                     String[] extend = substitute(attributes.getValue("extends")) == null ? null : substitute(attributes.getValue("extends")).split(",");
                     String transitiveValue = attributes.getValue("transitive");
-                    boolean transitive = (transitiveValue == null) || Boolean.parseBoolean(attributes.getValue("transitive"));
+                    boolean transitive = transitiveValue == null || Boolean.parseBoolean(attributes.getValue("transitive"));
                     String deprecated = attributes.getValue("deprecated");
                     Configuration configuration = new Configuration(conf, visibility, description, extend, transitive, deprecated);
                     fillExtraAttributes(configuration, attributes,
@@ -917,7 +918,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             boolean changing = Boolean.parseBoolean(substitute(attributes.getValue("changing")));
 
             String transitiveValue = substitute(attributes.getValue("transitive"));
-            boolean transitive = (transitiveValue == null) || Boolean.parseBoolean(transitiveValue);
+            boolean transitive = transitiveValue == null || Boolean.parseBoolean(transitiveValue);
 
             String name = substitute(attributes.getValue("name"));
             String branch = substitute(attributes.getValue("branch"));
@@ -929,7 +930,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
             ModuleRevisionId revId = createModuleRevisionId(org, name, branch, rev, extraAttributes);
             ModuleRevisionId dynamicId;
-            if ((revConstraint == null) && (branchConstraint == null)) {
+            if (revConstraint == null && branchConstraint == null) {
                 // no dynamic constraints defined, so dynamicId equals revId
                 dynamicId = createModuleRevisionId(org, name, branch, rev, extraAttributes, false);
             } else {
@@ -1177,7 +1178,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         @Override
-        @SuppressWarnings({"deprecation"})
+        @SuppressWarnings({"deprecation", "UnnecessaryParentheses"})
         public void endElement(String uri, String localName, String qName) {
             if (state == State.PUB && "artifact".equals(qName)) {
                 if (artifact.getConfigurations().isEmpty()) {

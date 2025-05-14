@@ -129,6 +129,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
      *
      * @see "https://docs.asciidoctor.org/asciidoc/latest/directives/include-tagged-regions/#tag-filtering"
      */
+    @SuppressWarnings("UnnecessaryParentheses")
     private static String filterByTags(String source, String syntax, List<String> tags) {
         Pattern sampleTagRegex = syntax.equals("html") || syntax.equals("xml") ? HTML_XML_SAMPLE_TAG : GENERAL_SAMPLE_TAG;
 

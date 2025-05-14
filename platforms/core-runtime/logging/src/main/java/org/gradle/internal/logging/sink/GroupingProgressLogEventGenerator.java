@@ -247,6 +247,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         void maybeFlushOutput(long eventTimestamp) {
             if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT) || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
                 flushOutput();
@@ -257,6 +258,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             return (eventTimestamp - lastUpdateTime) > timeout;
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         private boolean canClaimForeground() {
             return hasForeground() || (!bufferedLogs.isEmpty() && lastRenderedBuildOpId == null);
         }
@@ -286,6 +288,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             return failed && statusHasChanged();
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         private boolean shouldForward() {
             return !bufferedLogs.isEmpty() || (buildOperationCategory.isShowHeader() && (shouldPrintHeader() || statusIsFailed()));
         }

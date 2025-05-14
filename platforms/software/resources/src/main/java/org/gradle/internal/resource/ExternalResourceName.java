@@ -232,6 +232,7 @@ public class ExternalResourceName implements Describable {
         return builder.toString();
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private static String encode(String path, boolean isPathSeg) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < path.length(); i++) {

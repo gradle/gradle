@@ -179,6 +179,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         }
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private void writeConfiguration(ReportConfiguration config) {
         writeConfigurationNameHeader(config, spec.getReportedTypeAlias());
         writeDescription(config.getDescription());

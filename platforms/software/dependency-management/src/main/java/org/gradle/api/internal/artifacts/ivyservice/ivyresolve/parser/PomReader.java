@@ -117,7 +117,7 @@ public class PomReader implements PomParent {
     private static final EntityResolver M2_ENTITY_RESOLVER = new EntityResolver() {
         @Override
         public InputSource resolveEntity(String publicId, String systemId) {
-            if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
+            if (systemId != null && systemId.endsWith("m2-entities.ent")) {
                 return new InputSource(new ByteArrayInputStream(M2_ENTITIES_RESOURCE));
             }
             return null;
@@ -582,7 +582,7 @@ public class PomReader implements PomParent {
                     if (node instanceof Element && EXCLUSION.equals(node.getNodeName())) {
                         String groupId = getFirstChildText((Element) node, GROUP_ID);
                         String artifactId = getFirstChildText((Element) node, ARTIFACT_ID);
-                        if ((groupId != null) || (artifactId != null)) {
+                        if (groupId != null || artifactId != null) {
                             String resolvedGroupId = groupId != null ? replaceProps(groupId) : "*";
                             String resolvedArtifactId = artifactId != null ? replaceProps(artifactId) : "*";
                             exclusions.add(moduleIdentifierFactory.module(resolvedGroupId, resolvedArtifactId));
@@ -605,7 +605,7 @@ public class PomReader implements PomParent {
 
         public boolean isOptional() {
             Element e = getFirstChildElement(depElement, OPTIONAL);
-            return (e != null) && "true".equalsIgnoreCase(getTextContent(e).trim());
+            return e != null && "true".equalsIgnoreCase(getTextContent(e).trim());
         }
     }
 
