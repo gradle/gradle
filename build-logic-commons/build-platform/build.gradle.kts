@@ -10,7 +10,7 @@ group = "gradlebuild"
 description = "Provides a platform that constrains versions of external dependencies used by Gradle"
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
-val javaParserVersion = "3.18.0"
+val javaParserVersion = "3.26.4"
 // Note: this currently still contains 3/4 logic as we will temporarily have Groovy 3 for the build itself until we move to a Gradle built with Groovy 4
 // It can be removed or changed to 4/5 logic (if necessary) at that point.
 val groovyVersion = GroovySystem.getVersion()
