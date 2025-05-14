@@ -602,6 +602,12 @@ The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfied
 
 While these type should not be inherited from, if you build logic or a plugin does it, the build will fail at runtime.
 
+==== Incubating API `ConfigurationVariant.getDescription` is now a `Property<String>`
+
+This method was added in Gradle 7.5 and was previously a `Optional<String>`. This property was not configurable by public APIs.
+
+By making the description a `Property<String>`, secondary variants have a user configurable description that appears in the <<variant_aware_resolution.adoc#outgoing_variants_report,`outgoingVariants` report>>.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
