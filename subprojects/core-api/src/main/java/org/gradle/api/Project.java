@@ -261,38 +261,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     File getRootDir();
 
     /**
-     * <p>Returns the build directory of this project.  The build directory is the directory which all artifacts are
-     * generated into.  The default value for the build directory is <code><i>projectDir</i>/build</code></p>
-     *
-     * @return The build directory. Never returns null.
-     * @deprecated Use {@code getLayout().getBuildDirectory()} instead
-     */
-    @Deprecated
-    File getBuildDir();
-
-    /**
-     * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
-     * generated into.</p>
-     *
-     * @param path The build directory
-     * @since 4.0
-     * @deprecated Use {@code getLayout().getBuildDirectory()} and set the {@link org.gradle.api.file.DirectoryProperty}
-     */
-    @Deprecated
-    void setBuildDir(File path);
-
-    /**
-     * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
-     * generated into. The path parameter is evaluated as described for {@link #file(Object)}. This mean you can use,
-     * amongst other things, a relative or absolute path or File object to specify the build directory.</p>
-     *
-     * @param path The build directory. This is evaluated as per {@link #file(Object)}
-     * @deprecated Use {@code getLayout().getBuildDirectory()} and set the {@link org.gradle.api.file.DirectoryProperty}
-     */
-    @Deprecated
-    void setBuildDir(Object path);
-
-    /**
      * The build script for this project.
      * <p>
      * If the file exists, it will be evaluated against this project when this project is configured.

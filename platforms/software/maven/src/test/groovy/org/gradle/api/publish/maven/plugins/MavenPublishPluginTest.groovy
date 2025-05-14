@@ -169,8 +169,8 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
     def "pom dir moves with build dir"() {
         when:
         publishing.publications.create("test", MavenPublication)
-        def newBuildDir = project.file("changed")
-        project.buildDir = newBuildDir
+        def newBuildDir = project.layout.projectDirectory.dir("changed").asFile
+        project.layout.buildDirectory.set(newBuildDir)
 
         then:
         project.tasks["generatePomFileForTestPublication"].destination == new File(newBuildDir, "publications/test/pom-default.xml")

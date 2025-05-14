@@ -411,7 +411,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can get temporary directory"() {
         given:
-        def tmpDir = new File(project.buildDir, "tmp/testTask")
+        def tmpDir = project.layout.buildDirectory.dir("tmp/testTask").get().asFile
 
         expect:
         !tmpDir.exists()

@@ -10,6 +10,6 @@ dependencies {
     testImplementation 'junit:junit:4.13'
 }
 
-buildDir = 'target'
-sourceSets.main.java.destinationDirectory.set(new File(buildDir, 'main-classes'))
-sourceSets.test.java.destinationDirectory.set(new File(buildDir, 'test-classes'))
+project.layout.buildDirectory.set(project.layout.projectDirectory.dir("target"))
+sourceSets.main.java.destinationDirectory.set(project.layout.buildDirectory.dir('main-classes'))
+sourceSets.test.java.destinationDirectory.set(project.layout.buildDirectory.dir('test-classes'))

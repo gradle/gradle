@@ -124,15 +124,15 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         SourceSet set = project.sourceSets.custom
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
-        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/custom'))
-        set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
-        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
+        set.java.destinationDirectory.set(project.layout.buildDirectory.dir('classes/java/custom'))
+        set.output.resourcesDir == project.layout.buildDirectory.dir('resources/custom').get().asFile
+        set.output.generatedSourcesDirs.files == toLinkedSet(project.layout.buildDirectory.dir('generated/sources/annotationProcessor/java/custom').get().asFile)
 
         def processResources = project.tasks['processCustomResources']
         processResources.description == "Processes custom resources."
         processResources instanceof Copy
         TaskDependencyMatchers.dependsOn().matches(processResources)
-        processResources.destinationDir == new File(project.buildDir, 'resources/custom')
+        processResources.destinationDir == project.layout.buildDirectory.dir('resources/custom').get().asFile
         def resources = processResources.source
         resources.files == project.sourceSets.custom.resources.files
 
@@ -141,7 +141,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
-        compileJava.destinationDirectory.asFile.get() == new File(project.buildDir, 'classes/java/custom')
+        compileJava.destinationDirectory.asFile.get() == project.layout.buildDirectory.dir('classes/java/custom').get().asFile
 
         def sources = compileJava.source
         sources.files == project.sourceSets.custom.java.files
@@ -162,9 +162,9 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         SourceSet set = project.sourceSets.main
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
-        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
-        set.output.resourcesDir == new File(project.buildDir, 'resources/main')
-        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
+        set.java.destinationDirectory.set(project.layout.buildDirectory.dir('classes/java/main'))
+        set.output.resourcesDir == project.layout.buildDirectory.dir('resources/main').get().asFile
+        set.output.generatedSourcesDirs.files == toLinkedSet(project.layout.buildDirectory.dir('generated/sources/annotationProcessor/java/main').get().asFile)
 
         def processResources = project.tasks.processResources
         processResources.description == "Processes main resources."

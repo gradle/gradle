@@ -60,7 +60,7 @@ project.afterEvaluate {
                 group = "Reporting"
                 description = "Generate Jacoco coverage reports on the ${sourceName.capitalize()} build."
                 classDirectories.from(fileTree(
-                    dir: "${project.buildDir}/intermediates/classes/${sourcePath}",
+                    dir: project.layout.buildDirectory("intermediates/classes/${sourcePath}").get().asFile,
                     excludes: [
                         '**/R.class',
                         '**/R$*.class',
@@ -77,7 +77,7 @@ project.afterEvaluate {
                 ]
                 additionalSourceDirs.from(files(coverageSourceDirs))
                 sourceDirectories.from(files(coverageSourceDirs))
-                executionData.from(files("${project.buildDir}/jacoco/${testTaskName}.exec"))
+                executionData.from(files(project.layout.buildDirectory.dir("jacoco/${testTaskName}.exec")))
                 reports {
                     xml.required = true
                     html.required = true

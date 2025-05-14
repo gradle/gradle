@@ -224,13 +224,13 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         mainSourceSet.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
         mainSourceSet.compileClasspath.is(project.configurations.compileClasspath)
         mainSourceSet.annotationProcessorPath.is(project.configurations.annotationProcessor)
-        mainSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
-        mainSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/main')
+        mainSourceSet.java.destinationDirectory.set(project.layout.buildDirectory.dir('classes/java/main'))
+        mainSourceSet.output.resourcesDir == project.layout.buildDirectory.dir('resources/main').get().asFile
         mainSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME ] as Set
-        mainSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
+        mainSourceSet.output.generatedSourcesDirs.files == toLinkedSet(project.layout.buildDirectory.dir('generated/sources/annotationProcessor/java/main').get().asFile)
         mainSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JvmConstants.COMPILE_JAVA_TASK_NAME ]
         mainSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
-        mainSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        mainSourceSet.runtimeClasspath.contains(project.layout.buildDirectory.dir('classes/java/main').get().asFile)
 
         when:
         SourceSet testSourceSet = project.sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
@@ -239,16 +239,16 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testSourceSet.java.srcDirs == toLinkedSet(project.file('src/test/java'))
         testSourceSet.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
         testSourceSet.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
-        testSourceSet.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        testSourceSet.compileClasspath.contains(project.layout.buildDirectory.dir('classes/java/main').get().asFile)
         testSourceSet.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
-        testSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/test'))
-        testSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/test')
+        testSourceSet.java.destinationDirectory.set(project.layout.buildDirectory.dir('classes/java/test'))
+        testSourceSet.output.resourcesDir == project.layout.buildDirectory.dir('resources/test').get().asFile
         testSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JvmConstants.TEST_CLASSES_TASK_NAME, JvmConstants.COMPILE_TEST_JAVA_TASK_NAME ] as Set
-        testSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/test'))
+        testSourceSet.output.generatedSourcesDirs.files == toLinkedSet(project.layout.buildDirectory.dir('generated/sources/annotationProcessor/java/test').get().asFile)
         testSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JvmConstants.COMPILE_TEST_JAVA_TASK_NAME ]
         testSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
-        testSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
-        testSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
+        testSourceSet.runtimeClasspath.contains(project.layout.buildDirectory.dir('classes/java/main').get().asFile)
+        testSourceSet.runtimeClasspath.contains(project.layout.buildDirectory.dir('classes/java/test').get().asFile)
     }
 
     def "creates mappings for custom source sets"() {
@@ -263,9 +263,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.compileClasspath.is(project.configurations.customCompileClasspath)
         set.annotationProcessorPath.is(project.configurations.customAnnotationProcessor)
-        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/custom'))
+        set.java.destinationDirectory.set(project.layout.buildDirectory.dir('classes/java/custom'))
         set.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ 'customClasses', 'compileCustomJava' ] as Set
-        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
+        set.output.generatedSourcesDirs.files == toLinkedSet(project.layout.buildDirectory.dir('generated/sources/annotationProcessor/java/custom').get().asFile)
         set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ 'compileCustomJava' ]
         assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
@@ -294,9 +294,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
-        task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
+        task.options.generatedSourceOutputDirectory.asFile.orNull == project.layout.buildDirectory.dir('generated/sources/annotationProcessor/java/main').get().asFile
         task.options.generatedSourceOutputDirectory.asFile.orNull == task.options.generatedSourceOutputDirectory.asFile.orNull
-        task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/main')
+        task.options.headerOutputDirectory.asFile.orNull == project.layout.buildDirectory.dir('generated/sources/headers/java/main').get().asFile
         task.destinationDirectory.get().asFile == project.sourceSets.main.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.main.java.files
 
@@ -323,9 +323,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
-        task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
+        task.options.generatedSourceOutputDirectory.asFile.orNull == project.layout.buildDirectory.dir('generated/sources/annotationProcessor/java/test').get().asFile
         task.options.generatedSourceOutputDirectory.asFile.orNull == task.options.generatedSourceOutputDirectory.asFile.orNull
-        task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/test')
+        task.options.headerOutputDirectory.asFile.orNull == project.layout.buildDirectory.dir('generated/sources/headers/java/test').get().asFile
         task.destinationDirectory.get().asFile == project.sourceSets.test.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.test.java.files
 

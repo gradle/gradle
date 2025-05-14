@@ -46,7 +46,7 @@ class NativeBinaryRulesTest extends Specification {
     }
 
     def setup() {
-        project.buildDir >> tmpDir.testDirectory
+        project.layout.buildDirectory >> tmpDir.testDirectory
     }
 
     def "test executable"() {

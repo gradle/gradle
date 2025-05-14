@@ -138,10 +138,10 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         when:
         applyPluginToProjects()
         project.apply(plugin: 'java')
-        project.buildDir = project.file('target')
+        project.layout.buildDirectory.set(project.layout.projectDirectory.dir('target'))
 
         then:
-        project.idea.module.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
+        project.idea.module.excludeDirs == [project.layout.buildDirectory.get().asFile, project.file('.gradle')] as Set
     }
 
     def "adds 'cleanIdea' task to projects"() {

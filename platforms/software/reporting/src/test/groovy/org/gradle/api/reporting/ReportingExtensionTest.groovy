@@ -39,7 +39,7 @@ class ReportingExtensionTest extends Specification {
 
     def "defaults to reports directory in build dir"() {
         expect:
-        extension.baseDirectory.asFile.get() == new File(project.buildDir, ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
+        extension.baseDirectory.asFile.get() == project.layout.buildDirectory.dir(ReportingExtension.DEFAULT_REPORTS_DIR_NAME).get().asFile
 
         when:
         project.layout.buildDirectory.set(project.file("newBuildDir"))

@@ -66,6 +66,14 @@
         },
         {
             "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.getBuildDir()",
+            "acceptation": "Removed deprecated methods",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.getProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
@@ -84,6 +92,22 @@
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.javaexec(org.gradle.api.Action)",
             "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.setBuildDir(java.io.File)",
+            "acceptation": "Removed deprecated methods",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.setBuildDir(java.lang.Object)",
+            "acceptation": "Removed deprecated methods",
             "changes": [
                 "Method has been removed"
             ]
@@ -2669,12 +2693,15 @@
         {
             "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
             "member": "Class org.gradle.kotlin.dsl.KotlinBuildScript",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "Removed deprecated methods",
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getBuildDir()",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.setBuildDir(java.io.File)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.setBuildDir(java.lang.Object)"
             ]
         },
         {
@@ -2787,12 +2814,15 @@
         {
             "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
             "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "Removed deprecated methods",
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getBuildDir()",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.setBuildDir(java.io.File)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.setBuildDir(java.lang.Object)"
             ]
         },
         {

@@ -21,6 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -28,10 +29,10 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * A plugin for adding Antlr support to {@link org.gradle.api.plugins.JavaPlugin java projects}.
@@ -83,8 +84,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
 
                     // 3) Set up the Antlr output directory (adding to javac inputs!)
-                    final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
-                    final File outputDirectory = new File(outputDirectoryName);
+                    final Provider<Directory> outputDirectory = project.getLayout().getBuildDirectory().dir("generated-src/antlr/" + sourceSet.getName());
                     sourceSet.getJava().srcDir(outputDirectory);
 
                     project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
@@ -93,7 +93,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                             antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
                             // 4) set up convention mapping for default sources (allows user to not have to specify)
                             antlrTask.setSource(antlrSourceSet);
-                            antlrTask.setOutputDirectory(outputDirectory);
+                            antlrTask.setOutputDirectory(outputDirectory.get().getAsFile());
                         }
                     });
 

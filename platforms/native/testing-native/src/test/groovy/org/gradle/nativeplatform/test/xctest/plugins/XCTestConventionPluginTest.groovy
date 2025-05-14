@@ -194,7 +194,7 @@ class XCTestConventionPluginTest extends Specification {
     def "output locations reflects changes to buildDir"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
-        project.buildDir = project.file("output")
+        project.layout.buildDirectory.set(project.layout.projectDirectory.dir("output"))
         project.evaluate()
 
         then:

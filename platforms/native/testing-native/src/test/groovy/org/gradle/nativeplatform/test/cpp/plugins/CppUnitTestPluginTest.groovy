@@ -131,7 +131,7 @@ class CppUnitTestPluginTest extends Specification {
         when:
         project.pluginManager.apply(CppUnitTestPlugin)
         project.pluginManager.apply(CppApplicationPlugin)
-        project.buildDir = project.file("output")
+        project.layout.buildDirectory.set(project.layout.projectDirectory.dir('output'))
         project.evaluate()
 
         then:
