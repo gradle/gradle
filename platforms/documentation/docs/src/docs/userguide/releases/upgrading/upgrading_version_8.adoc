@@ -367,6 +367,12 @@ The following helper methods for launching external processes were <<#deprecated
 * `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
 * `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
 
+==== Gradle Module Metadata can not be modified after an eagerly populated publication is created from the same component
+
+This behavior previously caused a warning: `Gradle Module Metadata is modified after an eagerly populated publication.`
+
+It will now fail with an error, suggesting a review of the relevant documentation.
+
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
 
 When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins will only be usable on Gradle 8.11 or newer.
