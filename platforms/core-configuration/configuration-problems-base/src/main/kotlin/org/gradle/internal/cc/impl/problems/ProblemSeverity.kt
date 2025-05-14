@@ -17,11 +17,10 @@
 package org.gradle.internal.cc.impl.problems
 
 enum class ProblemSeverity {
-    Info,
     Failure,
-    Warning,
+
     /**
-     * A problem produced by a task marked as [notCompatibleWithConfigurationCache][Task.notCompatibleWithConfigurationCache].
+     * A problem produced by a task marked as [notCompatibleWithConfigurationCache][org.gradle.api.Task.notCompatibleWithConfigurationCache].
      */
-    Suppressed
+    Suppressed,
 }
