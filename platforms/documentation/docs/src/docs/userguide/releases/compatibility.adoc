@@ -106,9 +106,9 @@ Beta and RC versions may or may not work.
 
 == Groovy
 
-Gradle is tested with Groovy 1.5.8 through 4.0.0.
+Gradle is tested with Groovy 1.5.8 through 4.0.26.
 
-Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Gradle and Groovy DSL build scripts.
+Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 
 == Android
 
