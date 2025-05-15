@@ -74,14 +74,6 @@
         },
         {
             "type": "org.gradle.api.Project",
-            "member": "Method org.gradle.api.Project.getConvention()",
-            "acceptation": "removal convention",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.getProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
@@ -756,22 +748,6 @@
             "type": "org.gradle.api.plugins.BasePluginExtension",
             "member": "Method org.gradle.api.plugins.BasePluginExtension.setLibsDirName(java.lang.String)",
             "acceptation": "Remove deprecated API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.Convention",
-            "member": "Class org.gradle.api.plugins.Convention",
-            "acceptation": "remove convention",
-            "changes": [
-                "Class has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.Convention",
-            "member": "Method org.gradle.api.plugins.Convention.findPlugin(java.lang.Class)",
-            "acceptation": "remove convention",
             "changes": [
                 "Method has been removed"
             ]
@@ -2571,30 +2547,6 @@
         },
         {
             "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
-            "member": "Class org.gradle.kotlin.dsl.ConventionExtensionsKt",
-            "acceptation": "remove convention",
-            "changes": [
-                "Class has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention)",
-            "acceptation": "remove convention",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
-            "acceptation": "remove convention",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention)",
             "acceptation": "remove convention",
             "changes": [
@@ -2769,7 +2721,6 @@
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getConvention()",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
             ]
@@ -2888,7 +2839,6 @@
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getConvention()",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
             ]

@@ -78,10 +78,10 @@ open class PrecompiledProjectScript(
         )
     }
 
-    @Suppress("DEPRECATION")
-    override fun getConvention(): org.gradle.api.plugins.Convention {
-        TODO("Not yet implemented")
-    }
+//    @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
+//    override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention =
+//        @Suppress("deprecation")
+//        delegate.convention
 
     object NullPluginDependencySpec : PluginDependencySpec {
         override fun apply(apply: Boolean) = this
