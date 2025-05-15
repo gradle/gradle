@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring_dependencies_between_subprojects]]
+[[multi_project_builds]]
 = Multi-Project Builds
 
 As projects grow, it's common to split them into smaller, focused modules that are built, tested, and released together.
@@ -194,6 +194,7 @@ The `rootProject.name` effectively assigns a name to the build, used in reports 
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
 The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).
 
+[[declaring_dependencies_between_subprojects]]
 == Declaring dependencies between Subprojects
 
 What if one subproject depends on another?

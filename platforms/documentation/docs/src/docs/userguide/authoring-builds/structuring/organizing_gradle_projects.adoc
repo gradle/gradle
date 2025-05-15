@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[multi_project_builds]]
+[[organizing_gradle_projects]]
 = Structuring and Organizing Gradle Projects
 
 It is important to structure your Gradle project to optimize build performance.
@@ -72,7 +72,7 @@ my-project/     // <1>
 <3> Subproject
 <4> Subproject build file
 
-[[sec:creating_multi_project_builds]]
+[[sec:creating_single_project_builds]]
 == Single-Project Build
 
 image::structuring-builds-1.png[]
@@ -151,7 +151,7 @@ $ ./gradlew -q run
 include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 ----
 
-[[sub:building_the_tree]]
+[[sec:creating_multi_project_builds]]
 == Multi-Project Build (`include()`)
 
 image::structuring-builds-2.png[]
@@ -302,6 +302,7 @@ It compiles and makes this plugin available to all other build scripts in the pr
 <1> Applies `java-library` and testing logic
 <2> Subproject build script, applies `java-library` and testing logic
 
+[[sec:composite_builds]]
 == Composite Builds (`includeBuild()`)
 
 image::structuring-builds-4.png[]
@@ -571,32 +572,4 @@ For example:
     └── build.gradle
 ----
 =====
-====
-
-[[sec:custom_gradle_distribution]]
-=== Use a custom Gradle distribution
-
-Enterprises often want to standardize the build environment across all projects by enforcing common conventions and rules.
-One way to do this is by using <<init_scripts.adoc#init_scripts,Initialization scripts>>, which make it easy to apply shared build logic on a single machine—for example, by configuring an in-house repository and its credentials.
-
-However, relying on local init scripts has drawbacks.
-You must communicate the setup process to every developer, and updating the logic consistently across all environments can be difficult.
-
-A custom Gradle distribution offers a more reliable solution.
-It consists of the standard Gradle distribution bundled with one or more custom initialization scripts.
-These scripts are applied automatically with every build.
-Developers only need to configure the checked-in Gradle Wrapper to point to the URL of the custom distribution.
-
-Custom distributions can also include a `gradle.properties` file at the root of the distribution archive to provide an organization-wide set of build environment properties.
-
-To create a custom Gradle distribution:
-
-1. Download and repackage a standard Gradle distribution.
-2. Add one or more initialization scripts with the desired logic.
-3. Include the scripts in the distribution archive.
-4. Upload the archive to an HTTP server.
-5. Update each project's Wrapper to use the custom distribution URL.
-
-====
-include::sample[dir="snippets/organizingGradleProjects/customGradleDistribution/groovy",files="build.gradle[]"]
 ====
