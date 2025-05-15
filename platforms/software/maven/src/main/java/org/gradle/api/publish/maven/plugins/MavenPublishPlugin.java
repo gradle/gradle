@@ -28,6 +28,8 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -43,9 +45,11 @@ import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.invocation.ConfigurationCacheDegradationController;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -78,6 +82,12 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
     }
+
+    @Inject
+    protected abstract ConfigurationCacheDegradationController getDegradationController();
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
 
     @Override
     public void apply(final Project project) {
@@ -134,11 +144,18 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 publishTask.setRepository(repository);
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
+                getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", degradationExpressionFor(publishTask));
             });
 
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
             tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
         });
+    }
+
+    private Provider<Boolean> degradationExpressionFor(PublishToMavenRepository task) {
+        return getProviderFactory().provider(() -> (AuthenticationSupportedInternal) task.getRepository())
+                .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
+                .map(value -> !value);
     }
 
     private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {
