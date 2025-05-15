@@ -29,11 +29,11 @@ import java.util.concurrent.Callable;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static org.gradle.util.internal.WrapUtil.toList;
+import static org.codehaus.groovy.runtime.StringGroovyMethods.toList;
 import static org.gradle.util.internal.WrapUtil.toMap;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;

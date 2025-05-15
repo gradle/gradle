@@ -67,7 +67,7 @@ import java.lang.reflect.Modifier.STATIC
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
-    abstract class CustomConvention
+//    abstract class CustomConvention
 
     abstract class TestSoftwareType
 
@@ -290,9 +290,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 containerElements = listOf(
                     entry<SourceSetContainer, SourceSet>("main")
                 ),
-                conventions = listOf(
-                    entry<Project, CustomConvention>("customConvention")
-                ),
+                conventions = listOf(),
                 tasks = listOf(
                     entry<TaskContainer, Delete>("clean")
                 ),
@@ -329,17 +327,17 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val tasks = mock<TaskContainerInternal> {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
-        val customConvention = mock<CustomConvention>()
+//        val customConvention = mock<CustomConvention>()
         @Suppress("deprecation")
-        val convention = mock<org.gradle.api.plugins.Convention> {
-            on { plugins } doReturn mapOf("customConvention" to customConvention)
-        }
+//        val convention = mock<org.gradle.api.plugins.Convention> {
+//            on { plugins } doReturn mapOf("customConvention" to customConvention)
+//        }
         val project = mock<ProjectInternal> {
             on { getConfigurations() } doReturn configurations
             on { getExtensions() } doReturn extensions
             on { getDependencies() } doReturn dependencies
             on { getTasks() } doReturn tasks
-            on { @Suppress("deprecation") getConvention() } doReturn convention
+//            on { @Suppress("deprecation") getConvention() } doReturn convention
         }
 
         // when:
@@ -368,11 +366,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     val container: NamedDomainObjectContainer<BuildType> = this
                 }
 
-                val i: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = customConvention
+//                val i: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = customConvention
 
-                val j: Unit = customConvention {
-                    val convention: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = this
-                }
+//                val j: Unit = customConvention {
+//                    val convention: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = this
+//                }
 
                 val k: DependencyConstraint = dependencies.constraints.api("direct:accessor:1.0")
                 val l: DependencyConstraint = dependencies.constraints.api("direct:accessor-with-action") {
@@ -416,8 +414,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             sourceSets,
             dependencies,
             tasks,
-            convention,
-            customConvention,
+//            convention,
+//            customConvention,
             constraints
         ) {
             // val a
@@ -455,16 +453,16 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             verify(extensions).configure(eq("buildTypes"), any<Action<*>>())
 
             // val i
-            @Suppress("deprecation")
-            verify(project).convention
-            @Suppress("deprecation")
-            verify(convention).plugins
+//            @Suppress("deprecation")
+//            verify(project).convention
+//            @Suppress("deprecation")
+//            verify(convention).plugins
 
             // val j
-            @Suppress("deprecation")
-            verify(project).convention
-            @Suppress("deprecation")
-            verify(convention).plugins
+//            @Suppress("deprecation")
+//            verify(project).convention
+//            @Suppress("deprecation")
+//            verify(convention).plugins
 
             // val k
             verify(project).dependencies

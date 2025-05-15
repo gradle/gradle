@@ -565,54 +565,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
-    def 'user code in #description dynamic property lookup triggers a new isolation problem'() {
-        settingsFile << """
-            include(":sub")
-            include(":sub:sub-sub")
-        """
-        buildFile << """
-            ext.foo = "fooValue"
-        """
-        file("sub/build.gradle") << """
-            abstract class Unusual {
-                Project p
-                @Inject Unusual(Project p) { this.p = p }
-                Object getBar() {
-                    $lookup
-                }
-            }
-
-            // Convention plugin members are exposed as members of the project
-            convention.plugins['unusual'] = objects.newInstance(Unusual)
-        """
-        file("sub/sub-sub/build.gradle") << """
-            println(bar)
-        """
-        2.times {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-            )
-        }
-
-        when:
-        isolatedProjectsFails(":sub:sub-sub:help")
-
-        then:
-        fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":", ":sub", ":sub:sub-sub")
-            problem("Build file 'sub/build.gradle': line 6: Project ':sub' cannot dynamically look up a property in the parent project ':'")
-            problem("Build file 'sub/sub-sub/build.gradle': line 2: Project ':sub:sub-sub' cannot dynamically look up a property in the parent project ':sub'")
-        }
-
-        where:
-        description | lookup
-        "stringy"   | 'p.property("foo")'
-        "direct"    | 'p.foo'
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/22949")
     def "invocations of GroovyObject methods on DefaultProject track the dynamic call context"() {
         createDirs("a")

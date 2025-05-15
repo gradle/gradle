@@ -10,6 +10,8 @@ dependencies {
     implementation(projects.dependencyModules)
     implementation(projects.jvm)
     implementation(projects.kotlinDslSharedRuntime)
+//    implementation(projects.internalInstrumentationApi)
+//    implementation(project(":internal-instrumentation-api"))
 
     implementation(kotlin("gradle-plugin"))
     implementation(kotlin("sam-with-receiver"))

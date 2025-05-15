@@ -20,8 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.kotlin.dsl.ScriptHandlerScope
-import org.gradle.kotlin.dsl.buildscript
+import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
@@ -78,6 +77,11 @@ open class PrecompiledProjectScript(
             }
         )
     }
+
+//    @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
+//    override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention =
+//        @Suppress("deprecation")
+//        delegate.convention
 
     object NullPluginDependencySpec : PluginDependencySpec {
         override fun apply(apply: Boolean) = this

@@ -36,10 +36,10 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "ext.rootProperty = 'root'",
                 "ext.sharedProperty = 'ignore me'",
                 "ext.property = 'value'",
-                "convention.plugins.test = new ConventionBean()",
+//                "convention.plugins.test = new ConventionBean()",
                 "task rootTask",
                 "task testTask",
-                "class ConventionBean { def getConventionProperty() { 'convention' } }"
+//                "class ConventionBean { def getConventionProperty() { 'convention' } }"
         )
         file("child/build.gradle").writelns(
                 "ext.childProperty = 'child'",
@@ -56,14 +56,14 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "assert 'shared' == sharedProperty",
                 "assert 'shared' == property('sharedProperty')",
                 "assert 'shared' == properties.sharedProperty",
-                "assert 'convention' == conventionProperty",
+//                "assert 'convention' == conventionProperty",
                 // Use a separate class, to isolate Project from the script
                 "class Reporter {",
                 "  def checkProperties(object) {",
                 "    assert 'root' == object.rootProperty",
                 "    assert 'child' == object.childProperty",
                 "    assert 'shared' == object.sharedProperty",
-                "    assert 'convention' == object.conventionProperty",
+//                "    assert 'convention' == object.conventionProperty",
                 "    assert 'value' == object.property",
                 "    assert ':child:testTask' == object.testTask.path",
                 "    try { object.rootTask; fail() } catch (MissingPropertyException e) { }",
@@ -85,7 +85,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
                 "def sharedMethod(p) { 'ignore me' }",
-                "convention.plugins.test = new ConventionBean()",
+//                "convention.plugins.test = new ConventionBean()",
                 "task rootTask",
                 "task testTask",
                 "class ConventionBean { def conventionMethod(name) { 'convention' + name } }"
@@ -102,7 +102,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "    assert 'rootMethod' == object.rootMethod('Method')",
                 "    assert 'childMethod' == object.childMethod('Method')",
                 "    assert 'sharedMethod'== object.sharedMethod('Method')",
-                "    assert 'conventionMethod' == object.conventionMethod('Method')",
+//                "    assert 'conventionMethod' == object.conventionMethod('Method')",
                 "    object.testTask { assert ':child:testTask' == delegate.path }",
                 "    try { object.rootTask { }; fail() } catch (MissingMethodException e) { }",
                 "  }",
@@ -119,10 +119,10 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
     def canAddMixinsToProject() {
 
         buildFile '''
-convention.plugins.test = new ConventionBean()
+//convention.plugins.test = new ConventionBean()
 
-assert conventionProperty == 'convention'
-assert conventionMethod('value') == '[value]'
+//assert conventionProperty == 'convention'
+//assert conventionMethod('value') == '[value]'
 
 class ConventionBean {
     def getConventionProperty() { 'convention' }
@@ -407,15 +407,15 @@ assert 'overridden value' == global
             class Thing {
                 def prop1 = { it }
             }
-            convention.plugins.thing = new Thing()
+//            convention.plugins.thing = new Thing()
             ext.prop2 = { it / 2 }
 
-            assert prop1(12) == 12
+//            assert prop1(12) == 12
             assert prop2(12) == 6
         """
         file("child1/build.gradle") << """
             ext.prop3 = { it * 2 }
-            assert prop1(12) == 12
+//            assert prop1(12) == 12
             assert prop2(12) == 6
             assert prop3(12) == 24
         """
@@ -837,33 +837,33 @@ task print(type: MyTask) {
                 }
             }
 
-            convention.plugins.test = new DynamicThing()
+//            convention.plugins.test = new DynamicThing()
 
-            props
+//            props
 
-            convention.plugins.test.m1(1,2,3)
-            try {
-                m1(1,2,3)
-                fail()
-            } catch (MissingMethodException e) {
-                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test' of type \${Project.name}."
-            }
-
-            convention.plugins.test.p1 = 1
-            try {
-                p1 = 2
-                fail()
-            } catch (MissingPropertyException e) {
-                assert e.message == "Could not set unknown property 'p1' for root project 'test' of type \${Project.name}."
-            }
-
-            convention.plugins.test.p1 += 1
-            try {
-                p1 += 1
-                fail()
-            } catch (MissingPropertyException e) {
-                assert e.message == "Could not get unknown property 'p1' for root project 'test' of type \${Project.name}."
-            }
+//            convention.plugins.test.m1(1,2,3)
+//            try {
+//                m1(1,2,3)
+//                fail()
+//            } catch (MissingMethodException e) {
+//                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test' of type \${Project.name}."
+//            }
+//
+//            convention.plugins.test.p1 = 1
+//            try {
+//                p1 = 2
+//                fail()
+//            } catch (MissingPropertyException e) {
+//                assert e.message == "Could not set unknown property 'p1' for root project 'test' of type \${Project.name}."
+//            }
+//
+//            convention.plugins.test.p1 += 1
+//            try {
+//                p1 += 1
+//                fail()
+//            } catch (MissingPropertyException e) {
+//                assert e.message == "Could not get unknown property 'p1' for root project 'test' of type \${Project.name}."
+//            }
         """
 
         expectConventionTypeDeprecationWarnings(GradleContextualExecuter.isolatedProjects ? 8 : 4)
@@ -1027,14 +1027,14 @@ task print(type: MyTask) {
     }
 
     private void expectConventionTypeDeprecationWarnings(int repeated = 1) {
-        repeated.times {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-            )
-        }
+//        repeated.times {
+//            executer.expectDocumentedDeprecationWarning(
+//                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+//                    "This is scheduled to be removed in Gradle 9.0. " +
+//                    "Consult the upgrading guide for further information: " +
+//                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+//            )
+//        }
     }
 
     private void expectTaskProjectDeprecation(int repeated = 1) {
