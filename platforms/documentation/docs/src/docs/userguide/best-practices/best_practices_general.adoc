@@ -213,6 +213,41 @@ Since setting up a composite build requires only minimal additional configuratio
 
 ==== Don't Do This
 
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── build.gradle.kts
+├── buildSrc
+│    ├── build.gradle.kts
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        ├── MyPlugin.java
+│                        └── MyTask.java
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── build.gradle
+├── buildSrc
+│    ├── build.gradle
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        ├── MyPlugin.java
+│                        └── MyTask.java
+└── settings.gradle
+----
+=====
+
 ====
 include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/kotlin/buildSrc",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/groovy/buildSrc",files="build.gradle[tags=avoid-this]"]
@@ -225,13 +260,52 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/kotlin",f
 include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/groovy",files="settings.gradle[tags=avoid-this]"]
 ====
 
-*`BuildSrc` products are automatically usable*: There is no additional configuration with this method.
+*`buildSrc` products are automatically usable*: There is no additional configuration with this method.
 
 ==== Do This Instead
 
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── build-logic
+│    ├── plugin
+│    │    ├── build.gradle.kts
+│    │    └── src
+│    │        └── main
+│    │            └── java
+│    │                └── org
+│    │                    └── example
+│    │                        ├── MyPlugin.java
+│    │                        └── MyTask.java
+│    └── settings.gradle.kts
+├── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── build-logic
+│    ├── plugin
+│    │    ├── build.gradle
+│    │    └── src
+│    │        └── main
+│    │            └── java
+│    │                └── org
+│    │                    └── example
+│    │                        ├── MyPlugin.java
+│    │                        └── MyTask.java
+│    └── settings.gradle
+├── build.gradle
+└── settings.gradle
+----
+=====
+
 ====
-include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/kotlin/build-logic",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy/build-logic",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/kotlin/build-logic/plugin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy/build-logic/plugin",files="build.gradle[tags=do-this]"]
 ====
 
 *Set up a Plugin Build*: This is the same using either method.
@@ -240,8 +314,13 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy/build
 include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy",files="settings.gradle[tags=do-this]"]
 ====
+====
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/kotlin/build-logic",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy/build-logic",files="settings.gradle[tags=do-this]"]
+====
 
 <1> *Composite builds must be explicitly included*: Use the `includeBuild` method to locate and include a build in order to use its products.
+<2> *Structure your included build into subprojects*: This allows the main build to only depend on the necessary parts of the included build.
 
 === References
 - <<part3_multi_project_builds.adoc#step_3_understand_composite_builds,Composite Builds in the Multi-Project Builds Tutorial>>
