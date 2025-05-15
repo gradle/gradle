@@ -424,7 +424,7 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
 performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/android/nowinandroid.git'
     // Pinned from main branch
-    ref = "25d80b459815e34d5da4c7618fec7280fd48d9f9" // latest of March 28th, 2025
+    ref = "689ef92e41427ab70f82e2c9fe59755441deae92" // latest of May 15th, 2025
     doLast {
         setMaxWorkers(outputDirectory, 8)
     }
