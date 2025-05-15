@@ -97,9 +97,9 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
 
     protected abstract ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector);
 
-    protected abstract ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> artifacts);
+    protected abstract ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> newArtifacts);
 
-    protected abstract ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> artifacts);
+    protected abstract ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts);
 
     @Override
     public ModuleComponentSelector getSelector() {
