@@ -199,8 +199,7 @@ It should not be used for source files, instead they should be located in a sepa
 .A common way to structure new builds
 [source, kotlin]
 ----
-├── app
-├── build.gradle.kts
+├── build.gradle.kts // Applies the `java-library` plugin to the root project
 ├── settings.gradle.kts
 └── src // This directory shouldn't exist
     └── main
@@ -215,8 +214,7 @@ It should not be used for source files, instead they should be located in a sepa
 .A common way to structure new builds
 [source, groovy]
 ----
-├── app
-├── build.gradle
+├── build.gradle // Applies the `java-library` plugin to the root project
 ├── settings.gradle
 └── src // This directory shouldn't exist
     └── main
@@ -243,7 +241,7 @@ include::sample[dir="snippets/bestPractices/noSourceInRoot-avoid/groovy",files="
 [source, kotlin]
 ----
 ├── core
-│    ├── build.gradle.kts
+│    ├── build.gradle.kts // Applies the `java-library` plugin to only the `core` project
 │    └── src // Source lives in a "core" (sub)project
 │        └── main
 │            └── java
@@ -260,7 +258,7 @@ include::sample[dir="snippets/bestPractices/noSourceInRoot-avoid/groovy",files="
 [source, groovy]
 ----
 ├── core
-│    ├── build.gradle
+│    ├── build.gradle // Applies the `java-library` plugin to only the `core` project
 │    └── src // Source lives in a "core" (sub)project
 │        └── main
 │            └── java
