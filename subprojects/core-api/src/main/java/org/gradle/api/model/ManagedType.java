@@ -18,6 +18,7 @@ package org.gradle.api.model;
 
 import org.gradle.api.Incubating;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -41,6 +42,7 @@ import java.lang.annotation.RetentionPolicy;
  * @since 9.0.0
  */
 @Incubating
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ManagedType {
 }
