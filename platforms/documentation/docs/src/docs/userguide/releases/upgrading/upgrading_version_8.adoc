@@ -83,7 +83,7 @@ For details, see the Kotlin 2.1 release notes.
 
 Due to changes in how the Kotlin 2 compiler handles script compilation, you can no longer refer to the script instance using labels like `this@Build_gradle`, `this@Settings_gradle`, or `this@Init_gradle`.
 When this was used to reference the DSL script target object, then use it directly instead: `project`, `settings` and `gradle` respectively.
-When this was used to reference a top-level symbol that happens to have the same name of a nested symbol, then use a different name, possibly by adding an intermediary variable.
+If they are used to reference a top-level symbol that happens to have the same name as a nested symbol, then use a different name, possibly by adding an intermediary variable.
 
 Continue reading the link:#jspecify[JSpecify section] below to learn about potential breaking changes in Kotlin build logic code related to nullability.
 
