@@ -24,10 +24,8 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 class TaskVisibilityCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
+        includeProjects("a", "b", "b:c")
         settingsFile << '''
-include 'a'
-include 'b'
-include 'b:c'
 rootProject.name = 'test'
 '''
         buildFile << '''

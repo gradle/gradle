@@ -98,9 +98,7 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def "reports task dependencies for tasks in multi-project builds"() {
         given:
-        settingsFile << """
-            include 'subproject'
-        """
+        includeProjects("subproject")
         buildFile << """
             project(':subproject') {
                 task a { enabled = false }
