@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-experimental-contracts")
+    id("gradlebuild.jmh")
 }
 
 description = "Configuration cache implementation"
@@ -14,6 +15,18 @@ tasks.configCacheIntegTest {
 // The integration tests in this project do not need to run in 'isolated projects' mode.
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+tasks.jmhJar {
+    isZip64 = true
+}
+
+tasks.jmh {
+    includes.addAll(
+        "CCRoundtripBenchmark",
+//        "CCLoadBenchmark",
+//        "CCStoreBenchmark",
+    )
 }
 
 dependencies {
@@ -90,6 +103,15 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(libs.mockitoKotlin)
     testImplementation(libs.kotlinCoroutinesDebug)
+
+    jmhImplementation(projects.beanSerializationServices)
+    jmhImplementation(projects.encryptionServices)
+    jmhImplementation(libs.mockitoKotlin2)
+    jmhImplementation(testFixtures(projects.core))
+    jmhRuntimeOnly(projects.instrumentationDeclarations)
+    jmhRuntimeOnly(projects.workers)
+    jmhRuntimeOnly(projects.dependencyManagement)
+    jmhRuntimeOnly(projects.pluginUse)
 
     integTestImplementation(projects.cli)
     integTestImplementation(projects.ide)
