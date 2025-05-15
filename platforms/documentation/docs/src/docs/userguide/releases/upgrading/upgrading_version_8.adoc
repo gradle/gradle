@@ -65,16 +65,16 @@ or better yet, upgrade to the latest version of the link:https://docs.gradle.com
 
 For Gradle 8.x, the minimum supported version was 3.0.
 
-==== Upgrade to Kotlin 2.1.21-RC2
+==== Upgrade to Kotlin 2.1.21
 
-Gradle now embeds Kotlin 2.1.21-RC2, upgrading from the previously embedded version 2.0.21.
+Gradle now embeds Kotlin 2.1.21, upgrading from the previously embedded version 2.0.21.
 
 This upgrade includes several important changes:
 
 * Support for Kotlin language versions 1.4 and 1.5 has been removed.
 * Kotlin language version 1.7 is now deprecated.
 
-For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21-RC2[Kotlin release notes].
+For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21[Kotlin release notes].
 
 ==== Kotlin DSL now uses the Kotlin language version 2.1
 
@@ -114,6 +114,24 @@ Because JSpecify's semantics differ slightly from JSR-305, you might see new war
 These typically indicate places where you need to clarify or adjust null handling, and modern compilers and IDEs should provide helpful messages to guide you.
 
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9.0 as they did before.
+
+==== Upgraded default versions of code quality tools
+
+The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.23.0[10.23.0].
+
+The default version of CodeNarc is link:https://github.com/CodeNarc/CodeNarc/blob/v3.6.0/CHANGELOG.md#version-360--feb-2025[3.6.0].
+
+The default version of Pmd is link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.12.0[7.12.0]
+
+==== Upgraded default versions of testing frameworks
+
+When using test suites, the version of several testing frameworks has changed.
+
+The default version of JUnit Jupiter is link:https://junit.org/junit5/docs/5.12.2/release-notes/index.html#release-notes-5.12.2[5.12.2].
+
+The default version of TestNG is link:https://github.com/testng-team/testng/releases/tag/7.11.0[7.11.0].
+
+The default version of Spock is link:https://spockframework.org/spock/docs/2.3/release_notes.html[2.3].
 
 ==== Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
 The following source set interfaces have been removed in Gradle 9.0:
@@ -348,6 +366,12 @@ The following helper methods for launching external processes were <<#deprecated
 * `org.gradle.kotlin.dsl.KotlinScript#javaexec(Action)`
 * `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
 * `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
+
+==== Gradle Module Metadata can not be modified after an eagerly populated publication is created from the same component
+
+This behavior previously caused a warning: `Gradle Module Metadata is modified after an eagerly populated publication.`
+
+It will now fail with an error, suggesting a review of the relevant documentation.
 
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
 
@@ -596,6 +620,17 @@ The `model` and `component` tasks report on the structure of legacy software mod
 Previously, these tasks were automatically added to the project for every build.
 These tasks are now only added to a project when a rule-based plugin is applied (such as those provided by Gradle's support for building native software).
 
+==== Methods on public API types have been made final
+
+The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(java.lang.Object)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] are now final, as required to have the `@SafeVarargs` annotation.
+
+While these type should not be inherited from, if you build logic or a plugin does it, the build will fail at runtime.
+
+==== Incubating API `ConfigurationVariant.getDescription` is now a `Property<String>`
+
+This method was added in Gradle 7.5 and was previously a `Optional<String>`. This property was not configurable by public APIs.
+
+By making the description a `Property<String>`, secondary variants have a user configurable description that appears in the <<variant_aware_resolution.adoc#outgoing_variants_report,`outgoingVariants` report>>.
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier

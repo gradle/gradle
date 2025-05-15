@@ -268,7 +268,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         private void addExecutions(@Nullable GradleDistribution releasedDist, TestedGradleDistribution testedGradleDistribution) {
             if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
                 add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM'))
-            } else if (releasedDist && !releasedDist.isToolingApiTargetJvmSupported(Jvm.current().javaVersion)) {
+            } else if (releasedDist && !releasedDist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
                 add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM due to an incompatibility with the tooling API'))
             } else if (releasedDist && !releasedDist.worksWith(OperatingSystem.current())) {
                 add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current OS'))

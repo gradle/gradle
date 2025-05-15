@@ -43,9 +43,11 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
         TestFile projectDir = sample.dir.file('groovy')
 
         // Build and test projects
+        when:
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
+        then:
         def result = new DefaultTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.sample.PersonSpec')
 
@@ -71,8 +73,11 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
         }
 
         TestFile projectDir = sample.dir.file('groovy')
+
+        when:
         executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'scaladoc').run()
 
+        then:
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")
         javadocsDir.file("index.html").assertIsFile()
         javadocsDir.file("index.html").assertContents(containsString('mixed-java-and-scala 1.0 API'))

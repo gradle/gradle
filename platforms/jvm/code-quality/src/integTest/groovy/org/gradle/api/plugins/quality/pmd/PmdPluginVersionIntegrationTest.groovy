@@ -50,9 +50,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 // clear the classpath to avoid file locking issues on PMD version < 5.5.1
                 classpath = files()
             }"""}
-
-            ${requiredSourceCompatibility()}
-        """.stripIndent()
+        """
     }
 
     def "analyze good code"() {

@@ -19,10 +19,11 @@ package org.gradle.api.publish.ivy
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.util.GradleVersion
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
-public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
+class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
 
     @Issue("GRADLE-2456")
     def "generates SHA1 file with leading zeros"() {
@@ -175,7 +176,7 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20581")
-    void "warn deprecated behavior when GMM is modified after an Ivy publication is populated"() {
+    void "fail when GMM is modified after an Ivy publication is populated"() {
         given:
         buildFile << """
             plugins {
@@ -194,14 +195,11 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Gradle Module Metadata is modified after an eagerly populated publication. " +
-                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#gmm_modification_after_publication_populated"
-        )
+        fails "help"
 
         then:
-        succeeds "help"
+        failureDescriptionContains("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failureCauseContains("Gradle Module Metadata can't be modified after an eagerly populated publication.")
+        failure.assertHasResolution("Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#gmm_modification_after_publication_populated")
     }
 }

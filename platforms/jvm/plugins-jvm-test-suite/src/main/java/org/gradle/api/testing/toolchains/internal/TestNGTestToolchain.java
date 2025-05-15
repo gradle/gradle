@@ -35,7 +35,7 @@ abstract public class TestNGTestToolchain implements JvmTestToolchain<TestNGTool
     /**
      * The default version of TestNG to use for compiling and executing tests.
      */
-    public static final String DEFAULT_VERSION = "7.5";
+    public static final String DEFAULT_VERSION = "7.11.0";
     private static final String GROUP_NAME = "org.testng:testng";
 
     @Inject

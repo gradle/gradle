@@ -1106,6 +1106,14 @@
         },
         {
             "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.aggregate(org.gradle.api.reporting.Reporting[])",
+            "acceptation": "Method made final to allow @SafeVarargs annotation",
+            "changes": [
+                "Method is now final"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
             "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getCollectionCallbackActionDecorator()",
             "acceptation": "Removed deprecated method",
             "changes": [
@@ -1142,6 +1150,14 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.specs.AndSpec",
+            "member": "Method org.gradle.api.specs.AndSpec.and(org.gradle.api.specs.Spec[])",
+            "acceptation": "Method made final to allow @SafeVarargs annotation",
+            "changes": [
+                "Method is now final"
             ]
         },
         {
