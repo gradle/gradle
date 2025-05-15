@@ -53,8 +53,10 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.invocation.ConfigurationCacheDegradationController;
 import org.gradle.model.Path;
 
 import javax.inject.Inject;
@@ -86,6 +88,9 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         this.fileResolver = fileResolver;
         this.providerFactory = providerFactory;
     }
+
+    @Inject
+    protected abstract ConfigurationCacheDegradationController getDegradationController();
 
     @Override
     public void apply(final Project project) {
@@ -140,10 +145,18 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             publishTask.setRepository(repository);
             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
+            getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", degradationExpressionFor(publishTask));
         });
         tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, task -> task.dependsOn(publishTaskName));
         tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
     }
+
+    private Provider<Boolean> degradationExpressionFor(PublishToIvyRepository task) {
+        return providerFactory.provider(() -> (AuthenticationSupportedInternal) task.getRepository())
+            .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
+            .map(value -> !value);
+    }
+
 
     private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir) {
         final String descriptorTaskName = "generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
