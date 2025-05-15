@@ -16,12 +16,15 @@
 
 package org.gradle.kotlin.dsl.compile
 
+import org.gradle.util.internal.ToBeImplemented
+import org.junit.Ignore
 import org.junit.Test
 
 
 class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceIntegrationTest() {
 
     @Test
+    @ToBeImplemented("https://youtrack.jetbrains.com/issue/KT-62556/Wrong-ABI-fingerprint-for-public-function-delegating-to-private-function-with-lambda-parameter")
     fun `avoids buildscript recompilation when task is configured in precompiled script plugin`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
@@ -46,7 +49,10 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
                 tasks.register("foo") { doLast { println("bar from task") } }
             """
         )
-        configureProject("foo").assertBuildScriptCompilationAvoided().assertOutputContains("bar from task")
+        configureProject("foo").assertBuildScriptCompiled().assertOutputContains("bar from task")
+
+        // configureProject("foo").assertBuildScriptCompilationAvoided().assertOutputContains("bar from task")
+        // TODO: this is what would ideally happen, or would it? see the above linked issue
     }
 
     @Test

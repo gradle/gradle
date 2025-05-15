@@ -230,7 +230,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
             $className().foo()
             """
         )
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo = 4")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo = 4")
 
         existing(jarPath).setLastModified(1)
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo = 4")
@@ -246,8 +246,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
             """
         )
         withUniqueScript("$className().foo()")
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenKotlinClassInBuildSrcContains(
             """
@@ -256,8 +255,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
             }
             """
         )
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
     @Test
@@ -265,25 +263,23 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
         val className = givenKotlinClassInBuildSrcContains(
             """
             inline fun foo() {
-                val sum: (Int, Int) -> Int = { x, y -> x + y }
-                println("foo = " + sum(2, 2))
+                val aggregate: (Int, Int) -> Int = { x, y -> x + y }
+                println("foo = " + aggregate(2, 2))
             }
             """
         )
         withUniqueScript("$className().foo()")
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo = 4")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo = 4")
 
         givenKotlinClassInBuildSrcContains(
             """
             inline fun foo() {
-                val sum: (Int, Int) -> Int = { x, y -> x - y }
-                println("foo = " + sum(2, 2))
+                val aggregate: (Int, Int) -> Int = { x, y -> x - y }
+                println("foo = " + aggregate(2, 2))
             }
             """
         )
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo = 0")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo = 0")
     }
 
     @Test
@@ -299,15 +295,17 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
         )
         withUniqueScript("$className().foo()")
         val resourceFile = withFile("buildSrc/src/main/resources/foo.txt", "foo")
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         resourceFile.setLastModified(1)
         resourceFile.setReadOnly()
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
     }
 
     @Test
     fun `avoids buildscript recompilation on internal inline function change in buildSrc class`() {
+        // discussed in: https://youtrack.jetbrains.com/issue/KT-62557/Wrong-ABI-fingerprint-for-public-function-delegating-to-internal-inline-function
+
         val className = givenKotlinClassInBuildSrcContains(
             """
             fun foo() = bar()
@@ -327,7 +325,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
             }
             """
         )
-        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
     @Test
@@ -451,49 +449,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
             """,
             multifileAnnotations
         )
-        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("barfoo")
-    }
-
-    @Test
-    fun `recompiles buildscript when not able to determine Kotlin metadata kind for class on buildscript classpath`() {
-        givenJavaClassInBuildSrcContains(
-            """
-            public static String foo() {
-                return "foo";
-            }
-            """,
-            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
-        )
-        withUniqueScript("println(\"foo\")")
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata")
-
-        givenJavaClassInBuildSrcContains(
-            """
-            public static String foo() {
-                return "bar";
-            }
-            """,
-            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
-        )
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptBodyRecompiled().assertOutputContains("foo")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata")
-    }
-
-    @Test
-    fun `avoids recompiling buildscript when not able to determine Kotlin metadata kind for unchanged class on buildscript classpath`() {
-        givenJavaClassInBuildSrcContains(
-            """
-            public static String bar() {
-                return "bar";
-            }
-            """,
-            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
-        )
-        withUniqueScript("println(\"foo\")")
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata")
-        configureProject().assertBuildScriptCompilationAvoided()
+        configureProject().assertOutputContains("barfoo")
     }
 
     private
