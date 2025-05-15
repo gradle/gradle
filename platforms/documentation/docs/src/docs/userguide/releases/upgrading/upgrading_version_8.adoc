@@ -82,22 +82,10 @@ In Gradle 9.0, the Kotlin DSL has been upgraded to use Kotlin language version 2
 For details, see the Kotlin 2.1 release notes.
 
 Due to changes in how the Kotlin 2 compiler handles script compilation, you can no longer refer to the script instance using labels like `this@Build_gradle`, `this@Settings_gradle`, or `this@Init_gradle`.
-Instead, use the corresponding DSL target object directly: `project`, `settings` and `gradle` respectively.
+If they are used to reference the DSL script target object, then use `project`, `settings`, or `gradle` instead.
+If they are used to reference a top-level symbol that happens to have the same name as a nested symbol, then use a different name, possibly by adding an intermediary variable.
 
-Kotlin 2.1, when combined with link:#jspecify[JSpecify] annotations in the Gradle API, introduces stricter nullability handling.
-Some formerly-valid code may now fail to compile due to more precise type checking.
-
-Common breaking changes:
-
-- Unbounded generics for types that have generic bounds will now fail to compile.
-+
-For example if you have a Kotlin extension function on `Provider<T>` whose signature is `fun <T> Provider<T>.some()` you must qualify `<T>` as  `<T : Any>` because `T` isn't nullable on `Provider<T>`.
-
-- The nullability of generic bounds is now handled strictly.
-+
-For example, you can't use `Property<String?>` anymore because the `T` in `Property<T>` is not nullable.
-+
-Another example is using a function from the Gradle API that takes a `Map<String, *>` parameter ; you could pass a map with nullable values before, you can't do that anymore.
+Read the link:#jspecify[JSpecify section] below to learn about potential breaking changes in Kotlin build logic code related to nullability.
 
 [[jspecify]]
 ==== Gradle API now uses JSpecify nullability annotations
@@ -112,6 +100,21 @@ JSpecify provides a modern, standardized set of annotations and semantics for nu
 
 Because JSpecify's semantics differ slightly from JSR-305, you might see new warnings or errors in your Kotlin or Java plugin code.
 These typically indicate places where you need to clarify or adjust null handling, and modern compilers and IDEs should provide helpful messages to guide you.
+
+Kotlin 2.1, when combined with JSpecify annotations in the Gradle API, introduces stricter nullability handling.
+Some formerly-valid code may now fail to compile due to more precise type checking.
+
+Common breaking changes:
+
+- Unbounded generics for types that have generic bounds will now fail to compile.
++
+For example if you have a Kotlin extension function on `Provider<T>` whose signature is `fun <T> Provider<T>.some()` you must qualify `<T>` as  `<T : Any>` because `T` isn't nullable on `Provider<T>`.
+
+- The nullability of generic bounds is now handled strictly.
++
+For example, you can't use `Property<String?>` anymore because the `T` in `Property<T>` is not nullable.
++
+Another example is using a function from the Gradle API that takes a `Map<String, *>` parameter ; you could pass a map with nullable values before, you can't do that anymore.
 
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9.0 as they did before.
 
