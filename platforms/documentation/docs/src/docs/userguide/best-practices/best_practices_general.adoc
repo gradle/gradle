@@ -182,7 +182,7 @@ Modularize your builds by creating subprojects.
 
 === Explanation
 
-Splitting your build's source into multiple modules (Gradle projects) is key to taking advantage of Gradle's automatic work avoidance and parallelization features.
+Splitting your build's source into multiple modules (Gradle projects) is essential for leveraging Gradle's automatic work avoidance and parallelization features.
 After making a change to a source file, Gradle only needs to recompile affected projects.
 If all your source lives in a single project, Gradle can't skip any recompilations and won't be able to run tasks in parallel.
 You'll likely find other performance benefits of splitting source between projects due to minimizing the compilation classpath of each subproject to only the required dependencies, only running annotation processors on the source files that need them, and so on.
