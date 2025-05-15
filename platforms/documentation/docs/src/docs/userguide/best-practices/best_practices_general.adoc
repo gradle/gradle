@@ -186,7 +186,7 @@ Do not put source files in your root project; instead, put them in an included (
 
 The root project is a special project in Gradle that serves as the entry point for your build.
 
-It is the place to configure settings that apply globally to the entire build. 
+It is the place to configure settings that apply globally to the entire build.
 For example, you can declare (but not apply) plugins here to ensure the same plugin version is consistently available across all projects and define other configurations shared by all projects within the build.
 
 It should not be used for source files, instead they should be located in a separate (sub)project.
@@ -284,7 +284,7 @@ include::sample[dir="snippets/bestPractices/noSourceInRoot-do/groovy/core",files
 
 === References
 
-- <<multi_project_builds.adoc#sec:multi_project_builds,Structuring Projects with Gradle>>
+- <<multi_project_builds.adoc#multi_project_builds,Structuring Projects with Gradle>>
 - <<organizing_gradle_projects.adoc#sec:settings_file,Organizing Gradle Projects>>
 
 === Tags
