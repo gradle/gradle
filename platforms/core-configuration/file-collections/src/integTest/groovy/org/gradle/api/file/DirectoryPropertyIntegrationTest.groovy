@@ -33,7 +33,7 @@ class DirectoryPropertyIntegrationTest extends AbstractIntegrationSpec {
             }
 
             abstract class Consumer extends DefaultTask {
-                @InputFile abstract RegularFileProperty getInDir()
+                @InputFile abstract RegularFileProperty getInFile()
                 @TaskAction def consumer() {}
             }
 
@@ -42,7 +42,7 @@ class DirectoryPropertyIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register('consumer', Consumer) {
-                inDir.set(producer.get().outDir.file($expression))
+                inFile.set(producer.$expression)
             }
         """
 
@@ -53,8 +53,10 @@ class DirectoryPropertyIntegrationTest extends AbstractIntegrationSpec {
         executed ':producer', ':consumer'
 
         where:
-        type       | expression
-        'string'   | '"output"'
-        'provider' | 'provider { "output" }'
+        type                   | expression
+        'value'                | 'get().outDir.file("output")'
+        'provider'             | 'get().outDir.file(provider { "output" })'
+        'flatMap { value }'    | 'flatMap { it.outDir.file("output") }'
+        'flatMap { provider }' | 'flatMap { it.outDir.file(provider { "output" }) }'
     }
 }
