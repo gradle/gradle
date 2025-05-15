@@ -177,7 +177,7 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 <<tags_reference.adoc#tag:upgrades,`#upgrades`>>
 
 [[favor_composite_builds]]
-== Favor Composite Builds over `buildSrc`
+== Favor `build-logic` Composite Builds over `buildSrc`
 :keywords: structuring-builds,composite-builds,buildSrc
 
 You should setup a <<composite_builds.adoc#defining_composite_builds,Composite Build>> (often called an "included build") to hold your build logic—including any custom plugins, convention plugins, and other build-specific customizations.
@@ -205,7 +205,7 @@ Using different plugin versions can cause features like <<build_services.adoc#bu
 
 Ideally, there would be no difference between using `buildSrc` and an included build, as `buildSrc` is intended to behave like an implicitly available included build.
 However, due to historical reasons, these subtle differences still exist.
-Gradle is working to unify the behavior of these two approaches, and this recommendation may be revised in the future.
+As this changes, this recommendation may be revised in the future.
 For now, these differences can introduce confusion.
 
 Since setting up a composite build requires only minimal additional configuration, we recommend using it over `buildSrc` in most cases.
