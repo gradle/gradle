@@ -29,8 +29,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.AppliedPlugin;
@@ -54,14 +52,14 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
-import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
-import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
-import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
-import org.gradle.plugins.ide.eclipse.model.Link;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseClasspath;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseJdt;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathInternal;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseJdtInternal;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
@@ -100,9 +98,10 @@ public abstract class EclipsePlugin extends IdePlugin {
     private final Set<Configuration> testConfigurationsConvention = new HashSet<>();
 
     @Inject
-    public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider,
-                         IdeArtifactRegistry artifactRegistry,
-                         JvmPluginServices jvmPluginServices
+    public EclipsePlugin(
+        UniqueProjectNameProvider uniqueProjectNameProvider,
+        IdeArtifactRegistry artifactRegistry,
+        JvmPluginServices jvmPluginServices
     ) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
@@ -147,15 +146,6 @@ public abstract class EclipsePlugin extends IdePlugin {
 
         projectModel.setName(uniqueProjectNameProvider.getUniqueName(project));
 
-        final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
-        convention.map("comment", new Callable<String>() {
-            @Override
-            public String call() {
-                return project.getDescription();
-            }
-
-        });
-
         final TaskProvider<GenerateEclipseProject> task = project.getTasks().register(ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject.class, model.getProject());
         task.configure(new Action<GenerateEclipseProject>() {
             @Override
@@ -175,13 +165,6 @@ public abstract class EclipsePlugin extends IdePlugin {
                 }
 
                 projectModel.natures("org.eclipse.jdt.core.javanature");
-                convention.map("linkedResources", new Callable<Set<Link>>() {
-                    @Override
-                    public Set<Link> call() {
-                        return new LinkedResourcesCreator().links(project);
-                    }
-
-                });
             }
 
         });
@@ -213,32 +196,22 @@ public abstract class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
-        EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
+        DefaultEclipseClasspath classpath = project.getObjects().newInstance(DefaultEclipseClasspath.class, project);
         classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
+        classpath.getDefaultOutputDirProperty().convention(project.getLayout().getProjectDirectory().file(EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH));
+        classpath.getTestSourceSets().convention(testSourceSetsConvention);
+        classpath.getTestConfigurations().convention(testConfigurationsConvention);
 
         model.setClasspath(classpath);
-
-        ((IConventionAware) model.getClasspath()).getConventionMapping().map("defaultOutputDir", new Callable<File>() {
-            @Override
-            public File call() {
-                return new File(project.getProjectDir(), EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH);
-            }
-
-        });
-        model.getClasspath().getTestSourceSets().convention(testSourceSetsConvention);
-        model.getClasspath().getTestConfigurations().convention(testConfigurationsConvention);
 
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
                 final TaskProvider<GenerateEclipseClasspath> task = project.getTasks().register(ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath.class, model.getClasspath());
-                task.configure(new Action<GenerateEclipseClasspath>() {
-                    @Override
-                    public void execute(final GenerateEclipseClasspath task) {
-                        task.setDescription("Generates the Eclipse classpath file.");
-                        task.setInputFile(project.file(".classpath"));
-                        task.setOutputFile(project.file(".classpath"));
-                    }
+                task.configure(taskToConfigure -> {
+                    taskToConfigure.setDescription("Generates the Eclipse classpath file.");
+                    taskToConfigure.setInputFile(project.file(".classpath"));
+                    taskToConfigure.setOutputFile(project.file(".classpath"));
                 });
                 addWorker(task, ECLIPSE_CP_TASK_NAME);
 
@@ -269,52 +242,43 @@ public abstract class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
-                ((IConventionAware) model.getClasspath()).getConventionMapping().map("plusConfigurations", new Callable<Collection<Configuration>>() {
-                    @Override
-                    public Collection<Configuration> call() {
-                        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                        List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
-                        ConfigurationContainer configurations = project.getConfigurations();
-                        for (SourceSet sourceSet : sourceSets) {
-                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
-                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
-                        }
-                        return sourceSetsConfigurations;
-                    }
-                }).cache();
 
-                ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
-                    @Override
-                    public List<File> call() {
+                EclipseClasspathInternal classpath = (EclipseClasspathInternal) model.getClasspath();
+                classpath.getPlusConfigurationsProperty().convention(project.provider((Callable<Collection<Configuration>>) () -> {
+                    SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                    List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
+                    ConfigurationContainer configurations = project.getConfigurations();
+                    for (SourceSet sourceSet : sourceSets) {
+                        sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
+                        sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
+                    }
+                    return sourceSetsConfigurations;
+                }));
+
+                classpath.getClassFoldersProperty().convention(project.provider(() -> {
                         List<File> result = new ArrayList<>();
                         for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
                             result.addAll(sourceSet.getOutput().getDirs().getFiles());
                         }
                         return result;
-                    }
-                });
 
-                task.configure(new Action<GenerateEclipseClasspath>() {
-                    @Override
-                    public void execute(GenerateEclipseClasspath task) {
-                        for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
-                            task.dependsOn(sourceSet.getOutput().getDirs());
-                        }
+                    }
+                ));
+                task.configure(taskToConfigure -> {
+                    for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
+                        taskToConfigure.dependsOn(sourceSet.getOutput().getDirs());
                     }
                 });
 
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                sourceSets.configureEach(new Action<SourceSet>() {
-                    @Override
-                    public void execute(SourceSet sourceSet) {
-                        if (sourceSet.getName().toLowerCase(Locale.ROOT).contains("test")) {
-                            // source sets with 'test' in their name are marked as test on the Eclipse classpath
-                            testSourceSetsConvention.add(sourceSet);
+                sourceSets.configureEach(sourceSet -> {
+                    if (sourceSet.getName().toLowerCase(Locale.ROOT).contains("test")) {
+                        // source sets with 'test' in their name are marked as test on the Eclipse classpath
+                        testSourceSetsConvention.add(sourceSet);
 
-                            // resolved dependencies from the source sets with 'test' in their name are marked as test on the Eclipse classpath
-                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
-                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
-                        }
+                        // resolved dependencies from the source sets with 'test' in their name are marked as test on the Eclipse classpath
+                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
+                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
                     }
                 });
 
@@ -396,7 +360,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
-                model.setJdt(project.getObjects().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(new PropertiesTransformer())));
+                model.setJdt(project.getObjects().newInstance(DefaultEclipseJdt.class, new PropertiesFileContentMerger(new PropertiesTransformer())));
                 final TaskProvider<GenerateEclipseJdt> task = project.getTasks().register(ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt.class, model.getJdt());
                 task.configure(new Action<GenerateEclipseJdt>() {
                     @Override
@@ -410,28 +374,26 @@ public abstract class EclipsePlugin extends IdePlugin {
                 addWorker(task, ECLIPSE_JDT_TASK_NAME);
 
                 //model properties:
-                ConventionMapping conventionMapping = ((IConventionAware) model.getJdt()).getConventionMapping();
-                conventionMapping.map("sourceCompatibility", new Callable<JavaVersion>() {
+                EclipseJdtInternal jdt = (EclipseJdtInternal) model.getJdt();
+                jdt.getSourceCompatibilityProperty().convention(project.provider(new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
                         return project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility();
                     }
-
-                });
-                conventionMapping.map("targetCompatibility", new Callable<JavaVersion>() {
+                }));
+                jdt.getTargetCompatibilityProperty().convention(project.provider(new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
                         return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
                     }
 
-                });
-                conventionMapping.map("javaRuntimeName", new Callable<String>() {
+                }));
+                jdt.getJavaRuntimeNameProperty().convention(project.provider(new Callable<String>() {
                     @Override
                     public String call() {
                         return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
                     }
-
-                });
+                }));
             }
         });
     }

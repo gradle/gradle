@@ -16,6 +16,7 @@
 package org.gradle.util
 
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -80,6 +81,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -177,6 +179,7 @@ class TestUtil {
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Action<ServiceRegistration> registrations = {}) {
         def services = new DefaultServiceRegistry()
+        TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
         services.register {
             registrations.execute(it)
             it.add(ProviderFactory, new TestProviderFactory())
@@ -190,6 +193,12 @@ class TestUtil {
             it.add(DocumentationRegistry, new DocumentationRegistry())
             it.add(FileCollectionFactory, fileCollectionFactory)
             it.add(DefaultPropertyFactory)
+            try {
+                it.add(Project, TestUtil.create(temporaryFolder).rootProject())
+            }
+            catch(Throwable e) {
+                // ignore
+            }
             it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
                 InstantiatorFactory createInstantiatorFactory() {

@@ -141,13 +141,9 @@ import java.util.Set;
 public abstract class EclipseClasspath {
     private Iterable<SourceSet> sourceSets;
 
-    private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
+    private Collection<Configuration> minusConfigurations = new ArrayList<>();
 
-    private Collection<Configuration> minusConfigurations = new ArrayList<Configuration>();
-
-    private Set<String> containers = new LinkedHashSet<String>();
-
-    private File defaultOutputDir;
+    private Set<String> containers = new LinkedHashSet<>();
 
     private boolean downloadSources = true;
 
@@ -155,25 +151,18 @@ public abstract class EclipseClasspath {
 
     private XmlFileContentMerger file = new XmlFileContentMerger(new XmlTransformer());
 
-    private Map<String, File> pathVariables = new HashMap<String, File>();
+    private Map<String, File> pathVariables = new HashMap<>();
 
     private boolean projectDependenciesOnly;
-
-    private List<File> classFolders;
 
     private final org.gradle.api.Project project;
 
     private final Property<Boolean> containsTestFixtures;
 
-    private final SetProperty<SourceSet> testSourceSets;
-    private final SetProperty<Configuration> testConfigurations;
-
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
         this.containsTestFixtures = project.getObjects().property(Boolean.class).convention(false);
-        this.testSourceSets = project.getObjects().setProperty(SourceSet.class);
-        this.testConfigurations = project.getObjects().setProperty(Configuration.class);
     }
 
     /**
@@ -194,13 +183,9 @@ public abstract class EclipseClasspath {
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    public Collection<Configuration> getPlusConfigurations() {
-        return plusConfigurations;
-    }
+    abstract public Collection<Configuration> getPlusConfigurations();
 
-    public void setPlusConfigurations(Collection<Configuration> plusConfigurations) {
-        this.plusConfigurations = plusConfigurations;
-    }
+    abstract public void setPlusConfigurations(Collection<Configuration> plusConfigurations);
 
     /**
      * The configurations whose files are to be excluded from the classpath entries.
@@ -233,13 +218,9 @@ public abstract class EclipseClasspath {
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    public File getDefaultOutputDir() {
-        return defaultOutputDir;
-    }
+    abstract public File getDefaultOutputDir();
 
-    public void setDefaultOutputDir(File defaultOutputDir) {
-        this.defaultOutputDir = defaultOutputDir;
-    }
+    abstract public void setDefaultOutputDir(File defaultOutputDir);
 
     /**
      * The base output directory for source sets.
@@ -304,13 +285,9 @@ public abstract class EclipseClasspath {
         this.projectDependenciesOnly = projectDependenciesOnly;
     }
 
-    public List<File> getClassFolders() {
-        return classFolders;
-    }
+    public abstract List<File> getClassFolders();
 
-    public void setClassFolders(List<File> classFolders) {
-        this.classFolders = classFolders;
-    }
+    public abstract void setClassFolders(List<File> classFolders);
 
     public org.gradle.api.Project getProject() {
         return project;
@@ -373,7 +350,7 @@ public abstract class EclipseClasspath {
 
     public FileReferenceFactory getFileReferenceFactory() {
         FileReferenceFactory referenceFactory = new FileReferenceFactory();
-        pathVariables.forEach((key, value) -> referenceFactory.addPathVariable(key, value));
+        pathVariables.forEach(referenceFactory::addPathVariable);
         return referenceFactory;
     }
 
@@ -401,9 +378,7 @@ public abstract class EclipseClasspath {
      * @since 7.5
      */
     @Incubating
-    public SetProperty<SourceSet> getTestSourceSets() {
-        return testSourceSets;
-    }
+    abstract public SetProperty<SourceSet> getTestSourceSets();
 
     /**
      * Returns the test configurations.
@@ -412,7 +387,7 @@ public abstract class EclipseClasspath {
      * <p>
      * The default value contains the following elements:
      * <ul>
-     *     <li>The compile and runtime configurations of the {@link #testSourceSets}, including the jvm-test-suite source sets</li>
+     *     <li>The compile and runtime configurations of the testSourceSets, including the jvm-test-suite source sets</li>
      *     <li>Other configurations with names containing the 'test' substring (case ignored)</li>
      * </ul>
      * <p>
@@ -421,7 +396,5 @@ public abstract class EclipseClasspath {
      * @since 7.5
      */
     @Incubating
-    public SetProperty<Configuration> getTestConfigurations() {
-        return testConfigurations;
-    }
+    abstract public SetProperty<Configuration> getTestConfigurations();
 }

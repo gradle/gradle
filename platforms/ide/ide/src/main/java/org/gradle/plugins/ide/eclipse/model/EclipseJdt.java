@@ -64,12 +64,6 @@ import javax.inject.Inject;
  */
 public abstract class EclipseJdt {
 
-    private JavaVersion sourceCompatibility = JavaVersion.current();
-
-    private JavaVersion targetCompatibility = JavaVersion.current();
-
-    private String javaRuntimeName;
-
     private final PropertiesFileContentMerger file;
 
     @Inject
@@ -82,9 +76,7 @@ public abstract class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    public JavaVersion getSourceCompatibility() {
-        return sourceCompatibility;
-    }
+    public abstract JavaVersion getSourceCompatibility();
 
     /**
      * Sets source compatibility.
@@ -95,21 +87,14 @@ public abstract class EclipseJdt {
         setSourceCompatibility((Object) sourceCompatibility);
     }
 
-    public void setSourceCompatibility(Object sourceCompatibility) {
-        JavaVersion version = JavaVersion.toVersion(sourceCompatibility);
-        if (version != null) {
-            this.sourceCompatibility = version;
-        }
-    }
+    abstract public void setSourceCompatibility(Object sourceCompatibility);
 
     /**
      * The target JVM to generate {@code .class} files for.
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    public JavaVersion getTargetCompatibility() {
-        return targetCompatibility;
-    }
+    abstract public JavaVersion getTargetCompatibility();
 
     /**
      * Sets target compatibility.
@@ -120,25 +105,16 @@ public abstract class EclipseJdt {
         setTargetCompatibility((Object) targetCompatibility);
     }
 
-    public void setTargetCompatibility(Object targetCompatibility) {
-        JavaVersion version = JavaVersion.toVersion(targetCompatibility);
-        if (version != null) {
-            this.targetCompatibility = version;
-        }
-    }
+    public abstract void setTargetCompatibility(Object targetCompatibility);
 
     /**
      * The name of the Java Runtime to use.
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    public String getJavaRuntimeName() {
-        return javaRuntimeName;
-    }
+    public abstract String getJavaRuntimeName();
 
-    public void setJavaRuntimeName(String javaRuntimeName) {
-        this.javaRuntimeName = javaRuntimeName;
-    }
+    public abstract void setJavaRuntimeName(String javaRuntimeName);
 
     /**
      * See {@link #file(Action) }

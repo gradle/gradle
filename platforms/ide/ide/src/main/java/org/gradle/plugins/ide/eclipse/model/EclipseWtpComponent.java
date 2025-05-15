@@ -142,16 +142,11 @@ public abstract class EclipseWtpComponent {
     private final Project project;
     private final XmlFileContentMerger file;
 
-    private Set<File> sourceDirs;
     private Set<Configuration> rootConfigurations = new LinkedHashSet<>();
     private Set<Configuration> libConfigurations = new LinkedHashSet<>();
     private Set<Configuration> minusConfigurations = new LinkedHashSet<>();
-    private String deployName;
-    private List<WbResource> resources = new ArrayList<>();
     private List<WbProperty> properties = new ArrayList<>();
-    private String contextPath;
     private String classesDeployPath = "/WEB-INF/classes";
-    private String libDeployPath;
     private Map<String, File> pathVariables = new HashMap<>();
 
     @Inject
@@ -203,13 +198,9 @@ public abstract class EclipseWtpComponent {
      * Only source dirs that exist will be added to the wtp component file.
      * Non-existing resource directory declarations lead to errors when project is imported into Eclipse.
      */
-    public Set<File> getSourceDirs() {
-        return sourceDirs;
-    }
+    public abstract Set<File> getSourceDirs();
 
-    public void setSourceDirs(Set<File> sourceDirs) {
-        this.sourceDirs = sourceDirs;
-    }
+    public abstract void setSourceDirs(Set<File> sourceDirs);
 
     /**
      * The configurations whose files are to be marked to be deployed with a deploy path of '/'.
@@ -269,13 +260,9 @@ public abstract class EclipseWtpComponent {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    public String getDeployName() {
-        return deployName;
-    }
+    public abstract String getDeployName();
 
-    public void setDeployName(String deployName) {
-        this.deployName = deployName;
-    }
+    public abstract void setDeployName(String deployName);
 
     /**
      * Additional wb-resource elements.
@@ -287,13 +274,10 @@ public abstract class EclipseWtpComponent {
      * The reason is that non-existing resource directory declarations
      * lead to errors when project is imported into Eclipse.
      */
-    public List<WbResource> getResources() {
-        return resources;
-    }
+    public abstract List<WbResource> getResources();
 
-    public void setResources(List<WbResource> resources) {
-        this.resources = resources;
-    }
+    public abstract void setResources(List<WbResource> resources);
+
 
     /**
      * Adds a wb-resource.
@@ -303,7 +287,7 @@ public abstract class EclipseWtpComponent {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     public void resource(Map<String, String> args) {
-        resources = Lists.newArrayList(Iterables.concat(getResources(), Collections.singleton(new WbResource(args.get("deployPath"), args.get("sourcePath")))));
+        setResources(Lists.newArrayList(Iterables.concat(getResources(), Collections.singleton(new WbResource(args.get("deployPath"), args.get("sourcePath"))))));
     }
 
     /**
@@ -335,13 +319,9 @@ public abstract class EclipseWtpComponent {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    public String getContextPath() {
-        return contextPath;
-    }
+    public abstract String getContextPath();
 
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
+    public abstract void setContextPath(String contextPath);
 
     /**
      * The deploy path for classes.
@@ -361,13 +341,9 @@ public abstract class EclipseWtpComponent {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    public String getLibDeployPath() {
-        return libDeployPath;
-    }
+    public abstract String getLibDeployPath();
 
-    public void setLibDeployPath(String libDeployPath) {
-        this.libDeployPath = libDeployPath;
-    }
+    public abstract void setLibDeployPath(String libDeployPath);
 
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.

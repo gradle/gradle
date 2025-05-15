@@ -25,6 +25,10 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseClasspath
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseJdt
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpComponent
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseWtpFacet
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -40,7 +44,7 @@ class EclipseModelTest extends Specification {
     def setup() {
         project.getObjects() >> TestUtil.objectFactory()
         model = TestUtil.newInstance(EclipseModel, project)
-        model.classpath = TestUtil.newInstance(EclipseClasspath, project)
+        model.classpath = TestUtil.newInstance(DefaultEclipseClasspath, project)
     }
 
     def "enables setting path variables even if wtp is not configured"() {
@@ -138,7 +142,7 @@ class EclipseModelTest extends Specification {
         def propertiesTransformer = Mock(PropertiesTransformer)
         def propertiesMerger = Spy(PropertiesFileContentMerger, constructorArgs: [propertiesTransformer])
         def propertiesAction = {} as Action<Properties>
-        model.jdt = TestUtil.newInstance(EclipseJdt, propertiesMerger)
+        model.jdt = TestUtil.newInstance(DefaultEclipseJdt, propertiesMerger)
 
         when: "configure jdt"
         model.jdt({ jdt -> jdt.sourceCompatibility = JavaVersion.VERSION_1_9 } as Action<EclipseJdt>)
@@ -164,8 +168,8 @@ class EclipseModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
-        def facet = TestUtil.newInstance(EclipseWtpFacet, xmlMerger)
-        def component = TestUtil.newInstance(EclipseWtpComponent, project, xmlMerger)
+        def facet = TestUtil.newInstance(DefaultEclipseWtpFacet, xmlMerger)
+        def component = TestUtil.newInstance(DefaultEclipseWtpComponent, project, xmlMerger)
         model.wtp = TestUtil.newInstance(EclipseWtp)
 
         when: "configure wtp"

@@ -21,6 +21,7 @@ import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.plugins.ide.api.PropertiesGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.Jdt;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultEclipseJdt;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -36,7 +37,7 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     private EclipseJdt jdt;
 
     public GenerateEclipseJdt() {
-        jdt = getInstantiator().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(getTransformer()));
+        jdt = getInstantiator().newInstance(DefaultEclipseJdt.class, new PropertiesFileContentMerger(getTransformer()));
     }
 
     @Inject
