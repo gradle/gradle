@@ -140,7 +140,7 @@ class SwiftApplicationPluginTest extends Specification {
         project.evaluate()
 
         when:
-        project.buildDir = "output"
+        project.layout.buildDirectory.set(project.layout.projectDirectory.dir("output"))
 
         then:
         def compileSwift = project.tasks.compileDebugSwift

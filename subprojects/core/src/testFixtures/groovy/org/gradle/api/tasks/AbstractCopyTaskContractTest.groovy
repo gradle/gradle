@@ -38,7 +38,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
 
         and:
         task.from srcDir
-        task.into project.buildDir
+        task.into project.layout.buildDirectory
         task.eachFile(new Action<FileCopyDetails>() {
             void execute(FileCopyDetails fcd) {
                 assert fcd instanceof DynamicObjectAware

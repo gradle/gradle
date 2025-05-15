@@ -33,7 +33,7 @@ class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
         model.path == ':'
         model.name == 'test-project'
         model.description == 'a test project'
-        model.buildDirectory == project.buildDir
+        model.buildDirectory == project.layout.buildDirectory.get().asFile
         model.buildScript.sourceFile == buildFile
     }
 }

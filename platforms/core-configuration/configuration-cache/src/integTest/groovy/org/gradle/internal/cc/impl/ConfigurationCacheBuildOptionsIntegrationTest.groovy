@@ -778,11 +778,11 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
             tasks.register("myTask", MyTask.class) {
                 it.getInputCount().set(project.providers.systemProperty("generateInputs").map { Integer.parseInt(it) })
-                it.getOutputDir().set(new File(project.buildDir, "mytask"))
+                it.getOutputDir().set(project.layout.buildDirectory.dir("mytask"))
             }
 
             tasks.register("consumer", ConsumerTask.class) {
-                it.getOutputFile().set(new File(project.buildDir, "consumer/out.txt"))
+                it.getOutputFile().set(project.layout.buildDirectory.file("consumer/out.txt"))
 
                 MyTask myTask = (MyTask) tasks.getByName("myTask")
                 Provider<Set<File>> inputs = myTask.outputDir.map {

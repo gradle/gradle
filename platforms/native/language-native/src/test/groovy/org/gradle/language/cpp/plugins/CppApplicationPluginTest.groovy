@@ -135,7 +135,7 @@ class CppApplicationPluginTest extends Specification {
         project.evaluate()
 
         when:
-        project.buildDir = "output"
+        project.layout.buildDirectory.set(project.layout.settingsDirectory.dir("output"))
 
         then:
         def compileCpp = project.tasks.compileDebugCpp

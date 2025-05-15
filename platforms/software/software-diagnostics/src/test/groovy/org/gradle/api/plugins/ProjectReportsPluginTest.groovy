@@ -45,22 +45,22 @@ class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
         then:
         Task taskReport = project.tasks.getByName(ProjectReportsPlugin.TASK_REPORT);
         taskReport instanceOf(TaskReportTask.class)
-        taskReport.outputFile == new File(project.buildDir, "reports/project/tasks.txt")
+        taskReport.outputFile == project.layout.buildDirectory.dir("reports/project/tasks.txt").get().asFile
         taskReport.projects == [project] as Set
 
         Task propertyReport = project.tasks.getByName(ProjectReportsPlugin.PROPERTY_REPORT)
         propertyReport instanceOf(PropertyReportTask.class)
-        propertyReport.outputFile == new File(project.buildDir, "reports/project/properties.txt")
+        propertyReport.outputFile == project.layout.buildDirectory.dir("reports/project/properties.txt").get().asFile
         propertyReport.projects == [project] as Set
 
         Task dependencyReport = project.tasks.getByName(ProjectReportsPlugin.DEPENDENCY_REPORT);
         dependencyReport instanceOf(DependencyReportTask.class)
-        dependencyReport.outputFile == new File(project.getBuildDir(), "reports/project/dependencies.txt")
+        dependencyReport.outputFile == project.layout.buildDirectory.dir("reports/project/dependencies.txt").get().asFile
         dependencyReport.projects == [project] as Set
 
         Task htmlReport = project.tasks.getByName(ProjectReportsPlugin.HTML_DEPENDENCY_REPORT);
         htmlReport instanceOf(HtmlDependencyReportTask.class)
-        htmlReport.reports.html.outputLocation.get().asFile == new File(project.buildDir, "reports/project/dependencies")
+        htmlReport.reports.html.outputLocation.get().asFile == project.layout.buildDirectory.dir("reports/project/dependencies").get().asFile
         htmlReport.projects == [project] as Set
 
         Task projectReport = project.getTasks().getByName(ProjectReportsPlugin.PROJECT_REPORT);

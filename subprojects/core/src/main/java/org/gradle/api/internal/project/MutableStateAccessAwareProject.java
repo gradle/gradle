@@ -257,38 +257,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.getProjectIdentity();
     }
 
-    /**
-     * @deprecated Use layout.buildDirectory instead
-     */
-    @Override
-    @Deprecated
-    public File getBuildDir() {
-        onMutableStateAccess("buildDir");
-        return delegate.getBuildDir();
-    }
-
-    /**
-     * @deprecated Use layout.buildDirectory instead
-     */
-    @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public void setBuildDir(File path) {
-        onMutableStateAccess("buildDir");
-        delegate.setBuildDir(path);
-    }
-
-    /**
-     * @deprecated Use layout.buildDirectory instead
-     */
-    @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public void setBuildDir(Object path) {
-        onMutableStateAccess("buildDir");
-        delegate.setBuildDir(path);
-    }
-
     @Override
     public File getProjectDir() {
         return delegate.getProjectDir();

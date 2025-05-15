@@ -91,10 +91,10 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
         then:
-        task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile == new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.analysis")
-        task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile == new File("$project.buildDir/tmp/scala/classfileBackup/compileCustomScala.bak")
+        task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile == project.layout.buildDirectory.dir("tmp/scala/compilerAnalysis/compileCustomScala.analysis").get().asFile
+        task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile == project.layout.buildDirectory.dir("tmp/scala/classfileBackup/compileCustomScala.bak").get().asFile
         task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile == project.tasks['customJar'].archiveFile.get().asFile
-        task.analysisMappingFile.get().asFile == new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.mapping")
+        task.analysisMappingFile.get().asFile == project.layout.buildDirectory.dir("tmp/scala/compilerAnalysis/compileCustomScala.mapping").get().asFile
     }
 
     def "incremental compile options can be overridden"() {

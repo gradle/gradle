@@ -818,12 +818,13 @@ def scriptMethod(Closure closure) {
 
     def buildDir() {
         expect:
-        project.buildDir == new File(rootDir, "build")
+        project.layout.buildDirectory.get().getAsFile() == new File(rootDir, "build")
 
         when:
-        project.buildDir = "abc"
+        project.layout.buildDirectory.set(project.layout.projectDirectory.dir("abc"))
+
         then:
-        child1.buildDir == new File(rootDir, "abc")
+        child1.layout.buildDirectory.get().getAsFile() == new File(rootDir, "abc")
     }
 
     def cachingOfAnt() {

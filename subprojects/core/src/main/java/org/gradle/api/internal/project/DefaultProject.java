@@ -862,26 +862,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    @Deprecated
-    public File getBuildDir() {
-        // onMutableStateAccess(); triggered by #getLayout()
-        return getLayout().getBuildDirectory().getAsFile().get();
-    }
-
-    @Override
-    @Deprecated
-    public void setBuildDir(File path) {
-        // onMutableStateAccess(); triggered by #getLayout() in #setBuildDir(Object) below
-        setBuildDir((Object) path);
-    }
-
-    @Override
-    @Deprecated
-    public void setBuildDir(Object path) {
-        getLayout().getBuildDirectory().set(getFileResolver().resolve(path));
-    }
-
-    @Override
     public void evaluationDependsOnChildren() {
         onMutableStateAccess();
         for (ProjectState project : owner.getChildProjects()) {

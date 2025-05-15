@@ -53,7 +53,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         def clean = project.tasks[BasePlugin.CLEAN_TASK_NAME]
         clean instanceOf(Delete)
         clean dependsOn()
-        clean.targetFiles.files == [project.buildDir] as Set
+        clean.targetFiles.files == [project.layout.buildDirectory.get().asFile] as Set
 
         and:
         def assemble = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
@@ -108,7 +108,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
     def "adds a clean rule"() {
         given:
         Task test = project.task('test')
-        test.outputs.dir(project.buildDir)
+        test.outputs.dir(project.layout.buildDirectory)
 
         when:
         project.pluginManager.apply(BasePlugin)
