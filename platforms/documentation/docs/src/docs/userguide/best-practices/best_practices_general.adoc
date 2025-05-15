@@ -191,7 +191,14 @@ It makes sense to split your build's source into multiple projects _early_.
 Don't wait until you hit some arbitrary number of source files or classes to do this, instead structure your build into multiple projects from the start using whatever natural boundaries exist in your codebase.
 
 Exactly how to split your source in a build varies.
-Common boundaries that make cohesive projects can include horizontal layers (e.g. API vs. implementation, front vs. back end, core business logic vs. UI), vertical slices (e.g. feature modules each containing UI + business logic), inputs to source generation vs. their consumers, or just closely related classes.
+Common boundaries that make cohesive projects can include horizontal layers such as:
+
+- API vs. Implementation
+- Front-end vs. Back-end
+- Core business logic vs. UI
+- Vertical slices (e.g., feature modules each containing UI + business logic)
+- Inputs to source generation vs. their consumers
+- Or simply closely related classes.
 In general, it matters less _how_ you split your source than that you _do_ split it according to some reasonable scheme.
 
 Expanding a build to hundreds of projects is common, and Gradle is designed to scale to this size and beyond.
