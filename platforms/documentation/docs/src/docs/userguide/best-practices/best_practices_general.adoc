@@ -186,7 +186,8 @@ Do not put source files in your root project; instead, put them in an included (
 
 The root project is a special project in Gradle that serves as the entry point for your build.
 
-It is a place to configure the build as a whole, such as declaring (but not applying) plugins to ensure the same version is available in every project in a build, and to do other types of configuration that apply to all the build's projects.
+It is the place to configure settings that apply globally to the entire build. 
+For example, you can declare (but not apply) plugins here to ensure the same plugin version is consistently available across all projects and define other configurations shared by all projects within the build.
 
 It should not be used for source files, instead they should be located in a separate (sub)project.
 
