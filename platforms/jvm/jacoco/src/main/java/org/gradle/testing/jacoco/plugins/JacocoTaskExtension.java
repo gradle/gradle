@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -125,7 +126,8 @@ public abstract class JacocoTaskExtension {
      * @since 4.0
      */
     public void setDestinationFile(Provider<File> destinationFile) {
-        this.destinationFile.fileProvider(destinationFile);
+        // TODO: This is a workaround for behavior in AGP.
+        this.destinationFile.fileProvider(destinationFile.flatMap(Providers::of));
     }
 
     public void setDestinationFile(File destinationFile) {
