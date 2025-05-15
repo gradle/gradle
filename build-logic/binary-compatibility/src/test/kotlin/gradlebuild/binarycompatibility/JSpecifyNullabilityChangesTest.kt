@@ -381,4 +381,88 @@ class JSpecifyNullabilityChangesTest : AbstractJavaNullabilityChangesTest() {
             assertHasNoInformation()
         }
     }
+
+    @Test
+    fun `from null class type argument to non-null might be breaking`() {
+
+        checkNotBinaryCompatibleJava(
+            v1 = """
+                import $nullableAnnotationName;
+                public class Source<String, @Nullable T, Integer> {}
+            """,
+            v2 = """
+                public class Source<String, T, Integer> {}
+            """
+        ) {
+            assertHasErrors(
+                "Class com.example.Source: Type parameter 1 nullability changed, might be a breaking change depending on its usage.",
+            )
+            assertHasNoWarning()
+            assertHasNoInformation()
+        }
+    }
+
+    @Test
+    fun `from null class type argument bound to non-null might be breaking`() {
+
+        checkNotBinaryCompatibleJava(
+            v1 = """
+                import java.util.List;
+                import $nullableAnnotationName;
+                public class Source<String, T extends List<@Nullable CharSequence>, Integer> {}
+            """,
+            v2 = """
+                import java.util.List;
+                public class Source<String, T extends List<CharSequence>, Integer> {}
+            """
+        ) {
+            assertHasErrors(
+                "Class com.example.Source: Type parameter 1 nullability changed, might be a breaking change depending on its usage.",
+            )
+            assertHasNoWarning()
+            assertHasNoInformation()
+        }
+    }
+
+    @Test
+    fun `from nonnull class type argument to null might be breaking`() {
+
+        checkNotBinaryCompatibleJava(
+            v1 = """
+                public class Source<String, T, Integer> {}
+            """,
+            v2 = """
+                import $nullableAnnotationName;
+                public class Source<String, @Nullable T, Integer> {}
+            """
+        ) {
+            assertHasErrors(
+                "Class com.example.Source: Type parameter 1 nullability changed, might be a breaking change depending on its usage.",
+            )
+            assertHasNoWarning()
+            assertHasNoInformation()
+        }
+    }
+
+    @Test
+    fun `from non-null class type argument bound to null might be breaking`() {
+
+        checkNotBinaryCompatibleJava(
+            v1 = """
+                import java.util.List;
+                public class Source<String, T extends List<CharSequence>, Integer> {}
+            """,
+            v2 = """
+                import java.util.List;
+                import $nullableAnnotationName;
+                public class Source<String, T extends List<@Nullable CharSequence>, Integer> {}
+            """
+        ) {
+            assertHasErrors(
+                "Class com.example.Source: Type parameter 1 nullability changed, might be a breaking change depending on its usage.",
+            )
+            assertHasNoWarning()
+            assertHasNoInformation()
+        }
+    }
 }
