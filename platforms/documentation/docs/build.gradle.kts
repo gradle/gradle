@@ -613,6 +613,21 @@ tasks.named("quickTest") {
     dependsOn("checkDeadInternalLinks")
 }
 
+testing {
+    suites {
+        val dummyTest by creating(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(platform(projects.distributionsDependencies))
+
+                implementation(libs.commonsIo)
+                implementation(libs.samplesCheck)
+                implementation(libs.samplesDiscovery)
+            }
+        }
+    }
+}
+
 // TODO add some kind of test precondition support in sample test conf
 tasks.named<Test>("docsTest") {
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
