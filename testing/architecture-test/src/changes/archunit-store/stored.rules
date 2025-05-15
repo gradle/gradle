@@ -1,5 +1,6 @@
 #
-#Thu May 01 16:45:47 CEST 2025
+#Sun May 11 00:08:49 ADT 2025
+Classes\ in\ 'internal'\ packages\ with\ 'Internal'\ in\ their\ name\ should\ use\ it\ as\ a\ suffix\ not\ as\ a\ prefix=internal-classes-naming-pattern.txt
 classes\ that\ are\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=public-api-symmetrical-accessors-nullability.txt
 classes\ that\ are\ Gradle\ public\ API\ should\ not\ have\ direct\ super-class\ or\ interface\ that\ are\ Gradle\ Internal\ API=public-api-not-extends-internal-types.txt
 classes\ that\ are\ in\ Gradle\ internal\ API\ packages\ and\ classes\ written\ in\ Java\ or\ Groovy\ and\ not\ synthetic\ classes\ should\ be\ annotated\ (directly\ or\ via\ its\ package)\ with\ @org.jspecify.annotations.NullMarked=internal-api-nullability.txt
