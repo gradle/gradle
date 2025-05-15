@@ -313,9 +313,9 @@ You can use string literals for configuration names in dependency declarations a
 
 While the IDE won't be able to help you discover the available configurations, you can look them up either in the corresponding plugin's documentation or by running `./gradlew dependencies`.
 
-==== Project extensions and conventions
+==== Project extensions
 
-Project extensions and <<#sec:kotlin_dsl_about_conventions,conventions>> have both a name and a unique type.
+Project extensions have both a name and a unique type.
 However, the Kotlin DSL only needs to know the type to configure them.
 
 The following sample shows the `sourceSets {}` and `java {}` blocks from the original example build script.
@@ -327,12 +327,12 @@ include::sample[dir="snippets/kotlinDsl/noAccessors/kotlin",files="build.gradle.
 
 Note that `sourceSets` is a Gradle extension on `Project` of type `SourceSetContainer` and `java` is an extension on `Project` of type `JavaPluginExtension`.
 
-You can discover available extensions and conventions by either reviewing the documentation for the applied plugins or running `./gradlew kotlinDslAccessorsReport`.
+You can discover available extensions by either reviewing the documentation for the applied plugins or running `./gradlew kotlinDslAccessorsReport`.
 The report generates the Kotlin code needed to access the model elements contributed by the applied plugins, providing both names and types.
 
 As a last resort, you can check the plugin's source code, though this should not be necessary in most cases.
 
-You can also use the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`the<T>()`] function if you only need a reference to the extension or convention without configuring it, or if you want to perform a one-line configuration:
+You can also use the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`the<T>()`] function if you only need a reference to the extension without configuring it, or if you want to perform a one-line configuration:
 
 ====
 include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=source]"]
@@ -389,23 +389,6 @@ Type
 
 The IDE can assist you with the required imports, so you only need the simple names of the types, without the package name part.
 In this case, there's no need to import the `Test` task type, as it is part of the Gradle API and is therefore <<kotlin_dsl#sec:implicit_imports,imported implicitly>>.
-
-[[sec:kotlin_dsl_about_conventions]]
-=== About conventions
-
-Some of the Gradle core plugins expose configurability with the help of a so-called _convention_ object.
-These serve a similar purpose to — and have now been superseded by — _extensions_.
-Conventions are deprecated, so please avoid using convention objects when writing new plugins.
-
-As mentioned above, the Kotlin DSL provides accessors only for convention objects on `Project`.
-However, there are situations where you may need to interact with a Gradle plugin that uses convention objects on other types.
-The Kotlin DSL provides the `withConvention(T::class) {}` extension function for this:
-
-====
-include::sample[dir="snippets/kotlinDsl/sourceSetConvention/kotlin",files="build.gradle.kts[tags=source-set-convention]"]
-====
-
-This technique is primarily necessary for source sets added by language plugins that have yet to be migrated to extensions.
 
 [[kotdsl:containers]]
 == Working with container objects

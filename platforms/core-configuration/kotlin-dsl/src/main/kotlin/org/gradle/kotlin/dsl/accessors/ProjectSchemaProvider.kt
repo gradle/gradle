@@ -48,7 +48,6 @@ typealias TypedProjectSchema = ProjectSchema<SchemaType>
 
 data class ProjectSchema<out T>(
     val extensions: List<ProjectSchemaEntry<T>>,
-    val conventions: List<ProjectSchemaEntry<T>>,
     val tasks: List<ProjectSchemaEntry<T>>,
     val containerElements: List<ProjectSchemaEntry<T>>,
     val configurations: List<ConfigurationEntry<String>>,
@@ -60,7 +59,6 @@ data class ProjectSchema<out T>(
 
     fun <U> map(f: (T) -> U) = ProjectSchema(
         extensions.map { it.map(f) },
-        conventions.map { it.map(f) },
         tasks.map { it.map(f) },
         containerElements.map { it.map(f) },
         configurations,
@@ -72,7 +70,6 @@ data class ProjectSchema<out T>(
 
     fun isNotEmpty(): Boolean =
         extensions.isNotEmpty()
-            || conventions.isNotEmpty()
             || tasks.isNotEmpty()
             || containerElements.isNotEmpty()
             || configurations.isNotEmpty()
