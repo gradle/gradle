@@ -297,13 +297,13 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-            return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner, LineEndingSensitivity.DEFAULT);
+        ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, StringInterner stringInterner) {
+            return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner, LineEndingSensitivity.DEFAULT);
         }
 
         @Provides
-        ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
-            return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
+        ClasspathHasher createClasspathHasher(FileCollectionSnapshotter fileCollectionSnapshotter, ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
+            return new DefaultClasspathHasher(fileCollectionSnapshotter, fingerprinter, fileCollectionFactory);
         }
 
         @Provides
@@ -380,12 +380,10 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         @Provides
         FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
             StringInterner stringInterner,
-            FileCollectionSnapshotter fileCollectionSnapshotter,
             ResourceSnapshotterCacheService resourceSnapshotterCacheService
         ) {
             return new FileCollectionFingerprinterRegistrations(
                 stringInterner,
-                fileCollectionSnapshotter,
                 resourceSnapshotterCacheService,
                 ResourceFilter.FILTER_NOTHING,
                 ResourceEntryFilter.FILTER_NOTHING,

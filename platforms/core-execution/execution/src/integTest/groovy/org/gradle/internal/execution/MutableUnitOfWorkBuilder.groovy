@@ -27,7 +27,6 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
@@ -50,7 +49,8 @@ class MutableUnitOfWorkBuilder {
     private Map<String, ? extends File> outputFiles
     private Map<String, ? extends File> outputDirs
     private Collection<? extends TestFile> create
-    private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, TestHashCodes.hashCodeFrom(1234))
+    private Class<?> implementationType = UnitOfWork
+    private List<ImplementationSnapshot> additionalImplementations = []
     private Consumer<WorkValidationContext> validator
 
     private final InputFingerprinter inputFingerprinter
@@ -125,8 +125,13 @@ class MutableUnitOfWorkBuilder {
         return this
     }
 
-    MutableUnitOfWorkBuilder withImplementation(ImplementationSnapshot implementation) {
-        this.implementation = implementation
+    MutableUnitOfWorkBuilder withImplementation(Class<?> implementationType) {
+        this.implementationType = implementationType
+        return this
+    }
+
+    MutableUnitOfWorkBuilder withAdditionalImplementation(ImplementationSnapshot additionalImplementation) {
+        this.additionalImplementations << additionalImplementation
         return this
     }
 
@@ -197,8 +202,8 @@ class MutableUnitOfWorkBuilder {
 
             @Override
             void visitImplementations(UnitOfWork.ImplementationVisitor visitor) {
-                visitor.visitImplementation(implementation)
-                visitor.visitImplementation(Object)
+                visitor.visitImplementation(implementationType)
+                additionalImplementations.forEach(visitor::visitAdditionalImplementation)
             }
 
             @Override
