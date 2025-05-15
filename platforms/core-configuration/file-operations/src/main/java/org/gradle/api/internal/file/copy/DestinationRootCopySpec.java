@@ -17,17 +17,18 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.internal.file.PathToFileResolver;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+
 
 public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     private final PathToFileResolver fileResolver;
     private final CopySpecInternal delegate;
-
-    private Object destinationDir;
 
     @Inject
     public DestinationRootCopySpec(PathToFileResolver fileResolver, CopySpecInternal delegate) {
@@ -40,15 +41,21 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
         return delegate;
     }
 
+    @Inject
+    public DirectoryProperty getDestinationDirectory() {
+        throw new UnsupportedOperationException("getDestinationDirProperty not supported");
+    }
+
     @Override
     public CopySpec into(Object destinationDir) {
-        this.destinationDir = destinationDir;
+        getDestinationDirectory().files(destinationDir);
         return this;
     }
 
     @Override
+    @Nullable
     public File getDestinationDir() {
-        return destinationDir == null ? null : fileResolver.resolve(destinationDir);
+        return getDestinationDirectory().map(fileResolver::resolve).getOrNull();
     }
 
     // TODO:configuration-cache - remove this

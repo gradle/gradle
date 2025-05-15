@@ -17,11 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskProvider;
@@ -37,19 +39,22 @@ import java.util.function.Consumer;
 
 public abstract class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
     private final ConfigurableFileCollection outputDirectories;
-    private Object resourcesDir;
+
+    private final DirectoryProperty resourcesDirectory;
 
     private final ConfigurableFileCollection classesDirs;
     private final ConfigurableFileCollection dirs;
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
+//    private final ObjectFactory objectFactory;
 
     private DirectoryContribution resourcesContributor;
 
     @Inject
-    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory) {
         super(taskDependencyFactory);
         this.fileResolver = fileResolver;
+//        this.objectFactory = objectFactory;
 
         this.classesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classesDirs");
 
@@ -59,6 +64,7 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
         this.dirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " dirs");
 
         this.generatedSourcesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " generatedSourcesDirs");
+        this.resourcesDirectory = objectFactory.directoryProperty();
     }
 
     @Override
@@ -96,23 +102,23 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
         this.resourcesContributor = new DirectoryContribution(directory, task);
     }
 
+//    @Inject
+//    abstract public DirectoryProperty getResourcesDirectory();
+
     @Override
     @Nullable
     public File getResourcesDir() {
-        if (resourcesDir == null) {
-            return null;
-        }
-        return fileResolver.resolve(resourcesDir);
+        return resourcesDirectory.map(fileResolver::resolve).getOrNull();
     }
 
     @Override
     public void setResourcesDir(File resourcesDir) {
-        this.resourcesDir = resourcesDir;
+        this.resourcesDirectory.fileValue(resourcesDir);
     }
 
     @Override
     public void setResourcesDir(Object resourcesDir) {
-        this.resourcesDir = resourcesDir;
+        this.resourcesDirectory.files(resourcesDir);
     }
 
     public void builtBy(Object... taskPaths) {
