@@ -199,6 +199,55 @@ include::sample[dir="snippets/bestPractices/settingsRepositories-do/groovy",file
 
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
 
+[[use_content_filtering]]
+== Use Content Filtering when using multiple Repositories
+
+When using multiple repositories, use <<filtering_repository_content.adoc#repository-content-filtering,repository content filtering>> to ensure that the correct artifacts are resolved from the appropriate repository.
+
+=== Explanation
+
+If you use more than one repository, you should use content filtering to make sure you take the right artifacts from the right repository by using a content filter.
+The repository that contains the remaining artifacts should come at the end, so we only query it if we don’t find the included modules in the other repositories.
+Another option is to use the <<filtering_repository_content.adoc#sec:declaring-content-repositories,exclusiveContent>> if you are able to. Here, the order doesn’t matter.
+Content filtering has three main benefits:
+
+- **Performance** since you only query one repository for a given artifact
+- **Security** by avoiding leaking what dependencies are used in a private project and being more resilient to supply chain attacks by specifying where each artifact is coming from
+- **Reliability** when some repositories contain invalid or incorrect metadata or artifacts
+
+=== Example
+
+==== Don't Do This
+
+Don't add multiple repositories without content filtering:
+
+====
+include::sample[dir="snippets/bestPractices/content-filtering-avoid/kotlin",files="settings.gradle.kts[tags=content-filtering-avoid]"]
+include::sample[dir="snippets/bestPractices/content-filtering-avoid/groovy",files="settings.gradle[tags=content-filtering-avoid]"]
+====
+
+==== Do This Instead
+
+Use exclusive content filtering to ensure that the additional repositories are used only for the expected artifacts:
+
+====
+include::sample[dir="snippets/bestPractices/content-filtering-exclusive-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
+include::sample[dir="snippets/bestPractices/content-filtering-exclusive-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
+====
+
+Alternatively, using content filtering for additional repositories while having the fallback repository at the end is also a good option.
+
+NOTE: Not using content filtering on the last repository may be a security risk since you might resolve artifacts that you expect to be resolved from other repositories with content filtering from it, so make sure you trust the repository.
+
+====
+include::sample[dir="snippets/bestPractices/content-filtering-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
+include::sample[dir="snippets/bestPractices/content-filtering-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
+====
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
 [[dont_depend_on_kotlin_stdlib]]
 == Don't Explicitly Depend on the Kotlin Standard Library
 
