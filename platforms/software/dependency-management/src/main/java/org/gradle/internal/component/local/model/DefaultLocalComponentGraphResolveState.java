@@ -30,13 +30,11 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.model.InMemoryCacheFactory;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -54,12 +52,9 @@ import java.util.stream.Collectors;
  */
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentGraphResolveMetadata> implements LocalComponentGraphResolveState {
 
-    private final ComponentIdGenerator idGenerator;
     private final boolean adHoc;
     private final LocalVariantGraphResolveStateFactory variantFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final InMemoryCacheFactory cacheFactory;
-    private final ComponentIdentifier overrideComponentId;
 
     // The variants to use for variant selection during graph resolution
     private final AtomicReference<CalculatedValue<LocalComponentGraphSelectionCandidates>> graphSelectionCandidates = new AtomicReference<>();
@@ -71,20 +66,14 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         long instanceId,
         LocalComponentGraphResolveMetadata metadata,
         AttributeDesugaring attributeDesugaring,
-        ComponentIdGenerator idGenerator,
         boolean adHoc,
         LocalVariantGraphResolveStateFactory variantFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        InMemoryCacheFactory cacheFactory,
-        @Nullable ComponentIdentifier overrideComponentId
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         super(instanceId, metadata, attributeDesugaring);
-        this.idGenerator = idGenerator;
         this.adHoc = adHoc;
         this.variantFactory = variantFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        this.cacheFactory = cacheFactory;
-        this.overrideComponentId = overrideComponentId;
 
         // Mutable state
         initCalculatedValues();
@@ -109,7 +98,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         //       excludes to dependencies in a beforeResolve.
         this.graphSelectionCandidates.set(
             calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
-                computeGraphSelectionCandidates(variantFactory, overrideComponentId)
+                computeGraphSelectionCandidates(variantFactory)
             )
         );
         this.selectableVariantResults.set(
@@ -130,29 +119,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
-    public LocalComponentGraphResolveState copyWithComponentId(ComponentIdentifier overrideComponentId) {
-        LocalComponentGraphResolveMetadata originalMetadata = getMetadata();
-        LocalComponentGraphResolveMetadata copiedMetadata = new LocalComponentGraphResolveMetadata(
-            originalMetadata.getModuleVersionId(),
-            overrideComponentId,
-            originalMetadata.getStatus(),
-            originalMetadata.getAttributesSchema()
-        );
-
-        return new DefaultLocalComponentGraphResolveState(
-            idGenerator.nextComponentId(),
-            copiedMetadata,
-            getAttributeDesugaring(),
-            idGenerator,
-            adHoc,
-            variantFactory,
-            calculatedValueContainerFactory,
-            cacheFactory,
-            overrideComponentId
-        );
-    }
-
-    @Override
     public ComponentArtifactResolveMetadata getArtifactMetadata() {
         return new LocalComponentArtifactResolveMetadata(getMetadata());
     }
@@ -165,17 +131,12 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
-        LocalVariantGraphResolveStateFactory variantFactory,
-        @Nullable ComponentIdentifier overrideComponentId
+        LocalVariantGraphResolveStateFactory variantFactory
     ) {
         ImmutableList.Builder<LocalVariantGraphResolveState> variantsWithAttributes = new ImmutableList.Builder<>();
         ImmutableMap.Builder<String, LocalVariantGraphResolveState> variantsByConfigurationName = ImmutableMap.builder();
 
         variantFactory.visitConsumableVariants(variantState -> {
-            if (overrideComponentId != null) {
-                variantState = variantState.copyWithComponentId(overrideComponentId);
-            }
-
             if (!variantState.getAttributes().isEmpty()) {
                 variantsWithAttributes.add(variantState);
             }
