@@ -40,7 +40,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -48,7 +47,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.net.URI;
@@ -85,12 +83,6 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         // They *might* have input files and other dependencies as well though
         // Inputs: The credentials they need may be expressed in a file
         // Dependencies: Can't think of a case here
-    }
-
-    @Nonnull
-    private Provider<Boolean> degradationCondition() {
-        return ((AuthenticationSupportedInternal) getRepository()).isUsingCredentialsProvider()
-            .map(isUsingProvider -> !isUsingProvider);
     }
 
     /**
@@ -158,7 +150,6 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     public void setRepository(IvyArtifactRepository repository) {
         this.repository.set((DefaultIvyArtifactRepository) repository);
         this.credentials.set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
-        getProject().getGradle().requireConfigurationCacheDegradation("Explicit credentials", degradationCondition());
     }
 
     @TaskAction

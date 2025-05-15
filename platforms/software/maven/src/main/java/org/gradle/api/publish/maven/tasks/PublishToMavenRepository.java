@@ -36,7 +36,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
@@ -44,7 +43,6 @@ import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.net.URI;
@@ -62,13 +60,6 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
     private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
-
-    @Nonnull
-    private Provider<Boolean> degradationCondition() {
-        return ((AuthenticationSupportedInternal) getRepository())
-            .isUsingCredentialsProvider()
-            .map(value -> !value);
-    }
 
     /**
      * The repository to publish to.
@@ -98,7 +89,6 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     public void setRepository(MavenArtifactRepository repository) {
         this.repository.set((DefaultMavenArtifactRepository) repository);
         this.credentials.set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
-        getProject().getGradle().requireConfigurationCacheDegradation("Explicit credentials", degradationCondition());
     }
 
     @TaskAction
