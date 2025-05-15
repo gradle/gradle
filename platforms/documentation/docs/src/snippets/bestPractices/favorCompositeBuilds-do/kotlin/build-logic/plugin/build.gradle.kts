@@ -1,8 +1,8 @@
 // tag::do-this[]
-// This file is located in /build-logic
+// This file is located in /build-logic/plugin
 
 plugins {
-    id "java-gradle-plugin"
+    `java-gradle-plugin`
 }
 
 gradlePlugin {
