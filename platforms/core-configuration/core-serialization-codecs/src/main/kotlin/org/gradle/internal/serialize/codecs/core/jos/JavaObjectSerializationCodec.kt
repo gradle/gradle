@@ -175,7 +175,7 @@ class JavaObjectSerializationCodec(
 
                     replacement::class.java === value::class.java -> {
                         // Avoid a StackOverflowException when the replacement and value are of the same type.
-                        // TODO:configuration-cache This is likely incorrect when the class also supports the `writeObject` protocol.
+                        // TODO:configuration-cache Skipping Java serialization for the replacement is likely incorrect when the class also supports the `writeObject` protocol
                         writeEnum(Format.ReadResolveBean)
                         encodeBean(value)
                     }
