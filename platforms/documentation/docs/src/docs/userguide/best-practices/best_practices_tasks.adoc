@@ -130,3 +130,58 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
+
+[[avoid_provider_get_outside_task_action]]
+== Do not call `get()`` on a Provider outside of a Task action
+:keywords: tasks,inputs-and-outputs
+
+When configuring tasks and extensions do not call link:{javadocPath}/org/gradle/api/provider/Provider.html#get()[`get()`] on a provider, use link:{javadocPath}/org/gradle/api/provider/Provider.html#map(org.gradle.api.Transformer)[`map()`], or link:{javadocPath}/https://docs.gradle.org/nightly/javadoc/org/gradle/api/provider/Provider.html#flatMap(org.gradle.api.Transformer)[`flatMap()`] instead.any
+
+=== Explanation
+
+A provider should be evaluated as late as possible (if evaluated). Calling `get()` leads to evaluating it, which can have multiple side effects on your project:
+
+- The value of the provider becomes an input to configuration, causing potential configuration cache misses.
+- It may be too early, so you don’t actually use the final and correct value of the property. This may lead to painful and hard to debug ordering issues
+- It breaks build dependencies, making automatic task dependency wiring provided by Gradle impossible.
+
+=== Example
+
+Here is a task that writes an input `String` to a file:
+
+====
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction/kotlin",files="build.gradle.kts[tags=provider-get-task-setup]"]
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction/groovy",files="build.gradle[tags=provider-get-task-setup]"]
+====
+
+==== Don't Do This
+
+You could call `get()` at configuration time to set up this task:
+
+====
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Reading the value of currentEnvironment at configuration time*: This value might change by the time the task start executing.
+<2> *Reading the value of buildDirectory at configuration time*: This value might change by the time the task start executing.
+
+==== Do This Instead
+
+Instead, you should explicitly wire task inputs and outputs like this:
+
+====
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Using `map()` to transform currentEnvironment*: `map` transform runs only when the value is read.
+<2> *Using `file()` to create a new Provider<RegularFile>*: the value of the buildDirectory is only checked when the value of the provider is read.
+
+=== References
+
+- <<incremental_build.adoc#sec:task_input_output_side_effects,Task Inputs and Outputs>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
