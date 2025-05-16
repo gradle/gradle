@@ -249,7 +249,7 @@ When projects grow in size and complexity, it's common to see the same logic rep
 Duplicated build logic is hard to maintain and easy to get wrong.
 Gradle provides a built-in way to centralize and reuse this logic: a special directory called `buildSrc`.
 
-`buildSrc` is a convention-based embedded build located in the root of your Gradle project.
+`buildSrc` is a separate build located in the root of your Gradle project.
 Any code you put in this directory is automatically compiled and added to the classpath of your main build.
 
 Let's take a look at our multi-project build:
