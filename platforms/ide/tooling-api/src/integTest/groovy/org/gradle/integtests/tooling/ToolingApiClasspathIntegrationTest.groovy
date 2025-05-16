@@ -17,25 +17,48 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
-import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 
 class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     def "tooling api classpath contains only tooling-api jar and slf4j"() {
-        when:
-        ToolingApiDistribution resolve = ToolingApiDistributionResolver.use {
-            it.withDefaultRepository().withExternalToolingApiDistribution()
-                .resolve(distribution.getVersion().baseVersion.version)
-        }
+        IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
 
-        then:
-        resolve.classpath.size() == 2
-        resolve.classpath.any {it.name ==~ /slf4j-api-.*\.jar/}
-        // If this suddenly fails without an obvious reason, you likely have added some code
-        // that references types that were previously eliminated from gradle-tooling-api.jar.
+            // For the current tooling API jar
+            repositories {
+                maven {
+                    url = uri(file("${buildContext.localRepository}"))
+                }
+            }
 
-        def size = resolve.classpath.find { it.name ==~ /gradle-tooling-api.*\.jar/ }.size()
-        size < 3_450_000
+            // For SFL4J
+            repositories {
+                ${RepoScriptBlockUtil.gradleRepositoryDefinition()}
+            }
+
+            dependencies {
+                implementation("org.gradle:gradle-tooling-api:${distribution.getVersion().baseVersion.version}")
+            }
+
+            tasks.register("resolve") {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    assert files.find { it.name ==~ /slf4j-api-.*\\.jar/ } != null
+
+                    // If this suddenly fails without an obvious reason, you likely have added some code
+                    // that references types that were previously eliminated from gradle-tooling-api.jar.
+                    def jarSize = files.find { it.name ==~ /gradle-tooling-api.*\\.jar/ }.size()
+                    assert jarSize < 3_450_000
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
     }
 }
