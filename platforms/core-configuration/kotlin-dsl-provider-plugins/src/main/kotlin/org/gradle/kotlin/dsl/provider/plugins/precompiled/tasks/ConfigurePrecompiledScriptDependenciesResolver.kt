@@ -23,7 +23,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -56,7 +55,6 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
     fun configureImports() {
         val resolverEnvironment = resolverEnvironmentStringFor(
             implicitImports,
-            classPathFingerprinter,
             classPathFiles,
             metadataDir
         )
@@ -68,13 +66,12 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
 internal
 fun resolverEnvironmentStringFor(
     implicitImports: ImplicitImports,
-    classPathFingerprinter: ClasspathFingerprinter,
     classPathFiles: FileCollection,
     accessorsMetadataDir: Provider<Directory>
 ): Provider<String> = accessorsMetadataDir.map { metadataDir ->
     resolverEnvironmentStringFor(
         listOf(
-            kotlinDslImplicitImports to implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFingerprinter, classPathFiles)
+            kotlinDslImplicitImports to implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFiles)
         ) + precompiledScriptPluginImportsFrom(metadataDir.asFile)
     )
 }
