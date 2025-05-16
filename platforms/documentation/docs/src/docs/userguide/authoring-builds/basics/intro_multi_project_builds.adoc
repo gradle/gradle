@@ -256,7 +256,7 @@ The `build` task is typically used to compile, test, and check a single project.
 In multi-project builds, you may often want to do all of these tasks across various projects.
 The `buildNeeded` and `buildDependents` tasks can help with this.
 
-In <<declaring_dependencies_between_subprojects#javadependencies_2,this example>>, the `:services:person-service` project depends on both the `:api` and `:shared` projects.
+In <<multi_project_builds.adoc#javadependencies_2,this example>>, the `:services:person-service` project depends on both the `:api` and `:shared` projects.
 The `:api` project also depends on the `:shared` project.
 
 Assuming you are working on a single project, the `:api` project, you have been making changes but have not built the entire project since performing a `clean`.
