@@ -37,12 +37,12 @@ import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -51,20 +51,21 @@ import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
-    private final Class<? extends Compiler<T>> compilerClass;
-    private final Object[] compilerConstructorArguments;
+
+    private final HashedClasspath hashedScalaClasspath;
     private final Iterable<File> zincClasspath;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compilerClass, Object[] compilerConstructorArguments, CompilerWorkerExecutor compilerWorkerExecutor, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
+    public DaemonScalaCompiler(File daemonWorkingDir, HashedClasspath hashedScalaClasspath, CompilerWorkerExecutor compilerWorkerExecutor, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
         super(compilerWorkerExecutor);
-        this.compilerClass = compilerClass;
-        this.compilerConstructorArguments = compilerConstructorArguments;
+        this.hashedScalaClasspath = hashedScalaClasspath;
         this.zincClasspath = zincClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
@@ -74,7 +75,12 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
 
     @Override
     protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(T spec) {
-        return new ScalaCompilerParameters<T>(compilerClass.getName(), compilerConstructorArguments, spec);
+        return new ScalaCompilerParameters<T>(ZincScalaCompilerFacade.class.getName(), new Object[]{hashedScalaClasspath}, spec);
+    }
+
+    @Override
+    protected Set<Class<?>> getAdditionalCompilerServices() {
+        return Collections.singleton(GlobalScopedCacheBuilderFactory.class);
     }
 
     @Override

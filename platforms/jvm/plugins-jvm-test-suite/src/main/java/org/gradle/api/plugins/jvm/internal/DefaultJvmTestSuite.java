@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -328,7 +329,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             IsolationScheme<JvmTestToolchain<?>, JvmTestToolchainParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JvmTestToolchain.class), JvmTestToolchainParameters.class, JvmTestToolchainParameters.None.class);
             Class<T> parametersType = isolationScheme.parameterTypeFor(type);
             T parameters = parametersType == null ? null : objectFactory.newInstance(parametersType);
-            ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.emptyList(), p -> true);
+            ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.singleton(DependencyFactory.class));
             return new FrameworkCachingJvmTestToolchain<>(instantiatorFactory.decorate(lookup).newInstance(type));
         }
     }
