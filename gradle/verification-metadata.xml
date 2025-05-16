@@ -221,6 +221,7 @@
             <trusting group="org.gmetrics"/>
          </trusted-key>
          <trusted-key id="8569C95CADC508B09FE90F3002216ED811210DAA" group="io.github.detekt.sarif4k"/>
+         <trusted-key id="8608E5C5E09DCCE835B50BCD1158D77CDB3A70BB" group="de.rototor.pdfbox"/>
          <trusted-key id="8756C4F765C9AC3CB6B85D62379CE192D401AB61">
             <trusting group="com.diffplug.durian"/>
             <trusting group="info.picocli"/>
@@ -288,6 +289,7 @@
          </trusted-key>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
          <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141" group="net.sf.proguard"/>
+         <trusted-key id="CB3190CA7842439E57F3712E44CE7BF2825EA2CD" group="com.ibm.icu"/>
          <trusted-key id="CD5464315F0B98C77E6E8ECD9DAADC1C9FCC82D0">
             <trusting group="commons-cli"/>
             <trusting group="commons-io"/>
@@ -688,11 +690,6 @@
             <pgp value="0CFA413799E2464C7D7E26220A4B343F2A55FDAE"/>
          </artifact>
       </component>
-      <component group="com.ibm.icu" name="icu4j" version="59.1">
-         <artifact name="icu4j-59.1.jar">
-            <pgp value="CB3190CA7842439E57F3712E44CE7BF2825EA2CD"/>
-         </artifact>
-      </component>
       <component group="com.intellij" name="annotations" version="12.0">
          <artifact name="annotations-12.0.jar">
             <pgp value="FAABC3738B1F58DA2D776FA2EB380DC13C39F675"/>
@@ -796,11 +793,6 @@
       <component group="commons-logging" name="commons-logging" version="1.2">
          <artifact name="commons-logging-1.2.jar">
             <pgp value="0CC641C3A62453AB390066C4A41F13C999945293"/>
-         </artifact>
-      </component>
-      <component group="de.rototor.pdfbox" name="graphics2d" version="0.12">
-         <artifact name="graphics2d-0.12.jar">
-            <pgp value="8608E5C5E09DCCE835B50BCD1158D77CDB3A70BB"/>
          </artifact>
       </component>
       <component group="de.undercouch" name="gradle-download-task" version="4.1.1">
