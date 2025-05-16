@@ -1648,7 +1648,7 @@ Required by:
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/7594")
+    @Issue("https://github.com/gradle/gradle/issues/33490")
     def "can substitute module with project and use withoutArtifactSelectors"() {
         mavenRepo.module("com.external", "libB", "1.0")
             .dependsOn("com.external", "libC", "1.0", "type")
