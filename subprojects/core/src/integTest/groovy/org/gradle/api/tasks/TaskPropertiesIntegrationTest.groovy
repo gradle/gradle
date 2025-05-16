@@ -18,11 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.FailsWith
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can define task with abstract read-only Property<T> property"() {
@@ -76,7 +72,6 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33215")
     def "reports failure to query non-abstract Property<T> with Groovy property"() {
         given:
         buildFile << """
@@ -103,7 +98,6 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
-    @FailsWith(reason = "https://github.com/gradle/gradle/issues/33215", value = AssertionError)
     @Issue("https://github.com/gradle/gradle/issues/33215")
     def "non-abstract Property<T> with Groovy property carries task dependencies"() {
         given:
@@ -217,7 +211,6 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("inside: output is produced by thing")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "reports failure to query non-abstract Property<T> with non-final getter"() {
         given:
         file("buildSrc/src/main/java/MyTask.java") << """
@@ -254,7 +247,6 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
-    @FailsWith(reason = "non-final getters do not trigger attachOwner/attachProducer logic", value = AssertionError)
     def "non-abstract Property<T> with non-final getter carries task dependencies"() {
         given:
         buildFile << """
