@@ -387,22 +387,27 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return NESTED_ANNOTATION_TYPES.stream().anyMatch(property::hasAnnotation);
     }
 
-    private static boolean isEagerAttachProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and getter is final, so attach owner eagerly in constructor
-        // This should apply to all 'managed' types however for backwards compatibility is applied only to property types
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getMainGetter().shouldOverride() && hasPropertyType(property);
-    }
-
     private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
         // Provider API types and convention-supporting types in general should have conventions set through convention() instead of
         // using convention mapping.
         return Provider.class.isAssignableFrom(property.getType()) || SupportsConvention.class.isAssignableFrom(property.getType());
     }
 
-    private static boolean isLazyAttachProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and getter is not final, so attach owner lazily when queried
+    /**
+     * Determine if, should the property need to be attached, if it should be done lazily in the getter, or eagerly in the constructor.
+     *
+     * @param property the property to check
+     * @return {@code true} if the property should be lazily attached, {@code false} if it should be eagerly attached
+     */
+    private static boolean isLazyAttachPropertyIfNeeded(PropertyMetadata property) {
+        // Currently, all abstract properties are lazily attached
+        // Non-abstract ones may be controlled by the user and should be eagerly attached
+        return property.getMainGetter().isAbstract();
+    }
+
+    private static boolean isAttachProperty(PropertyMetadata property) {
         // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and @Nested value current implement OwnerAware
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty()
+        return property.isReadableWithoutSetterOfPropertyType()
             && (Provider.class.isAssignableFrom(property.getType()) || isConfigurableFileCollectionType(property.getType()) || hasNestedAnnotation(property));
     }
 
@@ -428,14 +433,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isConfigurableFileCollectionType(Class<?> type) {
         return ConfigurableFileCollection.class.isAssignableFrom(type);
-    }
-
-    private static boolean isAttachableType(MethodMetadata method) {
-        return Provider.class.isAssignableFrom(method.getReturnType()) || isConfigurableFileCollectionType(method.getReturnType()) || hasNestedAnnotation(method);
-    }
-
-    private static boolean hasNestedAnnotation(MethodMetadata method) {
-        return NESTED_ANNOTATION_TYPES.stream().anyMatch(annotation -> method.method.getAnnotation(annotation) != null);
     }
 
     private boolean isRoleType(PropertyMetadata property) {
@@ -1017,7 +1014,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetadata property : conventionProperties) {
-                boolean applyRole = isLazyAttachProperty(property) && isRoleType(property);
+                boolean applyRole = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property) && isRoleType(property);
                 if (applyRole) {
                     visitor.instantiatesNestedObjects();
                 }
@@ -1039,11 +1036,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
             for (PropertyMetadata property : conventionProperties) {
                 visitor.applyConventionMappingToProperty(property);
-                boolean attachProperty = isLazyAttachProperty(property);
+                boolean attachProperty = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property);
                 boolean applyRole = attachProperty && isRoleType(property);
                 for (MethodMetadata getter : property.getOverridableGetters()) {
-                    boolean attachOwner = attachProperty && isAttachableType(getter);
-                    visitor.applyConventionMappingToGetter(property, getter, attachOwner, applyRole);
+                    visitor.applyConventionMappingToGetter(property, getter, attachProperty, applyRole);
                 }
                 for (Method setter : property.getOverridableSetters()) {
                     visitor.applyConventionMappingToSetter(property, setter);
@@ -1067,9 +1063,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (isEagerAttachProperty(property)) {
-                // Property is read-only and main getter is final, so attach eagerly in constructor
-                // If the getter is not final, then attach lazily in the getter
+            if (isAttachProperty(property) && !isLazyAttachPropertyIfNeeded(property)) {
                 eagerAttachProperties.add(property);
             }
 
