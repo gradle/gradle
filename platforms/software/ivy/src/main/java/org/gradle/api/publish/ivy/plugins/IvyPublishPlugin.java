@@ -146,9 +146,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
         });
-        tasks.withType(PublishToIvyRepository.class).configureEach(t -> {
-            getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", explicitCredentialsDegradationExpressionFor(t));
-        });
+        tasks.withType(PublishToIvyRepository.class).configureEach(t -> getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", explicitCredentialsDegradationExpressionFor(t)));
 
         tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, task -> task.dependsOn(publishTaskName));
         tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
@@ -159,12 +157,6 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
             .map(value -> !value);
     }
-
-    private Provider<Boolean> missingRepositoryDegradationExpression(PublishToIvyRepository task) {
-        return providerFactory.provider(() -> (DefaultIvyArtifactRepository) task.getRepository())
-            .map(it -> !it.isRepositoryUrlKnown());
-    }
-
 
     private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir) {
         final String descriptorTaskName = "generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
