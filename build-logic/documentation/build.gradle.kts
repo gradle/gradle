@@ -13,7 +13,7 @@ dependencies {
 
     implementation("com.github.javaparser:javaparser-core")
     implementation("com.google.guava:guava")
-    implementation("com.uwyn:jhighlight") {
+    implementation("org.codelibs:jhighlight") {
         exclude(module = "servlet-api")
     }
     implementation("com.vladsch.flexmark:flexmark-all")

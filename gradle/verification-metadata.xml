@@ -65,6 +65,7 @@
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
+         <ignored-key id="3AA4F90B3448A1D1" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="FE66BCA17E67AE6F" reason="Key couldn't be downloaded from any key server"/>
       <trusted-keys>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
@@ -757,11 +758,6 @@
             <pgp value="E88BF2559874BA889D34357C0555B3BA1CA4ECF9"/>
          </artifact>
       </component>
-      <component group="com.uwyn" name="jhighlight" version="1.0">
-         <artifact name="jhighlight-1.0.jar">
-            <sha256 value="ede52343fc4a8f080a1801bb735be1b895a5055d61cef55e2b5c6ac7dd4e5c8c" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="com.vdurmont" name="semver4j" version="2.1.0">
          <artifact name="semver4j-2.1.0.jar">
             <pgp value="37C5181BF2066135E771E6DCB263D126C8A7E813"/>
@@ -1266,6 +1262,11 @@
       <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.1">
          <artifact name="stax2-api-4.2.1.jar">
             <pgp value="6214760097DC5CFAD0175AC2C9FBAA83A8753994"/>
+         </artifact>
+      </component>
+      <component group="org.codelibs" name="jhighlight" version="1.1.0">
+         <artifact name="jhighlight-1.1.0.jar">
+            <sha256 value="2f7d5c92db46e76a7564dd98d4d00b822d808e21b01a2c9b60e8249c41351ed1" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.ec4j.core" name="ec4j-core" version="0.2.0">

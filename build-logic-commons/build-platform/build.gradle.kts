@@ -46,7 +46,7 @@ dependencies {
         api("com.google.code.gson:gson:2.13.1") // keep in sync with settings.gradle.kts
         api("org.mockito.kotlin:mockito-kotlin:5.4.0")
         api("com.thoughtworks.qdox:qdox:2.2.0")
-        api("com.uwyn:jhighlight:1.0")
+        api("org.codelibs:jhighlight:1.1.0")
         api("com.vladsch.flexmark:flexmark-all:0.34.60") {
             because("Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)")
         }
