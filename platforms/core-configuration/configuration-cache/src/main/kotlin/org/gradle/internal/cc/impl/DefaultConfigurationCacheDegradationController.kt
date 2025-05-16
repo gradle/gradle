@@ -20,6 +20,8 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.provider.Provider
+import org.gradle.execution.plan.FinalizedExecutionPlan
+import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.invocation.ConfigurationCacheDegradationController
@@ -32,6 +34,7 @@ class DefaultConfigurationCacheDegradationController(
 
     private val buildLogicDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
     private val tasksDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
+    val currentDegradationReasons = mutableMapOf<PropertyTrace, List<String>>()
 
     override fun requireConfigurationCacheDegradation(reason: String, spec: Provider<Boolean>) {
         val trace = userCodeApplicationContext.current()?.let { PropertyTrace.BuildLogic(it.source) }
@@ -44,10 +47,22 @@ class DefaultConfigurationCacheDegradationController(
         tasksDegradationRequests.add(DegradationRequest(trace, reason, spec))
     }
 
-    fun getDegradationReasonsForTask(trace: PropertyTrace): List<String> =
-        tasksDegradationRequests
-            .filter { it.trace == trace && it.spec.getOrElse(false) }
-            .map { it.reason }
+    override fun shouldDegradeGracefully(executionPlan: FinalizedExecutionPlan): Boolean {
+        executionPlan.contents.scheduledNodes.visitNodes { scheduled, _ ->
+            for (node in scheduled) {
+                if (node is TaskNode) {
+                    val task = node.task
+                    val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+                    currentDegradationReasons.putAll(tasksDegradationRequests
+                        .filter { it.trace == trace && it.spec.getOrElse(false) }
+                        .groupBy({ it.trace }, { it.reason })
+                    )
+                }
+            }
+        }
+
+        return currentDegradationReasons.isNotEmpty()
+    }
 
     fun getBuildLogicDegradationReasons(): Map<PropertyTrace, List<String>> =
         buildLogicDegradationRequests
