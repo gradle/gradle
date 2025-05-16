@@ -6,7 +6,11 @@ plugins {
 description = "Base tools to work with files"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

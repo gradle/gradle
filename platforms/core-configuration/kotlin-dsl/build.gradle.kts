@@ -12,6 +12,12 @@ plugins {
 
 description = "Kotlin DSL Provider"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.buildProcessServices)
     api(projects.baseServices)

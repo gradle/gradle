@@ -17,3 +17,7 @@
 plugins {
     id("gradlebuild.kotlin-library")
 }
+
+jvmCompile {
+    targetJvmVersion = 8
+}

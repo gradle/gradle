@@ -5,7 +5,14 @@ plugins {
 description = "Utilities for parsing command line arguments"
 
 gradleModule {
-    usedInWrapper = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
+jvmCompile {
     usesIncompatibleDependencies = true // For test dependencies
 }
 

@@ -21,7 +21,11 @@ plugins {
 description = "Operations on files, such as archiving, copying, deleting"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 errorprone {

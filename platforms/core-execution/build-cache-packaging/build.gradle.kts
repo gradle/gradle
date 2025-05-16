@@ -5,6 +5,14 @@ plugins {
 
 description = "Package build cache results"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
 
     api(projects.buildCacheBase)

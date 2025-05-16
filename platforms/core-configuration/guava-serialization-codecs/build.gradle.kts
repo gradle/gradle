@@ -20,6 +20,12 @@ plugins {
 
 description = "Serialization codecs for guava types"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.graphSerialization)
     api(libs.kotlinStdlib)

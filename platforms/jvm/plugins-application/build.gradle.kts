@@ -20,6 +20,12 @@ plugins {
 
 description = "Contains the Application plugin, and its supporting classes.  This plugin is used for creating runnable Java application projects."
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.core)
     api(projects.coreApi)

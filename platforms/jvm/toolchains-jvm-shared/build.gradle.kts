@@ -20,6 +20,14 @@ plugins {
 
 description = "Declarations to define JVM toolchains shared between launcher and daemon"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(libs.inject)
     api(libs.jspecify)

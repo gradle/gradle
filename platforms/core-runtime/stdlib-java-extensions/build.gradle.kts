@@ -8,7 +8,11 @@ plugins {
 description = "Extensions to the Java language that are used across the Gradle codebase"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

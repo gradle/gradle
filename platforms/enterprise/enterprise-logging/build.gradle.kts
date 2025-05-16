@@ -5,7 +5,11 @@ plugins {
 description = "Logging API consumed by the Develocity plugin"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

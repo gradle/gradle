@@ -5,7 +5,11 @@ plugins {
 description = "Internal API for composing service registries"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

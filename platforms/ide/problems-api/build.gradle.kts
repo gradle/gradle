@@ -28,7 +28,11 @@ at https://github.com/melix/jdoctor/
 """
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

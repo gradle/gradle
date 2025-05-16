@@ -20,6 +20,13 @@ plugins {
 
 description = "Adds support for assembling JVM web application WAR files"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.languageJvm)
     api(projects.baseServices)

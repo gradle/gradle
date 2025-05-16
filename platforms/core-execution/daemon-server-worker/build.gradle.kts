@@ -22,7 +22,13 @@ description = "Worker RequestHandler that hosts long-running daemon server which
     "These classes are loaded in a separate worker daemon process and should have a minimal dependency set."
 
 gradleModule {
-    usedInWorkers = true
+    entryPoint = true
+
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

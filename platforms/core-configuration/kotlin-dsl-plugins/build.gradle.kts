@@ -10,6 +10,14 @@ version = "6.1.3"
 
 base.archivesName = "plugins"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     compileOnly(projects.baseServices)
     compileOnly(projects.logging)

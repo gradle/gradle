@@ -4,6 +4,14 @@ plugins {
 
 description = "Services and types used to setup a build process from a Gradle distribution."
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.classloaders)
     api(projects.stdlibJavaExtensions)

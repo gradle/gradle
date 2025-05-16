@@ -5,6 +5,14 @@ plugins {
 description = "A Java compiler plugin used by Gradle's incremental compiler"
 
 gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
+jvmCompile {
     usesJdkInternals = true
 }
 

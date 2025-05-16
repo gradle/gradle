@@ -4,6 +4,14 @@ plugins {
 
 description = "Plugin for cryptographic signing of publications, artifacts or files."
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.core)

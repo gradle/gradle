@@ -6,6 +6,14 @@ plugins {
 
 description = "Implementation of build cache controller and factories"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.buildCacheBase)
     api(projects.buildCachePackaging)

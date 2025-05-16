@@ -4,6 +4,14 @@ plugins {
 
 description = "A set of general-purpose resource abstractions"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "UndefinedEquals", // 1 occurrences

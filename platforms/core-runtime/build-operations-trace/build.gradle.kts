@@ -21,6 +21,14 @@ plugins {
 
 description = "Produces traces from build operations"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.buildOperations)
     api(projects.concurrent)

@@ -26,7 +26,14 @@ description = """
     """
 
 gradleModule {
-    usedForStartup = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
+jvmCompile {
     usesIncompatibleDependencies = true // For testFixtures
 }
 

@@ -41,7 +41,7 @@ configurations {
         isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named("start-scripts"))
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named("start-scripts"))
         outgoing.artifact(startScripts)
     }
 }

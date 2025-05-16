@@ -5,7 +5,11 @@ plugins {
 description = "Internal API to declare services provided by Gradle modules"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

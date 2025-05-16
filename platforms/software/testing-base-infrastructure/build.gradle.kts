@@ -5,7 +5,11 @@ plugins {
 description = """Generalized test infrastructure to support executing tests in test workers."""
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

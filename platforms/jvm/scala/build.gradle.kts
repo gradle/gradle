@@ -4,6 +4,16 @@ plugins {
 
 description = "Plugins for building Scala code with Gradle."
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildProcessServices)

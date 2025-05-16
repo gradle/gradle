@@ -6,7 +6,19 @@ description = "Worker action that implements RequestHandler worker protocol. " +
     "These classes are loaded in a separate worker daemon process and should have a minimal dependency set."
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

@@ -21,7 +21,11 @@ plugins {
 description = "Utilities for working with temporary files & directories"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
 }
 
 dependencies {

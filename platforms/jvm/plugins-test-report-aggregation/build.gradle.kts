@@ -21,6 +21,14 @@ plugins {
 
 description = "Contains the Test Report Aggregation plugin"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.coreApi)

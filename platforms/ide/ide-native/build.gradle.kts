@@ -6,6 +6,14 @@ plugins {
 
 description = "Plugins for integration with native projects in XCode and Visual Studio IDEs"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 sourceSets {
     main {
         // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
