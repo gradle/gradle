@@ -241,6 +241,16 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(ProblemFactory::class.java, DefaultProblemFactory::class.java)
 
         registration.add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
+        // Set up CC problem reporting pipeline and promo, based on the build configuration
+        when {
+            // Collect and report problems. Don't suggest enabling CC if it is on, even if implicitly (e.g. enabled by isolated projects).
+            // Most likely, the user who tries IP is already aware of CC and nudging will be just noise.
+            modelParameters.isConfigurationCache -> registration.add(ConfigurationCacheProblems::class.java)
+            // Allow nudging to enable CC if it is off and there is no explicit decision.
+            !requirements.startParameter.configurationCache.isExplicit -> registration.add(ConfigurationCachePromoHandler::class.java)
+            // Do not nudge if CC is explicitly disabled.
+            else -> registration.add(IgnoringProblemsListener::class.java, IgnoringProblemsListener)
+        }
 
         if (modelParameters.isConfigurationCache) {
             registration.add(BuildTreeLifecycleControllerFactory::class.java, ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
@@ -248,7 +258,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
-            registration.add(ConfigurationCacheProblems::class.java)
             registration.add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
@@ -268,19 +277,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         } else {
             registration.addProvider(VintageModelProvider())
         }
-
-        if (allowNudgingToEnableConfigurationCache(requirements, modelParameters)) {
-            // Don't suggest enabling CC if it is on, even if implicitly (e.g. enabled by isolated projects).
-            // Most likely, the user who tries IP is already aware of CC and nudging will be just noise.
-            registration.add(ConfigurationCachePromoHandler::class.java)
-        } else if (!modelParameters.isConfigurationCache) {
-            registration.add(IgnoringProblemsListener::class.java, IgnoringProblemsListener)
-        }
-    }
-
-    private
-    fun allowNudgingToEnableConfigurationCache(requirements: BuildActionModelRequirements, modelParameters: BuildModelParameters): Boolean {
-        return !requirements.startParameter.configurationCache.isExplicit && !modelParameters.isConfigurationCache
     }
 
     private
