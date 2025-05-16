@@ -29,7 +29,7 @@ abstract class PublishRelease(
         promotedBranch = promotedBranch,
         prepTask = prepTask,
         promoteTask = promoteTask,
-        triggerName = "ReadyforRelease",
+        triggerName = "QuickFeedback",
         gitUserEmail = "%gitUserEmail%",
         gitUserName = "%gitUserName%",
         extraParameters = "-PconfirmationCode=%confirmationCode%",
