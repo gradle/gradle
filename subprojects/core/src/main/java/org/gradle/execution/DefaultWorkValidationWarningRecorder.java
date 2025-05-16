@@ -46,12 +46,11 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
             .collect(joining());
         LOGGER.warn("Execution optimizations have been disabled for {} to ensure correctness due to the following reasons:{}", work.getDisplayName(), uniqueWarnings);
 
-        warnings.forEach(warning -> {
-            withDocumentation(warning, deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning, false, false)))
-                    .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBecomeAnErrorInNextMajorGradleVersion())
-                    .nagUser();
-            }
+        warnings.forEach(warning -> withDocumentation(warning, deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning, false, false)))
+            .withContext("Execution optimizations are disabled to ensure correctness.")
+            // Bump this to a next major version when we bump Gradle major version
+            .willBecomeAnErrorInGradle10())
+            .nagUser()
         );
     }
 

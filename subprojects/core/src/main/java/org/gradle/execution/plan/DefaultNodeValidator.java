@@ -75,7 +75,8 @@ public class DefaultNodeValidator implements NodeValidator {
                 String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
                 withDocumentation(problem, DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBecomeAnErrorInNextMajorGradleVersion())
+                    // Bump this to a next major version when we bump Gradle major version
+                    .willBecomeAnErrorInGradle10())
                     .nagUser();
             });
     }
