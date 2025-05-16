@@ -87,6 +87,7 @@
          <trusted-key id="0CB5871FB7BF3B351614BBF6CA85FFE638D4407A" group="it.unimi.dsi" name="fastutil"/>
          <trusted-key id="0E18EAE07B7774EAC5DB3F2113BB90CE8EAFBE37" group="com.microsoft.playwright"/>
          <trusted-key id="120D6F34E627ED3A772EBBFE55C7E5E701832382" group="org.yaml" name="snakeyaml"/>
+         <trusted-key id="147B691A19097624902F4EA9689CBE64F4BC997F" group="^org[.]mockito($|([.].*))" regex="true"/>
          <trusted-key id="160A7A9CF46221A56B06AD64461A804F2609FD89" group="^com[.]github[.]shyiko($|([.].*))" regex="true"/>
          <trusted-key id="1616273079FE63E31C938F10F0DF21D1D0A3C384" group="com.google.inject" name="guice" version="4.2.3"/>
          <trusted-key id="19BEAB2D799C020F17C69126B16698A4ADF4D638" group="org.checkerframework" name="checker-qual"/>
@@ -281,7 +282,6 @@
          </trusted-key>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
          <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141" group="net.sf.proguard"/>
-         <trusted-key id="CC4483CD6A3EB2939B948667A1B4460D8BA7B9AF" group="org.mockito" name="mockito-core"/>
          <trusted-key id="CD5464315F0B98C77E6E8ECD9DAADC1C9FCC82D0">
             <trusting group="commons-cli"/>
             <trusting group="commons-io"/>
@@ -717,16 +717,6 @@
       <component group="com.mysql" name="mysql-connector-j" version="9.2.0">
          <artifact name="mysql-connector-j-9.2.0.jar">
             <pgp value="C8D37E9675158FF5B29B6D6452FC3551DA8DC57E"/>
-         </artifact>
-      </component>
-      <component group="com.nhaarman" name="mockito-kotlin" version="1.6.0">
-         <artifact name="mockito-kotlin-1.6.0.jar">
-            <pgp value="5289A6F1836624CBD708B9ACAD21629F6AE723D2"/>
-         </artifact>
-      </component>
-      <component group="com.nhaarman.mockitokotlin2" name="mockito-kotlin" version="2.2.0">
-         <artifact name="mockito-kotlin-2.2.0.jar">
-            <pgp value="5DCEB296690BD5101756F2441F8CF885D537A431"/>
          </artifact>
       </component>
       <component group="com.squareup" name="javapoet" version="1.13.0">
