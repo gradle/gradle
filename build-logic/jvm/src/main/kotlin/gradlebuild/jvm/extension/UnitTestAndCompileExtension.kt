@@ -40,14 +40,6 @@ abstract class UnitTestAndCompileExtension {
     abstract val usesFutureStdlib: Property<Boolean>
 
     /**
-     * Set this flag to true if the project compiles against dependencies that target a
-     * higher JVM version than the target JVM bytecode version of the project.
-     *
-     * This workaround should be used sparingly.
-     */
-    abstract val usesIncompatibleDependencies: Property<Boolean>
-
-    /**
      * Declare that this Gradle module runs as part of an entrypoint to user-executed
      * processes, and therefore should compile to a lower version of Java --
      * in order to ensure comprehensible error messages when executing Gradle

@@ -6,13 +6,6 @@
 version: "v1"
 jdks:
   - params:
-      - "linux.java7.oracle.64bit"
-    os: "linux"
-    arch: "amd64"
-    vendor: "oracle"
-    version: "7u80"
-    sha256: "bad9a731639655118740bee119139c1ed019737ec802a630dd7ad7aab4309623"
-  - params:
       - "linux.java8.openjdk.64bit"
       - "linux.java8.oracle.64bit"
     os: "linux"
