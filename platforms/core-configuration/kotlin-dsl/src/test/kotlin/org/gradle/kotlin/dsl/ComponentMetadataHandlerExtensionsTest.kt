@@ -16,11 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.Action
 import org.gradle.api.ActionConfiguration
 import org.gradle.api.artifacts.ComponentMetadataContext
@@ -28,6 +23,11 @@ import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
 
 
 class ComponentMetadataHandlerExtensionsTest {
