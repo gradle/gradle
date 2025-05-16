@@ -4770,7 +4770,6 @@ Class <org.gradle.util.internal.GUtil> is not annotated (directly or via its pac
 Class <org.gradle.util.internal.GroovyDependencyUtil> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GroovyDependencyUtil.java:0)
 Class <org.gradle.util.internal.IncubationLogger> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IncubationLogger.java:0)
 Class <org.gradle.util.internal.JarUtil> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JarUtil.java:0)
-Class <org.gradle.util.internal.LimitedDescription> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (LimitedDescription.java:0)
 Class <org.gradle.util.internal.MavenUtil> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenUtil.java:0)
 Class <org.gradle.util.internal.NameMatcher> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (NameMatcher.java:0)
 Class <org.gradle.util.internal.NameValidator> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (NameValidator.java:0)
