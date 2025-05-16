@@ -65,6 +65,7 @@
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
+         <ignored-key id="FE66BCA17E67AE6F" reason="Key couldn't be downloaded from any key server"/>
       <trusted-keys>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
          <trusted-key id="0181A4828FA27B6BE6F1F5A68611CD28F472E006" group="org.jline"/>
@@ -256,7 +257,6 @@
          <trusted-key id="AD296CA014321485EB6780FF8B8E0CB0F6A7657E" group="org.asciidoctor"/>
          <trusted-key id="ADBC987D1A7B91DB6B0AAA81995EFBF4A3D20BEB" group="^com[.]pinterest($|([.].*))" regex="true"/>
          <trusted-key id="B02137D875D833D9B23392ECAE5A7FB608A0221C">
-            <trusting group="com.thoughtworks.qdox"/>
             <trusting group="org.codehaus.plexus"/>
             <trusting group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
          </trusted-key>
@@ -735,6 +735,11 @@
       <component group="com.swoval" name="file-tree-views" version="2.1.12">
          <artifact name="file-tree-views-2.1.12.jar">
             <pgp value="EE2CFEB6A2AECF44C781C5C3DCD5181297A43D24"/>
+         </artifact>
+      </component>
+      <component group="com.thoughtworks.qdox" name="qdox" version="2.2.0">
+         <artifact name="qdox-2.2.0.jar">
+            <sha256 value="c260c3230b2340af97d54bf01f7f67ebc57c901922736c881bb11cb981302be2" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="com.typesafe" name="config" version="1.2.1">
