@@ -317,6 +317,12 @@ plugins {
 
 We strongly encourage users to adopt the latest released version of the https://plugins.gradle.org/plugin/com.gradle.develocity[Develocity plugin], even when using it with older versions of Gradle.
 
+==== C++ and Swift plugins no longer depend on software model based plugins
+
+<<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
+
+As a result, `toolChains` should now be configured directly at the top-level of your build script instead of within a `model { }` block.
+
 ==== Removal of eager artifact configuration accessors in Kotlin DSL
 
 In Gradle 5.0, the type of configuration accessors changed from `Configuration` to `NamedDomainObjectProvider<Configuration>` to support lazy configuration.

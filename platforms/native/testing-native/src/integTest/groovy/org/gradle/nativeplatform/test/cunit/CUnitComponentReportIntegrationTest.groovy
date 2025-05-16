@@ -29,10 +29,10 @@ plugins {
     id 'cunit-test-suite'
 }
 
-model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         someExe(NativeExecutableSpec)
     }
@@ -58,10 +58,11 @@ plugins {
     id 'cunit-test-suite'
 }
 
-model {
+
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         someExe(NativeExecutableSpec)
     }
