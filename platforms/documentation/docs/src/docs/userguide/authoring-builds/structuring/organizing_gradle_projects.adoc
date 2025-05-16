@@ -213,6 +213,8 @@ Gradle will then look for the build file of the new `lib` subproject in the `./l
 <3> Subproject
 <4> Subproject build file
 
+You can learn more about multi-project builds in <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>.
+
 [[sec:build_sources]]
 == Sharing Build Logic (`buildSrc`)
 
@@ -302,6 +304,8 @@ It compiles and makes this plugin available to all other build scripts in the pr
 <1> Applies `java-library` and testing logic
 <2> Subproject build script, applies `java-library` and testing logic
 
+You can learn more about multi-project builds in <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logc between Subprojects using BuildSrc>>.
+
 [[sec:composite_builds]]
 == Composite Builds (`includeBuild()`)
 
@@ -386,6 +390,8 @@ In the root `settings.gradle(.kts)`, we tell Gradle to include `lib` as part of 
 include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/kotlin",files="settings.gradle.kts[tags=inc]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/groovy",files="settings.gradle[tags=inc]"]
 ====
+
+You can learn more about multi-project builds in <<composite_builds.adoc#composite_builds,Composite Builds>>.
 
 == Structuring Recommendations
 

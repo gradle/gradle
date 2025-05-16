@@ -18,10 +18,12 @@
 As projects grow, it's common to split them into smaller, focused modules that are built, tested, and released together.
 Gradle supports this through multi-project builds, allowing you to organize related codebases under a single build while keeping each module logically isolated.
 
-== Project Layout
+== Multi-project Layout
 
 A multi-project build consists of a root project and one or more subprojects, all defined in a single `settings.gradle(.kts)` file.
 This structure supports modularization, parallel execution, and code reuse.
+
+image::structuring-builds-6.png[]
 
 A typical multi-project structure looks like this:
 
@@ -180,6 +182,7 @@ So, while the physical project layout is the same, the logical results are diffe
 == Naming recommendations
 
 As your project grows, naming and consistency get increasingly more important.
+
 To keep your builds maintainable, we recommend the following:
 
 1. *Keep default project names for subprojects*:
@@ -200,7 +203,7 @@ The name will be generated randomly if the root project name is not set and chec
 What if one subproject depends on another?
 What if one subproject depends on the artifact produced by another?
 
-image::structuring-builds-2.png[]
+image::structuring-builds-7.png[]
 
 This is a common use case in multi-project builds.
 Gradle supports this scenario with <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependencies>>.
@@ -280,7 +283,7 @@ A project dependency affects both the build order and classpath:
 For example, running `./gradlew :api:compileJava` will first build `shared`, then `api`.
 
 [[sec:depending_on_output_of_another_project]]
-=== Depending on Artifacts Produced by another Project
+=== Depending on Artifacts produced by another Project
 
 Sometimes, you only need the output of a specific task from another project—not the entire project itself.
 
