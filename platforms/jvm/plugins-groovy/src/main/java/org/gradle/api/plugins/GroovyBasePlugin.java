@@ -45,6 +45,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -86,8 +87,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults(Project project, GroovyRuntime groovyRuntime) {
         project.getTasks().withType(GroovyCompile.class).configureEach(compile -> {
-            compile.getConventionMapping().map(
-                "groovyClasspath",
+            ((ConfigurableFileCollection)compile.getGroovyClasspath()).convention((Callable<FileCollection>)
                 () -> groovyRuntime.inferGroovyClasspath(compile.getClasspath())
             );
 
@@ -167,15 +167,14 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureGroovydoc(Project project, GroovyRuntime groovyRuntime) {
         project.getTasks().withType(Groovydoc.class).configureEach(groovydoc -> {
-            groovydoc.getConventionMapping().map("groovyClasspath", () -> {
+            ((ConfigurableFileCollection)groovydoc.getGroovyClasspath()).convention((Callable<FileCollection>) () -> {
                 FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
                 // Jansi is required to log errors when generating Groovydoc
                 ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
                 return groovyClasspath.plus(jansi);
             });
-            groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension(project).getDocsDir().dir("groovydoc").get().getAsFile());
-            groovydoc.getConventionMapping().map("docTitle", () -> extensionOf(project, ReportingExtension.class).getApiDocTitle());
-            groovydoc.getConventionMapping().map("windowTitle", () -> extensionOf(project, ReportingExtension.class).getApiDocTitle());
+            groovydoc.setDestinationDirConvention(() -> javaPluginExtension(project).getDocsDir().dir("groovydoc").get());
+            groovydoc.setTitleConventions(() -> extensionOf(project, ReportingExtension.class).getApiDocTitle());
             groovydoc.getAccess().convention(GroovydocAccess.PROTECTED);
             groovydoc.getIncludeAuthor().convention(false);
             groovydoc.getProcessScripts().convention(true);
