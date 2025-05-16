@@ -73,17 +73,17 @@ A typical multi-project build has the following layout:
 
 The build file for `api`, `services`, and `shared` has many commonalities:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/buildSrc">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
-include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="api/build.gradle.kts[tags=common-logic]"]
-include::sample[dir="snippets/multiproject/buildSrc/groovy",files="api/build.gradle[tags=common-logic]"]
-====
-====
-include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="services/build.gradle.kts[tags=common-logic]"]
-include::sample[dir="snippets/multiproject/buildSrc/groovy",files="services/build.gradle[tags=common-logic]"]
-====
-====
-include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="shared/build.gradle.kts[tags=common-logic]"]
-include::sample[dir="snippets/multiproject/buildSrc/groovy",files="shared/build.gradle[tags=common-logic]"]
+include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="api/build.gradle.kts[tags=common-logic];services/build.gradle.kts[tags=common-logic];shared/build.gradle.kts[tags=common-logic]"]
+include::sample[dir="snippets/multiproject/buildSrc/groovy",files="api/build.gradle[tags=common-logic];services/build.gradle[tags=common-logic];shared/build.gradle[tags=common-logic]"]
 ====
 
 To avoid duplicating build logic across `api`, `services`, and `shared`, we can move the shared parts into `buildSrc`.
@@ -173,19 +173,17 @@ This kind of plugin is called a *convention plugin*.
 The shared logic is removed from the `api`, `services`, and `shared` build files.
 And the `shared` plugin is applied in the files instead:
 
-====
-include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="api/build.gradle.kts[tags=non-common-logic]"]
-include::sample[dir="snippets/multiproject/buildSrc/groovy",files="api/build.gradle[tags=non-common-logic]"]
-====
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/buildSrc">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
-include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="services/build.gradle.kts[tags=non-common-logic]"]
-include::sample[dir="snippets/multiproject/buildSrc/groovy",files="services/build.gradle[tags=non-common-logic]"]
-====
-
-====
-include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="shared/build.gradle.kts[tags=non-common-logic]"]
-include::sample[dir="snippets/multiproject/buildSrc/groovy",files="shared/build.gradle[tags=non-common-logic]"]
+include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="api/build.gradle.kts[tags=non-common-logic];services/build.gradle.kts[tags=non-common-logic];shared/build.gradle.kts[tags=non-common-logic]"]
+include::sample[dir="snippets/multiproject/buildSrc/groovy",files="api/build.gradle[tags=non-common-logic];services/build.gradle[tags=non-common-logic];shared/build.gradle[tags=non-common-logic]"]
 ====
 
 From now on, if you want to change something like the version of `slf4j-api`, you only need to update it in `buildSrc`, and the change will automatically apply to all subprojects.

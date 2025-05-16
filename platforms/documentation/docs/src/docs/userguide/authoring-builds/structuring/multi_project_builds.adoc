@@ -18,7 +18,7 @@
 As projects grow, it's common to split them into smaller, focused modules that are built, tested, and released together.
 Gradle supports this through multi-project builds, allowing you to organize related codebases under a single build while keeping each module logically isolated.
 
-== Multi-project Layout
+== Multi-Project Layout
 
 A multi-project build consists of a root project and one or more subprojects, all defined in a single `settings.gradle(.kts)` file.
 This structure supports modularization, parallel execution, and code reuse.
@@ -99,6 +99,14 @@ To further describe the project architecture to Gradle, the settings file provid
 You can modify these descriptors in the settings file at any time.
 
 To access a descriptor, you can:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/customLayout">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
@@ -266,6 +274,14 @@ For example:
 
 - `:shared` refers to the `shared` subproject
 - `services:person-service` refers to a nested subproject
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/basic-dependencies">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 [[javadependencies_2]]
 ====

@@ -117,6 +117,14 @@ The <<build_init_plugin#build_init_plugin,Build Init plugin>> also generates ske
 
 The `settings.gradle(.kts)` file describes the project structure to Gradle:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/basic-multiproject">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="settings.gradle.kts[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="settings.gradle[]"]
@@ -158,6 +166,14 @@ image::structuring-builds-2.png[]
 
 In the settings file, you can use the `include` method to add another subproject to the root project:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/standardLayouts">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
 include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
@@ -172,6 +188,14 @@ More examples of how to work with the project path can be found in the DSL docum
 Let's add another subproject called `lib` to the previously created project.
 
 All we need to do is add another `include` statement in the root settings file:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/multiple-subprojects">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/multiproject/multiple-subprojects/kotlin",files="settings.gradle.kts[]"]
@@ -385,6 +409,14 @@ It’s not part of the normal `include(...)` multi-project structure.
 Instead, we treat it as an included build, a distinct build that we can use without publishing it to a repository.
 
 In the root `settings.gradle(.kts)`, we tell Gradle to include `lib` as part of a composite build using `includeBuild()`:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/kotlin",files="settings.gradle.kts[tags=inc]"]
