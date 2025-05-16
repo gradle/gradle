@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.fixture
 
+
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
@@ -82,9 +83,7 @@ class ToolingApiDistributionResolver {
             if (useToolingApiFromTestClasspath(toolingApiVersion)) {
                 distributions[toolingApiVersion] = new TestClasspathToolingApiDistribution()
             } else if (CommitDistribution.isCommitDistribution(toolingApiVersion)) {
-                File toolingApiJar = CommitDistribution.getToolingApiJar(toolingApiVersion)
-                List<File> slf4j = resolveDependency("org.slf4j:slf4j-api:1.7.25").toList()
-                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, slf4j + toolingApiJar)
+                throw new UnsupportedOperationException(String.format("Commit distributions are not supported in this context. Adjust %s code to support them", this.class.canonicalName))
             } else {
                 distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, resolveDependency("org.gradle:gradle-tooling-api:$toolingApiVersion"))
             }
