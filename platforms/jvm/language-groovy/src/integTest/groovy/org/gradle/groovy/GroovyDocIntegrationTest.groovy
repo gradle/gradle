@@ -20,15 +20,19 @@ import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
+import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
 @TargetCoverage({GroovyCoverage.SUPPORTS_GROOVYDOC})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         buildFile << """
@@ -179,22 +183,25 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         """
 
         when:
+        server.start()
         buildFile << """
             task('foo') {
+                ${doFirstThatBlocks("foo")}
                 doLast {
                     logger.lifecycle "FOO"
                     println "BAR"
                 }
             }
+
+            tasks.named("groovydoc") {
+                ${doFirstThatBlocks("groovydoc")}
+            }
+
+            ${blockingWorkItemClass}
         """
 
         then:
-        succeeds "foo", "groovydoc"
-        outputContains("FOO")
-        outputContains("BAR")
-
-        then:
-        args("--rerun-tasks")
+        server.expectConcurrent( "groovydoc", "foo")
         succeeds "groovydoc", "foo"
         outputContains("FOO")
         outputContains("BAR")
@@ -208,5 +215,30 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             class ${className} {}
         """
         return srcFile
+    }
+
+    private String getBlockingWorkItemClass() {
+        return """
+            import java.net.URI
+            abstract class BlockingWorkItem implements WorkAction<BlockingWorkItem.Parameters> {
+                static interface Parameters extends WorkParameters {
+                    Property<String> getName()
+                }
+                @Override
+                void execute() {
+                    new URI("http", null, "localhost", ${server.port}, "/" + parameters.name.get(), null, null).toURL().text
+                }
+            }
+        """
+    }
+
+    private static String doFirstThatBlocks(String name) {
+        return """
+            doFirst {
+                services.get(WorkerExecutor).noIsolation().submit(BlockingWorkItem) { parameters ->
+                    parameters.name.set("${name}")
+                }
+            }
+        """
     }
 }
