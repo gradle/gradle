@@ -282,7 +282,7 @@ This property was previously used to configure the JVM target version for code c
 
 To set the target JVM version, you should now <<kotlin_dsl#sec:kotlin-dsl_plugin,configure a Java Toolchain>> instead.
 
-[[gradle_enterprise_extension_deprecated]]
+[[gradle_enterprise_extension_removed]]
 ==== Removal of the `gradle-enterprise` plugin block extension in Kotlin DSL
 
 In Kotlin DSL based `settings.gradle.kts` files, you could previously use the `gradle-enterprise` plugin block extension to apply the Gradle Enterprise plugin using the same version bundled with `gradle --scan`:
