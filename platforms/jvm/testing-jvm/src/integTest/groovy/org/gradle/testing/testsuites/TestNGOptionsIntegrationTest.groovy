@@ -95,4 +95,27 @@ public class ExcludedTest {
 }
 """
     }
+
+    def "can set nullable properties to null in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            testing {
+                suites {
+                    test {
+                        useTestNG()
+                        targets.all {
+                            testTask.configure {
+                                options {
+                                    parallel = null
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
 }
