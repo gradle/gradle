@@ -21,8 +21,11 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.file.BuildLayout;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -50,6 +53,8 @@ public interface DependencyResolutionServices {
     ObjectFactory getObjectFactory();
 
     DependencyFactory getDependencyFactory();
+
+    FileResolver getFileResolver();
 
     AttributeDescriberRegistry getAttributeDescribers();
 }

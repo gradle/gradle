@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.file.BuildLayout;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -658,6 +659,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Override
         public DependencyFactory getDependencyFactory() {
             return services.get(DependencyFactory.class);
+        }
+
+        @Override
+        public FileResolver getFileResolver() {
+            return services.get(FileResolver.class);
         }
 
         @Override
