@@ -195,6 +195,16 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    String missingCachingAnnotationMessage(@DelegatesTo(value = MissingCachingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        missingCachingAnnotationConfig(spec).render()
+    }
+
+    MissingCachingAnnotation missingCachingAnnotationConfig(@DelegatesTo(value = MissingCachingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(MissingCachingAnnotation, 'disable_caching_by_default', spec)
+        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault")
+            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
+    }
+
     String missingAnnotationMessage(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         missingAnnotationConfig(spec).render()
     }
@@ -500,7 +510,7 @@ trait ValidationMessageChecker {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
             "This behavior has been deprecated. " +
-            "This behavior is scheduled to be removed in Gradle 9.0. " +
+            "This will fail with an error in Gradle 10.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             documentationRegistry.getDocumentationRecommendationFor("information", docId, section)
         executer.expectDocumentedDeprecationWarning(deprecationMessage)
@@ -817,6 +827,42 @@ trait ValidationMessageChecker {
 
         MissingAnnotation kind(String kind) {
             this.kind = kind
+            this
+        }
+    }
+
+    static class MissingCachingAnnotation extends ValidationMessageDisplayConfiguration<MissingCachingAnnotation> {
+        String workType
+        String cacheableAnnotation
+
+        MissingCachingAnnotation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        MissingCachingAnnotation forTask() {
+            workType("task")
+            cacheableAnnotation("@CacheableTask")
+            solution("Add @DisableCachingByDefault(because = ...).")
+            solution("Add ${cacheableAnnotation}.")
+            solution("Add @UntrackedTask(because = ...).")
+            return this
+        }
+
+        MissingCachingAnnotation forTransformAction() {
+            workType("transform action")
+            cacheableAnnotation("@CacheableTransform")
+            solution("Add @DisableCachingByDefault(because = ...).")
+            solution("Add ${cacheableAnnotation}.")
+            return this
+        }
+
+        MissingCachingAnnotation workType(String workType) {
+            this.workType = workType
+            this
+        }
+
+        MissingCachingAnnotation cacheableAnnotation(String cacheableAnnotation) {
+            this.cacheableAnnotation = cacheableAnnotation
             this
         }
     }
