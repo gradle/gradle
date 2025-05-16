@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException implements ResolutionProvider {
     private List<String> resolutions = ImmutableList.of();
@@ -43,13 +44,22 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     }
 
 
-    public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
+    public ModuleVersionNotFoundException(
+        ModuleComponentSelector selector,
+        Collection<String> attemptedLocations,
+        Collection<String> unmatchedVersions,
+        Collection<RejectedVersion> rejectedVersions
+    ) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
         recordPossibleResolution(attemptedLocations);
     }
 
-    public ModuleVersionNotFoundException(ModuleVersionIdentifier id, Collection<String> attemptedLocations) {
-        super(id, format(id, attemptedLocations));
+    public ModuleVersionNotFoundException(
+        ModuleVersionIdentifier id,
+        Collection<String> attemptedLocations,
+        Collection<ArtifactDeclarationLocation> declarationLocations
+    ) {
+        super(id, format(id, attemptedLocations, declarationLocations));
         recordPossibleResolution(attemptedLocations);
     }
 
@@ -98,11 +108,17 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         }
     }
 
-    private static Factory<String> format(ModuleVersionIdentifier id, Collection<String> locations) {
+    private static Factory<String> format(
+        ModuleVersionIdentifier id,
+        Collection<String> locations,
+        Collection<ArtifactDeclarationLocation> declarationLocations
+    ) {
+
         return () -> {
             TreeFormatter builder = new TreeFormatter();
             builder.node(String.format("Could not find %s.", id));
             addLocations(builder, locations);
+            addLocations(builder, "Declared in the following locations", declarationLocations.stream().map(ArtifactDeclarationLocation::toString).collect(Collectors.toList()));
             return builder.toString();
         };
     }
@@ -134,16 +150,20 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         builder.endChildren();
     }
 
-    private static void addLocations(TreeFormatter builder, Collection<String> locations) {
+    private static void addLocations(TreeFormatter builder, String title, Collection<String> locations) {
         if (locations.isEmpty()) {
             return;
         }
-        builder.node("Searched in the following locations");
+        builder.node(title);
         builder.startChildren();
 
         locations.forEach(builder::node);
 
         builder.endChildren();
+    }
+
+    private static void addLocations(TreeFormatter builder, Collection<String> locations) {
+        addLocations(builder, "Searched in the following locations", locations);
     }
 
     /**
