@@ -387,6 +387,14 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
+        public FinalizedExecutionPlan getFinalizedExecutionPlan() {
+            if (finalizedPlan == null) {
+                throw new IllegalStateException("Execution plan must be finalized first");
+            }
+            return finalizedPlan;
+        }
+
+        @Override
         public void onComplete(Consumer<LocalTaskNode> handler) {
             handlers.add(handler);
         }

@@ -136,8 +136,8 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
         manifest.contains('moji: bak€')
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue('GRADLE-3374')
+    @Issue("https://github.com/gradle/gradle/issues/31838")
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "write manifests using a user defined character set"() {
         given:

@@ -66,7 +66,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
             .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
             .build()
-        problems.onProblem(problem)
+        problemsListenerFor(problem.trace).onProblem(problem)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
@@ -95,7 +95,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Starting an external process '$command' during configuration time is unsupported.")
             .documentationSection(RequirementsExternalProcess)
             .build()
-        problems.onProblem(problem)
+
+        problemsListenerFor(problem.trace).onProblem(problem)
     }
 
     private
@@ -146,23 +147,29 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     fun locationForTask(task: TaskInternal) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
 
     private
-    fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
-        task.isCompatibleWithConfigurationCache -> problems
-        else -> problems.forIncompatibleTask(locationForTask(task), task.reasonTaskIsIncompatibleWithConfigurationCache.get())
+    fun problemsListenerFor(task: TaskInternal): ProblemsListener {
+        val trace = locationForTask(task)
+        return when {
+            !task.isCompatibleWithConfigurationCache -> problems.forIncompatibleTask(trace, task.reasonTaskIsIncompatibleWithConfigurationCache.get())
+            else -> problems.forTask(trace)
+        }
     }
+
+    private
+    fun problemsListenerFor(trace: PropertyTrace): ProblemsListener =
+        problems.forBuildLogic(trace)
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (isBuildSrcBuild(invocationSource) || isSupportedListener(listener)) {
             return
         }
-        problems.onProblem(
-            listenerRegistrationProblem(
-                invocationDescription,
-                InvalidUserCodeException(
-                    "Listener registration '$invocationDescription' by $invocationSource is unsupported."
-                )
+        val problem = listenerRegistrationProblem(
+            invocationDescription,
+            InvalidUserCodeException(
+                "Listener registration '$invocationDescription' by $invocationSource is unsupported."
             )
         )
+        problemsListenerFor(problem.trace).onProblem(problem)
     }
 
     private

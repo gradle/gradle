@@ -31,6 +31,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
+import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
@@ -49,9 +50,11 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.invocation.ConfigurationCacheDegradationController
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
+import java.util.Collections
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -80,7 +83,10 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider
+    val buildNameProvider: BuildNameProvider,
+
+    private val
+    degradationController: ConfigurationCacheDegradationController
 ) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
@@ -105,6 +111,9 @@ class ConfigurationCacheProblems(
     val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
+    val degradationReasons = mutableMapOf<PropertyTrace, List<String>>()
+
+    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     private
@@ -116,6 +125,9 @@ class ConfigurationCacheProblems(
                 return false
             }
             if (isFailingBuildDueToSerializationError) {
+                return true
+            }
+            if (shouldDegradeGracefully()) {
                 return true
             }
             val summary = summarizer.get()
@@ -164,9 +176,32 @@ class ConfigurationCacheProblems(
         }
     }
 
+    override fun forBuildLogic(trace: PropertyTrace): ProblemsListener {
+        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getBuildLogicDegradationReasons().isNotEmpty()
+        return if (shouldDegrade) reportOnlyProblemsListener() else this
+    }
+
+    override fun forTask(trace: PropertyTrace): ProblemsListener {
+        val taskDegradationReasons = degradationReasons.getOrDefault(trace, Collections.emptyList())
+        return if (taskDegradationReasons.isNotEmpty()) {
+            val notSeenBefore = incompatibleTasks.add(trace)
+            if (notSeenBefore) {
+                // this method is invoked whenever a problem listener is needed in the context of an incompatible task,
+                // report the incompatible task itself the first time only
+                reportIncompatibleTask(trace, taskDegradationReasons.joinToString())
+            }
+            reportOnlyProblemsListener()
+        } else this
+    }
+
+    private fun reportOnlyProblemsListener() = object : AbstractProblemsListener() {
+        override fun onProblem(problem: PropertyProblem) {
+            onProblem(problem, ProblemSeverity.Suppressed)
+        }
+    }
+
     private
     fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
-
         val problem = problemFactory
             .problem {
                 message(trace.containingUserCodeMessage)
@@ -332,6 +367,7 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == Store && degradationReasons.isNotEmpty() -> log("Configuration cache entry discarded${degradationSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -347,6 +383,10 @@ class ConfigurationCacheProblems(
             }
         }
     }
+
+    private
+    fun degradationSummary() =
+        " because degradation was requested by:\n${degradationReasons.entries.joinToString("\n") { "- ${it.key.render()}: ${it.value.joinToString()}" }}"
 
     private
     fun incompatibleTasksSummary() = when {
@@ -377,5 +417,11 @@ class ConfigurationCacheProblems(
             1 -> "1 $singular"
             else -> "$this $plural"
         }
+    }
+
+    private
+    fun shouldDegradeGracefully(): Boolean {
+        degradationReasons.putAll((degradationController as DefaultConfigurationCacheDegradationController).currentDegradationReasons)
+        return degradationReasons.isNotEmpty()
     }
 }
