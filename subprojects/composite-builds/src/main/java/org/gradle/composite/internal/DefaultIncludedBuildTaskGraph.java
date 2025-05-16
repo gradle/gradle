@@ -179,9 +179,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         private BuildController buildControllerOf(BuildState target) {
             return owner.controllers.getBuildController(target);
         }
+
     }
 
     private class DefaultBuildTreeWorkGraph implements BuildTreeWorkGraph, BuildTreeWorkGraph.FinalizedGraph, AutoCloseable {
+
         private final Thread owner;
         private final BuildControllers controllers;
         private State state = State.NotPrepared;
@@ -222,6 +224,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             });
             state = State.ReadyToRun;
             return this;
+        }
+
+        @Override
+        public BuildController getBuildController(BuildState build) {
+            return controllers.getBuildController(build);
         }
 
         @Override

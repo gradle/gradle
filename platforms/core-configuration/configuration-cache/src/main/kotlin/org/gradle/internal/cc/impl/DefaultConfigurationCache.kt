@@ -67,6 +67,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
+import org.gradle.invocation.ConfigurationCacheDegradationController
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
@@ -98,6 +99,7 @@ class DefaultConfigurationCache internal constructor(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
     private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    private val degradationController: ConfigurationCacheDegradationController
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -239,7 +241,7 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                degradeGracefullyOr { saveWorkGraph() }
+                degradeGracefullyOr(finalizedGraph) { saveWorkGraph() }
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -587,8 +589,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun degradeGracefullyOr(action: () -> Unit) {
-        if (!problems.isGracefulDegradationRequestedByBuildLogic) {
+    fun degradeGracefullyOr(finalizedGraph: BuildTreeWorkGraph.FinalizedGraph, action: () -> Unit) {
+        val rootBuildExecutionPlan = (finalizedGraph as BuildTreeWorkGraph).getBuildController(buildStateRegistry.rootBuild).finalizedExecutionPlan
+        if (!degradationController.shouldDegradeGracefully(rootBuildExecutionPlan)) {
             action()
         }
         crossConfigurationTimeBarrier()

@@ -33,6 +33,8 @@ suspend fun WriteContext.writePropertyValue(kind: PropertyKind, name: String, va
         try {
             write(value)
         } catch (error: Exception) {
+            println(kind)
+            println(name)
             onError(error) {
                 when {
                     value != null -> {

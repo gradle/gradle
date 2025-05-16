@@ -233,7 +233,7 @@ suspend fun <T> T.withTaskOf(
     withIsolate(IsolateOwners.OwnerTask(task), codec) {
         withPropertyTrace(PropertyTrace.Task(taskType, task.identityPath.path)) {
             if (task.isCompatibleWithConfigurationCache) {
-                forTask(trace, action)
+                action()
             } else {
                 forIncompatibleTask(trace, task.reasonTaskIsIncompatibleWithConfigurationCache.get(), action)
             }

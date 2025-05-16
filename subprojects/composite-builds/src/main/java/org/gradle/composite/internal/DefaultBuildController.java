@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
@@ -101,6 +102,12 @@ class DefaultBuildController implements BuildController {
         scheduled.addAll(queuedForExecution);
         queuedForExecution.clear();
         return added;
+    }
+
+
+    @Override
+    public FinalizedExecutionPlan getFinalizedExecutionPlan() {
+        return workGraph.getFinalizedExecutionPlan();
     }
 
     @Override

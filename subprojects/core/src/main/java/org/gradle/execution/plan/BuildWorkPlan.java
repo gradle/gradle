@@ -33,4 +33,6 @@ public interface BuildWorkPlan extends Stoppable {
     void addFilter(Spec<Task> filter);
 
     void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
+
+    FinalizedExecutionPlan getFinalizedExecutionPlan();
 }
