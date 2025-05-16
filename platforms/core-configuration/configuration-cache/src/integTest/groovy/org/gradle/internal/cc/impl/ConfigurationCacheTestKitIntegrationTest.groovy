@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoIntegrationTest
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -27,6 +26,8 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.TempDir
+
+import static org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer.PROMO_PREFIX
 
 @Requires(UnitTestPreconditions.NotWindows)
 class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -80,7 +81,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
 
         then:
         !output.contains("configuration cache")
-        !output.contains(ConfigurationCachePromoIntegrationTest.PROMO_MESSAGE)
+        !output.contains(PROMO_PREFIX)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/27956")
