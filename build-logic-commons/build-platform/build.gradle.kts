@@ -41,7 +41,7 @@ dependencies {
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
-        api("com.google.guava:guava:33.4.6-jre")
+        api("com.google.guava:guava:33.4.8-jre")
         api("com.google.errorprone:error_prone_annotations:2.38.0")
         api("com.google.code.gson:gson:2.13.1") // keep in sync with settings.gradle.kts
         api("org.mockito.kotlin:mockito-kotlin:5.4.0")
