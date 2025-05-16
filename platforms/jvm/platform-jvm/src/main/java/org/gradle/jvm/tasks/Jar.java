@@ -31,15 +31,18 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
+import org.gradle.invocation.ConfigurationCacheDegradationController;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.nio.charset.Charset;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -64,7 +67,15 @@ public abstract class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
         getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
+        getDegradationController().requireConfigurationCacheDegradation("Custom manifest content charset", degradationExpression());
     }
+
+    private Provider<Boolean> degradationExpression() {
+        return getProject().provider(() -> !DefaultManifest.DEFAULT_CONTENT_CHARSET.equals(getManifestContentCharset()));
+    }
+
+    @Inject
+    protected abstract ConfigurationCacheDegradationController getDegradationController();
 
     private FileTreeInternal manifestFileTree() {
         final Cached<ManifestInternal> manifest = Cached.of(this::computeManifest);
