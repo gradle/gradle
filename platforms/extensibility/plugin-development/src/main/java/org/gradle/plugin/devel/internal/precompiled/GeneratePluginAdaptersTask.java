@@ -41,6 +41,7 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
+import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -164,7 +165,7 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println(" **/");
             writer.println("@SuppressWarnings(\"DefaultPackage\")");
             writer.println("public class " + scriptPlugin.getPluginAdapterClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {");
-            writer.println("    private static final String MIN_SUPPORTED_GRADLE_VERSION = \"5.0\";");
+            writer.println("    private static final String MIN_SUPPORTED_GRADLE_VERSION = \"7.0\";");
             writer.println("    @Override");
             writer.println("    public void apply(" + targetClass + " target) {");
             writer.println("        assertSupportedByCurrentGradleVersion();");
@@ -185,7 +186,7 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("  }");
             writer.println("  private static void assertSupportedByCurrentGradleVersion() {");
             writer.println("      if (GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version(MIN_SUPPORTED_GRADLE_VERSION)) < 0) {");
-            writer.println("          throw new RuntimeException(\"Precompiled Groovy script plugins require Gradle \"+MIN_SUPPORTED_GRADLE_VERSION+\" or higher\");");
+            writer.println("          throw new RuntimeException(\"Precompiled Groovy script plugins built by " + GradleVersion.current() + " require Gradle \"+MIN_SUPPORTED_GRADLE_VERSION+\" or higher\");");
             writer.println("      }");
             writer.println("  }");
             writer.println("}");

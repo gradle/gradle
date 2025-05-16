@@ -368,14 +368,14 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 // Warn on Boolean is-getters that are not ignored and do not have a corresponding get-getter
                 Method method = metadataBuilder.getMethod();
                 if (PropertyAccessorType.of(method) == PropertyAccessorType.IS_GETTER && method.getReturnType() == Boolean.class && ignoredMethodAnnotations.stream().noneMatch(metadataBuilder::hasAnnotation)) {
-                    DeprecationLogger.deprecateAction("Declaring an 'is-' property with a Boolean type")
+                    DeprecationLogger.deprecateAction("Declaring '" + propertyName + "' as a property using an 'is-' method with a Boolean type on " + method.getDeclaringClass().getCanonicalName())
+                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules.")
                         .withAdvice(String.format(
                             "Add a method named '%s' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or change the type of '%s.%s' (and the setter) to 'boolean'.",
                             method.getName().replace("is", "get"),
                             method.getDeclaringClass().getCanonicalName(), method.getName()
                         ))
-                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy.")
-                        .startingWithGradle9("this property will be ignored by Gradle")
+                        .startingWithGradle10("this property will no longer be treated like a property")
                         .withUpgradeGuideSection(8, "groovy_boolean_properties")
                         .nagUser();
                 }

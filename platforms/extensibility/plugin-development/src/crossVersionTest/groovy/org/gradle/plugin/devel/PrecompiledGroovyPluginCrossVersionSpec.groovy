@@ -43,8 +43,8 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         """
     }
 
-    def "precompiled Groovy plugin built with current version can be used with Gradle 6.10+"() {
-        Assume.assumeTrue(previous.version >= GradleVersion.version('6.10'))
+    def "precompiled Groovy plugin built with current version can be used with Gradle 7.0+"() {
+        Assume.assumeTrue(previous.version >= GradleVersion.version('7.0'))
 
         given:
         precompiledGroovyPluginBuiltWith(version(getCurrent()))
@@ -71,9 +71,9 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         result.output.contains("$PLUGIN_TASK executed")
     }
 
-    def "can not use a precompiled script plugin with Gradle earlier than 5.0"() {
+    def "can not use a precompiled script plugin with Gradle earlier than 7.0"() {
         Assume.assumeTrue(previous.version >= GradleVersion.version('3.5')) // because 3.4 does not yet support pluginManagement {} block
-        Assume.assumeTrue(previous.version < GradleVersion.version('5.0'))
+        Assume.assumeTrue(previous.version < GradleVersion.version('7.0'))
 
         given:
         precompiledGroovyPluginBuiltWith(version(getCurrent()))
@@ -84,7 +84,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         then:
         result.assertHasDescription("An exception occurred applying plugin request [id: '$PLUGIN_ID', version: '1.0']")
         result.assertHasCause("Failed to apply plugin [id '$PLUGIN_ID']")
-        result.assertHasCause('Precompiled Groovy script plugins require Gradle 5.0 or higher')
+        result.assertHasCause("Precompiled Groovy script plugins built by ${getCurrent().version} require Gradle 7.0 or higher")
         result.assertNotOutput("$PLUGIN_ID applied")
         result.assertNotOutput("$PLUGIN_TASK executed")
     }
