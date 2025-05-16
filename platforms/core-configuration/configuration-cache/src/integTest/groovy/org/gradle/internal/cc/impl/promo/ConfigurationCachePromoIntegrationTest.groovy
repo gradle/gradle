@@ -20,9 +20,9 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 
-class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    public static final String PROMO_MESSAGE = "Consider enabling configuration cache to speed up this build"
+import static org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer.PROMO_PREFIX
 
+class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "shows promo message when build succeeds without giving explicit CC state"() {
         given:
         buildFile """
@@ -33,7 +33,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputContains(PROMO_MESSAGE)
+        postBuildOutputContains(PROMO_PREFIX)
     }
 
     def "shows promo message when build fails without giving explicit CC state"() {
@@ -47,7 +47,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
         then:
         // TODO(mlopatkin) post-build output scraping is broken for failed builds
-        outputContains(PROMO_MESSAGE)
+        outputContains(PROMO_PREFIX)
     }
 
     def "shows promo message when running with isolated projects disabled in command-line"() {
@@ -60,7 +60,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet", "-D${IsolatedProjectsOption.PROPERTY_NAME}=false")
 
         then:
-        postBuildOutputContains(PROMO_MESSAGE)
+        postBuildOutputContains(PROMO_PREFIX)
     }
 
     def "shows promo message when running with isolated projects disabled in properties files"() {
@@ -75,7 +75,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputContains(PROMO_MESSAGE)
+        postBuildOutputContains(PROMO_PREFIX)
     }
 
     def "shows no promo message when #ccSwitch is given in command-line"() {
@@ -88,7 +88,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet", ccSwitch)
 
         then:
-        postBuildOutputDoesNotContain(PROMO_MESSAGE)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
 
         where:
         ccSwitch << [
@@ -114,7 +114,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_MESSAGE)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
 
         where:
         ccStateLine << [
@@ -140,7 +140,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_MESSAGE)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
     }
 
     def "shows no promo message if execution is not cc compatible"() {
@@ -159,7 +159,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_MESSAGE)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
     }
 
     def "shows promo message if configuration-only calls are used correctly"() {
@@ -177,6 +177,6 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputContains(PROMO_MESSAGE)
+        postBuildOutputContains(PROMO_PREFIX)
     }
 }
