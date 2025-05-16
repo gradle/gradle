@@ -33,8 +33,6 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
 
     private static final Set<String> REPORT_FORMATS = Sets.newHashSet("xml", "html", "console", "text");
 
-    private final Project project;
-
     private TextResource config;
     private int maxPriority1Violations;
     private int maxPriority2Violations;
@@ -42,7 +40,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     private String reportFormat;
 
     public CodeNarcExtension(Project project) {
-        this.project = project;
+        // kept for backwards compatibility
     }
 
     /**
@@ -76,7 +74,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
      * The CodeNarc configuration file to use.
      */
     public void setConfigFile(File file) {
-        setConfig(project.getResources().getText().fromFile(file));
+        setConfig(getProject().getResources().getText().fromFile(file));
     }
 
     /**
