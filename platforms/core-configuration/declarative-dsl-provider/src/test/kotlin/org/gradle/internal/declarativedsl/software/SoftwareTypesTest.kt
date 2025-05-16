@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.software
 
-import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -30,6 +29,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 
 class SoftwareTypesTest {
