@@ -168,6 +168,34 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+### Task graph diagnostic
+
+We introduce a new task graph diagnostic feature to help you understand the task graph of your build.
+You can use `--task-graph` command line option to print the task graph of your build without executing the tasks, for example:
+```
+$ ./gradlew root r2 --task-graph
+
+Tasks graph for: root r2
++--- :root (org.gradle.api.DefaultTask)
+|    \\--- :middle (org.gradle.api.DefaultTask)
+|         +--- :leaf1 (org.gradle.api.DefaultTask)
+|         \\--- :leaf2 (org.gradle.api.DefaultTask, disabled)
+\\--- :root2 (org.gradle.api.DefaultTask)
+    +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+    |--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
+    \\--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
+         \\--- :leaf3 (org.gradle.api.DefaultTask)
+         
+(*) - details omitted (listed previously)
+```
+
+This feature can be useful to get a quick overview of the task graph and to understand the dependencies between tasks.
+You can iterate by diving into a subgraph by adjusting an invocation.
+
+Note that this feature is still in incubation and may change in future releases.
+Also, there is a known [issue](https://github.com/gradle/gradle/issues/2517) about the behavior of the `--dry-run` option with included builds: tasks from included builds will be executed.
+This feature suffers from the same issue.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
