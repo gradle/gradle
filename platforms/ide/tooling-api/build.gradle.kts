@@ -13,6 +13,12 @@ gradleModule {
     usesJdkInternals = true
 }
 
+moduleIdentity {
+    // Hack to disable verification that our dependencies are also published,
+    // since this doesn't matter because our dependencies are shaded
+    published = false
+}
+
 tasks.named<Jar>("sourcesJar") {
     // duplicate package-info.java because of split packages
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

@@ -26,7 +26,8 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Allows the build to provide rules that modify the metadata of depended-on software components.
+ * Allows the build to provide rules that modify the metadata of software components
+ * resolved from external repositories.
  *
  * Component metadata rules are applied in the components section of the dependencies block
  * {@link DependencyHandler} of a build script. The rules can be defined in two different ways:

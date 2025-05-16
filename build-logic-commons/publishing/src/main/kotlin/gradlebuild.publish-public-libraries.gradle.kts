@@ -19,8 +19,13 @@ import java.time.Year
 plugins {
     id("gradlebuild.module-identity")
     id("gradlebuild.publish-defaults")
+    id("java-library")
     id("signing")
     `maven-publish`
+}
+
+moduleIdentity {
+    published = true
 }
 
 configureJavadocVariant()
