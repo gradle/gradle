@@ -39,6 +39,7 @@ import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
@@ -49,6 +50,7 @@ import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessLis
 import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
+import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
@@ -238,14 +240,24 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
         registration.add(ProblemFactory::class.java, DefaultProblemFactory::class.java)
 
+        registration.add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
+        // Set up CC problem reporting pipeline, based on the build configuration
+        when {
+            modelParameters.isConfigurationCache -> registration.add(ConfigurationCacheProblems::class.java)
+            allowNudgingToEnableConfigurationCache(requirements, modelParameters) -> {
+                // Don't suggest enabling CC if it is on, even if implicitly (e.g. enabled by isolated projects).
+                // Most likely, the user who tries IP is already aware of CC and nudging will be just noise.
+                registration.add(ConfigurationCachePromoHandler::class.java)
+            }
+            else -> registration.add(IgnoringProblemsListener::class.java, IgnoringProblemsListener)
+        }
+
         if (modelParameters.isConfigurationCache) {
             registration.add(BuildTreeLifecycleControllerFactory::class.java, ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
-            registration.add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
-            registration.add(ConfigurationCacheProblems::class.java)
             registration.add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
@@ -265,6 +277,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         } else {
             registration.addProvider(VintageModelProvider())
         }
+    }
+
+    private
+    fun allowNudgingToEnableConfigurationCache(requirements: BuildActionModelRequirements, modelParameters: BuildModelParameters): Boolean {
+        return !requirements.startParameter.configurationCache.isExplicit && !modelParameters.isConfigurationCache
     }
 
     private

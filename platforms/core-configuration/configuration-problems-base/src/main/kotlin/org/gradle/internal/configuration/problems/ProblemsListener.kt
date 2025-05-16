@@ -16,11 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scope
 
-
-@EventScope(Scope.BuildTree::class)
 interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)
