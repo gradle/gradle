@@ -145,16 +145,24 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             publishTask.setRepository(repository);
             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
-            getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", degradationExpressionFor(publishTask));
         });
+        tasks.withType(PublishToIvyRepository.class).configureEach(t -> {
+            getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", explicitCredentialsDegradationExpressionFor(t));
+        });
+
         tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, task -> task.dependsOn(publishTaskName));
         tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
     }
 
-    private Provider<Boolean> degradationExpressionFor(PublishToIvyRepository task) {
+    private Provider<Boolean> explicitCredentialsDegradationExpressionFor(PublishToIvyRepository task) {
         return providerFactory.provider(() -> (AuthenticationSupportedInternal) task.getRepository())
             .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
             .map(value -> !value);
+    }
+
+    private Provider<Boolean> missingRepositoryDegradationExpression(PublishToIvyRepository task) {
+        return providerFactory.provider(() -> (DefaultIvyArtifactRepository) task.getRepository())
+            .map(it -> !it.isRepositoryUrlKnown());
     }
 
 

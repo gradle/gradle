@@ -144,8 +144,10 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 publishTask.setRepository(repository);
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
-                getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", degradationExpressionFor(publishTask));
             });
+            tasks.withType(PublishToMavenRepository.class).configureEach(t ->
+                getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", degradationExpressionFor(t))
+            );
 
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
             tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
