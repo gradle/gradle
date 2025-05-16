@@ -206,9 +206,9 @@ When using multiple repositories, use <<filtering_repository_content.adoc#reposi
 
 === Explanation
 
-If your build declares more than one repository, you should also declare content filters on these repositories to ensure you search for and obtain dependencies from the correct place.
+If your build declares more than one repository, you should declare content filters on these repositories to ensure you search for and obtain dependencies from the correct place.
 The repository that contains the remaining artifacts should come at the end, so we only query it if we don’t find the included modules in the other repositories.
-Another option is to use the <<filtering_repository_content.adoc#sec:declaring-content-repositories,exclusiveContent>> if you are able to. Here, the order doesn’t matter.
+You should also use the <<filtering_repository_content.adoc#sec:declaring-content-repositories,exclusiveContent>> feature to restrict a dependency to a certain repository regardless of declaration order.
 
 Content filtering has three main benefits:
 
@@ -238,7 +238,7 @@ include::sample[dir="snippets/bestPractices/content-filtering-exclusive-do/groov
 
 Alternatively, using content filtering for additional repositories while having the fallback repository at the end is also a good option.
 
-NOTE: Not using content filtering on the last repository may be a security risk since you might resolve artifacts that you expect to be resolved from other repositories with content filtering from it, so make sure you trust the repository.
+NOTE: If you don’t apply content filtering to the last declared repository, you may inadvertently resolve artifacts from it that were intended to come from earlier, trusted repositories with content filtering. This can pose a security risk, so make sure you fully trust the repository.
 
 ====
 include::sample[dir="snippets/bestPractices/content-filtering-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
