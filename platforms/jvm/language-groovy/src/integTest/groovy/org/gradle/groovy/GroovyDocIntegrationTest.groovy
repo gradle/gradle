@@ -171,7 +171,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/33288")
-    def "does not interfere with output of subsequent tasks"() {
+    def "does not interfere with output of parallel tasks"() {
         file("src/main/groovy/pkg/Thing.groovy") << """
             package pkg
 
