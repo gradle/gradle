@@ -22,8 +22,6 @@ import org.gradle.api.internal.file.FileFactory
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readFile
-import org.gradle.internal.serialize.graph.writeFile
 
 
 class DirectoryCodec(private val fileFactory: FileFactory) : Codec<Directory> {
