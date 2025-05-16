@@ -27,7 +27,9 @@ plugins {
 description = "Entry point of the Gradle wrapper command"
 
 gradleModule {
-    usedInWrapper = true
+    targetRuntimes {
+        usedInWrapper = true
+    }
 }
 
 dependencies {

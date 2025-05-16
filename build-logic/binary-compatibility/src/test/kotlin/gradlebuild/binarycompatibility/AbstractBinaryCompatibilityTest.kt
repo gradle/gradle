@@ -252,7 +252,7 @@ abstract class AbstractBinaryCompatibilityTest {
             withSettings("""include("v1", "v2", "binary-compatibility")""")
             withBuildScript(
                 """
-                    import gradlebuild.identity.extension.ModuleIdentityExtension
+                    import gradlebuild.identity.extension.GradleModuleExtension
 
                     plugins {
                         base
@@ -261,7 +261,7 @@ abstract class AbstractBinaryCompatibilityTest {
                     subprojects {
                         apply(plugin = "gradlebuild.module-identity")
                         apply(plugin = "kotlin")
-                        the<ModuleIdentityExtension>().baseName.set("api-module")
+                        the<GradleModuleExtension>().identity.baseName.set("api-module")
                         repositories {
                             mavenCentral()
                         }

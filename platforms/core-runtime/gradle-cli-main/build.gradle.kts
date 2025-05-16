@@ -23,7 +23,9 @@ plugins {
 description = "Entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
 gradleModule {
-    usedInClient = true
+    targetRuntimes {
+        usedInClient = true
+    }
 }
 
 tasks.jar {

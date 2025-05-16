@@ -6,7 +6,9 @@ plugins {
 description = "Build operations are our way to inspect the process of executing a build"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

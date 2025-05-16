@@ -6,7 +6,9 @@ plugins {
 description = "Develocity plugin dependencies that also need to be exposed to workers"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

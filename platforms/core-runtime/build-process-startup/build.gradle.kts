@@ -26,7 +26,9 @@ description = """
     """
 
 gradleModule {
-    usedForStartup = true
+    targetRuntimes {
+        usedForStartup = true
+    }
 }
 
 dependencies {

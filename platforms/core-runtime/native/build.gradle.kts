@@ -6,14 +6,9 @@ plugins {
 description = "This project contains various native operating system integration utilities"
 
 gradleModule {
-    usedInWorkers = true
-}
-
-/**
- * Use Java 8 compatibility for JMH benchmarks
- */
-tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
-    options.release = 8
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {
