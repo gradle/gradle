@@ -61,18 +61,6 @@ import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 public class JvmPluginsHelper {
 
     /**
-     * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
-     */
-    @Deprecated
-    public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
-        compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
-        compile.setSource(sourceSet.getJava());
-
-        compileAgainstJavaOutputs(compile, sourceSet, target.getObjects());
-        configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
-    }
-
-    /**
      * Configures {@code compileTask} to compile against {@code sourceSet}'s compile classpath
      * in addition to the outputs of the java compilation, as specified by {@link SourceSet#getJava()}
      *
@@ -91,15 +79,6 @@ public class JvmPluginsHelper {
         conventionMapping.map("annotationProcessorPath", sourceSet::getAnnotationProcessorPath);
         String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
-    }
-
-    /**
-     * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
-     */
-    @Deprecated
-    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
-        TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options);
     }
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
