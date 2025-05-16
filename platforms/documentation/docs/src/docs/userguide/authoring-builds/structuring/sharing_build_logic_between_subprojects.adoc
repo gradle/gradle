@@ -24,7 +24,7 @@ This way, you can declare the dependency version in one place and have it automa
 image::structuring-builds-8.png[]
 
 [[sec:sharing_logic_via_convention_plugins]]
-== Using `buildSrc` as a convention plugin
+== Using `buildSrc`
 
 `buildSrc` is a special directory in a Gradle build that allows you to organize and share build logic, such as custom plugins, tasks, configurations, and utility functions, across all projects in your build.
 
@@ -82,8 +82,8 @@ The build file for `api`, `services`, and `shared` has many commonalities:
 ++++
 
 ====
-include::sample[dir="snippets/multiproject/buildSrc/kotlin",files="api/build.gradle.kts[tags=common-logic];services/build.gradle.kts[tags=common-logic];shared/build.gradle.kts[tags=common-logic]"]
-include::sample[dir="snippets/multiproject/buildSrc/groovy",files="api/build.gradle[tags=common-logic];services/build.gradle[tags=common-logic];shared/build.gradle[tags=common-logic]"]
+include::sample[dir="snippets/multiproject/no-buildSrc/kotlin",files="api/build.gradle.kts[tags=common-logic];services/build.gradle.kts[tags=common-logic];shared/build.gradle.kts[tags=common-logic]"]
+include::sample[dir="snippets/multiproject/no-buildSrc/groovy",files="api/build.gradle[tags=common-logic];services/build.gradle[tags=common-logic];shared/build.gradle[tags=common-logic]"]
 ====
 
 To avoid duplicating build logic across `api`, `services`, and `shared`, we can move the shared parts into `buildSrc`.
