@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl.serialization.codecs
 
 import com.google.common.reflect.TypeToken
-import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.internal.configuration.problems.PropertyKind
@@ -30,6 +29,7 @@ import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.Externalizable

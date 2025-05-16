@@ -3,9 +3,6 @@ package org.gradle.kotlin.dsl.provider
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-
 import org.gradle.api.internal.initialization.AbstractClassLoaderScope
 
 import org.gradle.internal.classpath.ClassPath
@@ -22,6 +19,8 @@ import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 import java.lang.ClassLoader.getSystemClassLoader
 

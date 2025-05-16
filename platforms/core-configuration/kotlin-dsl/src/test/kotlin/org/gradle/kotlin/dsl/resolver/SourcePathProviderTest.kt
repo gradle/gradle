@@ -1,7 +1,5 @@
 package org.gradle.kotlin.dsl.resolver
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.fixtures.FolderBasedTest
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider.sourcePathFor
@@ -11,6 +9,8 @@ import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 
 class SourcePathProviderTest : FolderBasedTest() {

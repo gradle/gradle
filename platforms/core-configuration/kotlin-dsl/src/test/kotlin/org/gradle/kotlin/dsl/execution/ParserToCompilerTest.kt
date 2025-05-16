@@ -16,11 +16,11 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 
 class ParserToCompilerTest : TestWithCompiler() {
