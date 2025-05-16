@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.plugins.ExtensionAware
@@ -35,6 +33,8 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 
 class DefaultProjectSchemaProviderTest {

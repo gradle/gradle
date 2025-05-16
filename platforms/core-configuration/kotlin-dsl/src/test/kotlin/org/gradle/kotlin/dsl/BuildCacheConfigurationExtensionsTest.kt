@@ -23,13 +23,12 @@ import org.gradle.caching.http.HttpBuildCache
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doNothing
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
 
 
 class BuildCacheConfigurationExtensionsTest {

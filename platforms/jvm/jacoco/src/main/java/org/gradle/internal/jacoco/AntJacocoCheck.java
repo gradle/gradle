@@ -61,7 +61,7 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
         final Map<String, Object> emptyArgs = Collections.emptyMap();
         try {
             antBuilder.invokeMethod("jacocoReport", new Object[]{Collections.emptyMap(), new Closure<Object>(this, this) {
-                @SuppressWarnings("UnusedDeclaration")
+                @SuppressWarnings({"UnusedDeclaration", "UnusedVariable"})
                 public Object doCall(Object ignore) {
                     antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
                         public Object doCall(Object ignore) {
@@ -86,6 +86,7 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                                 sourcefilesArgs = Collections.singletonMap("encoding", encoding);
                             }
                             antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefilesArgs, new Closure<Object>(this, this) {
+                                @SuppressWarnings("UnusedVariable")
                                 public Object doCall(Object ignore) {
                                     params.getAllSourcesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
                                     return Void.class;
@@ -102,7 +103,7 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                             "violationsproperty", VIOLATIONS_ANT_PROPERTY);
 
                         antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
-                            @SuppressWarnings("UnusedDeclaration")
+                            @SuppressWarnings({"UnusedDeclaration", "UnusedVariable"})
                             public Object doCall(Object ignore) {
                                 for (final JacocoViolationRule rule : rules) {
                                     Map<String, Object> ruleArgs = ImmutableMap.<String, Object>of("element", rule.getElement(), "includes", Joiner.on(':').join(rule.getIncludes()), "excludes", Joiner.on(':').join(rule.getExcludes()));

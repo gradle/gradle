@@ -5,7 +5,6 @@ import common.Os
 import common.buildScanTagParam
 import common.getBuildScanCustomValueParam
 import common.requiresNotEc2Agent
-import common.toCapitalized
 import model.CIBuildModel
 import model.Stage
 

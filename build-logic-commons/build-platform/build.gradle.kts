@@ -10,7 +10,7 @@ group = "gradlebuild"
 description = "Provides a platform that constrains versions of external dependencies used by Gradle"
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
-val javaParserVersion = "3.18.0"
+val javaParserVersion = "3.26.4"
 // Note: this currently still contains 3/4 logic as we will temporarily have Groovy 3 for the build itself until we move to a Gradle built with Groovy 4
 // It can be removed or changed to 4/5 logic (if necessary) at that point.
 val groovyVersion = GroovySystem.getVersion()
@@ -29,11 +29,11 @@ dependencies {
         api("org.gradle.guides:gradle-guides-plugin:0.23.4")
         api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
         api("com.gradle:develocity-gradle-plugin:4.0.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-        api("com.gradle.publish:plugin-publish-plugin:1.2.1")
+        api("com.gradle.publish:plugin-publish-plugin:1.3.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.10")
-        api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
-        api("me.champeau.jmh:jmh-gradle-plugin:0.7.2")
-        api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
+        api("me.champeau.gradle:japicmp-gradle-plugin:0.4.6")
+        api("me.champeau.jmh:jmh-gradle-plugin:0.7.3")
+        api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.4")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("com.autonomousapps:dependency-analysis-gradle-plugin:2.17.0")
@@ -41,15 +41,13 @@ dependencies {
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
-        api("com.google.guava:guava:33.4.6-jre")
-        api("com.google.errorprone:error_prone_annotations:2.5.1")
+        api("com.google.guava:guava:33.4.8-jre")
+        api("com.google.errorprone:error_prone_annotations:2.38.0")
         api("com.google.code.gson:gson:2.13.1") // keep in sync with settings.gradle.kts
-        api("com.nhaarman:mockito-kotlin:1.6.0")
-        api("com.thoughtworks.qdox:qdox:2.0.3")
-        api("com.uwyn:jhighlight:1.0")
-        api("com.vladsch.flexmark:flexmark-all:0.34.60") {
-            because("Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)")
-        }
+        api("org.mockito.kotlin:mockito-kotlin:5.4.0")
+        api("com.thoughtworks.qdox:qdox:2.2.0")
+        api("org.codelibs:jhighlight:1.1.0")
+        api("com.vladsch.flexmark:flexmark-all:0.64.8")
         api("org.apache.pdfbox:pdfbox:2.0.24") {
             because("Flexmark 0.34.60 brings in a vulnerable version of pdfbox")
         }
@@ -64,8 +62,8 @@ dependencies {
         api("junit:junit:4.13.2")
         api("org.spockframework:spock-core:$spockVersion")
         api("org.spockframework:spock-junit4:$spockVersion")
-        api("org.asciidoctor:asciidoctorj:2.5.13")
-        api("org.asciidoctor:asciidoctorj-api:2.5.13")
+        api("org.asciidoctor:asciidoctorj:3.0.0")
+        api("org.asciidoctor:asciidoctorj-api:3.0.0")
         api("dev.adamko.dokkatoo:dokkatoo-plugin:2.3.1")
         api("org.jetbrains.dokka:dokka-core:1.9.20")
         api("com.fasterxml.woodstox:woodstox-core:6.4.0") {

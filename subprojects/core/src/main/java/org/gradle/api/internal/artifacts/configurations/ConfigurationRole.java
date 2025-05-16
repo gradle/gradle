@@ -54,8 +54,8 @@ public interface ConfigurationRole {
      * @return {@code true} if so; {@code false} otherwise
      */
     default boolean isUsageConsistentWithRole(Configuration configuration) {
-        return (isConsumable() == configuration.isCanBeConsumed())
-            && (isResolvable() == configuration.isCanBeResolved())
-            && (isDeclarable() == configuration.isCanBeDeclared());
+        return isConsumable() == configuration.isCanBeConsumed()
+            && isResolvable() == configuration.isCanBeResolved()
+            && isDeclarable() == configuration.isCanBeDeclared();
     }
 }

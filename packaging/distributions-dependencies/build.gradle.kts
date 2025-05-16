@@ -74,8 +74,8 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.14.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
-        api(libs.fastutil)              { version { strictly("8.5.2") }}
+        api(libs.errorProneAnnotations) { version { strictly("2.38.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
+        api(libs.fastutil)              { version { strictly("8.5.15") }}
         api(libs.gradleFileEvents)      { version { strictly("0.2.7") }}
         api(libs.gradleProfiler)        { version { strictly("0.23.0-alpha-1") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
@@ -190,7 +190,7 @@ dependencies {
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("5.1.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
-        api(libs.javaParser)            { version { strictly("3.17.0") }}
+        api(libs.javaParser)            { version { strictly("3.26.4") }}
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
         api(libs.jettyServer)           { version { strictly(jettyVersion) }}
@@ -212,9 +212,8 @@ dependencies {
         api(libs.mavenResolverTransportFile)    { version { strictly(mavenResolverVersion) }}
         api(libs.mavenResolverTransportHttp)    { version { strictly(mavenResolverVersion) }}
         api(libs.mina)                  { version { strictly("2.0.17") }}
-        api(libs.mockitoCore)           { version { strictly("3.7.7") }}
-        api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
-        api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
+        api(libs.mockitoCore)           { version { strictly("5.17.0") }}
+        api(libs.mockitoKotlin)         { version { strictly("4.1.0") }}
         api(libs.mockwebserver)         { version { strictly("4.12.0") }}
         api(libs.mySqlConnector)        { version { strictly("9.2.0") }}
         api(libs.netty)                 { version { strictly("4.1.63.Final") }}

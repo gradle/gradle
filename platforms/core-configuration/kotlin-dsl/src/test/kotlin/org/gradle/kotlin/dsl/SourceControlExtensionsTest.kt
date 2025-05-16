@@ -20,12 +20,11 @@ import org.gradle.api.Action
 import org.gradle.vcs.VcsMapping
 import org.gradle.vcs.git.GitVersionControlSpec
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doNothing
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
 
 
 class SourceControlExtensionsTest {

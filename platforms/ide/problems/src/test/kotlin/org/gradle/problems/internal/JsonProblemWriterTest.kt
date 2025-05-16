@@ -1,5 +1,3 @@
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import groovy.json.JsonSlurper
 import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
@@ -15,6 +13,8 @@ import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.problems.internal.impl.JsonProblemWriter
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.io.StringWriter
 
 class JsonProblemWriterTest {

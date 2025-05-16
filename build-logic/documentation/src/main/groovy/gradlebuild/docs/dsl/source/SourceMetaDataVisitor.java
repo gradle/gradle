@@ -188,6 +188,7 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
     }
 
     @Override
+    @SuppressWarnings("UnnecessaryParentheses")
     public void visit(FieldDeclaration fieldDeclaration, ClassMetaDataRepository<ClassMetaData> arg) {
         boolean isConst = getCurrentClass().isInterface() || (fieldDeclaration.isStatic() && fieldDeclaration.isFinal());
         if (isConst) {

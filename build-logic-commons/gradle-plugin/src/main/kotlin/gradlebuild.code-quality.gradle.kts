@@ -60,8 +60,7 @@ project.plugins.withType<JavaBasePlugin> {
         project.dependencies.addProvider(
             annotationProcessorConfigurationName,
             // don't forget to update the version in distributions-dependencies/build.gradle.kts
-            // 2.31.0 is the latest version that works with JDK 11
-            extension.enabled.filter { it }.map { "com.google.errorprone:error_prone_core:2.31.0" }
+            extension.enabled.filter { it }.map { "com.google.errorprone:error_prone_core:2.38.0" }
         )
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
@@ -105,8 +104,7 @@ val rules by configurations.creating {
 }
 
 val groovyVersion = GroovySystem.getVersion()
-val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-val codenarcVersion = if (isAtLeastGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
+val codenarcVersion = "3.6.0-groovy-4.0"
 
 dependencies {
     rules("gradlebuild:code-quality-rules") {
@@ -128,7 +126,7 @@ dependencies {
 fun configFile(fileName: String) = resources.text.fromFile(rules.asFileTree.filter { it.name == fileName })
 
 checkstyle {
-    toolVersion = "8.12"
+    toolVersion = "10.23.1"
     config = configFile("checkstyle.xml")
     val projectDirectory = layout.projectDirectory
     configDirectory = rules.elements.map {

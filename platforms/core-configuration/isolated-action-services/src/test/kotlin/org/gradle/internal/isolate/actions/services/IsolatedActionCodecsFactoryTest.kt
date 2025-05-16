@@ -16,8 +16,6 @@
 
 package org.gradle.internal.isolate.actions.services
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.IsolatedAction
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.TestFiles
@@ -39,6 +37,8 @@ import org.gradle.util.TestUtil.propertyFactory
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.util.function.Consumer
 
 typealias TestableIsolatedAction<T> = IsolatedAction<in Consumer<T>>

@@ -264,6 +264,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
         return generator.define();
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private void visitFields(Class<?> type, ValidationProblemCollector collector) {
         if (type.equals(Object.class)) {
             return;

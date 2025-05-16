@@ -178,6 +178,7 @@ public class SimpleMarkupWriter extends Writer {
         }
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private void writeCDATA(int ch) throws IOException {
         if (needsCDATAEscaping(ch)) {
             writeRaw("]]><![CDATA[>");
@@ -358,6 +359,7 @@ public class SimpleMarkupWriter extends Writer {
         }
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private void writeSafeCharacter(int ch) throws IOException {
         if (!XmlValidation.isLegalCharacter(ch)) {
             writeRaw('?');

@@ -107,6 +107,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         public void execute(@NonNull String testClassName) {
             Class<?> klass = loadClass(testClassName);
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {

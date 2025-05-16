@@ -16,11 +16,11 @@
 
 package org.gradle.kotlin.dsl.plugins.embedded
 
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.logging.Logger
 import org.gradle.kotlin.dsl.*
 import org.junit.Test
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
 
 
 class EmbeddedKotlinPluginTest {
