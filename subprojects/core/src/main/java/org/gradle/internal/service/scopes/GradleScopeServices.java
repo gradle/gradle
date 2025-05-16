@@ -16,6 +16,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
@@ -59,6 +60,7 @@ import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -94,16 +96,23 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     @Provides
     BuildWorkExecutor createBuildExecuter(
         GradleInternal gradle,
+        BuildState build,
         StyledTextOutputFactory textOutputFactory,
         BuildOperationRunner buildOperationRunner
     ) {
+        BuildWorkExecutor delegate = new SelectedTaskExecutionAction();
+        boolean shouldRun = false;
+        if (build instanceof NestedBuildState) {
+            BuildDefinition buildDefinition = ((NestedBuildState) build).getBuildDefinition();
+            shouldRun = buildDefinition.isPluginBuild();
+        }
         BuildWorkExecutor executor;
-        if (gradle.getStartParameter().isDryRun()) {
-            executor = new DryRunBuildExecutionAction(textOutputFactory);
-        } else if (gradle.getStartParameter().isTaskGraph()) {
-            executor = new TaskGraphBuildExecutionAction(textOutputFactory);
+        if (gradle.getStartParameter().isDryRun() && !shouldRun) {
+            executor = new DryRunBuildExecutionAction(delegate, textOutputFactory);
+        } else if (gradle.getStartParameter().isTaskGraph() && !shouldRun) {
+            executor = new TaskGraphBuildExecutionAction(delegate, textOutputFactory);
         } else {
-            executor = new SelectedTaskExecutionAction();
+            executor = delegate;
         }
         return new BuildOperationFiringBuildWorkerExecutor(executor, buildOperationRunner);
     }
