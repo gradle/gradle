@@ -71,6 +71,7 @@ public abstract class AstUtils {
         }
     }
 
+    @Nullable
     public static ClassNode getScriptClass(SourceUnit source) {
         if (source.getAST().getStatementBlock().getStatements().isEmpty() && source.getAST().getMethods().isEmpty()) {
             // There is no script class when there are no statements or methods declared in the script
