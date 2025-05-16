@@ -39,12 +39,12 @@ class DefaultConfigurationCacheDegradationController(
     override fun requireConfigurationCacheDegradation(reason: String, spec: Provider<Boolean>) {
         val trace = userCodeApplicationContext.current()?.let { PropertyTrace.BuildLogic(it.source) }
             ?: PropertyTrace.Unknown
-        buildLogicDegradationRequests.add(DegradationRequest(trace, reason, spec))
+        buildLogicDegradationRequests.add(DegradationRequest(trace, reason, spec, DegradationRequest.Kind.BuildLogic))
     }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: String, spec: Provider<Boolean>) {
         val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
-        tasksDegradationRequests.add(DegradationRequest(trace, reason, spec))
+        tasksDegradationRequests.add(DegradationRequest(trace, reason, spec, DegradationRequest.Kind.Task))
     }
 
     override fun shouldDegradeGracefully(executionPlan: FinalizedExecutionPlan): Boolean {
@@ -60,7 +60,10 @@ class DefaultConfigurationCacheDegradationController(
                 }
             }
         }
-
+        currentDegradationReasons.putAll(buildLogicDegradationRequests
+            .filter { it.spec.getOrElse(false) }
+            .groupBy({ it.trace }, { it.reason })
+        )
         return currentDegradationReasons.isNotEmpty()
     }
 
@@ -72,6 +75,11 @@ class DefaultConfigurationCacheDegradationController(
     private data class DegradationRequest(
         val trace: PropertyTrace,
         val reason: String,
-        val spec: Provider<Boolean>
-    )
+        val spec: Provider<Boolean>,
+        val kind: Kind
+    ) {
+        enum class Kind {
+            Task, BuildLogic
+        }
+    }
 }

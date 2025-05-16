@@ -21,7 +21,6 @@ import org.junit.Ignore
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Ignore("Build logic degradation requests isn't supported yet")
     def "can declare applied plugin as CC incompatible"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildSrc/src/main/groovy/foo.gradle", """
@@ -127,7 +126,6 @@ Configuration cache entry discarded because degradation was requested by:
         outputContains("Hello from B")
     }
 
-    @Ignore("Build logic degradation requests isn't supported yet")
     def "a plugin requesting СС degradation hides an incompatible plugin's problems"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildSrc/src/main/groovy/degrading.gradle", """
