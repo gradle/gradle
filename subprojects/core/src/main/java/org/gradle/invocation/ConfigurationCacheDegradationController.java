@@ -18,6 +18,7 @@ package org.gradle.invocation;
 
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -26,4 +27,6 @@ public interface ConfigurationCacheDegradationController {
     void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec);
 
     void requireConfigurationCacheDegradation(Task task, String reason, Provider<Boolean> spec);
+
+    boolean shouldDegradeGracefully(FinalizedExecutionPlan executionPlan);
 }

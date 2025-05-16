@@ -219,8 +219,6 @@ interface MutableIsolateContext : IsolateContext {
     fun pop()
 
     suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit)
-
-    suspend fun forTask(trace: PropertyTrace, action: suspend () -> Unit)
 }
 
 
