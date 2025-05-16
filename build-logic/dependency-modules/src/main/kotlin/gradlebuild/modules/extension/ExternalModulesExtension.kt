@@ -28,7 +28,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     val configurationCacheReportVersion = "1.25"
     val gradleIdeStarterVersion = "0.5"
-    val kotlinVersion = "2.1.21-RC2"
+    val kotlinVersion = "2.1.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -125,6 +125,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val kotlinCompilerEmbeddable = futureKotlin("compiler-embeddable")
     val kotlinReflect = futureKotlin("reflect")
     val kotlinStdlib = futureKotlin("stdlib")
+    val kotlinBuildToolsImpl = futureKotlin("build-tools-impl")
     val kotlinJvmAbiGenEmbeddable = "org.jetbrains.kotlin:jvm-abi-gen-embeddable"
     val kotlinxSerializationCore = "org.jetbrains.kotlinx:kotlinx-serialization-core"
     val kotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json"

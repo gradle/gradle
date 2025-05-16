@@ -933,7 +933,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
+    fun `can access nested extensions registered by declared plugins via jit accessors`() {
 
         withDefaultSettingsIn("buildSrc")
 
@@ -978,26 +978,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
                     val rootExtensionNestedExtension = rootExtension.extensions.create("nestedExtension", MyExtension::class.java, "nested-in-extension")
                     rootExtensionNestedExtension.extensions.add("deepExtension", listOf("foo", "bar"))
-
-                    val rootExtensionNestedConvention = objects.newInstance(MyConvention::class.java, "nested-in-extension")
-                    rootExtensionNestedConvention.extensions.add("deepExtension", mapOf("foo" to "bar"))
-
-                    val rootConvention = objects.newInstance(MyConvention::class.java, "root")
-                    val rootConventionNestedConvention = objects.newInstance(MyConvention::class.java, "nested-in-convention")
-
-                    convention.plugins.put("rootConvention", rootConvention)
-
-                    val rootConventionNestedExtension = rootConvention.extensions.create("nestedExtension", MyExtension::class.java, "nested-in-convention")
-                    rootConventionNestedExtension.extensions.add("deepExtension", listOf("bazar", "cathedral"))
-
-                    rootConventionNestedConvention.extensions.add("deepExtension", mapOf("bazar" to "cathedral"))
                 }
             }
 
             abstract class MyExtension(val value: String) : ExtensionAware {
-            }
-
-            abstract class MyConvention @javax.inject.Inject constructor(val value: String) : ExtensionAware {
             }
             """
         )
@@ -1014,121 +998,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                     require(deepExtension == listOf("foo", "bar"), { "rootExtension.nestedExtension.deepExtension" })
                 }
             }
-
-            rootConvention {
-                nestedExtension {
-                    require(value == "nested-in-convention", { "rootConvention.nestedExtension" })
-                    require(deepExtension == listOf("bazar", "cathedral"), { "rootConvention.nestedExtension.deepExtension" })
-                }
-            }
             """
         )
 
-        (1..2).forEach {
-            executer.expectDocumentedDeprecationWarning("The org.gradle.api.plugins.Convention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-        }
         build("help")
-    }
-
-    @Test
-    fun `convention accessors honor HasPublicType`() {
-
-        withDefaultSettingsIn("buildSrc")
-
-        withBuildScriptIn(
-            "buildSrc",
-            """
-            plugins {
-                `kotlin-dsl`
-            }
-
-            gradlePlugin {
-                plugins {
-                    register("my-plugin") {
-                        id = "my-plugin"
-                        implementationClass = "plugins.MyPlugin"
-                    }
-                }
-            }
-
-            $repositoriesBlock
-            """
-        )
-
-        withFile(
-            "buildSrc/src/main/kotlin/plugins/MyPlugin.kt",
-            """
-            package plugins
-
-            import org.gradle.api.*
-            import org.gradle.api.plugins.*
-
-            class MyPlugin : Plugin<Project> {
-                override fun apply(project: Project): Unit = project.run {
-                    convention.plugins.put("myConvention", MyPrivateConventionImpl())
-                }
-            }
-            """
-        )
-
-        withFile(
-            "buildSrc/src/main/kotlin/plugins/MyConvention.kt",
-            """
-            package plugins
-
-            interface MyConvention
-
-            internal
-            class MyPrivateConventionImpl : MyConvention
-            """
-        )
-
-        withBuildScript(
-            """
-            plugins {
-                id("my-plugin")
-            }
-
-            inline fun <reified T> typeOf(t: T) = T::class.simpleName
-
-            myConvention {
-                println("Type of `myConvention` receiver is " + typeOf(this@myConvention))
-            }
-            """
-        )
-
-        executer.beforeExecute {
-            (1..2).forEach { _ ->
-                it.expectDocumentedDeprecationWarning("The org.gradle.api.plugins.Convention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-            }
-        }
-
-        assertThat(
-            build("help").output,
-            containsString("Type of `myConvention` receiver is Any")
-        )
-
-        withFile(
-            "buildSrc/src/main/kotlin/plugins/MyConvention.kt",
-            """
-            package plugins
-
-            import org.gradle.api.reflect.*
-            import org.gradle.kotlin.dsl.*
-
-            interface MyConvention
-
-            internal
-            class MyPrivateConventionImpl : MyConvention, HasPublicType {
-                override fun getPublicType() = typeOf<MyConvention>()
-            }
-            """
-        )
-
-        assertThat(
-            build("help").output,
-            containsString("Type of `myConvention` receiver is MyConvention")
-        )
     }
 
     @Test

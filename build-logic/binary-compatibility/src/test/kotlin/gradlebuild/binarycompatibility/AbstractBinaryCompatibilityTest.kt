@@ -215,7 +215,7 @@ abstract class AbstractBinaryCompatibilityTest {
      */
     private
     fun runBinaryCompatibilityCheckWithFailure(v1: File.() -> Unit, v2: File.() -> Unit, block: BuildResult.() -> Unit = {}): BuildResult {
-        rootDir.withFile("version.txt", "1.0")
+        rootDir.withFile("version.txt", "9.0.0")
 
         val inputBuildDir = setupRunBinaryCompatibility(v1, v2)
 
@@ -245,7 +245,7 @@ abstract class AbstractBinaryCompatibilityTest {
 
     private
     fun setupRunBinaryCompatibility(v1: File.() -> Unit, v2: File.() -> Unit): File {
-        rootDir.withFile("version.txt", "1.0")
+        rootDir.withFile("version.txt", "9.0.0")
 
         return rootDir.withUniqueDirectory("input-build").apply {
 

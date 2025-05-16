@@ -262,11 +262,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private Set<TestIdentifier> getAncestors(TestIdentifier testIdentifier) {
         Set<TestIdentifier> result = new LinkedHashSet<>();
-        Optional<String> parentId = testIdentifier.getParentId();
-        while (parentId.isPresent()) {
-            TestIdentifier parent = currentTestPlan.getTestIdentifier(parentId.get());
-            result.add(parent);
-            parentId = parent.getParentId();
+        Optional<TestIdentifier> parent = getParent(testIdentifier);
+        while (parent.isPresent()) {
+            result.add(parent.get());
+            parent = getParent(parent.get());
         }
         return result;
     }
@@ -281,9 +280,20 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             if (isTestClassIdentifier(current)) {
                 return current;
             }
-            current = current.getParentId().map(currentTestPlan::getTestIdentifier).orElse(null);
+            current = getParent(current).orElse(null);
         }
         return null;
+    }
+
+    @SuppressWarnings("deprecation")
+    private Optional<TestIdentifier> getParent(TestIdentifier testIdentifier) {
+        try {
+            return testIdentifier.getParentIdObject().map(currentTestPlan::getTestIdentifier);
+        // Some versions of the JDK throw a BootstrapMethodError
+        } catch (NoSuchMethodError | BootstrapMethodError ignore) {
+            // To support pre-1.10 versions of the JUnit Platform
+            return testIdentifier.getParentId().map(currentTestPlan::getTestIdentifier);
+        }
     }
 
     private boolean isTestClassIdentifier(TestIdentifier testIdentifier) {

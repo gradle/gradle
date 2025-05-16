@@ -385,6 +385,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.component.BuildIdentifier",
+            "member": "Method org.gradle.api.artifacts.component.BuildIdentifier.getName()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.component.BuildIdentifier",
+            "member": "Method org.gradle.api.artifacts.component.BuildIdentifier.isCurrentBuild()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.component.ProjectComponentSelector",
             "member": "Method org.gradle.api.artifacts.component.ProjectComponentSelector.getBuildName()",
             "acceptation": "Deprecated in 8.x",
@@ -1106,6 +1122,14 @@
         },
         {
             "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.aggregate(org.gradle.api.reporting.Reporting[])",
+            "acceptation": "Method made final to allow @SafeVarargs annotation",
+            "changes": [
+                "Method is now final"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
             "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getCollectionCallbackActionDecorator()",
             "acceptation": "Removed deprecated method",
             "changes": [
@@ -1142,6 +1166,14 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.specs.AndSpec",
+            "member": "Method org.gradle.api.specs.AndSpec.and(org.gradle.api.specs.Spec[])",
+            "acceptation": "Method made final to allow @SafeVarargs annotation",
+            "changes": [
+                "Method is now final"
             ]
         },
         {
@@ -2530,6 +2562,46 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPluginByName(org.gradle.api.plugins.Convention,java.lang.String)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.withConvention(java.lang.Object,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module$default(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
             "acceptation": "Remove deprecated method",
@@ -2785,14 +2857,99 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledInitScript(org.gradle.api.invocation.Gradle)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledInitScript.getFileOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledInitScript.getProcessOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
             "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
             "changes": [
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript(org.gradle.api.Project)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript.buildscript(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript.plugins(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript(org.gradle.api.initialization.Settings)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript.getFileOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript.getProcessOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {

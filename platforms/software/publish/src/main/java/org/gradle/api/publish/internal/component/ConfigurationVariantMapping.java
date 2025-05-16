@@ -36,7 +36,6 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -108,12 +107,13 @@ public class ConfigurationVariantMapping {
     }
 
     // Cannot be private due to reflective instantiation
-    static class DefaultConfigurationVariant implements ConfigurationVariant {
+    static abstract class DefaultConfigurationVariant implements ConfigurationVariant {
         private final ConfigurationInternal outgoingConfiguration;
 
         @Inject
         public DefaultConfigurationVariant(ConfigurationInternal outgoingConfiguration) {
             this.outgoingConfiguration = outgoingConfiguration;
+            getDescription().convention(outgoingConfiguration.getDescription()).finalizeValueOnRead();
         }
 
         @Override
@@ -134,11 +134,6 @@ public class ConfigurationVariantMapping {
         @Override
         public String getName() {
             return outgoingConfiguration.getName();
-        }
-
-        @Override
-        public Optional<String> getDescription() {
-            return Optional.ofNullable(outgoingConfiguration.getDescription());
         }
 
         @Override

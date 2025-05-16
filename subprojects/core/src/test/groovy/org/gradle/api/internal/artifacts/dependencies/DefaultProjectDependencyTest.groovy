@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.project.ProjectIdentity
@@ -138,7 +137,7 @@ class DefaultProjectDependencyTest extends Specification {
         differentConf.setTargetConfiguration("conf2")
 
         def otherProjectState = Mock(ProjectState) {
-            getIdentity() >> new ProjectIdentity(Mock(BuildIdentifier), Path.path(":foo"), Path.path(":foo"), "foo")
+            getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.path(":foo"), Path.path(":foo"), "foo")
         }
         def differentProject = new DefaultProjectDependency(otherProjectState)
         differentProject.setTargetConfiguration("conf1")

@@ -35,7 +35,8 @@ import javax.inject.Inject;
  * project is making the request, we can determine which projects depend on which other projects.
  */
 public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
-    private final Path currentProjectPath;
+
+    private final @Nullable Path currentProjectPath;
     private final Path currentBuildPath;
     private final ProjectComponentObservationListener projectComponentObservationListener;
     private final BuildTreeLocalComponentProvider componentProvider;
@@ -54,9 +55,9 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
     @Override
     public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
-        Path targetProjectPath = ((ProjectComponentIdentifierInternal) projectIdentifier).getIdentityPath();
+        ProjectIdentity targetProjectId = ((ProjectComponentIdentifierInternal) projectIdentifier).getProjectIdentity();
+        Path targetProjectPath = targetProjectId.getBuildTreePath();
         if (!targetProjectPath.equals(currentProjectPath)) {
-
             // TODO: We should relax this check. For legacy reasons we are not tracking cross-build project
             // dependencies, but we should be. Removing this condition breaks some Isolated Projects tests,
             // so we need to investigate why they are failing and then remove this condition.
@@ -65,10 +66,9 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
             if (projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.getPath())) {
                 projectComponentObservationListener.projectObserved(currentProjectPath, targetProjectPath);
             }
-
         }
 
-        return componentProvider.getComponent(projectIdentifier, currentBuildPath);
+        return componentProvider.getComponent(targetProjectId, currentBuildPath);
     }
 
     @Nullable
@@ -80,4 +80,5 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
         return null;
     }
+
 }

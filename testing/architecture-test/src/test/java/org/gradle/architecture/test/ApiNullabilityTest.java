@@ -27,24 +27,32 @@ import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedOrInPackag
 import static org.gradle.architecture.test.ArchUnitFixture.classes_not_written_in_kotlin;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.inGradleInternalApiPackages;
+import static org.gradle.architecture.test.ArchUnitFixture.inGradlePublicApiPackages;
 import static org.gradle.architecture.test.ArchUnitFixture.not_synthetic_classes;
 
+/**
+ * This test validates that classes are annotated with {@link NullMarked}.
+ * <p>
+ * The annotation can be applied on the class directly, but the preferred way is to annotate the package by adding or updating the {@code package-info.java} file.
+ * See {@code subprojects/core-api/src/main/java/org/gradle/package-info.java} for an example.
+ * <p>
+ * Note that adding the annotation for a package in one subproject will automatically apply it for the same package in all other subprojects.
+ * Therefore, it's advised to add the annotation to the package in the most appropriate subproject.
+ * For instance, if the package exists in both {@code :core} and {@code :base-services}, it should be annotated in {@code :base-services}.
+ */
 @AnalyzeClasses(packages = "org.gradle")
-public class InternalNullabilityTest {
+public class ApiNullabilityTest {
 
-    /**
-     * This test validates that all internal classes are annotated with {@link NullMarked}.
-     * <p>
-     * The annotation can be applied on the class directly, but the preferred way is to annotate the package by adding or updating the {@code package-info.java} file.
-     * See {@code subprojects/core-api/src/main/java/org/gradle/package-info.java} for an example.
-     * <p>
-     * Note that adding the annotation for a package in one subproject will automatically apply it for the same package in all other subprojects.
-     * Therefore, it's advised to add the annotation to the package in the most appropriate subproject.
-     * For instance, if the package exists in both {@code :core} and {@code :base-services}, it should be annotated in {@code :base-services}.
-     */
     @ArchTest
     public static final ArchRule internal_classes_are_annotated_with_non_null_api = freeze(classes()
         .that(are(inGradleInternalApiPackages()))
+        .and(classes_not_written_in_kotlin)
+        .and(not_synthetic_classes)
+        .should(beAnnotatedOrInPackageAnnotatedWith(NullMarked.class)));
+
+    @ArchTest
+    public static final ArchRule public_api_classes_are_annotated_with_non_null_api = freeze(classes()
+        .that(are(inGradlePublicApiPackages()))
         .and(classes_not_written_in_kotlin)
         .and(not_synthetic_classes)
         .should(beAnnotatedOrInPackageAnnotatedWith(NullMarked.class)));

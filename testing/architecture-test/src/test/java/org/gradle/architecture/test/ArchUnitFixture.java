@@ -52,6 +52,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -107,6 +110,9 @@ public interface ArchUnitFixture {
         .as("written in Java or Groovy");
 
     DescribedPredicate<JavaMember> not_from_fileevents = declaredIn(resideOutsideOfPackages("org.gradle.fileevents.."))
+        .as("not from fileevents");
+
+    DescribedPredicate<JavaClass> not_from_fileevents_classes = resideOutsideOfPackages("org.gradle.fileevents..")
         .as("not from fileevents");
 
     DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
@@ -353,12 +359,12 @@ public interface ArchUnitFixture {
                 method.getSourceCodeLocation())
 
                 : String.format("%s has arguments/return type %s that %s not %s in %s",
-                    method.getDescription(),
-                    String.join(", ", matchedClasses),
-                    matchedClasses.size() == 1 ? "is" : "are",
-                    types.getDescription(),
-                    method.getSourceCodeLocation()
-                );
+                method.getDescription(),
+                String.join(", ", matchedClasses),
+                matchedClasses.size() == 1 ? "is" : "are",
+                types.getDescription(),
+                method.getSourceCodeLocation()
+            );
             events.add(new SimpleConditionEvent(method, fulfilled, message));
         }
 
@@ -533,5 +539,18 @@ public interface ArchUnitFixture {
         } catch (NoClassDefFoundError | Exception e) {
             return null;
         }
+    }
+
+    @Nullable
+    static Path getClassFile(JavaClass javaClass) {
+        Class<?> reflectedClass = safeReflect(javaClass);
+        if (reflectedClass == null) {
+            return null;
+        }
+        CodeSource codeSource = reflectedClass.getProtectionDomain().getCodeSource();
+        if (codeSource == null) {
+            return null;
+        }
+        return Paths.get(codeSource.getLocation().getPath());
     }
 }

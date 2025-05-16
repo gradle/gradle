@@ -36,8 +36,6 @@ import org.junit.Test
 
 class PrintAccessorsTest {
 
-    abstract class CustomConvention
-
     abstract class TestSoftwareType
 
     @Test
@@ -49,9 +47,6 @@ class PrintAccessorsTest {
                     TypedProjectSchema(
                         extensions = listOf(
                             entry<Project, ExtraPropertiesExtension>("extra")
-                        ),
-                        conventions = listOf(
-                            entry<Project, CustomConvention>("customConvention")
                         ),
                         tasks = listOf(
                             entry<TaskContainer, Delete>("delete")
@@ -84,7 +79,6 @@ class PrintAccessorsTest {
             printAccessorsFor(
                 TypedProjectSchema(
                     extensions = listOf(),
-                    conventions = listOf(),
                     tasks = listOf(
                         entry<TaskContainer, DefaultTask>("dots.not.allowed")
                     ),

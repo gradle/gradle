@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.model.ManagedType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.List;
  * @param <T> the type of elements.
  * @since 4.3
  */
+@ManagedType
 public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T> {
     /**
      * {@inheritDoc}

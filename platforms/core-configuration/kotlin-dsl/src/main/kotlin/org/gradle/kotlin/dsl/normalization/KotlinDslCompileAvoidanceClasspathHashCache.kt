@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.kotlin.dsl.normalization
 
-import org.gradle.util.Path;
+import org.gradle.cache.IndexedCache
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
-/**
- * A build that is not the current build. This type exists only to provide an answer to {@link #isCurrentBuild()}, which should not exist.
- */
-public class ForeignBuildIdentifier extends DefaultBuildIdentifier {
 
-    public ForeignBuildIdentifier(Path buildPath) {
-        super(buildPath);
-    }
+@ServiceScope(Scope.UserHome::class)
+class KotlinDslCompileAvoidanceClasspathHashCache(val cache: IndexedCache<HashCode, HashCode>) {
 
-    @Override
-    public boolean isCurrentBuild() {
-        nagAboutDeprecatedIsCurrentBuild();
-        return false;
-    }
+
+    fun getHash(checksum: HashCode, supplier: () -> HashCode) = cache.get(checksum, supplier)
 }

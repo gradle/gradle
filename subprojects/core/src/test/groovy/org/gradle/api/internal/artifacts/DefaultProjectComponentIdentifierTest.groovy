@@ -24,7 +24,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultProjectComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        def id = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
+        def id = new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, Path.path(":id:path"), Path.path(":project:path"), "projectName")
 
         then:
         id.projectPath == ':project:path'

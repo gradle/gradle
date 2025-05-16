@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.util.GradleVersion
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
@@ -372,7 +373,7 @@ subprojects {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20581")
-    void "warn deprecated behavior when GMM is modified after a Maven publication is populated"() {
+    void "fail when GMM is modified after a Maven publication is populated"() {
         given:
         buildFile << """
             plugins {
@@ -391,15 +392,12 @@ subprojects {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Gradle Module Metadata is modified after an eagerly populated publication. " +
-                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#gmm_modification_after_publication_populated"
-        )
+        fails "help"
 
         then:
-        succeeds "help"
+        failureDescriptionContains("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failureCauseContains("Gradle Module Metadata can't be modified after an eagerly populated publication.")
+        failure.assertHasResolution("Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#gmm_modification_after_publication_populated")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26468")

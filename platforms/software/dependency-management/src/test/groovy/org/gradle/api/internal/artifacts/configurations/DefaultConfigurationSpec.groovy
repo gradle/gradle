@@ -637,13 +637,15 @@ class DefaultConfigurationSpec extends Specification {
         def copy = configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
+        // This is not desired behavior. Ideally the copy method should copy the role of the original.
+        // Instead, the role of copies are currently always set to RESOLVABLE_DEPENDENCY_SCOPE, as
+        // currently copies are detached configurations, and this is the role of all detached configurations.
         copy.canBeDeclared
         copy.canBeResolved
-        copy.canBeConsumed
+        !copy.canBeConsumed
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
-        copy.deprecatedForConsumption
+        !copy.deprecatedForConsumption
         !copy.deprecatedForResolution
         !copy.deprecatedForDeclarationAgainst
 
@@ -759,7 +761,7 @@ This method is only meant to be called on configurations which allow the (non-de
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest(configuration = conf()) {
+    private Configuration prepareConfigurationForCopyTest(configuration = conf()) {
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
@@ -794,9 +796,11 @@ This method is only meant to be called on configurations which allow the (non-de
         original.attributes.keySet().each {
             assert copy.attributes.getAttribute(it) == original.attributes.getAttribute(it)
         }
-        assert copy.canBeResolved == original.canBeResolved
-        assert copy.canBeConsumed == original.canBeConsumed
-        true
+
+        // Copies are now always made as RESOLVABLE_DEPENDENCY_SCOPE, regardless of the usage of the original
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
     }
 
     def "incoming dependencies set has same name and path as owner configuration"() {

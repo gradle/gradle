@@ -60,8 +60,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         Stub(AttributeDesugaring),
         new ComponentIdGenerator(),
         metadataBuilder,
-        TestUtil.calculatedValueContainerFactory(),
-        TestUtil.inMemoryCacheFactory()
+        TestUtil.calculatedValueContainerFactory()
     )
 
     LocalComponentGraphResolveState state

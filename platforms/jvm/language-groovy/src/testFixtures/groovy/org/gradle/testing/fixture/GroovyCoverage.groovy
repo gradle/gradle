@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.VersionCoverage
 import org.gradle.util.internal.VersionNumber
 
 class GroovyCoverage {
+    // NOTE: Update compatibility.adoc when adding new versions of Groovy
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.24', '4.0.26']
     private static final String[] FUTURE = []
 

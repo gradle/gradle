@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
@@ -50,7 +50,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
             getProject(_ as Path) >> { args ->
                 Path path = args[0]
                 return Mock(ProjectState) {
-                    getIdentity() >> new ProjectIdentity(Mock(BuildIdentifier), path, path, path.getName())
+                    getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, path, path, path.getName())
                 }
             }
         }

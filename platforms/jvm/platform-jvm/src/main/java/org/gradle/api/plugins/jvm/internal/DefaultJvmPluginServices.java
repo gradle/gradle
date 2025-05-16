@@ -126,7 +126,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     public ConfigurationVariant configureResourcesDirectoryVariant(Configuration configuration, SourceSet sourceSet) {
         ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("resources");
-        variant.setDescription("Directories containing assembled resource files for " + sourceSet.getName() + ".");
+        variant.getDescription().convention("Directories containing assembled resource files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
         DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
@@ -140,7 +140,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     public ConfigurationVariant configureClassesDirectoryVariant(Configuration configuration, SourceSet sourceSet) {
         ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classes");
-        variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
+        variant.getDescription().convention("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(() ->  {
             FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();

@@ -37,7 +37,7 @@ abstract class PrintAccessors : DefaultTask() {
 
     init {
         group = "help"
-        description = "Prints the Kotlin code for accessing the currently available project extensions and conventions."
+        description = "Prints the Kotlin code for accessing the currently available project extensions."
     }
 
     @get:Inject

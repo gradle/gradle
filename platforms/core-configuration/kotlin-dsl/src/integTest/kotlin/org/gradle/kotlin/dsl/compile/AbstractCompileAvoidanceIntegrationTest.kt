@@ -132,13 +132,6 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
     }
 
     protected
-    fun configureProjectAndExpectCompileAvoidanceWarnings(vararg tasks: String): BuildOperationsAssertions {
-        val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
-        val output = executer.withArgument("--info").withTasks(*tasks).run().normalizedOutput
-        return BuildOperationsAssertions(buildOperations, output, true)
-    }
-
-    protected
     fun configureProjectAndExpectCompileFailure(expectedFailure: String) {
         val error = executer.runWithFailure().error
         MatcherAssert.assertThat(error, CoreMatchers.containsString(expectedFailure))
