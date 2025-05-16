@@ -57,15 +57,6 @@ public abstract class JvmVendorSpec {
     public static final JvmVendorSpec IBM = matching(KnownJvmVendor.IBM);
 
     /**
-     * A constant for using <a href="https://developer.ibm.com/languages/java/semeru-runtimes/">IBM Semeru Runtimes</a> as the JVM vendor.
-     *
-     * @since 7.4
-     * @deprecated We are grouping all IBM runtimes under the '{@code IBM}' vendor, won't keep a separate constant for Semeru ones. Just use '{@code IBM}' instead.
-     */
-    @Deprecated
-    public static final JvmVendorSpec IBM_SEMERU = matching(KnownJvmVendor.IBM); // Intentionally duplicating `IBM` to get a new object.
-
-    /**
      * A constant for using <a href="https://www.jetbrains.com/jetbrains-runtime">JetBrains Runtime</a> as the JVM vendor.
      *
      * @since 8.4

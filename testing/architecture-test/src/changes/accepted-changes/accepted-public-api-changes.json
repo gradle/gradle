@@ -1786,6 +1786,14 @@
             ]
         },
         {
+            "type": "org.gradle.jvm.toolchain.JvmVendorSpec",
+            "member": "Field IBM_SEMERU",
+            "acceptation": "Deprecated API",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
             "acceptation": "Removing component reporting tasks from HelpTasksPlugin",
