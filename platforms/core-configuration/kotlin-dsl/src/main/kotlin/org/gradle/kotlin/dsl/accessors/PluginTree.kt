@@ -17,8 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 
-internal
-sealed class PluginTree {
+sealed class PluginTree { // TODO: ok to make this public?
 
     data class PluginGroup(val path: List<String>, val plugins: Map<String, PluginTree>) : PluginTree()
 

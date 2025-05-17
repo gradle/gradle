@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import java.io.File
@@ -35,12 +36,13 @@ abstract class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenera
     @Suppress("unused")
     internal
     fun generate() {
-        val packageName = sharedAccessorsPackage
+        val pluginTrees = pluginTreesFrom(classPathFiles)
+        val packageName = sharedAccessorsPackageFor(pluginTrees)
         sourceCodeOutputDir.withOutputDirectory { outputDir ->
             val packageDir = createPackageDirIn(outputDir, packageName)
             val outputFile = packageDir.resolve("PluginSpecBuilders.kt")
             writeSourceCodeForPluginSpecBuildersFor(
-                classPath,
+                pluginTrees,
                 outputFile,
                 packageName
             )
