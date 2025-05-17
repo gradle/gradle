@@ -16,18 +16,24 @@
 package org.gradle.execution;
 
 import org.gradle.TaskExecutionRequest;
+import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.selection.BuildTaskSelector;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,11 +47,13 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     private final CommandLineTaskParser commandLineTaskParser;
     private final BuildTaskSelector.BuildSpecificSelector taskSelector;
     private final List<BuiltInCommand> builtInCommands;
+    private final InternalProblems problemsService;
 
-    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector taskSelector, List<BuiltInCommand> builtInCommands) {
+    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector taskSelector, List<BuiltInCommand> builtInCommands, InternalProblems problemsService) {
         this.commandLineTaskParser = commandLineTaskParser;
         this.taskSelector = taskSelector;
         this.builtInCommands = builtInCommands;
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -79,11 +87,14 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
                     .filter(c -> c.commandLineMatches(requestedTaskNames))
                     .findFirst();
                 exclusiveTaskInvoked.ifPresent(builtInCommand -> {
-                    DeprecationLogger.deprecateAction("Executing other tasks along with the '" + builtInCommand.getDisplayName() + "' task")
-                        .withAdvice("The " + builtInCommand.getDisplayName() + " task should be run by itself.")
-                        .willBecomeAnErrorInGradle9()
-                        .withUpgradeGuideSection(8, "init_must_run_alone")
-                        .nagUser();
+                    GradleException ex = new InitExecutionException(
+                            "Executing other tasks along with the '" + builtInCommand.getDisplayName() + "' task is not allowed. " +
+                            "The '" + builtInCommand.getDisplayName() + "' task must be run by itself.");
+                    ProblemId id = ProblemId.create("init invocation problem", "Init invocation problem", GradleCoreProblemGroup.taskSelection());
+                    throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+                        spec.contextualLabel(ex.getMessage());
+                        spec.severity(Severity.ERROR);
+                    });
                 });
             }
         }
@@ -105,6 +116,18 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
         @Override
         public GradleInternal getGradle() {
             return gradle;
+        }
+    }
+
+    @NullMarked
+    public static final class InitExecutionException extends GradleException implements ResolutionProvider {
+        public InitExecutionException(String message) {
+            super(message);
+        }
+
+        @Override
+        public List<String> getResolutions() {
+            return Collections.singletonList("Remove all other tasks from the command line when running init.");
         }
     }
 }
