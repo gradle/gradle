@@ -24,7 +24,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -100,10 +99,6 @@ public abstract class Groovydoc extends SourceTask {
     private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class);
 
     private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class);
-
-    public Groovydoc() {
-        getLogging().captureStandardOutput(LogLevel.INFO);
-    }
 
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
