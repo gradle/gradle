@@ -14,6 +14,7 @@
 
 [[build_services]]
 = Using Shared Build Services
+:keywords: services, build
 
 Shared build services allow tasks to share state or resources.
 For example, tasks might share a cache of pre-computed values or use a web service or database instance.

@@ -14,6 +14,7 @@
 
 [[build_lifecycle]]
 = Build Lifecycle
+:keywords: lifecycle
 
 As a build author, you define tasks and specify dependencies between them.
 Gradle guarantees that tasks will execute in the order dictated by these dependencies.

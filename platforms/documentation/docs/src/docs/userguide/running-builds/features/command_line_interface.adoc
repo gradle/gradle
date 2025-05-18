@@ -14,6 +14,7 @@
 
 [[command_line_interface_reference]]
 = Command-Line Interface Reference
+:keywords: cli
 
 The command-line interface is the **primary method of interacting with Gradle**.
 

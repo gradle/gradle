@@ -14,6 +14,7 @@
 
 [[lazy_configuration]]
 = Configuring Tasks Lazily
+:keywords: lazy
 
 Knowing when and where a particular value is configured is difficult to track as a build grows in complexity.
 Gradle provides several ways to manage this using *lazy configuration*.
