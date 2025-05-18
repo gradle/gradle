@@ -14,6 +14,7 @@
 
 [[performance_gradle]]
 = Improve the Performance of Gradle Builds
+:keywords: cache
 
 Build performance is essential to productivity.
 The longer a build takes, the more it disrupts your development flow.

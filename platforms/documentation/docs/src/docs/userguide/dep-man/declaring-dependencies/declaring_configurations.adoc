@@ -14,6 +14,7 @@
 
 [[declaring-dependency-configurations]]
 = Declaring Dependency Configurations
+:keywords: configuration
 
 [[sec:what-are-dependency-configurations]]
 In Gradle, dependencies are associated with specific scopes, such as compile-time or runtime.
