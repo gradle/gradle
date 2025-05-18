@@ -14,6 +14,7 @@
 
 [[composite_builds]]
 = Composite Builds
+:keywords: composite, include, included, build
 
 A composite build is a build that includes other builds.
 

@@ -14,7 +14,7 @@
 
 [[sharing_build_logic_between_subprojects]]
 = Sharing Build Logic using `buildSrc`
-:keywords: buildsrc,build-logic
+:keywords: buildsrc, build-logic
 
 Subprojects in a multi-project build often share common dependencies.
 
