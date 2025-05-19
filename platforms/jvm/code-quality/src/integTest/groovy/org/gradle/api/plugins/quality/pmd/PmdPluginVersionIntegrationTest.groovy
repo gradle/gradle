@@ -26,7 +26,6 @@ import static org.hamcrest.CoreMatchers.not
 import static org.junit.Assume.assumeTrue
 
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
-
     def setup() {
         buildFile << """
             plugins {
