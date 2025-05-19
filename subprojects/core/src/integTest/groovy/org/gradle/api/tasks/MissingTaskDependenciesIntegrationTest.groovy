@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -569,7 +570,7 @@ The following types/formats are supported:
         def producerOutput = file("build/producerOutput.txt")
 
         buildFile << """
-            def producerOutput = file("$producerOutput")
+            def producerOutput = file("${TextUtil.normaliseFileSeparators(producerOutput.absolutePath)}")
 
             task producer {
                 outputs.file(producerOutput)
@@ -606,7 +607,7 @@ The following types/formats are supported:
         def producerOutput = file("build/producerOutput.txt")
 
         buildFile << """
-            def producerOutput = file("$producerOutput")
+            def producerOutput = file("${TextUtil.normaliseFileSeparators(producerOutput.absolutePath)}")
 
             task producer {
                 inputs.files("empty-input").skipWhenEmpty(true)
@@ -644,7 +645,7 @@ The following types/formats are supported:
         def producerOutput = file("build/producerOutput.txt")
 
         buildFile << """
-            def producerOutput = file("$producerOutput")
+            def producerOutput = file("${TextUtil.normaliseFileSeparators(producerOutput.absolutePath)}")
 
             task producer {
                 outputs.file(producerOutput)
