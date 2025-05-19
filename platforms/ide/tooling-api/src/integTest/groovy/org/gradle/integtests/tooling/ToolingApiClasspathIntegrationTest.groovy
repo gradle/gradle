@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.util.internal.TextUtil
 
 class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
 
@@ -32,7 +33,7 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
             // For the current tooling API jar
             repositories {
                 maven {
-                    url = uri(file("${buildContext.localRepository}"))
+                    url = uri(file("${TextUtil.escapeString(buildContext.localRepository)}"))
                 }
             }
 

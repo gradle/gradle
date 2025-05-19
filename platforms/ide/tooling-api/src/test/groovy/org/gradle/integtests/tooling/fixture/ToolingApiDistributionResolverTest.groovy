@@ -126,6 +126,20 @@ class ToolingApiDistributionResolverTest extends Specification {
         }
     }
 
+    def "can download into subdir that does not exist"() {
+        def destination = tempFolder.root.toPath().resolve("subdir")
+        System.setProperty("integTest.tmpDir", destination.toString())
+
+        when:
+        def result = underTest.resolve("8.14")
+
+        then:
+        Files.exists(destination)
+        result.classpath.each {
+            assert it.exists()
+        }
+    }
+
     boolean containsSlf4j(ToolingApiDistribution distribution) {
         return distribution.classpath.find {
             it.name.startsWith("slf4j-api")

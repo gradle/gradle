@@ -35,7 +35,7 @@ import java.util.function.Supplier
  */
 class ToolingApiDistributionResolver {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ToolingApiDistributionResolver.class)
+    private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiDistributionResolver.class)
 
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
@@ -81,7 +81,7 @@ class ToolingApiDistributionResolver {
         if (!destination.exists()) {
             def url = repoUrl + "/" + relativePath
             LOGGER.warn("Downloading tooling API {} from {}", version, url)
-            download(url, destination)
+            download(url, destination.toPath())
         }
         return destination
     }
@@ -96,11 +96,15 @@ class ToolingApiDistributionResolver {
         location
     }
 
-    private static void download(String url, File destination) {
+    private static void download(String url, Path destination) {
+        if (!Files.createDirectories(destination.parent)) {
+            throw new IOException("Failed to create parent directory for ${destination}")
+        }
+
         try {
             withRetries {
                 try (InputStream stream = new URL(url).openStream()) {
-                    Files.copy(stream, destination.toPath())
+                    Files.copy(stream, destination)
                 }
             }
         } catch (Exception e) {
