@@ -32,13 +32,15 @@ abstract class PrintStackTracesOnTimeoutBuildService @Inject constructor(private
 
     private
     val timer: Timer = Timer(true).apply {
+        println("Schedule PrintStackTracesOnTimeoutBuildService with ${parameters.timeoutMillis.get()} ms")
         schedule(
             timerTask {
                 println("Exec PrintStackTracesOnTimeoutBuildService")
                 execOperations.exec {
                     commandLine(
                         "${System.getProperty("java.home")}/bin/java",
-                        parameters.projectDirectory.file("testing/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java").get().asFile.absolutePath,
+                        parameters.projectDirectory.file("testing/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java")
+                            .get().asFile.absolutePath,
                         parameters.projectDirectory.asFile.get().absolutePath
                     )
                 }
