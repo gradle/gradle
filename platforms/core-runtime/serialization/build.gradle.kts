@@ -21,8 +21,8 @@ plugins {
 
 description = "Tools to serialize data"
 
-gradlebuildJava {
-    usedInWorkers()
+gradleModule {
+    usedInWorkers = true
     usesFutureStdlib = true
 }
 

@@ -15,9 +15,8 @@ dependencies {
     implementation(projects.moduleIdentity)
     implementation("net.ltgt.gradle:gradle-errorprone-plugin:4.1.0")
 
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:6.0.0")
-    // This Kotlin version should only be updated when updating the above kotlin-dsl version
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20")
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:6.1.2")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$embeddedKotlinVersion")
     implementation("org.gradle:test-retry-gradle-plugin:1.5.2")
 
     implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.7")

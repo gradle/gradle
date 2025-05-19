@@ -26,7 +26,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -41,20 +40,17 @@ public class LocalComponentGraphResolveStateFactory {
     private final ComponentIdGenerator idGenerator;
     private final LocalVariantGraphResolveStateBuilder metadataBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final InMemoryCacheFactory cacheFactory;
 
     public LocalComponentGraphResolveStateFactory(
         AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
         LocalVariantGraphResolveStateBuilder metadataBuilder,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        InMemoryCacheFactory cacheFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.attributeDesugaring = attributeDesugaring;
         this.idGenerator = idGenerator;
         this.metadataBuilder = metadataBuilder;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        this.cacheFactory = cacheFactory;
     }
 
     /**
@@ -78,14 +74,12 @@ public class LocalComponentGraphResolveStateFactory {
         Set<LocalVariantMetadata> variants
     ) {
         CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> calculatedDependencies =
-            calculatedValueContainerFactory.create(Describables.of("dependencies for", metadata), context -> dependencyMetadata);
+            calculatedValueContainerFactory.create(Describables.of(metadata, "dependencies"), context -> dependencyMetadata);
 
         return new DefaultLocalVariantGraphResolveState(
             idGenerator.nextVariantId(),
             componentId,
             metadata,
-            idGenerator,
-            calculatedValueContainerFactory,
             calculatedDependencies,
             variants
         );
@@ -141,12 +135,9 @@ public class LocalComponentGraphResolveStateFactory {
             idGenerator.nextComponentId(),
             metadata,
             attributeDesugaring,
-            idGenerator,
             adHoc,
             variantsFactory,
-            calculatedValueContainerFactory,
-            cacheFactory,
-            null
+            calculatedValueContainerFactory
         );
     }
 

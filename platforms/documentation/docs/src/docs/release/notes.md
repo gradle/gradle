@@ -25,6 +25,8 @@ Include only their name, impactful features should be called out separately belo
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+[Victor Merkulov](https://github.com/urdak)
+
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
 ## Upgrade instructions
@@ -44,6 +46,8 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 ### Kotlin 2 TO DO
 
 ### Groovy 4 TO DO
+
+### SemVer TO DO
 
 <a name="config-cache"></a>
 ### Configuration Cache improvements

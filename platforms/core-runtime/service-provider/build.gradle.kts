@@ -4,7 +4,9 @@ plugins {
 
 description = "Internal API to declare services provided by Gradle modules"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.serviceLookup)

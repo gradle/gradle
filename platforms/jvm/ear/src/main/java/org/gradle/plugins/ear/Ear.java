@@ -60,17 +60,19 @@ import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
 public abstract class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 
-    private String libDirName;
+    private final Property<String> libDirName;
     private final Property<Boolean> generateDeploymentDescriptor;
-    private DeploymentDescriptor deploymentDescriptor;
+    private final Property<DeploymentDescriptor> deploymentDescriptor;
     private CopySpec lib;
     private final DirectoryProperty appDir;
 
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");
+        libDirName = getObjectFactory().property(String.class).convention(DEFAULT_LIB_DIR_NAME);
         generateDeploymentDescriptor = getObjectFactory().property(Boolean.class);
         generateDeploymentDescriptor.convention(true);
+        deploymentDescriptor = getObjectFactory().property(DeploymentDescriptor.class);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
             callable(() -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME))
         );
@@ -189,10 +191,10 @@ public abstract class Ear extends Jar {
     }
 
     private DeploymentDescriptor forceDeploymentDescriptor() {
-        if (deploymentDescriptor == null) {
-            deploymentDescriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class);
+        if (!deploymentDescriptor.isPresent()) {
+            deploymentDescriptor.set(getObjectFactory().newInstance(DefaultDeploymentDescriptor.class));
         }
-        return deploymentDescriptor;
+        return deploymentDescriptor.get();
     }
 
     /**
@@ -239,11 +241,11 @@ public abstract class Ear extends Jar {
     @Input
     @ToBeReplacedByLazyProperty
     public String getLibDirName() {
-        return libDirName;
+        return libDirName.getOrNull();
     }
 
     public void setLibDirName(@Nullable String libDirName) {
-        this.libDirName = libDirName;
+        this.libDirName.set(libDirName);
     }
 
     /**
@@ -262,11 +264,11 @@ public abstract class Ear extends Jar {
     @Internal
     @ToBeReplacedByLazyProperty
     public DeploymentDescriptor getDeploymentDescriptor() {
-        return deploymentDescriptor;
+        return deploymentDescriptor.getOrNull();
     }
 
     public void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor) {
-        this.deploymentDescriptor = deploymentDescriptor;
+        this.deploymentDescriptor.set(deploymentDescriptor);
     }
 
     /**

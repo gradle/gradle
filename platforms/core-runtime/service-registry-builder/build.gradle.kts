@@ -4,7 +4,9 @@ plugins {
 
 description = "Internal API for composing service registries"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.serviceLookup)

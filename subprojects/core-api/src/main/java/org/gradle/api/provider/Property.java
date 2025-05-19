@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.model.ObjectFactory;
 import org.jspecify.annotations.Nullable;
 
@@ -49,6 +50,7 @@ import org.jspecify.annotations.Nullable;
  * @param <T> Type of value represented by the property
  * @since 4.3
  */
+@ManagedType
 @SupportsKotlinAssignmentOverloading
 public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention {
     /**

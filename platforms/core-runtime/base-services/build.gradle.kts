@@ -5,8 +5,8 @@ plugins {
 
 description = "A set of generic services and utilities."
 
-gradlebuildJava {
-    usedInWorkers()
+gradleModule {
+    usedInWorkers = true
     usesFutureStdlib = true
 }
 

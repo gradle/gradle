@@ -66,7 +66,6 @@ internal
 fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForConfiguration -> fragmentsForConfiguration(accessor)
     is Accessor.ForExtension -> fragmentsForExtension(accessor)
-    is Accessor.ForConvention -> fragmentsForConvention(accessor)
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
     is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
@@ -914,71 +913,6 @@ fun MethodVisitor.withLowPriorityInOverloadResolution() {
 
 
 private
-fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
-
-    val accessorSpec = accessor.spec
-    val className = internalNameForAccessorClassOf(accessorSpec)
-    val (accessibleReceiverType, name, conventionType) = accessorSpec
-    val receiverType = accessibleReceiverType.type.kmType
-    val propertyName = name.kotlinIdentifier
-    val receiverTypeName = accessibleReceiverType.internalName()
-    val (kotlinConventionType, jvmConventionType) = accessibleTypesFor(conventionType)
-
-    return className to sequenceOf(
-
-        AccessorFragment(
-            source = conventionAccessor(accessorSpec),
-            signature = jvmGetterSignatureFor(
-                propertyName,
-                accessorDescriptorFor(receiverTypeName, jvmConventionType)
-            ),
-            bytecode = {
-                publicStaticMethod(signature) {
-                    loadConventionOf(name, conventionType, jvmConventionType)
-                    ARETURN()
-                }
-            },
-            metadata = {
-                kmPackage.properties += newPropertyOf(
-                    name = propertyName,
-                    receiverType = receiverType,
-                    returnType = kotlinConventionType,
-                    getterSignature = signature
-                )
-            }
-        ),
-
-        AccessorFragment(
-            source = "",
-            bytecode = {
-                publicStaticMethod(signature) {
-                    ALOAD(1)
-                    loadConventionOf(name, conventionType, jvmConventionType)
-                    invokeAction()
-                    RETURN()
-                }
-            },
-            metadata = {
-                kmPackage.functions += newFunctionOf(
-                    receiverType = receiverType,
-                    returnType = KotlinType.unit,
-                    name = propertyName,
-                    valueParameters = listOf(
-                        newValueParameterOf("configure", actionTypeOf(kotlinConventionType))
-                    ),
-                    signature = signature
-                )
-            },
-            signature = JvmMethodSignature(
-                propertyName,
-                "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
-            )
-        )
-    )
-}
-
-
-private
 fun fragmentsForModelDefault(
     accessor: Accessor.ForModelDefault
 ): Fragments {
@@ -1048,19 +982,6 @@ fun TypeAccessibility.Accessible.internalName() =
 private
 fun MethodVisitor.invokeAction() {
     INVOKEINTERFACE(GradleTypeName.action, "execute", "(Ljava/lang/Object;)V")
-}
-
-
-private
-fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAccessibility, jvmReturnType: InternalName) {
-    ALOAD(0)
-    LDC(name.original)
-    invokeRuntime(
-        "conventionPluginOf",
-        "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
-    )
-    if (returnType is TypeAccessibility.Accessible)
-        CHECKCAST(jvmReturnType)
 }
 
 

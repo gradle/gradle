@@ -38,7 +38,7 @@ class ImplicitImports internal constructor(
     fun gradleImports() =
         importsReader.simpleNameToFullClassNamesMapping.values.map { it.first() }
 
-    private
+    private // TODO: sync with the documentation in kotlin_dsl.adoc
     fun gradleKotlinDslImports() =
         listOf(
             "org.gradle.kotlin.dsl.*",

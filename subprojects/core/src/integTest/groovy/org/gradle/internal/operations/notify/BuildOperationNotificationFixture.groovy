@@ -18,30 +18,30 @@ package org.gradle.internal.operations.notify
 
 import com.google.common.base.Predicate
 import com.google.common.collect.Sets
-import groovy.json.JsonSlurper
-import org.gradle.internal.operations.trace.BuildOperationTrace
-import org.gradle.launcher.exec.RunBuildBuildOperationType
-import org.gradle.test.fixtures.file.TestFile
+import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.jspecify.annotations.Nullable
 
-class BuildOperationNotificationFixture {
+@CompileStatic
+class BuildOperationNotificationFixture extends BuildOperationsFixture {
 
-    TestFile dir
-
-    BuildOperationNotificationFixture(TestFile dir) {
-        this.dir = dir
+    BuildOperationNotificationFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
+        super(executer, projectDir)
     }
 
     def op(Class<?> detailsClass, Map<String, String> details = [:]) {
-        def found = recordedOps.findAll { op ->
-            return op.detailsType == detailsClass.name && op.details.subMap(details.keySet()) == details
+        def found = all().findAll { op ->
+            return op.detailsType != null && detailsClass.isAssignableFrom(op.detailsType) && op.details.subMap(details.keySet()) == details
         }
         assert found.size() == 1
         return found.first()
     }
 
     def ops(Class<?> detailsClass, Map<String, String> details = [:]) {
-        def found = recordedOps.findAll { op ->
-            return op.detailsType == detailsClass.name && op.details.subMap(details.keySet()) == details
+        def found = all().findAll { op ->
+            return op.detailsType != null && detailsClass.isAssignableFrom(op.detailsType) && op.details.subMap(details.keySet()) == details
         }
         return found
     }
@@ -59,11 +59,11 @@ class BuildOperationNotificationFixture {
     }
 
     void has(boolean started, Class<?> type, Map<String, ?> payload) {
-        has(started, type, payload ? payloadEquals(payload) : { true } as Predicate)
+        has(started, type, payload ? payloadEquals(payload) : null)
     }
 
     private static Predicate<? super Map<String, ?>> payloadEquals(Map<String, ?> expectedPayload) {
-        { actualPayload ->
+        { Map<String, ?> actualPayload ->
             def present = Sets.intersection(actualPayload.keySet(), expectedPayload.keySet())
             for (String key : present) {
                 if (!testValue(expectedPayload[key], actualPayload[key])) {
@@ -71,7 +71,7 @@ class BuildOperationNotificationFixture {
                 }
             }
             true
-        } as Predicate
+        } as Predicate<? super Map<String, ?>>
     }
 
     private static boolean testValue(expectedValue, actualValue) {
@@ -84,9 +84,19 @@ class BuildOperationNotificationFixture {
         }
     }
 
-    void has(boolean started, Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
-        def typedOps = recordedOps.findAll { op ->
-            return started ? op.detailsType == type.name : op.resultType == type.name
+    void has(boolean started, Class<?> type, @Nullable Predicate<? super Map<String, ?>> payloadTest) {
+        def typedOps = all().findAll { op ->
+            if (started) {
+                if (op.detailsType == null) {
+                    return false
+                }
+                return type.isAssignableFrom(op.detailsType)
+            } else {
+                if (op.resultType == null) {
+                    return false
+                }
+                return type.isAssignableFrom(op.resultType)
+            }
         }
 
         assert typedOps.size() > 0: "no operations of type $type"
@@ -103,100 +113,5 @@ class BuildOperationNotificationFixture {
                 throw new AssertionError("Did not find match among:\n\n ${tested.join("\n")}")
             }
         }
-    }
-
-    def getRecordedOps() {
-        new JsonSlurper().parse(jsonFile())
-    }
-
-    void notIncluded(Class<?> type) {
-        assert !recordedOps.any { it.detailsType == type.name }
-    }
-
-    String registerListener() {
-        listenerClass() + """
-        registrar.register(listener)
-        """
-    }
-
-    String listenerClass() {
-        """
-            def listener = new ${BuildOperationNotificationListener.name}() {
-
-                def ops = [:]
-
-                private jsonGenerator = new groovy.json.JsonGenerator.Options()
-                    .addConverter(new groovy.json.JsonGenerator.Converter() {
-                        @Override
-                        public boolean handles(Class<?> type) {
-                            return Class.class.equals(type);
-                        }
-
-                        @Override
-                        public Object convert(Object value, String key) {
-                            Class<?> clazz = (Class<?>) value;
-                            return clazz.getName();
-                        }
-                    }).build()
-
-
-                @Override
-                synchronized void started(${BuildOperationStartedNotification.name} startedNotification) {
-
-                    def details = ${BuildOperationTrace.name}.toSerializableModel(startedNotification.notificationOperationDetails)
-                    def detailsType = startedNotification.notificationOperationDetails.getClass()
-                    if (detailsType.interfaces.length > 0) {
-                        detailsType = detailsType.interfaces[0]
-                    }
-
-                    ops.put(startedNotification.notificationOperationId, new BuildOpsEntry(id: startedNotification.notificationOperationId?.id,
-                            parentId: startedNotification.notificationOperationParentId?.id,
-                            detailsType: detailsType.name,
-                            details: details,
-                            started: startedNotification.notificationOperationStartedTimestamp))
-                }
-
-                @Override
-                synchronized void progress(${BuildOperationProgressNotification.name} progressNotification){
-                    // Do nothing
-                }
-
-                @Override
-                synchronized void finished(${BuildOperationFinishedNotification.name} finishedNotification) {
-                    def result = ${BuildOperationTrace.name}.toSerializableModel(finishedNotification.getNotificationOperationResult())
-                    def op = ops.get(finishedNotification.notificationOperationId)
-                    op.resultType = finishedNotification.getNotificationOperationResult().getClass().getInterfaces()[0].getName()
-                    op.result = result
-                    op.finished = finishedNotification.getNotificationOperationFinishedTimestamp()
-                    if (finishedNotification.notificationOperationDetails instanceof ${RunBuildBuildOperationType.Details.name}) {
-                        store(file('${jsonFile().toURI()}'))
-                    }
-                }
-
-                synchronized void store(File target){
-                    target.withPrintWriter { pw ->
-                        String json = jsonGenerator.toJson(ops.values())
-                        pw.append(json)
-                    }
-                }
-
-                static class BuildOpsEntry {
-                    Object id
-                    Object parentId
-                    Object details
-                    Object result
-                    String detailsType
-                    String resultType
-                    long started
-                    long finished
-                }
-            }
-
-            def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)
-        """
-    }
-
-    private TestFile jsonFile() {
-        dir.file('buildOpNotifications.json')
     }
 }

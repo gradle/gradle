@@ -28,8 +28,8 @@ import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ScenarioDefinition;
 import org.gradle.performance.util.Git;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Writer;
 import java.time.Instant;
 import java.util.ArrayList;

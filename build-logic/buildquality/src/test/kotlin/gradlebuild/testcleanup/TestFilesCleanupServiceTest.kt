@@ -143,6 +143,7 @@ class TestFilesCleanupServiceTest {
                     override fun stopNow() {}
                 }
                 protected override fun createTestExecutionSpec() = object: TestExecutionSpec {}
+                public override fun getFailOnNoDiscoveredTests() = project.objects.property(Boolean::class.java).apply { convention(true) }
             }
 
             fun Project.registerTestWithLeftover() {

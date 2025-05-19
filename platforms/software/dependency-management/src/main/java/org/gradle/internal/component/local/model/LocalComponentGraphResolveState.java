@@ -40,11 +40,6 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
     LocalComponentGraphResolveMetadata getMetadata();
 
     /**
-     * Copies this state, but with the new component ID.
-     */
-    LocalComponentGraphResolveState copyWithComponentId(ComponentIdentifier newComponentId);
-
-    /**
      * We currently allow a configuration that has been partially observed for resolution to be modified
      * in a beforeResolve callback.
      *

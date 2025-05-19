@@ -24,10 +24,42 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Identifies a single project within the build and the build tree.
+ * <p>
+ * Consider a build tree with two builds: the root build and an included build, where both
+ * builds have a root project and a subproject. The paths for each project are as follows:
+ * <table>
+ *     <caption>Project identity path values</caption>
+ *     <tr>
+ *         <th>Build path</th>
+ *         <th>Project path</th>
+ *         <th>Identity path</th>
+ *     </tr>
+ *     <tr>
+ *         <th>:</th>
+ *         <th>:</th>
+ *         <th>:</th>
+ *     </tr>
+ *     <tr>
+ *         <th>:</th>
+ *         <th>:subproject</th>
+ *         <th>:subproject</th>
+ *     </tr>
+ *     <tr>
+ *         <th>:included</th>
+ *         <th>:</th>
+ *         <th>:included</th>
+ *     </tr>
+ *     <tr>
+ *         <th>:included</th>
+ *         <th>:subproject</th>
+ *         <th>:included:subproject</th>
+ *     </tr>
+ * </table>
  */
 public final class ProjectIdentity implements DisplayName {
 
     private final BuildIdentifier buildIdentifier;
+    private final Path buildPath;
     private final Path buildTreePath;
     private final Path projectPath;
     private final String projectName;
@@ -41,6 +73,7 @@ public final class ProjectIdentity implements DisplayName {
         String projectName
     ) {
         this.buildIdentifier = buildIdentifier;
+        this.buildPath = Path.path(buildIdentifier.getBuildPath()); // TODO: Construct BuildIdentifier from the raw path, don't derive this path from the identifier's string
         this.buildTreePath = buildTreePath;
         this.projectPath = projectPath;
         this.projectName = projectName;
@@ -52,24 +85,35 @@ public final class ProjectIdentity implements DisplayName {
     }
 
     /**
-     * The identity of the owning build.
+     * The identity of the build that owns this project.
+     * <p>
+     * Prefer {@link #getBuildPath()}.
      */
     public BuildIdentifier getBuildIdentifier() {
         return buildIdentifier;
     }
 
     /**
-     * The identity of the project within the build tree.
+     * The path of the build that owns this project.
      */
-    public Path getBuildTreePath() {
-        return buildTreePath;
+    public Path getBuildPath() {
+        return buildPath;
     }
 
     /**
-     * The identity of the project within the owning build.
+     * The identity of the project within its owning build.
      */
     public Path getProjectPath() {
         return projectPath;
+    }
+
+    /**
+     * The identity of the project within the build tree.
+     * <p>
+     * This is the owning build path plus the project path.
+     */
+    public Path getBuildTreePath() {
+        return buildTreePath;
     }
 
     /**

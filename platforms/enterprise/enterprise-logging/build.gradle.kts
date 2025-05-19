@@ -4,7 +4,9 @@ plugins {
 
 description = "Logging API consumed by the Develocity plugin"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.buildOperations)

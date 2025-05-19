@@ -36,6 +36,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
 import static org.gradle.api.attributes.Bundling.EMBEDDED
@@ -208,7 +209,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             PublishArtifact artifact = artifacts[0]
             assert artifact.name == 'toto'
         }
-        1 * variant.setDescription(_)
+        1 * variant.getDescription() >> TestUtil.propertyFactory().property(String)
         _ * sourceSet.getOutput() >> output
         1 * output.getClassesDirs() >> classes
         1 * sourceSet.getName()

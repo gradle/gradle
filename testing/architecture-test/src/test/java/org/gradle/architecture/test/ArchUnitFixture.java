@@ -38,6 +38,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.test.precondition.Requires;
 import org.gradle.test.precondition.TestPrecondition;
 import org.gradle.util.EmptyStatement;
@@ -51,6 +52,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -108,6 +112,9 @@ public interface ArchUnitFixture {
     DescribedPredicate<JavaMember> not_from_fileevents = declaredIn(resideOutsideOfPackages("org.gradle.fileevents.."))
         .as("not from fileevents");
 
+    DescribedPredicate<JavaClass> not_from_fileevents_classes = resideOutsideOfPackages("org.gradle.fileevents..")
+        .as("not from fileevents");
+
     DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
         .and(not(not_written_in_kotlin))
         .and(modifier(PUBLIC))
@@ -118,6 +125,19 @@ public interface ArchUnitFixture {
         .and(modifier(PUBLIC))
         .and(not(kotlin_internal_methods))
         .as("public API methods");
+
+    DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
+        @Override
+        public boolean test(JavaMethod input) {
+            PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
+            if (accessorType == PropertyAccessorType.IS_GETTER) {
+                // PropertyAccessorType.IS_GETTER doesn't handle names that start with is
+                // but are not getters, e.g. issueManagement is detected as IS_GETTER
+                return !Character.isLowerCase(input.getName().charAt(2));
+            }
+            return accessorType == PropertyAccessorType.GET_GETTER;
+        }
+    };
 
     static ArchRule freeze(ArchRule rule) {
         return new FreezeInstructionsPrintingArchRule(FreezingArchRule.freeze(rule));
@@ -174,7 +194,7 @@ public interface ArchUnitFixture {
         };
     }
 
-    static ArchCondition<JavaClass> beAbstract() {
+    static ArchCondition<JavaClass> beAbstractClass() {
         return new ArchCondition<JavaClass>("be abstract") {
             @Override
             public void check(JavaClass input, ConditionEvents events) {
@@ -182,6 +202,19 @@ public interface ArchUnitFixture {
                     events.add(new SimpleConditionEvent(input, true, input.getFullName() + " is abstract"));
                 } else {
                     events.add(new SimpleConditionEvent(input, false, input.getFullName() + " is not abstract"));
+                }
+            }
+        };
+    }
+
+    static ArchCondition<JavaMethod> beAbstractMethod() {
+        return new ArchCondition<JavaMethod>("be abstract") {
+            @Override
+            public void check(JavaMethod method, ConditionEvents events) {
+                if (method.getModifiers().contains(JavaModifier.ABSTRACT)) {
+                    events.add(new SimpleConditionEvent(method, true, method.getDescription() + " is abstract"));
+                } else {
+                    events.add(new SimpleConditionEvent(method, false, method.getDescription() + " is not abstract"));
                 }
             }
         };
@@ -497,5 +530,27 @@ public interface ArchUnitFixture {
         } catch (NoClassDefFoundError | Exception e) {
             return null;
         }
+    }
+
+    @Nullable
+    static Class<?> safeReflect(JavaClass javaClass) {
+        try {
+            return javaClass.reflect();
+        } catch (NoClassDefFoundError | Exception e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    static Path getClassFile(JavaClass javaClass) {
+        Class<?> reflectedClass = safeReflect(javaClass);
+        if (reflectedClass == null) {
+            return null;
+        }
+        CodeSource codeSource = reflectedClass.getProtectionDomain().getCodeSource();
+        if (codeSource == null) {
+            return null;
+        }
+        return Paths.get(codeSource.getLocation().getPath());
     }
 }

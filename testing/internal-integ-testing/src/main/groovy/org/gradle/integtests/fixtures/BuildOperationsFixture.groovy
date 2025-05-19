@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import groovy.transform.CompileStatic
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -26,6 +27,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 import java.util.regex.Pattern
 
+@CompileStatic
 class BuildOperationsFixture extends BuildOperationTreeQueries {
 
     private String path

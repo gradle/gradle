@@ -1,4 +1,4 @@
-import gradlebuild.basics.isBundleGroovy4
+import gradlebuild.basics.bundleGroovyMajor
 
 /**
  * This project provides the "platform" for the Gradle distribution.
@@ -25,12 +25,15 @@ val bouncycastleVersion = "1.78.1"
 val hamcrestVersion = "3.0"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
-val junit5Version = "5.8.2"
+val junit5Version = "5.12.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-28"
-val slf4jVersion = "1.7.36"
-val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
+val slf4jVersion = "2.0.17"
+val spockVersion = when (bundleGroovyMajor) {
+    4 -> "2.3-groovy-4.0"
+    else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
+}
 val tomljVersion = "1.0.0"
 
 // test only
@@ -96,7 +99,7 @@ dependencies {
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
-        api(libs.gson)                  { version { strictly("2.13.0") }}
+        api(libs.gson)                  { version { strictly("2.13.1") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
         api(libs.hamcrest)              { version { strictly(hamcrestVersion) }}
         api("org.hamcrest:hamcrest-core") { version { strictly(hamcrestVersion) }}
@@ -123,7 +126,7 @@ dependencies {
         api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
         api(libs.jgit)                  { version { strictly("5.13.3.202401111512-r"); because("6.x requires Java 11") }}
         api(libs.jgitSsh)               { version { strictly("5.13.3.202401111512-r") }}
-        api(libs.joda)                  { version { strictly("2.12.2") }}
+        api(libs.joda)                  { version { strictly("2.14.0"); because("Only pulled in by AWS SDK") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.2.16") }}
         api(libs.jsoup)                 { version { strictly("1.15.3") }}
@@ -134,8 +137,8 @@ dependencies {
         api(libs.junitJupiter)          { version { strictly(junit5Version) }}
         api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
-        api(libs.junitPlatform)         { version { strictly("1.8.2") }}
-        api(libs.junitPlatformEngine)   { version { strictly("1.8.2") }}
+        api(libs.junitPlatform)         { version { strictly("1.12.2") }}
+        api(libs.junitPlatformEngine)   { version { strictly("1.12.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}

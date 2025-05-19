@@ -14,11 +14,12 @@
 
 [[directory_layout]]
 = Gradle-managed Directories
+:keywords: gradle,user,home,project,root
 
 Gradle uses two main directories to perform and manage its work:
 
-1. The <<#dir:gradle_user_home>>
-2. The <<#dir:project_root>>
+- <<#dir:gradle_user_home>>
+- <<#dir:project_root>>
 
 image::author-gradle-2.png[]
 
@@ -224,19 +225,19 @@ The anatomy of a typical project root directory looks as follows:
 [listing,subs=+macros]
 ----
 ├── .gradle                 // <1>
-│   ├── 4.8                 // <2>
+│   ├── 4.8             // <2>
 │   ├── 4.9                 // <2>
 │   └── ⋮
-├── build                   // <3>
+├── build               // <3>
 ├── gradle
 │   └── wrapper             // <4>
-├── gradle.properties       // <5>
+├── gradle.properties   // <5>
 ├── gradlew                 // <6>
-├── gradlew.bat             // <6>
+├── gradlew.bat         // <6>
 ├── settings.gradle.kts     // <7>
-├── subproject-one          // <8>
+├── subproject-one      // <8>
 |   └── build.gradle.kts    // <9>
-├── subproject-two          // <8>
+├── subproject-two      // <8>
 |   └── build.gradle.kts    // <9>
 └── ⋮
 ----
