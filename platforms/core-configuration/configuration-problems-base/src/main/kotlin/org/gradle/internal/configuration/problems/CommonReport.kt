@@ -27,7 +27,6 @@ import org.gradle.internal.cc.impl.problems.HtmlReportWriter
 import org.gradle.internal.cc.impl.problems.JsonModelWriter
 import org.gradle.internal.cc.impl.problems.JsonSource
 import org.gradle.internal.cc.impl.problems.JsonWriter
-import org.gradle.internal.cc.impl.problems.ProblemSeverity
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.extensions.stdlib.capitalized
