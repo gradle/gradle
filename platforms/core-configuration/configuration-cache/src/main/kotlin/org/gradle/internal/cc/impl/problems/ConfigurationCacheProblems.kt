@@ -94,7 +94,7 @@ class ConfigurationCacheProblems(
     val postBuildHandler = PostBuildProblemsHandler()
 
     private
-    var isFailOnProblems = startParameter.failOnProblems
+    var isFailOnProblems = !startParameter.warningMode
 
     private
     var isFailingBuildDueToSerializationError = false
