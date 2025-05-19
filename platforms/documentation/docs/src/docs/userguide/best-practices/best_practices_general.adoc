@@ -178,20 +178,20 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 == Modularize Your Builds
 :keywords: structuring-builds
 
-Modularize your builds by creating subprojects.
+Modularize your builds by splitting your code into subprojects.
 
 === Explanation
 
-Splitting your build's source into multiple modules (Gradle projects) is essential for leveraging Gradle's automatic work avoidance and parallelization features.
+Splitting your build's source into multiple Gradle projects (modules) is essential for leveraging Gradle's automatic work avoidance and parallelization features.
 When a source file changes, Gradle only recompiles the affected projects.
 If all your sources reside in a single project, Gradle can't avoid recompilation and won't be able to run tasks in parallel.
-Splitting your build into multiple projects can provide additional performance benefits by minimizing each subproject's compilation classpath and ensuring annotation processors run only on the relevant source files.
+Splitting your source into multiple projects can provide additional performance benefits by minimizing each subproject's compilation classpath and ensuring code generating tools such as annotation and symbol processors run only on the relevant files.
 
-It makes sense to split your build's source into multiple projects _early_.
+Do this _soon_.
 Don't wait until you hit some arbitrary number of source files or classes to do this, instead structure your build into multiple projects from the start using whatever natural boundaries exist in your codebase.
 
-Exactly how to split your source in a build varies.
-Common boundaries that make cohesive projects can include horizontal layers such as:
+Exactly how to best split your source varies with every build, as it depends on the particulars of that build.
+Here are some common patterns we found that can work well and make cohesive projects:
 
 - API vs. Implementation
 - Front-end vs. Back-end
@@ -199,6 +199,7 @@ Common boundaries that make cohesive projects can include horizontal layers such
 - Vertical slices (e.g., feature modules each containing UI + business logic)
 - Inputs to source generation vs. their consumers
 - Or simply closely related classes.
+
 Ultimately, the specific scheme matters less than ensuring that your build is split logically and consistently.
 
 Expanding a build to hundreds of projects is common, and Gradle is designed to scale to this size and beyond.
