@@ -55,6 +55,13 @@ class DefaultConfigurationCacheDegradationController(
                     val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
                     currentDegradationReasons.putAll(tasksDegradationRequests
                         .filter { it.trace == trace && it.spec.getOrElse(false) }
+                        .sortedWith { a, b ->
+                            // we need to be able to expect a stable order
+                            if (a.trace == b.trace)
+                                a.reason.compareTo(b.reason)
+                            else
+                                a.trace.toString().compareTo(b.trace.toString())
+                         }
                         .groupBy({ it.trace }, { it.reason })
                     )
                 }
