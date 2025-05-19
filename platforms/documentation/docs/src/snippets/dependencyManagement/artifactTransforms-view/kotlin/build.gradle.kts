@@ -38,15 +38,18 @@ tasks.register("testArtifact") {
         attributes {
             attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "stub")
         }
-    }.artifacts.resolvedArtifacts
+    }.artifacts
+    inputs.files(resolvedArtifacts.artifactFiles)
 
-    resolvedArtifacts.get().forEach {
-        println("Resolved artifact variant:")
-        println("- ${it.variant}")
-        println("Resolved artifact attributes:")
-        println("- ${it.variant.attributes}")
-        println("Resolved artifact type:")
-        println("- ${it.variant.attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE)}")
+    doLast {
+        resolvedArtifacts.resolvedArtifacts.get().forEach {
+            println("Resolved artifact variant:")
+            println("- ${it.variant}")
+            println("Resolved artifact attributes:")
+            println("- ${it.variant.attributes}")
+            println("Resolved artifact type:")
+            println("- ${it.variant.attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE)}")
+        }
     }
 }
 // end::artifact-views-with-custom-attribute[]
