@@ -3,20 +3,20 @@ plugins {
 }
 
 // tag::targetplatforms[]
-model {
-    toolChains {
-        gcc(Gcc) {
-            target("arm"){
-                cppCompiler.withArguments { args ->
-                    args << "-m32"
-                }
-                linker.withArguments { args ->
-                    args << "-m32"
-                }
+toolChains {
+    gcc(Gcc) {
+        target("arm"){
+            cppCompiler.withArguments { args ->
+                args << "-m32"
             }
-            target("sparc")
+            linker.withArguments { args ->
+                args << "-m32"
+            }
         }
+        target("sparc")
     }
+}
+model {
     platforms {
         arm {
             architecture "arm"

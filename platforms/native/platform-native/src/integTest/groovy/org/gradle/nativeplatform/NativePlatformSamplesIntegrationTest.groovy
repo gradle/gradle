@@ -196,7 +196,6 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         and:
         targetPlatforms.dir.file("build.gradle") << """
-model {
     toolChains {
         all{
             target("arm"){
@@ -210,7 +209,6 @@ model {
             target("sparc")
         }
     }
-}
 """
 
         when:
