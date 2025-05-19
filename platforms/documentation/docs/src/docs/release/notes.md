@@ -43,6 +43,14 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
+### Kotlin build script compilation avoidance
+
+With this release the mechanism for detecting ABI changes in KTS build scripts gets a major overhaul.
+Gradle's own mechanism gets replaced with the Kotlin distribution's own ABI fingerprinting.
+The biggest advantage of the new mechanism is the ability to work in the presence of inline functions, something that Gradle wasn't handling efficiently until now.
+This can mean very significant improvements depending on your build and on the changes being done to the build logic.
+For example, in the `gradle/gradle` project, when doing non-ABI changes to build logic, configuration time is reduced by up to 60%, by avoiding a lot of build script recompilation.
+
 ### Kotlin 2 TO DO
 
 ### Groovy 4 TO DO
