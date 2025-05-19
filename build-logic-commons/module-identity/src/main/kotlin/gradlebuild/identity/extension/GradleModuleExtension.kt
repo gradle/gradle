@@ -69,29 +69,13 @@ interface ModuleIdentity {
 interface ModuleTargetRuntimes {
 
     /**
-     * Declare that this Gradle module runs as part of an entrypoint to user-executed
-     * processes, and therefore should compile to a lower version of Java --
-     * in order to ensure comprehensible error messages when executing Gradle
-     * on an unsupported JVM version.
-     * <p>
-     * This runtime target should only be used by the various
-     * "-main" modules containing main methods.
-     */
-    val usedForStartup: Property<Boolean>
-
-    /**
-     * Declare that this Gradle module runs as part of the Gradle Wrapper.
-     */
-    val usedInWrapper: Property<Boolean>
-
-    /**
      * Declare that this Gradle module runs as part of worker process.
      */
     val usedInWorkers: Property<Boolean>
 
     /**
-     * Declare that this Gradle module runs as part of a client process, such
-     * as the Tooling API client or CLI client.
+     * Declare that this Gradle module runs as part of the wrapper or as part of a client process.
+     * Client processes include the Tooling API client or the CLI client.
      */
     val usedInClient: Property<Boolean>
 

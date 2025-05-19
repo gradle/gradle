@@ -29,7 +29,7 @@ dependencies {
 
     implementation(projects.baseAsm)
     implementation(projects.buildOperations)
-    implementation(projects.buildProcessStartup)
+    implementation(projects.buildProcessServices)
     implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.serialization)

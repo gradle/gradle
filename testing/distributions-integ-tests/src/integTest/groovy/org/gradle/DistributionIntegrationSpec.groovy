@@ -57,7 +57,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-operations-trace",
         "build-option",
         "build-process-services",
-        "build-process-startup",
         "build-state",
         "classloaders",
         "cli",
