@@ -48,12 +48,10 @@ dependencies {
         api("com.thoughtworks.qdox:qdox:2.2.0")
         api("org.codelibs:jhighlight:1.1.0")
         api("com.vladsch.flexmark:flexmark-all:0.64.8")
-        api("org.apache.pdfbox:pdfbox:2.0.24") {
-            because("Flexmark 0.34.60 brings in a vulnerable version of pdfbox")
-        }
+        api("org.apache.pdfbox:pdfbox:3.0.5")
         api("com.google.code.findbugs:jsr305:3.0.2")
         api("org.jspecify:jspecify:1.0.0")
-        api("commons-io:commons-io:2.14.0")
+        api("commons-io:commons-io:2.19.0")
         api("org.apache.commons:commons-lang3:3.17.0")
         api("javax.activation:activation:1.1.1")
         api("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")

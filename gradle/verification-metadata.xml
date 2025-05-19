@@ -129,6 +129,7 @@
             <trusting group="commons-codec"/>
             <trusting group="commons-beanutils"/>
             <trusting group="commons-io"/>
+            <trusting group="commons-logging"/>
             <trusting group="org.apache.commons"/>
             <trusting group="xml-apis"/>
          </trusted-key>
