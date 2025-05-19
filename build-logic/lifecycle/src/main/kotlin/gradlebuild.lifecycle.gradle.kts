@@ -52,18 +52,12 @@ tasks.registerEarlyFeedbackRootLifecycleTasks()
  */
 fun setupTimeoutMonitorOnCI() {
     if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
+        println("setupTimeoutMonitorOnCI")
         project.gradle.sharedServices.registerIfAbsent("printStackTracesOnTimeoutBuildService", PrintStackTracesOnTimeoutBuildService::class.java) {
-            parameters.timeoutMillis = determineTimeoutMillis()
+            parameters.timeoutMillis = 30
             parameters.projectDirectory = layout.projectDirectory
         }.get()
     }
-}
-
-fun determineTimeoutMillis() = when {
-    isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest) -> Duration.ofMinutes(30).toMillis()
-    isRequestedTask(smokeTest) -> Duration.ofHours(1).plusMinutes(30).toMillis()
-    isRequestedTask(docsTest) -> Duration.ofMinutes(45).toMillis()
-    else -> Duration.ofHours(2).plusMinutes(45).toMillis()
 }
 
 fun setupGlobalState() {

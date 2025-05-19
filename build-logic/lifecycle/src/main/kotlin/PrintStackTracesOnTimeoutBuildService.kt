@@ -34,6 +34,7 @@ abstract class PrintStackTracesOnTimeoutBuildService @Inject constructor(private
     val timer: Timer = Timer(true).apply {
         schedule(
             timerTask {
+                println("Exec PrintStackTracesOnTimeoutBuildService")
                 execOperations.exec {
                     commandLine(
                         "${System.getProperty("java.home")}/bin/java",
