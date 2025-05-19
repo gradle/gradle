@@ -135,16 +135,18 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 == Do not call `get()`` on a Provider outside of a Task action
 :keywords: tasks,inputs-and-outputs
 
-When configuring tasks and extensions do not call link:{javadocPath}/org/gradle/api/provider/Provider.html#get()[`get()`] on a provider, use link:{javadocPath}/org/gradle/api/provider/Provider.html#map(org.gradle.api.Transformer)[`map()`], or link:{javadocPath}/https://docs.gradle.org/nightly/javadoc/org/gradle/api/provider/Provider.html#flatMap(org.gradle.api.Transformer)[`flatMap()`] instead
+When configuring tasks and extensions do not call link:{javadocPath}/org/gradle/api/provider/Provider.html#get()[`get()`] on a provider, use link:{javadocPath}/org/gradle/api/provider/Provider.html#map(org.gradle.api.Transformer)[`map()`], or link:{javadocPath}/https://docs.gradle.org/nightly/javadoc/org/gradle/api/provider/Provider.html#flatMap(org.gradle.api.Transformer)[`flatMap()`] instead.
 
 === Explanation
 
-A provider should be evaluated as late as possible. 
+A provider should be evaluated as late as possible.
 Calling `get()` forces immediate evaluation, which can trigger unintended side effects, such as:
 
 - The value of the provider becomes an input to configuration, causing potential configuration cache misses.
 - The value may be evaluated too early, meaning you might not be using the final or correct value of the property. This may lead to painful and hard to debug ordering issues.
-- It breaks Gradle’s ability to build dependencies and to track task inputs and outputs, making automatic task dependency wiring impossible.
+- It breaks Gradle’s ability to build dependencies and to track task inputs and outputs, making automatic task dependency wiring impossible. See <<lazy_configuration.adoc#working_with_task_dependencies_in_lazy_properties,Working with task inputs and outputs>>
+
+It is preferable to avoid explicitly evaluating a `Provider` at all, and deferring to `map`/`flatMap` to connect `Providers` to `Providers` implicitly.
 
 === Example
 
@@ -154,6 +156,9 @@ Here is a task that writes an input `String` to a file:
 include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction/kotlin",files="build.gradle.kts[tags=provider-get-task-setup]"]
 include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction/groovy",files="build.gradle[tags=provider-get-task-setup]"]
 ====
+
+<1> Using `Provider.get()` in the task action
+<2> Gradle property that we wish to use as input
 
 ==== Don't Do This
 

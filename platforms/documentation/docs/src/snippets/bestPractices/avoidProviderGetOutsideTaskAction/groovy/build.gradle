@@ -8,25 +8,26 @@ abstract class MyTask extends DefaultTask {
 
     @TaskAction
     void doAction() {
-        // Use get in the task action
         def outputFile = myOutput.get().asFile
-        def outputText = myInput.get()
+        def outputText = myInput.get() // <1>
         println(outputText)
         outputFile.write(outputText)
     }
 }
+
+Provider<String> currentEnvironment = providers.gradleProperty("currentEnvironment") // <2>
 // end::provider-get-task-setup[]
 
 // tag::avoid-this[]
 tasks.register("avoidThis", MyTask) {
-    myInput = "currentEnvironment=${providers.gradleProperty("currentEnvironment").get()}"  // <1>
+    myInput = "currentEnvironment=${currentEnvironment.get()}"  // <1>
     myOutput = new File(layout.buildDirectory.get().asFile, "output-avoid.txt")  // <2>
 }
 // end::avoid-this[]
 
 // tag::do-this[]
 tasks.register("doThis", MyTask) {
-    myInput = providers.gradleProperty("currentEnvironment").map { "currentEnvironment=$it" }  // <1>
+    myInput = currentEnvironment.map { "currentEnvironment=$it" }  // <1>
     myOutput = layout.buildDirectory.file("output-do.txt")  // <2>
 }
 // end::do-this[]
