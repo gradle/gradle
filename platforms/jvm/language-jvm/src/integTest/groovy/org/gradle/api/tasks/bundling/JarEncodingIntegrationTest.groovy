@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths

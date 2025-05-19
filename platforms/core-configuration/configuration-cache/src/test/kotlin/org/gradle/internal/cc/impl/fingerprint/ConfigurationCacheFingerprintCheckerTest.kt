@@ -375,10 +375,6 @@ class ConfigurationCacheFingerprintCheckerTest {
         override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) =
             undefined()
 
-        override suspend fun forTask(trace: PropertyTrace, action: suspend () -> Unit) {
-            undefined()
-        }
-
         override fun push(codec: Codec<Any?>): Unit =
             undefined()
 
@@ -510,10 +506,6 @@ class ConfigurationCacheFingerprintCheckerTest {
 
         override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) =
             undefined()
-
-        override suspend fun forTask(trace: PropertyTrace, action: suspend () -> Unit) {
-            undefined()
-        }
 
         override fun readInt(): Int =
             undefined()
