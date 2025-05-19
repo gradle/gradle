@@ -29,6 +29,12 @@ val junit5Version = "5.12.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-28"
+/**
+ * Should be in sync with:
+ * tooling API-related docs & snippets
+ * buildship: CreateBuildshipEclipseProjectTask#calculateManifest
+ * StaticLoggerProvider#REQUESTED_API_VERSION
+*/
 val slf4jVersion = "2.0.17"
 val spockVersion = when (bundleGroovyMajor) {
     4 -> "2.3-groovy-4.0"
