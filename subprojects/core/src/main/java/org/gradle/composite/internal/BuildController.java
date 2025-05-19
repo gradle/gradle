@@ -58,6 +58,9 @@ public interface BuildController extends Stoppable {
      */
     boolean scheduleQueuedTasks();
 
+    /**
+     * Returns finalized execution plan for this build. This method should be called only after {@link #finalizeWorkGraph}.
+     */
     FinalizedExecutionPlan getFinalizedExecutionPlan();
 
     /**

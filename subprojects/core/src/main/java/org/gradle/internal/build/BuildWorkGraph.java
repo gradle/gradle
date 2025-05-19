@@ -53,6 +53,9 @@ public interface BuildWorkGraph extends Stoppable {
      */
     void finalizeGraph();
 
+    /**
+     * Returns finalized execution plan for this work graph. This method should be called only after {@link #finalizeGraph()}.
+     */
     FinalizedExecutionPlan getFinalizedExecutionPlan();
 
     /**
