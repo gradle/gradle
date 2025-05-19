@@ -27,7 +27,6 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.accessors.PluginTree
 import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import java.io.File
 import javax.inject.Inject
 
 
@@ -58,21 +57,16 @@ fun implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports,
     classPathFiles: FileCollection
 ): List<String> {
-    return implicitImports.list + "${sharedAccessorsPackageFor(classPathFiles)}.*"
+    return implicitImports.list + "${sharedAccessorsPackageFor(pluginTreesFrom(classPathFiles))}.*"
 }
-
-
-internal
-fun sharedAccessorsPackageFor(classPathFiles: Iterable<File>): String =
-    sharedAccessorsPackageFor(pluginTreesFrom(classPathFiles))
 
 
 internal
 fun sharedAccessorsPackageFor(pluginTrees: Map<String, PluginTree>): String {
     fun hash(pluginTrees: Map<String, PluginTree>): HashCode {
-        val hasher = Hashing.newHasher() // TODO: is this the right type of hasher?
+        val hasher = Hashing.newHasher()
         pluginTrees.entries.forEach {
-            hasher.putInt(it.key.hashCode()) // TODO: should the key be included?
+            hasher.putString(it.key)
             hasher.putInt(it.value.hashCode())
         }
         return hasher.hash()
