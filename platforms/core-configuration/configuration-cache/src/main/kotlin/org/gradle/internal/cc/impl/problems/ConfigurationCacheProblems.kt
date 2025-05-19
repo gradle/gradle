@@ -196,7 +196,7 @@ class ConfigurationCacheProblems(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        onProblem(problem, ProblemSeverity.Failure)
+        onProblem(problem, ProblemSeverity.Deferred)
     }
 
     private
@@ -263,7 +263,7 @@ class ConfigurationCacheProblems(
     }
 
     fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
-        val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
+        val failDueToProblems = summary.deferredProblemCount > 0 && isFailOnProblems
         val hasTooManyProblems = hasTooManyProblems(summary)
         val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
         return when {
@@ -287,7 +287,7 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         val summary = summarizer.get()
-        val hasNoProblems = summary.problemCount == 0
+        val hasNoProblems = summary.totalProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
         val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
@@ -312,7 +312,7 @@ class ConfigurationCacheProblems(
     fun detailsFor(summary: Summary): ProblemReportDetails {
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        return ProblemReportDetails(buildNameProvider.buildName(), cacheActionText, cacheActionDescription, requestedTasks, summary.problemCount)
+        return ProblemReportDetails(buildNameProvider.buildName(), cacheActionText, cacheActionDescription, requestedTasks, summary.totalProblemCount)
     }
 
     private
@@ -338,7 +338,7 @@ class ConfigurationCacheProblems(
 
         override fun beforeComplete() {
             val summary = summarizer.get()
-            val problemCount = summary.problemCount
+            val problemCount = summary.totalProblemCount
             val hasProblems = problemCount > 0
             val discardStateDueToProblems = discardStateDueToProblems(summary)
             val hasTooManyProblems = hasTooManyProblems(summary)
@@ -372,11 +372,11 @@ class ConfigurationCacheProblems(
 
     private
     fun discardStateDueToProblems(summary: Summary) =
-        (summary.problemCount > 0 || incompatibleTasks.isNotEmpty()) && isFailOnProblems
+        (summary.totalProblemCount > 0 || incompatibleTasks.isNotEmpty()) && isFailOnProblems
 
     private
     fun hasTooManyProblems(summary: Summary) =
-        summary.nonSuppressedProblemCount > startParameter.maxProblems
+        summary.deferredProblemCount > startParameter.maxProblems
 
     private
     fun log(msg: String, vararg args: Any = emptyArray()) {
