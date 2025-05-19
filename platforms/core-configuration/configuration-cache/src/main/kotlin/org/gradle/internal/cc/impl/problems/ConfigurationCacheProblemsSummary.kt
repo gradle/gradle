@@ -63,7 +63,7 @@ class ConfigurationCacheProblemsSummary(
     var suppressedProblemCount: Int = 0
 
     private
-    var uniqueProblems = ObjectOpenHashSet<UniquePropertyProblem>()
+    val uniqueProblems = ObjectOpenHashSet<UniquePropertyProblem>()
 
     private
     var causes = ArrayList<Throwable>(MAX_CAUSES)
@@ -99,14 +99,22 @@ class ConfigurationCacheProblemsSummary(
                 overflowed = true
                 return false
             }
-            val uniqueProblem = UniquePropertyProblem.of(problem)
-            if (uniqueProblems.add(uniqueProblem) && causes.size < MAX_CAUSES) {
+            val isNew = trackUniqueProblems(problem)
+            if (isNew && causes.size < MAX_CAUSES) {
                 problem.exception?.let {
                     causes.add(it)
                 }
             }
             return true
         }
+    }
+
+    /**
+     * Return true if no similar problem has been seen before.
+     */
+    private
+    fun trackUniqueProblems(problem: PropertyProblem): Boolean {
+        return uniqueProblems.add(UniquePropertyProblem.of(problem))
     }
 }
 
@@ -143,7 +151,7 @@ class Summary(
             appendLine()
             appendSummaryHeader(cacheActionText, totalProblemCount)
             appendLine()
-            Ordering.from(consoleComparator()).leastOf(uniqueProblems, MAX_CONSOLE_PROBLEMS).forEach { problem ->
+            topProblemsForConsole().forEach { problem ->
                 append("- ")
                 append(problem.userCodeLocation.capitalized())
                 append(": ")
@@ -161,6 +169,10 @@ class Summary(
             }
         }.toString()
     }
+
+    private
+    fun topProblemsForConsole(): List<UniquePropertyProblem> =
+        Ordering.from(consoleComparator()).leastOf(uniqueProblems, MAX_CONSOLE_PROBLEMS)
 
     private
     fun StringBuilder.appendSummaryHeader(
