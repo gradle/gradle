@@ -382,7 +382,7 @@ The values are not case-sensitive.
 _Default is `lifecycle` level._
 
 `org.gradle.parallel=(true,false)`::
-When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute <<performance.adoc#sec:parallel_execution,projects in parallel>>.
+When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute <<performance.adoc#sec:enable_parallel_execution,projects in parallel>>.
 +
 _Default is `false`._
 
