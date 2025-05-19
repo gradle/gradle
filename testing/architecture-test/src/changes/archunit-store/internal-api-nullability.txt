@@ -1336,7 +1336,6 @@ Class <org.gradle.ide.visualstudio.internal.VisualStudioProjectConfigurationMeta
 Class <org.gradle.ide.visualstudio.internal.VisualStudioProjectInternal> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (VisualStudioProjectInternal.java:0)
 Class <org.gradle.ide.visualstudio.internal.VisualStudioProjectMetadata> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (VisualStudioProjectMetadata.java:0)
 Class <org.gradle.ide.visualstudio.internal.VisualStudioProjectRegistry> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (VisualStudioProjectRegistry.java:0)
-Class <org.gradle.ide.visualstudio.internal.VisualStudioProjectResolver> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (VisualStudioProjectResolver.java:0)
 Class <org.gradle.ide.visualstudio.internal.VisualStudioSolutionInternal> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (VisualStudioSolutionInternal.java:0)
 Class <org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary$LanguageStandard> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (VisualStudioTargetBinary.java:0)
 Class <org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary$ProjectType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (VisualStudioTargetBinary.java:0)
