@@ -14,6 +14,7 @@
 
 [[incremental_build]]
 = Incremental build
+:keywords: Classpath, InputFiles, InputDirectory, InputFile, Input, CompileClasspath, OutputFile, OutputDirectory, OutputFiles, OutputDirectories, Destroys, LocalState, Nested, Console, Internal, ReplacedBy, SkipWhenEmpty, Incremental, Optional, PathSensitive, IgnoreEmptyDirectories, NormalizeLineEndings
 
 An important part of any build tool is the ability to avoid doing work that has already been done.
 Consider the process of compilation.
