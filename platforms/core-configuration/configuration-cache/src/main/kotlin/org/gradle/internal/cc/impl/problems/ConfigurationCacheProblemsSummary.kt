@@ -54,13 +54,13 @@ class ConfigurationCacheProblemsSummary(
     var overflowed: Boolean = false
 
     private
-    var problemCount: Int = 0
+    var totalProblemCount: Int = 0
 
     private
-    var failureCount: Int = 0
+    var deferredProblemCount: Int = 0
 
     private
-    var suppressedCount: Int = 0
+    var suppressedProblemCount: Int = 0
 
     private
     var uniqueProblems = ObjectOpenHashSet<UniquePropertyProblem>()
@@ -73,9 +73,8 @@ class ConfigurationCacheProblemsSummary(
 
     fun get(): Summary = lock.withLock {
         Summary(
-            problemCount,
-            failureCount,
-            suppressedCount,
+            totalProblemCount,
+            deferredProblemCount,
             ImmutableSet.copyOf(uniqueProblems),
             ImmutableList.copyOf(causes),
             overflowed,
@@ -88,15 +87,15 @@ class ConfigurationCacheProblemsSummary(
      */
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
         lock.withLock {
-            problemCount += 1
+            totalProblemCount += 1
             when (severity) {
-                ProblemSeverity.Failure -> failureCount += 1
-                ProblemSeverity.Suppressed -> suppressedCount += 1
+                ProblemSeverity.Deferred -> deferredProblemCount += 1
+                ProblemSeverity.Suppressed -> suppressedProblemCount += 1
             }
             if (overflowed) {
                 return false
             }
-            if (problemCount > maxCollectedProblems) {
+            if (totalProblemCount > maxCollectedProblems) {
                 overflowed = true
                 return false
             }
@@ -117,18 +116,12 @@ class Summary(
     /**
      * Total of all problems, regardless of severity.
      */
-    val problemCount: Int,
+    val totalProblemCount: Int,
 
     /**
-     * Total number of problems that are failures.
+     * Number of [deferred][ProblemSeverity.Deferred] failures.
      */
-    val failureCount: Int,
-
-    /**
-     * Total number of [suppressed][ProblemSeverity.Suppressed] problems.
-     */
-    private
-    val suppressedCount: Int,
+    val deferredProblemCount: Int,
 
     private
     val uniqueProblems: Set<UniquePropertyProblem>,
@@ -144,14 +137,11 @@ class Summary(
     val uniqueProblemCount: Int
         get() = uniqueProblems.size
 
-    val nonSuppressedProblemCount: Int
-        get() = problemCount - suppressedCount
-
     fun textForConsole(cacheActionText: String, htmlReportFile: File? = null): String {
         val documentationRegistry = DocumentationRegistry()
         return StringBuilder().apply {
             appendLine()
-            appendSummaryHeader(cacheActionText, problemCount)
+            appendSummaryHeader(cacheActionText, totalProblemCount)
             appendLine()
             Ordering.from(consoleComparator()).leastOf(uniqueProblems, MAX_CONSOLE_PROBLEMS).forEach { problem ->
                 append("- ")

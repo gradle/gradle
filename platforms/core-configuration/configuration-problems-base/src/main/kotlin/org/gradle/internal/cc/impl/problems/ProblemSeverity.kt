@@ -17,7 +17,17 @@
 package org.gradle.internal.cc.impl.problems
 
 enum class ProblemSeverity {
-    Failure,
+
+    /**
+     * Problems that are reported to the user sometime after they are discovered,
+     * but which will fail the build, unless warning mode is active.
+     *
+     * Collecting deferred problems is useful to provide the user with the overview
+     * of potentially many things that make the build not compatible with Configuration Cache,
+     * instead of failing the build on the first encounter. Many serialization problems
+     * fall into this category.
+     */
+    Deferred,
 
     /**
      * A problem produced by a task marked as [notCompatibleWithConfigurationCache][org.gradle.api.Task.notCompatibleWithConfigurationCache].
