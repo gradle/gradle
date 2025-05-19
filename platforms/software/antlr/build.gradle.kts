@@ -24,7 +24,9 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.languageJava)
     implementation(projects.platformJvm)
+    implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJavaLibrary)
 

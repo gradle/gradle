@@ -1651,13 +1651,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public void setCanBeConsumed(boolean allowed) {
         checkChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
-        setCanBeConsumedInternal(allowed);
-    }
-
-    /**
-     * Configures if a configuration can be consumed, without emitting any warnings.
-     */
-    private void setCanBeConsumedInternal(boolean allowed) {
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
@@ -1672,13 +1665,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public void setCanBeResolved(boolean allowed) {
         checkChangingUsage("setCanBeResolved", canBeResolved, allowed);
-        setCanBeResolvedInternal(allowed);
-    }
-
-    /**
-     * Configures if a configuration can be resolved, without emitting any warnings.
-     */
-    private void setCanBeResolvedInternal(boolean allowed) {
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
@@ -1693,13 +1679,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public void setCanBeDeclared(boolean allowed) {
         checkChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
-        setCanBeDeclaredInternal(allowed);
-    }
-
-    /**
-     * Configures if a configuration can have dependencies declared against it, without emitting any warnings.
-     */
-    private void setCanBeDeclaredInternal(boolean allowed) {
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;

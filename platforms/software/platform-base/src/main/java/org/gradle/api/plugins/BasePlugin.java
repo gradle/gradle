@@ -72,11 +72,13 @@ public abstract class BasePlugin implements Plugin<Project> {
         RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
         ((ProjectInternal) project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.consumableLocked(Dependency.ARCHIVES_CONFIGURATION)
-            .setDescription("Configuration for archive artifacts.");
+        final Configuration archivesConfiguration = configurations.consumableLocked(Dependency.ARCHIVES_CONFIGURATION, conf -> {
+            conf.setDescription("Configuration for archive artifacts.");
+        });
 
-        configurations.consumableLocked(Dependency.DEFAULT_CONFIGURATION)
-            .setDescription("Configuration for default artifacts.");
+        configurations.consumableLocked(Dependency.DEFAULT_CONFIGURATION, conf -> {
+            conf.setDescription("Configuration for default artifacts.");
+        });
 
         project.getTasks().named(ASSEMBLE_TASK_NAME, task ->
             task.dependsOn(archivesConfiguration.getAllArtifacts().getBuildDependencies())
