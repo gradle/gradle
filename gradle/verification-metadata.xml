@@ -131,6 +131,7 @@
          <trusted-key id="2DB4F1EF0FA761ECC4EA935C86FDC7E2A11262CB">
             <trusting group="commons-codec"/>
             <trusting group="commons-io"/>
+            <trusting group="commons-logging"/>
             <trusting group="org.apache.commons"/>
             <trusting group="xml-apis"/>
          </trusted-key>
