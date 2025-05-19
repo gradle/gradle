@@ -14,6 +14,7 @@
 
 [[working_with_files]]
 = Working With Files
+:keywords: projectlayout, project.file, filecollection, project.copy, filetree, archiveFileName, archiveFile, destinationDirectory, archiveBaseName, archiveAppendix, archiveVersion, archiveClassifier, archiveExtension
 
 File operations are fundamental to nearly every Gradle build.
 They involve handling source files, managing file dependencies, and generating reports.

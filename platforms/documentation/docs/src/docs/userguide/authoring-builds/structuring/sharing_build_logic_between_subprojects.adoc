@@ -14,7 +14,7 @@
 
 [[sharing_build_logic_between_subprojects]]
 = Sharing Build Logic using `buildSrc`
-:keywords: buildsrc, build-logic
+:keywords: buildsrc, build-logic, allprojects, subprojects
 
 Subprojects in a multi-project build often share common dependencies.
 
@@ -209,6 +209,59 @@ Dependencies can be declared in its own `build.gradle` or `build.gradle.kts` fil
 In a multi-project build, only one `buildSrc` directory is allowed, and it must reside in the root project directory.
 
 WARNING: Changes to code in `buildSrc` will invalidate the configuration phase and require re-execution of all tasks, potentially slowing down the build.
+
+=== Using a Composite Build Named `build-logic`
+
+In addition to `buildSrc`, another powerful way to share build logic across subprojects is by using a dedicated composite build, typically named `build-logic`.
+
+A typical multi-project build using `build-logic` as a composite build looks like this:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── build-logic/                   // <1>
+│   ├── build.gradle.kts
+│   ├── settings.gradle.kts
+│   └── src/main/kotlin
+│       └── java-common-conventions.gradle.kts
+├── api/
+│   └── build.gradle.kts           // <2>
+├── services/
+│   └── build.gradle.kts           // <2>
+├── shared/
+│   └── build.gradle.kts           // <2>
+└── settings.gradle.kts            // <3>
+----
+<1> Standalone build logic project that defines convention plugins.
+<2> Applies shared plugin(s) from the composite build.
+<3> Includes build-logic as an included build.
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── build-logic/                // <1>
+│   ├── build.gradle
+│   ├── settings.gradle
+│   └── src/main/groovy
+│       └── java-common-conventions.gradle
+├── api/
+│   └── build.gradle            // <2>
+├── services/
+│   └── build.gradle            // <2>
+├── shared/
+│   └── build.gradle            // <2>
+└── settings.gradle             // <3>
+----
+<1> Standalone build logic project that defines convention plugins.
+<2> Applies shared plugin(s) from the composite build.
+<3> Includes `build-logic` as an included build.
+=====
+
+You can learn more in <<composite_builds.adoc#composite_builds,Composite Builds>>.
 
 [[sec:convention_plugins_vs_cross_configuration]]
 == Avoid cross-project configuration using `subprojects` and `allprojects`
