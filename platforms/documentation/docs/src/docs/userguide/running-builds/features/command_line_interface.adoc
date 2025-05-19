@@ -602,7 +602,7 @@ Toggles configure-on-demand. Only relevant projects are configured in this build
 Sets the maximum number of workers that Gradle may use. _Default is number of processors_.
 
 `--parallel`, `--no-parallel`::
-Build projects in parallel. For limitations of this option, see <<performance.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
+Build projects in parallel. For limitations of this option, see <<performance.adoc#sec:enable_parallel_execution, Parallel Project Execution>>. _Default is off_.
 
 `--priority`::
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
