@@ -32,7 +32,7 @@ public class TestTaskIdentities {
     private static final TaskIdentityFactory DEFAULT_FACTORY = factory();
 
     public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
-        return DEFAULT_FACTORY.create(name, type, project);
+        return DEFAULT_FACTORY.create(name, type, project, null);
     }
 
     public static TaskIdentityFactory factory() {

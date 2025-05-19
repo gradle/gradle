@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factory;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -64,6 +65,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final BuildOperationRunner buildOperationRunner;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
     public DefaultTaskContainerFactory(
         Instantiator instantiator,
@@ -74,7 +76,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        ProjectRegistry<ProjectInternal> projectRegistry,
+        UserCodeApplicationContext userCodeApplicationContext
     ) {
         this.instantiator = instantiator;
         this.taskIdentityFactory = taskIdentityFactory;
@@ -85,6 +88,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.crossProjectConfigurator = crossProjectConfigurator;
         this.callbackDecorator = callbackDecorator;
         this.projectRegistry = projectRegistry;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
@@ -99,7 +103,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
             buildOperationRunner,
             crossProjectConfigurator,
             callbackDecorator,
-            projectRegistry
+            projectRegistry,
+            userCodeApplicationContext
         );
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
