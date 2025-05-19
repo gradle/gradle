@@ -618,7 +618,7 @@ class DefaultConfigurationCache internal constructor(
                 storeFailure
             } catch (error: Exception) {
                 // Invalidate state on serialization errors
-                problems.failingBuildDueToSerializationError()
+                problems.onStoreSerializationError()
                 throw error
             }
         }
