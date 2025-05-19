@@ -94,10 +94,10 @@ class ConfigurationCacheProblems(
     val postBuildHandler = PostBuildProblemsHandler()
 
     private
-    var isFailOnProblems = !startParameter.warningMode
+    val warningMode = startParameter.warningMode
 
     private
-    var isFailingBuildDueToSerializationError = false
+    var seenSerializationErrorOnStore = false
 
     private
     var reusedProjects = 0
@@ -119,7 +119,7 @@ class ConfigurationCacheProblems(
             if (cacheAction is ConfigurationCacheAction.Load) {
                 return false
             }
-            if (isFailingBuildDueToSerializationError) {
+            if (seenSerializationErrorOnStore) {
                 return true
             }
             val summary = summarizer.get()
@@ -139,9 +139,8 @@ class ConfigurationCacheProblems(
         cacheActionDescription = actionDescription
     }
 
-    fun failingBuildDueToSerializationError() {
-        isFailingBuildDueToSerializationError = true
-        isFailOnProblems = false
+    fun onStoreSerializationError() {
+        seenSerializationErrorOnStore = true
     }
 
     fun projectStateStats(reusedProjects: Int, updatedProjects: Int) {
@@ -154,11 +153,15 @@ class ConfigurationCacheProblems(
         if (error is IOException || error is ConfigurationCacheThrowable) {
             throw error
         }
-        throw ConfigurationCacheError(
+
+        val wrappedError = ConfigurationCacheError(
             // TODO: the message is not precise, since some errors can happen during load
             "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message).render()}",
             error.maybeUnwrapInvocationTargetException()
         )
+        val failure = failureFactory.create(error)
+        val problem = PropertyProblem(trace, StructuredMessage.build(message), wrappedError, failure)
+        onProblem(problem, ProblemSeverity.Interrupting)
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
@@ -205,6 +208,11 @@ class ConfigurationCacheProblems(
             problemsService.onProblem(problem, severity)
             report.onProblem(problem)
         }
+
+        if (severity == ProblemSeverity.Interrupting) {
+            val exception = problem.exception ?: error("Interrupting problems must have an associated exception. Got: $problem")
+            throw exception
+        }
     }
 
     private
@@ -250,8 +258,8 @@ class ConfigurationCacheProblems(
     private
     fun ProblemSeverity.toProblemSeverity() = when {
         this == ProblemSeverity.Suppressed -> Severity.ADVICE
-        isFailOnProblems -> Severity.ERROR
-        else -> Severity.WARNING
+        warningMode -> Severity.WARNING
+        else -> Severity.ERROR
     }
 
     private fun onIncompatibleTask(problem: PropertyProblem) {
@@ -263,12 +271,10 @@ class ConfigurationCacheProblems(
     }
 
     fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
-        val failDueToProblems = summary.deferredProblemCount > 0 && isFailOnProblems
+        val failDueToProblems = summary.deferredProblemCount > 0 && !warningMode
         val hasTooManyProblems = hasTooManyProblems(summary)
         val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
         return when {
-            // TODO - always include this as a build failure;
-            //  currently it is disabled when a serialization problem happens
             failDueToProblems -> {
                 ConfigurationCacheProblemsException(summary.causes, summaryText)
             }
@@ -282,7 +288,7 @@ class ConfigurationCacheProblems(
     }
 
     /**
-     * Writes the report to the given [reportDir] if any [diagnostics][DiagnosticKind] have
+     * Writes the report to the given [reportDir] if any [diagnostics][org.gradle.internal.configuration.problems.DiagnosticKind] have
      * been reported in which case a warning is also logged with the location of the report.
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
@@ -338,16 +344,17 @@ class ConfigurationCacheProblems(
 
         override fun beforeComplete() {
             val summary = summarizer.get()
-            val problemCount = summary.totalProblemCount
-            val hasProblems = problemCount > 0
+            val totalProblemCount = summary.totalProblemCount
+            val deferredProblemCount = summary.deferredProblemCount
+            val hasProblems = totalProblemCount > 0
             val discardStateDueToProblems = discardStateDueToProblems(summary)
             val hasTooManyProblems = hasTooManyProblems(summary)
-            val problemCountString = problemCount.counter("problem")
+            val problemCountString = totalProblemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
             when {
-                isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
-                isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
+                seenSerializationErrorOnStore && deferredProblemCount == 0 -> log("Configuration cache entry discarded due to serialization error.")
+                seenSerializationErrorOnStore -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -372,7 +379,7 @@ class ConfigurationCacheProblems(
 
     private
     fun discardStateDueToProblems(summary: Summary) =
-        (summary.totalProblemCount > 0 || incompatibleTasks.isNotEmpty()) && isFailOnProblems
+        !warningMode && (summary.totalProblemCount > 0 || incompatibleTasks.isNotEmpty())
 
     private
     fun hasTooManyProblems(summary: Summary) =

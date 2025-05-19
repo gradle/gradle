@@ -30,6 +30,14 @@ enum class ProblemSeverity {
     Deferred,
 
     /**
+     * Problems that interrupt the current operation immediately after being discovered and recorded.
+     *
+     * The exception is normally turned into a dedicated build failure.
+     * These problems are still present in the report and can appear in the console summary.
+     */
+    Interrupting,
+
+    /**
      * A problem produced by a task marked as [notCompatibleWithConfigurationCache][org.gradle.api.Task.notCompatibleWithConfigurationCache].
      */
     Suppressed,

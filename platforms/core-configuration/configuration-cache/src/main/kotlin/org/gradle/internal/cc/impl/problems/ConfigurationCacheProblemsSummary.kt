@@ -93,6 +93,7 @@ class ConfigurationCacheProblemsSummary(
             when (severity) {
                 ProblemSeverity.Deferred -> deferredProblemCount += 1
                 ProblemSeverity.Suppressed -> suppressedProblemCount += 1
+                ProblemSeverity.Interrupting -> {}
             }
             if (overflowed) {
                 return false
@@ -233,6 +234,7 @@ fun consoleComparatorForProblem(): Comparator<UniquePropertyProblem> =
  *
  * Deferred problems go first because their presence is the cause of the Configuration Cache build failure.
  * Suppressed problems are included, but their presence alone would not have triggered a build failure.
+ * Interrupting problems will have a dedicated build failure, so they have the lowest summary priority.
  */
 private
 fun consoleComparatorForSeverity(): Comparator<ProblemSeverity> =
@@ -240,6 +242,7 @@ fun consoleComparatorForSeverity(): Comparator<ProblemSeverity> =
         when (it) {
             ProblemSeverity.Deferred -> 1
             ProblemSeverity.Suppressed -> 2
+            ProblemSeverity.Interrupting -> 3
         }
     }
 
