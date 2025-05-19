@@ -49,6 +49,6 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         wrapperResult.assertTaskExecuted(":help")
 
         where:
-        jdk << AvailableJavaHomes.getSupportedWrapperJdks()
+        jdk << AvailableJavaHomes.getSupportedClientJdks()
     }
 }

@@ -39,8 +39,6 @@ val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtensio
     targetRuntimes {
         // By default, assume a library targets only the daemon
         // TODO: Eventually, all projects should explicitly declare their target platform(s)
-        usedForStartup = false
-        usedInWrapper = false
         usedInWorkers = false
         usedInClient = false
         usedInDaemon = true

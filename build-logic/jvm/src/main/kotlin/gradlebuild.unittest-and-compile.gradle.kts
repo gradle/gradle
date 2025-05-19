@@ -130,8 +130,6 @@ fun enforceCompatibility(jvmCompile: UnitTestAndCompileExtension) {
 fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
     // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
     val targetRuntimeJavaVersions = mapOf(
-        usedForStartup to 8,
-        usedInWrapper to 8,
         usedInWorkers to 8,
         usedInClient to 8,
         usedInDaemon to 8

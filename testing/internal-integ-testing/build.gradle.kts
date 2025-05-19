@@ -84,7 +84,6 @@ dependencies {
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
-    implementation(projects.buildProcessStartup)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.cli)
@@ -110,7 +109,7 @@ dependencies {
     implementation(projects.wrapperShared)
 
     implementation(testFixtures(projects.buildOperations))
-    implementation(testFixtures(projects.buildProcessStartup))
+    implementation(testFixtures(projects.buildProcessServices))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)

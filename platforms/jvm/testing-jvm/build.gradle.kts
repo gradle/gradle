@@ -35,7 +35,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.buildProcessStartup)
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.fileTemp)
