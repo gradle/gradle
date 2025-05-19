@@ -14,7 +14,6 @@
 
 [[test_kit]]
 = Testing Build Logic with TestKit
-:keywords: testkit
 
 The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally. At this time, it is focused on _functional_ testing. That is, testing build logic by exercising it as part of a programmatically executed build. Over time, the TestKit will likely expand to facilitate other kinds of tests.
 

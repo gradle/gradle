@@ -14,7 +14,6 @@
 
 [[ant]]
 = Using Ant from Gradle
-:keywords: ant
 
 Gradle provides integration with Ant.
 
