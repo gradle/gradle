@@ -317,7 +317,7 @@ public class ProviderConnection {
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.get(LoggingManagerFactory.class).createLoggingManager();
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput, Optional.ofNullable(operationParameters.getBuildProgressListener()));
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, params.buildLayout.toLayoutConfiguration(), standardInput, Optional.ofNullable(operationParameters.getBuildProgressListener()));
             stoppable.add(clientServices);
             stoppable.add(requestSpecificLogging);
             executor = clientServices.get(DaemonClient.class);
