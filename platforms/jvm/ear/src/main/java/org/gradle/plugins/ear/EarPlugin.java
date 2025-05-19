@@ -109,12 +109,16 @@ public abstract class EarPlugin implements Plugin<Project> {
                 component.getMainFeature().getSourceSet().getResources().srcDir(task.getAppDirectory());
             });
 
-            DeploymentDescriptor deploymentDescriptor = createDeploymentDescriptor();
-            if (deploymentDescriptor.getDisplayName() == null) {
-                deploymentDescriptor.setDisplayName(project.getName());
-            }
-            if (deploymentDescriptor.getDescription() == null) {
-                deploymentDescriptor.setDescription(project.getDescription());
+            DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
+            deploymentDescriptor.readFrom("META-INF/application.xml");
+            deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
+            if (deploymentDescriptor != null) {
+                if (deploymentDescriptor.getDisplayName() == null) {
+                    deploymentDescriptor.setDisplayName(project.getName());
+                }
+                if (deploymentDescriptor.getDescription() == null) {
+                    deploymentDescriptor.setDescription(project.getDescription());
+                }
             }
             task.setDeploymentDescriptor(deploymentDescriptor);
         });
@@ -125,6 +129,22 @@ public abstract class EarPlugin implements Plugin<Project> {
     private void wireEarTaskConventions(Project project) {
         project.getTasks().withType(Ear.class).configureEach(task -> {
             task.getAppDirectory().convention(project.provider(() -> project.getLayout().getProjectDirectory().dir("src/main/application")));
+            task.getConventionMapping().map("libDirName", new Callable<String>() {
+                @Override
+                public String call() throws Exception {
+                    return DEFAULT_LIB_DIR_NAME;
+                }
+            });
+            task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
+                @Override
+                public DeploymentDescriptor call() throws Exception {
+                    DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
+                    deploymentDescriptor.readFrom("META-INF/application.xml");
+                    deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
+                    return deploymentDescriptor;
+                }
+            });
+
             task.from((Callable<FileCollection>) () -> {
                 if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
                     return null;
@@ -144,13 +164,6 @@ public abstract class EarPlugin implements Plugin<Project> {
                 return project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME);
             });
         });
-    }
-
-    private DeploymentDescriptor createDeploymentDescriptor() {
-        DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
-        deploymentDescriptor.readFrom("META-INF/application.xml");
-        deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
-        return deploymentDescriptor;
     }
 
     private void configureConfigurations(final ProjectInternal project) {
