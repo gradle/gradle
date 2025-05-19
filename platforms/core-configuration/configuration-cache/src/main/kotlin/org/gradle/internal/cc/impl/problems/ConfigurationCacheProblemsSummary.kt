@@ -17,9 +17,8 @@
 package org.gradle.internal.cc.impl.problems
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
+import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Ordering
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -63,10 +62,13 @@ class ConfigurationCacheProblemsSummary(
     var suppressedProblemCount: Int = 0
 
     private
-    val uniqueProblems = ObjectOpenHashSet<UniquePropertyProblem>()
+    val uniqueProblems = HashMap<UniquePropertyProblem, ProblemSeverity>()
 
     private
     var causes = ArrayList<Throwable>(MAX_CAUSES)
+
+    private
+    val severityComparator = consoleComparatorForSeverity()
 
     private
     val lock = ReentrantLock()
@@ -75,7 +77,7 @@ class ConfigurationCacheProblemsSummary(
         Summary(
             totalProblemCount,
             deferredProblemCount,
-            ImmutableSet.copyOf(uniqueProblems),
+            ImmutableMap.copyOf(uniqueProblems),
             ImmutableList.copyOf(causes),
             overflowed,
             maxCollectedProblems
@@ -99,7 +101,7 @@ class ConfigurationCacheProblemsSummary(
                 overflowed = true
                 return false
             }
-            val isNew = trackUniqueProblems(problem)
+            val isNew = trackUniqueProblems(problem, severity)
             if (isNew && causes.size < MAX_CAUSES) {
                 problem.exception?.let {
                     causes.add(it)
@@ -113,8 +115,13 @@ class ConfigurationCacheProblemsSummary(
      * Return true if no similar problem has been seen before.
      */
     private
-    fun trackUniqueProblems(problem: PropertyProblem): Boolean {
-        return uniqueProblems.add(UniquePropertyProblem.of(problem))
+    fun trackUniqueProblems(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
+        val reducedProblem = UniquePropertyProblem.of(problem)
+        val isNew = !uniqueProblems.containsKey(reducedProblem)
+        uniqueProblems.merge(reducedProblem, severity) { old, new ->
+            if (severityComparator.compare(old, new) < 0) old else new
+        }
+        return isNew
     }
 }
 
@@ -132,7 +139,7 @@ class Summary(
     val deferredProblemCount: Int,
 
     private
-    val uniqueProblems: Set<UniquePropertyProblem>,
+    val uniqueProblems: Map<UniquePropertyProblem, ProblemSeverity>,
 
     val causes: List<Throwable>,
 
@@ -156,7 +163,7 @@ class Summary(
                 append(problem.userCodeLocation.capitalized())
                 append(": ")
                 appendLine(problem.message)
-                problem.documentationSection?.let<String, Unit> {
+                problem.documentationSection?.let {
                     appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", it)}")
                 }
             }
@@ -171,8 +178,10 @@ class Summary(
     }
 
     private
-    fun topProblemsForConsole(): List<UniquePropertyProblem> =
-        Ordering.from(consoleComparator()).leastOf(uniqueProblems, MAX_CONSOLE_PROBLEMS)
+    fun topProblemsForConsole(): Sequence<UniquePropertyProblem> =
+        Ordering.from(consoleComparatorForProblemWithSeverity()).leastOf(uniqueProblems.entries, MAX_CONSOLE_PROBLEMS)
+            .asSequence()
+            .map { it.key }
 
     private
     fun StringBuilder.appendSummaryHeader(
@@ -208,9 +217,31 @@ class Summary(
 
 
 private
-fun consoleComparator() =
+fun consoleComparatorForProblemWithSeverity(): Comparator<Map.Entry<UniquePropertyProblem, ProblemSeverity>> =
+    comparing<Map.Entry<UniquePropertyProblem, ProblemSeverity>, ProblemSeverity>({ it.value }, consoleComparatorForSeverity())
+        .thenComparing({ it.key }, consoleComparatorForProblem())
+
+
+private
+fun consoleComparatorForProblem(): Comparator<UniquePropertyProblem> =
     comparing { p: UniquePropertyProblem -> p.userCodeLocation }
         .thenComparing { p: UniquePropertyProblem -> p.message }
+
+
+/**
+ * Sorts the severities in the order suitable for a console summary.
+ *
+ * Deferred problems go first because their presence is the cause of the Configuration Cache build failure.
+ * Suppressed problems are included, but their presence alone would not have triggered a build failure.
+ */
+private
+fun consoleComparatorForSeverity(): Comparator<ProblemSeverity> =
+    Comparator.comparingInt { it: ProblemSeverity ->
+        when (it) {
+            ProblemSeverity.Deferred -> 1
+            ProblemSeverity.Suppressed -> 2
+        }
+    }
 
 
 internal
