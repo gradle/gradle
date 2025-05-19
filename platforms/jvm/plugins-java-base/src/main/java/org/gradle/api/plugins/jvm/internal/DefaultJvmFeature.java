@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
-import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.Capability;
@@ -72,6 +71,7 @@ import static org.gradle.api.attributes.DocsType.SOURCES;
  * sources and javadoc variants that the main feature would also conditionally create.</p>
  */
 public class DefaultJvmFeature implements JvmFeatureInternal {
+
     private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";
 
     private final String name;
@@ -219,18 +219,15 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         TaskProvider<JavaCompile> compileJava
     ) {
         String configName = getConfigurationName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration apiElements = configurations.consumableLocked(configName);
+        return configurations.consumableLocked(configName, apiElements -> {
+            jvmLanguageUtilities.useDefaultTargetPlatformInference(apiElements, compileJava);
+            jvmPluginServices.configureAsApiElements(apiElements);
+            capabilities.forEach(apiElements.getOutgoing()::capability);
+            apiElements.setDescription("API elements for the '" + name + "' feature.");
 
-        apiElements.setVisible(false);
-        jvmLanguageUtilities.useDefaultTargetPlatformInference(apiElements, compileJava);
-        jvmPluginServices.configureAsApiElements(apiElements);
-        capabilities.forEach(apiElements.getOutgoing()::capability);
-        apiElements.setDescription("API elements for the '" + name + "' feature.");
-
-        // Configure variants
-        addJarArtifactToConfiguration(apiElements, jarArtifact);
-
-        return apiElements;
+            // Configure artifact sets
+            addJarArtifactToConfiguration(apiElements, jarArtifact);
+        });
     }
 
     private Configuration createRuntimeElements(
@@ -239,22 +236,19 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         TaskProvider<JavaCompile> compileJava
     ) {
         String configName = getConfigurationName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeElements = configurations.consumableLocked(configName);
+        return configurations.consumableLocked(configName, runtimeElements -> {
+            jvmLanguageUtilities.useDefaultTargetPlatformInference(runtimeElements, compileJava);
+            jvmPluginServices.configureAsRuntimeElements(runtimeElements);
+            capabilities.forEach(runtimeElements.getOutgoing()::capability);
+            runtimeElements.setDescription("Runtime elements for the '" + name + "' feature.");
 
-        runtimeElements.setVisible(false);
-        jvmLanguageUtilities.useDefaultTargetPlatformInference(runtimeElements, compileJava);
-        jvmPluginServices.configureAsRuntimeElements(runtimeElements);
-        capabilities.forEach(runtimeElements.getOutgoing()::capability);
-        runtimeElements.setDescription("Runtime elements for the '" + name + "' feature.");
+            runtimeElements.extendsFrom(implementation, runtimeOnly);
 
-        runtimeElements.extendsFrom(implementation, runtimeOnly);
-
-        // Configure variants
-        addJarArtifactToConfiguration(runtimeElements, jarArtifact);
-        jvmPluginServices.configureClassesDirectoryVariant(runtimeElements, sourceSet);
-        jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
-
-        return runtimeElements;
+            // Configure artifact sets
+            addJarArtifactToConfiguration(runtimeElements, jarArtifact);
+            jvmPluginServices.configureClassesDirectoryVariant(runtimeElements, sourceSet);
+            jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
+        });
     }
 
     @Override
@@ -319,17 +313,17 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         // of the component's API?
         String variantName = getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        ConsumableConfiguration variant = project.getConfigurations().consumable(variantName).get();
-        variant.setDescription("List of source directories contained in the Main SourceSet.");
-        variant.setVisible(false);
-        variant.extendsFrom(getImplementationConfiguration());
+        project.getConfigurations().consumable(variantName, variant -> {
+            variant.setDescription("List of source directories contained in the Main SourceSet.");
+            variant.extendsFrom(getImplementationConfiguration());
 
-        jvmPluginServices.configureAsSources(variant);
+            jvmPluginServices.configureAsSources(variant);
 
-        variant.getOutgoing().artifacts(
-            getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> project.provider(() -> e)),
-            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
-        );
+            variant.getOutgoing().artifacts(
+                getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> project.provider(() -> e)),
+                artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
+            );
+        });
     }
 
     private Configuration dependencyScope(String kind, String suffix, boolean create, boolean warnOnDuplicate) {

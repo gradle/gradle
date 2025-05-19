@@ -63,37 +63,41 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         // TODO - reduce duplication with Swift binary
 
         @SuppressWarnings("deprecation")
-        Configuration ipc = configurations.resolvableDependencyScopeLocked(names.withPrefix("cppCompile"));
+        Configuration ipc = configurations.resolvableDependencyScopeLocked(names.withPrefix("cppCompile"), conf -> {
+            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            conf.extendsFrom(getImplementationDependencies());
+        });
         includePathConfiguration = ipc;
-        includePathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-        includePathConfiguration.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-        includePathConfiguration.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-        includePathConfiguration.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-        includePathConfiguration.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
-        includePathConfiguration.extendsFrom(getImplementationDependencies());
 
         @SuppressWarnings("deprecation")
-        Configuration nativeLink = configurations.resolvableDependencyScopeLocked(names.withPrefix("nativeLink"));
-        nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
-        nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-        nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-        nativeLink.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-        nativeLink.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
-        nativeLink.extendsFrom(getImplementationDependencies());
+        Configuration nativeLink = configurations.resolvableDependencyScopeLocked(names.withPrefix("nativeLink"), conf -> {
+            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
+            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            conf.extendsFrom(getImplementationDependencies());
+        });
 
-        Configuration nativeRuntime = configurations.resolvableLocked(names.withPrefix("nativeRuntime"));
-        nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
-        nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-        nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-        nativeRuntime.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-        nativeRuntime.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
-        nativeRuntime.extendsFrom(getImplementationDependencies());
+        Configuration nativeRuntime = configurations.resolvableLocked(names.withPrefix("nativeRuntime"), conf -> {
+            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
+            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            conf.extendsFrom(getImplementationDependencies());
+        });
 
         ArtifactView includeDirs = includePathConfiguration.getIncoming().artifactView(viewConfiguration -> {
             viewConfiguration.attributes(attributeContainer -> {
                 attributeContainer.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
             });
         });
+
         includePath = componentHeaderDirs.plus(includeDirs.getFiles());
         linkLibraries = nativeLink;
         runtimeLibraries = nativeRuntime;

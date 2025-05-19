@@ -67,11 +67,11 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
 
         Usage apiUsage = getObjectFactory().named(Usage.class, Usage.C_PLUS_PLUS_API);
 
-        Configuration ae = configurations.consumableLocked(getNames().withSuffix("cppApiElements"));
-        apiElements = ae;
-        apiElements.extendsFrom(dependencies.getApiDependencies());
-        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-        apiElements.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+        this.apiElements = configurations.consumableLocked(getNames().withSuffix("cppApiElements"), conf -> {
+            conf.extendsFrom(dependencies.getApiDependencies());
+            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+            conf.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+        });
 
         AttributeContainer publicationAttributes = attributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);

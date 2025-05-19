@@ -17,7 +17,7 @@
 package org.gradle.jvm.component.internal;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -38,13 +38,13 @@ import javax.inject.Inject;
  * a means of querying all variants of all features.
  */
 public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
-    private final RoleBasedConfigurationContainerInternal configurations;
+    private final ConfigurationContainer configurations;
 
     @Inject
     public DefaultJvmSoftwareComponent(
         String componentName,
         ObjectFactory objectFactory,
-        RoleBasedConfigurationContainerInternal configurations
+        ConfigurationContainer configurations
     ) {
         super(componentName, objectFactory);
         this.configurations = configurations;
