@@ -1,11 +1,5 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
-
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
@@ -13,8 +7,12 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
-
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 
 class ExtensionAwareExtensionsTest {
