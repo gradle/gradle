@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import com.google.common.annotations.VisibleForTesting
+import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.CommitDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -26,15 +28,28 @@ import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 import java.util.function.Supplier
 
+/**
+ * Downloads Tooling API clients of a given version, for use in cross version testing.
+ */
 class ToolingApiDistributionResolver {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ToolingApiDistributionResolver.class)
 
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
+    private final String repoUrl
+
+    ToolingApiDistributionResolver() {
+        this(RepoScriptBlockUtil.gradleRepositoryMirrorUrl())
+    }
+
+    @VisibleForTesting
+    ToolingApiDistributionResolver(String repoUrl) {
+        this.repoUrl = repoUrl
+    }
 
     ToolingApiDistribution resolve(String toolingApiVersion) {
         if (!distributions[toolingApiVersion]) {
@@ -64,13 +79,9 @@ class ToolingApiDistributionResolver {
 
         File destination = buildContext.tmpDir.file("gradle-tooling-api-${version}.jar")
         if (!destination.exists()) {
-            withRetries {
-                def url = RepoScriptBlockUtil.gradleRepositoryMirrorUrl() + "/" + relativePath
-                LOGGER.warn("Downloading tooling API {}", version)
-                try (InputStream stream = new URL(url).openStream()) {
-                    Files.copy(stream, destination.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                }
-            }
+            def url = repoUrl + "/" + relativePath
+            LOGGER.warn("Downloading tooling API {} from {}", version, url)
+            download(url, destination)
         }
         return destination
     }
@@ -83,6 +94,18 @@ class ToolingApiDistributionResolver {
         File location = ClasspathUtil.getClasspathForClass(Logger.class)
         assert location.name.endsWith(".jar") : "Expected to find SLF4J jar"
         location
+    }
+
+    private static void download(String url, File destination) {
+        try {
+            withRetries {
+                try (InputStream stream = new URL(url).openStream()) {
+                    Files.copy(stream, destination.toPath())
+                }
+            }
+        } catch (Exception e) {
+            throw new GradleException("Failed to download ${url}", e)
+        }
     }
 
     private static <T> T withRetries(Supplier<T> action) {

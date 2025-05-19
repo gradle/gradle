@@ -48,6 +48,9 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("resolve") {
                 def files = configurations.runtimeClasspath.incoming.files
                 doLast {
+                    // If either of these expectations change,
+                    // `ToolingApiDistributionResolver` must be updated.
+                    assert files.size() == 2
                     assert files.find { it.name ==~ /slf4j-api-.*\\.jar/ } != null
 
                     // If this suddenly fails without an obvious reason, you likely have added some code
