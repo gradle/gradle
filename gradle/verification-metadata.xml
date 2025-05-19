@@ -1005,21 +1005,6 @@
             <pgp value="8446B9E902A3F3DDEE711FDB8E26FF248BC7AEAD"/>
          </artifact>
       </component>
-      <component group="net.bytebuddy" name="byte-buddy" version="1.8.21">
-         <artifact name="byte-buddy-1.8.21.jar">
-            <pgp value="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3"/>
-         </artifact>
-      </component>
-      <component group="net.bytebuddy" name="byte-buddy-agent" version="1.10.9">
-         <artifact name="byte-buddy-agent-1.10.9.jar">
-            <pgp value="A7892505CF1A58076453E52D7999BEFBA1039E8B"/>
-         </artifact>
-      </component>
-      <component group="net.bytebuddy" name="byte-buddy-agent" version="1.8.5">
-         <artifact name="byte-buddy-agent-1.8.5.jar">
-            <pgp value="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3"/>
-         </artifact>
-      </component>
       <component group="net.i2p.crypto" name="eddsa" version="0.3.0">
          <artifact name="eddsa-0.3.0.jar">
             <pgp value="43C79B4BBD131821E17D2CA77B2F0491728B8E02"/>

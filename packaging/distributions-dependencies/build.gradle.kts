@@ -44,7 +44,7 @@ val tomljVersion = "1.0.0"
 
 // test only
 val archunitVersion = "1.2.0"
-val bytebuddyVersion = "1.10.20"
+val bytebuddyVersion = "1.17.5"
 val jettyVersion = "9.4.36.v20210114"
 val sshdVersion = "2.12.1"
 

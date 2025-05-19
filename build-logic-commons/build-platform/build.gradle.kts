@@ -87,7 +87,7 @@ dependencies {
         api("xerces:xercesImpl:2.12.2") {
             because("Maven Central and JCenter disagree on version 2.9.1 metadata")
         }
-        api("net.bytebuddy:byte-buddy") { version { strictly("1.10.21") } }
+        api("net.bytebuddy:byte-buddy") { version { strictly("1.17.5") } }
         api("org.objenesis:objenesis") { version { strictly("3.1") } }
     }
 }
