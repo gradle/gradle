@@ -54,7 +54,7 @@ fun setupTimeoutMonitorOnCI() {
     if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
         println("setupTimeoutMonitorOnCI")
         project.gradle.sharedServices.registerIfAbsent("printStackTracesOnTimeoutBuildService", PrintStackTracesOnTimeoutBuildService::class.java) {
-            parameters.timeoutMillis = 30
+            parameters.timeoutMillis = 10 * 60 * 1000
             parameters.projectDirectory = layout.projectDirectory
         }.get()
     }
