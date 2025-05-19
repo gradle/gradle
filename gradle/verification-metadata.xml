@@ -109,6 +109,7 @@
          <trusted-key id="1FA37FBE4453C1073E7EF61D6449005F96BC97A3" group="de.undercouch"/>
          <trusted-key id="1FA868A348719E88B6D0DE24C03EF1D7D692BCFF" group="org.scala-lang"/>
          <trusted-key id="21F0942275EA159A501D375328852008A47BB995" group="^com[.]google($|([.].*))" regex="true"/>
+         <trusted-key id="263923711EF4FE3F3F0C28AF11509ED50EC155E6" group="com.typesafe"/>
          <trusted-key id="2655176F748FD83725B4805FF2A01147D830C125">
             <trusting group="com.github.docker-java"/>
             <trusting group="org.testcontainers"/>
@@ -329,6 +330,7 @@
          <trusted-key id="E7DC75FC24FB3C8DFE8086AD3D5839A2262CBBFB" group="org.jetbrains.kotlinx"/>
          <trusted-key id="E85AED155021AF8A6C6B7A4A7C7D8456294423BA" group="org.objenesis" name="objenesis"/>
          <trusted-key id="E870FB6BE4BA46C81520FD6936B9CF3BEB52D771" group="com.openhtmltopdf"/>
+         <trusted-key id="E88BF2559874BA889D34357C0555B3BA1CA4ECF9" group="com.typesafe"/>
          <trusted-key id="EA022560A81E5BD48DB3D18B54AC8E2D98CFEAC6" group="org.ysb33r.gradle"/>
          <trusted-key id="EA23DB1360D9029481E7F2EFECDFEA3CB4493B94" group="org.apache.sshd"/>
          <trusted-key id="EA313384CA0EBA950EA017E937890E298D9A2BFA">
@@ -734,21 +736,6 @@
       <component group="com.swoval" name="file-tree-views" version="2.1.12">
          <artifact name="file-tree-views-2.1.12.jar">
             <pgp value="EE2CFEB6A2AECF44C781C5C3DCD5181297A43D24"/>
-         </artifact>
-      </component>
-      <component group="com.typesafe" name="config" version="1.2.1">
-         <artifact name="config-1.2.1.jar">
-            <pgp value="75DF525907FF19B0E4AEC4C7C550938A54246AD3"/>
-         </artifact>
-      </component>
-      <component group="com.typesafe" name="config" version="1.3.3">
-         <artifact name="config-1.3.3.jar">
-            <pgp value="263923711EF4FE3F3F0C28AF11509ED50EC155E6"/>
-         </artifact>
-      </component>
-      <component group="com.typesafe" name="config" version="1.4.1">
-         <artifact name="config-1.4.1.jar">
-            <pgp value="E88BF2559874BA889D34357C0555B3BA1CA4ECF9"/>
          </artifact>
       </component>
       <component group="com.vdurmont" name="semver4j" version="2.1.0">
