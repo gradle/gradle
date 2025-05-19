@@ -135,6 +135,36 @@ Configuration cache entry discarded because degradation was requested by:
                                                                                                                                          "Build file 'build.gradle': line 14: invocation of 'Task.taskDependencies' at execution time is unsupported."] | "Project access, TaskDependencies access."
     }
 
+    def "CC problems in incompatible tasks are not hidden by CC degradation"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register("foo") {
+                requireConfigurationCacheDegradation("Project access", provider { true })
+                doLast {
+                    println "Hello from foo \${project.path}"
+                }
+            }
+
+            tasks.register("bar") {
+                doLast {
+                    println "Hello from bar \${project.path}"
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails "foo", "bar"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 2
+            withProblem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":foo", "Project access.")
+        }
+    }
+
     def "a task in included build can require CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildLogic/build.gradle", """
