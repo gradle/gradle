@@ -127,6 +127,8 @@ public abstract class JacocoTaskExtension {
      */
     public void setDestinationFile(Provider<File> destinationFile) {
         // TODO: This is a workaround for behavior in AGP.
+        // see https://github.com/gradle/gradle/issues/33389
+        // This can be removed once we've fixed RegularFileProperty.fileProvider(...) to work properly 
         this.destinationFile.fileProvider(destinationFile.flatMap(Providers::of));
     }
 
