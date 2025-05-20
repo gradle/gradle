@@ -104,7 +104,7 @@ class IsolatedProjectsFixture {
      */
     void assertStateStoredAndDiscarded(@DelegatesTo(StateDiscardedWithProblemsDetails) Closure closure) {
         def details = new StateDiscardedWithProblemsDetails()
-        details.loadsOnStore = false // in most cases IP-problems are registered before Store, so the entry is discarded before Load
+        details.loadsAfterStore = false // in most cases IP-problems are registered before Store, so the entry is discarded before Load
         closure.delegate = details
         closure()
 
@@ -304,7 +304,7 @@ class IsolatedProjectsFixture {
     private <T extends HasBuildActions> T forModels(T details) {
         details.createsModels = true
         details.runsTasks = false
-        details.loadsOnStore = false
+        details.loadsAfterStore = false
         details
     }
 

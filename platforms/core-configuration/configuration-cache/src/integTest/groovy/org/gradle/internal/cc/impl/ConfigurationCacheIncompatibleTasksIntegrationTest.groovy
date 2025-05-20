@@ -35,7 +35,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         result.assertTasksExecuted(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
             problem "Build file 'build.gradle': line 16: invocation of 'Task.project' at execution time is unsupported."
             problem "Task `:declared` of type `Broken`: error writing value of type 'BrokenSerializable'"
             incompatibleTask ":declared", "retains configuration container."
@@ -48,7 +48,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         result.assertTasksExecuted(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
             problem "Build file 'build.gradle': line 16: invocation of 'Task.project' at execution time is unsupported."
             problem "Task `:declared` of type `Broken`: error writing value of type 'BrokenSerializable'"
             incompatibleTask ":declared", "retains configuration container."
@@ -81,7 +81,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         result.assertTasksExecuted(":reportedlyIncompatible")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
 
         fixture.problems.assertResultHasProblems(result) {
@@ -170,7 +170,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         result.assertTasksExecuted(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
 
         when:
@@ -180,7 +180,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         result.assertTasksExecuted(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
     }
 
@@ -249,7 +249,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         result.assertTasksExecuted(":declared", ":reliesOnSerialization")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
 
         where:
@@ -276,7 +276,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
             problem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
         }
     }
@@ -304,7 +304,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
     }
 
@@ -330,7 +330,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
     }
 
@@ -356,7 +356,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
     }
 
@@ -391,7 +391,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
     }
 
@@ -430,14 +430,14 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
         }
     }
 
     private void assertStateStoredAndDiscardedForDeclaredTask(int line) {
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            loadsOnStore = false
+            loadsAfterStore = false
             problem "Build file 'build.gradle': line $line: invocation of 'Task.project' at execution time is unsupported."
             serializationProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
         }
@@ -445,7 +445,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
 
     private void assertStateStoredAndDiscardedForDeclaredAndNotDeclaredTasks() {
         fixture.assertStateStoredAndDiscarded {
-            loadsOnStore = false
+            loadsAfterStore = false
             problem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.", 2)
             serializationProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
             serializationProblem("Task `:notDeclared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")

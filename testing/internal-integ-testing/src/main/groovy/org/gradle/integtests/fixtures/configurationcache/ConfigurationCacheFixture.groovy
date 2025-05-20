@@ -66,7 +66,7 @@ class ConfigurationCacheFixture {
     void assertStateStored(HasBuildActions details) {
         assertHasStoreReason(details)
 
-        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsOnStore)
+        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsAfterStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
@@ -121,7 +121,7 @@ class ConfigurationCacheFixture {
             } else {
                 configurationCacheBuildOperations.assertStorePhaseSuccessful()
             }
-            if (details.loadsOnStore) {
+            if (details.loadsAfterStore) {
                 if (details.hasLoadFailure) {
                     configurationCacheBuildOperations.assertLoadPhaseFailed()
                 } else {
@@ -441,7 +441,7 @@ class ConfigurationCacheFixture {
         // Whether to expect tooling models, which is normally the case when running any Tooling API build action
         boolean createsModels = false
         // Whether the load operation is expected, which can may not be the case when building models or dealing with incompatible tasks or store serialization errors
-        boolean loadsOnStore = true
+        boolean loadsAfterStore = true
         boolean hasStoreFailure = true
         boolean hasLoadFailure = false
 
