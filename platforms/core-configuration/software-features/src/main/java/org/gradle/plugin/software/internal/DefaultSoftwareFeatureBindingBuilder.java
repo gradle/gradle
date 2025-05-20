@@ -17,7 +17,9 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslBindingBuilder;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
@@ -30,7 +32,7 @@ public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBind
     private final List<DslBindingBuilder<?, ?>> bindings = new ArrayList<>();
 
     @Override
-    public <T, U, V> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform) {
+    public <T extends HasBuildModel<V>, U extends BuildModel, V extends BuildModel> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform) {
         DslBindingBuilder<T, V> builder = new DefaultDslBindingBuilder<>(dslType, bindingTargetType, buildModelType, Path.path(name), transform);
         bindings.add(builder);
         return builder;
@@ -42,8 +44,8 @@ public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBind
     }
 
     @Override
-    public List<SoftwareFeatureBinding> build() {
-        List<SoftwareFeatureBinding> result = new ArrayList<>();
+    public List<SoftwareFeatureBinding<?, ?>> build() {
+        List<SoftwareFeatureBinding<?, ?>> result = new ArrayList<>();
         for (DslBindingBuilder<?, ?> binding : bindings) {
             result.add(binding.build());
         }

@@ -22,7 +22,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
+import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -66,7 +68,7 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
 
     @Override
     public <T> void apply(T target, ModelDefaultsApplicator.ClassLoaderContext classLoaderContext, String softwareFeatureName, Plugin<?> plugin) {
-        SoftwareFeatureImplementation<?> softwareFeatureImplementation = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(softwareFeatureName);
+        SoftwareFeatureImplementation<?, ?> softwareFeatureImplementation = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(softwareFeatureName);
 
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false, problems);
         inspectionScheme.getPropertyWalker().visitProperties(
@@ -104,7 +106,7 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
         }
     }
 
-    private static <T> ModelDefault.Visitor<Action<? super T>> executeActionVisitor(SoftwareFeatureImplementation<T> softwareFeatureImplementation, @Nullable Object modelObject) {
+    private static <T extends HasBuildModel<V>, V extends BuildModel> ModelDefault.Visitor<Action<? super T>> executeActionVisitor(SoftwareFeatureImplementation<T, V> softwareFeatureImplementation, @Nullable Object modelObject) {
         if (modelObject == null) {
             throw new IllegalStateException("The model object for " + softwareFeatureImplementation.getFeatureName() + " declared in " + softwareFeatureImplementation.getPluginClass().getName() + " is null.");
         }

@@ -16,11 +16,13 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.api.internal.plugins.HasBuildModel
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.api.internal.plugins.BuildModel
 
 @PolyglotDslTest
 class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
@@ -94,7 +96,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
             import org.gradle.api.internal.plugins.software.SoftwareFeature;
             import org.gradle.api.plugins.ExtensionAware;
-            import org.gradle.test.SoftwareTypeImplPlugin.ModelType;
+            import org.gradle.test.TestSoftwareTypeExtension.ModelType;
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding.class)
             public class SoftwareFeatureImplPlugin implements Plugin<Project> {
@@ -137,7 +139,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.api.internal.plugins.software.SoftwareFeature
             import org.gradle.api.plugins.ExtensionAware
             import org.gradle.api.internal.plugins.bind
-            import org.gradle.test.SoftwareTypeImplPlugin.ModelType
+            import org.gradle.test.TestSoftwareTypeExtension.ModelType
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding::class)
             class SoftwareFeatureImplPlugin : Plugin<Project> {
@@ -185,11 +187,12 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         String content = """
             package org.gradle.test;
 
+            import ${HasBuildModel.class.name};
             import org.gradle.api.provider.Property;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             @Restricted
-            public interface FeatureDefinition {
+            public interface FeatureDefinition extends HasBuildModel<FeatureModel> {
                 @Restricted
                 Property<String> getText();
             }
@@ -202,9 +205,10 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         String content = """
             package org.gradle.test;
 
+            import ${BuildModel.class.name};
             import org.gradle.api.provider.Property;
 
-            public interface FeatureModel {
+            public interface FeatureModel extends BuildModel {
                 Property<String> getText();
             }
         """

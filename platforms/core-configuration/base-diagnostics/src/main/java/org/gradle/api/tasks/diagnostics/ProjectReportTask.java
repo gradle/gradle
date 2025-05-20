@@ -80,7 +80,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     public static final class ProjectReportModel {
         private final ProjectDetails project;
         private final List<ProjectReportModel> children;
-        private final List<SoftwareFeatureImplementation<?>> softwareTypes;
+        private final List<SoftwareFeatureImplementation<?, ?>> softwareTypes;
         private final boolean isRootProject;
         private final String tasksTaskPath;
         private final String rootProjectProjectsTaskPath;
@@ -89,7 +89,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         private ProjectReportModel(
             ProjectDetails project,
             List<ProjectReportModel> children,
-            List<SoftwareFeatureImplementation<?>> softwareTypes,
+            List<SoftwareFeatureImplementation<?, ?>> softwareTypes,
             boolean isRootProject,
             String tasksTaskPath,
             String rootProjectProjectsTaskPath,
@@ -108,8 +108,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
          * Investigates this project and all it's children to return the combined set
          * of all {@link SoftwareFeatureImplementation}s registered by plugins used by them.
          */
-        private Set<SoftwareFeatureImplementation<?>> getAllSoftwareTypes() {
-            Set<SoftwareFeatureImplementation<?>> allSoftwareTypes = new HashSet<>(softwareTypes);
+        private Set<SoftwareFeatureImplementation<?, ?>> getAllSoftwareTypes() {
+            Set<SoftwareFeatureImplementation<?, ?>> allSoftwareTypes = new HashSet<>(softwareTypes);
             children.forEach(p -> allSoftwareTypes.addAll(p.getAllSoftwareTypes()));
             return allSoftwareTypes;
         }
@@ -128,8 +128,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         );
     }
 
-    private List<SoftwareFeatureImplementation<?>> getSoftwareTypesForProject(Project project) {
-        List<SoftwareFeatureImplementation<?>> results = new ArrayList<>(1);
+    private List<SoftwareFeatureImplementation<?, ?>> getSoftwareTypesForProject(Project project) {
+        List<SoftwareFeatureImplementation<?, ?>> results = new ArrayList<>(1);
         getSoftwareTypeRegistry().getSoftwareFeatureImplementations().values().forEach(registeredType -> {
             Class<?> softwareType = registeredType.getDefinitionPublicType();
             if (project.getExtensions().findByType(softwareType) != null) {
@@ -178,7 +178,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     private void renderSoftwareTypeInfo(Map<ProjectDetails, ProjectReportModel> modelsByProjectDetails) {
-        List<SoftwareFeatureImplementation<?>> softwareTypes = modelsByProjectDetails.values().stream()
+        List<SoftwareFeatureImplementation<?, ?>> softwareTypes = modelsByProjectDetails.values().stream()
             .flatMap(model -> model.getAllSoftwareTypes().stream())
             .sorted(Comparator.comparing(SoftwareFeatureImplementation::getFeatureName))
             .collect(Collectors.toList());

@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.plugins;
 
-public interface DslBindingBuilder<T, V> {
+public interface DslBindingBuilder<T extends HasBuildModel<V>, V extends BuildModel> {
     DslBindingBuilder<T, V> withDslImplementationType(Class<? extends T> implementationType);
 
     DslBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType);
 
     DslBindingBuilder<T, V> withNestedBinding(Class<?> nestedDslType, Class<?> nestedImplementationType);
 
-    SoftwareFeatureBinding build();
+    SoftwareFeatureBinding<T, V> build();
 }

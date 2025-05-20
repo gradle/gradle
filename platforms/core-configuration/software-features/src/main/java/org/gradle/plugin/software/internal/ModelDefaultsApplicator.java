@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Project.class)
 public interface ModelDefaultsApplicator {
-    <T> void applyDefaultsTo(T target, ClassLoaderContext classLoaderContext, Plugin<?> plugin, SoftwareFeatureImplementation<?> softwareFeatureImplementation);
+    <T> void applyDefaultsTo(T target, ClassLoaderContext classLoaderContext, Plugin<?> plugin, SoftwareFeatureImplementation<?, ?> softwareFeatureImplementation);
 
     interface ClassLoaderContext {
         ClassLoader getClassLoader();
