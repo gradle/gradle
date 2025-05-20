@@ -110,7 +110,7 @@ public final class DefaultGradleVersion extends GradleVersion {
         this.buildTime = buildTime;
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException(format("'%s' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')", version));
+            throw new IllegalArgumentException(format("'%s' is not a valid Gradle version string (examples: '9.0.0', '9.1.0-rc-1')", version));
         }
 
         versionPart = matcher.group(1);
@@ -203,10 +203,15 @@ public final class DefaultGradleVersion extends GradleVersion {
 
     @Override
     public GradleVersion getBaseVersion() {
-        if (stage == null && snapshot == null) {
+        if (isFinal()) {
             return this;
         }
         return version(versionPart);
+    }
+
+    @Override
+    public boolean isFinal() {
+        return stage == null && snapshot == null;
     }
 
     public DefaultGradleVersion getNextMajorVersion() {

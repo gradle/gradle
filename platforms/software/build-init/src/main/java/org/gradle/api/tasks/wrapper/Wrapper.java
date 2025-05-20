@@ -293,12 +293,12 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * The version of the gradle distribution required by the wrapper.
      * This is usually the same version of Gradle you use for building your project.
-     * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code nightly}, and {@code release-nightly}
+     * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code release-milestone}, {@code release-nightly}, and {@code nightly}
      *
      * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
-        "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
+        "The following labels are allowed: latest, release-candidate, release-milestone, release-nightly, and nightly.")
     public void setGradleVersion(String gradleVersion) {
         distributionUrlConfigured = true;
         setUnresolvedGradleVersion(gradleVersion);
@@ -366,7 +366,7 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     private void setUnresolvedGradleVersion(String gradleVersion) {
-        this.gradleVersionResolver.setGradleVersionString(gradleVersion);
+        this.gradleVersionResolver.setGradleVersionRequest(gradleVersion);
     }
 
     /**
