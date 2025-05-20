@@ -86,6 +86,38 @@ class ConfigurationCacheBuildOperationsFixture {
         assert modelLoadOperation() == null
     }
 
+    void assertStorePhaseSuccessful() {
+        def store = workGraphStoreOperation()
+        assert store != null
+        assert store.failure == null
+    }
+
+    void assertLoadPhaseSuccessful() {
+        def load = workGraphLoadOperation()
+        assert load != null
+        assert load.failure == null
+    }
+
+    void assertStorePhaseFailed() {
+        def store = workGraphStoreOperation()
+        assert store != null
+        assert store.failure != null
+    }
+
+    void assertLoadPhaseFailed() {
+        def load = workGraphLoadOperation()
+        assert load != null
+        assert load.failure != null
+    }
+
+    void assertStorePhaseSkipped() {
+        assert workGraphStoreOperation() == null
+    }
+
+    void assertLoadPhaseSkipped() {
+        assert workGraphLoadOperation() == null
+    }
+
     @Nullable
     private BuildOperationRecord workGraphStoreOperation() {
         operations.singleOrNone("Store configuration cache state")
