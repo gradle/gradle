@@ -15,7 +15,7 @@ dependencies {
 
     performanceTestImplementation(testFixtures(projects.toolingApi))
 
-    performanceTestImplementation(libs.commonsLang3)
+    performanceTestImplementation(libs.commonsLang)
     performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(libs.gradleProfiler)
     performanceTestImplementation(libs.jettyServer)

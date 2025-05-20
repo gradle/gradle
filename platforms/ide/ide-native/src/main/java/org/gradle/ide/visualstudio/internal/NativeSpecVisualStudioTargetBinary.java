@@ -16,7 +16,7 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;

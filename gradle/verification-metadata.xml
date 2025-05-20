@@ -794,11 +794,6 @@
             <pgp value="6BDACA2C0493CCA133B372D09C4F7E9D98B1CC53"/>
          </artifact>
       </component>
-      <component group="commons-lang" name="commons-lang" version="2.6">
-         <artifact name="commons-lang-2.6.jar">
-            <pgp value="D196A5E3E70732EEB2E5007F1861C322C56014B2"/>
-         </artifact>
-      </component>
       <component group="commons-logging" name="commons-logging" version="1.2">
          <artifact name="commons-logging-1.2.jar">
             <pgp value="0CC641C3A62453AB390066C4A41F13C999945293"/>
@@ -1123,11 +1118,6 @@
       <component group="org.apache.commons" name="commons-exec" version="1.1">
          <artifact name="commons-exec-1.1.jar">
             <pgp value="697538D9F48FABC72DD60C1F2C82DBE6C780E2AF"/>
-         </artifact>
-      </component>
-      <component group="org.apache.commons" name="commons-lang3" version="3.9">
-         <artifact name="commons-lang3-3.9.jar">
-            <pgp value="B6E73D84EA4FCC47166087253FAAD2CD5ECBB314"/>
          </artifact>
       </component>
       <component group="org.apache.commons" name="commons-math3" version="3.2">

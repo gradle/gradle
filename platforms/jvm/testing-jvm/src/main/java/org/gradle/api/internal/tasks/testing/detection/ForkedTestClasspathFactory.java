@@ -89,7 +89,7 @@ public class ForkedTestClasspathFactory {
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("commons-lang3").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("javax.inject").getImplementationClasspath().getAsURLs(),
             additionalImplementationClasspath
         ));

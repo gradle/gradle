@@ -16,7 +16,7 @@
 
 package org.gradle.execution.selection;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.problems.ProblemId;
