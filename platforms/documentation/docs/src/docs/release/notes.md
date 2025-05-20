@@ -50,7 +50,10 @@ Gradle now relies on the Kotlin distribution’s own ABI fingerprinting instead 
 
 The biggest advantage of the new mechanism is the ability to work in the presence of inline functions, something that Gradle wasn't handling efficiently until now.
 This results in substantial performance gains depending on your build and the changes made to the build logic.
+
 For example, in the `gradle/gradle` project, non-ABI changes to build logic now result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
+
+![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
 
 ### Kotlin 2 TO DO
 
