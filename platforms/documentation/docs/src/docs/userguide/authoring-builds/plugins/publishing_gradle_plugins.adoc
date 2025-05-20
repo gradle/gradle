@@ -18,6 +18,7 @@
 :plugin: Greeting Plugin
 :publishplugin: Plugin Publishing Plugin
 :plugin-reference-documentation: https://plugins.gradle.org/docs/publish-plugin[reference documentation of the {publishplugin}]
+:keywords: publish, publishing, plugin
 
 Publishing a plugin is the primary way to make it available for others to use.
 While you can publish to a private repository to restrict access, publishing to the https://plugins.gradle.org[{portal}] makes your plugin available to anyone in the world.
