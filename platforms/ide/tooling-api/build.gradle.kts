@@ -64,6 +64,8 @@ dependencies {
 
     runtimeOnly(projects.coreApi)
 
+    testImplementation(projects.internalIntegTesting)
+
     testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.logging)
