@@ -14,6 +14,7 @@
 
 [[implemention_binary_plugins]]
 = Implementing Binary Plugins
+:keywords: binary, plugin
 
 *Binary plugins* refer to plugins that are compiled and distributed as JAR files.
 These plugins are usually written in Java or Kotlin and provide custom functionality or tasks to a Gradle build.

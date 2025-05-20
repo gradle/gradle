@@ -14,6 +14,7 @@
 
 [[version-catalog]]
 = Version Catalogs
+:keywords: toml, libs.versions.toml
 
 A version catalog is a selected list of dependencies that can be referenced in build scripts, simplifying dependency management.
 

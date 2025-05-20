@@ -23,7 +23,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -33,18 +32,17 @@ import org.gradle.workers.internal.KeepAliveMode;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Set;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
-    private final Class<? extends Compiler<JavaCompileSpec>> compilerClass;
-    private final Object[] compilerConstructorArguments;
+    private final JavaHomeBasedJavaCompilerFactory javaCompilerFactory;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Class<? extends Compiler<JavaCompileSpec>> compilerClass, Object[] compilerConstructorArguments, CompilerWorkerExecutor compilerWorkerExecutor, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry) {
+    public DaemonJavaCompiler(File daemonWorkingDir, JavaHomeBasedJavaCompilerFactory javaCompilerFactory, CompilerWorkerExecutor compilerWorkerExecutor, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry) {
         super(compilerWorkerExecutor);
-        this.compilerClass = compilerClass;
-        this.compilerConstructorArguments = compilerConstructorArguments;
+        this.javaCompilerFactory = javaCompilerFactory;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.classPathRegistry = classPathRegistry;
@@ -52,7 +50,12 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
 
     @Override
     protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(JavaCompileSpec spec) {
-        return new JavaCompilerParameters(compilerClass.getName(), compilerConstructorArguments, spec);
+        return new JavaCompilerParameters(JdkJavaCompiler.class.getName(), new Object[]{javaCompilerFactory}, spec);
+    }
+
+    @Override
+    protected Set<Class<?>> getAdditionalCompilerServices() {
+        return Collections.emptySet();
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
@@ -31,7 +32,6 @@ import spock.lang.Issue
 import static org.gradle.util.Matchers.containsText
 
 class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implements CppTaskNames {
-
     @Override
     protected void makeSingleProject() {
         buildFile << """

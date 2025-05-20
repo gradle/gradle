@@ -51,6 +51,13 @@ plugins { id 'cpp' }
 
         when:
         buildFile << """
+toolChains {
+    ${x86ToolChain.buildScriptConfig}
+    ${sparcToolChain.buildScriptConfig}
+    ${sparcToolChain.id} {
+        target("sparc")
+    }
+}
 model {
     platforms {
         i386 {
@@ -58,13 +65,6 @@ model {
         }
         sparc {
             architecture "sparc"
-        }
-    }
-    toolChains {
-        ${x86ToolChain.buildScriptConfig}
-        ${sparcToolChain.buildScriptConfig}
-        ${sparcToolChain.id} {
-            target("sparc")
         }
     }
     components {

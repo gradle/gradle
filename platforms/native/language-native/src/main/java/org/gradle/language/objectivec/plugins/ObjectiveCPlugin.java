@@ -19,7 +19,7 @@ package org.gradle.language.objectivec.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
+import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 
 /**
  * A plugin for projects wishing to build native binary components from Objective-C sources.
@@ -34,7 +34,7 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 public abstract class ObjectiveCPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(ObjectiveCLangPlugin.class);
     }
 

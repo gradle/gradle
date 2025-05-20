@@ -14,6 +14,7 @@
 
 [[logging]]
 = Logging
+:keywords: error, quiet, warning, lifecycle, info, warn, org.gradle.logging.level, stacktrace, org.gradle.logging.stacktrace, full-stacktrace
 
 The build log is the primary way Gradle communicates what's happening during a build.
 Clear logging helps you quickly understand your build status, identify issues, and troubleshoot effectively.

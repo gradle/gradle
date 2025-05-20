@@ -133,20 +133,6 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
-     * Get a JDK for each major Java version that is able to run the Gradle wrapper, if available.
-     */
-    public static List<Jvm> getSupportedWrapperJdks() {
-        return getJdksInRange(Range.atLeast(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION));
-    }
-
-    /**
-     * Get a JDK for each major Java version that is not able to run a Gradle client, if available.
-     */
-    public static List<Jvm> getUnsupportedClientJdks() {
-        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION));
-    }
-
-    /**
      * Get a JDK for each major Java version that is able to run a Gradle client, if available.
      */
     public static List<Jvm> getSupportedClientJdks() {

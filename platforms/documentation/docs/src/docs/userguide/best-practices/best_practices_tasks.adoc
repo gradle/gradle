@@ -17,7 +17,6 @@
 
 [[avoid_depends_on]]
 == Avoid DependsOn
-:keywords: tasks,inputs-and-outputs,up-to-date-checking
 
 The task link:{javadocPath}/org/gradle/api/DefaultTask.html#setDependsOn(java.lang.Iterable)[dependsOn] method should only be used for <<organizing_tasks.adoc#sec:lifecycle_tasks,lifecycle tasks>> (tasks without task actions).
 
@@ -78,7 +77,6 @@ Using the `map` method avoids eagerly retrieving the `helloWorld` task until the
 
 [[use_cacheability_annotations]]
 == Favor `@CacheableTask` and `@DisableCachingByDefault` over `cacheIf(Spec)` and `doNotCacheIf(String, Spec)`
-:keywords: tasks,caching
 
 The link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[`cacheIf`] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)[`doNotCacheIf`] methods should only be used in situations where the <<build_cache.adoc#build_cache,cacheability>> of a task varies between different task instances or cannot be determined until the task is executed by Gradle.
 You should instead favor annotating the task class itself with link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[`@CacheableTask`] annotation for any task that is _always_ cacheable.

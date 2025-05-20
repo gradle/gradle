@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -675,6 +676,48 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains('class org.apache.commons.lang3.StringUtils')
         outputContains('Test')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33528")
+    def "can use inner classes that reference external plugin types"() {
+        given:
+        settingsFile("""
+            include("parent")
+        """)
+        buildFile("""
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+
+            dependencies {
+                implementation(project(":parent"))
+            }
+        """)
+        file("src/main/groovy/test.gradle") << """
+            plugins {
+                id("parent")
+            }
+
+            new ParentThing() {
+            }
+        """
+
+        buildFile(getBuildFile(GradleDsl.GROOVY, "parent"), """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+        """)
+        file("src/main/groovy/parent.gradle") << """
+        """
+        file("src/main/groovy/ParentThing.groovy") << """
+            abstract class ParentThing {}
+        """
+
+        when:
+        succeeds("build")
+
+        then:
+        file("build/groovy-dsl-plugins/output/plugin-classes/precompiled_Test\$1.class").assertExists()
     }
 
     def "can apply configuration in a precompiled script plugin to the current project"() {

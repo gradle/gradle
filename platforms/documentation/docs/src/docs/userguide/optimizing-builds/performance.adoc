@@ -31,7 +31,7 @@ This section explores ways to optimize performance, highlights common pitfalls, 
 |<<sec:update-versions,Update Versions>>
 
 |2
-|<<sec:parallel_execution,Enable Parallel Execution>>
+|<<sec:enable_parallel_execution,Enable Parallel Execution>>
 
 |3
 |<<enable_daemon,Enable the Daemon>>
@@ -132,7 +132,7 @@ plugins {
 }
 ----
 
-[[sec:parallel_execution]]
+[[sec:enable_parallel_execution]]
 == 2. Enable Parallel Execution
 
 Most projects consist of multiple subprojects, some of which are independent.
@@ -873,7 +873,7 @@ include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="b
 ====
 
 Gradle reuses the forked process for the duration of the build, so the startup cost is low.
-Running compilation in its own JVM helps reduce garbage collection in the main Gradle process, which can speed up the rest of your build — especially when used alongside <<sec:parallel_execution, parallel execution>>.
+Running compilation in its own JVM helps reduce garbage collection in the main Gradle process, which can speed up the rest of your build — especially when used alongside <<sec:enable_parallel_execution, parallel execution>>.
 
 Forking compilation has little effect on small builds but can help significantly when a single task compiles more than a thousand source files.
 

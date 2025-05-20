@@ -14,7 +14,7 @@
 
 [[build_environment]]
 = Configuring the Build Environment
-:keywords: properties,gradle,system,project,environment,variables
+:keywords: properties, system, project, environment, variables, https.protocols, gradle.properties, gradle.user.home, gradle.wrapperPassword, gradle.wrapperUser, org.gradle, gradle, java_home, gradle_opts, java_opts, gradle_libs_repo_override
 
 Configuring the build environment is a powerful way to customize the build process.
 There are many mechanisms available.
@@ -382,7 +382,7 @@ The values are not case-sensitive.
 _Default is `lifecycle` level._
 
 `org.gradle.parallel=(true,false)`::
-When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute <<performance.adoc#sec:parallel_execution,projects in parallel>>.
+When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute <<performance.adoc#sec:enable_parallel_execution,projects in parallel>>.
 +
 _Default is `false`._
 

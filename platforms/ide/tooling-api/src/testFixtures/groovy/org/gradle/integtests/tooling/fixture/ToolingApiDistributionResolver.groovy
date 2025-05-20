@@ -16,65 +16,39 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.project.ProjectInternal
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.CommitDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.testfixtures.internal.ProjectBuilderImpl
+import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.file.locking.ExclusiveFileAccessManager
+import org.gradle.test.fixtures.file.TestFile
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
+import java.nio.file.Files
+import java.nio.file.Path
+
+/**
+ * Downloads Tooling API clients of a given version, for use in cross version testing.
+ */
 class ToolingApiDistributionResolver {
 
-    static interface ResolverAction<T> {
-        T run(ToolingApiDistributionResolver resolver)
-    }
-
-    /**
-     * Executes given {@code block} against a fresh instance of the {@code ToolingApiDistributionResolver}
-     * and returns the result.
-     */
-    static <T> T use(ResolverAction<T> block) {
-        def project = (ProjectInternal) ProjectBuilder.builder().build()
-        try {
-            def resolver = new ToolingApiDistributionResolver(project)
-            return block.run(resolver)
-        } finally {
-            ProjectBuilderImpl.stop(project)
-        }
-    }
-
-    private final ProjectInternal project
-    private final DependencyResolutionServices resolutionServices
+    private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiDistributionResolver.class)
 
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    private boolean useExternalToolingApiDistribution = false
+    private final ExclusiveFileAccessManager fileAccessManager = new ExclusiveFileAccessManager(120000, 200)
 
-    private ToolingApiDistributionResolver(ProjectInternal project) {
-        this.project = project
-        this.resolutionServices = project.services.get(DependencyResolutionServices)
-        def localRepository = buildContext.localRepository
-        if (localRepository) {
-            this.resolutionServices.resolveRepositoryHandler.maven { url = localRepository.toURI() }
-        }
+    private final String repoUrl
+
+    ToolingApiDistributionResolver() {
+        this(RepoScriptBlockUtil.gradleRepositoryMirrorUrl())
     }
 
-    ToolingApiDistributionResolver withRepository(String repositoryUrl) {
-        resolutionServices.resolveRepositoryHandler.maven { url = repositoryUrl }
-        this
-    }
-
-    ToolingApiDistributionResolver withDefaultRepository() {
-        withRepository(RepoScriptBlockUtil.gradleRepositoryMirrorUrl())
-    }
-
-    ToolingApiDistributionResolver withExternalToolingApiDistribution() {
-        this.useExternalToolingApiDistribution = true
-        this
+    @VisibleForTesting
+    ToolingApiDistributionResolver(String repoUrl) {
+        this.repoUrl = repoUrl
     }
 
     ToolingApiDistribution resolve(String toolingApiVersion) {
@@ -82,36 +56,60 @@ class ToolingApiDistributionResolver {
             if (useToolingApiFromTestClasspath(toolingApiVersion)) {
                 distributions[toolingApiVersion] = new TestClasspathToolingApiDistribution()
             } else if (CommitDistribution.isCommitDistribution(toolingApiVersion)) {
-                File toolingApiJar = CommitDistribution.getToolingApiJar(toolingApiVersion)
-                List<File> slf4j = resolveDependency("org.slf4j:slf4j-api:1.7.25").toList()
-                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, slf4j + toolingApiJar)
+                throw new UnsupportedOperationException(String.format("Commit distributions are not supported in this context. Adjust %s code to support them", this.class.canonicalName))
             } else {
-                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, resolveDependency("org.gradle:gradle-tooling-api:$toolingApiVersion"))
+                File toolingApiJar = locateToolingApi(toolingApiVersion)
+                File slf4jApi = locateLocalSlf4j()
+                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, [slf4jApi, toolingApiJar])
             }
         }
         distributions[toolingApiVersion]
     }
 
-    private Collection<File> resolveDependency(String dependency) {
-        LinkedList<Integer> retryMillis = [1000, 2000, 4000] as LinkedList
-        List<Throwable> exceptions = []
-        do {
-            try {
-                Dependency dep = resolutionServices.dependencyHandler.create(dependency)
-                Configuration config = resolutionServices.configurationContainer.detachedConfiguration(dep)
-                config.resolutionStrategy.disableDependencyVerification()
-                return config.files
-            } catch (Throwable t) {
-                exceptions.add(t)
-                Thread.sleep(retryMillis.removeFirst())
-            }
-        } while (!retryMillis.isEmpty())
+    private File locateToolingApi(String version) {
+        def relativePath = "org/gradle/gradle-tooling-api/$version/gradle-tooling-api-${version}.jar"
 
-        throw new DefaultMultiCauseException("Failed to resolve $dependency", exceptions)
+        File localRepository = buildContext.localRepository
+        if (localRepository) {
+            Path jarFile = localRepository.toPath().resolve(relativePath)
+            if (Files.exists(jarFile)) {
+                return jarFile.toFile()
+            }
+        }
+
+        TestFile destination = buildContext.tmpDir.file("gradle-tooling-api-${version}.jar")
+        if (!destination.exists()) {
+            def url = repoUrl + "/" + relativePath
+            download(url, destination)
+        }
+        return destination
+    }
+
+    /**
+     * The tooling API depends on the SLF4j API jar -- it is not packaged in the fat jar.
+     * Just use the SLF4J version on the classpath instead of resolving it from a repo.
+     */
+    private static File locateLocalSlf4j() {
+        File location = ClasspathUtil.getClasspathForClass(Logger.class)
+        assert location.name.endsWith(".jar") : "Expected to find SLF4J jar"
+        location
+    }
+
+    private void download(String url, TestFile destination) {
+        def markerFile = destination.withExtension("ok")
+        fileAccessManager.access(destination) {
+            if (!markerFile.exists()) {
+                destination.delete()
+
+                LOGGER.warn("Downloading {}", url)
+                destination.copyFrom(new URI(url).toURL())
+
+                markerFile.createFile()
+            }
+        }
     }
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
-        !useExternalToolingApiDistribution &&
-            toolingApiVersion == buildContext.version.baseVersion.version
+        toolingApiVersion == buildContext.version.baseVersion.version
     }
 }

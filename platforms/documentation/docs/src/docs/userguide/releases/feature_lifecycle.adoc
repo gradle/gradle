@@ -14,6 +14,7 @@
 
 [[feature_lifecycle]]
 = The Feature Lifecycle
+:keywords: incubating
 
 Gradle is under constant development. New versions are delivered on a regular and frequent basis (approximately every six weeks) as described in <<#eol_support,the section on end-of-life support>>.
 

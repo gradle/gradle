@@ -175,13 +175,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "build-process-startup",
-    "path": "platforms/core-runtime/build-process-startup",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "build-profile",
     "path": "platforms/core-runtime/build-profile",
     "unitTests": true,

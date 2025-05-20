@@ -164,7 +164,6 @@ include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/groovy",files
 
 [[dont_depend_on_kotlin_stdlib]]
 == Don't Explicitly Depend on the Kotlin Standard Library
-:keywords: dependencies
 
 The Kotlin Gradle Plugin automatically adds a dependency on the Kotlin standard library (`stdlib`) to each source set, so there is no need to declare it explicitly.
 

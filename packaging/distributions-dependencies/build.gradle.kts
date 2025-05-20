@@ -29,6 +29,12 @@ val junit5Version = "5.12.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-28"
+/**
+ * Should be in sync with:
+ * tooling API-related docs & snippets
+ * buildship: CreateBuildshipEclipseProjectTask#calculateManifest
+ * StaticLoggerProvider#REQUESTED_API_VERSION
+*/
 val slf4jVersion = "2.0.17"
 val spockVersion = when (bundleGroovyMajor) {
     4 -> "2.3-groovy-4.0"
@@ -38,7 +44,7 @@ val tomljVersion = "1.0.0"
 
 // test only
 val archunitVersion = "1.2.0"
-val bytebuddyVersion = "1.10.20"
+val bytebuddyVersion = "1.17.5"
 val jettyVersion = "9.4.36.v20210114"
 val sshdVersion = "2.12.1"
 
@@ -212,9 +218,8 @@ dependencies {
         api(libs.mavenResolverTransportFile)    { version { strictly(mavenResolverVersion) }}
         api(libs.mavenResolverTransportHttp)    { version { strictly(mavenResolverVersion) }}
         api(libs.mina)                  { version { strictly("2.0.17") }}
-        api(libs.mockitoCore)           { version { strictly("3.7.7") }}
-        api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
-        api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
+        api(libs.mockitoCore)           { version { strictly("5.17.0") }}
+        api(libs.mockitoKotlin)         { version { strictly("4.1.0") }}
         api(libs.mockwebserver)         { version { strictly("4.12.0") }}
         api(libs.mySqlConnector)        { version { strictly("9.2.0") }}
         api(libs.netty)                 { version { strictly("4.1.63.Final") }}

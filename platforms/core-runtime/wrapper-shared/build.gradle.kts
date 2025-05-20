@@ -6,7 +6,7 @@ description = "Utility code shared between the wrapper and the Gradle distributi
 
 gradleModule {
     targetRuntimes {
-        usedInWrapper = true
+        usedInClient = true
     }
 }
 
