@@ -173,3 +173,122 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 === Tags
 
 <<tags_reference.adoc#tag:upgrades,`#upgrades`>>
+
+[[no_source_in_root]]
+== Do Not Put Source Files in the Root Project
+:keywords: structuring-builds
+
+Do not put source files in your root project; instead, put them in a separate project.
+
+=== Explanation
+
+The root project is a special link:{groovyDslPath}/org.gradle.api.Project.html[Project] in Gradle that serves as the entry point for your build.
+
+It is the place to configure some settings and conventions that apply globally to the entire build, that are not configured via link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings].
+For example, you can _declare_ (but not apply) plugins here to ensure the same plugin version is consistently available across all projects and define other configurations shared by all projects within the build.
+
+NOTE: Be careful not to apply plugins unnecessarily in the root project - many plugins only affect source code and should only be applied to the projects that contain source code.
+
+The root project should not be used for source files, instead they should be located in a separate Gradle project.
+
+Setting up your build like this from the start will also make it easier to add new projects as your build grows in the future.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+.A common way to structure new builds
+[source, kotlin]
+----
+├── build.gradle.kts // Applies the `java-library` plugin to the root project
+├── settings.gradle.kts
+└── src // This directory shouldn't exist
+    └── main
+        └── java
+            └── org
+                └── example
+                    └── MyClass1.java
+----
+=====
+[.multi-language-sample]
+=====
+.A common way to structure new builds
+[source, groovy]
+----
+├── build.gradle // Applies the `java-library` plugin to the root project
+├── settings.gradle
+└── src // This directory shouldn't exist
+    └── main
+        └── java
+            └── org
+                └── example
+                    └── MyClass1.java
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/noSourceInRoot-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/noSourceInRoot-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> The `java-library` plugin is applied to the root project, as there are Java source files are in the root project.
+
+==== Do This Instead
+
+
+[.multi-language-sample]
+=====
+.A better way to structure new builds
+[source, kotlin]
+----
+├── core
+│    ├── build.gradle.kts // Applies the `java-library` plugin to only the `core` project
+│    └── src // Source lives in a "core" (sub)project
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── MyClass1.java
+└── settings.gradle.kts
+
+----
+=====
+[.multi-language-sample]
+=====
+.A better way to structure new builds
+[source, groovy]
+----
+├── core
+│    ├── build.gradle // Applies the `java-library` plugin to only the `core` project
+│    └── src // Source lives in a "core" (sub)project
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── MyClass1.java
+└── settings.gradle
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/noSourceInRoot-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/noSourceInRoot-do/groovy",files="settings.gradle[tags=do-this]"]
+====
+====
+include::sample[dir="snippets/bestPractices/noSourceInRoot-do/kotlin/core",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/noSourceInRoot-do/groovy/core",files="build.gradle[tags=do-this]"]
+====
+
+<1> The root project exists only to configure the build, informing Gradle of a (sub)project named `core`.
+<2> The `java-library` plugin is only applied to the `core` project, which contains the Java source files.
+
+=== References
+
+- <<multi_project_builds.adoc#multi_project_builds,Structuring Projects with Gradle>>
+- <<organizing_gradle_projects.adoc#sec:settings_file,Organizing Gradle Projects>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
