@@ -16,10 +16,15 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.kotlin.dsl.accessors.pluginEntriesFrom
 import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
@@ -27,7 +32,17 @@ import java.io.File
 
 
 @CacheableTask
-abstract class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenerationTask(), SharedAccessorsPackageAware {
+abstract class GenerateExternalPluginSpecBuilders : DefaultTask() {
+
+    @get:Internal
+    abstract val classPathFiles: ConfigurableFileCollection
+
+    @Suppress("LeakingThis")
+    @get:Input
+    val pluginEntries = classPathFiles.elements.map { elements -> pluginEntriesFrom(elements.map { it.asFile }) }
+
+    @get:OutputDirectory
+    abstract val sourceCodeOutputDir: DirectoryProperty
 
     @get:OutputDirectory
     abstract val metadataOutputDir: DirectoryProperty
@@ -36,7 +51,7 @@ abstract class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenera
     @Suppress("unused")
     internal
     fun generate() {
-        val pluginTrees = pluginTreesFrom(classPathFiles)
+        val pluginTrees = pluginTreesFrom(pluginEntries.get())
         val packageName = sharedAccessorsPackageFor(pluginTrees)
         sourceCodeOutputDir.withOutputDirectory { outputDir ->
             val packageDir = createPackageDirIn(outputDir, packageName)

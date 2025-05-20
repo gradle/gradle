@@ -359,16 +359,20 @@ fun typeSpecForPluginGroupType(groupType: String) =
 
 
 fun pluginTreesFrom(classPathFiles: Iterable<File>): Map<String, PluginTree> =
-    PluginTree.of(pluginSpecsFrom(classPathFiles))
+    pluginTreesFrom(pluginEntriesFrom(classPathFiles))
 
 
-private
-fun pluginSpecsFrom(classPathFiles: Iterable<File>): Sequence<PluginTree.PluginSpec> =
+fun pluginTreesFrom(pluginEntries: List<Pair<String, String>>): Map<String, PluginTree> =
+    PluginTree.of(pluginEntries.map { PluginTree.PluginSpec(it.first, it.second) }.asSequence())
+
+
+fun pluginEntriesFrom(classPathFiles: Iterable<File>): List<Pair<String, String>> =
     classPathFiles
         .asSequence()
         .filter { it.isFile && it.extension.equals("jar", true) }
         .flatMap { pluginEntriesFrom(it).asSequence() }
-        .map { PluginTree.PluginSpec(it.pluginId, it.implementationClass) }
+        .map { Pair(it.pluginId, it.implementationClass)}
+        .toCollection(mutableListOf())
 
 
 private
