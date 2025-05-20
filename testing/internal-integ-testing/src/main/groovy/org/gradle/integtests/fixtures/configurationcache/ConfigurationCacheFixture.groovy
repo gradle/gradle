@@ -440,7 +440,7 @@ class ConfigurationCacheFixture {
         boolean runsTasks = true
         // Whether to expect tooling models, which is normally the case when running any Tooling API build action
         boolean createsModels = false
-        // Whether the load operation is expected, which can may not be the case when building models or dealing with incompatible tasks or store serialization errors
+        // Whether the load operation is expected, which may not be the case when building models or dealing with incompatible tasks or store serialization errors
         boolean loadsAfterStore = true
         boolean hasStoreFailure = true
         boolean hasLoadFailure = false
