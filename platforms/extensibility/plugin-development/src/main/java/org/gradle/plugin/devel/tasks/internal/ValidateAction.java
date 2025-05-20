@@ -54,7 +54,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.api.problems.Severity.WARNING;
+import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
@@ -194,7 +194,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                             .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "Not cacheable without reason", GradleCoreProblemGroup.validation().type())
                             .contextualLabel("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                             .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
-                            .severity(WARNING)
+                            .severity(ERROR)
                             .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                             .solution("Add " + disableCachingAnnotation + "(because = ...)")
                             .solution("Add " + cacheableAnnotation);
