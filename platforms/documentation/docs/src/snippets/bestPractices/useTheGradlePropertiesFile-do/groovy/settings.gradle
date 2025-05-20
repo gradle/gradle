@@ -1,3 +1,1 @@
-rootProject.name = "use-plugins-block"
-
-include("lib")
+rootProject.name = "use-the-gradle-properties-file"

@@ -526,14 +526,7 @@ NOTE: Properties set this way are not inherited across build boundaries when usi
 =====
 [source, kotlin]
 ----
-├── lib
-│    ├── build.gradle.kts
-│    └── src
-│        └── main
-│            └── java
-│                └── org
-│                    └── example
-│                        ├── MyClass.java
+├── build.gradle.kts
 └── settings.gradle.kts
 ----
 =====
@@ -541,19 +534,19 @@ NOTE: Properties set this way are not inherited across build boundaries when usi
 =====
 [source, groovy]
 ----
-├── lib
-│    ├── build.gradle
-│    └── src
-│        └── main
-│            └── java
-│                └── org
-│                    └── example
-│                        ├── MyClass.java
+├── build.gradle
 └── settings.gradle
 ----
 =====
 
-This build supplies `-Dorg.gradle.caching=true` on the command line on every invocation.
+====
+include::sample[dir="snippets/bestPractices/useTheGradlePropertiesFile-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useTheGradlePropertiesFile-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+This build is run with `gradle run -Dorg.gradle.continue=true`, so that the failure of the `first` task does **not** prevent the `second` task from executing.
+
+This relies on person running the build to remember to set this property, which is error prone and not portable across different machines and environments.
 
 ==== Do This Instead
 
@@ -561,14 +554,8 @@ This build supplies `-Dorg.gradle.caching=true` on the command line on every inv
 =====
 [source, kotlin]
 ----
-├── lib
-│    ├── build.gradle.kts
-│    └── src
-│        └── main
-│            └── java
-│                └── org
-│                    └── example
-│                        ├── MyClass.java
+├── build.gradle.kts
+└── gradle.properties
 └── settings.gradle.kts
 ----
 =====
@@ -576,24 +563,19 @@ This build supplies `-Dorg.gradle.caching=true` on the command line on every inv
 =====
 [source, groovy]
 ----
-├── lib
-│    ├── build.gradle
-│    └── src
-│        └── main
-│            └── java
-│                └── org
-│                    └── example
-│                        ├── MyClass.java
-└── settings.gradle
+├── build.gradle.kts
+└── gradle.properties
+└── settings.gradle.kts
 ----
 =====
 
 ====
-include::sample[dir="snippets/bestPractices/useTheGradlePropertiesFile-do/kotlin",files="gradle.properties[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/useTheGradlePropertiesFile-do/groovy",files="gradle.properties[tags=do-this]"]
 ====
 
-<1> Set a gradle property in the `gradle.properties` file, so it is explicit and portable across different machines and environments.
+This build sets the `org.gradle.continue` property in the `gradle.properties` file.
+
+Now it can be executed using only `gradle run`, and the continue property will always be set automatically across all environments.
 
 === References
 
