@@ -21,15 +21,11 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
-
-import static org.gradle.util.internal.CollectionUtils.sort;
+import java.util.stream.Collectors;
 
 public abstract class AbstractCompatibilityTestInterceptor extends AbstractContextualMultiVersionTestInterceptor<GradleDistributionTool> {
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
@@ -43,41 +39,21 @@ public abstract class AbstractCompatibilityTestInterceptor extends AbstractConte
 
     @Override
     protected Collection<GradleDistributionTool> getQuickVersions() {
-        return Collections.singleton(versionedToolFrom(releasedVersions.getMostRecentRelease()));
+        return Collections.singleton(new GradleDistributionTool(releasedVersions.getMostRecentRelease()));
     }
 
     @Override
     protected Collection<GradleDistributionTool> getAllVersions() {
-        List<GradleDistribution> allSupportedVersions = choosePreviousVersionsToTest(releasedVersions);
-        List<GradleDistribution> sortedDistributions = sort(allSupportedVersions, Comparator.comparing(GradleDistribution::getVersion));
-        return CollectionUtils.collect(sortedDistributions, this::versionedToolFrom);
+        return releasedVersions.getSupported().stream()
+            .sorted(Comparator.comparing(GradleDistribution::getVersion))
+            .map(GradleDistributionTool::new)
+            .collect(Collectors.toList());
     }
 
     @Override
     protected boolean isAvailable(GradleDistributionTool version) {
         return true;
     }
-
-    @Override
-    protected Collection<Execution> createExecutionsFor(GradleDistributionTool versionedTool) {
-        if (versionedTool.getIgnored() != null) {
-            return Collections.singleton(new IgnoredVersion(versionedTool.getDistribution(), versionedTool.getIgnored()));
-        } else {
-            return createDistributionExecutionsFor(versionedTool);
-        }
-    }
-
-    private GradleDistributionTool versionedToolFrom(GradleDistribution distribution) {
-        if (!distribution.daemonWorksWith(Jvm.current().getJavaVersionMajor())) {
-            return new GradleDistributionTool(distribution, "does not work with current JVM");
-        } else {
-            return new GradleDistributionTool(distribution);
-        }
-    }
-
-    protected abstract List<GradleDistribution> choosePreviousVersionsToTest(ReleasedVersionDistributions previousVersions);
-
-    protected abstract Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool);
 
     /**
      * Makes sure the test adheres to the naming convention.
@@ -90,31 +66,6 @@ public abstract class AbstractCompatibilityTestInterceptor extends AbstractConte
                 + " must follow a certain naming convention, e.g. name must contain 'CrossVersion' substring.\n"
                 + "This way we can include/exclude those test nicely and it is easier to configure the CI.\n"
                 + "Please include 'CrossVersion' in the name of the test: '" + target.getSimpleName() + "'");
-        }
-    }
-
-    private static class IgnoredVersion extends Execution {
-        private final GradleDistribution distribution;
-        private final String why;
-
-        private IgnoredVersion(GradleDistribution distribution, String why) {
-            this.distribution = distribution;
-            this.why = why;
-        }
-
-        @Override
-        public boolean isTestEnabled(TestDetails testDetails) {
-            return false;
-        }
-
-        @Override
-        protected String getDisplayName() {
-            return String.format("%s %s", distribution.getVersion(), why);
-        }
-
-        @Override
-        public String toString() {
-            return getDisplayName();
         }
     }
 }
