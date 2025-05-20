@@ -51,7 +51,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertNoConfigurationCache()
-        problems.assertResultHasProblems(result) {
+        problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
             withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.addBuildListener' is unsupported")
         }
@@ -60,7 +60,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         outputContains("Build finished callback from foo plugin")
         postBuildOutputContains("""
 Configuration cache entry discarded because degradation was requested by:
-- build file 'build.gradle': Foo plugin isn't CC compatible""")
+- build file 'build.gradle'""")
     }
 
     def "a task can require CC degradation"() {
@@ -79,7 +79,7 @@ Configuration cache entry discarded because degradation was requested by:
 
         then:
         configurationCache.assertNoConfigurationCache()
-        problems.assertResultHasProblems(result) {
+        problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
             withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
             withIncompatibleTask(":a", "Project access.")
@@ -89,7 +89,7 @@ Configuration cache entry discarded because degradation was requested by:
         outputContains("Project path is :")
         postBuildOutputContains("""
 Configuration cache entry discarded because degradation was requested by:
-- task `:a` of type `org.gradle.api.DefaultTask`: Project access""")
+- task `:a` of type `org.gradle.api.DefaultTask`""")
     }
 
     def "a task can require CC degradation for multiple reasons"() {
@@ -119,14 +119,11 @@ Configuration cache entry discarded because degradation was requested by:
 
         then:
         configurationCache.assertNoConfigurationCache()
-        problems.assertResultHasProblems(result) {
+        problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = expectedProblems.size()
             expectedProblems.forEach { withProblem(it) }
             withIncompatibleTask(":a", degradationReason)
         }
-
-        and:
-        expectedProblems.forEach { outputContains(it) }
 
         where:
         args                                                          | expectedOutputs                                               | expectedProblems                                                                                                | degradationReason
@@ -157,7 +154,7 @@ Configuration cache entry discarded because degradation was requested by:
 
         then:
         configurationCache.assertNoConfigurationCache()
-        problems.assertFailureHasProblems(failure) {
+        problems.assertFailureHtmlReportHasProblems(failure) {
             totalProblemsCount = 2
             withProblem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
@@ -184,7 +181,7 @@ Configuration cache entry discarded because degradation was requested by:
 
         then:
         configurationCache.assertNoConfigurationCache()
-        problems.assertResultHasProblems(result) {
+        problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
             withProblem("Build file 'buildLogic/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
             withIncompatibleTask(":buildLogic:foo", "Project access.")
@@ -194,7 +191,7 @@ Configuration cache entry discarded because degradation was requested by:
         outputContains("Hello from included build :")
         postBuildOutputContains("""
 Configuration cache entry discarded because degradation was requested by:
-- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`: Project access""")
+- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
     }
 
     def "depending on a CC degrading task from included build introduces CC degradation"() {
@@ -224,7 +221,7 @@ Configuration cache entry discarded because degradation was requested by:
 
         then:
         configurationCache.assertNoConfigurationCache()
-        problems.assertResultHasProblems(result) {
+        problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
             withProblem("Build file 'buildLogic/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
             withIncompatibleTask(":buildLogic:foo", "Project access.")
@@ -235,7 +232,7 @@ Configuration cache entry discarded because degradation was requested by:
         outputContains("Hello from root build")
         postBuildOutputContains("""
 Configuration cache entry discarded because degradation was requested by:
-- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`: Project access""")
+- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
     }
 
     def "no CC degradation if incompatible task is not presented in the task graph"() {
@@ -317,7 +314,7 @@ Configuration cache entry discarded because degradation was requested by:
 
         then:
         configurationCache.assertNoConfigurationCache()
-        problems.assertResultHasProblems(result) {
+        problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 2
             withProblem("Plugin 'degrading': registration of listener on 'Gradle.addBuildListener' is unsupported")
             withProblem("Plugin 'incompatible': registration of listener on 'Gradle.addBuildListener' is unsupported")
@@ -328,6 +325,6 @@ Configuration cache entry discarded because degradation was requested by:
         outputContains("Build finished callback from incompatible plugin")
         postBuildOutputContains("""
 Configuration cache entry discarded because degradation was requested by:
-- plugin 'degrading': Build listener registration""")
+- plugin 'degrading'""")
     }
 }

@@ -86,7 +86,7 @@ class ConfigurationCacheProblemsSummary(
     /**
      * Returns`true` if the problem was accepted, `false` if it was rejected because the maximum number of problems was reached.
      */
-    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity, degradationRequested: Boolean): Boolean {
         lock.withLock {
             problemCount += 1
             when (severity) {
@@ -102,7 +102,7 @@ class ConfigurationCacheProblemsSummary(
                 overflowed = true
                 return false
             }
-            val uniqueProblem = UniquePropertyProblem.of(problem)
+            val uniqueProblem = UniquePropertyProblem.of(problem, degradationRequested)
             if (uniqueProblems.add(uniqueProblem) && causes.size < MAX_CAUSES) {
                 problem.exception?.let {
                     causes.add(it)
@@ -155,7 +155,8 @@ class Summary(
             appendLine()
             appendSummaryHeader(cacheActionText, problemCount)
             appendLine()
-            Ordering.from(consoleComparator()).leastOf(uniqueProblems, MAX_CONSOLE_PROBLEMS).forEach { problem ->
+            val actualProblems = uniqueProblems.filter { !it.degradationRequested }
+            Ordering.from(consoleComparator()).leastOf(actualProblems, MAX_CONSOLE_PROBLEMS).forEach { problem ->
                 append("- ")
                 append(problem.userCodeLocation.capitalized())
                 append(": ")
@@ -217,14 +218,16 @@ internal
 data class UniquePropertyProblem(
     val userCodeLocation: String,
     val message: String,
-    val documentationSection: String?
+    val documentationSection: String?,
+    val degradationRequested: Boolean,
 ) {
     companion object {
-        fun of(problem: PropertyProblem) = problem.run {
+        fun of(problem: PropertyProblem, degradationRequested: Boolean) = problem.run {
             UniquePropertyProblem(
                 trace.containingUserCode,
                 message.render(),
-                documentationSection?.anchor
+                documentationSection?.anchor,
+                degradationRequested
             )
         }
     }

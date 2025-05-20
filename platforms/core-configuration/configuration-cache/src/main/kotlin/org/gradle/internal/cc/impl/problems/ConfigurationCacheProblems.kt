@@ -178,7 +178,7 @@ class ConfigurationCacheProblems(
 
     override fun forBuildLogic(trace: PropertyTrace): ProblemsListener {
         val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getBuildLogicDegradationReasons().isNotEmpty()
-        return if (shouldDegrade) reportOnlyProblemsListener() else this
+        return if (shouldDegrade) degradationRequestedProblemsListener() else this
     }
 
     override fun forTask(trace: PropertyTrace): ProblemsListener {
@@ -190,13 +190,13 @@ class ConfigurationCacheProblems(
                 // report the incompatible task itself the first time only
                 reportIncompatibleTask(trace, taskDegradationReasons.joinToString())
             }
-            reportOnlyProblemsListener()
+            degradationRequestedProblemsListener()
         } else this
     }
 
-    private fun reportOnlyProblemsListener() = object : AbstractProblemsListener() {
+    private fun degradationRequestedProblemsListener() = object : AbstractProblemsListener() {
         override fun onProblem(problem: PropertyProblem) {
-            onProblem(problem, ProblemSeverity.Suppressed)
+            onProblem(problem, ProblemSeverity.Suppressed, true)
         }
     }
 
@@ -219,8 +219,8 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
-        if (summarizer.onProblem(problem, severity)) {
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity, degradationRequested: Boolean = false) {
+        if (summarizer.onProblem(problem, severity, degradationRequested)) {
             problemsService.onProblem(problem, severity)
             report.onProblem(problem)
         }
@@ -386,7 +386,7 @@ class ConfigurationCacheProblems(
 
     private
     fun degradationSummary() =
-        " because degradation was requested by:\n${degradationReasons.entries.joinToString("\n") { "- ${it.key.render()}: ${it.value.joinToString()}" }}"
+        " because degradation was requested by:\n${degradationReasons.entries.joinToString("\n") { "- ${it.key.render()}" }}"
 
     private
     fun incompatibleTasksSummary() = when {
