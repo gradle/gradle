@@ -29,10 +29,6 @@ class ConfigurationCacheBuildOperationsFixture {
         this.operations = operations
     }
 
-    boolean getReused() {
-        workGraphStoreOperation() == null && workGraphLoadOperation() != null
-    }
-
     void assertStateLoaded() {
         def load = workGraphLoadOperation()
         assert load != null && load.failure == null
