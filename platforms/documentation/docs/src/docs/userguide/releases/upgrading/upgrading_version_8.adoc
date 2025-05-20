@@ -39,6 +39,12 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.0]]
 == Upgrading from 8.14 and earlier
 
+=== Removed APIs
+
+==== JvmVendorSpec.IBM_SEMERU
+
+The deprecated `JvmVendorSpec.IBM_SEMERU` constant has been removed. Its usage should be replaced by link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html#IBM[`JvmVendorSpec.IBM`].
+
 === Potential breaking changes
 
 ==== Lowest supported Kotlin Gradle Plugin version change

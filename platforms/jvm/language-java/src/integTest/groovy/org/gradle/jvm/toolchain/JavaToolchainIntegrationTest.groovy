@@ -170,33 +170,6 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
     }
 
-    def "nag user when toolchain spec is IBM_SEMERU"() {
-        given:
-        buildFile """
-            apply plugin: "java"
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
-                    vendor = JvmVendorSpec.IBM_SEMERU
-                    implementation = JvmImplementation.J9
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning "Requesting JVM vendor IBM_SEMERU. " +
-            "This behavior has been deprecated. This is scheduled to be removed in Gradle 10.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#ibm_semeru_should_not_be_used"
-
-        then:
-        fails ':build'
-        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
-            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9, nativeImageCapable=false}. " +
-                "Toolchain auto-provisioning is not enabled.")
-    }
-
     def "does not nag user when toolchain spec is IBM"() {
         given:
         buildFile """
