@@ -659,6 +659,15 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         this.failFast = failFast;
     }
 
+    @Internal
+    boolean getFailOnNoMatchingTests() {
+        return getFilter().isFailOnNoMatchingTests();
+    }
+
+    void setFailOnNoMatchingTests(boolean failOnNoMatchingTests) {
+        getFilter().setFailOnNoMatchingTests(failOnNoMatchingTests);
+    }
+
     /**
      * The reports that this task potentially produces.
      *
