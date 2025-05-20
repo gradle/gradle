@@ -297,7 +297,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertTasksExecuted()
 
         and:
-        configurationCache.assertStateStored()
+        // TODO: why are we not discarding the state here, the same way we would have discarded it for the execution-time problems?
+        configurationCache.assertStateStoredAndFailedOnLoad()
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
