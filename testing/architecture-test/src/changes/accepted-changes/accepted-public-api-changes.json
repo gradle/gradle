@@ -778,10 +778,18 @@
         },
         {
             "type": "org.gradle.api.plugins.Convention",
-            "member": "Method org.gradle.api.plugins.Convention.findPlugin(java.lang.Class)",
-            "acceptation": "remove convention",
+            "member": "Class org.gradle.api.plugins.Convention",
+            "acceptation": "Remove Convention",
             "changes": [
-                "Abstract method is now default method"
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.findPlugin(java.lang.Class)",
+            "acceptation": "Remove Convention",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -2603,8 +2611,24 @@
         },
         {
             "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Class org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "acceptation": "Remove Convention",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention)",
             "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
+            "acceptation": "Remove Convention",
             "changes": [
                 "Method has been removed"
             ]
