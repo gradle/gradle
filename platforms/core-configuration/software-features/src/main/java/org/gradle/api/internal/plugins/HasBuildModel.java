@@ -16,16 +16,8 @@
 
 package org.gradle.api.internal.plugins;
 
-import java.util.List;
-
-public interface SoftwareTypeBindingBuilder {
-
-    <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bind(
-        String name,
-        Class<T> dslType,
-        Class<V> buildModelType,
-        SoftwareTypeTransform<T, V> transform
-    );
-
-    List<SoftwareFeatureBinding<?, ?>> build();
+/**
+ * A marker interface for definition objects that have a build model.
+ */
+public interface HasBuildModel<T extends BuildModel> {
 }

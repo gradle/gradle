@@ -65,7 +65,7 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
     @Override
     public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
         if (softwareFeatureRegistry.getSoftwareFeatureImplementations().containsKey(name)) {
-            SoftwareFeatureImplementation<?> softwareFeature = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(name);
+            SoftwareFeatureImplementation<?, ?> softwareFeature = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(name);
             if (softwareFeature.getDefinitionPublicType().isAssignableFrom(publicType)) {
                 softwareFeature.addModelDefault(new ActionBasedDefault<>(configureAction));
             } else {
@@ -92,7 +92,7 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (hasMethod(name, arguments)) {
-                SoftwareFeatureImplementation<?> softwareFeature = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(name);
+                SoftwareFeatureImplementation<?, ?> softwareFeature = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(name);
                 add(name, softwareFeature.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
             } else {

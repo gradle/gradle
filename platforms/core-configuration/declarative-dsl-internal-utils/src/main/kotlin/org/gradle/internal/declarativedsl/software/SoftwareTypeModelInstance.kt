@@ -24,7 +24,7 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
-fun getSoftwareFeatureModelInstance(softwareType: SoftwareFeatureImplementation<*>, receiverObject: ProjectInternal): Any {
+fun getSoftwareFeatureModelInstance(softwareType: SoftwareFeatureImplementation<*, *>, receiverObject: ProjectInternal): Any {
     fun Iterable<Annotation>.hasSoftwareTypeAnnotation() =
         any { annotation -> annotation is SoftwareType && annotation.name == softwareType.featureName }
 

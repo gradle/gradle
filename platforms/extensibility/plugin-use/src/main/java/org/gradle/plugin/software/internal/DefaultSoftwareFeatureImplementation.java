@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 
 import java.util.ArrayList;
@@ -31,28 +33,28 @@ import java.util.Objects;
  * Represents a resolved software type implementation.  Used by declarative DSL to understand which model types should be exposed for
  * which software types.
  */
-public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureImplementation<T> {
+public class DefaultSoftwareFeatureImplementation<T extends HasBuildModel<V>, V extends BuildModel> implements SoftwareFeatureImplementation<T, V> {
     private final String featureName;
     private final Class<T> definitionPublicType;
     private final Class<? extends T> definitionImplementationType;
     private final Class<?> bindingType;
-    private final Class<?> buildModelType;
-    private final Class<?> buildModelImplementationType;
+    private final Class<V> buildModelType;
+    private final Class<? extends V> buildModelImplementationType;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
-    private final SoftwareFeatureTransform<T, ?, ?> bindingTransform;
+    private final SoftwareFeatureTransform<T, ?, V> bindingTransform;
     private final Map<Class<?>, Class<?>> allBindings;
 
     public DefaultSoftwareFeatureImplementation(String featureName,
                                                 Class<T> definitionPublicType,
                                                 Class<? extends T> definitionImplementationType,
                                                 Class<?> bindingType,
-                                                Class<?> buildModelType,
-                                                Class<?> buildModelImplementationType,
+                                                Class<V> buildModelType,
+                                                Class<? extends V> buildModelImplementationType,
                                                 Class<? extends Plugin<Project>> pluginClass,
                                                 Class<? extends Plugin<Settings>> registeringPluginClass,
-                                                SoftwareFeatureTransform<T, ?, ?> bindingTransform,
+                                                SoftwareFeatureTransform<T, ?, V> bindingTransform,
                                                 Map<Class<?>, Class<?>> nestedBindings) {
         this.featureName = featureName;
         this.definitionPublicType = definitionPublicType;
@@ -85,12 +87,12 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     }
 
     @Override
-    public Class<?> getBuildModelType() {
+    public Class<V> getBuildModelType() {
         return buildModelType;
     }
 
     @Override
-    public Class<?> getBuildModelImplementationType() {
+    public Class<? extends V> getBuildModelImplementationType() {
         return buildModelImplementationType;
     }
 
@@ -110,7 +112,7 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     }
 
     @Override
-    public SoftwareFeatureTransform<T, ?, ?> getBindingTransform() {
+    public SoftwareFeatureTransform<T, ?, V> getBindingTransform() {
         return bindingTransform;
     }
 
@@ -120,7 +122,7 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     }
 
     @Override
-    public <V extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<V>> type, V visitor) {
+    public <M extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<M>> type, M visitor) {
         defaults.stream()
             .filter(type::isInstance)
             .map(type::cast)
@@ -146,7 +148,7 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultSoftwareFeatureImplementation<?> that = (DefaultSoftwareFeatureImplementation<?>) o;
+        DefaultSoftwareFeatureImplementation<?, ?> that = (DefaultSoftwareFeatureImplementation<?, ?>) o;
         return Objects.equals(featureName, that.featureName) && Objects.equals(definitionPublicType, that.definitionPublicType) && Objects.equals(pluginClass, that.pluginClass);
     }
 

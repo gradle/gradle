@@ -24,6 +24,8 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.BindsSoftwareFeature;
 import org.gradle.api.internal.plugins.BindsSoftwareType;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
@@ -52,7 +54,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
 
     @Nullable
-    private Map<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementations;
+    private Map<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementations;
 
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
@@ -71,8 +73,8 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
         pluginClasses.computeIfAbsent(registeringPluginClass, k -> new LinkedHashSet<>()).add(pluginClass);
     }
 
-    private Map<String, SoftwareFeatureImplementation<?>> discoverSoftwareFeatureImplementations() {
-        final ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationsBuilder = ImmutableMap.builder();
+    private Map<String, SoftwareFeatureImplementation<?, ?>> discoverSoftwareFeatureImplementations() {
+        final ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder = ImmutableMap.builder();
         pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
             registeredPluginClasses.forEach( pluginClass -> {
                 TypeMetadata pluginClassTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
@@ -84,7 +86,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
         return softwareFeatureImplementationsBuilder.build();
     }
 
-    private void registerFeature(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, SoftwareFeatureBinding binding, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationsBuilder) {
+    private <T extends HasBuildModel<V>, V extends BuildModel> void registerFeature(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, SoftwareFeatureBinding<T, V> binding, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder) {
         String softwareFeatureName = binding.getPath().getName();
 
         Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(softwareFeatureName, pluginClass);
@@ -97,7 +99,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             new DefaultSoftwareFeatureImplementation<>(
                 binding.getPath().getName(),
                 binding.getDslType(),
-                Cast.uncheckedCast(binding.getDslImplementationType().orElse(binding.getDslType())),
+                binding.getDslImplementationType().orElse(binding.getDslType()),
                 binding.getBindingTargetType(),
                 binding.getBuildModelType(),
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
@@ -109,7 +111,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
         );
     }
 
-    private void registerSoftwareFeatureIfPresent(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationsBuilder) {
+    private void registerSoftwareFeatureIfPresent(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder) {
         Optional<BindsSoftwareFeature> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsSoftwareFeature.class);
         if (bindsSoftwareTypeAnnotation.isPresent()) {
             BindsSoftwareFeature bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
@@ -123,7 +125,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
         }
     }
 
-    private void registerSoftwareTypeIfPresent(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationsBuilder) {
+    private void registerSoftwareTypeIfPresent(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder) {
         Optional<BindsSoftwareType> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsSoftwareType.class);
         if (bindsSoftwareTypeAnnotation.isPresent()) {
             BindsSoftwareType bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
@@ -138,7 +140,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     }
 
     @Override
-    public Map<String, SoftwareFeatureImplementation<?>> getSoftwareFeatureImplementations() {
+    public Map<String, SoftwareFeatureImplementation<?, ?>> getSoftwareFeatureImplementations() {
         if (softwareFeatureImplementations == null) {
             softwareFeatureImplementations = discoverSoftwareFeatureImplementations();
         }
@@ -146,7 +148,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     }
 
     @Override
-    public Optional<SoftwareFeatureImplementation<?>> implementationFor(Class<? extends Plugin<Project>> pluginClass) {
+    public Optional<SoftwareFeatureImplementation<?, ?>> implementationFor(Class<? extends Plugin<Project>> pluginClass) {
         return getSoftwareFeatureImplementations().values().stream()
             .filter(softwareFeatureImplementation -> softwareFeatureImplementation.getPluginClass().isAssignableFrom(pluginClass))
             .findFirst();

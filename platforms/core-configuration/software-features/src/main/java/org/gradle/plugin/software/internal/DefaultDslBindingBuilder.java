@@ -16,7 +16,9 @@
 
 package org.gradle.plugin.software.internal;
 
+import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslBindingBuilder;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 import org.gradle.internal.Cast;
@@ -30,7 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
+public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends BuildModel> implements DslBindingBuilder<T, V> {
     @Nullable private final Class<T> dslType;
     @Nullable private final Class<?> bindingTargetType;
     @Nullable private final Class<V> buildModelType;
@@ -49,8 +51,8 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
         this.transform = transform;
     }
 
-    private static <T, U> SoftwareFeatureBinding bindingOf(Class<T> dslType, @Nullable Class<? extends T> dslImplementationType, Path path, Class<?> bindingTargetType, Class<U> buildModelType, @Nullable Class<? extends U> buildModelImplementationType, SoftwareFeatureTransform<T, ?, ?> transform, Map<Class<?>, Class<?>> nestedBindings) {
-        return new SoftwareFeatureBinding() {
+    private static <T extends HasBuildModel<V>, V extends BuildModel> SoftwareFeatureBinding<T, V> bindingOf(Class<T> dslType, @Nullable Class<? extends T> dslImplementationType, Path path, Class<?> bindingTargetType, Class<V> buildModelType, @Nullable Class<? extends V> buildModelImplementationType, SoftwareFeatureTransform<T, ?, V> transform, Map<Class<?>, Class<?>> nestedBindings) {
+        return new SoftwareFeatureBinding<T, V>() {
             @Override
             public Class<?> getBindingTargetType() {
                 return bindingTargetType;
@@ -62,7 +64,7 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
             }
 
             @Override
-            public Optional<Class<?>> getDslImplementationType() {
+            public Optional<Class<? extends T>> getDslImplementationType() {
                 return Optional.ofNullable(dslImplementationType);
             }
 
@@ -72,17 +74,17 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
             }
 
             @Override
-            public SoftwareFeatureTransform<T, ?, ?> getTransform() {
+            public SoftwareFeatureTransform<T, ?, V> getTransform() {
                 return transform;
             }
 
             @Override
-            public Class<?> getBuildModelType() {
+            public Class<V> getBuildModelType() {
                 return buildModelType;
             }
 
             @Override
-            public Optional<Class<?>> getBuildModelImplementationType() {
+            public Optional<Class<? extends V>> getBuildModelImplementationType() {
                 return Optional.ofNullable(buildModelImplementationType);
             }
 
@@ -112,7 +114,7 @@ public class DefaultDslBindingBuilder<T, V> implements DslBindingBuilder<T, V> {
     }
 
     @Override
-    public SoftwareFeatureBinding build() {
+    public SoftwareFeatureBinding<T, V> build() {
         if (dslType == null  || buildModelType == null) {
             throw new IllegalStateException("No binding has been specified please call bind() first");
         }

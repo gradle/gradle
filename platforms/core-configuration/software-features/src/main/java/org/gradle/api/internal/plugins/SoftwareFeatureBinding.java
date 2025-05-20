@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface SoftwareFeatureBinding {
+public interface SoftwareFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
     Class<?> getBindingTargetType();
-    Class<?> getDslType();
-    Optional<Class<?>> getDslImplementationType();
-    Class<?> getBuildModelType();
-    Optional<Class<?>> getBuildModelImplementationType();
+    Class<T> getDslType();
+    Optional<Class<? extends T>> getDslImplementationType();
+    Class<V> getBuildModelType();
+    Optional<Class<? extends V>> getBuildModelImplementationType();
     Path getPath();
-    SoftwareFeatureTransform<?, ?, ?> getTransform();
+    SoftwareFeatureTransform<T, ?, V> getTransform();
     Map<Class<?>, Class<?>> getNestedBindings();
 
     String MODEL = "model";

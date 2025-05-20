@@ -20,6 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.inspection.DefaultTypeParameterInspection;
+import org.gradle.internal.inspection.TypeParameterInspection;
 
 import javax.inject.Inject;
 
@@ -33,7 +35,17 @@ public interface SoftwareFeatureApplicationContext {
     @Inject
     ObjectFactory getObjectFactory();
 
-    default <T> T getModel(Object definition, Class<T> modelType) {
-        return ((ExtensionAware) definition).getExtensions().create(SoftwareFeatureBinding.MODEL, modelType);
+    default <T extends HasBuildModel<V>, V extends BuildModel> V getOrCreateModel(T definition) {
+        @SuppressWarnings("rawtypes")
+        TypeParameterInspection<HasBuildModel, BuildModel> inspection = new DefaultTypeParameterInspection<>(HasBuildModel.class, BuildModel.class, BuildModel.NONE.class);
+        Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
+        if (modelType == null) {
+            throw new IllegalArgumentException("Cannot determine build model type for " + definition.getClass());
+        }
+        return getOrCreateModel(definition, modelType);
+    }
+
+    default <T extends HasBuildModel<V>, V extends BuildModel> V getOrCreateModel(T definition, Class<? extends V> implementationType) {
+        return ((ExtensionAware) definition).getExtensions().create(SoftwareFeatureBinding.MODEL, implementationType);
     }
 }
