@@ -66,6 +66,7 @@ public class DefaultNodeValidator implements NodeValidator {
     }
 
     private void logWarnings(List<? extends InternalProblem> problems) {
+        // We are logging all the warnings that we encountered during validation here
         problems.stream()
             .filter(DefaultNodeValidator::isWarning)
             .forEach(problem -> {
