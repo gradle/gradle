@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.plugins
 
-inline fun <reified T: Any, reified U: Any, reified V: Any> SoftwareFeatureBindingBuilder.bind(name: String, noinline block: SoftwareFeatureApplicationContext.(T, U, V) -> Unit): DslBindingBuilder<T, V> {
+inline fun <reified T: HasBuildModel<V>, reified U: BuildModel, reified V: BuildModel> SoftwareFeatureBindingBuilder.bind(name: String, noinline block: SoftwareFeatureApplicationContext.(T, U, V) -> Unit): DslBindingBuilder<T, V> {
     return this.bind(name, T::class.java, U::class.java, V::class.java, block)
 }
 
-inline fun <reified T: Any, reified V: Any> SoftwareTypeBindingBuilder.bind(name: String, noinline block: SoftwareFeatureApplicationContext.(T, V) -> Unit): DslBindingBuilder<T, V> {
+inline fun <reified T: HasBuildModel<V>, reified V: BuildModel> SoftwareTypeBindingBuilder.bind(name: String, noinline block: SoftwareFeatureApplicationContext.(T, V) -> Unit): DslBindingBuilder<T, V> {
     return this.bind(name, T::class.java, V::class.java, block)
 }

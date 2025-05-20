@@ -19,7 +19,7 @@ package org.gradle.api.internal.plugins;
 import java.util.List;
 
 public interface SoftwareFeatureBindingBuilder {
-    <T, U, V> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform);
+    <T extends HasBuildModel<V>, U extends BuildModel, V extends BuildModel> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform);
 
-    List<SoftwareFeatureBinding> build();
+    List<SoftwareFeatureBinding<?, ?>> build();
 }

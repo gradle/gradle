@@ -21,7 +21,9 @@ import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.SoftwareFeatureApplicationContext;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
@@ -72,11 +74,11 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     }
 
     @Override
-    public <T> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature) {
+    public <T extends HasBuildModel<V>, V extends BuildModel> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
             T dslObject = createDslObject(target, softwareFeature);
-            Object buildModelObject = createBuildModelObject((ExtensionAware) dslObject, softwareFeature);
+            V buildModelObject = createBuildModelObject((ExtensionAware) dslObject, softwareFeature);
             Object parentBuildModelObject = getParentBuildModelObject(target);
             SoftwareFeatureApplicationContext context = objectFactory.newInstance(SoftwareFeatureApplicationContext.class);
             softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(parentBuildModelObject), Cast.uncheckedCast(buildModelObject));
@@ -98,7 +100,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         }
     }
 
-    private <T> T createDslObject(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature) {
+    private <T extends HasBuildModel<V>, V extends BuildModel> T createDslObject(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
         Class<? extends T> dslType = softwareFeature.getDefinitionImplementationType();
         if (Named.class.isAssignableFrom(dslType)) {
             if (Named.class.isAssignableFrom(target.getClass())) {
@@ -111,8 +113,8 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         }
     }
 
-    private Object createBuildModelObject(ExtensionAware target, SoftwareFeatureImplementation<?> softwareFeature) {
-        Class<?> buildModelType = softwareFeature.getBuildModelImplementationType();
+    private <V extends BuildModel> V createBuildModelObject(ExtensionAware target, SoftwareFeatureImplementation<?, V> softwareFeature) {
+        Class<? extends V> buildModelType = softwareFeature.getBuildModelImplementationType();
         if (Named.class.isAssignableFrom(buildModelType)) {
             if (Named.class.isAssignableFrom(target.getClass())) {
                 return target.getExtensions().create(SoftwareFeatureBinding.MODEL, buildModelType, ((Named) target).getName());
@@ -124,7 +126,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         }
     }
 
-    private <T> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature, Plugin<?> plugin) {
+    private <T extends HasBuildModel<V>, V extends BuildModel> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature, Plugin<?> plugin) {
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareFeature.getPluginClass(), false, problems);
         ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>(target, typeValidationContext);
         inspectionScheme.getPropertyWalker().visitProperties(
@@ -205,9 +207,9 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
 
     private static class AppliedFeature {
         private final Object target;
-        private final SoftwareFeatureImplementation<?> softwareFeature;
+        private final SoftwareFeatureImplementation<?, ?> softwareFeature;
 
-        public AppliedFeature(Object target, SoftwareFeatureImplementation<?> softwareFeature) {
+        public AppliedFeature(Object target, SoftwareFeatureImplementation<?, ?> softwareFeature) {
             this.target = target;
             this.softwareFeature = softwareFeature;
         }

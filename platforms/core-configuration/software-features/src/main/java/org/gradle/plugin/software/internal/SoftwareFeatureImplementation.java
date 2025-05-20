@@ -19,6 +19,8 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 
 import java.util.Map;
@@ -26,31 +28,31 @@ import java.util.Map;
 /**
  * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
  */
-public interface SoftwareFeatureImplementation<T> {
+public interface SoftwareFeatureImplementation<T extends HasBuildModel<V>, V extends BuildModel> {
     String getFeatureName();
 
-    Class<? extends T> getDefinitionPublicType();
+    Class<T> getDefinitionPublicType();
 
     Class<? extends T> getDefinitionImplementationType();
 
     Class<?> getBindingType();
 
-    Class<?> getBuildModelType();
+    Class<V> getBuildModelType();
 
-    Class<?> getBuildModelImplementationType();
+    Class<? extends V> getBuildModelImplementationType();
 
     Class<? extends Plugin<Project>> getPluginClass();
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
-    SoftwareFeatureTransform<T, ?, ?> getBindingTransform();
+    SoftwareFeatureTransform<T, ?, V> getBindingTransform();
 
     void addModelDefault(ModelDefault<?> modelDefault);
 
     /**
      * Visits all model defaults of the given type with the provided visitor.
      */
-    <V extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<V>> type, V visitor);
+    <M extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<M>> type, M visitor);
 
     boolean hasBindingFor(Class<?> dslType, Class<?> buildModelType);
 

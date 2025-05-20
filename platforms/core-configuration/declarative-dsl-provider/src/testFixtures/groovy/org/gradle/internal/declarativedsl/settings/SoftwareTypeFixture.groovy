@@ -17,6 +17,8 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.internal.plugins.BindsSoftwareType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.HasBuildModel
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
@@ -201,11 +203,13 @@ trait SoftwareTypeFixture {
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
+            import ${HasBuildModel.class.name};
+            import ${BuildModel.class.name};
 
             import javax.inject.Inject;
 
             @Restricted
-            public abstract class TestSoftwareTypeExtension {
+            public abstract class TestSoftwareTypeExtension implements HasBuildModel<TestSoftwareTypeExtension.ModelType> {
                 private final Foo foo;
                 private boolean isFooConfigured = false;
 
@@ -238,6 +242,10 @@ trait SoftwareTypeFixture {
                 @Override
                 public String toString() {
                     return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
+                }
+
+                public interface ModelType extends BuildModel {
+                    Property<String> getId();
                 }
             }
         """
@@ -406,13 +414,10 @@ trait SoftwareTypeFixture {
 
             @BindsSoftwareType(${softwareTypePluginClassName}.Binding.class)
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-                public interface ModelType {
-                    Property<String> getId();
-                }
 
                 static class Binding implements SoftwareTypeBindingRegistration {
                     public void register(SoftwareTypeBindingBuilder builder) {
-                        builder.bind("${softwareType}", ${dslTypeClassName}.class, ModelType.class, (context, definition, model) -> {
+                        builder.bind("${softwareType}", ${dslTypeClassName}.class, ${dslTypeClassName}.ModelType.class, (context, definition, model) -> {
                             System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
                         });
                     }

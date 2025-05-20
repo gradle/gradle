@@ -37,7 +37,7 @@ fun softwareFeatureRegistryBasedModelDefaultsRepository(softwareFeatureRegistry:
 
 
 private
-fun resolutionResultsFromDefaultsFor(featureName: String, softwareFeature: SoftwareFeatureImplementation<*>): ModelDefaultsResolutionResults {
+fun resolutionResultsFromDefaultsFor(featureName: String, softwareFeature: SoftwareFeatureImplementation<*, *>): ModelDefaultsResolutionResults {
     val assignments = buildList {
         softwareFeature.visitModelDefaults(
             AssignmentRecordDefault::class.java,

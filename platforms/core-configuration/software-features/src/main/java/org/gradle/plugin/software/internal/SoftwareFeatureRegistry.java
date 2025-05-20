@@ -41,12 +41,12 @@ public interface SoftwareFeatureRegistry {
      * Returns a map of available software types, along with their model types and associated plugins, keyed by software type name.  Note that once
      * method is called, calling {@link #register(Class, Class)} will result in an error.
      */
-    Map<String, SoftwareFeatureImplementation<?>> getSoftwareFeatureImplementations();
+    Map<String, SoftwareFeatureImplementation<?, ?>> getSoftwareFeatureImplementations();
 
     /**
      * Returns whether a plugin is registered as providing a software type or not.
      */
-    Optional<SoftwareFeatureImplementation<?>> implementationFor(Class<? extends Plugin<Project>> pluginClass);
+    Optional<SoftwareFeatureImplementation<?, ?>> implementationFor(Class<? extends Plugin<Project>> pluginClass);
 
     /**
      * Returns the schema for the registered software types.

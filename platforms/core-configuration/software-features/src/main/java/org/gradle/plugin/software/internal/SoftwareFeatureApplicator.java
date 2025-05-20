@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.software.internal;
 
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -37,5 +39,5 @@ public interface SoftwareFeatureApplicator {
      * @param <T> the type of the public model object for the feature
      * @since 8.12
      */
-    <T> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature);
+    <T extends HasBuildModel<V>, V extends BuildModel> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature);
 }
