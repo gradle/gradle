@@ -101,7 +101,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             "The combination of method name and return type is not consistent with Java Bean property rules. " +
             "Add a method named 'getProperty' with the same behavior and mark the old one with @Deprecated, or change the type of 'MyExtension.isProperty' (and the setter) to 'boolean'. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
-        executer.expectDocumentedDeprecationWarning("Referencing 'property' as a property using an 'is-' method with a Boolean type on extension 'myext' has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Referencing 'property' as a property declared with an 'is-' method with a Boolean type on extension 'myext' has been deprecated. " +
             "Starting with Gradle 10.0, this property will no longer be treated like a property. " +
             "Access the property using isProperty() explicitly, rename isProperty, or change the return type to boolean. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
