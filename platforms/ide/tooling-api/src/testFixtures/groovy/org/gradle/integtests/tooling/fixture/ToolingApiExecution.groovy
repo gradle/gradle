@@ -82,7 +82,10 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        int currentJavaVersion = JavaVersionParser.parseCurrentMajorVersion()
+        // We cannot use JavaVersionParser.parseCurrentMajorVersion, since that method
+        // is new and the target distribution version of the class sometimes shadows the
+        // version of this class that has the new method.
+        int currentJavaVersion = JavaVersionParser.parseMajorVersion(System.getProperty("java.version"))
         return toolingApiSupported(testDetails, currentJavaVersion) && daemonSupported(testDetails, currentJavaVersion)
     }
 
