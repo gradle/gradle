@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -59,14 +58,14 @@ class ToolingApiDistributionResolverTest extends Specification {
 
         // Cannot set system property for URL, as that value is cached by RepoScriptBlockUtil
         // and will affect other tests. We use a custom constructor for testing instead.
-        def underTest = new ToolingApiDistributionResolver("invalid-url")
+        def underTest = new ToolingApiDistributionResolver("http://invalid-url")
 
         when:
         underTest.resolve("10000.0")
 
         then:
-        def e = thrown(GradleException)
-        e.message.startsWith("Failed to download")
+        def e = thrown(Exception)
+        e.message.contains("invalid-url")
 
         when:
         def localToolingApi = localRepo.file("org/gradle/gradle-tooling-api/10000.0/gradle-tooling-api-10000.0.jar")

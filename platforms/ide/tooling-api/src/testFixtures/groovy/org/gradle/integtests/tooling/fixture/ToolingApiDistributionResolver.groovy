@@ -17,19 +17,17 @@
 package org.gradle.integtests.tooling.fixture
 
 import com.google.common.annotations.VisibleForTesting
-import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.CommitDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.file.locking.ExclusiveFileAccessManager
+import org.gradle.test.fixtures.file.TestFile
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
-import java.util.function.Supplier
 
 /**
  * Downloads Tooling API clients of a given version, for use in cross version testing.
@@ -40,6 +38,7 @@ class ToolingApiDistributionResolver {
 
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    private final ExclusiveFileAccessManager fileAccessManager = new ExclusiveFileAccessManager(120000, 200)
 
     private final String repoUrl
 
@@ -78,11 +77,10 @@ class ToolingApiDistributionResolver {
             }
         }
 
-        File destination = buildContext.tmpDir.file("gradle-tooling-api-${version}.jar")
+        TestFile destination = buildContext.tmpDir.file("gradle-tooling-api-${version}.jar")
         if (!destination.exists()) {
             def url = repoUrl + "/" + relativePath
-            LOGGER.warn("Downloading tooling API {} from {}", version, url)
-            download(url, destination.toPath())
+            download(url, destination)
         }
         return destination
     }
@@ -97,36 +95,18 @@ class ToolingApiDistributionResolver {
         location
     }
 
-    private static void download(String url, Path destination) {
-        if (!Files.createDirectories(destination.parent)) {
-            throw new IOException("Failed to create parent directory for ${destination}")
-        }
+    private void download(String url, TestFile destination) {
+        def markerFile = destination.withExtension("ok")
+        fileAccessManager.access(destination) {
+            if (!markerFile.exists()) {
+                destination.delete()
 
-        try {
-            withRetries {
-                try (InputStream stream = new URL(url).openStream()) {
-                    // We use REPLACE_EXISTING in case this resolver is called concurrently
-                    Files.copy(stream, destination, StandardCopyOption.REPLACE_EXISTING)
-                }
+                LOGGER.warn("Downloading {}", url)
+                destination.copyFrom(new URI(url).toURL())
+
+                markerFile.createFile()
             }
-        } catch (Exception e) {
-            throw new GradleException("Failed to download ${url}", e)
         }
-    }
-
-    private static <T> T withRetries(Supplier<T> action) {
-        LinkedList<Integer> retryMillis = [1000, 2000, 4000] as LinkedList
-        List<Throwable> exceptions = []
-        do {
-            try {
-                return action.get();
-            } catch (Throwable t) {
-                exceptions.add(t)
-                Thread.sleep(retryMillis.removeFirst())
-            }
-        } while (!retryMillis.isEmpty())
-
-        throw new DefaultMultiCauseException("Failed after ${retryMillis.size()} retries", exceptions)
     }
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
