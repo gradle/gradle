@@ -29,28 +29,44 @@ class ConfigurationCacheBuildOperationsFixture {
         this.operations = operations
     }
 
+    /**
+     * A successful "CC hit"
+     */
     void assertStateLoaded() {
-        def load = workGraphLoadOperation()
-        assert load != null && load.failure == null
-        assert workGraphStoreOperation() == null
+        assertStorePhaseSkipped()
+        assertLoadPhaseSuccessful()
     }
 
+    /**
+     * A "CC hit" with errors happening during load phase
+     */
     void assertStateLoadFailed() {
-        def load = workGraphLoadOperation()
-        assert load != null && load.failure != null
-        assert workGraphStoreOperation() == null
+        assertStorePhaseSkipped()
+        assertLoadPhaseFailed()
     }
 
-    void assertStateStored(boolean expectLoad = true) {
-        def store = workGraphStoreOperation()
-        assert store != null && store.failure == null
-        assert (workGraphLoadOperation() != null) == expectLoad
+    /**
+     * A successful "CC miss" with load-after-store behavior
+     */
+    void assertStateStored() {
+        assertStorePhaseSuccessful()
+        assertLoadPhaseSuccessful()
     }
 
+    /**
+     * A "CC miss" that was aborted after encountering errors before or during store phase
+     */
     void assertStateStoreFailed() {
-        def store = workGraphStoreOperation()
-        assert store != null && store.failure != null
-        assert workGraphLoadOperation() == null
+        assertStorePhaseFailed()
+        assertLoadPhaseSkipped()
+    }
+
+    /**
+     * A "CC miss" that stores successfully, but fails during load with an error
+     */
+    void assertStateStoredAndFailedOnLoad() {
+        assertStorePhaseSuccessful()
+        assertLoadPhaseFailed()
     }
 
     void assertModelStored() {
