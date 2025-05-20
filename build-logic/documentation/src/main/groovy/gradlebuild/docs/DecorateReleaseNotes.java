@@ -63,11 +63,11 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
     public abstract ConfigurableFileCollection getJquery();
 
     /**
-     * The release notes javascript to embed in the HTML
+     * The release notes javascripts to embed in the HTML
      */
-    @InputFile
+    @InputFiles
     @PathSensitive(PathSensitivity.NONE)
-    public abstract RegularFileProperty getReleaseNotesJavascriptFile();
+    public abstract ConfigurableFileCollection getJavascriptFiles();
 
     /**
      * The release notes CSS to embed in the HTML
@@ -111,7 +111,7 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
             // NOTE: These parameter names _must_ match the setter names in ReleaseNotesTransformer
             parameters.put("baseCss", getBaseCssFile().get().getAsFile());
             parameters.put("releaseNotesCss", getReleaseNotesCssFile().get().getAsFile());
-            parameters.put("releaseNotesJavascript", getReleaseNotesJavascriptFile().get().getAsFile());
+            parameters.put("javascriptFiles", getJavascriptFiles().getFiles());
             parameters.put("jqueryFiles", getJquery().getFiles());
 
             copySpec.filter(parameters, ReleaseNotesTransformer.class);

@@ -10,7 +10,7 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
+We are excited to announce [Gradle @version@](https://gradle.org/releases#@version@)<span class="js-build-time"></span>.
 
 This release features [1](), [2](), ... [n](), and more.
 
