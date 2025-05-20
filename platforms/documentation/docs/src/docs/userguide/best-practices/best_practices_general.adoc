@@ -178,7 +178,7 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 == Modularize Your Builds
 :keywords: structuring-builds
 
-Modularize your builds by splitting your code into subprojects.
+Modularize your builds by splitting your code into multiple projects.
 
 === Explanation
 
