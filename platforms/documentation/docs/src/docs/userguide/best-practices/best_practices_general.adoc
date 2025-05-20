@@ -89,7 +89,6 @@ Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay 
 
 [[use_the_plugins_block]]
 == Apply Plugins Using the `plugins` Block
-:keywords: plugins,structuring-builds
 
 You should always use the `plugins` block to <<plugin_basics.adoc#applying_plugins,apply plugins>> in your build scripts.
 
@@ -135,7 +134,6 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 
 [[do_not_use_internal_apis]]
 == Do Not Use Internal APIs
-:keywords: upgrades
 
 Do not use APIs from a package where any segment of the package is `internal`, or types that have `Internal` or `Impl` as a suffix in the name.
 
