@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
+@NullMarked
 package org.gradle.api.internal.plugins;
 
-import java.util.Map;
-import java.util.Optional;
-
-public interface SoftwareFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
-    Class<?> getBindingTargetType();
-    Class<T> getDslType();
-    Optional<Class<? extends T>> getDslImplementationType();
-    Class<V> getBuildModelType();
-    Optional<Class<? extends V>> getBuildModelImplementationType();
-    String getName();
-    SoftwareFeatureTransform<T, ?, V> getTransform();
-    Map<Class<?>, Class<?>> getNestedBindings();
-
-    String MODEL = "model";
-}
+import org.jspecify.annotations.NullMarked;
