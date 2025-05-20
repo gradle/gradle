@@ -30,7 +30,6 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
-    implementation(projects.snapshots)
     implementation(projects.toolingApi)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
