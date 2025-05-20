@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.TextUtil
+import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -684,5 +685,21 @@ The following types/formats are supported:
             includeLink()
         }
         failure.assertThatDescription(containsNormalizedString(expectedMessage))
+
+        // TODO: Fix this
+        // With cc tasks can run in parallel so reporting is a bit flaky
+        // and we sometimes report only the first location, but sometimes also other locations, depending on the task execution
+        if (GradleContextualExecuter.isConfigCache()) {
+            def matchers = []
+            for (int i = 0; i < producedConsumedLocations.length; i++) {
+                matchers += containsNormalizedString(implicitDependency {
+                    at(producedConsumedLocations[i])
+                    consumer(consumerTask)
+                    producer(producerTask)
+                    includeLink()
+                })
+            }
+            failure.assertThatAllDescriptions(Matchers.anyOf(matchers))
+        }
     }
 }
