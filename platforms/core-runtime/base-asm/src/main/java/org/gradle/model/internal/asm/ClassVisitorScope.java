@@ -17,15 +17,19 @@
 package org.gradle.model.internal.asm;
 
 import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
+import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Type.getDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Simplifies the usage of {@link ClassVisitor}.
@@ -36,6 +40,12 @@ public class ClassVisitorScope extends ClassVisitor {
         super(ASM_LEVEL, cv);
     }
 
+    protected AnnotationVisitor visitAnnotation(Class<?> clazz) {
+        return visitAnnotation(
+            getType(clazz).getDescriptor(),
+            true
+        );
+    }
     /**
      * Adds a field to the generated type.
      */
@@ -76,6 +86,20 @@ public class ClassVisitorScope extends ClassVisitor {
      */
     protected void publicMethod(String name, String descriptor, String signature, BytecodeFragment body) {
         addMethod(ACC_PUBLIC, name, descriptor, signature, body);
+    }
+
+    /**
+     * Adds a public abstract method to the generated type.
+     */
+    protected void publicAbstractMethod(String name, String descriptor, String signature, BytecodeFragment body) {
+        addMethod(ACC_PUBLIC | ACC_ABSTRACT, name, descriptor, signature, body);
+    }
+
+    /**
+     * Adds a public static method to the generated type.
+     */
+    protected void publicStaticMethod(String name, String descriptor, String signature, BytecodeFragment body) {
+        addMethod(ACC_PUBLIC | ACC_STATIC, name, descriptor, signature, body);
     }
 
     /**
