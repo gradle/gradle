@@ -63,18 +63,24 @@ fun EvaluationSchemaBuilder.softwareFeaturesComponent(
     softwareFeatureRegistry: SoftwareFeatureRegistry,
     withDefaultsApplication: Boolean
 ) {
+    // Maps from the build model type to the public DSL type
+    // TODO this should support multiple public DSL types for a given build model type (currently supports only a one-to-one mapping)
     val buildModelTypeToPublicDslType = mapBuildModelTypesToPublicDslTypes(softwareFeatureRegistry)
-    val softwareFeatureInfos: Map<KClass<*>, List<SoftwareFeatureInfo<*, *>>> = buildSoftwareFeatureInfo(softwareFeatureRegistry) { bindingType ->
+
+    // Maps from the parent binding type to the software feature implementations that can bind to it
+    val bindingTypeToSoftwareFeatureInfos: Map<KClass<*>, List<SoftwareFeatureInfo<*, *>>> = buildSoftwareFeatureInfo(softwareFeatureRegistry) { bindingType ->
         mapToSchemaType(buildModelTypeToPublicDslType[bindingType] ?: bindingType, rootSchemaType)
     }
-    softwareFeatureInfos.forEach { (bindingType, softwareFeatureInfoList) ->
+
+    // Register analysis schema components for each software feature that can bind to a given type
+    bindingTypeToSoftwareFeatureInfos.forEach { (bindingType, softwareFeatureInfoList) ->
         registerAnalysisSchemaComponent(SoftwareFeatureComponent(bindingType, softwareFeatureInfoList))
     }
 
     if (withDefaultsApplication) {
         ifConversionSupported(mapper = { it as? ProjectInternal }) {
             registerObjectConversionComponent { project ->
-                SoftwareFeatureConversionComponent(softwareFeatureInfos.values.flatten(), project.services.get(SoftwareFeatureApplicator::class.java))
+                SoftwareFeatureConversionComponent(bindingTypeToSoftwareFeatureInfos.values.flatten(), project.services.get(SoftwareFeatureApplicator::class.java))
             }
         }
     }

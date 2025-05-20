@@ -87,7 +87,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     }
 
     private <T extends HasBuildModel<V>, V extends BuildModel> void registerFeature(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, SoftwareFeatureBinding<T, V> binding, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder) {
-        String softwareFeatureName = binding.getPath().getName();
+        String softwareFeatureName = binding.getName();
 
         Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(softwareFeatureName, pluginClass);
         if (existingPluginClass != null && existingPluginClass != pluginClass) {
@@ -97,7 +97,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
         softwareFeatureImplementationsBuilder.put(
             softwareFeatureName,
             new DefaultSoftwareFeatureImplementation<>(
-                binding.getPath().getName(),
+                softwareFeatureName,
                 binding.getDslType(),
                 binding.getDslImplementationType().orElse(binding.getDslType()),
                 binding.getBindingTargetType(),
