@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.util.function.Supplier
 
 /**
@@ -104,7 +105,8 @@ class ToolingApiDistributionResolver {
         try {
             withRetries {
                 try (InputStream stream = new URL(url).openStream()) {
-                    Files.copy(stream, destination)
+                    // We use REPLACE_EXISTING in case this resolver is called concurrently
+                    Files.copy(stream, destination, StandardCopyOption.REPLACE_EXISTING)
                 }
             }
         } catch (Exception e) {
