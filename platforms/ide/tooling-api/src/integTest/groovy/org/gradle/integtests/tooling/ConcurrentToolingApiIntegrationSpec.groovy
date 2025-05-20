@@ -81,7 +81,7 @@ class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec {
         given:
         def last = new ReleasedVersionDistributions().getMostRecentRelease()
         // When adding support for a new JDK version, the previous release might not work with it yet.
-        Assume.assumeTrue(last.worksWith(Jvm.current()))
+        Assume.assumeTrue(last.daemonWorksWith(Jvm.current().javaVersionMajor))
         assert dist != last
         println "Combination of versions used: current - $dist, last - $last"
         def oldDistApi = new ToolingApi(last, temporaryFolder)

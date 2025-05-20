@@ -40,7 +40,6 @@ class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpe
         given:
         GradleDistribution wrapperVersion = previous
         GradleDistribution executionVersion = current
-        assumeTrue "skipping $wrapperVersion as its wrapper cannot execute version $executionVersion.version.version", wrapperVersion.wrapperCanExecute(executionVersion.version)
         assumeTrue "skipping execute version $executionVersion.version.version as it is <6.0", executionVersion.version >= GradleVersion.version("6.0")
 
         requireOwnGradleUserHomeDir()

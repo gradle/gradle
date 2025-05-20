@@ -300,7 +300,7 @@ public abstract class AvailableJavaHomes {
     }
 
     private static boolean isSupportedDaemonVersion(JvmInstallationMetadata jvmInstallation) {
-        return DISTRIBUTION.worksWith(jvmFromMetadata(jvmInstallation));
+        return DISTRIBUTION.daemonWorksWith(jvmFromMetadata(jvmInstallation).getJavaVersionMajor());
     }
 
     /**

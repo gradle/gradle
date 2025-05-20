@@ -445,21 +445,13 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void assertHasConfigureSuccessfulLogging() {
-        if (targetDist.isToolingApiLogsConfigureSummary()) {
-            assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
-        } else {
-            assert stdout.toString().contains("BUILD SUCCESSFUL")
-        }
+        assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         validateOutput(getResult())
     }
 
     void assertHasConfigureFailedLogging() {
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
-        if (targetDist.isToolingApiLogsConfigureSummary()) {
-            assert failureOutput.contains("CONFIGURE FAILED")
-        } else {
-            assert failureOutput.contains("BUILD FAILED")
-        }
+        assert failureOutput.contains("CONFIGURE FAILED")
         validateOutput(getFailure())
     }
 
