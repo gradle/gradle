@@ -1,0 +1,16 @@
+// tag::do-this[]
+// This is the build.gradle file for the app module
+
+plugins {
+    id "application" // <2>
+}
+
+dependencies { // <3>
+    implementation project(":util-guava")
+    implementation project(":util-commons")
+}
+
+application {
+    mainClass = "org.example.Main"
+}
+// end::do-this[]
