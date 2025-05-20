@@ -184,9 +184,9 @@ Do not put source files in your root project; instead, put them in a separate pr
 
 === Explanation
 
-The root project is a special project in Gradle that serves as the entry point for your build.
+The root project is a special link:{groovyDslPath}/org.gradle.api.Project.html[Project] in Gradle that serves as the entry point for your build.
 
-It is the place to configure settings that apply globally to the entire build.
+It is the place to configure some settings and conventions that apply globally to the entire build, that are not configured via link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings].
 For example, you can _declare_ (but not apply) plugins here to ensure the same plugin version is consistently available across all projects and define other configurations shared by all projects within the build.
 
 NOTE: Be careful not to apply plugins unnecessarily in the root project - many plugins only affect source code and should only be applied to the projects that contain source code.
