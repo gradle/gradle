@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.internal;
 
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.FeatureSpec;
@@ -24,12 +23,12 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultJavaFeatureSpec implements FeatureSpec {
+
     private final String name;
     private final Set<Capability> capabilities = new LinkedHashSet<>(1);
     private final ProjectInternal project;
@@ -46,6 +45,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
 
     @Override
     public void usingSourceSet(SourceSet sourceSet) {
+        // TODO: Deprecate this method. Features should be responsible for creating their own source sets.
         this.sourceSet = sourceSet;
     }
 
@@ -74,23 +74,11 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
     }
 
     public JvmFeatureInternal create() {
-        if (sourceSet == null) {
-            throw new InvalidUserCodeException("You must specify which source set to use for feature '" + name + "'");
-        }
-
         if (capabilities.isEmpty()) {
             capabilities.add(new ProjectDerivedCapability(project, name));
         }
 
-        if (SourceSet.isMain(sourceSet)) {
-            DeprecationLogger.deprecateBehaviour(String.format("The '%s' feature was created using the main source set.", name))
-                .withAdvice("The main source set is reserved for production code and should not be used for features. Use another source set instead.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "deprecate_register_feature_main_source_set")
-                .nagUser();
-        }
-
-        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, SourceSet.isMain(sourceSet));
+        JvmFeatureInternal feature = new DefaultJvmFeature(name, capabilities, project, sourceSet);
         feature.withApi();
 
         if (withJavadocJar) {

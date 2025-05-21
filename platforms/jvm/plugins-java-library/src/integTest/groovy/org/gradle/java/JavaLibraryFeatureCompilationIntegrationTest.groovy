@@ -473,51 +473,13 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         true                      | _
     }
 
-    @Issue("gradle/gradle#10778")
-    def "dependencies of a feature that uses the main source set are available on test compile classpath"() {
-        buildFile << """
-            apply plugin: 'java-library'
-
-            ${mavenCentralRepository()}
-
-            java {
-                registerFeature('feat') {
-                   usingSourceSet(sourceSets.main)
-                }
-            }
-
-            dependencies {
-                testImplementation "junit:junit:4.13"
-                featApi "org.apache.commons:commons-math3:3.6.1"
-            }
-        """
-        file("src/test/java/com/acme/FeatureTest.java") << """package com.acme;
-            import org.apache.commons.math3.complex.Complex;
-            import org.junit.Test;
-            import static org.junit.Assert.*;
-
-            public class FeatureTest {
-                @Test
-                public void shouldCompileAndRun() {
-                    Complex complex = new Complex(2.0, 1);
-                    assertEquals(3, complex.pow(2.0).getReal(), 1e-5);
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The 'feat' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
-        run 'test'
-
-        then:
-        executedAndNotSkipped ':compileTestJava', ':test'
-    }
-
     @Issue("gradle/gradle#10999")
     def "registerFeature can be used when there is no main SourceSet"() {
         given:
         buildFile << """
-            apply plugin: 'java-base'
+            plugins {
+                id("java-base")
+            }
 
             sourceSets {
                main211 {}
@@ -559,16 +521,11 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         given:
         buildFile << """
             plugins {
-                id('java-base')
+                id("java-base")
             }
 
             sourceSets {
                main
-            }
-
-            configurations {
-                testCompileClasspath
-                testRuntimeClasspath
             }
 
             java {
@@ -579,33 +536,27 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The 'main' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         succeeds 'dependencies'
 
         then:
-        outputContains("mainRuntimeOnly")
-        outputContains("mainCompileOnly")
-        outputContains("mainImplementation")
-        outputContains("mainApi")
-        outputContains("mainCompileOnlyApi")
-        outputContains("mainRuntimeElements")
-        outputContains("mainApiElements")
+        outputContains("runtimeOnly")
+        outputContains("compileOnly")
+        outputContains("implementation")
+        outputContains("api")
+        outputContains("compileOnlyApi")
+        outputContains("runtimeElements")
+        outputContains("apiElements")
     }
 
-    def "creates configurations when using main source set, non-main feature, java-library is not applied" () {
+    def "creates configurations when using main source set, non-main feature, java plugin is not applied" () {
         given:
         buildFile << """
             plugins {
-                id('java-base')
+                id("java-base")
             }
 
             sourceSets {
                main
-            }
-
-            configurations {
-                testCompileClasspath
-                testRuntimeClasspath
             }
 
             java {
@@ -616,51 +567,44 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The 'feature' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         succeeds 'dependencies'
 
         then:
-        outputContains("featureRuntimeOnly")
-        outputContains("featureCompileOnly")
-        outputContains("featureImplementation")
-        outputContains("featureApi")
-        outputContains("featureCompileOnlyApi")
-        outputContains("featureRuntimeElements")
-        outputContains("featureApiElements")
+        outputContains("runtimeOnly")
+        outputContains("compileOnly")
+        outputContains("implementation")
+        outputContains("api")
+        outputContains("compileOnlyApi")
+        outputContains("runtimeElements")
+        outputContains("apiElements")
     }
 
-    def "creates configurations when using main source set and main feature name"() {
+    @Issue("https://github.com/gradle/gradle/issues/10778")
+    def "cannot create feature using main source set when java library plugin is applied"() {
         buildFile << """
             plugins {
-                id('java-library')
+                id("java-library")
             }
 
             java {
-                registerFeature('main') {
+                registerFeature('feat') {
                    usingSourceSet(sourceSets.main)
                 }
             }
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The 'main' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
-        run 'dependencies'
+        fails("help")
 
         then:
-        outputContains("mainRuntimeOnly")
-        outputContains("mainCompileOnly")
-        outputContains("mainImplementation")
-        outputContains("mainApi")
-        outputContains("mainCompileOnlyApi")
-        outputContains("mainRuntimeElements")
-        outputContains("mainApiElements")
+        failure.assertHasCause("Cannot create feature 'feat' for source set 'main' since configuration 'apiElements' already exists. A feature may have already been created with this source set. A source set can only be used by one feature at a time.")
     }
 
     def "elements configurations have the correct roles"() {
         given:
         buildFile << """
             plugins {
-                id 'java-library'
+                id("java-library")
             }
 
             sourceSets {
@@ -737,6 +681,40 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         expect:
         succeeds(":resolve")
+    }
+
+    def "can create feature without creating source set first"() {
+        buildFile << """
+            plugins {
+                id("java-base")
+            }
+
+            ${mavenCentralRepository()}
+
+            java {
+                registerFeature("foo") {}
+            }
+
+            dependencies {
+                fooImplementation("com.google.guava:guava:33.4.6-jre")
+            }
+        """
+
+        file("src/foo/java/Foo.java") << """
+            import com.google.common.collect.ImmutableList;
+
+            public class Foo {
+                public static void main(String[] args) {
+                    ImmutableList im = ImmutableList.of("foo");
+                }
+            }
+        """
+
+        when:
+        succeeds(":compileFooJava")
+
+        then:
+        file("build/classes/java/foo/Foo.class").exists()
     }
 
     private void packagingTasks(boolean expectExecuted, String subproject, String feature = '') {
