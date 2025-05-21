@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.PublicationArtifact;

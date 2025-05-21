@@ -76,8 +76,7 @@ dependencies {
         api(libs.commonsCompress)       { version { strictly("1.26.1") } }
         api(libs.commonsHttpclient)     { version { strictly("4.5.14") } }
         api(libs.commonsIo)             { version { strictly("2.15.1") }}
-        api(libs.commonsLang)           { version { strictly("2.6") }}
-        api(libs.commonsLang3)          { version { strictly("3.14.0") }}
+        api(libs.commonsLang)           { version { strictly("3.17.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts

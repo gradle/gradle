@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;

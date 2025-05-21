@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action

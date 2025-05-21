@@ -16,7 +16,7 @@
 
 package org.gradle.performance.results.report;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.performance.results.FileRenderer;
 import org.gradle.performance.results.NoResultsStore;

@@ -18,8 +18,8 @@ package org.gradle;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;

@@ -16,7 +16,7 @@
 
 package org.gradle.util.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;

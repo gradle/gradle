@@ -114,7 +114,6 @@ dependencies {
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)
     implementation(libs.commonsLang)
-    implementation(libs.commonsLang3)
     implementation(libs.commonsIo)
     implementation(libs.groovyJson)
     implementation(libs.httpcore)

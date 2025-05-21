@@ -57,7 +57,9 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
                     // If this suddenly fails without an obvious reason, you likely have added some code
                     // that references types that were previously eliminated from gradle-tooling-api.jar.
                     def jarSize = files.find { it.name ==~ /gradle-tooling-api.*\\.jar/ }.size()
-                    assert jarSize < 3_450_000
+                    assert jarSize < 3_600_000
+                    // If this suddenly fails you should adjust both values so the size reduction doesn't accidentally regress again.
+                    assert jarSize > 3_450_000
                 }
             }
         """

@@ -62,7 +62,7 @@ dependencies {
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.asm)
-    implementation(libs.commonsLang3)
+    implementation(libs.commonsLang)
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
