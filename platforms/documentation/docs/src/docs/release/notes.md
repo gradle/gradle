@@ -14,7 +14,8 @@ Gradle @version@ is the first patch release for Gradle 8.14 (released [@releaseD
 
 It fixes the following issues:
 
-* TODO
+* [#33288](https://github.com/gradle/gradle/issues/33288) Groovydoc task suppresses stdout for tasks executing concurrently
+* [#33389](https://github.com/gradle/gradle/issues/33389) Gradle 8.14 breaks Android Gradle Plugin code coverage support
 
 We recommend users upgrade to @version@ instead of 8.14.
 
