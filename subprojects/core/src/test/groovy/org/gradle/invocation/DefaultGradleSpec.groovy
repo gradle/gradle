@@ -97,7 +97,6 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
         _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(TestIsolatedProjectEvaluationListenerProvider)
         _ * serviceRegistry.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
-        _ * serviceRegistry.get(ConfigurationCacheDegradationController) >> Stub(ConfigurationCacheDegradationController)
         _ * serviceRegistry.get(Instantiator) >> Stub(Instantiator) {
             newInstance(LifecycleAwareProject, _, _, _) >> { args ->
                 def params = args[1]
