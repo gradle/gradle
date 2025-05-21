@@ -601,7 +601,7 @@ This behavior can be disabled by setting the `failOnNoDiscoveredTests` property 
 .build.gradle.kts
 [source,kotlin]
 ----
-tasks.withType<Test>().configureEach {
+tasks.withType<AbstractTestTask>().configureEach {
     failOnNoDiscoveredTests = false
 }
 ----
@@ -611,7 +611,7 @@ tasks.withType<Test>().configureEach {
 .build.gradle
 [source,groovy]
 ----
-tasks.withType(Test).configureEach {
+tasks.withType(AbstractTestTask).configureEach {
     failOnNoDiscoveredTests = false
 }
 ----
