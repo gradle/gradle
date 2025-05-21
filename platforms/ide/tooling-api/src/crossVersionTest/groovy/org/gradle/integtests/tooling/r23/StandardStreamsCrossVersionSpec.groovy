@@ -17,13 +17,13 @@
 package org.gradle.integtests.tooling.r23
 
 import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 
-class StandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
+class StandardStreamsCrossVersionSpec extends ToolingApiSpecification {
     @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
     def escapeHeader = "\u001b["
 

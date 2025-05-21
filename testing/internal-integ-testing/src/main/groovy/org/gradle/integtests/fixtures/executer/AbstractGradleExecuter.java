@@ -1197,9 +1197,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                 tmpDir = getDefaultTmpDir();
             }
             String tmpDirPath = tmpDir.createDir().getAbsolutePath();
-            if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
-                properties.put("java.io.tmpdir", tmpDirPath);
-            }
+            properties.put("java.io.tmpdir", tmpDirPath);
         }
 
         if (!disablePluginRepositoryMirror) {
@@ -1234,10 +1232,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         properties.put("org.gradle.kotlin.dsl.skipMetadataVersionCheck", "false");
 
         return properties;
-    }
-
-    protected boolean supportsWhiteSpaceInEnvVars() {
-        return true;
     }
 
     @Override

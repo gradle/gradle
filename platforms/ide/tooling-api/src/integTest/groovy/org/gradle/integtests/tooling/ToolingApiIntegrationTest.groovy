@@ -51,7 +51,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         projectDir = temporaryFolder.testDirectory
         // When adding support for a new JDK version, the previous release might not work with it yet.
-        Assume.assumeTrue(otherVersion.worksWith(Jvm.current()))
+        Assume.assumeTrue(otherVersion.daemonWorksWith(Jvm.current().javaVersionMajor))
 
         settingsFile.touch()
     }

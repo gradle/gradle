@@ -35,7 +35,6 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions
 import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
@@ -190,7 +189,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         def releasedGradleVersions = new ReleasedVersionDistributions()
         def probeVersions = ["4.10.3", "5.6.4", "6.9.4", "7.6.4", "8.8"]
         String compatibleVersion = probeVersions.find { version ->
-            releasedGradleVersions.getDistribution(version)?.worksWith(Jvm.current())
+            releasedGradleVersions.getDistribution(version)?.daemonWorksWith(Jvm.current().javaVersionMajor)
         }
         LOWEST_MAJOR_GRADLE_VERSION = compatibleVersion
     }
@@ -266,12 +265,8 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         }
 
         private void addExecutions(@Nullable GradleDistribution releasedDist, TestedGradleDistribution testedGradleDistribution) {
-            if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
+            if (releasedDist && !releasedDist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
                 add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM'))
-            } else if (releasedDist && !releasedDist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
-                add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM due to an incompatibility with the tooling API'))
-            } else if (releasedDist && !releasedDist.worksWith(OperatingSystem.current())) {
-                add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current OS'))
             } else {
                 if (target.getAnnotation(NoDebug)) {
                     add(new GradleRunnerExecution(testedGradleDistribution, false))

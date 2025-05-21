@@ -50,8 +50,4 @@ class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestIn
         return [new ToolingApiExecution(current, versionedTool.distribution)]
     }
 
-    @Override
-    protected boolean isAvailable(GradleDistributionTool version) {
-        return version.distribution.toolingApiSupported
-    }
 }
