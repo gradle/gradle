@@ -591,7 +591,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun degradeGracefullyOr(finalizedGraph: BuildTreeWorkGraph.FinalizedGraph, action: () -> Unit) {
         val rootBuildExecutionPlan = (finalizedGraph as BuildTreeWorkGraph).getBuildController(buildStateRegistry.rootBuild).finalizedExecutionPlan
-        if (!degradationController.shouldDegradeGracefully(rootBuildExecutionPlan)) {
+        if (!(degradationController as DefaultConfigurationCacheDegradationController).shouldDegradeGracefully(rootBuildExecutionPlan)) {
             action()
         }
         crossConfigurationTimeBarrier()

@@ -47,7 +47,7 @@ class DefaultConfigurationCacheDegradationController(
         tasksDegradationRequests.add(DegradationRequest(trace, reason, spec, DegradationRequest.Kind.Task))
     }
 
-    override fun shouldDegradeGracefully(executionPlan: FinalizedExecutionPlan): Boolean {
+    fun shouldDegradeGracefully(executionPlan: FinalizedExecutionPlan): Boolean {
         executionPlan.contents.scheduledNodes.visitNodes { scheduled, _ ->
             for (node in scheduled) {
                 if (node is TaskNode) {
@@ -61,7 +61,7 @@ class DefaultConfigurationCacheDegradationController(
                                 a.reason.compareTo(b.reason)
                             else
                                 a.trace.toString().compareTo(b.trace.toString())
-                         }
+                        }
                         .groupBy({ it.trace }, { it.reason })
                     )
                 }
