@@ -16,7 +16,10 @@
 
 package org.gradle.internal.cc.impl
 
-import org.junit.Ignore
+import org.gradle.invocation.ConfigurationCacheDegradationController
+import spock.lang.Ignore
+
+import javax.inject.Inject
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -45,7 +48,8 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """)
 
         buildFile """
-            gradle.requireConfigurationCacheDegradation("Foo plugin isn't CC compatible", provider { true })
+            ${generateDegradationController()}
+            degradation.requireConfigurationCacheDegradation(provider { "Foo plugin isn't CC compatible" })
             plugins.apply("foo")
         """
 
@@ -69,8 +73,9 @@ Configuration cache entry discarded because degradation was requested by:
     def "a task can require CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
-            tasks.register("a") {
-               requireConfigurationCacheDegradation(provider { "Project access" })
+            ${generateDegradationController()}
+            tasks.register("a") { task ->
+               degradation.requireConfigurationCacheDegradation(task, provider { "Project access" })
                doLast {
                    println("Project path is \${project.path}")
                }
@@ -98,12 +103,13 @@ Configuration cache entry discarded because degradation was requested by:
     def "a task can require CC degradation for multiple reasons"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
-            tasks.register("a") {
+            ${generateDegradationController()}
+            tasks.register("a") { task ->
                 def shouldAccessTaskProjectProvider = providers.systemProperty("accessTaskProject").map { Boolean.parseBoolean(it) }.orElse(false)
                 def shouldAccessTaskDependenciesProvider = providers.systemProperty("accessTaskDependencies").map { Boolean.parseBoolean(it) }.orElse(false)
 
-                requireConfigurationCacheDegradation(shouldAccessTaskProjectProvider.map { it ? "Project access" : null })
-                requireConfigurationCacheDegradation(shouldAccessTaskDependenciesProvider.map { it ? "TaskDependencies access" : null })
+                degradation.requireConfigurationCacheDegradation(task, shouldAccessTaskProjectProvider.map { it ? "Project access" : null })
+                degradation.requireConfigurationCacheDegradation(task, shouldAccessTaskDependenciesProvider.map { it ? "TaskDependencies access" : null })
 
                 doLast {
                     if (shouldAccessTaskProjectProvider.get()) {
@@ -139,8 +145,9 @@ Configuration cache entry discarded because degradation was requested by:
     def "CC problems in incompatible tasks are not hidden by CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
-            tasks.register("foo") {
-                requireConfigurationCacheDegradation(provider { "Project access" })
+            ${generateDegradationController()}
+            tasks.register("foo") { task ->
+                degradation.requireConfigurationCacheDegradation(task, provider { "Project access" })
                 doLast {
                     println "Hello from foo \${project.path}"
                 }
@@ -169,8 +176,9 @@ Configuration cache entry discarded because degradation was requested by:
     def "a task in included build can require CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildLogic/build.gradle", """
-            tasks.register("foo") {
-                requireConfigurationCacheDegradation(provider { "Project access" })
+            ${generateDegradationController()}
+            tasks.register("foo") { task ->
+                degradation.requireConfigurationCacheDegradation(task, provider { "Project access" })
                 doLast {
                     println "Hello from included build \${project.path}"
                 }
@@ -201,8 +209,9 @@ Configuration cache entry discarded because degradation was requested by:
     def "depending on a CC degrading task from included build introduces CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildLogic/build.gradle", """
-            tasks.register("foo") {
-                requireConfigurationCacheDegradation(provider { "Project access" })
+            ${generateDegradationController()}
+            tasks.register("foo") { task ->
+                degradation.requireConfigurationCacheDegradation(task, provider { "Project access" })
                 doLast {
                     println "Hello from included build \${project.path}"
                 }
@@ -242,8 +251,9 @@ Configuration cache entry discarded because degradation was requested by:
     def "no CC degradation if incompatible task is not presented in the task graph"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
-            tasks.register("a") {
-                requireConfigurationCacheDegradation(provider { "Project access" })
+            ${generateDegradationController()}
+            tasks.register("a") { task ->
+                degradation.requireConfigurationCacheDegradation(task, provider { "Project access" })
                 doLast {
                     println("Project path is \${project.path}")
                 }
@@ -274,7 +284,8 @@ Configuration cache entry discarded because degradation was requested by:
     def "a plugin requesting СС degradation hides an incompatible plugin's problems"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildSrc/src/main/groovy/degrading.gradle", """
-            gradle.requireConfigurationCacheDegradation("Build listener registration", project.provider { true })
+            ${generateDegradationController()}
+            degradation.requireConfigurationCacheDegradation(project.provider { "Build listener registration" })
             gradle.addBuildListener(new BuildListener() {
                 @Override
                 void settingsEvaluated(Settings settings){}
@@ -331,5 +342,15 @@ Configuration cache entry discarded because degradation was requested by:
         postBuildOutputContains("""
 Configuration cache entry discarded because degradation was requested by:
 - plugin 'degrading'""")
+    }
+
+    private String generateDegradationController() {
+        return """
+            interface DegradationService {
+                @${Inject.name}
+                ${ConfigurationCacheDegradationController.name} getController()
+            }
+            def degradation = objects.newInstance(DegradationService).controller
+        """
     }
 }

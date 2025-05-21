@@ -146,7 +146,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
             });
             tasks.withType(PublishToMavenRepository.class).configureEach(t ->
-                getDegradationController().requireConfigurationCacheDegradation("Explicit credentials", degradationExpressionFor(t))
+                getDegradationController().requireConfigurationCacheDegradation(t, usingExplicitCredentials(t))
             );
 
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
@@ -154,10 +154,10 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private Provider<Boolean> degradationExpressionFor(PublishToMavenRepository task) {
+    private Provider<String> usingExplicitCredentials(PublishToMavenRepository task) {
         return getProviderFactory().provider(() -> (AuthenticationSupportedInternal) task.getRepository())
                 .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
-                .map(value -> !value);
+                .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials");
     }
 
     private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {

@@ -188,7 +188,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         then:
         configurationCache.assertNoConfigurationCache()
         output.contains("Configuration cache entry discarded because degradation was requested by:")
-        output.contains("- plugin 'org.gradle.maven-publish': Explicit credentials")
+        output.contains("- task `:publishMavenPublicationToTestMavenRepoRepository` of type `org.gradle.api.publish.maven.tasks.PublishToMavenRepository`")
     }
 
     /*
@@ -197,7 +197,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
      So, when using credential providers with repositories, the repository name must also be a valid
      provider identity.
 
-    However, for inlined/unsafe credentials, since providers are not used, we should not impose such limitations.
+     However, for inlined/unsafe credentials, since providers are not used, we should not impose such limitations.
      */
     @Issue("https://github.com/gradle/gradle/issues/22618")
     def "can use identity-incompatible repository name credentials provider as that falls back to vintage"() {
