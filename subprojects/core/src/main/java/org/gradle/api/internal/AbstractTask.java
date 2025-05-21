@@ -82,7 +82,6 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.invocation.ConfigurationCacheDegradationController;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -163,8 +162,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskLocalStateInternal taskLocalState;
     private final TaskRequiredServices taskRequiredServices;
     private final TaskExecutionAccessChecker taskExecutionAccessChecker;
-    private final ConfigurationCacheDegradationController configurationCacheDegradationController;
-
     private LoggingManagerInternal loggingManager;
 
     protected AbstractTask() {
@@ -204,7 +201,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.dependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(taskInputs, lifecycleDependencies));
         taskRequiredServices = new DefaultTaskRequiredServices(this, taskMutator, propertyWalker);
         taskExecutionAccessChecker = services.get(TaskExecutionAccessChecker.class);
-        configurationCacheDegradationController = services.get(ConfigurationCacheDegradationController.class);
 
         this.timeout = project.getObjects().property(Duration.class);
     }
@@ -1053,11 +1049,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public List<ResourceLock> getSharedResources() {
         return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
-    }
-
-    @Override
-    public void requireConfigurationCacheDegradation(Provider<String> reason) {
-        configurationCacheDegradationController.requireConfigurationCacheDegradation(this, reason);
     }
 
     private void notifyConventionAccess(String invocationDescription) {

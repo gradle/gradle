@@ -246,6 +246,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * of objects which can be used as task dependencies.</p>
      *
      * @param paths The dependencies to add to this task.
+     *
      * @return the task object this method is applied to
      */
     Task dependsOn(Object... paths);
@@ -329,6 +330,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * @param onlyIfReason specifies the reason for a task to run, which is used for logging
      * @param onlyIfSpec specifies if a task should be run
+     *
      * @since 7.6
      */
     @Incubating
@@ -363,6 +365,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * @param onlyIfReason specifies the reason for a task to run, which is used for logging
      * @param onlyIfSpec specifies if a task should be run
+     *
      * @since 7.6
      */
     @Incubating
@@ -380,7 +383,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     /**
      * Sets whether the task actually did any work.  Most built-in tasks will set this automatically, but
      * it may be useful to manually indicate this for custom user tasks.
-     *
      * @param didWork indicates if the task did any work
      */
     void setDidWork(boolean didWork);
@@ -419,11 +421,9 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doFirst(
-        @DelegatesTo(Task.class)
-        @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
-        Closure action
-    );
+    Task doFirst(@DelegatesTo(Task.class)
+                 @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
+                 Closure action);
 
     /**
      * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
@@ -431,6 +431,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param actionName An arbitrary string that is used for logging.
      * @param action The action to add
      * @return the task object this method is applied to
+     *
      * @since 4.2
      */
     Task doFirst(String actionName, Action<? super Task> action);
@@ -449,6 +450,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param actionName An arbitrary string that is used for logging.
      * @param action The action to add.
      * @return the task object this method is applied to
+     *
      * @since 4.2
      */
     Task doLast(String actionName, Action<? super Task> action);
@@ -460,11 +462,9 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doLast(
-        @DelegatesTo(Task.class)
-        @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
-        Closure action
-    );
+    Task doLast(@DelegatesTo(Task.class)
+                @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
+                Closure action);
 
     /**
      * <p>Returns if this task is enabled or not.</p>
@@ -625,8 +625,8 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
 
     /**
      * <p>Returns the destroyables of this task.</p>
-     *
      * @return The destroyables.  Never returns null.
+     *
      * @since 4.0
      */
     @Internal
@@ -666,6 +666,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * an ordering relationship.</p>
      *
      * @param paths The tasks this task must run after.
+     *
      * @return the task object this method is applied to
      */
     Task mustRunAfter(Object... paths);
@@ -710,6 +711,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * a finalizer task.</p>
      *
      * @param paths The tasks that finalize this task.
+     *
      * @return the task object this method is applied to
      */
     Task finalizedBy(Object... paths);
@@ -754,6 +756,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * an ordering relationship.</p>
      *
      * @param paths The tasks this task should run after.
+     *
      * @return the task object this method is applied to
      */
     TaskDependency shouldRunAfter(Object... paths);
@@ -813,10 +816,8 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * </p>
      *
      * @param service The service provider.
-     * @see org.gradle.api.services.ServiceReference
      * @since 6.1
+     * @see org.gradle.api.services.ServiceReference
      */
     void usesService(Provider<? extends BuildService<?>> service);
-
-    void requireConfigurationCacheDegradation(Provider<String> reason);
 }
