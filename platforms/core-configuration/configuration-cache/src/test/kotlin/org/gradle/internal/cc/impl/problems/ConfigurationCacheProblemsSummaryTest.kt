@@ -35,15 +35,15 @@ class ConfigurationCacheProblemsSummaryTest {
         val subject = ConfigurationCacheProblemsSummary(maxCollectedProblems = 2)
         assertTrue(
             "1st problem",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure, false)
         )
         assertTrue(
             "2nd problem (same message as 1st but different location)",
-            subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Failure, false)
         )
         assertFalse(
             "overflow",
-            subject.onProblem(buildLogicProblem("build.gradle", "another failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "another failure"), ProblemSeverity.Failure, false)
         )
         assertThat(
             subject.get().uniqueProblemCount,
@@ -56,15 +56,15 @@ class ConfigurationCacheProblemsSummaryTest {
         val subject = ConfigurationCacheProblemsSummary(maxCollectedProblems = 2)
         assertTrue(
             "1st problem",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure, false)
         )
         assertTrue(
             "2nd problem",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure, false)
         )
         assertFalse(
             "overflow",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure, false)
         )
 
         val summary = subject.get()
