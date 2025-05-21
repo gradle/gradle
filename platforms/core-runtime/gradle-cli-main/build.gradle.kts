@@ -20,11 +20,12 @@ plugins {
     id("gradlebuild.start-scripts")
 }
 
-description = "Java 6-compatible entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
+description = "Entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
 gradleModule {
-    usedForStartup = true
-    usesIncompatibleDependencies = true
+    targetRuntimes {
+        usedInClient = true
+    }
 }
 
 tasks.jar {
@@ -40,13 +41,11 @@ app {
 
 dependencies {
     implementation(projects.buildProcessServices)
-    implementation(projects.buildProcessStartup)
 
     implementation(libs.jspecify)
 
     manifestClasspath(projects.stdlibJavaExtensions)
     manifestClasspath(projects.buildProcessServices)
-    manifestClasspath(projects.buildProcessStartup)
     manifestClasspath(projects.baseServices)
     manifestClasspath(projects.classloaders)
     manifestClasspath(projects.concurrent)

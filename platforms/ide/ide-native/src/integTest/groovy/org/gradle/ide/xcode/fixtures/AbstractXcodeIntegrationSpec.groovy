@@ -129,10 +129,8 @@ rootProject.name = "${rootProjectName}"
             allprojects { p ->
                 apply plugin: ${toolChain.pluginClass}
 
-                model {
-                      toolChains {
-                        ${toolChain.buildScriptConfig}
-                      }
+                toolChains {
+                  ${toolChain.buildScriptConfig}
                 }
             }
         """

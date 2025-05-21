@@ -280,12 +280,7 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
     private ToolingApiDistribution getToolingApi(final String versionToTestAgainst) {
         if (toolingApi == null) {
-            toolingApi = ToolingApiDistributionResolver.use(new ToolingApiDistributionResolver.ResolverAction<ToolingApiDistribution>() {
-                @Override
-                public ToolingApiDistribution run(ToolingApiDistributionResolver resolver) {
-                    return resolver.withDefaultRepository().resolve(versionToTestAgainst);
-                }
-            });
+            toolingApi = new ToolingApiDistributionResolver().resolve(versionToTestAgainst);
         }
         return toolingApi;
     }

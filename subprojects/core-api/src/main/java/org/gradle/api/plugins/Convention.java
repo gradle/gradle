@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.internal.metaobject.DynamicObject;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * <p>A {@code Convention} manages a set of <i>convention objects</i>. When you add a convention object to a {@code
@@ -26,53 +23,28 @@ import java.util.Map;
  * the object which the convention is associated to. A convention object is simply a POJO or POGO. Usually, a {@code
  * Convention} is used by plugins to extend a {@link org.gradle.api.Project} or a {@link org.gradle.api.Task}.</p>
  *
- * @deprecated Use extensions instead. This is scheduled for removal in Gradle 9.
+ * DO NOT USE THIS INTERFACE.
+ *
+ * @deprecated This interface should not be used and only preserved to maintain compatibility compiled against older Gradle versions. This is scheduled for removal in Gradle 9.
  * @see org.gradle.api.plugins.ExtensionAware
  */
 @Deprecated
 public interface Convention extends ExtensionContainer {
 
     /**
-     * Returns the plugin convention objects contained in this convention.
-     *
-     * @return The plugins. Returns an empty map when this convention does not contain any convention objects.
-     * @deprecated Use extensions instead. This is scheduled for removal in Gradle 9.
-     * @see org.gradle.api.plugins.ExtensionAware
-     */
-    @Deprecated
-    Map<String, Object> getPlugins();
-
-    /**
      * Locates the plugin convention object with the given type.
      *
-     * @param type The convention object type.
-     * @return The object. Never returns null.
-     * @throws IllegalStateException When there is no such object contained in this convention, or when there are
-     * multiple such objects.
-     * @deprecated Use extensions instead. This is scheduled for removal in Gradle 9.
-     * @see org.gradle.api.plugins.ExtensionAware
-     */
-    @Deprecated
-    <T> T getPlugin(Class<T> type) throws IllegalStateException;
-
-    /**
-     * Locates the plugin convention object with the given type.
+     * DO NOT USE THIS METHOD.
      *
      * @param type The convention object type.
-     * @return The object. Returns null if there is no such object.
+     * @return always null, only here for compatibility with Gradle plugins compiled against Gradle &lt; 8.2
      * @throws IllegalStateException When there are multiple matching objects.
-     * @deprecated Use extensions instead. This is scheduled for removal in Gradle 9.
+     * @deprecated This is just here for now to maintain compatibility with Gradle plugins compiled against Gradle &lt; 8.2. This is scheduled for removal in Gradle 9.
      * @see org.gradle.api.plugins.ExtensionAware
      */
     @Nullable
     @Deprecated
-    <T> T findPlugin(Class<T> type) throws IllegalStateException;
-
-    /**
-     * Returns a dynamic object which represents the properties and methods contributed by the extensions and convention objects contained in this
-     * convention.
-     *
-     * @return The dynamic object
-     */
-    DynamicObject getExtensionsAsDynamicObject();
+    default <T> T findPlugin(Class<T> type) throws IllegalStateException{
+        return null;
+    }
 }

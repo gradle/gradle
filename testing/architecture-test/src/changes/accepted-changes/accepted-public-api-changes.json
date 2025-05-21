@@ -49,6 +49,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "removal convention",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.getConvention()"
+            ]
+        },
+        {
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.exec(groovy.lang.Closure)",
             "acceptation": "Remove deprecated method",
@@ -60,6 +68,14 @@
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.exec(org.gradle.api.Action)",
             "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.getConvention()",
+            "acceptation": "Convention removal",
             "changes": [
                 "Method has been removed"
             ]
@@ -116,6 +132,14 @@
             "type": "org.gradle.api.Script",
             "member": "Method org.gradle.api.Script.javaexec(org.gradle.api.Action)",
             "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Task",
+            "member": "Method org.gradle.api.Task.getConvention()",
+            "acceptation": "removal convention",
             "changes": [
                 "Method has been removed"
             ]
@@ -380,6 +404,22 @@
             "type": "org.gradle.api.artifacts.SelfResolvingDependency",
             "member": "Method org.gradle.api.artifacts.SelfResolvingDependency.resolve(boolean)",
             "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.component.BuildIdentifier",
+            "member": "Method org.gradle.api.artifacts.component.BuildIdentifier.getName()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.component.BuildIdentifier",
+            "member": "Method org.gradle.api.artifacts.component.BuildIdentifier.isCurrentBuild()",
+            "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
             ]
@@ -737,6 +777,54 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.findPlugin(java.lang.Class)",
+            "acceptation": "remove convention",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.getExtensionsAsDynamicObject()",
+            "acceptation": "Remove Convention interface",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.getPlugin(java.lang.Class)",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.getPlugins()",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field COMPONENTS_TASK",
+            "acceptation": "This task is no longer associated with HelpTasksPlugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field DEPENDENT_COMPONENTS_TASK",
+            "acceptation": "This task is no longer associated with HelpTasksPlugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.JavaPluginConvention",
             "member": "Class org.gradle.api.plugins.JavaPluginConvention",
             "acceptation": "Removed deprecated feature",
@@ -986,6 +1074,14 @@
         },
         {
             "type": "org.gradle.api.plugins.WarPlugin",
+            "member": "Field WEB_APP_GROUP",
+            "acceptation": "Removed deprecated constant.",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPlugin",
             "member": "Method org.gradle.api.plugins.WarPlugin.configureConfigurations(org.gradle.api.artifacts.ConfigurationContainer)",
             "acceptation": "Removed deprecated method",
             "changes": [
@@ -1074,6 +1170,14 @@
         },
         {
             "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.aggregate(org.gradle.api.reporting.Reporting[])",
+            "acceptation": "Method made final to allow @SafeVarargs annotation",
+            "changes": [
+                "Method is now final"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
             "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getCollectionCallbackActionDecorator()",
             "acceptation": "Removed deprecated method",
             "changes": [
@@ -1110,6 +1214,14 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.specs.AndSpec",
+            "member": "Method org.gradle.api.specs.AndSpec.and(org.gradle.api.specs.Spec[])",
+            "acceptation": "Method made final to allow @SafeVarargs annotation",
+            "changes": [
+                "Method is now final"
             ]
         },
         {
@@ -1562,6 +1674,14 @@
         },
         {
             "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getAntBuilder()",
+            "acceptation": "Removed deprecated accessor",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
             "member": "Method org.gradle.api.tasks.scala.ScalaDoc.setScalaDocOptions(org.gradle.api.tasks.scala.ScalaDocOptions)",
             "acceptation": "Remove deprecated method",
             "changes": [
@@ -1574,6 +1694,15 @@
             "acceptation": "Removed deprecated class",
             "changes": [
                 "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getFailOnNoDiscoveredTests()",
+            "acceptation": "Adding as a stable opt-out for new behavior in 9.0",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
             ]
         },
         {
@@ -1694,6 +1823,30 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JvmVendorSpec",
+            "member": "Field IBM_SEMERU",
+            "acceptation": "Deprecated API",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removing component reporting tasks from HelpTasksPlugin",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getModel-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removing model reporting tasks from HelpTasksPlugin",
+            "changes": [
+                "Method added to public class"
             ]
         },
         {
@@ -2457,6 +2610,46 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPluginByName(org.gradle.api.plugins.Convention,java.lang.String)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.withConvention(java.lang.Object,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module$default(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
             "acceptation": "Remove deprecated method",
@@ -2596,10 +2789,11 @@
         {
             "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
             "member": "Class org.gradle.kotlin.dsl.KotlinBuildScript",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "Convention removal",
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getConvention()",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
             ]
@@ -2712,14 +2906,99 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledInitScript(org.gradle.api.invocation.Gradle)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledInitScript.getFileOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledInitScript.getProcessOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
             "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
             "changes": [
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
-                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript(org.gradle.api.Project)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript.buildscript(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript.plugins(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript(org.gradle.api.initialization.Settings)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript.getFileOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript.getProcessOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -2781,14 +3060,6 @@
         {
             "type": "org.gradle.plugins.ear.EarPluginConvention",
             "member": "Method org.gradle.plugins.ear.EarPluginConvention.appDirName(java.lang.String)",
-            "acceptation": "Remove deprecated API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ear.EarPluginConvention",
-            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure)",
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
@@ -2901,6 +3172,22 @@
             "member": "Constructor org.gradle.process.ProcessExecutionException(java.lang.String,java.lang.Throwable)",
             "acceptation": "Introduced public ExecException",
             "changes": []
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getAntBuilder()",
+            "acceptation": "Removed protected method injecting internal class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getCallbackActionDecorator()",
+            "acceptation": "Removed protected method injecting internal class",
+            "changes": [
+                "Method has been removed"
+            ]
         },
         {
             "type": "org.gradle.util.ClosureBackedAction",
@@ -4795,6 +5082,62 @@
             "type": "org.gradle.util.WrapUtil",
             "member": "Method org.gradle.util.WrapUtil.toSortedSet(java.util.Comparator,java.lang.Object[])",
             "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Class org.gradle.workers.IsolationMode",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field AUTO",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field CLASSLOADER",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field NONE",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field PROCESS",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Method org.gradle.workers.IsolationMode.valueOf(java.lang.String)",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Method org.gradle.workers.IsolationMode.values()",
+            "acceptation": "Removed deprecated class",
             "changes": [
                 "Method has been removed"
             ]

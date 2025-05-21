@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.FileUtils
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.archive.JarTestFixture
 
@@ -65,9 +64,6 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     def "can build and run application using Java #jdk.javaVersionMajor"() {
-        if (jdk.javaVersionMajor == Jvm.current().javaVersionMajor) {
-            jdk = Jvm.current()
-        }
         given:
         buildFile << """
             plugins {

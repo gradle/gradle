@@ -31,7 +31,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         configurationCacheRun 'help'
 
         then: 'flow action reacts to build result'
-        configCache.assertStateStored(true)
+        configCache.assertStateStored()
         outputContains '(green)'
 
         when: 'task from cache runs successfully'

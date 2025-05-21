@@ -17,12 +17,10 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -37,10 +35,8 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "ext.rootProperty = 'root'",
                 "ext.sharedProperty = 'ignore me'",
                 "ext.property = 'value'",
-                "convention.plugins.test = new ConventionBean()",
                 "task rootTask",
                 "task testTask",
-                "class ConventionBean { def getConventionProperty() { 'convention' } }"
         )
         file("child/build.gradle").writelns(
                 "ext.childProperty = 'child'",
@@ -57,14 +53,12 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "assert 'shared' == sharedProperty",
                 "assert 'shared' == property('sharedProperty')",
                 "assert 'shared' == properties.sharedProperty",
-                "assert 'convention' == conventionProperty",
                 // Use a separate class, to isolate Project from the script
                 "class Reporter {",
                 "  def checkProperties(object) {",
                 "    assert 'root' == object.rootProperty",
                 "    assert 'child' == object.childProperty",
                 "    assert 'shared' == object.sharedProperty",
-                "    assert 'convention' == object.conventionProperty",
                 "    assert 'value' == object.property",
                 "    assert ':child:testTask' == object.testTask.path",
                 "    try { object.rootTask; fail() } catch (MissingPropertyException e) { }",
@@ -72,7 +66,6 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
-        expectConventionTypeDeprecationWarnings()
         expectTaskProjectDeprecation()
 
         expect:
@@ -86,7 +79,6 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
                 "def sharedMethod(p) { 'ignore me' }",
-                "convention.plugins.test = new ConventionBean()",
                 "task rootTask",
                 "task testTask",
                 "class ConventionBean { def conventionMethod(name) { 'convention' + name } }"
@@ -103,38 +95,16 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "    assert 'rootMethod' == object.rootMethod('Method')",
                 "    assert 'childMethod' == object.childMethod('Method')",
                 "    assert 'sharedMethod'== object.sharedMethod('Method')",
-                "    assert 'conventionMethod' == object.conventionMethod('Method')",
                 "    object.testTask { assert ':child:testTask' == delegate.path }",
                 "    try { object.rootTask { }; fail() } catch (MissingMethodException e) { }",
                 "  }",
                 "}"
         )
 
-        expectConventionTypeDeprecationWarnings()
         expectTaskProjectDeprecation()
 
         expect:
         succeeds("testTask")
-    }
-
-    def canAddMixinsToProject() {
-
-        buildFile '''
-convention.plugins.test = new ConventionBean()
-
-assert conventionProperty == 'convention'
-assert conventionMethod('value') == '[value]'
-
-class ConventionBean {
-    def getConventionProperty() { 'convention' }
-    def conventionMethod(String value) { "[$value]" }
-}
-'''
-
-        expectConventionTypeDeprecationWarnings(GradleContextualExecuter.isolatedProjects ? 2 : 1)
-
-        expect:
-        succeeds()
     }
 
     def canAddExtensionsToProject() {
@@ -237,59 +207,6 @@ assert 'overridden value' == global
             }
 '''
 
-
-        expect:
-        succeeds("defaultTask")
-    }
-
-    def canAddMixInsToCoreDomainObjects() {
-
-        buildFile '''
-            class Extension { def doStuff() { 'method' } }
-            class GroovyTask extends DefaultTask { }
-
-            task defaultTask {
-                convention.plugins.custom = new Extension()
-            }
-            task javaTask(type: Copy) {
-                convention.plugins.custom = new Extension()
-            }
-            task groovyTask(type: GroovyTask) {
-                convention.plugins.custom = new Extension()
-            }
-            configurations {
-                test {
-                    convention.plugins.custom = new Extension()
-                }
-            }
-            dependencies {
-                test('::name:') {
-                    convention.plugins.custom = new Extension()
-                }
-                test(project(':')) {
-                    convention.plugins.custom = new Extension()
-                }
-                test(files('src')) {
-                    convention.plugins.custom = new Extension()
-                }
-            }
-            repositories {
-                convention.plugins.custom = new Extension()
-            }
-            assert defaultTask.doStuff() == 'method'
-            assert javaTask.doStuff() == 'method'
-            assert groovyTask.doStuff() == 'method'
-            assert configurations.test.doStuff() == 'method'
-            configurations.test.dependencies.each {
-                assert it.doStuff() == 'method'
-            }
-            assert repositories.doStuff() == 'method'
-            repositories {
-                assert doStuff() == 'method'
-            }
-'''
-
-        expectConventionTypeDeprecationWarnings(8)
 
         expect:
         succeeds("defaultTask")
@@ -461,20 +378,15 @@ assert 'overridden value' == global
             class Thing {
                 def prop1 = { it }
             }
-            convention.plugins.thing = new Thing()
             ext.prop2 = { it / 2 }
 
-            assert prop1(12) == 12
             assert prop2(12) == 6
         """
         file("child1/build.gradle") << """
             ext.prop3 = { it * 2 }
-            assert prop1(12) == 12
             assert prop2(12) == 6
             assert prop3(12) == 24
         """
-
-        expectConventionTypeDeprecationWarnings()
 
         expect:
         succeeds()
@@ -495,7 +407,7 @@ assert 'overridden value' == global
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForIsolatedProjects(because = "Parent project configures children")
     def canInjectMethodsFromParentProject() {
         createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
@@ -505,11 +417,14 @@ assert 'overridden value' == global
                 ext.useSomeMethod = { file(it) }
             }
         """
-        file("child1/build.gradle") << """
+        buildFile "child1/build.gradle", """
             task testTask {
+                def propertyResult = provider { useSomeProperty() }
+                def methodResult = provider { useSomeMethod('f') }
+                def expectedMethodResult = file('f')
                 doLast {
-                    assert useSomeProperty() == 'child1'
-                    assert useSomeMethod('f') == file('f')
+                    assert propertyResult.get() == 'child1'
+                    assert methodResult.get() == expectedMethodResult
                 }
             }
         """
@@ -843,7 +758,6 @@ task print(type: MyTask) {
     }
 
     @Issue("GRADLE-2163")
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canDecorateBooleanPrimitiveProperties() {
 
         buildFile """
@@ -855,7 +769,9 @@ task print(type: MyTask) {
             extensions.create('bean', CustomBean)
 
             task run {
+                def beanProvider = provider { bean }
                 doLast {
+                    def bean = beanProvider.get()
                     assert bean.b == false
                     bean.conventionMapping.b = { true }
                     assert bean.b == true
@@ -886,37 +802,7 @@ task print(type: MyTask) {
                     props[name] = value
                 }
             }
-
-            convention.plugins.test = new DynamicThing()
-
-            props
-
-            convention.plugins.test.m1(1,2,3)
-            try {
-                m1(1,2,3)
-                fail()
-            } catch (MissingMethodException e) {
-                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test' of type \${Project.name}."
-            }
-
-            convention.plugins.test.p1 = 1
-            try {
-                p1 = 2
-                fail()
-            } catch (MissingPropertyException e) {
-                assert e.message == "Could not set unknown property 'p1' for root project 'test' of type \${Project.name}."
-            }
-
-            convention.plugins.test.p1 += 1
-            try {
-                p1 += 1
-                fail()
-            } catch (MissingPropertyException e) {
-                assert e.message == "Could not get unknown property 'p1' for root project 'test' of type \${Project.name}."
-            }
         """
-
-        expectConventionTypeDeprecationWarnings(GradleContextualExecuter.isolatedProjects ? 8 : 4)
 
         expect:
         succeeds()
@@ -1074,17 +960,6 @@ task print(type: MyTask) {
 
         expect:
         succeeds("run")
-    }
-
-    private void expectConventionTypeDeprecationWarnings(int repeated = 1) {
-        repeated.times {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-            )
-        }
     }
 
     private void expectTaskProjectDeprecation(int repeated = 1) {

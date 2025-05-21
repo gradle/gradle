@@ -1,0 +1,130 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_for_tasks]]
+= Best Practices for Tasks
+
+[[avoid_depends_on]]
+== Avoid DependsOn
+
+The task link:{javadocPath}/org/gradle/api/DefaultTask.html#setDependsOn(java.lang.Iterable)[dependsOn] method should only be used for <<organizing_tasks.adoc#sec:lifecycle_tasks,lifecycle tasks>> (tasks without task actions).
+
+=== Explanation
+
+Tasks with actions should declare their inputs and outputs so that Gradle’s up-to-date checking can automatically determine when these tasks need to be run or rerun.
+
+Using `dependsOn` to link tasks is a much coarser-grained mechanism that does **not** allow Gradle to understand why a task requires a prerequisite task to run, or which specific files from a prerequisite task are needed.
+`dependsOn` forces Gradle to assume that _every_ file produced by a prerequisite task is needed by this task.
+This can lead to unnecessary task execution and decreased build performance.
+
+=== Example
+
+Here is a task that writes output to two separate files:
+
+====
+include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=depended-upon-task-setup]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=depended-upon-task-setup]"]
+====
+
+<1> *Task With Multiple Outputs*: `helloWorld` task prints "Hello" to its `messageFile` and "World" to its `audienceFile`.
+<2> *Registering the Task*: `helloWorld` produces "message.txt" and "audience.txt" outputs.
+
+==== Don't Do This
+
+If you want to translate the greeting in the `message.txt` file using another task, you could do this:
+
+====
+include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Translation Task Setup*: `translateBad` requires `helloWorld` to run first to produce the message file otherwise it will fail with an error as the file does not exist.
+<2> *Explicit Task Dependency*: Running `translateBad` will cause `helloWorld` to run first, but Gradle does not understand _why_.
+
+==== Do This Instead
+
+Instead, you should explicitly wire task inputs and outputs like this:
+
+====
+include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Register Implicit Task Dependency*: `translateGood` requires only one of the files that is produced by `helloWorld`.
+
+Gradle now understands that `translateGood` requires `helloWorld` to have run successfully first because it needs to create the `message.txt` file which is then used by the translation task.
+Gradle can use this information to optimize task scheduling.
+Using the `map` method avoids eagerly retrieving the `helloWorld` task until the output is needed to determine if `translateGood` should run.
+
+=== References
+
+- <<incremental_build.adoc#sec:task_input_output_side_effects,Task Inputs and Outputs>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:up-to-date-checking,#up-to-date-checking>>`
+
+[[use_cacheability_annotations]]
+== Favor `@CacheableTask` and `@DisableCachingByDefault` over `cacheIf(Spec)` and `doNotCacheIf(String, Spec)`
+
+The link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[`cacheIf`] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)[`doNotCacheIf`] methods should only be used in situations where the <<build_cache.adoc#build_cache,cacheability>> of a task varies between different task instances or cannot be determined until the task is executed by Gradle.
+You should instead favor annotating the task class itself with link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[`@CacheableTask`] annotation for any task that is _always_ cacheable.
+Likewise, the link:{javadocPath}/org/gradle/work/DisableCachingByDefault.html[`@DisableCachingByDefault`] should be used to always disable caching for all instances of a task type.
+
+=== Explanation
+
+Annotating a task type will ensure that _each task instance_ of that type is properly understood by Gradle to be cacheable (or not cacheable).
+This removes the need to remember to configure each of the task instances separately in build scripts.
+
+Using the annotations also _documents_ the intended cacheability of the task type within its own source, appearing in Javadoc and making the task's behavior clear to other developers without requiring them to inspect each task instance's configuration.
+It is also slightly more efficient than running a test to determine cacheability.
+
+Remember that only tasks that produce reproducible and relocatable output should be marked as `@CacheableTask`.
+
+=== Example
+
+==== Don't Do This
+
+If you want to reuse the output of a task, you shouldn't do this:
+
+====
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Define a Task*: The `BadCalculatorTask` type is deterministic and produces relocatable output, but is not annotated.
+<2> *Mark the Task Instance as Cacheable*: This example shows how to mark a specific task instance as cacheable.
+<3> *Forget to Mark a Task Instance as Cacheable*: Unfortunately, the `addBad2` instance of the `BadCalculatorTask` type is not marked as cacheable, so it will not be cached, despite behaving the same as `addBad1`.
+
+==== Do This Instead
+
+As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), you should mark the _task type itself_ as cacheable like this:
+
+====
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Annotate the Task Type*: Applying the `@CacheableTask` to a task type informs Gradle that instances of this task should _always_ be cached.
+<2> *Nothing Else Needs To Be Done*: When we register task instances, nothing else needs to be done - Gradle knows to cache them.
+
+=== References
+
+- <<more_about_tasks.adoc#sec:caching_tasks,Caching Tasks>>
+- <<build_cache.adoc#sec:task_output_caching_details,Cacheable Tasks>>
+- <<build_cache_concepts.adoc#non_cacheable_tasks,Non-cacheable Tasks>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:caching,#caching>>`

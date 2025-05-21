@@ -7,8 +7,12 @@ plugins {
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
 gradleModule {
-    usedInClient = true
+    targetRuntimes {
+        usedInClient = true
+    }
+}
 
+jvmCompile {
     // JSpecify annotations on static inner type return types
     usesJdkInternals = true
 }
@@ -60,6 +64,8 @@ dependencies {
 
     runtimeOnly(projects.coreApi)
 
+    testImplementation(projects.internalIntegTesting)
+
     testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.logging)
@@ -68,17 +74,17 @@ dependencies {
     testFixturesImplementation(projects.baseServicesGroovy)
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(testFixtures(projects.buildProcessStartup))
+    testFixturesImplementation(testFixtures(projects.buildProcessServices))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
-    integTestImplementation(testFixtures(projects.buildProcessStartup))
+    integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.problems)
-    crossVersionTestImplementation(testFixtures(projects.buildProcessStartup))
+    crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)

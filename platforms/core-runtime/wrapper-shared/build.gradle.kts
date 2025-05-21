@@ -5,11 +5,16 @@ plugins {
 description = "Utility code shared between the wrapper and the Gradle distribution"
 
 gradleModule {
-    usedInWrapper = true
-    usesIncompatibleDependencies = true // For test dependencies
+    targetRuntimes {
+        usedInClient = true
+    }
 }
 
 dependencies {
+    implementation(projects.files) {
+        because("We need org.gradle.internal.file.PathTraversalChecker")
+    }
+
     testImplementation(projects.baseServices)
     testImplementation(projects.coreApi)
     testImplementation(projects.native)

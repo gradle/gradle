@@ -14,7 +14,7 @@
 
 [[build_environment]]
 = Configuring the Build Environment
-:keywords: properties,gradle,system,project,environment,variables
+:keywords: properties, system, project, environment, variables, https.protocols, gradle.properties, gradle.user.home, gradle.wrapperPassword, gradle.wrapperUser, org.gradle, gradle, java_home, gradle_opts, java_opts, gradle_libs_repo_override
 
 Configuring the build environment is a powerful way to customize the build process.
 There are many mechanisms available.
@@ -129,7 +129,7 @@ spring-boot.version = 2.2.1.RELEASE
 
 You can place the `gradle.properties` file in the root directory of your project, the Gradle user home directory (`GRADLE_USER_HOME`), or the directory where Gradle is optionally installed (`GRADLE_HOME`).
 
-When resolving properties, Gradle first looks in the project-level `gradle.properties` file, then in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with project-level properties taking precedence over user-level and installation-level properties.
+When resolving properties, Gradle first looks in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, then in the project-level `gradle.properties` file, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with user-level properties taking precedence over project-level and installation-level properties.
 
 [[sec:project_properties]]
 == Project properties
@@ -382,7 +382,7 @@ The values are not case-sensitive.
 _Default is `lifecycle` level._
 
 `org.gradle.parallel=(true,false)`::
-When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute <<performance.adoc#sec:parallel_execution,projects in parallel>>.
+When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute <<performance.adoc#sec:enable_parallel_execution,projects in parallel>>.
 +
 _Default is `false`._
 

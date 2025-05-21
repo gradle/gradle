@@ -1,20 +1,17 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
-
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolutionStrategy
-
 import org.junit.Test
-
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 
 
 class ComponentSelectionRulesTest {

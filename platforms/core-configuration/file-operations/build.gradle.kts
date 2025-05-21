@@ -21,7 +21,9 @@ plugins {
 description = "Operations on files, such as archiving, copying, deleting"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 errorprone {
@@ -58,8 +60,6 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
-
-    implementation(projects.wrapperShared)
 
     implementation(libs.ant)
     implementation(libs.commonsIo)

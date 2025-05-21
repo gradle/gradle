@@ -81,40 +81,6 @@ assert contacts("a") == "a"
         succeeds()
     }
 
-    // Documents actual behaviour for backwards compatibility, not necessarily desired behaviour
-    @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
-        reason = "Exercises IP incompatible behavior: Groovy method inheritance"
-    )
-    def "inherited convention method is preferred over property with closure value"() {
-        given:
-        createDirs("child")
-        settingsFile << "include 'child'"
-        buildFile """
-class ContactConvention {
-    def contacts(String arg) { arg }
-}
-
-convention.plugins.contacts = new ContactConvention()
-
-subprojects {
-    ext.contacts = { throw new RuntimeException() }
-    assert contacts("a") == "a"
-}
-"""
-
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-        )
-
-        expect:
-        succeeds()
-    }
-
-
     @Requires(
         value = IntegTestPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior: Groovy method inheritance"

@@ -29,6 +29,22 @@ import spock.lang.Issue
 class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     public static final String LOCAL_GROOVY = 'localGroovy()'
 
+    private static String getGroovyDependencyAdditionScript(String groovyVersion, String configuration) {
+        if (groovyVersion == LOCAL_GROOVY) {
+            return "$configuration ${LOCAL_GROOVY}"
+        } else {
+            def groovyVersionNumber = VersionNumber.parse(groovyVersion)
+            if (groovyVersionNumber.major <= 2) {
+                return "$configuration 'org.codehaus.groovy:groovy-all:$groovyVersion'"
+            }
+            def group = groovyVersionNumber.major >= 4 ? 'org.apache.groovy' : 'org.codehaus.groovy'
+            return """
+                $configuration '$group:groovy:${groovyVersion}'
+                $configuration '$group:groovy-templates:${groovyVersion}'
+            """
+        }
+    }
+
     private void goodCode(String groovyVersion, TestFile root = testDirectory) {
         root.file("src/main/java/org/gradle/Class0.java") << "package org.gradle; public class Class0 { }"
         root.file("src/main/groovy/org/gradle/Class1.groovy") << "package org.gradle; class Class1 { }"
@@ -42,27 +58,38 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'groovy'
 
                 dependencies {
-                    implementation $groovyVersion
+                    ${getGroovyDependencyAdditionScript(groovyVersion, "implementation")}
                 }
             }
         """
     }
 
-    private void withCodenarc(String groovyVersion, String codenarcVersion = '0.24.1', TestFile root = testDirectory) {
+    private void withCodenarc(String groovyVersion, TestFile root = testDirectory) {
         root.file("config/codenarc/rulesets.groovy") << """
             ruleset {
                 ruleset('rulesets/naming.xml')
             }
         """
+        def groovyVersionNumber = VersionNumber.parse(
+            groovyVersion == LOCAL_GROOVY ? GroovySystem.version : groovyVersion
+        )
+        def codenarcVersion = switch (groovyVersionNumber.major) {
+            case 1, 2 -> '0.24.1'
+            default -> "3.6.0" + switch (groovyVersionNumber.major) {
+                case 3 -> ""
+                default -> "-groovy-${groovyVersionNumber.major}.${groovyVersionNumber.minor}"
+            }
+        }
         root.file('build.gradle') << """
             allprojects {
                 apply plugin: 'codenarc'
 
                 dependencies {
                     codenarc('org.codenarc:CodeNarc:$codenarcVersion') {
+                        exclude group: 'org.apache.groovy'
                         exclude group: 'org.codehaus.groovy'
                     }
-                    codenarc $groovyVersion
+                    ${getGroovyDependencyAdditionScript(groovyVersion, "codenarc")}
                 }
 
                 codenarc {
@@ -97,9 +124,9 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
             settingsFile << """
                 include (':${projectName}')
             """
-            withCodenarc(getDependencyFor(groovyVersion), getCodeNarcVesionFor(groovyVersion), projectDir)
+            withCodenarc(groovyVersion, projectDir)
             withCheckstyle(projectDir)
-            goodCode(getDependencyFor(groovyVersion), projectDir)
+            goodCode(groovyVersion, projectDir)
         }
 
         expect:
@@ -108,22 +135,6 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         groovyVersion << groovyVersions()
-    }
-
-    private static String getCodeNarcVesionFor(String groovyVersion) {
-        return VersionNumber.parse(groovyVersion).major >= 4 ? '3.1.0-groovy-4.0' : '0.24.1'
-    }
-
-    private static String getDependencyFor(String groovyVersion) {
-        if (groovyVersion == LOCAL_GROOVY) {
-            return LOCAL_GROOVY
-        }
-
-        def groovyVersionNumber = VersionNumber.parse(groovyVersion)
-        String group = groovyVersionNumber.major >= 4 ? "org.apache.groovy" : "org.codehaus.groovy"
-        String module = groovyVersionNumber.major >= 3 ? "groovy" : "groovy-all"
-        String dependency = "'${group}:${module}:${groovyVersion}'"
-        return groovyVersionNumber.major >= 3 ? dependency + ", '${group}:groovy-templates:${groovyVersion}'" : dependency
     }
 
     private static Set<String> groovyVersions() {

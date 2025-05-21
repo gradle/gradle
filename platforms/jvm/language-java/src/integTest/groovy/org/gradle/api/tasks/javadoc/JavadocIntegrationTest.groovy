@@ -613,6 +613,23 @@ Joe!""")
         file("build/docs/javadoc/pkg/internal/IFoo.html").assertDoesNotExist()
     }
 
+    def "can set nullable properties to null in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                id("java")
+            }
+            tasks.javadoc {
+                destinationDir = null
+                title = null
+                maxMemory = null
+                executable = null
+            }
+        """
+        expect:
+        succeeds "help"
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }

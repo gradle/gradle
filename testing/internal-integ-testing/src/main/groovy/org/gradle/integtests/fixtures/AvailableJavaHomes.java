@@ -37,6 +37,7 @@ import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.TestBuildOperationRunner;
@@ -128,28 +129,7 @@ public abstract class AvailableJavaHomes {
      * Get a JDK for each major Java version installed on this machine.
      */
     public static List<Jvm> getAllJdkVersions() {
-        return getJdksInRange(Range.atLeast(0));
-    }
-
-    /**
-     * Get a JDK for each major Java version that is not able to run the Gradle wrapper, if available.
-     */
-    public static List<Jvm> getUnsupportedWrapperJdks() {
-        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION));
-    }
-
-    /**
-     * Get a JDK for each major Java version that is able to run the Gradle wrapper, if available.
-     */
-    public static List<Jvm> getSupportedWrapperJdks() {
-        return getJdksInRange(Range.atLeast(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION));
-    }
-
-    /**
-     * Get a JDK for each major Java version that is not able to run a Gradle client, if available.
-     */
-    public static List<Jvm> getUnsupportedClientJdks() {
-        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION));
+        return getJdksInRange(Range.all());
     }
 
     /**
@@ -177,7 +157,7 @@ public abstract class AvailableJavaHomes {
      * Get a JDK for each major Java version that is not able to run the Gradle daemon, if available.
      */
     public static List<Jvm> getUnsupportedDaemonJdks() {
-        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION));
+        return getJdksInRange(Range.closedOpen(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION, SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION));
     }
 
     /**
@@ -235,6 +215,19 @@ public abstract class AvailableJavaHomes {
     @Nullable
     public static Jvm getJdk(final JavaVersion version) {
         return Iterables.getFirst(getAvailableJdks(version), null);
+    }
+
+    /**
+     * Return any JDK installation that falls within the given JVM version range.
+     */
+    @Nullable
+    public static Jvm getJdkInRange(Range<Integer> range) {
+        return getAvailableJvmMetadatas().stream()
+            .filter(input -> input.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES))
+            .filter(element -> range.contains(element.getJavaMajorVersion()))
+            .map(AvailableJavaHomes::jvmFromMetadata)
+            .findFirst()
+            .orElse(null);
     }
 
     /**
@@ -343,6 +336,17 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
+     * Get a JDK with a different version than the current JDK, which can
+     * execute the daemon for the given distribution.
+     */
+    @Nullable
+    public static Jvm getDifferentDaemonVersionFor(GradleDistribution distribution) {
+        return getDifferentVersion(
+            metadata -> distribution.daemonWorksWith(metadata.getJavaMajorVersion())
+        );
+    }
+
+    /**
      * Returns a JDK that has a different Java version to the current one and to the provided one,
      * and which is supported by the Gradle version under test.
      */
@@ -404,12 +408,20 @@ public abstract class AvailableJavaHomes {
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
         ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
+
         final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
             .toolchains()
             .stream()
             .map(x -> x.metadata)
             .filter(JvmInstallationMetadata::isValidInstallation)
-            .sorted(Comparator.comparing(JvmInstallationMetadata::getDisplayName).thenComparing(JvmInstallationMetadata::getLanguageVersion))
+            // Sorting using the production comparator ensures two things:
+            // 1. Consistency / Determinism (or at least attempts to)
+            // 2. The current JVM is always selected as the candidate for its own java version.
+            //    This is desirable since Gradle always considers the current JVM as a toolchain
+            //    candidate. Tests which verify toolchain java home locations may otherwise be flaky
+            //    if a different JVM is selected as the candidate, as the Gradle installation under
+            //    test would always select the JVM it is executed with instead of the one selected here.
+            .sorted(new JvmInstallationMetadataComparator(Jvm.current().getJavaHome()))
             .collect(Collectors.toList());
 
         System.out.println("Found the following JVMs:");

@@ -17,30 +17,31 @@
 package org.gradle.workers.internal;
 
 import java.io.File;
+import java.util.Set;
 
 public class TransportableActionExecutionSpec {
     protected final String implementationClassName;
     private final byte[] serializedParameters;
     private final ClassLoaderStructure classLoaderStructure;
     private final File baseDir;
-    private final boolean usesInternalServices;
+    private final Set<String> additionalWhitelistedServicesClassNames;
     private final File projectCacheDir;
 
-    public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, boolean usesInternalServices) {
+    public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, Set<String> additionalWhitelistedServicesClassNames) {
         this.implementationClassName = implementationClassName;
         this.serializedParameters = serializedParameters;
         this.classLoaderStructure = classLoaderStructure;
         this.baseDir = baseDir;
         this.projectCacheDir = projectCacheDir;
-        this.usesInternalServices = usesInternalServices;
+        this.additionalWhitelistedServicesClassNames = additionalWhitelistedServicesClassNames;
     }
 
     public File getBaseDir() {
         return baseDir;
     }
 
-    public boolean isInternalServicesRequired() {
-        return usesInternalServices;
+    public Set<String> getAdditionalWhitelistedServicesClassNames() {
+        return additionalWhitelistedServicesClassNames;
     }
 
     public ClassLoaderStructure getClassLoaderStructure() {

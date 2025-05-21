@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.apache.tools.ant.Task;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
@@ -27,11 +26,11 @@ import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.MapKey;
@@ -40,17 +39,19 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
+import javax.inject.Inject;
 import java.io.File;
 
 @ServiceScope(Scope.Project.class)
 public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
-    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider metaDataProvider;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
 
-    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
-        this.instantiator = instantiator;
+    @Inject
+    public PublishArtifactNotationParserFactory(ObjectFactory objectFactory, DependencyMetaDataProvider metaDataProvider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+        this.objectFactory = objectFactory;
         this.metaDataProvider = metaDataProvider;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
@@ -77,7 +78,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(PublishArtifact notation) {
-            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, notation);
+            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, notation);
         }
     }
 
@@ -93,7 +94,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(AbstractArchiveTask notation) {
-            return instantiator.newInstance(ArchivePublishArtifact.class, taskDependencyFactory, notation);
+            return objectFactory.newInstance(ArchivePublishArtifact.class, taskDependencyFactory, notation);
         }
     }
 
@@ -130,7 +131,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(Provider<?> notation) {
             Module module = metaDataProvider.getModule();
-            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new LazyPublishArtifact(notation, module.getVersion(), fileResolver, taskDependencyFactory));
+            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new LazyPublishArtifact(notation, module.getVersion(), fileResolver, taskDependencyFactory));
         }
     }
 
@@ -148,7 +149,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(FileSystemLocation notation) {
             Module module = metaDataProvider.getModule();
-            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new FileSystemPublishArtifact(notation, module.getVersion()));
+            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new FileSystemPublishArtifact(notation, module.getVersion()));
         }
     }
 
@@ -161,7 +162,14 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         protected ConfigurablePublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
             ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
-            return instantiator.newInstance(DefaultPublishArtifact.class, taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file, new Task[0]);
+            DefaultPublishArtifact defaultPublishArtifact = objectFactory.newInstance(DefaultPublishArtifact.class, taskDependencyFactory);
+            defaultPublishArtifact.setName(artifactFile.getName());
+            defaultPublishArtifact.setExtension(artifactFile.getExtension());
+            defaultPublishArtifact.setType(artifactFile.getExtension());
+            defaultPublishArtifact.setClassifier(artifactFile.getClassifier());
+            defaultPublishArtifact.setDate(null);
+            defaultPublishArtifact.setFile(file);
+            return defaultPublishArtifact;
         }
     }
 }

@@ -65,17 +65,15 @@ import java.util.concurrent.Callable
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10.0")
 abstract class ProjectDelegate : Project {
 
     init {
         @Suppress("DEPRECATION")
-        if (!org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript::class.java.isAssignableFrom(this::class.java)) {
-            DeprecationLogger.deprecateType(ProjectDelegate::class.java)
-                .willBeRemovedInGradle9()
-                .undocumented()
-                .nagUser()
-        }
+        DeprecationLogger.deprecateType(ProjectDelegate::class.java)
+            .willBeRemovedInGradle10()
+            .undocumented()
+            .nagUser()
     }
 
     internal
@@ -92,11 +90,6 @@ abstract class ProjectDelegate : Project {
 
     override fun getDefaultTasks(): MutableList<String> =
         delegate.defaultTasks
-
-    @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-    override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention =
-        @Suppress("deprecation")
-        delegate.convention
 
     override fun getLogger(): Logger =
         delegate.logger

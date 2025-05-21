@@ -18,30 +18,14 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @Requires(value = [IntegTestPreconditions.NotEmbeddedExecutor], reason = NOT_EMBEDDED_REASON)
-@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
         wrapperExecuter.requireDaemon() // For non-daemon executors, tests single-use daemon mode
-    }
-
-    @Requires(IntegTestPreconditions.UnsupportedWrapperJavaHomeAvailable)
-    def "provides reasonable failure message when attempting to run the wrapper under java #jdk.javaVersion"() {
-        given:
-        prepareWrapper()
-        wrapperExecuter.withJvm(jdk)
-
-        expect:
-        def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasErrorOutput("Gradle requires JVM 8 or later to run. You are currently using JVM ${jdk.javaVersionMajor}.")
-
-        where:
-        jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()
     }
 
     def "can run the wrapper with java #jdk.javaVersion"() {
@@ -65,7 +49,6 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         wrapperResult.assertTaskExecuted(":help")
 
         where:
-        jdk << AvailableJavaHomes.getSupportedWrapperJdks()
+        jdk << AvailableJavaHomes.getSupportedClientJdks()
     }
-
 }

@@ -4,7 +4,7 @@ plugins {
 
 description = "A Java compiler plugin used by Gradle's incremental compiler"
 
-gradleModule {
+jvmCompile {
     usesJdkInternals = true
 }
 

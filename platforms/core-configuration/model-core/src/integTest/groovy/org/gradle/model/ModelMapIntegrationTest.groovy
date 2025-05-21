@@ -257,7 +257,9 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
             class Rules extends RuleSource {
                 @Model void things(ModelMap<Thing> things) { }
             }
+
             apply plugin: Rules
+            apply plugin: 'model-reporting-tasks'
 
             model {
                 things {
@@ -314,7 +316,9 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
             class Rules extends RuleSource {
                 @Model void things(ModelMap<List<String>> things) { }
             }
+
             apply plugin: Rules
+            apply plugin: 'model-reporting-tasks'
 
             model {
                 things { it.create("elem") }
@@ -325,7 +329,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
         ModelReportOutput.from(output).hasNodeStructure {
             things {
-                elem(type: 'java.util.List<java.lang.String>', creator: 'things { ... } @ build.gradle line 8, column 17 > create(elem)')
+                elem(type: 'java.util.List<java.lang.String>', creator: 'things { ... } @ build.gradle line 10, column 17 > create(elem)')
             }
         }
     }
@@ -340,7 +344,9 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
                 @Model
                 void things(ModelMap<Thing> things) {}
             }
+
             apply plugin: Rules
+            apply plugin: 'model-reporting-tasks'
 
             model {
                 things {
@@ -351,7 +357,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "model"
-        failureHasCause "Exception thrown while executing model rule: things { ... } @ build.gradle line 12, column 17"
+        failureHasCause "Exception thrown while executing model rule: things { ... } @ build.gradle line 14, column 17"
         failureHasCause "Cannot create 'things.thing' with type 'UnknownThing' as this is not a subtype of 'Thing'."
     }
 }

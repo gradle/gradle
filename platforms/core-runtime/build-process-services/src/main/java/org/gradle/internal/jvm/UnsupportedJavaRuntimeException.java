@@ -16,6 +16,8 @@
 
 package org.gradle.internal.jvm;
 
+import org.gradle.api.internal.jvm.JavaVersionParser;
+
 /**
  * An exception thrown when using an invalid JVM for running Gradle.
  */
@@ -27,22 +29,30 @@ public class UnsupportedJavaRuntimeException extends RuntimeException {
 
     /**
      * Assert the current JVM is capable of running the daemon for current Gradle version.
+     * <p>
+     * In most cases, this assertion is not expected to be triggered, as it is triggered
+     * from within daemon code. It stands mostly as a sanity check. Instead, the daemon
+     * client should verify the JVM compatibility using {@link #assertIsSupportedDaemonJvmVersion(int)}.
      */
-    public static void assertUsingSupportedDaemonVersion() throws UnsupportedJavaRuntimeException {
-        assertIsSupportedDaemonJvmVersion(Jvm.current().getJavaVersionMajor(), "You are currently using JVM %d.");
+    public static void assertCurrentProcessSupportsDaemonJavaVersion() throws UnsupportedJavaRuntimeException {
+        int currentVersion = JavaVersionParser.parseCurrentMajorVersion();
+        if (currentVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
+            String message = String.format(
+                "Gradle requires JVM %d or later to run. You are currently using JVM %d.",
+                SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
+                currentVersion
+            );
+            throw new UnsupportedJavaRuntimeException(message);
+        }
     }
 
     /**
      * Assert the given JVM version is capable of running the daemon for the current Gradle version.
      */
     public static void assertIsSupportedDaemonJvmVersion(int majorVersion) {
-        assertIsSupportedDaemonJvmVersion(majorVersion, "Your build is currently configured to use JVM %d.");
-    }
-
-    private static void assertIsSupportedDaemonJvmVersion(int majorVersion, String message) {
         if (majorVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
             throw new UnsupportedJavaRuntimeException(String.format(
-                "Gradle requires JVM %d or later to run. " + message,
+                "Gradle requires JVM %d or later to run. Your build is currently configured to use JVM %d.",
                 SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
                 majorVersion
             ));

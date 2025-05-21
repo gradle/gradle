@@ -16,19 +16,11 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-
 import org.codehaus.groovy.runtime.StringGroovyMethods
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
 import org.gradle.kotlin.dsl.fixtures.bytecode.RETURN
@@ -40,27 +32,26 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
 import org.gradle.util.internal.ToBeImplemented
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.analysis.checkers.toVisibilityOrNull
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.junit.Assert.assertTrue
-
+import org.junit.Ignore
 import org.junit.Test
-
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
 import java.io.File
 
 
@@ -657,6 +648,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
+    @Ignore("there is no jruby-gradle-plugin that works without conventions or dependencies are missing. https://github.com/jruby-gradle/jruby-gradle-plugin/issues/451")
     fun `can use plugin specs with jruby-gradle-plugin`() {
 
         withKotlinDslPlugin().appendText(

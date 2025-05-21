@@ -53,7 +53,7 @@ It’s important to distinguish between two ways of running Gradle:
 1. *Using a system-installed Gradle distribution* — by running the `gradle` command.
 2. *Using the Gradle Wrapper* — by running the `gradlew` or `gradlew.bat` script included in a Gradle project.
 
-The Gradle Wrapper is always the recommended to execute a build with the wrapper to ensure a reliable, controlled, and standardized execution of the build.
+The Gradle Wrapper is always the recommended way to execute a build to ensure a reliable, controlled, and standardized execution of the build.
 
 1. Using a system-installed Gradle distribution:
 +

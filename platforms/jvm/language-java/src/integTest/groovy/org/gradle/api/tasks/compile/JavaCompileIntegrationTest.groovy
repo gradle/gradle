@@ -972,48 +972,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires([UnitTestPreconditions.Jdk8OrEarlier, IntegTestPreconditions.Java7HomeAvailable, IntegTestPreconditions.Java8HomeAvailable ])
-    // bootclasspath has been removed in Java 9+
-    def "bootclasspath can be set"() {
-        def jdk7 = AvailableJavaHomes.getJdk7()
-        def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.absolutePath) + "/lib/rt.jar"
-        def jdk8 = AvailableJavaHomes.getJdk8()
-        def jdk8bootClasspath = TextUtil.escapeString(jdk8.jre.absolutePath) + "/lib/rt.jar"
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            compileJava {
-                if (providers.gradleProperty("java7").isPresent()) {
-                    options.bootstrapClasspath = files("$jdk7bootClasspath")
-                } else if (providers.gradleProperty("java8").isPresent()) {
-                    options.bootstrapClasspath = files("$jdk8bootClasspath")
-                }
-                options.fork = true
-            }
-        """
-        file('src/main/java/Main.java') << """
-            import java.nio.file.Files;
-            import java.nio.file.Paths;
-
-            public class Main {
-                public static void main(String... args) throws Exception {
-                    // Use Files.lines() method introduced in Java 8
-                    System.out.println("Line count: " + Files.lines(Paths.get(args[0])));
-                }
-            }
-        """
-
-        expect:
-        succeeds "clean", "compileJava"
-
-        fails "-Pjava7", "clean", "compileJava"
-        failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
-
-        succeeds "-Pjava8", "clean", "compileJava"
-    }
-
     // bootclasspath has been removed in Java 9+
     @Requires(IntegTestPreconditions.BestJreAvailable)
     @Issue("https://github.com/gradle/gradle/issues/19817")

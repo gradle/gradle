@@ -14,7 +14,7 @@
 
 [[sec:daemon_watch_fs]]
 = File System Watching
-:keywords: file,system,watching
+:keywords: file, system, vfs, watch-fs, no-watch-fs,org.gradle.vfs.watch, org.gradle.vfs.verbose
 
 Gradle maintains a Virtual File System (VFS) to calculate what needs to be rebuilt on repeat builds of a project.
 By watching the file system, Gradle keeps the VFS current between builds.

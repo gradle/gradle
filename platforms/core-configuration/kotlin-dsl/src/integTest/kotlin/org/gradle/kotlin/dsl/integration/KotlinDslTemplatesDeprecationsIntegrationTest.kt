@@ -35,7 +35,7 @@ class KotlinDslTemplatesDeprecationsIntegrationTest : AbstractKotlinIntegrationT
 
             DeprecationTrigger(gradle)
         """)
-        executer.expectDeprecationWarning("The org.gradle.kotlin.dsl.InitScriptApi type has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+        executer.expectDeprecationWarning("The org.gradle.kotlin.dsl.InitScriptApi type has been deprecated. This is scheduled to be removed in Gradle 10.0.")
         build("help")
     }
 
@@ -53,7 +53,7 @@ class KotlinDslTemplatesDeprecationsIntegrationTest : AbstractKotlinIntegrationT
 
             DeprecationTrigger(settings)
         """)
-        executer.expectDeprecationWarning("The org.gradle.kotlin.dsl.SettingsScriptApi type has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+        executer.expectDeprecationWarning("The org.gradle.kotlin.dsl.SettingsScriptApi type has been deprecated. This is scheduled to be removed in Gradle 10.0.")
         build("help")
     }
 }

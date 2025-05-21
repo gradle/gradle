@@ -20,7 +20,8 @@ import org.gradle.api.plugins.ExtensionContainer;
 
 import java.util.Map;
 
-public interface ExtensionContainerInternal extends ExtensionContainer {
+@SuppressWarnings("deprecation")
+public interface ExtensionContainerInternal extends ExtensionContainer, org.gradle.api.plugins.Convention {
     /**
      * Provides access to all known extensions.
      * @return A map of extensions, keyed by name.

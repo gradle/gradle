@@ -89,7 +89,7 @@ dependencies {
     testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
     testImplementation(libs.kotlinCoroutinesDebug)
 
     integTestImplementation(projects.cli)

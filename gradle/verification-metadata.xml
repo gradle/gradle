@@ -65,10 +65,6 @@
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
-      <ignored-keys>
-         <ignored-key id="09A79E1E15A04694" reason="Key couldn't be downloaded from any key server"/>
-         <ignored-key id="74DAFDFD6DAE2441" reason="Key couldn't be downloaded from any key server"/>
-      </ignored-keys>
       <trusted-keys>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
          <trusted-key id="0181A4828FA27B6BE6F1F5A68611CD28F472E006" group="org.jline"/>
@@ -91,6 +87,7 @@
          <trusted-key id="0CB5871FB7BF3B351614BBF6CA85FFE638D4407A" group="it.unimi.dsi" name="fastutil"/>
          <trusted-key id="0E18EAE07B7774EAC5DB3F2113BB90CE8EAFBE37" group="com.microsoft.playwright"/>
          <trusted-key id="120D6F34E627ED3A772EBBFE55C7E5E701832382" group="org.yaml" name="snakeyaml"/>
+         <trusted-key id="147B691A19097624902F4EA9689CBE64F4BC997F" group="^org[.]mockito($|([.].*))" regex="true"/>
          <trusted-key id="160A7A9CF46221A56B06AD64461A804F2609FD89" group="^com[.]github[.]shyiko($|([.].*))" regex="true"/>
          <trusted-key id="1616273079FE63E31C938F10F0DF21D1D0A3C384" group="com.google.inject" name="guice" version="4.2.3"/>
          <trusted-key id="19BEAB2D799C020F17C69126B16698A4ADF4D638" group="org.checkerframework" name="checker-qual"/>
@@ -273,7 +270,10 @@
          </trusted-key>
          <trusted-key id="BAE5C184E3B70CB15617700598FE03A974CE0A0B" group="org.jetbrains.kotlin"/>
          <trusted-key id="BD95A93175BFE816FC152DE5F9FD57A03B80305D" group="com.lihaoyi"/>
-         <trusted-key id="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE" group="com.google.guava"/>
+         <trusted-key id="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE">
+            <trusting group="com.google.guava"/>
+            <trusting group="^com[.]google($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="C0822D185FBFD963C33ACBFEA318A06284D602D5" group="com.tngtech.archunit"/>
          <trusted-key id="C70B844F002F21F6D2B9C87522E44AC0622B91C3" group="com.beust" name="jcommander"/>
          <trusted-key id="C7BE5BCC9FEC15518CFDA882B0F3710FA64900E7">
@@ -282,7 +282,6 @@
          </trusted-key>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
          <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141" group="net.sf.proguard"/>
-         <trusted-key id="CC4483CD6A3EB2939B948667A1B4460D8BA7B9AF" group="org.mockito" name="mockito-core"/>
          <trusted-key id="CD5464315F0B98C77E6E8ECD9DAADC1C9FCC82D0">
             <trusting group="commons-cli"/>
             <trusting group="commons-io"/>
@@ -720,16 +719,6 @@
             <pgp value="C8D37E9675158FF5B29B6D6452FC3551DA8DC57E"/>
          </artifact>
       </component>
-      <component group="com.nhaarman" name="mockito-kotlin" version="1.6.0">
-         <artifact name="mockito-kotlin-1.6.0.jar">
-            <pgp value="5289A6F1836624CBD708B9ACAD21629F6AE723D2"/>
-         </artifact>
-      </component>
-      <component group="com.nhaarman.mockitokotlin2" name="mockito-kotlin" version="2.2.0">
-         <artifact name="mockito-kotlin-2.2.0.jar">
-            <pgp value="5DCEB296690BD5101756F2441F8CF885D537A431"/>
-         </artifact>
-      </component>
       <component group="com.squareup" name="javapoet" version="1.13.0">
          <artifact name="javapoet-1.13.0.jar">
             <pgp value="1D0A8B5E77C678A7C724445ABF984B4145EA13F7"/>
@@ -1014,21 +1003,6 @@
       <component group="me.qmx.jitescript" name="jitescript" version="0.4.1">
          <artifact name="jitescript-0.4.1.jar">
             <pgp value="8446B9E902A3F3DDEE711FDB8E26FF248BC7AEAD"/>
-         </artifact>
-      </component>
-      <component group="net.bytebuddy" name="byte-buddy" version="1.8.21">
-         <artifact name="byte-buddy-1.8.21.jar">
-            <pgp value="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3"/>
-         </artifact>
-      </component>
-      <component group="net.bytebuddy" name="byte-buddy-agent" version="1.10.9">
-         <artifact name="byte-buddy-agent-1.10.9.jar">
-            <pgp value="A7892505CF1A58076453E52D7999BEFBA1039E8B"/>
-         </artifact>
-      </component>
-      <component group="net.bytebuddy" name="byte-buddy-agent" version="1.8.5">
-         <artifact name="byte-buddy-agent-1.8.5.jar">
-            <pgp value="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3"/>
          </artifact>
       </component>
       <component group="net.i2p.crypto" name="eddsa" version="0.3.0">

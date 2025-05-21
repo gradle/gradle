@@ -297,7 +297,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertTasksExecuted()
 
         and:
-        configurationCache.assertStateStored()
+        // TODO: why are we not discarding the state here, the same way we would have discarded it for the execution-time problems?
+        configurationCache.assertStateStoredAndFailedOnLoad()
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -1134,9 +1135,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 19 problems")
+        outputContains("Configuration cache entry discarded with 16 problems")
         problems.assertFailureHasProblems(failure) {
-            totalProblemsCount = 19
+            totalProblemsCount = 16
             withInput("Script 'script.gradle': system property 'PROP'")
             withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
