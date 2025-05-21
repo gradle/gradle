@@ -27,6 +27,7 @@ Other issues with the build won't cause it to produce incorrect results, but wil
 In this chapter you will learn about some typical problems and ways to avoid them.
 Fixing these issues will have the added benefit that your build will stop "acting up," and developers can forget about running builds with `clean` altogether.
 
+[[system_file_encoding]]
 == System file encoding
 
 Most Java tools use the system file encoding when no specific encoding is specified.
