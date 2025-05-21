@@ -66,7 +66,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         and:
         outputContains("Build finished callback from foo plugin")
         postBuildOutputContains("""
-Configuration cache entry discarded because degradation was requested by:
+Configuration caching disabled because degradation was requested by:
 - build file 'build.gradle'""")
     }
 
@@ -96,7 +96,7 @@ Configuration cache entry discarded because degradation was requested by:
         and:
         outputContains("Project path is :")
         postBuildOutputContains("""
-Configuration cache entry discarded because degradation was requested by:
+Configuration caching disabled because degradation was requested by:
 - task `:a` of type `org.gradle.api.DefaultTask`""")
     }
 
@@ -202,7 +202,7 @@ Configuration cache entry discarded because degradation was requested by:
         and:
         outputContains("Hello from included build :")
         postBuildOutputContains("""
-Configuration cache entry discarded because degradation was requested by:
+Configuration caching disabled because degradation was requested by:
 - task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
     }
 
@@ -244,7 +244,7 @@ Configuration cache entry discarded because degradation was requested by:
         outputContains("Hello from included build :")
         outputContains("Hello from root build")
         postBuildOutputContains("""
-Configuration cache entry discarded because degradation was requested by:
+Configuration caching disabled because degradation was requested by:
 - task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
     }
 
@@ -340,7 +340,7 @@ Configuration cache entry discarded because degradation was requested by:
         outputContains("Build finished callback from degrading plugin")
         outputContains("Build finished callback from incompatible plugin")
         postBuildOutputContains("""
-Configuration cache entry discarded because degradation was requested by:
+Configuration caching disabled because degradation was requested by:
 - plugin 'degrading'""")
     }
 
