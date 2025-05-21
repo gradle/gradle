@@ -21,9 +21,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+
 @ServiceScope(Scope.BuildTree.class)
 public interface ConfigurationCacheDegradationController {
     void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec);
 
-    void requireConfigurationCacheDegradation(Task task, String reason, Provider<Boolean> spec);
+    void requireConfigurationCacheDegradation(Task task, Provider<String> reason);
 }

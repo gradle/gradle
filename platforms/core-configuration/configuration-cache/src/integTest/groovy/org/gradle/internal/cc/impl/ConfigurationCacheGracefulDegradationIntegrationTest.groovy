@@ -16,8 +16,11 @@
 
 package org.gradle.internal.cc.impl
 
+import org.junit.Ignore
+
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    @Ignore("Build logic degradation is out of the scope")
     def "can declare applied plugin as CC incompatible"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildSrc/src/main/groovy/foo.gradle", """
@@ -67,7 +70,7 @@ Configuration cache entry discarded because degradation was requested by:
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
             tasks.register("a") {
-               requireConfigurationCacheDegradation("Project access", provider { true })
+               requireConfigurationCacheDegradation(provider { "Project access" })
                doLast {
                    println("Project path is \${project.path}")
                }
@@ -97,9 +100,10 @@ Configuration cache entry discarded because degradation was requested by:
         buildFile """
             tasks.register("a") {
                 def shouldAccessTaskProjectProvider = providers.systemProperty("accessTaskProject").map { Boolean.parseBoolean(it) }.orElse(false)
-                def shouldAccessTaskDependenciesProvider = providers.systemProperty("accessTaskDependencies").map { Boolean.parseBoolean(it)}.orElse(false)
-                requireConfigurationCacheDegradation("Project access", shouldAccessTaskProjectProvider)
-                requireConfigurationCacheDegradation("TaskDependencies access", shouldAccessTaskDependenciesProvider)
+                def shouldAccessTaskDependenciesProvider = providers.systemProperty("accessTaskDependencies").map { Boolean.parseBoolean(it) }.orElse(false)
+
+                requireConfigurationCacheDegradation(shouldAccessTaskProjectProvider.map { it ? "Project access" : null })
+                requireConfigurationCacheDegradation(shouldAccessTaskDependenciesProvider.map { it ? "TaskDependencies access" : null })
 
                 doLast {
                     if (shouldAccessTaskProjectProvider.get()) {
@@ -136,7 +140,7 @@ Configuration cache entry discarded because degradation was requested by:
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
             tasks.register("foo") {
-                requireConfigurationCacheDegradation("Project access", provider { true })
+                requireConfigurationCacheDegradation(provider { "Project access" })
                 doLast {
                     println "Hello from foo \${project.path}"
                 }
@@ -166,7 +170,7 @@ Configuration cache entry discarded because degradation was requested by:
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildLogic/build.gradle", """
             tasks.register("foo") {
-                requireConfigurationCacheDegradation("Project access", provider { true })
+                requireConfigurationCacheDegradation(provider { "Project access" })
                 doLast {
                     println "Hello from included build \${project.path}"
                 }
@@ -198,7 +202,7 @@ Configuration cache entry discarded because degradation was requested by:
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildLogic/build.gradle", """
             tasks.register("foo") {
-                requireConfigurationCacheDegradation("Project access", provider { true })
+                requireConfigurationCacheDegradation(provider { "Project access" })
                 doLast {
                     println "Hello from included build \${project.path}"
                 }
@@ -239,7 +243,7 @@ Configuration cache entry discarded because degradation was requested by:
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
             tasks.register("a") {
-                requireConfigurationCacheDegradation("Project access", provider { true })
+                requireConfigurationCacheDegradation(provider { "Project access" })
                 doLast {
                     println("Project path is \${project.path}")
                 }
@@ -266,6 +270,7 @@ Configuration cache entry discarded because degradation was requested by:
         outputContains("Hello from B")
     }
 
+    @Ignore("Build logic degradation is out of the scope")
     def "a plugin requesting СС degradation hides an incompatible plugin's problems"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildSrc/src/main/groovy/degrading.gradle", """

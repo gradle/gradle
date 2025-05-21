@@ -1056,8 +1056,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec) {
-        configurationCacheDegradationController.requireConfigurationCacheDegradation(this, reason, spec);
+    public void requireConfigurationCacheDegradation(Provider<String> reason) {
+        configurationCacheDegradationController.requireConfigurationCacheDegradation(this, reason);
     }
 
     private void notifyConventionAccess(String invocationDescription) {

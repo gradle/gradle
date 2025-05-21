@@ -33,56 +33,63 @@ class DefaultConfigurationCacheDegradationController(
 ) : ConfigurationCacheDegradationController {
 
     private val buildLogicDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
-    private val tasksDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
+
+    //    private val tasksDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
+    private val tasksDegradationRequests = ConcurrentHashMap<PropertyTrace, List<Provider<String>>>()
     val currentDegradationReasons = mutableMapOf<PropertyTrace, List<String>>()
 
     override fun requireConfigurationCacheDegradation(reason: String, spec: Provider<Boolean>) {
-        val trace = userCodeApplicationContext.current()?.let { PropertyTrace.BuildLogic(it.source) }
-            ?: PropertyTrace.Unknown
-        buildLogicDegradationRequests.add(DegradationRequest(trace, reason, spec, DegradationRequest.Kind.BuildLogic))
+//        val trace = userCodeApplicationContext.current()?.let { PropertyTrace.BuildLogic(it.source) }
+//            ?: PropertyTrace.Unknown
+//        buildLogicDegradationRequests.add(DegradationRequest(trace, reason, spec, DegradationRequest.Kind.BuildLogic))
     }
 
-    override fun requireConfigurationCacheDegradation(task: Task, reason: String, spec: Provider<Boolean>) {
+    override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
-        tasksDegradationRequests.add(DegradationRequest(trace, reason, spec, DegradationRequest.Kind.Task))
+        tasksDegradationRequests.compute(trace) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
     }
 
     fun shouldDegradeGracefully(executionPlan: FinalizedExecutionPlan): Boolean {
+        if (tasksDegradationRequests.isEmpty()) return false
         executionPlan.contents.scheduledNodes.visitNodes { scheduled, _ ->
             for (node in scheduled) {
                 if (node is TaskNode) {
                     val task = node.task
                     val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
-                    currentDegradationReasons.putAll(tasksDegradationRequests
-                        .filter { it.trace == trace && it.spec.getOrElse(false) }
-                        .sortedWith { a, b ->
-                            // we need to be able to expect a stable order
-                            if (a.trace == b.trace)
-                                a.reason.compareTo(b.reason)
-                            else
-                                a.trace.toString().compareTo(b.trace.toString())
-                        }
-                        .groupBy({ it.trace }, { it.reason })
-                    )
+                    val taskDegradationReasons = tasksDegradationRequests[trace]
+                        ?.mapNotNull { it.orNull }
+                        ?.sorted()
+
+                    if (taskDegradationReasons != null) {
+                        currentDegradationReasons[trace] = taskDegradationReasons
+                    }
+//                        .sortedWith { a, b ->
+//                             we need to be able to expect a stable order
+//                            if (a.trace == b.trace)
+//                                a.reason.compareTo(b.reason)
+//                            else
+//                                a.trace.toString().compareTo(b.trace.toString())
+//                        }
+//                        .groupBy({ it.trace }, { it.reason })
+//                    )
                 }
             }
         }
-        currentDegradationReasons.putAll(buildLogicDegradationRequests
-            .filter { it.spec.getOrElse(false) }
-            .groupBy({ it.trace }, { it.reason })
-        )
+//        currentDegradationReasons.putAll(buildLogicDegradationRequests
+//            .filter { it.spec.getOrElse(false) }
+//            .groupBy({ it.trace }, { it.reason })
+//        )
         return currentDegradationReasons.isNotEmpty()
     }
 
-    fun getBuildLogicDegradationReasons(): Map<PropertyTrace, List<String>> =
-        buildLogicDegradationRequests
-            .filter { it.spec.getOrElse(false) }
-            .groupBy({ it.trace }, { it.reason })
+    fun getBuildLogicDegradationReasons(): Map<PropertyTrace, List<String>> = emptyMap()
+//        buildLogicDegradationRequests
+//            .filter { it.spec.getOrElse(false) }
+//            .groupBy({ it.trace }, { it.reason })
 
     private data class DegradationRequest(
         val trace: PropertyTrace,
-        val reason: String,
-        val spec: Provider<Boolean>,
+        val reason: Provider<String>,
         val kind: Kind
     ) {
         enum class Kind {

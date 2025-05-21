@@ -807,5 +807,5 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      */
     void usesService(Provider<? extends BuildService<?>> service);
 
-    void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec);
+    void requireConfigurationCacheDegradation(Provider<String> reason);
 }
