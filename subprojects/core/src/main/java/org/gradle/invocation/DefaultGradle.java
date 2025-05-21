@@ -45,7 +45,6 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -99,7 +98,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
-    private final ConfigurationCacheDegradationController configurationCacheDegradationController;
 
     public DefaultGradle(@Nullable BuildState parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -110,7 +108,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.gradleLifecycleActionExecutor = services.get(GradleLifecycleActionExecutor.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
-        this.configurationCacheDegradationController = services.get(ConfigurationCacheDegradationController.class);
 
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
@@ -609,11 +606,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     @Inject
     public abstract PublicBuildPath getPublicBuildPath();
-
-    @Override
-    public void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec) {
-        configurationCacheDegradationController.requireConfigurationCacheDegradation(reason, spec);
-    }
 
     /**
      * Instantiate {@link DefaultGradleLifecycle} via {@link ObjectFactory} in order to get

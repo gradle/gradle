@@ -31,7 +31,6 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
@@ -391,6 +390,4 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @since 3.1
      */
     IncludedBuild includedBuild(String name) throws UnknownDomainObjectException;
-
-    void requireConfigurationCacheDegradation(String reason, Provider<Boolean> spec);
 }
