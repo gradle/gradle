@@ -51,7 +51,7 @@ The items in this guide are meant to be _brief_, _understandable_, and _actionab
 == Other Advice
 
 - <<performance.adoc#performance_gradle, Improving the Performance of Gradle Builds>>
-- <<organizing_gradle_projects.adoc#structuring_recommendations,Structuring Gradle Builds>>
+- <<organizing_gradle_projects.adoc#sec:structuring_recommendations,Structuring Gradle Builds>>
 
 == References
 

@@ -425,6 +425,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-capabil
 
 You can learn more about multi-project builds in <<composite_builds.adoc#composite_builds,Composite Builds>>.
 
+[[sec:structuring_recommendations]]
 == Structuring Recommendations
 
 Source code and build logic should be organized in a clear, consistent, and meaningful way.
