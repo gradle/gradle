@@ -367,7 +367,7 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && degradationReasons.isNotEmpty() -> log("Configuration cache entry discarded${degradationSummary()}")
+                cacheAction == Store && degradationReasons.isNotEmpty() -> log("Configuration caching disabled${degradationSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
