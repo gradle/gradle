@@ -14,12 +14,12 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.buildProcessServices)
     implementation(projects.core)
     implementation(projects.fileTemp)
     api(libs.guava)
     implementation(projects.logging)
     implementation(projects.wrapperShared)
-    implementation(projects.buildProcessServices)
 
     implementation(libs.commonsIo)
 
@@ -40,6 +40,7 @@ dependencies {
     integTestImplementation(projects.jvmServices)
     integTestImplementation(testFixtures(projects.buildConfiguration))
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.logging))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetbrainsAnnotations)
 
