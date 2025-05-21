@@ -16,7 +16,6 @@
 
 package org.gradle.api.attributes;
 
-import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Named;
 
 /**
@@ -60,7 +59,9 @@ public class Attribute<T> implements Named {
      * @return an attribute with the given name and type
      */
     public static <T> Attribute<T> of(Class<T> type) {
-        return of(WordUtils.uncapitalize(type.getCanonicalName()), type);
+        @SuppressWarnings("deprecation")
+        String uncapitalizedCanonicalName = org.apache.commons.lang3.text.WordUtils.uncapitalize(type.getCanonicalName());
+        return of(uncapitalizedCanonicalName, type);
     }
 
     private Attribute(String name, Class<T> type) {
