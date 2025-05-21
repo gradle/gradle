@@ -57,7 +57,29 @@ Gradle uses Groovy for Groovy DSL build scripts (`.gradle`) and Ant integration.
 Be aware that some behavior between Groovy 3.0 and 4.0 has changed in build scripts.
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#groovy-4) for details.
 
-### SemVer TO DO
+<a name="semver"></a>
+### SemVer release versioning
+
+Starting with Gradle 9.0.0, versions of Gradle releases will follow the [Semantic Version](https://semver.org/spec/v2.0.0.html) specification.
+In short, this means that the version number will be in the form of `MAJOR.MINOR.PATCH`. 
+Previously, the patch version was omitted for minor releases, and the version number was in the form of `MAJOR.MINOR`.
+Note that this change will not affect the versioning of any older releases of Gradle or any future backport releases to them.
+
+Also, Gradle version for wrapper can now be specified with a major version or a minor version only.
+For example, invoking
+```sh
+./gradlew wrapper --gradle-version=9
+```
+will resolve to the latest normal Gradle version with major version 9. 
+Similarly, invoking
+```sh
+./gradlew wrapper --gradle-version=9.1
+```
+will resolve to the latest Gradle version with version 9.1.
+Note that this will not work for older Gradle versions, as they do not follow the SemVer specification: for example, `8.12` is ambiguous between `8.12` (because it's an exact version) and `8.12.1` (semantically the latest version for `8.12`).
+
+To support the feature, [version information endpoints](https://services.gradle.org/versions/) were extended to include endpoints for major versions.
+For example, [https://services.gradle.org/versions/9](https://services.gradle.org/versions/9) returns all versions of Gradle with major version 9.
 
 <a name="config-cache"></a>
 ### Configuration Cache improvements
