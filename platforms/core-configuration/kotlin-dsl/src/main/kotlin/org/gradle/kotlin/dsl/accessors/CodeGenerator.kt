@@ -67,7 +67,7 @@ fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
     }
 }
 
-private fun maybeDeprecationAnnotations(deprecation: Deprecated?): String {
+internal fun maybeDeprecationAnnotations(deprecation: Deprecated?): String {
     fun deprecatedAnnotation(deprecation: Deprecated) =
         "@Deprecated(\"${TextUtil.escapeString(deprecation.message)}\", level = DeprecationLevel.${deprecation.level.name})"
 
@@ -212,21 +212,21 @@ fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name:
 internal
 fun modelDefaultAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString, type.deprecation())
         is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(name, type)
     }
 }
 
 
 private
-fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String, deprecation: Deprecated?): String = name.run {
     """
-        /**
-         * Adds model defaults for the [$original][$name] software type.
-         */
-        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
-            add("$stringLiteral", $type, configure)
-    """
+    |        /**
+    |         * Adds model defaults for the [$original][$name] software type.
+    |         */
+    |        ${maybeDeprecationAnnotations(deprecation)}fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+    |            add("$stringLiteral", $type, configure)
+    """.trimMargin()
 }
 
 

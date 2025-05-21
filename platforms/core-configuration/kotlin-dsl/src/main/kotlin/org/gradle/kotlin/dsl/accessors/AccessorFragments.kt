@@ -80,18 +80,19 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
     val functionName = spec.softwareTypeName.original
     val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>()))
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
+    val deprecation = accessor.spec.modelType.deprecation()
 
     className to sequenceOf(
         AccessorFragment(
             source = """
-                /**
-                 * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
-                 */
-                @Incubating
-                fun Project.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
-                    applySoftwareType(this, "$functionName", configure)
-                }
-            """.trimIndent(),
+            |        /**
+            |         * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
+            |         */
+            |        @Incubating
+            |        ${maybeDeprecationAnnotations(deprecation)}fun Project.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
+            |            applySoftwareType(this, "$functionName", configure)
+            |        }
+            """.trimMargin(),
             signature = JvmMethodSignature(
                 functionName,
                 "(L$jvmProjectType;Lorg/gradle/api/Action;)V"
@@ -100,6 +101,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                 publicStaticMethod(signature, annotations = {
                     visitAnnotation(Type.getDescriptor(Incubating::class.java), true).visitEnd()
                 }) {
+                    maybeWithDeprecation(deprecation)
                     ALOAD(0)
                     LDC(functionName)
                     ALOAD(1)
@@ -109,7 +111,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating
+                    functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating and maybe deprecations
                     receiverType = kotlinProjectType,
                     valueParameters = listOf(
                         newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinModelType)))
@@ -129,30 +131,32 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
     val (kotlinElementType, _) = accessibleTypesFor(accessor.spec.elementType)
     val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessor.spec.receiverType)
     val elementTypeKotlinString = accessor.spec.elementType.type.kotlinString
+    val deprecation = accessor.spec.elementType.deprecation()
 
     className to sequenceOf(
         AccessorFragment(
             source = elementFactoryName.run {
                 """
-                    /**
-                     * Registers or configures a new "$elementFactoryName" element in a named domain object container of [$elementTypeKotlinString].
-                     */
-                    @${Incubating::class.simpleName}
-                    fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
-                        name: String,
-                        configure: Action<in $elementTypeKotlinString>
-                    ) {
-                        if (name in names) {
-                            named(name, configure)
-                        } else {
-                            register(name, configure)
-                        }
-                    }
-                """.trimIndent()
+                |        /**
+                |         * Registers or configures a new "$elementFactoryName" element in a named domain object container of [$elementTypeKotlinString].
+                |         */
+                |        @${Incubating::class.simpleName}
+                |        ${maybeDeprecationAnnotations(deprecation)}fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
+                |            name: String,
+                |            configure: Action<in $elementTypeKotlinString>
+                |        ) {
+                |            if (name in names) {
+                |                named(name, configure)
+                |            } else {
+                |                register(name, configure)
+                |            }
+                |        }
+                """.trimMargin()
             },
             bytecode = {
                 publicStaticMethod(signature, annotations = {
                     visitAnnotation(Type.getDescriptor(Incubating::class.java), true).visitEnd()
+                    maybeWithDeprecation(deprecation)
                 }) {
                     ALOAD(0)
                     ALOAD(1)
@@ -163,7 +167,7 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating
+                    functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating and maybe deprecations
                     receiverType = kotlinReceiverType,
                     valueParameters = listOf(
                         newValueParameterOf("name", KotlinType.string),
@@ -971,12 +975,14 @@ fun fragmentsForModelDefault(
     val softwareTypeName = name.kotlinIdentifier
     val receiverType = accessibleReceiverType.type.kmType
     val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
+    val deprecation = accessor.spec.type.deprecation()
 
     return className to sequenceOf(
         AccessorFragment(
             source = modelDefaultAccessor(accessorSpec),
             bytecode = {
                 publicStaticMethod(signature) {
+                    maybeWithDeprecation(deprecation)
                     ALOAD(0)
                     LDC(softwareTypeName)
                     LDC(jvmPublicType)
@@ -993,7 +999,11 @@ fun fragmentsForModelDefault(
                     valueParameters = listOf(
                         newValueParameterOf("configureAction", actionTypeOf(kotlinPublicType))
                     ),
-                    signature = signature
+                    signature = signature,
+                    functionAttributes = {
+                        publicFunctionAttributes()
+                        hasAnnotationsIfDeprecated(deprecation)
+                    }
                 )
             },
             signature = JvmMethodSignature(
