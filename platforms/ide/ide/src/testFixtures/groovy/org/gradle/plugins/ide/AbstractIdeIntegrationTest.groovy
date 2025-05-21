@@ -39,7 +39,7 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << buildScript
 
-        return executer.withTasks([taskName, "--configuration-cache"]).run()
+        return executer.withTasks(taskName).run()
     }
 
     protected TestFile getFile(Map options, String filename) {
