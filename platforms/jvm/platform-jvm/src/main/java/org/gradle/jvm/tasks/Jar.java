@@ -38,9 +38,11 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
+import org.gradle.invocation.ConfigurationCacheDegradationController;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.nio.charset.Charset;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -65,7 +67,7 @@ public abstract class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
         getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
-        requireConfigurationCacheDegradation(usingCustomCharsetDegradationReason());
+        getDegradationController().requireConfigurationCacheDegradation(this, usingCustomCharsetDegradationReason());
     }
 
     private Provider<String> usingCustomCharsetDegradationReason() {
@@ -76,6 +78,9 @@ public abstract class Jar extends Zip {
                 : "Custom charset " + charset + " was used. Only " + DefaultManifest.DEFAULT_CONTENT_CHARSET + " is supported for CC";
         });
     }
+
+    @Inject
+    protected abstract ConfigurationCacheDegradationController getDegradationController();
 
     private FileTreeInternal manifestFileTree() {
         final Cached<ManifestInternal> manifest = Cached.of(this::computeManifest);
