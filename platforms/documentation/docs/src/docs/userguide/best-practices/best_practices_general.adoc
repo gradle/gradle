@@ -514,7 +514,7 @@ Providing these properties via the command line is intended for short-term testi
 A permanent, idiomatic location to set and share these properties is in the `gradle.properties` file located in the root project directory.
 This file should be added to source control in order to share these properties across different machines and between developers.
 
-You should be aware of the default values of properties your build uses and avoid explicitly setting properties to their default values.
+You should understand the default values of the properties your build uses and avoid explicitly setting properties to those defaults.
 If Gradle ever changes the default value of a property, this will not be a silent change, but will involve a standard <<feature_lifecycle.adoc#backwards_compatibility,deprecation cycle>>.
 
 NOTE: Properties set this way are not inherited across build boundaries when using <<composite_builds.adoc#composite_builds,composite builds>>.
