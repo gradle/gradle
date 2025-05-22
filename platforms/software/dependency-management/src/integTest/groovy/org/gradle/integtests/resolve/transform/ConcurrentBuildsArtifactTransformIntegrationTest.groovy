@@ -153,6 +153,11 @@ block2.mustRunAfter blueThings
         result2.output.count("Transforming thing.jar to Blue") == 1
     }
 
+    /**
+     * With current cache implementation we don't use locking for cache entries (Gradle 8.6+)
+     * we run transform in temporary directory and we then use atomic move to move it to the final location.
+     * Due to that we can have multiple builds running the same transform at the same time, but we will always have just one result in the final cache location.
+     */
     @ToBeImplemented
     def "file is transformed once only by concurrent builds"() {
         given:
