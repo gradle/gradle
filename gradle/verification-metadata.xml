@@ -1396,9 +1396,9 @@
             <sha256 value="5ef4102929b54c1b368be19178475c941bff09322c838484bb4dee66b6649419" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.23.4">
-         <artifact name="gradle-guides-plugin-0.23.4.jar">
-            <sha256 value="39443379b0c312f07f9b13d2f1d2a26fae60a5fd00d8515634a65a5ac07d2248" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.24.0">
+         <artifact name="gradle-guides-plugin-0.24.0.jar">
+            <sha256 value="88164871e17dc8d9e1d7c0d1415822a440278cc70513f3dbe0b507d85868412e" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="plugins" version="1.3.6">
