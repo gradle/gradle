@@ -60,7 +60,10 @@ class JUnit4CategoriesNotSupportedIntegrationTest extends AbstractSampleIntegrat
         fails('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("org.gradle.SomeTest").assertTestFailed("initializationError", startsWith("org.gradle.api.GradleException: JUnit Categories defined but declared JUnit version does not support Categories."))
+
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("JUnit Categories defined but declared JUnit version does not support Categories.")
+        failure.assertHasResolution("Inspect your task configuration for errors.")
+        def result = new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("org.gradle.SomeTest")
     }
 }
