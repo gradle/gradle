@@ -18,7 +18,6 @@ package org.gradle.api.publish.ivy.internal.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Streams;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -43,6 +42,7 @@ import org.jspecify.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

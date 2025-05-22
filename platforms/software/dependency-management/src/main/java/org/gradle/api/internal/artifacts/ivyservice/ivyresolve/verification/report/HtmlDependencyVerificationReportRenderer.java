@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
@@ -33,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

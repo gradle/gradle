@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.bootstrap;
 
 import com.google.common.io.Files;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -53,6 +52,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 

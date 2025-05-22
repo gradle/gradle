@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
@@ -28,6 +27,7 @@ import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;

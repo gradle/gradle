@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.classpath;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;

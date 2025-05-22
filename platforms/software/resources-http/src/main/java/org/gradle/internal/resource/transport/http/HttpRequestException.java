@@ -16,8 +16,9 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.exceptions.Contextual;
+
+import java.io.UncheckedIOException;
 
 /**
  * Signals that some error occurred when making an HTTP request.

@@ -17,11 +17,11 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.io.Flushable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 public class AnsiConsole implements Console {
     private final Action<AnsiContext> redrawAction = new Action<AnsiContext>() {

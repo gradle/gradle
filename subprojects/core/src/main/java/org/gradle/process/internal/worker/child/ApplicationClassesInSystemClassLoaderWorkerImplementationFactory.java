@@ -17,7 +17,6 @@
 package org.gradle.process.internal.worker.child;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
@@ -36,6 +35,7 @@ import org.gradle.process.internal.worker.messaging.WorkerConfigSerializer;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;

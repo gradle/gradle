@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -27,6 +26,7 @@ import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;

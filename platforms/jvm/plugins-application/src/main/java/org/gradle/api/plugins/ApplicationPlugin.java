@@ -21,7 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
@@ -46,6 +45,8 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 

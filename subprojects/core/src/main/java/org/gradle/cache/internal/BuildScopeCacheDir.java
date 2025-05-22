@@ -17,13 +17,14 @@
 package org.gradle.cache.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.hash.Hashing;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 public class BuildScopeCacheDir {
     public static final String UNDEFINED_BUILD = "undefined-build/";

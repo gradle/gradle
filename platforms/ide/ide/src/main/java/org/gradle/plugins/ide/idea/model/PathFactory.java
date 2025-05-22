@@ -16,10 +16,10 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

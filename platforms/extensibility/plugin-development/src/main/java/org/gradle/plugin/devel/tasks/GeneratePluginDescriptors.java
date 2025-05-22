@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -34,6 +33,7 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;

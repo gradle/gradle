@@ -16,13 +16,14 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
     @Override

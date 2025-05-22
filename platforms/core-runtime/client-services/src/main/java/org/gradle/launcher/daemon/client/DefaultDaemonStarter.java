@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -68,6 +67,7 @@ import org.jspecify.annotations.NonNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

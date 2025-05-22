@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.os.OperatingSystem;
@@ -28,6 +27,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

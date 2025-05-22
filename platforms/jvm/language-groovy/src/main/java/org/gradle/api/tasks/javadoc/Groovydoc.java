@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
@@ -43,6 +42,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.fixtures.versions;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.Properties;
 

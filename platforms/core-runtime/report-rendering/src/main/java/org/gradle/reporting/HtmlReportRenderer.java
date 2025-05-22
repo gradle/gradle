@@ -16,7 +16,6 @@
 package org.gradle.reporting;
 
 import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.html.SimpleHtmlWriter;
@@ -25,6 +24,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.net.URL;
 import java.text.DateFormat;

@@ -19,7 +19,6 @@ package org.gradle.api.tasks.wrapper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -45,6 +44,8 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;

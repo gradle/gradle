@@ -23,7 +23,6 @@ import org.apache.commons.io.input.ReaderInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -34,6 +33,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.LinkedHashMap;

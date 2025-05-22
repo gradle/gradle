@@ -16,7 +16,6 @@
 package org.gradle.cache.internal.btree;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
@@ -29,6 +28,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

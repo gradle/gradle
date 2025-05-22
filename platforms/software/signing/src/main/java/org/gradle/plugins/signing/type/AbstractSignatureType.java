@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.signing.type;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.plugins.signing.signatory.Signatory;
 
 import java.io.BufferedInputStream;
@@ -26,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
 /**
  * Convenience base class for {@link SignatureType} implementations.

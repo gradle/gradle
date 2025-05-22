@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildconfiguration.tasks;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesConfigurator;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.service.scopes.Scope;
@@ -29,6 +28,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.Properties;

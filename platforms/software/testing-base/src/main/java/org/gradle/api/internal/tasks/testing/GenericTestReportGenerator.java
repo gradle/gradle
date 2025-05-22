@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReport;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModel;
@@ -27,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;

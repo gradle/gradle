@@ -17,7 +17,6 @@
 package org.gradle.cache.internal.locklistener;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,6 +24,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNKNOWN;
 

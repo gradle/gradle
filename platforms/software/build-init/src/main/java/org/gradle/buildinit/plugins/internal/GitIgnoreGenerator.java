@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,6 +24,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

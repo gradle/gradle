@@ -18,7 +18,6 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -42,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;

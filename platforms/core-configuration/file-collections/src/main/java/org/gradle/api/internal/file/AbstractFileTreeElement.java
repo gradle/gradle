@@ -17,9 +17,8 @@ package org.gradle.api.internal.file;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.file.Chmod;
 import org.gradle.util.internal.GFileUtils;
@@ -29,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
 public abstract class AbstractFileTreeElement implements FileTreeElement {
     private final Chmod chmod;
