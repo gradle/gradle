@@ -17,58 +17,10 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.ConfigurationCacheDegradationController
-import spock.lang.Ignore
 
 import javax.inject.Inject
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-
-    @Ignore("Build logic degradation is out of the scope")
-    def "can declare applied plugin as CC incompatible"() {
-        def configurationCache = newConfigurationCacheFixture()
-        buildFile("buildSrc/src/main/groovy/foo.gradle", """
-            gradle.addBuildListener(new BuildListener() {
-                @Override
-                void settingsEvaluated(Settings settings){}
-                @Override
-                void projectsLoaded(Gradle gradle){}
-                @Override
-                void projectsEvaluated(Gradle gradle){}
-                @Override
-                void buildFinished(BuildResult result){
-                    println("Build finished callback from foo plugin")
-                }
-                })
-        """)
-
-        buildFile("buildSrc/build.gradle", """
-            plugins {
-                id("groovy-gradle-plugin")
-            }
-        """)
-
-        buildFile """
-            ${generateDegradationController()}
-            degradation.requireConfigurationCacheDegradation(provider { "Foo plugin isn't CC compatible" })
-            plugins.apply("foo")
-        """
-
-        when:
-        configurationCacheRun "help"
-
-        then:
-        configurationCache.assertNoConfigurationCache()
-        problems.assertResultHtmlReportHasProblems(result) {
-            totalProblemsCount = 1
-            withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.addBuildListener' is unsupported")
-        }
-
-        and:
-        outputContains("Build finished callback from foo plugin")
-        postBuildOutputContains("""
-Configuration caching disabled because degradation was requested by:
-- build file 'build.gradle'""")
-    }
 
     def "a task can require CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
@@ -280,71 +232,7 @@ Configuration caching disabled because degradation was requested by:
         outputContains("Hello from B")
     }
 
-    @Ignore("Build logic degradation is out of the scope")
-    def "a plugin requesting СС degradation hides an incompatible plugin's problems"() {
-        def configurationCache = newConfigurationCacheFixture()
-        buildFile("buildSrc/src/main/groovy/degrading.gradle", """
-            ${generateDegradationController()}
-            degradation.requireConfigurationCacheDegradation(project.provider { "Build listener registration" })
-            gradle.addBuildListener(new BuildListener() {
-                @Override
-                void settingsEvaluated(Settings settings){}
-                @Override
-                void projectsLoaded(Gradle gradle){}
-                @Override
-                void projectsEvaluated(Gradle gradle){}
-                @Override
-                void buildFinished(BuildResult result){
-                    println("Build finished callback from degrading plugin")
-                }
-                })
-        """)
-        buildFile("buildSrc/src/main/groovy/incompatible.gradle", """
-            gradle.addBuildListener(new BuildListener() {
-                @Override
-                void settingsEvaluated(Settings settings){}
-                @Override
-                void projectsLoaded(Gradle gradle){}
-                @Override
-                void projectsEvaluated(Gradle gradle){}
-                @Override
-                void buildFinished(BuildResult result){
-                    println("Build finished callback from incompatible plugin")
-                }
-            })
-        """)
-        buildFile("buildSrc/build.gradle", """
-            plugins {
-                id("groovy-gradle-plugin")
-            }
-        """)
-        buildFile """
-            plugins {
-                id("degrading")
-                id("incompatible")
-            }
-        """
-
-        when:
-        configurationCacheRun "help"
-
-        then:
-        configurationCache.assertNoConfigurationCache()
-        problems.assertResultHtmlReportHasProblems(result) {
-            totalProblemsCount = 2
-            withProblem("Plugin 'degrading': registration of listener on 'Gradle.addBuildListener' is unsupported")
-            withProblem("Plugin 'incompatible': registration of listener on 'Gradle.addBuildListener' is unsupported")
-        }
-
-        and:
-        outputContains("Build finished callback from degrading plugin")
-        outputContains("Build finished callback from incompatible plugin")
-        postBuildOutputContains("""
-Configuration caching disabled because degradation was requested by:
-- plugin 'degrading'""")
-    }
-
-    private String generateDegradationController() {
+    private static String generateDegradationController() {
         return """
             interface DegradationService {
                 @${Inject.name}
