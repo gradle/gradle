@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -48,8 +47,6 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
      *
      * In the future, we could narrow the number of configurations that need to be re-evaluated, but it would
      * be better to get rid of the behavior that allows configurations to be modified once they've been observed.
-     *
-     * @see org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder.MetadataHolder#tryCached(ComponentIdentifier)
      */
     void reevaluate();
 

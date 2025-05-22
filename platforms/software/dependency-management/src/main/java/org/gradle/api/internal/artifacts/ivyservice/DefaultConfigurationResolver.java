@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentModuleMetadataHandlerInternal;
@@ -30,7 +31,9 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentProvider;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
@@ -38,10 +41,14 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -62,41 +69,81 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler;
     private final AttributeSchemaServices attributeSchemaServices;
+    private final RootComponentProvider rootComponentProvider;
+    private final LocalVariantGraphResolveStateBuilder variantStateBuilder;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final AttributesSchemaInternal attributesSchema;
 
     public DefaultConfigurationResolver(
         RepositoriesSupplier repositoriesSupplier,
         ShortCircuitingResolutionExecutor resolutionExecutor,
         ArtifactTypeRegistry artifactTypeRegistry,
         ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler,
-        AttributeSchemaServices attributeSchemaServices
+        AttributeSchemaServices attributeSchemaServices,
+        RootComponentProvider rootComponentProvider,
+        LocalVariantGraphResolveStateBuilder variantStateBuilder,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        AttributesSchemaInternal attributesSchema
     ) {
         this.repositoriesSupplier = repositoriesSupplier;
         this.resolutionExecutor = resolutionExecutor;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.componentModuleMetadataHandler = componentModuleMetadataHandler;
         this.attributeSchemaServices = attributeSchemaServices;
+        this.rootComponentProvider = rootComponentProvider;
+        this.variantStateBuilder = variantStateBuilder;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.attributesSchema = attributesSchema;
     }
 
     @Override
     public ResolverResults resolveBuildDependencies(ConfigurationInternal configuration, CalculatedValue<ResolverResults> futureCompleteResults) {
-        RootComponentMetadataBuilder.RootComponentState root = configuration.toRootComponent();
-        ResolutionParameters params = getResolutionParameters(configuration, root, false);
+        LocalComponentGraphResolveState rootComponent = getRootComponentFor(configuration);
+        LocalVariantGraphResolveState rootVariant = asRootVariant(configuration, rootComponent.getId());
+
+        ResolutionParameters params = getResolutionParameters(configuration, rootComponent, rootVariant, false);
         LegacyResolutionParameters legacyParams = new ConfigurationLegacyResolutionParameters(configuration.getResolutionStrategy());
         return resolutionExecutor.resolveBuildDependencies(legacyParams, params, futureCompleteResults);
     }
 
     @Override
     public ResolverResults resolveGraph(ConfigurationInternal configuration) {
-        RootComponentMetadataBuilder.RootComponentState root = configuration.toRootComponent();
+        LocalComponentGraphResolveState rootComponent = getRootComponentFor(configuration);
+        LocalVariantGraphResolveState rootVariant = asRootVariant(configuration, rootComponent.getId());
 
-        AttributeContainerInternal attributes = root.getRootVariant().getAttributes();
+        AttributeContainerInternal attributes = rootVariant.getAttributes();
         List<ResolutionAwareRepository> filteredRepositories = repositoriesSupplier.get().stream()
             .filter(repository -> !shouldSkipRepository(repository, configuration.getName(), attributes))
             .collect(Collectors.toList());
 
-        ResolutionParameters params = getResolutionParameters(configuration, root, true);
+        ResolutionParameters params = getResolutionParameters(configuration, rootComponent, rootVariant, true);
         LegacyResolutionParameters legacyParams = new ConfigurationLegacyResolutionParameters(configuration.getResolutionStrategy());
         return resolutionExecutor.resolveGraph(legacyParams, params, filteredRepositories);
+    }
+
+    private LocalComponentGraphResolveState getRootComponentFor(ConfigurationInternal configuration) {
+        ProjectIdentity projectIdentity = configuration.getDomainObjectContext().getProjectIdentity();
+
+        // TODO #1629: For now, non-detached configurations resolved within a project claim to be part
+        // of that project's component. Eventually, all resolved configuration should live
+        // within an adhoc root component.
+        if (projectIdentity != null && !configuration.isDetachedConfiguration()) {
+            @SuppressWarnings("deprecation")
+            LocalComponentGraphResolveState rootComponentForProject = rootComponentProvider.getRootComponentForProject(projectIdentity);
+            return rootComponentForProject;
+        }
+
+        return rootComponentProvider.createAdhocRootComponent(attributesSchema);
+    }
+
+    private LocalVariantGraphResolveState asRootVariant(ConfigurationInternal configuration, ComponentIdentifier componentId) {
+        return variantStateBuilder.createRootVariantState(
+            configuration,
+            componentId,
+            new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache(),
+            configuration.getDomainObjectContext().getModel(),
+            calculatedValueContainerFactory
+        );
     }
 
     @Override
@@ -106,7 +153,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     private ResolutionParameters getResolutionParameters(
         ConfigurationInternal configuration,
-        RootComponentMetadataBuilder.RootComponentState root,
+        LocalComponentGraphResolveState rootComponent,
+        LocalVariantGraphResolveState rootVariant,
         boolean includeConsistentResolutionLocks
     ) {
         ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
@@ -117,8 +165,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         return new ResolutionParameters(
             configuration.getResolutionHost(),
-            root.getRootComponent(),
-            root.getRootVariant(),
+            rootComponent,
+            rootVariant,
             moduleVersionLocks,
             resolutionStrategy.getSortOrder(),
             configuration.getConfigurationIdentity(),

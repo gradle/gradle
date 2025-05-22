@@ -172,7 +172,6 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            projectConfigured(":b") // has not been consumed by project dependency previously, but is now
             modelsCreated(":a")
             modelsReused(":", ":b", ":c", ":buildSrc")
         }
@@ -285,7 +284,6 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            projectConfigured(":b") // has not been consumed by project dependency previously, but is now
             modelsCreated(":a")
             modelsReused(":", ":b", ":c", ":buildSrc")
         }
@@ -636,7 +634,6 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            projectConfigured(":d")
             modelsCreated(":a", ":b", ":c")
             modelsReused(":", ":d", ":buildSrc")
         }

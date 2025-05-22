@@ -65,7 +65,6 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
@@ -113,7 +112,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
@@ -181,8 +179,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final Set<MutationValidator> childMutationValidators = new HashSet<>();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
-    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
-    private final ConfigurationsProvider configurationsProvider;
+    private final boolean isDetached;
 
     private final Path identityPath;
     private final Path projectPath;
@@ -242,7 +239,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public DefaultConfiguration(
         DomainObjectContext domainObjectContext,
         String name,
-        ConfigurationsProvider configurationsProvider,
+        boolean isDetached,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
@@ -252,7 +249,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         AttributesFactory attributesFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder,
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
@@ -276,7 +272,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.identityPath = domainObjectContext.identityPath(name);
         this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
-        this.configurationsProvider = configurationsProvider;
+        this.isDetached = isDetached;
         this.resolver = resolver;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -308,7 +304,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory, taskDependencyFactory);
 
         this.outgoing = objectFactory.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
-        this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.problemsService = problemsService;
@@ -1193,23 +1188,16 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private DefaultConfiguration copyAsDetached() {
         String newName = getNameWithCopySuffix();
-        DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
-
-        DependencyMetaDataProvider componentIdentity = new DetachedDependencyMetadataProvider(rootComponentMetadataBuilder.getComponentIdentity());
-        RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.newBuilder(componentIdentity, configurationsProvider);
-
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
 
         @SuppressWarnings("deprecation")
-        DefaultConfiguration copiedConfiguration = defaultConfigurationFactory.create(
+        ConfigurationRole role = ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE;
+        return defaultConfigurationFactory.create(
             newName,
-            configurationsProvider,
+            true,
             childResolutionStrategy,
-            rootComponentMetadataBuilder,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+            role
         );
-        configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
-        return copiedConfiguration;
     }
 
     private String getNameWithCopySuffix() {
@@ -1238,18 +1226,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             resolutionStrategyFactory = null;
         }
         return resolutionStrategy;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
-    @Override
-    public RootComponentMetadataBuilder.RootComponentState toRootComponent() {
-        warnOrFailOnInvalidInternalAPIUsage("toRootComponent()", ProperMethodUsage.RESOLVABLE);
-        return rootComponentMetadataBuilder.toRootComponent(getName());
     }
 
     @Override
@@ -1618,8 +1594,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         });
     }
 
-    private boolean isDetachedConfiguration() {
-        return this.configurationsProvider instanceof DetachedConfigurationsProvider;
+    @Override
+    public boolean isDetachedConfiguration() {
+        return isDetached;
     }
 
     @SuppressWarnings("deprecation")
