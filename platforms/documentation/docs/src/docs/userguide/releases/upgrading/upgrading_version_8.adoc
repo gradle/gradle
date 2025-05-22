@@ -172,6 +172,15 @@ The _"convention"_ concept—represented by the `org.gradle.api.plugins.Conventi
 
 Core Gradle plugins that previously registered deprecated conventions have been updated accordingly.
 
+This implies removal of the Conventions API. These have been removed:
+
+- `org.gradle.api.Task.getConvention()`
+- `org.gradle.api.Project.getConvention()`
+- `org.gradle.api.plugins.Convention`
+- `org.gradle.api.internal.HasConvention`
+
+Existing plugins that use these APIs will fail with Gradle 9.0+ and should be updated to use the Extensions API instead.
+
 The table below shows which conventions have been removed and how to migrate:
 
 [cols="1,1,1,5"]
@@ -2958,7 +2967,7 @@ The concept of conventions is outdated and superseded by <<implementing_gradle_p
 
 To reflect this in the Gradle API, the following elements are deprecated:
 
-- `org.gradle.api.Project.getConvention()
+- `org.gradle.api.Project.getConvention()`
 - `org.gradle.api.plugins.Convention`
 - `org.gradle.api.internal.HasConvention`
 
@@ -3932,7 +3941,7 @@ This is done to reduce confusion about what such relative paths should resolve a
 [[task_convention]]
 ==== Calling `Task.getConvention()`, `Task.getExtensions()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getConvention--[Task.getConvention()], link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
+Calling `Task.getConvention()`, link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
 
 See the <<configuration_cache#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
