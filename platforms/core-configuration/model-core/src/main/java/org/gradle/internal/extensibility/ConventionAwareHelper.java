@@ -45,7 +45,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.internal.UncheckedException.uncheckedCall;
 
-@SuppressWarnings({"deprecation", "FieldNamingConvention"})
+@SuppressWarnings("FieldNamingConvention")
 public class ConventionAwareHelper implements ConventionMapping {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final IConventionAware _source;
