@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
@@ -33,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 @ServiceScope(Scope.UserHome.class)
 public class ClasspathElementTransformFactoryForLegacy implements ClasspathElementTransformFactory {

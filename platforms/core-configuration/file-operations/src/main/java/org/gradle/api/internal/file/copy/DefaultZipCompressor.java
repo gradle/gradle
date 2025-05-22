@@ -17,11 +17,11 @@ package org.gradle.api.internal.file.copy;
 
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 public class DefaultZipCompressor implements ZipCompressor {
     private final int entryCompressionMethod;

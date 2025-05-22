@@ -17,7 +17,6 @@
 package org.gradle.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedWriter;
@@ -26,6 +25,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 
 /**

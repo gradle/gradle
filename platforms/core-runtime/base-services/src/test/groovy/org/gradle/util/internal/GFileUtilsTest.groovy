@@ -16,7 +16,6 @@
 
 package org.gradle.util.internal
 
-import org.gradle.api.UncheckedIOException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

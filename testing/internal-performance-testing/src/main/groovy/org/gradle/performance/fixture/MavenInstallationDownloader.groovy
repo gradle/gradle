@@ -19,7 +19,6 @@ package org.gradle.performance.fixture
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
-import org.gradle.api.UncheckedIOException
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 

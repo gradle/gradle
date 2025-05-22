@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.provider.sources;
 
-import org.gradle.api.UncheckedIOException;
-
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 
 public abstract class FileBytesValueSource extends FileContentValueSource<byte[]> {

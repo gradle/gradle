@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.invocation.Gradle;
@@ -39,6 +38,7 @@ import javax.inject.Inject;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 public abstract class IdePlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(IdePlugin.class);

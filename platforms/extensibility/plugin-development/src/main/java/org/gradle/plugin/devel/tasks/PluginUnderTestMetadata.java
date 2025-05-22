@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.Classpath;
@@ -30,6 +29,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Properties;
 

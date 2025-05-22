@@ -18,10 +18,10 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.io.CharSource;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

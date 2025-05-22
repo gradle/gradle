@@ -16,10 +16,10 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.process.internal.StreamsHandler;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.concurrent.Executor;
 
 /**

@@ -15,9 +15,8 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.UncheckedIOException;
-
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Properties;
 
 public class DefaultTemplateLibraryVersionProvider implements TemplateLibraryVersionProvider {

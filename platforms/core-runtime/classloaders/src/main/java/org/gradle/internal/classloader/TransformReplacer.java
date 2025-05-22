@@ -18,7 +18,6 @@ package org.gradle.internal.classloader;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.jspecify.annotations.Nullable;
@@ -28,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;

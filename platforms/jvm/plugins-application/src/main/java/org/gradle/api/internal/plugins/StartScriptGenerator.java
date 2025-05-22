@@ -17,7 +17,6 @@ package org.gradle.api.internal.plugins;
 
 import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
@@ -28,6 +27,7 @@ import org.gradle.util.internal.CollectionUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;

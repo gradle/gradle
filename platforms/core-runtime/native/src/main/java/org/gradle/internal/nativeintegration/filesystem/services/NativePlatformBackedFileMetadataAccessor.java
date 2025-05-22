@@ -19,13 +19,14 @@ package org.gradle.internal.nativeintegration.filesystem.services;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileInfo;
 import net.rubygrapefruit.platform.file.Files;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAccessor {
     private final Files files;

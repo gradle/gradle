@@ -20,11 +20,11 @@ import com.dd.plist.NSObject;
 import com.dd.plist.XMLPropertyListWriter;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.MutableActionSet;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
 public class PropertyListTransformer<T extends NSObject> implements Transformer<T, T> {
     private final MutableActionSet<T> actions = new MutableActionSet<T>();

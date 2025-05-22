@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.transaction;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;

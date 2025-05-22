@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal.swift.metadata;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.toolchain.internal.metadata.AbstractMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.process.internal.ExecActionFactory;
@@ -27,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.util.List;
 
 public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetadata> {

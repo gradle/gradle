@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.remote.Address;
@@ -38,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 
 public class DaemonStartupCommunication {
 

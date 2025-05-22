@@ -17,11 +17,11 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.MutableActionSet;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Properties;
 
 /**

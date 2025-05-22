@@ -17,7 +17,6 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -38,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

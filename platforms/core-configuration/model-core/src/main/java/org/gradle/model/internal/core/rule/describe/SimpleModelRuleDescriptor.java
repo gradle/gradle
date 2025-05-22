@@ -17,12 +17,12 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
-import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 @ThreadSafe
 public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {

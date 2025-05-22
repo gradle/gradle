@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -28,6 +27,7 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.time.Instant;
 

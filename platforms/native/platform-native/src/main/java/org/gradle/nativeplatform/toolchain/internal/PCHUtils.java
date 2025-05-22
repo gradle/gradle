@@ -19,13 +19,13 @@ package org.gradle.nativeplatform.toolchain.internal;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;

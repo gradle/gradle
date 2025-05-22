@@ -18,14 +18,14 @@ package org.gradle.api.tasks.diagnostics.internal.text;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;

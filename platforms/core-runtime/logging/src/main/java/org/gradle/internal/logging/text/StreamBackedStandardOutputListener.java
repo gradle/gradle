@@ -16,13 +16,13 @@
 
 package org.gradle.internal.logging.text;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.StandardOutputListener;
 
 import java.io.Flushable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 
 public class StreamBackedStandardOutputListener implements StandardOutputListener {

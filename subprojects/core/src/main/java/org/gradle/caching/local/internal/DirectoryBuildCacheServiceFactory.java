@@ -16,7 +16,6 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
@@ -35,6 +34,8 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;

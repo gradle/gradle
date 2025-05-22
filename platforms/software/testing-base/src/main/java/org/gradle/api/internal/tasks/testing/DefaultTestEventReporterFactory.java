@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
@@ -35,6 +34,7 @@ import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 
 @NullMarked

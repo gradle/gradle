@@ -17,13 +17,13 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.function.Function;
 

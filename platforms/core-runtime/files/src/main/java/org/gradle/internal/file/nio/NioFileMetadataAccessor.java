@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.file.nio;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileMetadataAccessor;
@@ -23,6 +22,7 @@ import org.gradle.internal.file.impl.DefaultFileMetadata;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;

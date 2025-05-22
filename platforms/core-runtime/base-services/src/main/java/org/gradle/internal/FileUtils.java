@@ -19,10 +19,10 @@ package org.gradle.internal;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

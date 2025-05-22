@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableReference;
@@ -30,6 +29,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
