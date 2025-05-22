@@ -19,7 +19,6 @@ The Maven Publish Plugin provides the ability to publish build artifacts to an h
 A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format.
 You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
 
-
 [[publishing_maven:usage]]
 == Usage
 
@@ -158,6 +157,23 @@ The two main things you will want to configure are the repository's:
 You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Maven".
 
 You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] for more details.
+
+Here’s a well-structured, documentation-style section for **"Supported Repositories"** in the [Gradle Maven Publishing User Guide](https://docs.gradle.org/current/userguide/publishing_maven.html), incorporating your key points in a clear and formal tone:
+
+[[supported_maven_repositories]]
+=== Supported Repositories
+
+Gradle's `maven-publish` plugin can be used to publish artifacts to a wide range of Maven-compatible repositories, including:
+
+* **Local repositories** (e.g. `~/.m2/repository`)
+* **Custom remote Maven repositories**
+* **Repository managers** such as **Sonatype Nexus** and **JFrog Artifactory**
+* **GitHub Packages**
+* **Internal corporate Maven repositories**
+
+The `maven-publish` plugin supports all standard repository protocols and can be used to publish to most destinations.
+
+NOTE: Maven Central is no longer a typical Maven repository—it requires staging, signing, and validation steps, so **publishing requires a third-party plugin**.
 
 [[publishing_maven:snapshot_and_release_repositories]]
 === Snapshot and release repositories
