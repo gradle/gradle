@@ -363,5 +363,13 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun includedBuilds(): MutableList<out IncludedBuildInternal> =
         delegate.includedBuilds()
+
+    override fun isPartOfClasspath(): Boolean {
+        return delegate.isPartOfClasspath
+    }
+
+    override fun setIsPartOfClasspath(isPartOfClasspath: Boolean) {
+        delegate.setIsPartOfClasspath(isPartOfClasspath)
+    }
     //endregion delegated members
 }
