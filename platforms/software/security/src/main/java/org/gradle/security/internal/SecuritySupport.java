@@ -84,8 +84,10 @@ public class SecuritySupport {
             InputStream decoderStream = PGPUtil.getDecoderStream(stream)
         ) {
             return readSignatureList(decoderStream, file.toString());
-        } catch (IOException | PGPException e) {
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } catch (PGPException e) {
+            throw new UncheckedIOException(new IOException(e));
         }
     }
 

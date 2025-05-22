@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -33,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 
 /**
@@ -159,7 +159,7 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
                     fileGenerationListener.execute(file);
                     Files.write(generatedContent, file);
                 } catch (IOException e) {
-                    throw new org.gradle.api.UncheckedIOException(e);
+                    throw new UncheckedIOException(e);
                 }
             }
         }

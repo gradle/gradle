@@ -534,8 +534,10 @@ public class TestFile extends File {
                 .start();
             assert mkfifo.waitFor() == 0; // assert the exit value signals success
             return this;
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } catch (InterruptedException e) {
+            throw new UncheckedIOException(new IOException(e));
         }
     }
 

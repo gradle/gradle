@@ -58,7 +58,7 @@ public class ManifestUtil {
                 uri = jarFile.toURI().resolve(uri);
                 manifestClasspath.add(uri);
             } catch (URISyntaxException e) {
-                throw new UncheckedIOException(e);
+                throw new UncheckedIOException(new IOException(e));
             }
         }
         return manifestClasspath;

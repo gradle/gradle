@@ -27,8 +27,6 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -75,7 +73,7 @@ public class FileNotationConverter implements NotationConverter<Object, File> {
             try {
                 notation = ((URL) notation).toURI();
             } catch (URISyntaxException e) {
-                throw new UncheckedIOException(e);
+                throw new UncheckedIOException(new IOException(e));
             }
         }
         if (notation instanceof URI) {
