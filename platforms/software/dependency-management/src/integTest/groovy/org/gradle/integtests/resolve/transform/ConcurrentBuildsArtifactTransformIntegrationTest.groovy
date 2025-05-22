@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
@@ -29,25 +30,6 @@ class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependenc
         buildFile << """
 enum Color { Red, Green, Blue }
 def type = Attribute.of("artifactType", String)
-
-abstract class ToColor implements TransformAction<Parameters> {
-    interface Parameters extends TransformParameters {
-        @Input
-        Property<Color> getColor()
-    }
-
-    @InputArtifact
-    abstract Provider<FileSystemLocation> getInputArtifact()
-
-    void transform(TransformOutputs outputs) {
-        def input = inputArtifact.get().asFile
-        def color = parameters.color.get()
-        println "Transforming \$input.name to \$color"
-        def out = outputs.file(color.toString())
-        out.text = input.name
-    }
-}
-
 dependencies {
     registerTransform(ToColor) {
         from.attribute(type, "jar")
@@ -98,9 +80,33 @@ task blueThings {
 """
     }
 
+    def setupTransform(String beforeTransformLogic = "") {
+        buildFile << """
+        abstract class ToColor implements TransformAction<Parameters> {
+            interface Parameters extends TransformParameters {
+                @Input
+                Property<Color> getColor()
+            }
+
+            @InputArtifact
+            abstract Provider<FileSystemLocation> getInputArtifact()
+
+            void transform(TransformOutputs outputs) {
+                $beforeTransformLogic
+                def input = inputArtifact.get().asFile
+                def color = parameters.color.get()
+                println "Transforming \$input.name to \$color"
+                def out = outputs.file(color.toString())
+                out.text = input.name
+            }
+        }
+        """
+    }
+
     def "multiple build processes share transform output cache"() {
         given:
         // Run two builds where one build applies one transform and the other build the second
+        setupTransform()
         buildFile << """
 task block1 {
     doLast {
@@ -147,9 +153,11 @@ block2.mustRunAfter blueThings
         result2.output.count("Transforming thing.jar to Blue") == 1
     }
 
+    @ToBeImplemented
     def "file is transformed once only by concurrent builds"() {
         given:
         // Run two builds concurrently
+        setupTransform("${server.callFromBuildUsingExpression("parameters.color.get()")}")
         buildFile << """
 task block1 {
     doLast {
@@ -169,6 +177,8 @@ redThings.mustRunAfter block2
         run("help")
 
         def block = server.expectConcurrentAndBlock("block1", "block2")
+        def redBlock = server.expectConcurrentAndBlock("Red", "Red")
+        def blueBlock = server.expectConcurrentAndBlock("Blue", "Blue")
 
         when:
         // Block until both builds are ready to start resolving
@@ -178,13 +188,19 @@ redThings.mustRunAfter block2
         // Resolve concurrently
         block.waitForAllPendingCalls()
         block.releaseAll()
+        // When implemented we will need to remove redBlock and blueBlock calls
+        redBlock.waitForAllPendingCalls()
+        redBlock.releaseAll()
+        blueBlock.waitForAllPendingCalls()
+        blueBlock.releaseAll()
 
         def result1 = build1.waitForFinish()
         def result2 = build2.waitForFinish()
 
         then:
-        result1.output.count("Transforming") + result2.output.count("Transforming") == 2
-        result1.output.count("Transforming thing.jar to Red") + result2.output.count("Transforming thing.jar to Red") == 1
-        result1.output.count("Transforming thing.jar to Blue") + result2.output.count("Transforming thing.jar to Blue") == 1
+        // When implemented we should have just 2 transforms in total instead of 4, and 1 transform for each color instead of 2
+        result1.output.count("Transforming") + result2.output.count("Transforming") == 4
+        result1.output.count("Transforming thing.jar to Red") + result2.output.count("Transforming thing.jar to Red") == 2
+        result1.output.count("Transforming thing.jar to Blue") + result2.output.count("Transforming thing.jar to Blue") == 2
     }
 }
