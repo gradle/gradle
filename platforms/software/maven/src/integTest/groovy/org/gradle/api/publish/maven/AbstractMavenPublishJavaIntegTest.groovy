@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.MavenComponentParser
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
@@ -896,12 +897,13 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies/constraints with attributes"() {
+        mavenRepo.module("org.test", "bar", "1.0").publish()
+        mavenRepo.module("org.test", "foo", "1.1").publish()
         given:
         createDirs("utils")
         settingsFile << "include 'utils'\n"
-        file("utils/build.gradle") << '''
+        buildFile("utils/build.gradle", """
             def attr1 = Attribute.of('custom', String)
             version = '1.0'
             configurations {
@@ -912,7 +914,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                     attributes.attribute(attr1, 'bazinga')
                 }
             }
-        '''
+        """)
         createBuildScripts("""
             def attr1 = Attribute.of('custom', String)
             def attr2 = Attribute.of('nice', Boolean)
@@ -923,6 +925,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                         attribute(attr1, 'hello')
                     }
                 }
+                api("org.test:foo:1.1")
 
                 api(project(':utils')) {
                     attributes {
@@ -931,7 +934,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 }
 
                 constraints {
-                    implementation("org.test:bar:1.1") {
+                    implementation("org.test:foo:1.1") {
                         attributes {
                             attribute(attr1, 'world')
                             attribute(attr2, true)
@@ -948,6 +951,12 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 }
             }
         """)
+
+        buildFile """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+        """
 
         when:
         run "publish"
@@ -974,7 +983,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
             dependency('publishTest:utils:1.0') {
                 hasAttribute('custom', 'bazinga')
             }
-            constraint('org.test:bar:1.1') {
+            constraint('org.test:foo:1.1') {
                 hasAttributes(custom: 'world', nice: true)
             }
             noMoreDependencies()
@@ -1318,7 +1327,7 @@ include(':platform')
   - This publication must publish at least one variant""")
     }
 
-    def createBuildScripts(def append, String plugin = 'java-library') {
+    def createBuildScripts(@GroovyBuildScriptLanguage def append, String plugin = 'java-library') {
         settingsFile << "rootProject.name = 'publishTest'"
 
         buildFile << """
