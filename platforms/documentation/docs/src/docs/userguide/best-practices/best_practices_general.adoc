@@ -498,7 +498,6 @@ include::sample[dir="snippets/bestPractices/noSourceInRoot-do/groovy/core",files
 
 [[use_the_gradle_properties_file]]
 == Set build flags in `gradle.properties`
-:keywords: properties,structuring-builds
 
 Set Gradle build property flags in the `gradle.properties` file.
 
