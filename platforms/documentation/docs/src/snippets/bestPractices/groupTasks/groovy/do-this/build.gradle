@@ -6,12 +6,6 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation("com.google.guava:guava:33.1.0-jre")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.0")
-}
-
 // tag::do-this[]
 tasks.register('generateDocs') {
     group = 'documentation'
