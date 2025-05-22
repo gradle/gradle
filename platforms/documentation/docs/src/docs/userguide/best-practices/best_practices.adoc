@@ -47,6 +47,7 @@ The items in this guide are meant to be _brief_, _understandable_, and _actionab
 - <<best_practices_general.adoc#best_practices_general,General Best Practices>>
 - <<best_practices_dependencies.adoc#best_practices_for_dependencies,Best Practices for Dependencies>>
 - <<best_practices_tasks.adoc#best_practices_for_tasks,Best Practices for Tasks>>
+- <<best_practices_performance.adoc#best_practices_for_performance,Best Practices for Performance>>
 
 == Other Advice
 
