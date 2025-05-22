@@ -17,33 +17,20 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.Task
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.TaskNode
-//import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.api.internal.ConfigurationCacheDegradationController
 import java.util.concurrent.ConcurrentHashMap
 
 
-class DefaultConfigurationCacheDegradationController
-//    (private val userCodeApplicationContext: UserCodeApplicationContext)
-: ConfigurationCacheDegradationController {
+class DefaultConfigurationCacheDegradationController : ConfigurationCacheDegradationController {
 
-//    private val buildLogicDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
-
-    //    private val tasksDegradationRequests = ConcurrentHashMap.newKeySet<DegradationRequest>()
     private val tasksDegradationRequests = ConcurrentHashMap<PropertyTrace, List<Provider<String>>>()
     val currentDegradationReasons = mutableMapOf<PropertyTrace, List<String>>()
-
-    override fun requireConfigurationCacheDegradation(reason: Provider<String>) {
-        throw NotImplementedError()
-//        val trace = userCodeApplicationContext.current()?.let { PropertyTrace.BuildLogic(it.source) }
-//            ?: PropertyTrace.Unknown
-//        buildLogicDegradationRequests.add(DegradationRequest(trace, reason, DegradationRequest.Kind.BuildLogic))
-    }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
@@ -57,52 +44,16 @@ class DefaultConfigurationCacheDegradationController
                 if (node is TaskNode) {
                     val task = node.task
                     val trace = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
-                    val taskDegradationReasons = getRequestFor(trace)
+                    val taskDegradationReasons = tasksDegradationRequests[trace]
                         ?.mapNotNull { it.orNull }
                         ?.sorted()
 
-                    if (taskDegradationReasons != null && taskDegradationReasons.isNotEmpty()) {
+                    if (!taskDegradationReasons.isNullOrEmpty()) {
                         currentDegradationReasons[trace] = taskDegradationReasons
                     }
-//                        .sortedWith { a, b ->
-//                             we need to be able to expect a stable order
-//                            if (a.trace == b.trace)
-//                                a.reason.compareTo(b.reason)
-//                            else
-//                                a.trace.toString().compareTo(b.trace.toString())
-//                        }
-//                        .groupBy({ it.trace }, { it.reason })
-//                    )
                 }
             }
         }
-        /*
-        currentDegradationReasons.putAll(buildLogicDegradationRequests
-        .filter { it.reason.isPresent }
-        .groupBy({ it.trace }, { it.reason.get() })
-        )
-        */
         return currentDegradationReasons.isNotEmpty()
     }
-
-    private
-    fun getRequestFor(trace: PropertyTrace.Task): List<Provider<String>>? {
-        val found = tasksDegradationRequests[trace]
-        return found
-    }
-
-    fun getBuildLogicDegradationReasons(): Map<PropertyTrace, List<String>> = emptyMap()
-//        buildLogicDegradationRequests
-//            .filter { it.spec.getOrElse(false) }
-//            .groupBy({ it.trace }, { it.reason })
-
-//    private data class DegradationRequest(
-//        val trace: PropertyTrace,
-//        val reason: Provider<String>,
-//        val kind: Kind
-//    ) {
-//        enum class Kind {
-//            Task, BuildLogic
-//        }
-//    }
 }

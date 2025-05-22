@@ -24,8 +24,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface ConfigurationCacheDegradationController {
-    void requireConfigurationCacheDegradation(Provider<String> reason);
-
     /**
      * Registers a Configuration Cache degradation request for a given {@code task}. Each task can have multiple reasons for degradation registered.
      * <p>
