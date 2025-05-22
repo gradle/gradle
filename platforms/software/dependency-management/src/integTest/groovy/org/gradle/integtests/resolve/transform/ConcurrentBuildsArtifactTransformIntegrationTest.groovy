@@ -169,14 +169,16 @@ task block1 {
         ${server.callFromBuild("block1")}
     }
 }
-redThings.mustRunAfter block1
 
 task block2 {
     doLast {
         ${server.callFromBuild("block2")}
     }
 }
+
+redThings.mustRunAfter block1
 redThings.mustRunAfter block2
+blueThings.mustRunAfter redThings
 """
         // Ensure build scripts compiled
         run("help")
