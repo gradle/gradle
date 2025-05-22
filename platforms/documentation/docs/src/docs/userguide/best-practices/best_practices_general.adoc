@@ -563,15 +563,17 @@ This relies on person running the build to remember to set this property, which 
 =====
 [source, groovy]
 ----
-├── build.gradle.kts
+├── build.gradle
 └── gradle.properties
-└── settings.gradle.kts
+└── settings.gradle
 ----
 =====
 
-====
-include::sample[dir="snippets/bestPractices/useTheGradlePropertiesFile-do/groovy",files="gradle.properties[tags=do-this]"]
-====
+.gradle.properties
+[source,properties]
+----
+include::{snippetsPath}/bestPractices/useTheGradlePropertiesFile-do/kotlin/gradle.properties[tag=do-this]
+----
 
 This build sets the `org.gradle.continue` property in the `gradle.properties` file.
 
