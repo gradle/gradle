@@ -507,7 +507,7 @@ Set Gradle build property flags in the `gradle.properties` file.
 Instead of using command-line options or environment variables, set build flags in the root project's `gradle.properties` file.
 
 Gradle comes with a long list of <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>, which have names that begin with `org.gradle` and can be used to configure the behavior of the build tool.
-You should familiarize yourself with these properties, which can have **enormous** impacts on your build's performance.
+These properties can have a **major impact** on build performance, so it’s important to understand how they work.
 
 You should not rely on supplying these properties on the CLI with every Gradle invocation.
 Providing these properties on the command line is meant for temporary testing and debugging, and is easy to forget across different environments.
