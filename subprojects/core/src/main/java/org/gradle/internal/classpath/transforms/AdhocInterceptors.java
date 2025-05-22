@@ -147,7 +147,6 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
         return false;
     }
 
-
     @Override
     public BytecodeInterceptorType getType() {
         return BytecodeInterceptorType.INSTRUMENTATION;
