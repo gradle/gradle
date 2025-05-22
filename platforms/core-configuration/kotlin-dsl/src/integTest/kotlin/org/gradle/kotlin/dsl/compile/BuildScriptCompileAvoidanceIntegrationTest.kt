@@ -329,6 +329,30 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
     }
 
     @Test
+    fun `recompiles buildscript on internal function visibility change to public in buildSrc class`() {
+        val className = givenKotlinClassInBuildSrcContains(
+            """
+            fun foo() = bar()
+            internal fun bar() {
+                // do nothing
+            }
+            """
+        )
+        withUniqueScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled()
+
+        givenKotlinClassInBuildSrcContains(
+            """
+            fun foo() = bar()
+            fun bar() {
+                // do nothing
+            }
+            """
+        )
+        configureProject().assertBuildScriptCompiled()
+    }
+
+    @Test
     fun `avoids buildscript recompilation on non ABI changes to multifile class in buildSrc`() {
         val multifileAnnotations = """
             @file:JvmName("Utils")
