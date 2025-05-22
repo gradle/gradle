@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.MavenComponentParser
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -898,8 +897,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     def "can publish java-library with dependencies/constraints with attributes"() {
-        mavenRepo.module("org.test", "bar", "1.0").publish()
-        mavenRepo.module("org.test", "foo", "1.1").publish()
         given:
         createDirs("utils")
         settingsFile << "include 'utils'\n"
@@ -949,6 +946,10 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                         from components.java
                     }
                 }
+            }
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
         """)
 
@@ -1010,7 +1011,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         outputContains "Maven publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bom", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'bar', '1.1')).withModuleMetadata().publish()
@@ -1028,6 +1028,10 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                         from components.java
                     }
                 }
+            }
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
             ${mavenTestRepository()}
 """)
