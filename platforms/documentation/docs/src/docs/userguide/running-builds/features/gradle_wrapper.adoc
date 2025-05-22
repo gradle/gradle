@@ -90,9 +90,9 @@ All of those aspects are configurable at the time of generating the Wrapper file
 The Gradle version used for downloading and executing the Wrapper.
 The resulting distribution URL is validated before it is written to the properties file.
 +
-For Gradle versions after major version 9, the value can be specified with a major version or a minor version only.
-In that case, the latest normal Gradle version with that major or minor version will be used.
-For example, `9` and `9.1` are valid values.
+For Gradle versions starting with major version 9, the version can be specified using only the major or minor version number.
+In such cases, the latest normal release matching that major or minor version will be used.
+For example, `9` resolves to the latest `9.x.y` release, and `9.1` resolves to the latest `9.1.x` release.
 +
 The following labels are allowed:
 +
