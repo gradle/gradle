@@ -26,5 +26,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface ConfigurationCacheDegradationController {
     void requireConfigurationCacheDegradation(Provider<String> reason);
 
+    /**
+     * Registers a Configuration Cache degradation request for a given {@code task}. Each task can have multiple reasons for degradation registered.
+     * <p>
+     * If the {@code task} is present in the task graph and the {@code reason} is present, then all Configuration Cache problems triggered by the task will
+     * be suppressed and Configuration Cache will be disabled, switching the build to the vintage execution mode.
+     * <p>
+     * The reasons are evaluated immediately before the serialization of the task graph and effectively prevent serialization if they are present.
+     * As a result, errors in the serialization of task states WILL NOT be suppressed by this mechanism and will cause the build to fail.
+     */
     void requireConfigurationCacheDegradation(Task task, Provider<String> reason);
 }
