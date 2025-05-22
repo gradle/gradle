@@ -31,7 +31,6 @@ import org.jetbrains.dokka.gradle.engine.parameters.DokkaSourceLinkSpec;
 import org.jetbrains.dokka.gradle.engine.parameters.DokkaSourceSetSpec;
 import org.jetbrains.dokka.gradle.engine.plugins.DokkaHtmlPluginParameters;
 import org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask;
-import org.jetbrains.dokka.gradle.workers.WorkerIsolation;
 
 import java.io.File;
 import java.net.URI;
@@ -65,14 +64,6 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         wireInArtificialSourceSet(project, extension);
         setStyling(project, extension);
         overrideDokkaVersion(project, extension);
-        setMemoryForWorkers(project);
-    }
-
-    private static void setMemoryForWorkers(Project project) {
-        WorkerIsolation.Process processIsolation = project.getObjects().newInstance(WorkerIsolation.Process.class);
-        processIsolation.getMinHeapSize().set("512m");
-        processIsolation.getMaxHeapSize().set("2g");
-        getDokkaExtension(project).getDokkaGeneratorIsolation().set(processIsolation);
     }
 
     private static void setStyling(Project project, GradleDocumentationExtension extension) {
