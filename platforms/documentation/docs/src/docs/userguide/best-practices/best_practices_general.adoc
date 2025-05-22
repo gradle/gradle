@@ -510,7 +510,7 @@ Gradle comes with a long list of <<build_environment.adoc#sec:gradle_configurati
 These properties can have a **major impact** on build performance, so it’s important to understand how they work.
 
 You should not rely on supplying these properties via the command-line for every Gradle invocation.
-Providing these properties on the command line is meant for temporary testing and debugging, and is easy to forget across different environments.
+Providing these properties via the command line is intended for short-term testing and debugging purposes, but it’s prone to being forgotten or inconsistently applied across environments.
 A permanent, idiomatic location to set and share these properties across different machines and between developers is in the `gradle.properties` file located in the root project directory.
 
 You should be aware of the default values of properties your build uses and avoid explicitly setting properties to their default values.
