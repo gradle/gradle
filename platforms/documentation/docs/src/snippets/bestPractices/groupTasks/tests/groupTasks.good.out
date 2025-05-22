@@ -1,0 +1,11 @@
+
+> Task :do-this:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':do-this'
+------------------------------------------------------------
+
+Documentation tasks
+-------------------
+generateDocs - Generates project documentation from source files.
+javadoc - Generates Javadoc API documentation for the 'main' feature.

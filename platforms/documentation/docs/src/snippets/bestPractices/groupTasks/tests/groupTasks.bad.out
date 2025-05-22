@@ -1,0 +1,18 @@
+
+> Task :avoid-this:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':avoid-this'
+------------------------------------------------------------
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+compileTestJava - Compiles test Java source.
+components - Displays the components produced by project ':avoid-this'. [deprecated]
+dependentComponents - Displays the dependent components of components in project ':avoid-this'. [deprecated]
+generateDocs
+model - Displays the configuration model of project ':avoid-this'. [deprecated]
+processResources - Processes main resources.
+processTestResources - Processes test resources.
+startScripts - Creates OS specific scripts to run the project as a JVM application.
