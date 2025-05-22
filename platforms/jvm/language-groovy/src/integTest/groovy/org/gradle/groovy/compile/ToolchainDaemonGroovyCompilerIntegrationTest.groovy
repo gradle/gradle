@@ -70,17 +70,13 @@ class ToolchainDaemonGroovyCompilerIntegrationTest extends AbstractToolchainGroo
         return """
             ${super.compilerConfiguration()}
             tasks.withType(GroovyCompile) { groovyOptions.fork = true }
-            tasks.matching { it.name == "compileWithOptimization" || it.name == "compileWithoutOptimization" }.configureEach {
-                javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = JavaLanguageVersion.of(${supportedJvm.javaVersion.majorVersion})
-                }
-            }
+            ${configureToolchainsForOptimizationTasks(supportedJvm)}
         """
     }
 
     @Override
     Jvm computeJdkForTest() {
-        supportedJvm = GroovyCoverage.ALL_VERSIONS_SUPPORT[version]
+        supportedJvm = GroovyCoverage.ALL_VERSIONS_JVMS[version]
         return supportedJvm
     }
 }

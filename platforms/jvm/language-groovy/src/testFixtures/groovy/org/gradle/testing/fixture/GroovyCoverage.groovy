@@ -28,12 +28,14 @@ class GroovyCoverage {
     private static final String[] FUTURE = []
 
     static final Set<String> SUPPORTED_BY_JDK
-    static final Map<String, Jvm> ALL_VERSIONS_SUPPORT
+    static final Map<String, Jvm> ALL_VERSIONS_JVMS
     static final Set<String> ALL_VERSIONS
     static final Set<String> SUPPORTS_GROOVYDOC
     static final Set<String> SUPPORTS_INDY
     static final Set<String> SUPPORTS_TIMESTAMP
+    static final Map<String, Jvm> SUPPORTS_PARAMETERS_JVMS
     static final Set<String> SUPPORTS_PARAMETERS
+    static final Map<String, Jvm> SUPPORTS_DISABLING_AST_TRANSFORMATIONS_JVMS
     static final Set<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
     static final Set<String> SINCE_3_0
     static final Set<String> SINCE_4_0
@@ -44,15 +46,17 @@ class GroovyCoverage {
     static final String CURRENT_STABLE
 
     static {
-        ALL_VERSIONS_SUPPORT = groovyVersionsSupportedByAvailableJdks(allVersions())
-        ALL_VERSIONS = ALL_VERSIONS_SUPPORT.keySet()
+        ALL_VERSIONS_JVMS = groovyVersionsSupportedByAvailableJdks(allVersions())
+        ALL_VERSIONS = ALL_VERSIONS_JVMS.keySet()
         SUPPORTED_BY_JDK = groovyVersionsSupportedByJdk(JavaVersion.current())
         SUPPORTS_GROOVYDOC = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "1.6.9")
         // Indy compilation doesn't work in 2.2.2 and before
         SUPPORTS_INDY = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.3.0")
         SUPPORTS_TIMESTAMP = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.4.6")
-        SUPPORTS_PARAMETERS = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.5.0")
-        SUPPORTS_DISABLING_AST_TRANSFORMATIONS = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.0.0")
+        SUPPORTS_PARAMETERS_JVMS = groovyVersionsSupportedByAvailableJdks(VersionCoverage.versionsAtLeast(allVersions(), "2.5.0"))
+        SUPPORTS_PARAMETERS = SUPPORTS_PARAMETERS_JVMS.keySet()
+        SUPPORTS_DISABLING_AST_TRANSFORMATIONS_JVMS = groovyVersionsSupportedByAvailableJdks(VersionCoverage.versionsAtLeast(allVersions(), "2.0.0"))
+        SUPPORTS_DISABLING_AST_TRANSFORMATIONS = SUPPORTS_DISABLING_AST_TRANSFORMATIONS_JVMS.keySet()
         SINCE_3_0 = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "3.0.0")
         SINCE_4_0 = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "4.0.0")
         CURRENT_STABLE = isCurrentGroovyVersionStable()
