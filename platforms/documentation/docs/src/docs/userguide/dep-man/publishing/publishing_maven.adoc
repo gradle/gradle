@@ -158,8 +158,6 @@ You can define multiple repositories as long as they have unique names within th
 
 You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] for more details.
 
-Here’s a well-structured, documentation-style section for **"Supported Repositories"** in the [Gradle Maven Publishing User Guide](https://docs.gradle.org/current/userguide/publishing_maven.html), incorporating your key points in a clear and formal tone:
-
 [[supported_maven_repositories]]
 === Supported Repositories
 
