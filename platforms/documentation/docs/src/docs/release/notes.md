@@ -170,11 +170,13 @@ ADD RELEASE FEATURES ABOVE
 
 ### Task graph diagnostic
 
-We introduce a new task graph diagnostic feature to help you understand the task graph of your build.
-You can use `--task-graph` command line option to print the task graph of your build without executing the tasks, for example:
+Gradle 9.0.0 introduces a new task graph diagnostic feature to help you visualize the task execution plan without running tasks.
+You can enable it using the `--task-graph` command-line option. For example:
 ```
 $ ./gradlew root r2 --task-graph
-
+```
+This prints a visual representation of the task graph for the specified tasks:
+```
 Tasks graph for: root r2
 +--- :root (org.gradle.api.DefaultTask)
 |    \\--- :middle (org.gradle.api.DefaultTask)
@@ -192,9 +194,9 @@ Tasks graph for: root r2
 This feature can be useful to get a quick overview of the task graph and to understand the dependencies between tasks.
 You can iterate by diving into a subgraph by adjusting an invocation.
 
-Note that this feature is still in incubation and may change in future releases.
-Also, there is a known [issue](https://github.com/gradle/gradle/issues/2517) about the behavior of the `--dry-run` option with included builds: tasks from included builds will be executed.
-This feature suffers from the same issue.
+This feature is incubating and may change in future releases.
+Additionally, it shares a known [issue](https://github.com/gradle/gradle/issues/2517) with `--dry-run`:
+Tasks from included builds may still be executed.
 
 ## Promoted features
 
