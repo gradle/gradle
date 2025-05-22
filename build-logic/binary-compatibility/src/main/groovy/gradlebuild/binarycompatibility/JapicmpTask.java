@@ -26,7 +26,6 @@ import me.champeau.gradle.japicmp.report.RichReport;
 import me.champeau.gradle.japicmp.report.RuleConfiguration;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -46,7 +45,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.GradleVersion;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 
@@ -76,12 +74,8 @@ public abstract class JapicmpTask extends DefaultTask {
         getOnlyModified().convention(false);
         getAccessModifier().convention("public");
         ConfigurableFileCollection classpath = getProject().getObjects().fileCollection();
-        if (JavaVersion.current().isJava9Compatible()) {
-            classpath.from(resolveJaxb());
-        }
-        if (GradleVersion.current().compareTo(GradleVersion.version("6.0")) >= 0) {
-            classpath.from(resolveGuava());
-        }
+        classpath.from(resolveJaxb());
+        classpath.from(resolveGuava());
         classpath.from(resolveKotlinCompilerEmbeddable());
         additionalJapicmpClasspath = classpath;
     }
@@ -178,10 +172,9 @@ public abstract class JapicmpTask extends DefaultTask {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
         return project.getConfigurations().detachedConfiguration(
-                dependencies.create("javax.xml.bind:jaxb-api:2.3.0"),
-                dependencies.create("com.sun.xml.bind:jaxb-core:2.3.0.1"),
-                dependencies.create("com.sun.xml.bind:jaxb-impl:2.3.0.1"),
-                dependencies.create("javax.activation:activation:1.1.1")
+                dependencies.create("jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"),
+                dependencies.create("org.glassfish.jaxb:jaxb-runtime:2.3.2"),
+                dependencies.create("org.javassist:javassist:3.30.2-GA")
         );
     }
 
@@ -189,7 +182,7 @@ public abstract class JapicmpTask extends DefaultTask {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
         return project.getConfigurations().detachedConfiguration(
-                dependencies.create("com.google.guava:guava:30.1.1-jre")
+                dependencies.create("com.google.guava:guava:33.4.8-jre")
         );
     }
 
