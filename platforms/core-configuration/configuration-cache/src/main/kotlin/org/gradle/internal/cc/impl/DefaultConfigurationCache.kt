@@ -67,7 +67,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.invocation.ConfigurationCacheDegradationController
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File

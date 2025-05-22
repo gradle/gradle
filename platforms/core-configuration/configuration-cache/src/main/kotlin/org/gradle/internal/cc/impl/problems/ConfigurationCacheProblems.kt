@@ -50,7 +50,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.invocation.ConfigurationCacheDegradationController
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File

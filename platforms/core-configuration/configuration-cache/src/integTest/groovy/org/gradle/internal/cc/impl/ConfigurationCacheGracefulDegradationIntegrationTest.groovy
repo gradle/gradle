@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.invocation.ConfigurationCacheDegradationController
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import spock.lang.Ignore
 
 import javax.inject.Inject

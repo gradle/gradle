@@ -44,7 +44,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
-import org.gradle.invocation.ConfigurationCacheDegradationController
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import java.io.File
 
 

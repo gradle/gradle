@@ -24,7 +24,7 @@ import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.TaskNode
 //import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.invocation.ConfigurationCacheDegradationController
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import java.util.concurrent.ConcurrentHashMap
 
 
