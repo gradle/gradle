@@ -176,11 +176,6 @@ class ConfigurationCacheProblems(
         }
     }
 
-    override fun forBuildLogic(trace: PropertyTrace): ProblemsListener {
-        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).getBuildLogicDegradationReasons().isNotEmpty()
-        return if (shouldDegrade) degradationRequestedProblemsListener() else this
-    }
-
     override fun forTask(trace: PropertyTrace): ProblemsListener {
         val taskDegradationReasons = degradationReasons.getOrDefault(trace, Collections.emptyList())
         return if (taskDegradationReasons.isNotEmpty()) {

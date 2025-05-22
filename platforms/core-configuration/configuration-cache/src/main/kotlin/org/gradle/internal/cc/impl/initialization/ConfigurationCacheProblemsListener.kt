@@ -66,7 +66,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
             .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
             .build()
-        problemsListenerFor(problem.trace).onProblem(problem)
+        problems.onProblem(problem)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
@@ -95,8 +95,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Starting an external process '$command' during configuration time is unsupported.")
             .documentationSection(RequirementsExternalProcess)
             .build()
-
-        problemsListenerFor(problem.trace).onProblem(problem)
+        problems.onProblem(problem)
     }
 
     private
@@ -155,10 +154,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
     }
 
-    private
-    fun problemsListenerFor(trace: PropertyTrace): ProblemsListener =
-        problems.forBuildLogic(trace)
-
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (isBuildSrcBuild(invocationSource) || isSupportedListener(listener)) {
             return
@@ -169,7 +164,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
                 "Listener registration '$invocationDescription' by $invocationSource is unsupported."
             )
         )
-        problemsListenerFor(problem.trace).onProblem(problem)
+        problems.onProblem(problem)
     }
 
     private
