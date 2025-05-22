@@ -476,7 +476,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
     }
 
     private
-    fun buildKotlinJarForBuildScriptClasspath(classBody: String): Pair<String, String> {
+    fun buildKotlinJarForBuildScriptClasspath(@Suppress("SameParameterValue") classBody: String): Pair<String, String> {
         val baseDir = "buildscript"
         withDefaultSettingsIn(baseDir).appendText(
             """
