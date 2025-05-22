@@ -83,9 +83,9 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
 
         expect:
         fails "test"
-        def results = new DefaultTestExecutionResult(file("."))
-        results.assertTestClassesExecuted("example.MainTest")
-        results.testClass("example.MainTest").assertTestFailed("runTest", containsString('module java.base does not open java.lang to unnamed module'))
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(file(".")).testClassDoesNotExist("example.MainTest")
     }
 
     @Requires(UnitTestPreconditions.Jdk16OrLater)
