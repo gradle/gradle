@@ -515,7 +515,7 @@ A permanent, idiomatic location to set and share these properties is in the `gra
 This file should be added to source control in order to share these properties across different machines and between developers.
 
 You should understand the default values of the properties your build uses and avoid explicitly setting properties to those defaults.
-If Gradle ever changes the default value of a property, this will not be a silent change, but will involve a standard <<feature_lifecycle.adoc#backwards_compatibility,deprecation cycle>>.
+Any change to a property's default value in Gradle will follow the standard <<feature_lifecycle.adoc#backwards_compatibility,deprecation cycle>>, and users will be properly notified.
 
 NOTE: Properties set this way are not inherited across build boundaries when using <<composite_builds.adoc#composite_builds,composite builds>>.
 
