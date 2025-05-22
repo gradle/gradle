@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
@@ -169,7 +168,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     private boolean throwHttpStatusCodeException(int statusCode, String message) {
         if (FATAL_HTTP_ERROR_CODES.contains(statusCode)) {
-            throw new UncheckedIOException(message);
+            throw UncheckedException.throwAsUncheckedException(new IOException(message), true);
         } else {
             throw new BuildCacheException(message);
         }

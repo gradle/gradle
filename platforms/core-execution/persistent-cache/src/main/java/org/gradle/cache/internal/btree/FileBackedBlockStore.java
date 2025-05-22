@@ -124,7 +124,7 @@ public class FileBackedBlockStore implements BlockStore {
         } catch (CorruptedCacheException e) {
             throw e;
         } catch (Exception e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(new IOException(e));
         }
     }
 
@@ -136,7 +136,7 @@ public class FileBackedBlockStore implements BlockStore {
         } catch (CorruptedCacheException e) {
             throw e;
         } catch (Exception e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(new IOException(e));
         }
     }
 

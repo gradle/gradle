@@ -58,9 +58,9 @@ public final class UncheckedException extends RuntimeException {
         }
         if (t instanceof IOException) {
             if (preserveMessage) {
-                throw new UncheckedIOException(t.getMessage(), t);
+                throw new UncheckedIOException(t.getMessage(), (IOException) t);
             } else {
-                throw new UncheckedIOException(t);
+                throw new UncheckedIOException((IOException) t);
             }
         }
         if (preserveMessage) {

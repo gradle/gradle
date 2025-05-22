@@ -19,6 +19,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -167,7 +168,7 @@ public class GFileUtils {
         try {
             return readFile(file);
         } catch (Exception e) {
-            return "Unable to read file '" + file + "' due to: " + e.toString();
+            return "Unable to read file '" + file + "' due to: " + e;
         }
     }
 
@@ -256,7 +257,7 @@ public class GFileUtils {
         }
 
         if (dir.exists() && !dir.isDirectory()) {
-            throw new UncheckedIOException(String.format("Cannot create directory '%s' as it already exists, but is not a directory", dir));
+            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Cannot create directory '%s' as it already exists, but is not a directory", dir)), true);
         }
 
         List<File> toCreate = new LinkedList<File>();
@@ -274,16 +275,16 @@ public class GFileUtils {
 
             File parentDirToCreateParent = parentDirToCreate.getParentFile();
             if (!parentDirToCreateParent.isDirectory()) {
-                throw new UncheckedIOException(String.format("Cannot create parent directory '%s' when creating directory '%s' as '%s' is not a directory", parentDirToCreate, dir, parentDirToCreateParent));
+                throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Cannot create parent directory '%s' when creating directory '%s' as '%s' is not a directory", parentDirToCreate, dir, parentDirToCreateParent)), true);
             }
 
             if (!parentDirToCreate.mkdir() && !parentDirToCreate.isDirectory()) {
-                throw new UncheckedIOException(String.format("Failed to create parent directory '%s' when creating directory '%s'", parentDirToCreate, dir));
+                throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Failed to create parent directory '%s' when creating directory '%s'", parentDirToCreate, dir)), true);
             }
         }
 
         if (!dir.mkdir() && !dir.isDirectory()) {
-            throw new UncheckedIOException(String.format("Failed to create directory '%s'", dir));
+            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Failed to create directory '%s'", dir)), true);
         }
     }
 

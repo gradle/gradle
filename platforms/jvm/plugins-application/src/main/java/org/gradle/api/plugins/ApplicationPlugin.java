@@ -40,13 +40,13 @@ import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
+import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
@@ -117,7 +117,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             if (destinationDir.isDirectory()) {
                 String[] children = destinationDir.list();
                 if (children == null) {
-                    throw new UncheckedIOException("Could not list directory " + destinationDir);
+                    throw UncheckedException.throwAsUncheckedException(new IOException("Could not list directory " + destinationDir), true);
                 }
                 if (children.length > 0) {
                     if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, executableDir.get()).isDirectory()) {

@@ -18,14 +18,13 @@ package org.gradle.internal.resource.transport.http;
 
 import org.gradle.internal.exceptions.Contextual;
 
-import java.io.UncheckedIOException;
-
 /**
  * Signals that some error occurred when making an HTTP request.
  * This is different from a HTTP request returning an HTTP error code.
  */
 @Contextual
-public class HttpRequestException extends UncheckedIOException {
+public class HttpRequestException extends RuntimeException {
+
     public HttpRequestException(String message, Throwable cause) {
         super(message, cause);
     }
