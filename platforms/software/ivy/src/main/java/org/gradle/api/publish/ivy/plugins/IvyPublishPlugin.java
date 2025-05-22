@@ -56,7 +56,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.invocation.ConfigurationCacheDegradationController;
+import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.model.Path;
 
 import javax.inject.Inject;

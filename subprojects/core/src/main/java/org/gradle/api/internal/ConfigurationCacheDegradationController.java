@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.invocation;
+package org.gradle.api.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;

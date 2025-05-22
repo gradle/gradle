@@ -38,7 +38,7 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
-import org.gradle.invocation.ConfigurationCacheDegradationController;
+import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 

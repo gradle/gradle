@@ -49,7 +49,7 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.invocation.ConfigurationCacheDegradationController;
+import org.gradle.api.internal.ConfigurationCacheDegradationController;
 
 import javax.inject.Inject;
 import java.util.Set;
