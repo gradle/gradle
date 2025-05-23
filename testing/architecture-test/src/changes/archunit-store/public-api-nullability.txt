@@ -753,8 +753,6 @@ Class <org.gradle.plugins.ide.idea.IdeaPlugin$23> is not annotated (directly or 
 Class <org.gradle.plugins.ide.idea.IdeaPlugin$24> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaPlugin.java:0)
 Class <org.gradle.plugins.ide.idea.IdeaPlugin$25> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaPlugin.java:0)
 Class <org.gradle.plugins.ide.idea.IdeaPlugin$26> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaPlugin.java:0)
-Class <org.gradle.plugins.ide.idea.IdeaPlugin$27> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaPlugin.java:0)
-Class <org.gradle.plugins.ide.idea.IdeaPlugin$28> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaPlugin.java:0)
 Class <org.gradle.plugins.ide.idea.IdeaPlugin$2> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaPlugin.java:0)
 Class <org.gradle.plugins.ide.idea.IdeaPlugin$3> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaPlugin.java:0)
 Class <org.gradle.plugins.ide.idea.IdeaPlugin$4> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaPlugin.java:0)
