@@ -1294,7 +1294,7 @@
       </component>
       <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.22">
          <artifact name="gradle-guides-plugin-0.22.jar">
-            <sha256 value="d6609bba9739659fb2cff4d3750ae97cabc4df4b1ffe7ca3211bc39517efadfb" origin="Verified" reason="Artifact is not signed"/>
+            <sha256 value="d6609bba9739659fb2cff4d3750ae97cabc4df4b1ffe7ca3211bc39517efadfb" origin="Verified"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-conventions" version="0.8.0">
