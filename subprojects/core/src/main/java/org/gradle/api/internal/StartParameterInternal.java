@@ -43,7 +43,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private int configurationCacheEntriesPerKey = 1;
-    private boolean configurationCacheIntegrityCheckEnabled;
+    private boolean configurationCacheIntegrityCheckEnabled = true;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
