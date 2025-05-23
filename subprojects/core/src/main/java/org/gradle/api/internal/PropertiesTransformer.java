@@ -18,10 +18,10 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.util.Properties;
 
 /**
@@ -59,7 +59,7 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
         try {
             doTransform(original).store(destination, "");
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

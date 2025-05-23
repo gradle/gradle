@@ -24,6 +24,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -41,7 +42,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
@@ -257,7 +257,7 @@ public class DefaultGradleRunner extends GradleRunner {
         try {
             return WriterOutputStream.builder().setWriter(standardOutput).get();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

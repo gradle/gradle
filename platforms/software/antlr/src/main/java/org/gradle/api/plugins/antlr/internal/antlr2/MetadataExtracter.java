@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -100,7 +101,7 @@ public class MetadataExtracter {
             try {
                 in.close();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return grammarPackageName;

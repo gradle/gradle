@@ -16,13 +16,13 @@
 package org.gradle.plugins.signing.type.pgp;
 
 import org.bouncycastle.bcpg.ArmoredOutputStream;
+import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.AbstractSignatureType;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 
 /**
  * Armored signature type.
@@ -39,7 +39,7 @@ public class ArmoredSignatureType extends AbstractSignatureType {
         try (OutputStream armoredOutputStream = ArmoredOutputStream.builder().build(destination)) {
             super.sign(signatory, toSign, armoredOutputStream);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

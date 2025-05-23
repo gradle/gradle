@@ -19,6 +19,7 @@ package org.gradle.internal.classpath.transforms;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.file.FileException;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 @ServiceScope(Scope.UserHome.class)
 public class ClasspathElementTransformFactoryForLegacy implements ClasspathElementTransformFactory {
@@ -72,7 +72,7 @@ public class ClasspathElementTransformFactoryForLegacy implements ClasspathEleme
             } catch (FileException e) {
                 // Ignore malformed archive, let the transformation handle it.
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         if (isMultiReleaseJar != null && isMultiReleaseJar) {

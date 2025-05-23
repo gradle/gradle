@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
@@ -42,7 +43,6 @@ import org.gradle.util.internal.VersionNumber;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -192,7 +192,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             try (Writer writer = new PrintWriter(outputFile)) {
                 toJson(writer);
             } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
+                throw UncheckedException.throwAsUncheckedException(ex);
             }
         }
 

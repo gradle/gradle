@@ -22,7 +22,6 @@ import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
@@ -76,7 +75,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
         try {
             standardInputWriter.closeInput();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

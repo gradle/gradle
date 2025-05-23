@@ -16,6 +16,8 @@
 
 package org.gradle.internal.io;
 
+import org.gradle.internal.UncheckedException;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
@@ -36,7 +38,7 @@ public interface IoRunnable {
             try {
                 runnable.run();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }

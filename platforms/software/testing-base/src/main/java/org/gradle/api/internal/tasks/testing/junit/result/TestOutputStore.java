@@ -20,6 +20,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.nio.PositionTrackingFileChannelInputStream;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
@@ -31,7 +32,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -86,7 +86,7 @@ public class TestOutputStore {
             try {
                 output = new KryoBackedEncoder(new FileOutputStream(getOutputsFile()));
             } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -135,7 +135,7 @@ public class TestOutputStore {
             try {
                 indexOutput = new Output(new FileOutputStream(getIndexFile()));
             } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
 
 
@@ -235,7 +235,7 @@ public class TestOutputStore {
                 try {
                     input = new Input(new FileInputStream(indexFile));
                 } catch (FileNotFoundException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
 
                 IndexBuilder rootBuilder = null;
@@ -266,7 +266,7 @@ public class TestOutputStore {
                 try {
                     dataFile = FileChannel.open(getOutputsFile().toPath(), StandardOpenOption.READ);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             } else { // no outputs file
                 if (indexFile.exists()) {
@@ -372,7 +372,7 @@ public class TestOutputStore {
                     }
                 }
             } catch (IOException e1) {
-                throw new UncheckedIOException(e1);
+                throw UncheckedException.throwAsUncheckedException(e1);
             }
         }
 

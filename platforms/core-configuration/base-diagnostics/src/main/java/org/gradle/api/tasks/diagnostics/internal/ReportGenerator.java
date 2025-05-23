@@ -18,12 +18,12 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -102,7 +102,7 @@ public final class ReportGenerator {
             projectReportFooterGenerator.execute();
             renderer.complete();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

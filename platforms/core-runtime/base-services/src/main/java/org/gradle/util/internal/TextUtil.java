@@ -21,12 +21,12 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -178,7 +178,7 @@ public class TextUtil {
             return writer.toString();
         } catch (IOException ioe) {
             // this should never ever happen while writing to a StringWriter
-            throw new UncheckedIOException(ioe);
+            throw UncheckedException.throwAsUncheckedException(ioe);
         }
     }
 

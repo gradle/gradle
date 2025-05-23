@@ -20,13 +20,13 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestRepor
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModel;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,7 +67,7 @@ public class GenericTestReportGenerator implements TestReportGenerator {
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
             new GenericHtmlTestReport(operationRunner, operationExecutor, outputReaders, metadataRendererRegistry).generateReport(root, outputDir);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             CompositeStoppable.stoppable(outputReaders).stop();
         }

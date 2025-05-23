@@ -52,12 +52,12 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -321,7 +321,7 @@ public final class MavenPomFileGenerator {
                 try {
                     new MavenXpp3Writer().write(writer, model);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             });
         }

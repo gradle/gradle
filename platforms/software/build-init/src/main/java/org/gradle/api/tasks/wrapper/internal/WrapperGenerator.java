@@ -23,6 +23,7 @@ import org.gradle.api.internal.plugins.ExecutableJar;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.tasks.wrapper.Wrapper;
 import org.gradle.api.tasks.wrapper.Wrapper.PathBase;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
@@ -103,7 +104,7 @@ public class WrapperGenerator {
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

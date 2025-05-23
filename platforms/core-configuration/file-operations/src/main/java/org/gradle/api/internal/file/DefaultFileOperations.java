@@ -53,6 +53,7 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -64,7 +65,6 @@ import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Map;
 
@@ -273,7 +273,7 @@ public class DefaultFileOperations implements FileOperations {
             try {
                 didWork |= deleter.deleteRecursively(root, deleteSpec.isFollowSymlinks());
             } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
+                throw UncheckedException.throwAsUncheckedException(ex);
             }
         }
         return WorkResults.didWork(didWork);

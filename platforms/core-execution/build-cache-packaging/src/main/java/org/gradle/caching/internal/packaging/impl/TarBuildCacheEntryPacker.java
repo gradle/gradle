@@ -32,6 +32,7 @@ import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.RelativePathSupplier;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.PathTraversalChecker;
@@ -60,7 +61,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -424,7 +424,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 createTarEntry("missing-" + treePath, 0, UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -433,7 +433,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 createTarEntry(path + "/", 0, UnixPermissions.DIR_FLAG | mode, tarOutput);
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -445,7 +445,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 }
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

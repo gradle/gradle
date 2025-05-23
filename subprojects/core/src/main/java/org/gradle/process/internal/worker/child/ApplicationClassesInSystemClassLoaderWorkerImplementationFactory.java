@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -35,7 +36,6 @@ import org.gradle.process.internal.worker.messaging.WorkerConfigSerializer;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -181,7 +181,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 encoder.flush();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         execSpec.setStandardInput(buffer.getInputStream());
     }

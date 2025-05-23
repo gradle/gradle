@@ -104,7 +104,7 @@ public abstract class IoActions {
                 resource.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

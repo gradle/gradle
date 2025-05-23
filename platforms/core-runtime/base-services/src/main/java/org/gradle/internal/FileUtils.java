@@ -22,7 +22,6 @@ import org.gradle.api.GradleException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -203,7 +202,7 @@ public class FileUtils {
         try {
             return src.getCanonicalFile();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

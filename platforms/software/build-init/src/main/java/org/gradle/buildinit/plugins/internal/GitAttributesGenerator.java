@@ -16,11 +16,12 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.internal.UncheckedException;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UncheckedIOException;
 
 public class GitAttributesGenerator implements BuildContentGenerator {
 
@@ -43,7 +44,7 @@ public class GitAttributesGenerator implements BuildContentGenerator {
                 writer.println();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

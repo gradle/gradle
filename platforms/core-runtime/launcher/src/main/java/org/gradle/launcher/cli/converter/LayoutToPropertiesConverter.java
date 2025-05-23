@@ -23,6 +23,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -37,7 +38,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -128,7 +128,7 @@ public class LayoutToPropertiesConverter {
                     properties.load(inputStream);
                 }
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return properties;

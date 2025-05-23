@@ -25,6 +25,7 @@ import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.ClosureBackedAction;
 
@@ -34,7 +35,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -228,7 +228,7 @@ public class DefaultManifest implements ManifestInternal {
             }
             outputStream.write(manifestBytes);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -248,7 +248,7 @@ public class DefaultManifest implements ManifestInternal {
             });
             return this;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -291,7 +291,7 @@ public class DefaultManifest implements ManifestInternal {
             addJavaManifestToAttributes(javaManifest);
             addJavaManifestToSections(javaManifest);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

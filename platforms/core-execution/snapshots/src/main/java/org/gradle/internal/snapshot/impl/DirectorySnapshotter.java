@@ -471,7 +471,7 @@ public class DirectorySnapshotter {
                 if (isNotFileSystemLoopException(exc)) {
                     boolean isDirectory = Files.isDirectory(file);
                     if (shouldVisit(file, internedFileName, isDirectory)) {
-                        throw new UncheckedIOException(exc);
+                        throw UncheckedException.throwAsUncheckedException(exc);
                     }
                 }
                 return FileVisitResult.CONTINUE;

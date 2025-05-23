@@ -73,7 +73,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.CodeSource;
@@ -108,7 +107,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         try {
             deleter.ensureEmptyDirectory(classesDir);
         } catch (IOException ioex) {
-            throw new UncheckedIOException(ioex);
+            throw UncheckedException.throwAsUncheckedException(ioex);
         }
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
@@ -119,7 +118,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 deleter.deleteRecursively(classesDir);
                 deleter.deleteRecursively(metadataDir);
             } catch (IOException ioex) {
-                throw new UncheckedIOException(ioex);
+                throw UncheckedException.throwAsUncheckedException(ioex);
             }
             throw e;
         }

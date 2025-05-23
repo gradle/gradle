@@ -19,6 +19,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.BaseExecHandleBuilder;
@@ -29,7 +30,6 @@ import org.gradle.test.fixtures.file.TestFile;
 import java.io.IOException;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -136,7 +136,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         try {
             stdinPipe.close();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         return this;
@@ -154,7 +154,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
                 stdinPipe.write(getPlatformLineSeparator().getBytes());
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         return this;

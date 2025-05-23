@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.plugin.devel.PluginDeclaration;
@@ -33,7 +34,6 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -104,7 +104,7 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
         try {
             getDeleter().ensureEmptyDirectory(directoryToClear);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -112,7 +112,7 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
         try {
             PropertiesUtils.store(properties, descriptorFile);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

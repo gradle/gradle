@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -149,7 +148,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             try {
                 new MetadataXpp3Writer().write(writer, metadata);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         });
         return metadataFile;
@@ -320,7 +319,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             try {
                 hash = hashFunction.hashFile(src);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
             String formattedHashString = hash.toZeroPaddedString(hashFunction.getHexDigits());
             return formattedHashString.getBytes(StandardCharsets.US_ASCII);

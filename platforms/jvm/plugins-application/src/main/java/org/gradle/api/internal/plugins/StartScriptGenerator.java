@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.Action;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
@@ -27,7 +28,6 @@ import org.gradle.util.internal.CollectionUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -171,7 +171,7 @@ public class StartScriptGenerator {
                 permissions.add(PosixFilePermission.OTHERS_EXECUTE);
                 Files.setPosixFilePermissions(path, permissions);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

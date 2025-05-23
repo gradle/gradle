@@ -34,6 +34,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.CollectionUtils;
@@ -42,7 +43,6 @@ import org.jspecify.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -336,7 +336,7 @@ public final class IvyDescriptorFileGenerator {
                 try {
                     new ModelWriter(model).writeDescriptor(writer);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             });
         }

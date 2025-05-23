@@ -31,6 +31,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,7 +39,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -92,7 +92,7 @@ public abstract class RenderMarkdown extends DefaultTask {
             String html = renderer.render(parser.parseReader(inputStream));
             outputStream.write(html);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

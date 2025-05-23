@@ -17,12 +17,12 @@
 package org.gradle.internal.logging.text;
 
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.UncheckedException;
 
 import java.io.Flushable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 
 public class StreamBackedStandardOutputListener implements StandardOutputListener {
@@ -52,7 +52,7 @@ public class StreamBackedStandardOutputListener implements StandardOutputListene
             appendable.append(output);
             flushable.flush();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

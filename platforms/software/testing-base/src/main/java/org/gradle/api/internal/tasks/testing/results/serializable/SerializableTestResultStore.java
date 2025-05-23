@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -40,7 +41,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
@@ -156,7 +156,7 @@ public final class SerializableTestResultStore {
             try {
                 SerializableTestResult.Serializer.serialize(testNodeBuilder.build(), resultsEncoder);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
             if (testDescriptor.getParent() != null) {
                 resultsEncoder.writeSmallLong(assignedIds.get(testDescriptor.getParent().getId()));
@@ -230,7 +230,7 @@ public final class SerializableTestResultStore {
             try (KryoBackedDecoder decoder = openAndInitializeDecoder()) {
                 return decoder.readSmallLong() != 0;
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         } else {
             return false;
