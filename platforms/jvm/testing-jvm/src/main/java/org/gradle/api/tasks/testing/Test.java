@@ -488,7 +488,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         forkOptions.setDebug(enabled);
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -523,6 +522,26 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ToBeReplacedByLazyProperty
     public boolean getFailFast() {
         return super.getFailFast();
+    }
+
+    /**
+     * Enables failing the task if no tests match the filter configuration.
+     */
+    @Option(option = "fail-on-no-matching-tests", description = "Fails the task if no tests match the filter.")
+    @Override
+    public void setFailOnNoMatchingTests(boolean failOnNoMatchingTests) {
+        super.setFailOnNoMatchingTests(failOnNoMatchingTests);
+    }
+
+    /**
+     * Indicates if this task will fail if no tests match the filter configuration.
+     *
+     * @return whether this task will fail if no tests match the filter configuration
+     */
+    @Override
+    @ToBeReplacedByLazyProperty
+    public boolean getFailOnNoMatchingTests() {
+        return super.getFailOnNoMatchingTests();
     }
 
     /**
