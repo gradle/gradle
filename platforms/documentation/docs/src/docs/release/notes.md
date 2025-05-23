@@ -14,7 +14,7 @@ Gradle @version@ is the second patch release for Gradle 8.14 (released [@release
 
 It fixes the following issues:
 
-* TODO
+* [#33717](https://github.com/gradle/gradle/issues/33717) Suboptimal logic when resolving selectors with dynamic ones
 
 Issues fixed in the first patch release:
 
