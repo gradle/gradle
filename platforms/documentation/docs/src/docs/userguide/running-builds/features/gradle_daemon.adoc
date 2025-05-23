@@ -14,7 +14,7 @@
 
 [[gradle_daemon]]
 = Gradle Daemon
-:keywords: daemon
+:keywords: daemon, status, jps, no-daemon, stop, org.gradle.daemon, updateDaemonJvm, gradle-daemon-jvm.properties, jvm-version, jvm-vendor
 
 A daemon is a computer program that runs as a background process rather than being under the direct control of an interactive user.
 

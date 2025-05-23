@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;

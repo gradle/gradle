@@ -290,10 +290,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             allprojects { p ->
                 apply plugin: ${swiftc3.pluginClass}
 
-                model {
-                      toolChains {
-                        ${swiftc3.buildScriptConfig}
-                      }
+                toolChains {
+                    ${swiftc3.buildScriptConfig}
                 }
             }
         """
@@ -313,10 +311,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             allprojects { p ->
                 apply plugin: ${swiftc4.pluginClass}
 
-                model {
-                      toolChains {
-                        ${swiftc4.buildScriptConfig}
-                      }
+                toolChains {
+                    ${swiftc4.buildScriptConfig}
                 }
             }
         """

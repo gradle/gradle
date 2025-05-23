@@ -20,11 +20,9 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetadata implements ForcingDependencyMetadata {
@@ -40,11 +38,6 @@ public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetada
     @Override
     public ProjectComponentSelector getSelector() {
         return selector;
-    }
-
-    @Override
-    public List<ExcludeMetadata> getExcludes() {
-        return Collections.emptyList();
     }
 
     @Override
@@ -74,7 +67,8 @@ public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetada
     @Override
     public ForcingDependencyMetadata forced() {
         if (delegate instanceof ForcingDependencyMetadata) {
-            return ((ForcingDependencyMetadata) delegate).forced();
+            ForcingDependencyMetadata forced = ((ForcingDependencyMetadata) delegate).forced();
+            return new DefaultProjectDependencyMetadata(selector, forced);
         }
         return this;
     }

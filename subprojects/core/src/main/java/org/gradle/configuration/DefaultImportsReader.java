@@ -20,7 +20,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.LineProcessor;
 import com.google.common.io.Resources;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;

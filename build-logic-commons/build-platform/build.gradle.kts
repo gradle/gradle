@@ -26,10 +26,10 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 
 dependencies {
     constraints {
-        api("org.gradle.guides:gradle-guides-plugin:0.23.4")
+        api("org.gradle.guides:gradle-guides-plugin:0.24.0")
         api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
         api("com.gradle:develocity-gradle-plugin:4.0.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-        api("com.gradle.publish:plugin-publish-plugin:1.2.1")
+        api("com.gradle.publish:plugin-publish-plugin:1.3.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.10")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
         api("me.champeau.jmh:jmh-gradle-plugin:0.7.2")
@@ -44,7 +44,7 @@ dependencies {
         api("com.google.guava:guava:33.4.6-jre")
         api("com.google.errorprone:error_prone_annotations:2.5.1")
         api("com.google.code.gson:gson:2.13.1") // keep in sync with settings.gradle.kts
-        api("com.nhaarman:mockito-kotlin:1.6.0")
+        api("org.mockito.kotlin:mockito-kotlin:5.4.0")
         api("com.thoughtworks.qdox:qdox:2.0.3")
         api("com.uwyn:jhighlight:1.0")
         api("com.vladsch.flexmark:flexmark-all:0.34.60") {
@@ -56,7 +56,7 @@ dependencies {
         api("com.google.code.findbugs:jsr305:3.0.2")
         api("org.jspecify:jspecify:1.0.0")
         api("commons-io:commons-io:2.14.0")
-        api("commons-lang:commons-lang:2.6")
+        api("org.apache.commons:commons-lang3:3.17.0")
         api("javax.activation:activation:1.1.1")
         api("javax.xml.bind:jaxb-api:2.3.1")
         api("com.sun.xml.bind:jaxb-core:2.2.11")
@@ -87,7 +87,7 @@ dependencies {
         api("xerces:xercesImpl:2.12.2") {
             because("Maven Central and JCenter disagree on version 2.9.1 metadata")
         }
-        api("net.bytebuddy:byte-buddy") { version { strictly("1.10.21") } }
+        api("net.bytebuddy:byte-buddy") { version { strictly("1.17.5") } }
         api("org.objenesis:objenesis") { version { strictly("3.1") } }
     }
 }

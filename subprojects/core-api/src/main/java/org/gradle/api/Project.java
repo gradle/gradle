@@ -1257,18 +1257,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link org.gradle.api.plugins.Convention} for this project.</p> <p>You can access this property in your build file
-     * using <code>convention</code>. You can also access the properties and methods of the convention object
-     * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
-     *
-     * @return The <code>Convention</code>. Never returns null.
-     * @see ExtensionAware#getExtensions()
-     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
-     */
-    @Deprecated
-    org.gradle.api.plugins.Convention getConvention();
-
-    /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>
      *
      * @param otherProject The project to compare the nesting level with.

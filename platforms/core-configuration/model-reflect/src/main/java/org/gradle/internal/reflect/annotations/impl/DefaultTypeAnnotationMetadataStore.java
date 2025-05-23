@@ -26,7 +26,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.cache.Cache;

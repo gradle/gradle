@@ -8,7 +8,6 @@ dependencies {
     api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.execution)
     api(projects.kotlinDsl)
     api(projects.logging)
     api(projects.serviceProvider)
@@ -31,7 +30,6 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
-    implementation(projects.snapshots)
     implementation(projects.toolingApi)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
@@ -49,7 +47,7 @@ dependencies {
     compileOnly(libs.kotlinReflect)
 
     testImplementation(testFixtures(projects.kotlinDsl))
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
 }
 
 packageCycles {

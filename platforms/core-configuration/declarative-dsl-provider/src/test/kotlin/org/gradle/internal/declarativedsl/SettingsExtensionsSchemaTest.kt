@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl
 
-import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Action
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.plugins.ExtensionContainer
@@ -31,7 +30,7 @@ import org.gradle.internal.declarativedsl.settings.settingsEvaluationSchema
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-
+import org.mockito.kotlin.mock
 
 class SettingsExtensionsSchemaTest {
 

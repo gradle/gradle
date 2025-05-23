@@ -18,7 +18,7 @@ package org.gradle.test.fixtures.ivy
 
 import groovy.namespace.QName
 import groovy.xml.XmlParser
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 
 class IvyDescriptor {
     Map<String, IvyDescriptorConfiguration> configurations = [:]

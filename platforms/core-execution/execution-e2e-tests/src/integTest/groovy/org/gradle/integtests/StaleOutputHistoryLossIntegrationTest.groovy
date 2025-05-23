@@ -45,7 +45,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << "apply plugin: 'base'\n"
         // When adding support for a new JDK version, the previous release might not work with it yet.
-        Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.worksWith(Jvm.current()))
+        Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.daemonWorksWith(Jvm.current().javaVersionMajor))
     }
 
     GradleVersion getMostRecentReleaseVersion() {

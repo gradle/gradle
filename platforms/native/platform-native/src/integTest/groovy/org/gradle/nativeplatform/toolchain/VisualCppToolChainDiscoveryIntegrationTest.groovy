@@ -29,10 +29,11 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
         buildFile << """
 apply plugin: 'c'
 
-model {
+
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         main(NativeExecutableSpec)
     }
@@ -46,13 +47,11 @@ model {
     def "tool chain is not available when visual studio install is not available"() {
         when:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             installDir = "does-not-exist"
         }
     }
-}
 """
 
         fails "mainExecutable"
@@ -67,13 +66,11 @@ model {
     def "tool chain is not available when SDK install is not available"() {
         when:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             windowsSdkDir = "does-not-exist"
         }
     }
-}
 """
         fails "mainExecutable"
 

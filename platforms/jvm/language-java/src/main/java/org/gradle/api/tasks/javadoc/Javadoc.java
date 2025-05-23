@@ -107,12 +107,15 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
+    @Nullable
     private File destinationDir;
 
     private boolean failOnError = true;
 
+    @Nullable
     private String title;
 
+    @Nullable
     private String maxMemory;
 
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
@@ -120,6 +123,7 @@ public abstract class Javadoc extends SourceTask {
     private FileCollection classpath = getProject().files();
     private final ModularitySpec modularity;
 
+    @Nullable
     private String executable;
     private final Property<JavadocTool> javadocTool;
 
@@ -262,7 +266,7 @@ public abstract class Javadoc extends SourceTask {
     /**
      * <p>Sets the directory to generate the documentation into.</p>
      */
-    public void setDestinationDir(File destinationDir) {
+    public void setDestinationDir(@Nullable File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
@@ -281,7 +285,7 @@ public abstract class Javadoc extends SourceTask {
      *
      * @param maxMemory The amount of memory
      */
-    public void setMaxMemory(String maxMemory) {
+    public void setMaxMemory(@Nullable String maxMemory) {
         this.maxMemory = maxMemory;
     }
 

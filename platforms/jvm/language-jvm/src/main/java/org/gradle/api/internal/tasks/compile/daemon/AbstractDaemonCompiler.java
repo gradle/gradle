@@ -38,7 +38,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     @Override
     public WorkResult execute(T spec) {
-        DefaultWorkResult result = compilerWorkerExecutor.execute(getCompilerParameters(spec), toDaemonForkOptions(spec));
+        DefaultWorkResult result = compilerWorkerExecutor.execute(getCompilerParameters(spec), toDaemonForkOptions(spec), getAdditionalCompilerServices());
         if (result.isSuccess()) {
             return result;
         } else {
@@ -49,6 +49,12 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     protected abstract DaemonForkOptions toDaemonForkOptions(T spec);
 
     protected abstract CompilerWorkerExecutor.CompilerParameters getCompilerParameters(T spec);
+
+    /**
+     * Additional services required by {@link CompilerWorkerExecutor.CompilerParameters#getCompilerClassName()} which
+     * are not already permitted for injection in worker actions.
+     */
+    protected abstract Set<Class<?>> getAdditionalCompilerServices();
 
     protected BaseForkOptions mergeForkOptions(BaseForkOptions left, BaseForkOptions right) {
         BaseForkOptions merged = new BaseForkOptions();

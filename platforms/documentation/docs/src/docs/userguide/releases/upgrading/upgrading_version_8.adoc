@@ -39,31 +39,7 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.0]]
 == Upgrading from 8.14 and earlier
 
-=== Potential breaking changes
-
-==== Lowest supported Kotlin Gradle Plugin version change
-
-Starting with Gradle 9.0, the minimum supported Kotlin Gradle Plugin version is 2.0.0.
-Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
-
-For Gradle 8.x, the minimum supported version was 1.6.10.
-
-==== Lowest supported Android Gradle Plugin version change
-
-Starting with Gradle 9.0, the minimum supported Android Gradle Plugin version is 8.4.0.
-Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
-
-For Gradle 8.x, the minimum supported version was 7.3.0.
-
-==== Lowest supported Gradle Enterprise Plugin version change
-
-Starting with Gradle 9.0, the minimum supported Gradle Enterprise Plugin version is 3.13.1.
-Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
-
-Consider upgrading to the latest version of the Gradle Enterprise Plugin,
-or better yet, upgrade to the latest version of the link:https://docs.gradle.com/develocity/gradle-plugin[Develocity Plugin].
-
-For Gradle 8.x, the minimum supported version was 3.0.
+=== Toolchain, Language, and Compatibility Changes
 
 ==== Upgrade to Kotlin 2.1.21
 
@@ -118,6 +94,109 @@ Another example is using a function from the Gradle API that takes a `Map<String
 
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9.0 as they did before.
 
+==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
+
+When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins will only be usable on Gradle 8.11 or newer.
+This is because Gradle 8.11 is the first release that embeds Kotlin 2.0 or higher, which is required to interpret Kotlin metadata version 2.
+
+If you want your plugin to remain compatible with older Gradle versions, you must explicitly compile it against an earlier Kotlin version (1.x).
+
+For example, to support Gradle 6.8 and newer, configure your plugin to target Kotlin 1.7 like this:
+
+.build.gradle.kts
+[source,kotlin]
+----
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    `kotlin-dsl`
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        languageVersion = KotlinVersion.KOTLIN_1_7
+        apiVersion = KotlinVersion.KOTLIN_1_7
+    }
+}
+----
+
+Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for details on which Kotlin version is embedded in each Gradle release.
+
+NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 6.8 and newer.
+
+[[validate_plugins_without_java_toolchain_90]]
+==== `ValidatePlugins` task now requires Java Toolchains
+
+In Gradle 9.0, using the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] task without applying the <<toolchains.adoc#toolchains,Java Toolchains>> plugin will result in an error.
+
+To fix this, explicitly apply the `jvm-toolchains` plugin:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("jvm-toolchains")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'jvm-toolchains'
+}
+----
+=====
+====
+
+TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
+If you are already applying one of those, no further action is needed.
+
+==== Removal of deprecated `JvmVendorSpec.IBM_SEMERU`
+
+The deprecated `JvmVendorSpec.IBM_SEMERU` constant has been removed.
+Its usage should be replaced by link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html#IBM[`JvmVendorSpec.IBM`].
+
+==== C++ and Swift plugins no longer depend on software model based plugins
+
+<<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
+
+As a result, `toolChains` should now be configured directly at the top-level of your build script instead of within a `model { }` block.
+
+=== Updated Minimum Supported Versions
+
+==== Lowest supported Kotlin Gradle Plugin version change
+
+Starting with Gradle 9.0, the minimum supported Kotlin Gradle Plugin version is 2.0.0.
+Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
+
+For Gradle 8.x, the minimum supported version was 1.6.10.
+
+==== Lowest supported Android Gradle Plugin version change
+
+Starting with Gradle 9.0, the minimum supported Android Gradle Plugin version is 8.4.0.
+Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
+
+For Gradle 8.x, the minimum supported version was 7.3.0.
+
+==== Lowest supported Gradle Enterprise Plugin version change
+
+Starting with Gradle 9.0, the minimum supported Gradle Enterprise Plugin version is 3.13.1.
+Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
+
+Consider upgrading to the latest version of the Gradle Enterprise Plugin,
+or better yet, upgrade to the latest version of the link:https://docs.gradle.com/develocity/gradle-plugin[Develocity Plugin].
+
+For Gradle 8.x, the minimum supported version was 3.0.
+
+=== Updated Defaults and APIs
+
 ==== Upgraded default versions of code quality tools
 
 The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.23.0[10.23.0].
@@ -136,18 +215,35 @@ The default version of TestNG is link:https://github.com/testng-team/testng/rele
 
 The default version of Spock is link:https://spockframework.org/spock/docs/2.3/release_notes.html[2.3].
 
+==== `ConfigurationVariant.getDescription` is now a `Property<String>`
+
+This method was added in Gradle 7.5 and was previously a `Optional<String>`.
+This property was not configurable by public APIs.
+
+By making the description a `Property<String>`, secondary variants have a user configurable description that appears in the <<variant_aware_resolution.adoc#outgoing_variants_report,`outgoingVariants` report>>.
+
+==== Methods on public API types made final
+
+The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(java.lang.Object)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] have been declared `final` to support the use of the `@SafeVarargs` annotation.
+
+These types were not intended to be subclassed.
+However, if your build logic or a plugin attempts to override these methods, it will now result in a runtime failure.
+
+=== Removed Features and Deprecated APIs
+
 ==== Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
+
 The following source set interfaces have been removed in Gradle 9.0:
 
 - `org.gradle.api.tasks.GroovySourceSet`
 - `org.gradle.api.tasks.ScalaSourceSet`
 
-To configure Groovy or Scala sources, use the plugin-specific source directory set extensions:
+To configure Groovy or Scala sources, use the plugin-specific Source Directory Sets instead:
 
 - `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
 - `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
 
-Here's how to configure Groovy sources programmatically:
+For example, to configure Groovy sources in a plugin:
 
 [source,java]
 ----
@@ -172,6 +268,15 @@ The _"convention"_ concept—represented by the `org.gradle.api.plugins.Conventi
 
 Core Gradle plugins that previously registered deprecated conventions have been updated accordingly.
 
+This implies removal of the Conventions API. These have been removed:
+
+- `org.gradle.api.Task.getConvention()`
+- `org.gradle.api.Project.getConvention()`
+- `org.gradle.api.plugins.Convention`
+- `org.gradle.api.internal.HasConvention`
+
+Existing plugins that use these APIs will fail with Gradle 9.0+ and should be updated to use the Extensions API instead.
+
 The table below shows which conventions have been removed and how to migrate:
 
 [cols="1,1,1,5"]
@@ -191,7 +296,7 @@ The `org.gradle.cache.cleanup` property, which previously allowed users to disab
 This property no longer has any effect.
 To control cache cleanup behavior in Gradle 9.0 and later, use an <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup,init script>> instead.
 
-==== Removal of `buildCache.local.removeUnusedEntriesAfterDays` property
+==== Removal of `buildCache.local.removeUnusedEntriesAfterDays`
 
 In Gradle 9.0, the property link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[`buildCache.local.removeUnusedEntriesAfterDays`] has been removed.
 
@@ -244,26 +349,6 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 - `org.gradle.api.file.CopyProcessingSpec.setDirMode(Integer)`
 - `org.gradle.api.file.FileTreeElement.getMode()`
 - `org.gradle.api.file.FileCopyDetails.setMode(int)`
-
-==== Removal of custom Source Set interfaces
-
-The following source set interfaces have been removed in Gradle 9.0:
-
-- `org.gradle.api.tasks.GroovySourceSet`
-- `org.gradle.api.tasks.ScalaSourceSet`
-
-To configure Groovy or Scala sources, use the plugin-specific Source Directory Sets instead:
-
-- `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
-- `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
-
-For example, to configure Groovy sources in a plugin:
-
-[source,java]
-----
-GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
-groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
-----
 
 ==== Removal of select Groovy modules from the Gradle distribution
 
@@ -339,19 +424,19 @@ In Gradle 8.1, accessing `libraries` or `bundles` from dependency version catalo
 In Gradle 9.0, this support has been fully removed.
 Attempting to reference `libraries` or `bundles` in the `plugins {}` block will now result in a build failure.
 
-==== Removal of `"name"()` to reference tasks and domain objects in Kotlin DSL
+==== Removal of `"name"()` task reference syntax in Kotlin DSL
 
 In Gradle 9.0, referencing tasks or other domain objects using the `"name"()` syntax in Kotlin DSL has been removed.
 
 Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
 
-==== Removal of `outputFile` property in `WriteProperties` task
+==== Removal of `outputFile` in `WriteProperties` task
 
 The `outputFile` property in the `WriteProperties` task has been removed in Gradle 9.0.
 
 This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
 
-==== Removal of `Project#exec`, `Project#javaexec`, and Script-Level Counterparts
+==== Removal of `Project#exec`, `Project#javaexec`, and script-level counterparts
 
 The following helper methods for launching external processes were <<#deprecated_project_exec,deprecated in Gradle 8.11>> and have now been removed in Gradle 9.0:
 
@@ -370,57 +455,7 @@ The following helper methods for launching external processes were <<#deprecated
 * `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
 * `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
 
-==== Gradle Module Metadata can not be modified after an eagerly populated publication is created from the same component
-
-This behavior previously caused a warning: `Gradle Module Metadata is modified after an eagerly populated publication.`
-
-It will now fail with an error, suggesting a review of the relevant documentation.
-
-==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
-
-When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins will only be usable on Gradle 8.11 or newer.
-This is because Gradle 8.11 is the first release that embeds Kotlin 2.0 or higher, which is required to interpret Kotlin metadata version 2.
-
-If you want your plugin to remain compatible with older Gradle versions, you must explicitly compile it against an earlier Kotlin version (1.x).
-
-For example, to support Gradle 6.8 and newer, configure your plugin to target Kotlin 1.7 like this:
-
-.build.gradle.kts
-[source,kotlin]
-----
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-plugins {
-    `kotlin-dsl`
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        languageVersion = KotlinVersion.KOTLIN_1_7
-        apiVersion = KotlinVersion.KOTLIN_1_7
-    }
-}
-----
-
-Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for details on which Kotlin version is embedded in each Gradle release.
-
-NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 6.8 and newer.
-
-==== Stale outputs outside the build directory are no longer deleted
-
-In previous versions of Gradle, class files located outside the build directory were deleted when considered stale. This was a special case for class files registered as outputs of a source set.
-
-Because this setup is uncommon and forced Gradle to eagerly realize all compile related tasks in every build, the behavior has been removed in Gradle 9.0.
-
-Gradle will continue to clean up stale outputs inside the build directory as needed.
-
-==== Scala plugins no longer create unresolvable configurations
-
-Previously, the Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information between projects.
-However, these configurations were unresolvable and could lead to errors in the `dependencies` report.
-
-As of Gradle 9.0, these configurations are no longer created or used by the Scala plugins.
+=== Packaging and Artifact Behavior Changes
 
 ==== Ear and War plugins build all artifacts with `assemble`
 
@@ -445,7 +480,7 @@ For example:
 This behavior has been removed in Gradle 9.0.
 Now, when multiple packaging plugins are applied, all related artifacts—EAR, WAR, and JAR—are included in the `archives` configuration.
 
-==== Gradle no longer implicitly builds certain artifacts when running `assemble`
+==== Gradle no longer implicitly builds certain artifacts during `assemble`
 
 In previous versions of Gradle, the `assemble` task would implicitly build artifacts from any configuration where the `visible` flag was not set to `false`.
 This behavior has been removed in Gradle 9.0.
@@ -553,6 +588,14 @@ configurations {
 =====
 ====
 
+==== Gradle Module Metadata can no longer be modified after an eagerly created publication is created from the same component
+
+This behavior previously caused a warning: `Gradle Module Metadata is modified after an eagerly populated publication.`
+
+It will now fail with an error, suggesting a review of the relevant documentation.
+
+=== Behavior Changes in Tasks
+
 ==== `test` task fails when no tests are discovered
 
 When test sources are present and no filters are applied, the `test` task will now fail with an error if it runs but doesn’t discover any tests.
@@ -567,7 +610,7 @@ This behavior can be disabled by setting the `failOnNoDiscoveredTests` property 
 .build.gradle.kts
 [source,kotlin]
 ----
-tasks.withType<Test>().configureEach {
+tasks.withType<AbstractTestTask>().configureEach {
     failOnNoDiscoveredTests = false
 }
 ----
@@ -577,63 +620,33 @@ tasks.withType<Test>().configureEach {
 .build.gradle
 [source,groovy]
 ----
-tasks.withType(Test).configureEach {
+tasks.withType(AbstractTestTask).configureEach {
     failOnNoDiscoveredTests = false
 }
 ----
 =====
 ====
 
-[[validate_plugins_without_java_toolchain_90]]
-==== `ValidatePlugins` task now requires Java Toolchains
+==== Scala plugins no longer create unresolvable configurations
 
-In Gradle 9.0, using the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] task without applying the <<toolchains.adoc#toolchains,Java Toolchains>> plugin will result in an error.
+Previously, the Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information between projects.
+However, these configurations were unresolvable and could lead to errors in the `dependencies` report.
 
-To fix this, explicitly apply the `jvm-toolchains` plugin:
+As of Gradle 9.0, these configurations are no longer created or used by the Scala plugins.
 
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("jvm-toolchains")
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id 'jvm-toolchains'
-}
-----
-=====
-====
+==== Stale outputs outside the build directory are no longer deleted
 
-TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
-If you are already applying one of those, no further action is needed.
+In previous versions of Gradle, class files located outside the build directory were deleted when considered stale. This was a special case for class files registered as outputs of a source set.
 
-==== The `model` and `component` tasks are no longer automatically added
+Because this setup is uncommon and forced Gradle to eagerly realize all compile related tasks in every build, the behavior has been removed in Gradle 9.0.
+
+Gradle will continue to clean up stale outputs inside the build directory as needed.
+
+==== `model` and `component` tasks are no longer automatically added
 
 The `model` and `component` tasks report on the structure of legacy software model objects configured for the project.
 Previously, these tasks were automatically added to the project for every build.
 These tasks are now only added to a project when a rule-based plugin is applied (such as those provided by Gradle's support for building native software).
-
-==== Methods on public API types have been made final
-
-The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(java.lang.Object)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] are now final, as required to have the `@SafeVarargs` annotation.
-
-While these type should not be inherited from, if you build logic or a plugin does it, the build will fail at runtime.
-
-==== Incubating API `ConfigurationVariant.getDescription` is now a `Property<String>`
-
-This method was added in Gradle 7.5 and was previously a `Optional<String>`. This property was not configurable by public APIs.
-
-By making the description a `Property<String>`, secondary variants have a user configurable description that appears in the <<variant_aware_resolution.adoc#outgoing_variants_report,`outgoingVariants` report>>.
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
@@ -2952,8 +2965,8 @@ The concept of conventions is outdated and superseded by <<implementing_gradle_p
 
 To reflect this in the Gradle API, the following elements are deprecated:
 
-- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[org.gradle.api.Project.getConvention()]
-- link:{javadocPath}/org/gradle/api/plugins/Convention.html[org.gradle.api.plugins.Convention]
+- `org.gradle.api.Project.getConvention()`
+- `org.gradle.api.plugins.Convention`
 - `org.gradle.api.internal.HasConvention`
 
 Gradle Core plugins still register their conventions in addition to their extensions for backwards compatibility.
@@ -3926,7 +3939,7 @@ This is done to reduce confusion about what such relative paths should resolve a
 [[task_convention]]
 ==== Calling `Task.getConvention()`, `Task.getExtensions()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getConvention--[Task.getConvention()], link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
+Calling `Task.getConvention()`, link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
 
 See the <<configuration_cache#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 

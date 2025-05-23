@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
-import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -1976,7 +1975,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         abstract boolean isDeprecated(ConfigurationInternal configuration);
 
         public static String buildProperName(ProperMethodUsage usage) {
-            return WordUtils.capitalizeFully(usage.name().replace('_', ' '));
+            @SuppressWarnings("deprecation")
+            String capitalizedName = org.apache.commons.lang3.text.WordUtils.capitalizeFully(usage.name().replace('_', ' '));
+            return capitalizedName;
         }
 
         public static String summarizeProperUsage(ProperMethodUsage... properUsages) {

@@ -21,8 +21,11 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
-import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
+import org.gradle.kotlin.dsl.accessors.PluginTree
+import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import javax.inject.Inject
 
@@ -36,8 +39,6 @@ interface ClassPathAware {
 
 
 interface SharedAccessorsPackageAware : ClassPathAware {
-    @get:Inject
-    val snapshotter: FileCollectionSnapshotter
 
     @get:Inject
     val classPathFingerprinter: ClasspathFingerprinter
@@ -48,30 +49,30 @@ internal
 fun <T> T.implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports
 ): List<String> where T : Task, T : SharedAccessorsPackageAware =
-    implicitImportsForPrecompiledScriptPlugins(implicitImports, snapshotter, classPathFingerprinter, classPathFiles)
-
-
-internal
-val <T> T.sharedAccessorsPackage: String where T : Task, T : SharedAccessorsPackageAware
-    get() = classPathFingerprinter.sharedAccessorsPackageFor(snapshotter, classPathFiles)
+    implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFiles)
 
 
 internal
 fun implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports,
-    snapshotter: FileCollectionSnapshotter,
-    classpathFingerprinter: ClasspathFingerprinter,
     classPathFiles: FileCollection
 ): List<String> {
-    return implicitImports.list + "${classpathFingerprinter.sharedAccessorsPackageFor(snapshotter, classPathFiles)}.*"
+    return implicitImports.list + "${sharedAccessorsPackageFor(pluginTreesFrom(classPathFiles))}.*"
 }
 
 
-private
-fun ClasspathFingerprinter.sharedAccessorsPackageFor(snapshotter: FileCollectionSnapshotter, classPathFiles: FileCollection): String {
-    val snapshot = snapshotter.snapshot(classPathFiles)
-    val fingerprintHash = fingerprint(snapshot, null).hash
-    return "$SHARED_ACCESSORS_PACKAGE_PREFIX${fingerprintHash}"
+internal
+fun sharedAccessorsPackageFor(pluginTrees: Map<String, PluginTree>): String {
+    fun hash(pluginTrees: Map<String, PluginTree>): HashCode {
+        val hasher = Hashing.newHasher()
+        pluginTrees.entries.forEach {
+            hasher.putString(it.key)
+            hasher.putInt(it.value.hashCode())
+        }
+        return hasher.hash()
+    }
+
+    return "$SHARED_ACCESSORS_PACKAGE_PREFIX${hash(pluginTrees)}"
 }
 
 

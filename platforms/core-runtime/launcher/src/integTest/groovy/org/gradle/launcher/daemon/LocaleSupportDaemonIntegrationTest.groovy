@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.apache.commons.lang.LocaleUtils
+import org.apache.commons.lang3.LocaleUtils
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions

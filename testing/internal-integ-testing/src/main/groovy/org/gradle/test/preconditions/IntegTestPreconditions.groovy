@@ -136,26 +136,6 @@ class IntegTestPreconditions {
     }
 
     /**
-     * A JVM that is not able to run the Gradle wrapper is available.
-     */
-    static class UnsupportedWrapperJavaHomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return !AvailableJavaHomes.unsupportedWrapperJdks.isEmpty()
-        }
-    }
-
-    /**
-     * A JVM that is not able to run a Gradle client is available.
-     */
-    static class UnsupportedClientJavaHomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return !AvailableJavaHomes.unsupportedClientJdks.isEmpty()
-        }
-    }
-
-    /**
      * A JVM that is not able to run a Gradle worker is available.
      */
     static class UnsupportedWorkerJavaHomeAvailable implements TestPrecondition {

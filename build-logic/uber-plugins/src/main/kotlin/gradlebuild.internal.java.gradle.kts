@@ -17,3 +17,7 @@
 plugins {
     id("gradlebuild.java-library")
 }
+
+jvmCompile {
+    targetJvmVersion = 8
+}

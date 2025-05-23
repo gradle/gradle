@@ -106,6 +106,7 @@ Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()> is 
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins.getCompilerOptions()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins.getSourceFiles()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins.getScriptFiles$kotlin_dsl_provider_plugins()> is not abstract
+Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders.getPluginEntries()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors.getRuntimeClassPathFiles()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors.getScriptFiles$kotlin_dsl_provider_plugins()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters.getScriptFiles$kotlin_dsl_provider_plugins()> is not abstract

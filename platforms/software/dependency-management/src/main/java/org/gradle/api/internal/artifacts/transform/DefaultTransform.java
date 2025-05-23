@@ -91,6 +91,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -415,7 +416,7 @@ public class DefaultTransform implements Transform {
 
     private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
-        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices);
+        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices, Collections.emptySet());
         services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
         return instanceFactory.newInstance(services);
     }

@@ -19,7 +19,7 @@ package org.gradle.util.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
 import org.jspecify.annotations.Nullable;

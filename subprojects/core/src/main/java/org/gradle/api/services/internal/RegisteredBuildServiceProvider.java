@@ -16,7 +16,6 @@
 
 package org.gradle.api.services.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -33,6 +32,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.function.Consumer;
 
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
@@ -173,8 +173,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return isolationScheme.servicesForImplementation(
             isolatedParameters,
             internalServices,
-            ImmutableList.of(),
-            serviceType -> false
+            Collections.emptySet()
         );
     }
 

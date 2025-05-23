@@ -40,7 +40,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
 
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
     testImplementation(testFixtures(projects.declarativeDslCore))
     testImplementation(testFixtures(projects.declarativeDslEvaluator))
 

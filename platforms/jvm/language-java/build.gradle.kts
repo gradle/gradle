@@ -4,7 +4,7 @@ plugins {
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
-gradleModule {
+jvmCompile {
     usesJdkInternals = true
 }
 
@@ -84,7 +84,7 @@ dependencies {
     }
 
     integTestImplementation(projects.messaging)
-    integTestImplementation(testFixtures(projects.buildProcessStartup))
+    integTestImplementation(testFixtures(projects.buildProcessServices))
 
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)

@@ -54,8 +54,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
     val commonsIo = "commons-io:commons-io"
-    val commonsLang = "commons-lang:commons-lang"
-    val commonsLang3 = "org.apache.commons:commons-lang3"
+    val commonsLang = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
@@ -201,8 +200,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val littleproxy = "xyz.rogfam:littleproxy"
     val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
-    val mockitoKotlin = "com.nhaarman:mockito-kotlin"
-    val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
+    val mockitoKotlin = "org.mockito.kotlin:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "com.mysql:mysql-connector-j"
     val netty = "io.netty:netty-all"
@@ -246,7 +244,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         commonsHttpclient to License.Apache2,
         commonsIo to License.Apache2,
         commonsLang to License.Apache2,
-        commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
         compileTesting to License.Apache2,
         configurationCacheReport to License.Apache2,

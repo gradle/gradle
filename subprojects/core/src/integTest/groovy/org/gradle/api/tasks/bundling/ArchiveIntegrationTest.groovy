@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.bundling
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.Copy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
