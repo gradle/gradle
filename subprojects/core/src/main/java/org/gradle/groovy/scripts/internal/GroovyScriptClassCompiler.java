@@ -394,6 +394,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             }
         }
 
+        @SuppressWarnings("UnnecessaryParentheses")
         private static boolean shouldAddScriptOrigin(int access) {
             return ((access & ACC_INTERFACE) == 0) && ((access & ACC_ANNOTATION) == 0);
         }

@@ -332,6 +332,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     private static class Arm64Architecture implements TargetPlatformConfiguration {
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && (targetPlatform.getOperatingSystem().isMacOsX()

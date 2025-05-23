@@ -27,6 +27,7 @@ errorprone {
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
         "UnusedMethod", // 34 occurrences
+        "AssignmentExpression", // 1 occurrences
     )
 }
 
@@ -82,7 +83,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
-    
+
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)

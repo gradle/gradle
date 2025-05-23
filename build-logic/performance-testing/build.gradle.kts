@@ -13,14 +13,10 @@ dependencies {
     implementation(projects.cleanup)
     implementation(projects.buildUpdateUtils)
 
-    implementation("org.openmbee.junit:junit-xml-parser") {
-        exclude(module = "lombok") // don't need it at runtime
-    }
     implementation("com.google.guava:guava")
     implementation("com.google.code.gson:gson")
     implementation("commons-io:commons-io")
-    implementation("javax.activation:activation")
-    implementation("javax.xml.bind:jaxb-api")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api")
     implementation("com.gradle:develocity-gradle-plugin")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -41,6 +37,7 @@ gradlePlugin {
 tasks.compileGroovy.configure {
     classpath = sourceSets.main.get().compileClasspath
 }
+
 tasks.compileKotlin.configure {
     libraries.from(files(tasks.compileGroovy))
 }

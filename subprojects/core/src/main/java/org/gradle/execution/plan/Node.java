@@ -245,6 +245,7 @@ public abstract class Node {
             || filtered;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     public boolean isSuccessful() {
         return filtered || (state == ExecutionState.EXECUTED && !isFailed());
     }
@@ -467,6 +468,7 @@ public abstract class Node {
      * @return true if the successor task was successful, or failed but a "recoverable" verification failure and this Node may continue execution; false otherwise
      * @see <a href="https://github.com/gradle/gradle/issues/18912">gradle/gradle#18912</a>
      */
+    @SuppressWarnings("UnnecessaryParentheses")
     public boolean shouldContinueExecution(Node dependency) {
         return dependency.isSuccessful() || (dependency.isVerificationFailure() && !dependsOnOutcome(dependency));
     }

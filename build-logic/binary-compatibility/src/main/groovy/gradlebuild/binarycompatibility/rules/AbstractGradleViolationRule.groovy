@@ -130,7 +130,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     Violation acceptOrReject(JApiCompatibility member, Violation rejection) {
-        List<String> changes = member.compatibilityChanges.collect { Violation.describe(it) }
+        List<String> changes = member.compatibilityChanges.collect { Violation.describe(it.type) }
         return acceptOrReject(member, changes, rejection)
     }
 

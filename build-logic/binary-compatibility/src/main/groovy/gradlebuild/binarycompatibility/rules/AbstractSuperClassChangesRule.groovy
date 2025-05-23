@@ -16,14 +16,15 @@
 
 package gradlebuild.binarycompatibility.rules
 
+import groovy.transform.CompileStatic
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
-import japicmp.util.Optional
 import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 
 import java.util.regex.Pattern
 
+@CompileStatic
 abstract class AbstractSuperClassChangesRule extends AbstractGradleViolationRule {
 
     private final List<Pattern> publicApiPatterns
