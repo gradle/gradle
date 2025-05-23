@@ -18,10 +18,13 @@ package org.gradle.kotlin.dsl.dcl
 
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import kotlin.test.Test
 
 @Suppress("FunctionNaming")
 class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
+    @Requires(IntegTestPreconditions.NotConfigCached::class)
     @Test
     fun `if DCL model types are deprecated, the Kotlin DSL accessors for them also get deprecated`() {
         withEcosystemAndPluginBuildInBuildLogic()
