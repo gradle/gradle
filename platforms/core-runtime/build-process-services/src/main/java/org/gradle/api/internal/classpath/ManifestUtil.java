@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.classpath;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -58,7 +59,7 @@ public class ManifestUtil {
                 uri = jarFile.toURI().resolve(uri);
                 manifestClasspath.add(uri);
             } catch (URISyntaxException e) {
-                throw new UncheckedIOException(new IOException(e));
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return manifestClasspath;
