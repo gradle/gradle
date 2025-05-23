@@ -64,9 +64,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     @Inject
-    public BuildStateRegistry getBuildStateRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildStateRegistry getBuildStateRegistry();
 
     @Inject
     protected abstract SoftwareTypeRegistry getSoftwareTypeRegistry();

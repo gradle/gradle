@@ -94,19 +94,13 @@ public abstract class ShowToolchainsTask extends DefaultTask {
     }
 
     @Inject
-    protected JavaInstallationRegistry getInstallationRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaInstallationRegistry getInstallationRegistry();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 
     @Inject
     protected abstract ToolchainConfiguration getToolchainConfiguration();

@@ -76,9 +76,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Instantiator getInstantiator();
 
     /**
      * Collection of execution data files to analyze.

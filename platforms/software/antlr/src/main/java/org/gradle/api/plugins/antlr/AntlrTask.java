@@ -205,14 +205,10 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     @Inject
-    protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract WorkerProcessFactory getWorkerProcessBuilderFactory();
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     /**
      * Generate the parsers.
@@ -352,7 +348,5 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 }
