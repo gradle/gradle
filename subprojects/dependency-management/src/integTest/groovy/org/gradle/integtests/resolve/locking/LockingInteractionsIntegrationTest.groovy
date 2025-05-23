@@ -491,10 +491,14 @@ task resolve {
         mavenHttpRepo.module('org', 'foo', '1.1').publish()
         mavenHttpRepo.module('org', 'foo', '2.0').publish()
         def bar10 = mavenHttpRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.0,2.0)').publish()
+        def bar21 = mavenHttpRepo.module('org', 'bar', '2.1').dependsOn('org', 'foo', '[1.0,2.0)').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'], false)
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:2.1', 'org:foo:1.0'], false)
 
         buildFile << """
+plugins {
+    id 'jvm-ecosystem' // We need variant derivation to illustrate #33593
+}
 dependencyLocking {
     lockAllConfigurations()
 }
@@ -506,7 +510,11 @@ repositories {
     }
 }
 configurations {
-    lockedConf
+    lockedConf {
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY)) // We need request attributes to illustrate #33593
+        }
+    }
 }
 
 dependencies {
@@ -515,7 +523,8 @@ dependencies {
 """
         when:
         foo10.pom.expectGet()
-        bar10.pom.expectGet()
+        bar21.rootMetaData.expectGet()
+        bar21.pom.expectGet()
 
         then:
         succeeds 'dependencies'
