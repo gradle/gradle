@@ -46,6 +46,7 @@ dependencies {
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.serviceLookup)
     implementation(projects.wrapperShared)
+    implementation(projects.resources)
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
