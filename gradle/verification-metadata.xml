@@ -171,6 +171,7 @@
          <trusted-key id="70cd19bfd9f6c330027d6f260315bfb7970a144f" group="com.sun.xml.bind"/>
          <trusted-key id="7616eb882daf57a11477aaf559a252fb1199d873" group="com.google.code.findbugs"/>
          <trusted-key id="76e94e8ff0ab5af3b6f8366972fefd1572eb75e1" group="org.spockframework"/>
+         <trusted-key id="7b79add11f8a779fe90fd3d0893a028475557671" group="com.gradle"/>
          <trusted-key id="7c669810892cbd3148fa92995b05ccde140c2876" group="org.eclipse.jgit" name="org.eclipse.jgit"/>
          <trusted-key id="7faa0f2206de228f0db01ad741321490758aad6f" group="org.codehaus.groovy"/>
          <trusted-key id="829d279ba9a3c503eb98a0e53c48f45a0e97af7e" group="org.gebish"/>
@@ -1298,7 +1299,7 @@
       </component>
       <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.22">
          <artifact name="gradle-guides-plugin-0.22.jar">
-            <sha256 value="d6609bba9739659fb2cff4d3750ae97cabc4df4b1ffe7ca3211bc39517efadfb" origin="Verified" reason="Artifact is not signed"/>
+            <sha256 value="d6609bba9739659fb2cff4d3750ae97cabc4df4b1ffe7ca3211bc39517efadfb" origin="Verified"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-conventions" version="0.8.0">
