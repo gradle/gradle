@@ -314,3 +314,4 @@ tasks.compileTestGroovy {
 }
 
 testFilesCleanup.reportOnly = true
+jvmCompile.usesFutureStdlib = true
