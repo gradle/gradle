@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.Task
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
@@ -51,6 +52,8 @@ import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.TaskInternal
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
@@ -111,7 +114,7 @@ class ConfigurationCacheProblems(
     val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
-    val degradationReasons = mutableMapOf<PropertyTrace, List<String>>()
+    val degradationReasons = mutableMapOf<Task, List<String>>()
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -176,9 +179,10 @@ class ConfigurationCacheProblems(
         }
     }
 
-    override fun forTask(trace: PropertyTrace): ProblemsListener {
-        val taskDegradationReasons = degradationReasons.getOrDefault(trace, Collections.emptyList())
+    override fun forTask(task: Task): ProblemsListener {
+        val taskDegradationReasons = degradationReasons.getOrDefault(task, Collections.emptyList())
         return if (taskDegradationReasons.isNotEmpty()) {
+            val trace = locationForTask(task)
             val notSeenBefore = incompatibleTasks.add(trace)
             if (notSeenBefore) {
                 // this method is invoked whenever a problem listener is needed in the context of an incompatible task,
@@ -380,8 +384,10 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun degradationSummary() =
-        " because degradation was requested by:\n${degradationReasons.entries.joinToString("\n") { "- ${it.key.render()}" }}"
+    fun degradationSummary(): String {
+        val degradationLocations = degradationReasons.keys.map { locationForTask(it) }
+        return " because degradation was requested by:\n${degradationLocations.joinToString("\n") { "- ${it.render()}" }}"
+    }
 
     private
     fun incompatibleTasksSummary() = when {
@@ -419,4 +425,7 @@ class ConfigurationCacheProblems(
         degradationReasons.putAll((degradationController as DefaultConfigurationCacheDegradationController).currentDegradationReasons)
         return degradationReasons.isNotEmpty()
     }
+
+    private
+    fun locationForTask(task: Task) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
+import org.gradle.api.Task
 
 interface ProblemsListener {
 
@@ -25,7 +26,7 @@ interface ProblemsListener {
 
     fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener
 
-    fun forTask(trace: PropertyTrace) : ProblemsListener
+    fun forTask(task: Task) : ProblemsListener
 }
 
 
