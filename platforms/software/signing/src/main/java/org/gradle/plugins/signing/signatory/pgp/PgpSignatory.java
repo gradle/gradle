@@ -32,7 +32,6 @@ import org.gradle.plugins.signing.signatory.SignatorySupport;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 
 /**
  * PGP signatory from PGP key and password.
@@ -68,7 +67,7 @@ public class PgpSignatory extends SignatorySupport {
             PGPSignature signature = generator.generate();
             writeSignatureTo(signatureDestination, signature);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } catch (PGPException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

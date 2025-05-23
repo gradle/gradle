@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableReference;
+import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -29,7 +30,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -133,7 +133,7 @@ public class GeneratedSingletonFileTreeTest {
             try {
                 outputStream.write("content".getBytes());
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }

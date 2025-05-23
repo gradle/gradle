@@ -38,7 +38,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectStreamException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -329,7 +328,7 @@ public class TestFile extends File {
                 try {
                     FileUtils.copyURLToFile(resource, testFile);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });
@@ -502,7 +501,7 @@ public class TestFile extends File {
         try {
             return Hashing.hashFile(file);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -515,14 +514,14 @@ public class TestFile extends File {
             try {
                 Files.delete(toPath());
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         try {
             getParentFile().mkdirs();
             Files.createSymbolicLink(this.toPath(), target.toPath());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         clearCanonCaches();
         return this;
@@ -544,7 +543,7 @@ public class TestFile extends File {
         try {
             File.createTempFile("doesnt", "matter").delete();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

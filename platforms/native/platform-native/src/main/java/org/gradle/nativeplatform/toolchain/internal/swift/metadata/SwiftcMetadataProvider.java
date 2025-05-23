@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.swift.metadata;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.UncheckedException;
 import org.gradle.nativeplatform.toolchain.internal.metadata.AbstractMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.process.internal.ExecActionFactory;
@@ -26,7 +27,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.UncheckedIOException;
 import java.util.List;
 
 public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetadata> {
@@ -78,7 +78,7 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
             throw new BrokenResultException(String.format("Could not determine %s metadata: %s produced unexpected output.", getCompilerType().getDescription(), swiftc.getName()));
         } catch (IOException e) {
             // Should not happen when reading from a StringReader
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

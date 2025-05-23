@@ -15,11 +15,12 @@
  */
 package org.gradle.internal.hash;
 
+import org.gradle.internal.UncheckedException;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 
 class ChecksumHasher implements FileHasher {
 
@@ -42,7 +43,7 @@ class ChecksumHasher implements FileHasher {
             }
             return hasher.hash();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

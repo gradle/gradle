@@ -16,8 +16,9 @@
 
 package org.gradle.internal.io;
 
+import org.gradle.internal.UncheckedException;
+
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.function.Predicate;
 
 public interface IoPredicate<T> {
@@ -28,7 +29,7 @@ public interface IoPredicate<T> {
             try {
                 return predicate.test(t);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }

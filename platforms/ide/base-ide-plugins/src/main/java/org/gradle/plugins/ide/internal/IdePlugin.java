@@ -29,6 +29,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
@@ -38,7 +39,6 @@ import javax.inject.Inject;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 public abstract class IdePlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(IdePlugin.class);
@@ -205,7 +205,7 @@ public abstract class IdePlugin implements Plugin<Project> {
                             try {
                                 Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());
                             } catch (IOException e) {
-                                throw new UncheckedIOException(e);
+                                throw UncheckedException.throwAsUncheckedException(e);
                             }
                         }
                     }

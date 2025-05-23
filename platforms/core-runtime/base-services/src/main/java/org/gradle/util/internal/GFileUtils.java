@@ -59,7 +59,7 @@ public class GFileUtils {
                 touchExisting(file);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -98,7 +98,7 @@ public class GFileUtils {
         try {
             FileUtils.moveFile(source, destination);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -118,7 +118,7 @@ public class GFileUtils {
         try {
             FileUtils.copyFile(source, destination);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -126,7 +126,7 @@ public class GFileUtils {
         try {
             FileUtils.copyDirectory(source, destination);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -134,7 +134,7 @@ public class GFileUtils {
         try {
             FileUtils.moveDirectory(source, destination);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -153,7 +153,7 @@ public class GFileUtils {
         try {
             return FileUtils.readFileToString(file, encoding);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -180,7 +180,7 @@ public class GFileUtils {
         try {
             FileUtils.writeStringToFile(destination, content, encoding);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -200,7 +200,7 @@ public class GFileUtils {
         try {
             FileUtils.copyURLToFile(source, destination);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -208,7 +208,7 @@ public class GFileUtils {
         try {
             FileUtils.deleteDirectory(directory);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -220,7 +220,7 @@ public class GFileUtils {
         try {
             FileUtils.forceDelete(file);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -228,7 +228,7 @@ public class GFileUtils {
         try {
             return FileUtils.checksum(file, checksum);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

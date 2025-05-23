@@ -21,10 +21,10 @@ import com.dd.plist.XMLPropertyListWriter;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 
 public class PropertyListTransformer<T extends NSObject> implements Transformer<T, T> {
     private final MutableActionSet<T> actions = new MutableActionSet<T>();
@@ -58,7 +58,7 @@ public class PropertyListTransformer<T extends NSObject> implements Transformer<
         try {
             XMLPropertyListWriter.write(doTransform(original), destination);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

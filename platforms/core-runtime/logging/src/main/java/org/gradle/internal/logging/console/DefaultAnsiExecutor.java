@@ -18,12 +18,12 @@ package org.gradle.internal.logging.console;
 
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 public class DefaultAnsiExecutor implements AnsiExecutor {
     private final Appendable target;
@@ -105,7 +105,7 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         try {
             target.append(ansi.toString());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

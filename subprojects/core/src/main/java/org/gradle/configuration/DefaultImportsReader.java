@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.LineProcessor;
 import com.google.common.io.Resources;
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
@@ -46,7 +46,7 @@ public class DefaultImportsReader implements ImportsReader {
             this.importPackages = generateImportPackages(url);
             this.simpleNameToFQCN = generateSimpleNameToFQCN();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

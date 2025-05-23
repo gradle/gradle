@@ -21,13 +21,13 @@ import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListene
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.VerificationException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.time.Instant;
 
@@ -84,7 +84,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         try {
             testResultWriter.close();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         boolean rootTestFailed = failureMessage != null;

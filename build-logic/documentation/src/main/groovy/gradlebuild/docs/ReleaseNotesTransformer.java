@@ -18,6 +18,7 @@ package gradlebuild.docs;
 
 import com.google.common.io.CharStreams;
 import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.DocumentType;
@@ -32,7 +33,6 @@ import java.io.FilterReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -178,7 +178,7 @@ public class ReleaseNotesTransformer extends FilterReader {
         try (FileReader reader = new FileReader(file)) {
             element.append(open + CharStreams.toString(reader) + close);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

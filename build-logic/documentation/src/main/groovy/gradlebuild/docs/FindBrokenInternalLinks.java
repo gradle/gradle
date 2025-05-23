@@ -28,6 +28,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,7 +36,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,7 +134,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 fw.println(message);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         throw new GradleException("Documentation assertion failed: found invalid internal links. See " + new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile));
     }
@@ -166,7 +166,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 line = br.readLine();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         if (!errorsForFile.isEmpty()) {
@@ -233,7 +233,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 line = br.readLine();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         if (!errorsForFile.isEmpty()) {
@@ -286,7 +286,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 line = br.readLine();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         if (!errorsForFile.isEmpty()) {

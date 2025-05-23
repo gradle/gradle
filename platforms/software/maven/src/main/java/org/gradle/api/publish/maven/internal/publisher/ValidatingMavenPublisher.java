@@ -25,11 +25,11 @@ import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,7 +81,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
                     "POM file is invalid. Check any modifications you have made to the POM file.",
                     parseException);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 

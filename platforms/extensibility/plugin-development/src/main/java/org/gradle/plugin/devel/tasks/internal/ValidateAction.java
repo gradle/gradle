@@ -34,6 +34,7 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.util.internal.TextUtil;
@@ -47,7 +48,6 @@ import org.objectweb.asm.Opcodes;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -217,7 +217,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             try {
                 return new ClassReader(Files.asByteSource(fileDetails.getFile()).read());
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

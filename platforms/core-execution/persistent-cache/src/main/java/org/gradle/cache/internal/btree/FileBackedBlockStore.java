@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.io.UncheckedIOException;
 
 public class FileBackedBlockStore implements BlockStore {
     private final File cacheFile;
@@ -57,7 +56,7 @@ public class FileBackedBlockStore implements BlockStore {
                 runnable.run();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -78,7 +77,7 @@ public class FileBackedBlockStore implements BlockStore {
         try {
             file.close();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -88,7 +87,7 @@ public class FileBackedBlockStore implements BlockStore {
             file.setLength(0);
             currentFileSize = 0;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         nextBlock = 0;
     }

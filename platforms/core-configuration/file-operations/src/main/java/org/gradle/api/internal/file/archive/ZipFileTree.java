@@ -26,13 +26,13 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
@@ -168,7 +168,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
             try {
                 return zip.getInputStream(entry);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 

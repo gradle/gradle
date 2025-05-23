@@ -41,7 +41,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.security.Security;
 import java.util.ArrayList;
@@ -69,7 +68,7 @@ public class SecuritySupport {
                 signature.update(buffer, 0, len);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         return signature.verify();
     }

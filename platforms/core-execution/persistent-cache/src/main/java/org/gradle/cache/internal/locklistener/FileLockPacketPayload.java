@@ -17,6 +17,7 @@
 package org.gradle.cache.internal.locklistener;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.UncheckedException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -76,7 +77,7 @@ public class FileLockPacketPayload {
             return new FileLockPacketPayload(lockId, type);
         } catch (IOException e) {
             // This should never happen as we are reading from a byte array
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

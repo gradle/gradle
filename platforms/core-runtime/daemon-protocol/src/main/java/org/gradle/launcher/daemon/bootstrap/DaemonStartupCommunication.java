@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
@@ -37,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.UncheckedIOException;
 
 public class DaemonStartupCommunication {
 
@@ -58,7 +58,7 @@ public class DaemonStartupCommunication {
             new MultiChoiceAddressSerializer().write(encoder, multiChoiceAddress);
             encoder.writeString(daemonLog.getPath());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         target.println(byteArrayOutputStream.toString());
 
@@ -86,7 +86,7 @@ public class DaemonStartupCommunication {
             File daemonLog = new File(decoder.readString());
             return new DaemonStartupInfo(uid, address, new DaemonDiagnostics(daemonLog, pid));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

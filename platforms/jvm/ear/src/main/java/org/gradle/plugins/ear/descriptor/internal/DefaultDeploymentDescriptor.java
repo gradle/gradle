@@ -40,7 +40,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -241,7 +240,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             readFrom(reader);
             return true;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -333,9 +332,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                         break;
                 }
             }
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        } catch (SAXException ex) {
+        } catch (IOException | SAXException ex) {
             throw UncheckedException.throwAsUncheckedException(ex);
         } finally {
             IoActions.closeQuietly(reader);

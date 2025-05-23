@@ -17,13 +17,13 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.file.Directory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,7 +63,7 @@ public class VersionCatalogGenerator {
                 needsSeparatorLine = section.write(writer, needsSeparatorLine);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

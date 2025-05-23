@@ -83,7 +83,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -312,7 +311,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
                 output.putNextEntry(new JarEntry("META-INF/"));
                 output.closeEntry();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             } finally {
                 IoActions.closeQuietly(output);
             }

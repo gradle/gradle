@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
@@ -34,7 +35,6 @@ import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 
 @NullMarked
@@ -93,7 +93,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         try {
             return new SerializableTestResultStore(binaryResultsDir).openWriter();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

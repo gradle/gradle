@@ -72,7 +72,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -287,7 +286,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 try {
                     DependencyVerificationsXmlReader.readFromXml(new FileInputStream(previous), verificationsBuilder);
                 } catch (FileNotFoundException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 return;
             }
@@ -297,7 +296,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             try {
                 DependencyVerificationsXmlReader.readFromXml(new FileInputStream(verificationFile), verificationsBuilder);
             } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

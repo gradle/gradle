@@ -105,10 +105,7 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
-                throw new UncheckedIOException(
-                    format("Failed to create receipt for instrumented classpath file '%s/%s'.", destDirName, destFileName),
-                    e
-                );
+                throw new UncheckedIOException(format("Failed to create receipt for instrumented classpath file '%s/%s'.", destDirName, destFileName), e);
             }
             return transformed;
         } finally {
