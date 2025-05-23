@@ -65,7 +65,7 @@ public class DefaultTestFailure extends TestFailure {
 
     public static TestFailure fromTestAssumptionFailure(Throwable failure) {
         TestFailureDetails details = new AssumptionFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
-        return new DefaultTestFailure(failure, details, Collections.<TestFailure>emptyList());
+        return new DefaultTestFailure(failure, details, Collections.emptyList());
     }
 
     public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes) {
@@ -79,7 +79,7 @@ public class DefaultTestFailure extends TestFailure {
     }
 
     public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
-        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        TestFailureDetails details = new TestFrameworkFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
         return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
