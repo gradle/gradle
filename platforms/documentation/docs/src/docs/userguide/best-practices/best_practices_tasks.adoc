@@ -159,14 +159,14 @@ NOTE: Tasks with no group are hidden from the <<command_line_interface.adoc#sec:
 Tasks without a group appear under the "other" category in `gradle tasks --all` output, making them harder to locate:
 
 ====
-include::sample[dir="snippets/bestPractices/groupTasks/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/groupTasks/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/groupTasks-avoid/kotlin",files="app/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/groupTasks-avoid/groovy",files="app/build.gradle[tags=avoid-this]"]
 ====
 
 [source,text]
 ----
-$ gradlew tasks --all
-include::{snippetsPath}/bestPractices/groupTasks/tests/groupTasks.bad.out[]
+$ gradlew :app:tasks --all
+include::{snippetsPath}/bestPractices/groupTasks-avoid/tests/groupTasks.bad.out[]
 ----
 
 ==== Do this Instead
@@ -174,14 +174,14 @@ include::{snippetsPath}/bestPractices/groupTasks/tests/groupTasks.bad.out[]
 When defining custom tasks, always assign a clear `group` and `description`:
 
 ====
-include::sample[dir="snippets/bestPractices/groupTasks/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/groupTasks/groovy/do-this",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/groupTasks-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/groupTasks-do/groovy",files="app/build.gradle[tags=do-this]"]
 ====
 
 [source,text]
 ----
-$ gradlew tasks --all
-include::{snippetsPath}/bestPractices/groupTasks/tests/groupTasks.good.out[]
+$ gradlew :app:tasks --all
+include::{snippetsPath}/bestPractices/groupTasks-do/tests/groupTasks.good.out[]
 ----
 
 === References
