@@ -44,7 +44,7 @@ import java.util.Set;
 public class ReleaseNotesTransformer extends FilterReader {
     private File baseCss;
     private File releaseNotesCss;
-    private File releaseNotesJavascript;
+    private Set<File> javascriptFiles;
     private Set<File> jqueryFiles;
 
     public ReleaseNotesTransformer(Reader original) {
@@ -71,7 +71,7 @@ public class ReleaseNotesTransformer extends FilterReader {
     }
 
     private Reader transform(Reader in) throws IOException {
-        if (jqueryFiles == null || releaseNotesJavascript == null || baseCss == null || releaseNotesCss == null) {
+        if (jqueryFiles == null || javascriptFiles == null || baseCss == null || releaseNotesCss == null) {
             throw new GradleException("filter isn't ready to transform");
         }
 
@@ -166,7 +166,9 @@ public class ReleaseNotesTransformer extends FilterReader {
         for (File jquery : this.jqueryFiles) {
             appendFileContentsTo(document.head(), "<script type='text/javascript'>", jquery, "</script>");
         }
-        appendFileContentsTo(document.head(), "<script type='text/javascript'>", releaseNotesJavascript, "</script>");
+        for (File javascript : this.javascriptFiles) {
+            appendFileContentsTo(document.head(), "<script type='text/javascript'>", javascript, "</script>");
+        }
     }
 
     private void addCssToHead(Document document) {
@@ -272,7 +274,7 @@ public class ReleaseNotesTransformer extends FilterReader {
         this.releaseNotesCss = releaseNotesCss;
     }
 
-    public void setReleaseNotesJavascript(File releaseNotesJavascript) {
-        this.releaseNotesJavascript = releaseNotesJavascript;
+    public void setJavascriptFiles(Set<File> javascriptFiles) {
+        this.javascriptFiles = javascriptFiles;
     }
 }
