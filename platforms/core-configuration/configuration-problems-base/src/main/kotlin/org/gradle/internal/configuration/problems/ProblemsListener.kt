@@ -16,6 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
+import org.gradle.api.Task
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
 
@@ -28,6 +29,8 @@ interface ProblemsListener {
     fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
 
     fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener
+
+    fun forTask(task: Task) : ProblemsListener
 }
 
 
