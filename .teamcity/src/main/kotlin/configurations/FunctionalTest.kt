@@ -1,5 +1,8 @@
 package configurations
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import model.CIBuildModel
@@ -20,7 +23,7 @@ class FunctionalTest(
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
     extraBuildSteps: BuildSteps.() -> Unit = {},
-    preBuildSteps: BuildSteps.() -> Unit = {}
+    preBuildSteps: BuildSteps.() -> Unit = {},
 ) : BaseGradleBuildType(stage = stage, init = {
     this.name = name
     this.description = description
@@ -36,7 +39,9 @@ class FunctionalTest(
     }
 
     applyTestDefaults(
-        model, this, testTasks,
+        model,
+        this,
+        testTasks,
         dependsOnQuickFeedbackLinux = !testCoverage.withoutDependencies && stage.stageName > StageName.PULL_REQUEST_FEEDBACK,
         os = testCoverage.os,
         buildJvm = testCoverage.buildJvm,
@@ -49,7 +54,7 @@ class FunctionalTest(
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
         timeout = testCoverage.testType.timeout,
         extraSteps = extraBuildSteps,
-        preSteps = preBuildSteps
+        preSteps = preBuildSteps,
     )
 
     failureConditions {
