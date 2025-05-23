@@ -26,10 +26,16 @@ public class DefaultUserCodeSource implements UserCodeSource {
 
     private final DisplayName displayName;
     private final String pluginId;
+    private final String configurationCacheIncompatibilityReason;
 
-    public DefaultUserCodeSource(DisplayName displayName, @Nullable String pluginId) {
+    public DefaultUserCodeSource(
+        DisplayName displayName,
+        @Nullable String pluginId,
+        @Nullable String configurationCacheIncompatibilityReason
+    ) {
         this.displayName = displayName;
         this.pluginId = pluginId;
+        this.configurationCacheIncompatibilityReason = configurationCacheIncompatibilityReason;
     }
 
     @Override
@@ -41,5 +47,11 @@ public class DefaultUserCodeSource implements UserCodeSource {
     @Override
     public String getPluginId() {
         return pluginId;
+    }
+
+    @Nullable
+    @Override
+    public String getConfigurationCacheIncompatibilityReason() {
+        return configurationCacheIncompatibilityReason;
     }
 }

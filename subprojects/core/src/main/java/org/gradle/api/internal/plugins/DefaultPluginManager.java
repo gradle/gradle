@@ -26,6 +26,7 @@ import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginInstantiationException;
+import org.gradle.api.plugins.PluginNotCompatibleWithConfigurationCache;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
@@ -157,6 +158,12 @@ public class DefaultPluginManager implements PluginManagerInternal {
         PluginId pluginId = plugin.getPluginId();
         final String pluginIdStr = pluginId == null ? null : pluginId.toString();
         final Class<?> pluginClass = plugin.asClass();
+        boolean isConfigurationCacheIncompatibilityDeclared =
+            pluginClass.isAnnotationPresent(PluginNotCompatibleWithConfigurationCache.class);
+        String configurationCacheIncompatibilityReason =
+            isConfigurationCacheIncompatibilityDeclared
+                ? pluginClass.getAnnotation(PluginNotCompatibleWithConfigurationCache.class).because()
+                : null;
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(pluginClass.getClassLoader());
@@ -165,7 +172,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             } else {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
-                    UserCodeSource source = new DefaultUserCodeSource(plugin.getDisplayName(), pluginIdStr);
+                    UserCodeSource source = new DefaultUserCodeSource(plugin.getDisplayName(), pluginIdStr, configurationCacheIncompatibilityReason);
                     userCodeApplicationContext.apply(source, userCodeApplicationId ->
                         buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId)));
                 }

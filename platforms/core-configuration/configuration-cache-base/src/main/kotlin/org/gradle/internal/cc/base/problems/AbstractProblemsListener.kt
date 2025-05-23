@@ -40,4 +40,6 @@ abstract class AbstractProblemsListener : ProblemsListener {
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
+
+    override fun forIncompatiblePlugin(trace: PropertyTrace, reason: String): ProblemsListener = this
 }

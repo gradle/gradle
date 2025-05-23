@@ -33,4 +33,7 @@ public interface UserCodeSource {
      */
     @Nullable
     String getPluginId();
+
+    @Nullable
+    String getConfigurationCacheIncompatibilityReason();
 }
