@@ -17,6 +17,8 @@
 package org.gradle.testing.fixture
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.VersionCoverage
 import org.gradle.util.internal.VersionNumber
 
@@ -26,7 +28,8 @@ class GroovyCoverage {
     private static final String[] FUTURE = []
 
     static final Set<String> SUPPORTED_BY_JDK
-
+    static final Map<String, Jvm> ALL_VERSIONS_JVMS
+    static final Set<String> ALL_VERSIONS
     static final Set<String> SUPPORTS_GROOVYDOC
     static final Set<String> SUPPORTS_INDY
     static final Set<String> SUPPORTS_TIMESTAMP
@@ -41,13 +44,15 @@ class GroovyCoverage {
     static final String CURRENT_STABLE
 
     static {
+        ALL_VERSIONS_JVMS = groovyVersionsSupportedByAvailableJdks(allVersions())
+        ALL_VERSIONS = ALL_VERSIONS_JVMS.keySet()
         SUPPORTED_BY_JDK = groovyVersionsSupportedByJdk(JavaVersion.current())
         SUPPORTS_GROOVYDOC = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "1.6.9")
         // Indy compilation doesn't work in 2.2.2 and before
         SUPPORTS_INDY = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.3.0")
         SUPPORTS_TIMESTAMP = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.4.6")
-        SUPPORTS_PARAMETERS = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.5.0")
-        SUPPORTS_DISABLING_AST_TRANSFORMATIONS = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.0.0")
+        SUPPORTS_PARAMETERS = VersionCoverage.versionsAtLeast(allVersions(), "2.5.0")
+        SUPPORTS_DISABLING_AST_TRANSFORMATIONS = VersionCoverage.versionsAtLeast(allVersions(), "2.0.0")
         SINCE_3_0 = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "3.0.0")
         SINCE_4_0 = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "4.0.0")
         CURRENT_STABLE = isCurrentGroovyVersionStable()
@@ -72,7 +77,7 @@ class GroovyCoverage {
         throw new IllegalArgumentException("Computing effective target for Groovy version $groovyVersion is not supported")
     }
 
-    private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
+    private static Set<String> allVersions() {
         def allVersions = [*PREVIOUS]
 
         // Only test current Groovy version if it isn't a SNAPSHOT
@@ -81,6 +86,11 @@ class GroovyCoverage {
         }
 
         allVersions.addAll(FUTURE)
+        return allVersions
+    }
+
+    private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
+        def allVersions = allVersions()
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
             return VersionCoverage.versionsAtLeast(allVersions, '3.0.24')
@@ -94,7 +104,42 @@ class GroovyCoverage {
         }
     }
 
+    static Map<String, Jvm> groovyVersionsSupportedByAvailableJdks(Set<String> groovyVersions) {
+        def availableJvms = AvailableJavaHomes.allJdkVersions.findAll { it.jdk }
+        // Create a list of all locally available JDKs and their supported Groovy versions
+        def jvmToGroovySupport = availableJvms.collect {jvm ->
+                def javaVersion = jvm.javaVersion
+                def supportedGroovyVersions = groovyVersionsSupportedByJdk(javaVersion)
+                return new JvmToGroovySupport(jvm, supportedGroovyVersions)
+            }.sort { a, b ->
+                // Sort by Java version descending
+                return b.jvm.javaVersion.compareTo(a.jvm.javaVersion)
+            }
+
+        // For each Groovy version, find the highest supported JDK
+        return groovyVersions.collectEntries {groovyVersion ->
+                def highestSupportedJvm = jvmToGroovySupport.find { it.supports(groovyVersion) }.jvm
+                return  [(groovyVersion): highestSupportedJvm]
+            }.toSorted { a, b ->
+                return VersionNumber.parse(b.key).compareTo(VersionNumber.parse(a.key))
+            }
+    }
+
     private static boolean isCurrentGroovyVersionStable() {
         !GroovySystem.version.endsWith("-SNAPSHOT")
+    }
+
+    static class JvmToGroovySupport {
+        final Jvm jvm
+        final Set<String> supportedGroovyVersions
+
+        JvmToGroovySupport(Jvm jvm, Set<String> supportedGroovyVersions) {
+            this.jvm = jvm
+            this.supportedGroovyVersions = supportedGroovyVersions
+        }
+
+        boolean supports(String groovyVersion) {
+            return groovyVersion in supportedGroovyVersions
+        }
     }
 }
