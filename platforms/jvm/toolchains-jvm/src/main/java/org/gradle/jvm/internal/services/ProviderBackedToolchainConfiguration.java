@@ -24,6 +24,7 @@ import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupp
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -133,5 +134,10 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
             return new File(asdfEnvVar);
         }
         return new File(systemProperties.getUserHome(), ".sdkman/candidates");
+    }
+
+    @Override
+    public @Nullable String getEnvironmentVariableValue(String variableName) {
+        return providerFactory.environmentVariable(variableName).getOrNull();
     }
 }
