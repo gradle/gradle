@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
@@ -158,8 +157,7 @@ block2.mustRunAfter blueThings
      * we run transform in temporary directory and we then use atomic move to move it to the final location.
      * Due to that we can have multiple builds running the same transform at the same time, but we will always have just one result in the final cache location.
      */
-    @ToBeImplemented
-    def "file is transformed once only by concurrent builds"() {
+    def "concurrent builds can transform the same file at the same time"() {
         given:
         // Run two builds concurrently
         setupTransform("${server.callFromBuildUsingExpression("parameters.color.get()")}")
@@ -195,7 +193,6 @@ blueThings.mustRunAfter redThings
         // Resolve concurrently
         block.waitForAllPendingCalls()
         block.releaseAll()
-        // When implemented we will need to remove redBlock and blueBlock calls
         redBlock.waitForAllPendingCalls()
         redBlock.releaseAll()
         blueBlock.waitForAllPendingCalls()
@@ -205,9 +202,11 @@ blueThings.mustRunAfter redThings
         def result2 = build2.waitForFinish()
 
         then:
-        // When implemented we should have just 2 transforms in total instead of 4, and 1 transform for each color instead of 2
-        result1.output.count("Transforming") + result2.output.count("Transforming") == 4
-        result1.output.count("Transforming thing.jar to Red") + result2.output.count("Transforming thing.jar to Red") == 2
-        result1.output.count("Transforming thing.jar to Blue") + result2.output.count("Transforming thing.jar to Blue") == 2
+        result1.output.count("Transforming") == 2
+        result2.output.count("Transforming") == 2
+        result1.output.count("Transforming thing.jar to Red") == 1
+        result2.output.count("Transforming thing.jar to Red") == 1
+        result1.output.count("Transforming thing.jar to Blue") == 1
+        result2.output.count("Transforming thing.jar to Blue") == 1
     }
 }
