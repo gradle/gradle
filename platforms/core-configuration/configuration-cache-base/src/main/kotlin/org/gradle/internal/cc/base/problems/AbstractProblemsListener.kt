@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.base.problems
 
+import org.gradle.api.Task
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
@@ -41,5 +42,5 @@ abstract class AbstractProblemsListener : ProblemsListener {
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
 
-    override fun forTask(trace: PropertyTrace): ProblemsListener = this
+    override fun forTask(task: Task): ProblemsListener = this
 }

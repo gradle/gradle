@@ -150,7 +150,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         val trace = locationForTask(task)
         return when {
             !task.isCompatibleWithConfigurationCache -> problems.forIncompatibleTask(trace, task.reasonTaskIsIncompatibleWithConfigurationCache.get())
-            else -> problems.forTask(trace)
+            else -> problems.forTask(task)
         }
     }
 
