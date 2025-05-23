@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -24,6 +25,7 @@ class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutio
 
     def setup() {
         settingsFile << "rootProject.name = 'locking-interactions'"
+        new ResolveTestFixture(buildFile, "lockedConf").addDefaultVariantDerivationStrategy()
     }
 
     def 'locking constraints do not bring back excluded modules'() {
@@ -491,8 +493,9 @@ task resolve {
         mavenHttpRepo.module('org', 'foo', '1.1').publish()
         mavenHttpRepo.module('org', 'foo', '2.0').publish()
         def bar10 = mavenHttpRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.0,2.0)').publish()
+        def bar21 = mavenHttpRepo.module('org', 'bar', '2.1').dependsOn('org', 'foo', '[1.0,2.0)').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'], false)
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:2.1', 'org:foo:1.0'], false)
 
         buildFile << """
 dependencyLocking {
@@ -506,7 +509,11 @@ repositories {
     }
 }
 configurations {
-    lockedConf
+    lockedConf {
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+        }
+    }
 }
 
 dependencies {
@@ -515,7 +522,8 @@ dependencies {
 """
         when:
         foo10.pom.expectGet()
-        bar10.pom.expectGet()
+        bar21.rootMetaData.expectGet()
+        bar21.pom.expectGet()
 
         then:
         succeeds 'dependencies'
