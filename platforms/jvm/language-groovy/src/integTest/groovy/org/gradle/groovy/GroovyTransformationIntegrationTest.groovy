@@ -33,7 +33,7 @@ class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec im
     Jvm supportedJvm
 
     def setup() {
-        supportedJvm = GroovyCoverage.SUPPORTS_DISABLING_AST_TRANSFORMATIONS_JVMS[version]
+        supportedJvm = GroovyCoverage.ALL_VERSIONS_JVMS[version]
         Assume.assumeNotNull(supportedJvm)
 
         executer.beforeExecute {
