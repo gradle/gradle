@@ -118,6 +118,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * Output: This will fail with an error in Gradle X.0.
      * <p>
      * Where X is the current major Gradle version + 1.
+     *
+     * NOTE: This should be used sparingly. It is better to use the version-specific methods for deprecations that will become errors.
+     * This is intended for persistent deprecations that will never be removed.
+     * As an example, Gradle will always have a deprecation about using a version of Java older than the future minimum version.
      */
     public WithDeprecationTimeline willBecomeAnErrorInNextMajorGradleVersion() {
         int nextMajor = GradleVersion.current().getMajorVersion() + 1;
