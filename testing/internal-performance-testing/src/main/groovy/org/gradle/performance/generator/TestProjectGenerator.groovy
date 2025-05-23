@@ -94,8 +94,8 @@ class TestProjectGenerator extends AbstractTestProjectGenerator {
             addDummyBuildSrcProject(projectDir)
         }
 
-        if (projectDepth > 0) {
-            def subProjectDir = new File(projectDir, "sub${projectDepth}project$subProjectNumber")
+        if (projectDepth >= 0 && !isRoot) {
+            def subProjectDir = new File(projectDir, "sub${projectDepth}project${subProjectNumber ?: 0}")
             subProjectDir.mkdirs()
             generateProject(subProjectDir, dependencyTree, subProjectNumber, projectDepth - 1)
         }

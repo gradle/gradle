@@ -33,11 +33,10 @@ import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.util.Path;
 
 import java.util.List;
-
-import static org.gradle.internal.deprecation.Documentation.upgradeGuide;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that module is
@@ -193,7 +192,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
             ProblemId.create("confituring-project-with-invalid-directory", "Configuring project with invalid directory", GradleCoreProblemGroup.configurationUsage()),
             spec ->
                 spec.solution("Make sure the project directory exists and is writable.")
-                    .documentedAt(upgradeGuide(8, "deprecated_missing_project_directory").getUrl())
+                    .documentedAt(Documentation.userManual("multi_project_builds", "include_existing_projects_only").getUrl())
         );
     }
 }
