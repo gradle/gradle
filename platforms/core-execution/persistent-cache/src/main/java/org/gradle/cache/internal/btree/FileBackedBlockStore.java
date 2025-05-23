@@ -15,6 +15,8 @@
  */
 package org.gradle.cache.internal.btree;
 
+import org.gradle.internal.UncheckedException;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -124,7 +126,7 @@ public class FileBackedBlockStore implements BlockStore {
         } catch (CorruptedCacheException e) {
             throw e;
         } catch (Exception e) {
-            throw new UncheckedIOException(new IOException(e));
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -136,7 +138,7 @@ public class FileBackedBlockStore implements BlockStore {
         } catch (CorruptedCacheException e) {
             throw e;
         } catch (Exception e) {
-            throw new UncheckedIOException(new IOException(e));
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

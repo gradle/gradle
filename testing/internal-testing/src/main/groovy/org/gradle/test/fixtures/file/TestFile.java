@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -534,10 +535,8 @@ public class TestFile extends File {
                 .start();
             assert mkfifo.waitFor() == 0; // assert the exit value signals success
             return this;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } catch (InterruptedException e) {
-            throw new UncheckedIOException(new IOException(e));
+        } catch (IOException | InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

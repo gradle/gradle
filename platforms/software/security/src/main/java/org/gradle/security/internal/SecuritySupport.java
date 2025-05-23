@@ -33,6 +33,7 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedInputStream;
@@ -84,10 +85,8 @@ public class SecuritySupport {
             InputStream decoderStream = PGPUtil.getDecoderStream(stream)
         ) {
             return readSignatureList(decoderStream, file.toString());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } catch (PGPException e) {
-            throw new UncheckedIOException(new IOException(e));
+        } catch (IOException | PGPException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

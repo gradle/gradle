@@ -190,7 +190,7 @@ public class BTreePersistentIndexedCache<K, V> {
         try {
             open();
         } catch (Exception e) {
-            throw new UncheckedIOException(new IOException(e));
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -199,7 +199,7 @@ public class BTreePersistentIndexedCache<K, V> {
         try {
             store.close();
         } catch (Exception e) {
-            throw new UncheckedIOException(new IOException(e));
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
