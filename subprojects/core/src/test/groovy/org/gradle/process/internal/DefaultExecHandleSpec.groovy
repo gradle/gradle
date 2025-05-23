@@ -18,12 +18,17 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.GUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -38,6 +43,8 @@ import java.util.concurrent.Executor
 class DefaultExecHandleSpec extends ConcurrentSpec {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private BuildCancellationToken buildCancellationToken = Mock(BuildCancellationToken)
+    private final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+    @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     void "forks process"() {
         given:
@@ -139,6 +146,39 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.ABORTED
         and:
         execHandle.waitForFinish().exitValue != 0
+    }
+
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    void "abort destroys all child processes starting with Java 9"() {
+        def execHandle = handle().args(args(AppWithChildWithGrandChild.class)).build()
+
+        when:
+        execHandle.start()
+        // wait for child and grand child to start
+        while(childProcessHandles(execHandle).size() != 2) {
+            Thread.sleep(10)
+        }
+        execHandle.abort()
+
+        then:
+        childProcessHandles(execHandle).isEmpty()
+        and:
+        execHandle.state == ExecHandleState.ABORTED
+        and:
+        execHandle.waitForFinish().exitValue != 0
+    }
+
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
+    void "abort warns that it cannot destroy child processes with Java 8 or lower"() {
+        def execHandle = handle().args(args(SlowApp.class)).build()
+
+        when:
+        execHandle.start()
+        execHandle.abort()
+
+        then:
+        def logMessages = outputEventListener.events.findAll { it.logLevel == LogLevel.DEBUG }.collect() { it.message }
+        logMessages.contains('Did not destroy the child processes. This is only supported with Java 9+.')
     }
 
     void "can abort after process has completed"() {
@@ -454,6 +494,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             .setTimeout(20000) //sanity timeout
             .setWorkingDir(tmpDir.getTestDirectory())
             .environment('CLASSPATH', mergeClasspath())
+            .environment('JAVA_EXE_PATH', Jvm.current().getJavaExecutable().getAbsolutePath())
     }
 
     private String mergeClasspath() {
@@ -466,6 +507,11 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     private List args(Class mainClass, String... args) {
         GUtil.flattenElements(mainClass.getName(), args)
+    }
+
+    private List<String> childProcessHandles(ExecHandle execHandle) {
+        Process process = execHandle.execHandleRunner.process
+        process.descendants().map { it.toString() }.toList()
     }
 
     public static class BrokenApp {
@@ -503,6 +549,20 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             ObjectInputStream instr = new ObjectInputStream(System.in)
             Callable<?> main = (Callable<?>) instr.readObject()
             System.out.println(main.call())
+        }
+    }
+
+    static class AppWithChild {
+        static void main(String[] args) throws InterruptedException {
+            def java = System.getenv('JAVA_EXE_PATH')
+            "$java ${SlowApp.name}".execute().waitFor()
+        }
+    }
+
+    static class AppWithChildWithGrandChild {
+        static void main(String[] args) throws InterruptedException {
+            def java = System.getenv('JAVA_EXE_PATH')
+            "$java ${AppWithChild.name}".execute().waitFor()
         }
     }
 }
