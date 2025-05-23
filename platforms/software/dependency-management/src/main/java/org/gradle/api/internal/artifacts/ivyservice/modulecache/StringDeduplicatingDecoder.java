@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -117,6 +118,11 @@ class StringDeduplicatingDecoder implements Decoder, Closeable {
     @Override
     public byte[] readBinary() throws EOFException, IOException {
         return delegate.readBinary();
+    }
+
+    @Override
+    public File readFile() throws EOFException, IOException {
+        return delegate.readFile();
     }
 
     @Override
