@@ -19,7 +19,6 @@ package org.gradle.api.tasks.wrapper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -33,6 +32,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
@@ -45,6 +45,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -153,13 +154,13 @@ public abstract class Wrapper extends DefaultTask {
             URI uri = getDistributionUri(uriRoot, url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
-                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
+                    throw UncheckedException.throwAsUncheckedException(new IOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url)), true);
                 }
             } else if (uri.getScheme().startsWith("http") && !isOffline) {
                 try {
                     new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
                 } catch (Exception e) {
-                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e);
+                    throw UncheckedException.throwAsUncheckedException(new IOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e), true);
                 }
             }
         }

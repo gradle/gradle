@@ -33,7 +33,6 @@ import org.apache.maven.model.Organization;
 import org.apache.maven.model.Relocation;
 import org.apache.maven.model.Scm;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -53,6 +52,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.GUtil;
 
@@ -321,7 +321,7 @@ public final class MavenPomFileGenerator {
                 try {
                     new MavenXpp3Writer().write(writer, model);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             });
         }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.transaction;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.Genera
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.jspecify.annotations.Nullable;
@@ -138,7 +138,7 @@ public class CompileTransaction {
                     .forEach(this::deleteRecursively);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -146,7 +146,7 @@ public class CompileTransaction {
         try {
             deleter.deleteRecursively(file);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -267,7 +267,7 @@ public class CompileTransaction {
             destinationFile.getParentFile().mkdirs();
             Files.move(sourceFile.toPath(), destinationFile.toPath(), REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

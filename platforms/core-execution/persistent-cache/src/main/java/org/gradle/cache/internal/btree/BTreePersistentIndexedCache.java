@@ -16,7 +16,6 @@
 package org.gradle.cache.internal.btree;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
@@ -73,7 +72,7 @@ public class BTreePersistentIndexedCache<K, V> {
         try {
             open();
         } catch (Exception e) {
-            throw new UncheckedIOException(String.format("Could not open %s.", this), e);
+            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not open %s.", this), e), true);
         }
     }
 
@@ -134,7 +133,7 @@ public class BTreePersistentIndexedCache<K, V> {
                 return null;
             }
         } catch (Exception e) {
-            throw new UncheckedIOException(String.format("Could not read entry '%s' from %s.", key, this), e);
+            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not read entry '%s' from %s.", key, this), e), true);
         }
     }
 
@@ -159,7 +158,7 @@ public class BTreePersistentIndexedCache<K, V> {
             }
             store.flush();
         } catch (Exception e) {
-            throw new UncheckedIOException(String.format("Could not add entry '%s' to %s.", key, this), e);
+            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
         }
     }
 
@@ -174,7 +173,7 @@ public class BTreePersistentIndexedCache<K, V> {
             store.remove(block);
             store.flush();
         } catch (Exception e) {
-            throw new UncheckedIOException(String.format("Could not remove entry '%s' from %s.", key, this), e);
+            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }
     }
 
@@ -191,7 +190,7 @@ public class BTreePersistentIndexedCache<K, V> {
         try {
             open();
         } catch (Exception e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -200,7 +199,7 @@ public class BTreePersistentIndexedCache<K, V> {
         try {
             store.close();
         } catch (Exception e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -222,8 +221,7 @@ public class BTreePersistentIndexedCache<K, V> {
         try {
             doVerify();
         } catch (Exception e) {
-            throw new UncheckedIOException(String.format("Some problems were found when checking the integrity of %s.",
-                    this), e);
+            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Some problems were found when checking the integrity of %s.", this), e), true);
         }
     }
 

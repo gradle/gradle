@@ -17,10 +17,10 @@
 package org.gradle.api.internal.initialization.transform.utils;
 
 import org.gradle.api.artifacts.transform.TransformOutputs;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INSTRUMENTATION_CLASSPATH_MARKER;
 
@@ -74,7 +74,7 @@ public class InstrumentationTransformUtils {
         try {
             file.createNewFile();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.io.CharSource;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -226,7 +226,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
         try {
             return CharSource.wrap(output).readLines();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

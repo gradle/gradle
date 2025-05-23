@@ -31,9 +31,9 @@ import org.bouncycastle.openpgp.operator.PGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedInputStream;
@@ -68,7 +68,7 @@ public class SecuritySupport {
                 signature.update(buffer, 0, len);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         return signature.verify();
     }
@@ -85,7 +85,7 @@ public class SecuritySupport {
         ) {
             return readSignatureList(decoderStream, file.toString());
         } catch (IOException | PGPException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

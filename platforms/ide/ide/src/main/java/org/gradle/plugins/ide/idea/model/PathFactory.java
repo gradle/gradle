@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -117,7 +117,7 @@ public class PathFactory {
             }
             return new Path(url, expandedUrl, relPath);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 
@@ -153,7 +153,7 @@ public class PathFactory {
             }
             return list;
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 

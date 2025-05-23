@@ -58,7 +58,7 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
             try {
                 return Files.createTempFile(persistentCache.getBaseDir().toPath(), prefix, suffix).toFile();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         });
         this.fileAccessTracker = fileAccessTracker;
@@ -79,7 +79,7 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
                     closer.close();
                 }
             } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
+                throw UncheckedException.throwAsUncheckedException(ex);
             }
         });
         return loaded.get();

@@ -16,10 +16,10 @@
 package org.gradle.launcher.daemon.bootstrap;
 
 import com.google.common.io.Files;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
@@ -108,7 +108,7 @@ public class DaemonMain extends EntryPoint {
                 additionalClassPath.add(new File(decoder.readString()));
             }
         } catch (EOFException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         NativeServices.initializeOnDaemon(gradleHomeDir, NativeServicesMode.fromSystemProperties());

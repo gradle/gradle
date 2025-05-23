@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -36,6 +35,7 @@ import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.PluginRequest;
@@ -192,7 +192,7 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("}");
             writer.println("//CHECKSTYLE:ON");
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

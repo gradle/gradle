@@ -20,7 +20,6 @@ import groovy.namespace.QName;
 import groovy.util.Node;
 import groovy.xml.XmlParser;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.DomNode;
 import org.gradle.api.model.ObjectFactory;
@@ -241,7 +240,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             readFrom(reader);
             return true;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -333,9 +332,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                         break;
                 }
             }
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        } catch (SAXException ex) {
+        } catch (IOException | SAXException ex) {
             throw UncheckedException.throwAsUncheckedException(ex);
         } finally {
             IoActions.closeQuietly(reader);

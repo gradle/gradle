@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.component.model.PersistentModuleSource;
@@ -26,7 +27,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Map;
 
 @ServiceScope(Scope.BuildTree.class)
@@ -49,7 +49,7 @@ public class ModuleSourcesSerializer implements Serializer<ModuleSources> {
                     codec.encode(persistentModuleSource, encoder);
                 }
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         });
         encoder.writeSmallInt(0); // end of sources

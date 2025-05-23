@@ -16,13 +16,13 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -197,7 +197,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             }
             encoder.flush();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         InputStream stdInput = buffer.getInputStream();
 

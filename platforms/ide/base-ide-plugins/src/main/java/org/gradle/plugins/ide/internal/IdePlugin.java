@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.invocation.Gradle;
@@ -30,6 +29,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
@@ -205,7 +205,7 @@ public abstract class IdePlugin implements Plugin<Project> {
                             try {
                                 Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());
                             } catch (IOException e) {
-                                throw new UncheckedIOException(e);
+                                throw UncheckedException.throwAsUncheckedException(e);
                             }
                         }
                     }
