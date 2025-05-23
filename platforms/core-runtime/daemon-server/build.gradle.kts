@@ -30,7 +30,6 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.loggingApi)
     implementation(projects.native)
     implementation(projects.serialization)
