@@ -42,6 +42,11 @@ public interface GradleDistribution {
     GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext);
 
     /**
+     * Returns true if this distribution's client supports the given JVM version.
+     */
+    boolean clientWorksWith(int jvmVersion);
+
+    /**
      * Returns true if this distribution's daemon supports the given JVM version.
      */
     boolean daemonWorksWith(int jvmVersion);

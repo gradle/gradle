@@ -106,6 +106,7 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)
+    implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
 
     implementation(testFixtures(projects.buildOperations))

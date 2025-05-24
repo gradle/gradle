@@ -33,6 +33,7 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
@@ -50,6 +51,7 @@ import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.fixtures.WithNoSourceTaskOutcome
 import org.gradle.testkit.runner.internal.GradleProvider
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
@@ -70,7 +72,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final GradleVersion MIN_TESTED_VERSION = TestKitFeature.RUN_BUILDS.since
+    public static final GradleVersion MIN_TESTED_VERSION = DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
+
     public static final GradleVersion CUSTOM_DAEMON_DIR_SUPPORT_VERSION = GradleVersion.version("2.2")
     public static final GradleVersion NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION = GradleVersion.version("3.4")
     public static final GradleVersion ENVIRONMENT_VARIABLES_SUPPORT_VERSION = GradleVersion.version("3.5")
@@ -208,6 +211,8 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     static class Interceptor extends AbstractMultiTestInterceptor {
 
+        // TODO: Many of these versions are lower than DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
+        // We should clean these up as GradleRunner tests will never execute against many of these versions.
         private static final Map<Class<? extends Annotation>, GradleVersion> MINIMUM_VERSIONS_BY_ANNOTATIONS = [
             (InspectsExecutedTasks): TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since,
             (InspectsBuildOutput): TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since,
@@ -261,25 +266,20 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             } else {
                 TestedGradleDistribution.UNDER_DEVELOPMENT
             }
-
         }
 
         private void addExecutions(@Nullable GradleDistribution releasedDist, TestedGradleDistribution testedGradleDistribution) {
-            if (releasedDist && !releasedDist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
-                add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM'))
+            if (target.getAnnotation(NoDebug)) {
+                add(new GradleRunnerExecution(releasedDist, testedGradleDistribution, false))
+            } else if (target.getAnnotation(Debug)) {
+                add(new GradleRunnerExecution(releasedDist, testedGradleDistribution, true))
             } else {
-                if (target.getAnnotation(NoDebug)) {
-                    add(new GradleRunnerExecution(testedGradleDistribution, false))
-                } else if (target.getAnnotation(Debug)) {
-                    add(new GradleRunnerExecution(testedGradleDistribution, true))
-                } else {
-                    [true, false].each { add(new GradleRunnerExecution(testedGradleDistribution, it)) }
-                }
+                add(new GradleRunnerExecution(releasedDist, testedGradleDistribution, true))
+                add(new GradleRunnerExecution(releasedDist, testedGradleDistribution, false))
             }
         }
 
         private Set<GradleVersion> getMinCompatibleVersions() {
-
             GradleVersion minSpecVersion = MINIMUM_VERSIONS_BY_ANNOTATIONS.keySet()
                 .findAll { annotation -> target.getAnnotation(annotation) }
                 .collect { MINIMUM_VERSIONS_BY_ANNOTATIONS[it] }
@@ -339,40 +339,20 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
         }
 
-        private static class IgnoredGradleRunnerExecution extends AbstractMultiTestInterceptor.Execution {
-
-            private final TestedGradleDistribution testedGradleDistribution
-            private final String reason
-
-            IgnoredGradleRunnerExecution(TestedGradleDistribution testedGradleDistribution, String reason) {
-                this.testedGradleDistribution = testedGradleDistribution
-                this.reason = reason
-            }
-
-            @Override
-            protected String getDisplayName() {
-                "$testedGradleDistribution.gradleVersion.version $reason"
-            }
-
-            @Override
-            String toString() {
-                return getDisplayName()
-            }
-
-            @Override
-            boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
-                false
-            }
-        }
-
         private static class GradleRunnerExecution extends AbstractMultiTestInterceptor.Execution {
 
-            private final boolean debug
+            private final @Nullable GradleDistribution releasedDistribution
             private final TestedGradleDistribution testedGradleDistribution
+            private final boolean debug
 
-            GradleRunnerExecution(TestedGradleDistribution testedGradleDistribution, boolean debug) {
-                this.debug = debug
+            GradleRunnerExecution(
+                @Nullable GradleDistribution releasedDistribution,
+                TestedGradleDistribution testedGradleDistribution,
+                boolean debug
+            ) {
+                this.releasedDistribution = releasedDistribution
                 this.testedGradleDistribution = testedGradleDistribution
+                this.debug = debug
             }
 
             @Override
@@ -395,6 +375,20 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
             @Override
             boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
+                // GradleRunner tests use the current version's client to test the target
+                // distribution's daemon. We only care if the daemon is compatible here. The
+                // client compatibility of the target version is not important for these tests.
+                int jvmVersion = Jvm.current().javaVersionMajor
+                if (releasedDistribution == null) {
+                    if (jvmVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
+                        return false
+                    }
+                } else {
+                    if (!releasedDistribution.daemonWorksWith(jvmVersion)) {
+                        return false
+                    }
+                }
+
                 def gradleVersion = testedGradleDistribution.gradleVersion
 
                 if (testDetails.getAnnotation(InjectsPluginClasspath) && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InjectsPluginClasspath]) {
