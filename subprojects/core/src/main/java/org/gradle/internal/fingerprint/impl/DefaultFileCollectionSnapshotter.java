@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.DelegatingFileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -42,30 +43,22 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public Result snapshot(FileCollection fileCollection) {
-        SnapshottingVisitor visitor = new SnapshottingVisitor();
-        ((FileCollectionInternal) fileCollection).visitStructure(visitor);
-        FileSystemSnapshot snapshot = CompositeFileSystemSnapshot.of(visitor.getRoots());
-        boolean containsArchiveTrees = visitor.containsArchiveTrees();
-        return new Result() {
-            @Override
-            public FileSystemSnapshot getSnapshot() {
-                return snapshot;
-            }
-
-            @Override
-            public boolean containsArchiveTrees() {
-                return containsArchiveTrees;
-            }
-        };
+    public FileSystemSnapshot snapshot(FileCollection fileCollection, FileCollectionStructureVisitor visitor) {
+        SnapshottingVisitor snapshottingVisitor = new SnapshottingVisitor(visitor);
+        ((FileCollectionInternal) fileCollection).visitStructure(snapshottingVisitor);
+        return CompositeFileSystemSnapshot.of(snapshottingVisitor.getRoots());
     }
 
-    private class SnapshottingVisitor implements FileCollectionStructureVisitor {
+    private class SnapshottingVisitor extends DelegatingFileCollectionStructureVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<>();
-        private boolean containsArchiveTrees;
+
+        private SnapshottingVisitor(FileCollectionStructureVisitor delegate) {
+            super(delegate);
+        }
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+            super.visitCollection(source, contents);
             for (File file : contents) {
                 roots.add(fileSystemAccess.read(file.getAbsolutePath()));
             }
@@ -73,25 +66,22 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         @Override
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+            super.visitFileTree(root, patterns, fileTree);
             fileSystemAccess.read(
-                root.getAbsolutePath(),
-                new PatternSetSnapshottingFilter(patterns, stat)
-            )
+                    root.getAbsolutePath(),
+                    new PatternSetSnapshottingFilter(patterns, stat)
+                )
                 .ifPresent(roots::add);
         }
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            super.visitFileTreeBackedByFile(file, fileTree, sourceTree);
             roots.add(fileSystemAccess.read(file.getAbsolutePath()));
-            containsArchiveTrees = true;
         }
 
         public List<FileSystemSnapshot> getRoots() {
             return roots;
-        }
-
-        public boolean containsArchiveTrees() {
-            return containsArchiveTrees;
         }
     }
 }
