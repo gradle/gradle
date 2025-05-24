@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -636,7 +635,6 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         file("b/build/copied/a-1.0.zip").exists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "resolving configuration with project dependency marks dependency's configuration as observed"() {
         settingsFile << """
             include 'api'
@@ -660,29 +658,23 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 conf project(":api")
             }
 
-            task check {
-                doLast {
-                    assert configurations.conf.state == Configuration.State.UNRESOLVED
-                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+            assert configurations.conf.state == Configuration.State.UNRESOLVED
+            assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-                    configurations.conf.resolve()
+            configurations.conf.resolve()
 
-                    assert configurations.conf.state == Configuration.State.RESOLVED
-                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+            assert configurations.conf.state == Configuration.State.RESOLVED
+            assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-                    // Attempt to change the configuration, to demonstrate that is has been observed
-                    project(":api").configurations.conf.dependencies.add(null)
-                }
-            }
-
+            // Attempt to change the configuration, to demonstrate that is has been observed
+            project(":api").configurations.conf.dependencies.add(null)
         """
 
         when:
-        expectTaskGetProjectDeprecations(3)
-        fails("impl:check")
+        fails("help")
 
         then:
-        failure.assertHasCause "Cannot change dependencies of dependency configuration ':api:conf' after it has been included in dependency resolution"
+        failure.assertHasCause("Cannot mutate the dependencies of configuration ':api:conf' after the configuration was consumed as a variant. After a configuration has been observed, it should not be modified.")
     }
 
     @Issue(["GRADLE-3330", "GRADLE-3362"])
