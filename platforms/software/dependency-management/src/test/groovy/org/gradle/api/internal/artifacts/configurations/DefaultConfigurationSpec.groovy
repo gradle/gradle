@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
 import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -29,7 +30,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
@@ -110,7 +110,6 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
-        _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
         _ * rootComponentMetadataBuilder.newBuilder(_, _) >> rootComponentMetadataBuilder
     }
 
@@ -969,19 +968,6 @@ This method is only meant to be called on configurations which allow the (non-de
         out.root == result.rootSource.get()
     }
 
-    def "resolving configuration marks parent configuration as observed"() {
-        def parent = conf("parent", ":parent")
-        def config = conf("conf")
-        config.extendsFrom parent
-        resolver.resolveGraph(config) >> graphResolved()
-
-        when:
-        config.resolve()
-
-        then:
-        parent.observedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
-    }
-
     def "resolving configuration puts it into the right state and broadcasts events"() {
         def listenerBroadcaster = Mock(AnonymousListenerBroadcast)
         def listener = Mock(DependencyResolutionListener)
@@ -1174,26 +1160,6 @@ This method is only meant to be called on configurations which allow the (non-de
         dep.configurationName == "conf"
     }
 
-    def "mutations are prohibited after resolution"() {
-        def conf = conf("conf")
-        resolver.resolveGraph(conf) >> graphResolved()
-
-        given:
-        conf.incoming.getResolutionResult().root
-
-        when:
-        conf.dependencies.add(Mock(Dependency))
-        then:
-        def exDependency = thrown(InvalidUserDataException)
-        exDependency.message == "Cannot change dependencies of dependency configuration ':conf' after it has been resolved."
-
-        when:
-        conf.artifacts.add(Mock(PublishArtifact))
-        then:
-        def exArtifact = thrown(InvalidUserDataException)
-        exArtifact.message == "Cannot change artifacts of dependency configuration ':conf' after it has been resolved."
-    }
-
     def "defaultDependencies action does not trigger when config has dependencies"() {
         def conf = conf("conf")
         def defaultDependencyAction = Mock(Action)
@@ -1267,52 +1233,67 @@ This method is only meant to be called on configurations which allow the (non-de
         0 * _
     }
 
-    def propertyChangeWithNonUnresolvedStateShouldThrowEx() {
+    def "observation forbids further mutation of basic state"() {
         def configuration = conf()
-        resolver.resolveGraph(configuration) >> graphResolved()
 
         given:
-        configuration.resolve()
+        configuration.markAsObserved("observed")
 
         when:
         configuration.setTransitive(true)
         then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.setVisible(false)
         then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.exclude([:])
-        then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.extendsFrom(conf("other"))
         then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.dependencies.add(Mock(Dependency))
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.dependencies.remove(Mock(Dependency))
-        then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.artifacts.add(artifact())
         then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.artifacts.remove(artifact())
         then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.exclude([:])
+        configuration.dependencies.add(Mock(Dependency))
+        configuration.dependencies.remove(Mock(Dependency))
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "observation of dependencies forbids further mutation of dependency state"() {
+        def configuration = conf()
+
+        given:
+        configuration.markAsObserved("observed")
+        configuration.markDependenciesObserved()
+
+        when:
+        configuration.exclude([:])
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.dependencies.add(Mock(Dependency))
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.dependencies.remove(Mock(Dependency))
+        then:
+        thrown(InvalidUserCodeException)
     }
 
     def "can define typed attributes"() {
@@ -1551,7 +1532,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
         then:
         GradleException t = thrown()
-        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+        t.message == "Cannot mutate the usage of configuration ':conf' after the configuration was reason. After a configuration has been observed, it should not be modified."
 
         where:
         usageName               | changeUsage

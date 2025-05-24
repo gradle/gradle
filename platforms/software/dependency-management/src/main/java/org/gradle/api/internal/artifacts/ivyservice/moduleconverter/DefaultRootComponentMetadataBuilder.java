@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -177,30 +176,15 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     @Override
-    public MutationValidator getValidator() {
-        return holder;
-    }
-
-    @Override
     public void discardAll() {
         holder.discard();
     }
 
-    private static class MetadataHolder implements MutationValidator {
+    private static class MetadataHolder {
         @Nullable
         private SoftReference<LocalComponentGraphResolveState> reference;
         @Nullable
         private LocalComponentGraphResolveState cachedValue;
-
-        @Override
-        public void validateMutation(MutationType type) {
-            if (type != MutationType.STRATEGY) {
-                LocalComponentGraphResolveState value = currentValue();
-                if (value != null) {
-                    value.reevaluate();
-                }
-            }
-        }
 
         @Nullable
         LocalComponentGraphResolveState tryCached(ComponentIdentifier id) {
