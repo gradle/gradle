@@ -32,6 +32,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
         given:
         withKotlinBuildSrc()
+        createProjectSubDirs("sub")
         def settings = withDefaultSettings() << """
             include(":sub")
         """
@@ -49,6 +50,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
         given:
         def sourceRoots = withMultiProjectKotlinBuildSrc()
+        createProjectSubDirs("sub")
         def settings = withDefaultSettings() << """
             include(":sub")
         """
