@@ -224,7 +224,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             assert it.details.buildPath == ":"
             assert it.details.scriptConfiguration == true
             assert it.details.configurationDescription == null
-            assert it.details.configurationVisible == true
+            assert it.details.configurationVisible == false
             assert it.details.configurationTransitive == true
             assert it.result.resolvedDependenciesCount == 2
         }
@@ -282,7 +282,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[0].details.projectPath == null
         resolveOperations[0].details.scriptConfiguration == true
         resolveOperations[0].details.configurationDescription == null
-        resolveOperations[0].details.configurationVisible == true
+        resolveOperations[0].details.configurationVisible == false
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 1
 

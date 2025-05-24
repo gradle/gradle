@@ -5,7 +5,6 @@ plugins {
 description = "Contains the Java plugin, and its supporting classes.  This plugin is used as the basis for building a Java library or application by more specific plugins, and is sometimes applied by other JVM language projects."
 
 dependencies {
-    api(projects.core)
     api(projects.coreApi)
     api(projects.languageJava)
     api(projects.pluginsJvmTestSuite)
@@ -14,17 +13,18 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseServices)
-    implementation(projects.languageJvm)
+    implementation(projects.core)
     implementation(projects.ivy)
+    implementation(projects.languageJvm)
     implementation(projects.maven)
     implementation(projects.modelCore)
-    implementation(projects.softwareDiagnostics)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
-    implementation(projects.testingJvm)
+    implementation(projects.softwareDiagnostics)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.testSuitesBase)
+    implementation(projects.testingJvm)
 
     runtimeOnly(projects.dependencyManagement)
     runtimeOnly(projects.testingBase)
