@@ -20,14 +20,15 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.buildProcessServices)
     implementation(projects.core)
     implementation(projects.fileTemp)
     implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.wrapperShared)
-    implementation(projects.buildProcessServices)
 
     implementation(libs.commonsIo)
+    implementation(libs.slf4jApi)
 
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(projects.launcher)
@@ -46,6 +47,7 @@ dependencies {
     integTestImplementation(projects.jvmServices)
     integTestImplementation(testFixtures(projects.buildConfiguration))
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.logging))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetbrainsAnnotations)
 
