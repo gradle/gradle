@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -75,9 +76,6 @@ import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -95,8 +93,6 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-
     def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
@@ -377,88 +373,6 @@ class DefaultConfigurationSpec extends Specification {
         configuration.getState() == RESOLVED_WITH_FAILURES
     }
 
-    def fileCollectionWithDependencies() {
-        def dependency1 = dependency("group1", "name", "version")
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(dependency1)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def fileCollectionWithSpec() {
-        def configuration = conf()
-        Spec<Dependency> spec = Mock(Spec)
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(spec)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def fileCollectionWithClosureSpec() {
-        def closure = { dep -> dep.group == 'group1' }
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(closure)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithDependencies() {
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(Mock(Dependency))
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithSpec() {
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(Mock(Spec))
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithClosureSpec() {
-        def configuration = conf()
-        def closure = { dep -> dep.group == 'group1' }
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(closure)
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
     def "multiple resolves use cached result"() {
         given:
         def configuration = conf()
@@ -712,7 +626,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
-        ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, true, true, true)
+        ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
@@ -723,47 +637,45 @@ class DefaultConfigurationSpec extends Specification {
         def copy = configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
+        // This is not desired behavior. Ideally the copy method should copy the role of the original.
+        // Instead, the role of copies are currently always set to RESOLVABLE_DEPENDENCY_SCOPE, as
+        // currently copies are detached configurations, and this is the role of all detached configurations.
         copy.canBeDeclared
         copy.canBeResolved
-        copy.canBeConsumed
+        !copy.canBeConsumed
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
-        copy.deprecatedForConsumption
+        !copy.deprecatedForConsumption
         !copy.deprecatedForResolution
         !copy.deprecatedForDeclarationAgainst
 
         where:
         baseRole << [
             ConfigurationRoles.ALL,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
-            ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE
+            ConfigurationRoles.RESOLVABLE,
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
         ] + ConfigurationRolesForMigration.ALL
     }
 
-    void "copies disabled configuration role as a deprecation"() {
-        def configuration = prepareConfigurationForCopyTest()
-        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
-        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+    void "fails to copy non-resolvable configuration (#role)"() {
+        given:
+        def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
 
         when:
-        configuration.canBeConsumed = false
-        configuration.canBeResolved = false
-        configuration.canBeDeclared = false
-
-
-        def copy = configuration.copy()
+        configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
-        copy.canBeDeclared
-        copy.canBeResolved
-        copy.canBeConsumed
-        copy.declarationAlternatives == []
-        copy.resolutionAlternatives == []
-        copy.roleAtCreation.consumptionDeprecated
-        !copy.roleAtCreation.resolutionDeprecated
-        !copy.roleAtCreation.declarationAgainstDeprecated
+        def e = thrown(GradleException)
+        def expected = """Calling configuration method 'copy()' is not allowed for configuration 'conf', which has permitted usage(s):
+${role.describeUsage()}
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'."""
+        e.message == expected
+
+        where:
+        role << [
+            ConfigurationRoles.CONSUMABLE,
+            ConfigurationRoles.DEPENDENCY_SCOPE
+        ]
     }
 
     def "can copy with spec"() {
@@ -849,7 +761,7 @@ class DefaultConfigurationSpec extends Specification {
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest(configuration = conf()) {
+    private Configuration prepareConfigurationForCopyTest(configuration = conf()) {
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
@@ -884,9 +796,11 @@ class DefaultConfigurationSpec extends Specification {
         original.attributes.keySet().each {
             assert copy.attributes.getAttribute(it) == original.attributes.getAttribute(it)
         }
-        assert copy.canBeResolved == original.canBeResolved
-        assert copy.canBeConsumed == original.canBeConsumed
-        true
+
+        // Copies are now always made as RESOLVABLE_DEPENDENCY_SCOPE, regardless of the usage of the original
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
     }
 
     def "incoming dependencies set has same name and path as owner configuration"() {
@@ -1044,7 +958,7 @@ class DefaultConfigurationSpec extends Specification {
         def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
         Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
         def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
-        def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
+        def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
@@ -1416,19 +1330,6 @@ class DefaultConfigurationSpec extends Specification {
         conf.attributes.getAttribute(buildType).name == 'release'
     }
 
-    def "cannot define two attributes with the same name but different types"() {
-        def conf = conf()
-        def flavor = Attribute.of('flavor', Flavor)
-
-        when:
-        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
-        conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'flavor\' of type \'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec$Flavor\' and you are trying to store another one of type \'java.lang.String\''
-    }
-
     def "can overwrite a configuration attribute"() {
         def conf = conf()
         def flavor = Attribute.of(Flavor)
@@ -1661,20 +1562,23 @@ class DefaultConfigurationSpec extends Specification {
 
     private ResolverResults buildDependenciesResolved() {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
+        def unresolved = Mock(UnresolvedDependency) {
+            getProblem() >> failure
+        }
+
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [unresolved] as Set)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
         }
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            depSpec -> selectedArtifacts(failure),
             Mock(ResolvedConfiguration) {
                 hasError() >> true
             }
@@ -1685,10 +1589,9 @@ class DefaultConfigurationSpec extends Specification {
 
     private ResolverResults graphResolved(Set<File> files = []) {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            depSpec -> selectedArtifacts(files),
             Mock(ResolvedConfiguration)
         )
 
@@ -1760,15 +1663,16 @@ class DefaultConfigurationSpec extends Specification {
             project.name ?: "foo"
         )
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
+        _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
-            instantiator,
+            TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
         new DefaultConfigurationFactory(
-            DirectInstantiator.INSTANCE,
+            TestUtil.objectFactory(),
             resolver,
             listenerManager,
             domainObjectContext,
@@ -1779,12 +1683,13 @@ class DefaultConfigurationSpec extends Specification {
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
             userCodeApplicationContext,
+            CollectionCallbackActionDecorator.NOOP,
             projectStateRegistry,
-            Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService()
+            TestUtil.problemsService(),
+            new DocumentationRegistry()
         )
     }
 

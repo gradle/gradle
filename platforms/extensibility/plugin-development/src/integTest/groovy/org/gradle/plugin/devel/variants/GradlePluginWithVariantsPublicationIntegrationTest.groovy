@@ -28,7 +28,7 @@ import spock.lang.Issue
 class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec {
     def currentGradle = GradleVersion.current().version
 
-    @Requires(UnitTestPreconditions.Jdk15OrEarlier) // older Gradle version 6.7.1 is used in test
+    @Requires(value = UnitTestPreconditions.Jdk15OrEarlier, reason = "older Gradle version 6.7.1 is used in test")
     def "can publish and use Gradle plugin with multiple variants"() {
         given:
         def producer = file('producer')
@@ -207,7 +207,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration 'classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
-         root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+         buildscript of root project 'consumer' > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Plugin com.example:producer:1.0 requires at least Gradle 1000.0. This build uses Gradle $currentGradle.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Upgrade to at least Gradle 1000.0. See the instructions at https://docs.gradle.org/$currentGradle/userguide/upgrading_version_8.html#sub:updating-gradle.")

@@ -18,21 +18,23 @@ package gradlebuild.modules.extension
 import gradlebuild.modules.model.License
 
 
-abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
+abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
-    val groovyVersion = if (isBundleGroovy4) "4.0.22" else "3.0.22"
-    val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
+    val groovyVersion = when (bundleGroovyMajor) {
+        4 -> "4.0.26"
+        // This is expected to contain Groovy 5 soon, once it's released or we need to test it.
+        else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
+    }
 
-    val configurationCacheReportVersion = "1.24"
+    val configurationCacheReportVersion = "1.25"
     val gradleIdeStarterVersion = "0.5"
-    val kotlinVersion = "2.0.21"
+    val kotlinVersion = "2.1.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
     val agp = "com.android.tools.build:gradle"
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
-    val antJunit = "org.apache.ant:ant-junit"
     val antLauncher = "org.apache.ant:ant-launcher"
     val asm = "org.ow2.asm:asm"
     val asmAnalysis = "org.ow2.asm:asm-analysis"
@@ -52,8 +54,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
     val commonsIo = "commons-io:commons-io"
-    val commonsLang = "commons-lang:commons-lang"
-    val commonsLang3 = "org.apache.commons:commons-lang3"
+    val commonsLang = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
@@ -69,24 +70,23 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val gradleFileEvents = "org.gradle.fileevents:gradle-fileevents"
     val gradleIdeStarter = "org.gradle.buildtool.internal:gradle-ide-starter:$gradleIdeStarterVersion"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
-    val groovy = "$groovyGroup:groovy"
-    val groovyAnt = "$groovyGroup:groovy-ant"
-    val groovyAstbuilder = "$groovyGroup:groovy-astbuilder"
-    val groovyConsole = "$groovyGroup:groovy-console"
-    val groovyDateUtil = "$groovyGroup:groovy-dateutil"
-    val groovyDatetime = "$groovyGroup:groovy-datetime"
-    val groovyDoc = "$groovyGroup:groovy-groovydoc"
-    val groovyJson = "$groovyGroup:groovy-json"
-    val groovyNio = "$groovyGroup:groovy-nio"
-    val groovySql = "$groovyGroup:groovy-sql"
-    val groovyTemplates = "$groovyGroup:groovy-templates"
-    val groovyTest = "$groovyGroup:groovy-test"
-    val groovyXml = "$groovyGroup:groovy-xml"
+    val groovy = "org.apache.groovy:groovy"
+    val groovyAnt = "org.apache.groovy:groovy-ant"
+    val groovyAstbuilder = "org.apache.groovy:groovy-astbuilder"
+    val groovyConsole = "org.apache.groovy:groovy-console"
+    val groovyDateUtil = "org.apache.groovy:groovy-dateutil"
+    val groovyDatetime = "org.apache.groovy:groovy-datetime"
+    val groovyDoc = "org.apache.groovy:groovy-groovydoc"
+    val groovyJson = "org.apache.groovy:groovy-json"
+    val groovyNio = "org.apache.groovy:groovy-nio"
+    val groovySql = "org.apache.groovy:groovy-sql"
+    val groovyTemplates = "org.apache.groovy:groovy-templates"
+    val groovyTest = "org.apache.groovy:groovy-test"
+    val groovyXml = "org.apache.groovy:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val h2Database = "com.h2database:h2"
     val hamcrest = "org.hamcrest:hamcrest"
-    val hamcrestCore = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
     val ivy = "org.apache.ivy:ivy"
@@ -112,8 +112,10 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
+    val jspecify = "org.jspecify:jspecify"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
+    val junitJupiter = "org.junit.jupiter:junit-jupiter"
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
@@ -122,6 +124,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val kotlinCompilerEmbeddable = futureKotlin("compiler-embeddable")
     val kotlinReflect = futureKotlin("reflect")
     val kotlinStdlib = futureKotlin("stdlib")
+    val kotlinBuildToolsImpl = futureKotlin("build-tools-impl")
     val kotlinJvmAbiGenEmbeddable = "org.jetbrains.kotlin:jvm-abi-gen-embeddable"
     val kotlinxSerializationCore = "org.jetbrains.kotlinx:kotlinx-serialization-core"
     val kotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json"
@@ -197,8 +200,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val littleproxy = "xyz.rogfam:littleproxy"
     val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
-    val mockitoKotlin = "com.nhaarman:mockito-kotlin"
-    val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
+    val mockitoKotlin = "org.mockito.kotlin:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "com.mysql:mysql-connector-j"
     val netty = "io.netty:netty-all"
@@ -242,7 +244,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         commonsHttpclient to License.Apache2,
         commonsIo to License.Apache2,
         commonsLang to License.Apache2,
-        commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
         compileTesting to License.Apache2,
         configurationCacheReport to License.Apache2,
@@ -262,7 +263,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         guice to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
-        hamcrestCore to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
         inject to License.Apache2,

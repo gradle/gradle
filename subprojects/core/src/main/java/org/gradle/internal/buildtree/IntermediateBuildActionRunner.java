@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -24,6 +23,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -101,7 +101,7 @@ public class IntermediateBuildActionRunner {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class NestedAction<T> implements RunnableBuildOperation {
         private final String displayName;
         private final Supplier<T> action;

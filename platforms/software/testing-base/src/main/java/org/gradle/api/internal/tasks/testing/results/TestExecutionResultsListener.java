@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
+import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
 
 /**
  * Reports final test execution results intended for aggregate reporting.
  */
-@NonNullApi
+@NullMarked
 @StatefulListener
 @EventScope(Scope.Build.class)
 public interface TestExecutionResultsListener {

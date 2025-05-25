@@ -1,0 +1,588 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_general]]
+= General Gradle Best Practices
+
+[[use_kotlin_dsl]]
+== Use Kotlin DSL
+
+Prefer the Kotlin DSL (`build.gradle.kts`) over the Groovy DSL (`build.gradle`) when authoring new builds or creating new subprojects in existing builds.
+
+=== Explanation
+
+The Kotlin DSL offers several advantages over the Groovy DSL:
+
+* *Strict typing*: IDEs provide better auto-completion and navigation with the Kotlin DSL.
+* *Improved readability*: Code written in Kotlin is often easier to follow and understand.
+* *Single-language stack*: Projects that already use Kotlin for production and test code don’t need to introduce Groovy just for the build.
+
+Since Gradle 8.0, link:https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds[Kotlin DSL is the default] for new builds created with `gradle init`.
+Android Studio also link:https://developer.android.com/build/migrate-to-kotlin-dsl#timeline[defaults to Kotlin DSL].
+
+=== References
+
+- <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL Primer>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:kotlin-dsl,`#kotlin-dsl`>>
+
+[[use_latest_minor_versions]]
+== Use the Latest Minor Version of Gradle
+
+Stay on the latest minor version of the major Gradle release you're using, and regularly update your plugins to the latest compatible versions.
+
+=== Explanation
+
+Gradle follows a fairly predictable, time-based release cadence.
+Only the latest minor version of the current and previous major release is actively supported.
+
+We recommend the following strategy:
+
+* Try upgrading directly to the latest minor version of your current major Gradle release.
+* If that fails, upgrade one minor version at a time to isolate regressions or compatibility issues.
+
+Each new minor version includes:
+
+* Performance and stability improvements.
+* Deprecation warnings that help you prepare for the next major release.
+* Fixes for known bugs and security vulnerabilities.
+
+Use the `wrapper` task to update your project:
+
+[source, bash]
+----
+./gradlew wrapper --gradle-version <version>
+----
+
+You can also install the latest Gradle versions easily using tools like link:https://sdkman.io/[SDKMAN!] or link:https://brew.sh/[Homebrew], depending on your platform.
+
+=== Plugin Compatibility
+
+Always use the latest compatible version of each plugin:
+
+* Upgrade Gradle before plugins.
+* Test plugin compatibility using link:https://slack.engineering/shadow-jobs/[shadow jobs].
+* Consult changelogs when updating.
+
+Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay informed about new Gradle releases, features, and plugins.
+
+=== References
+
+- <<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:plugins,`#plugins`>>
+
+[[use_the_plugins_block]]
+== Apply Plugins Using the `plugins` Block
+
+You should always use the `plugins` block to <<plugin_basics.adoc#applying_plugins,apply plugins>> in your build scripts.
+
+=== Explanation
+
+The `plugins` block is the preferred way to apply plugins in Gradle.
+The plugins API allows Gradle to better manage the loading of plugins and it is both more concise and less error-prone than adding dependencies to the buildscript's classpath explicitly in order to use the `apply` method.
+
+It allows Gradle to optimize the loading and reuse of plugin classes and helps inform tools about the potential properties and values in extensions the plugins will add to the build script.
+It is constrained to be idempotent (produce the same result every time) and side effect-free (safe for Gradle to execute at any time).
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/usePluginsBlock-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/usePluginsBlock-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Declare a Repository*: To use the legacy plugin application syntax, you need to explicitly tell Gradle where to find a plugin.
+<2> *Declare a Plugin Dependency*: To use the legacy plugin application syntax with third-party plugins, you need to explicitly tell Gradle the full coordinates of the plugin.
+<3> *Apply a Core Plugin*: This is very similar using either method.
+<4> *Apply a Third-Party Plugin*: The syntax is the same as for core Gradle plugins, but the version is not present at the point of application in your buildscript.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/usePluginsBlock-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Apply a Core Plugin*: This is very similar using either method.
+<2> *Apply a Third-Party Plugin*: You specify the version using method chaining in the `plugins` block itself.
+
+=== References
+
+- <<plugins.adoc#sec:using_plugins,Using Plugins>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+[[do_not_use_internal_apis]]
+== Do Not Use Internal APIs
+
+Do not use APIs from a package where any segment of the package is `internal`, or types that have `Internal` or `Impl` as a suffix in the name.
+
+=== Explanation
+
+Using internal APIs is inherently risky and can cause significant problems during upgrades.
+Gradle and many plugins (such as Android Gradle Plugin and Kotlin Gradle Plugin) treat these internal APIs as subject to unannounced breaking changes during any new Gradle release, even during minor releases.
+There have been numerous cases where even highly experienced plugin developers have been bitten by their usage of such APIs leading to unexpected breakages for their users.
+
+If you require specific functionality that is missing, it’s best to submit a feature request.
+As a temporary workaround consider copying the necessary code into your own codebase and extending a Gradle public type with your own custom implementation using the copied code.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> Casting to `AttributeContainerInternal` and using `toMap()` should be avoided as it relies on an internal API.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> Implementing your own version of `toMap()` that only uses public APIs is a lot more robust.
+
+=== References
+
+- link:https://docs.gradle.org/current/javadoc/[Gradle API]
+
+=== Tags
+
+<<tags_reference.adoc#tag:upgrades,`#upgrades`>>
+
+[[modularize_builds]]
+== Modularize Your Builds
+:keywords: structuring-builds
+
+Modularize your builds by splitting your code into multiple projects.
+
+=== Explanation
+
+Splitting your build's source into multiple Gradle projects (modules) is essential for leveraging Gradle's automatic work avoidance and parallelization features.
+When a source file changes, Gradle only recompiles the affected projects.
+If all your sources reside in a single project, Gradle can't avoid recompilation and won't be able to run tasks in parallel.
+Splitting your source into multiple projects can provide additional performance benefits by minimizing each subproject's compilation classpath and ensuring code generating tools such as annotation and symbol processors run only on the relevant files.
+
+Do this _soon_.
+Don't wait until you hit some arbitrary number of source files or classes to do this, instead structure your build into multiple projects from the start using whatever natural boundaries exist in your codebase.
+
+Exactly how to best split your source varies with every build, as it depends on the particulars of that build.
+Here are some common patterns we found that can work well and make cohesive projects:
+
+- API vs. Implementation
+- Front-end vs. Back-end
+- Core business logic vs. UI
+- Vertical slices (e.g., feature modules each containing UI + business logic)
+- Inputs to source generation vs. their consumers
+- Or simply closely related classes.
+
+Ultimately, the specific scheme matters less than ensuring that your build is split logically and consistently.
+
+Expanding a build to hundreds of projects is common, and Gradle is designed to scale to this size and beyond.
+In the extreme, tiny projects containing only a class or two are probably counterproductive.
+However, you should typically err on the side of adding more projects rather than fewer.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+.A common way to structure new builds
+[source, kotlin]
+----
+├── app // This project contains a mix of classes
+│    ├── build.gradle.kts
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── CommonsUtil.java
+│                        └── GuavaUtil.java
+│                        └── Main.java
+│                        └── Util.java
+├── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.A common way to structure new builds
+[source, groovy]
+----
+├── app // This project contains a mix of classes
+│    ├── build.gradle
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── CommonsUtil.java
+│                        └── GuavaUtil.java
+│                        └── Main.java
+│                        └── Util.java
+├── settings.gradle
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-avoid/kotlin",files="settings.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-avoid/groovy",files="settings.gradle[tags=avoid-this]"]
+====
+====
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-avoid/kotlin/app",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-avoid/groovy/app",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> This build contains only a single project (in addition to the root project) that contains all the source code.  If there is any change to any source file, Gradle will have to recompile and rebuild everything.  While incremental compilation will help (especially in this simplified example) this is still less efficient then avoidance.  Gradle also won't be able to run any tasks in parallel, since all these tasks are in the same project, so this design won't scale nicely.
+<2> As there is only a single project in this build, the `application` plugin must be applied here.  This means that the `application` plugin will be affect all source files in the build, even those which have no need for it.
+<3> Likewise, the dependencies here are only needed by each particular implmentation of util.  There's no need for the implementation using Guava to have access to the Commons library, but it does because they are all in the same project.  This also means that the classpath for each subproject is much larger than it needs to be, which can lead to longer build times and other confusion.
+
+==== Do This Instead
+
+[.multi-language-sample]
+=====
+.A better way to structure this build
+[source, kotlin]
+----
+├── app
+│    ├── build.gradle.kts
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── Main.java
+├── settings.gradle.kts
+├── util
+│    ├── build.gradle.kts
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── Util.java
+├── util-commons
+│    ├── build.gradle.kts
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── CommonsUtil.java
+└── util-guava
+    ├── build.gradle.kts
+    └── src
+        └── main
+            └── java
+                └── org
+                    └── example
+                        └── GuavaUtil.java
+----
+=====
+[.multi-language-sample]
+=====
+.A better way to structure this build
+[source, groovy]
+----
+├── app // App contains only the core application logic
+│    ├── build.gradle
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── Main.java
+├── settings.gradle
+├── util // Util contains only the core utility logic
+│    ├── build.gradle
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── Util.java
+├── util-commons // One particular implementation of util, using Apache Commons
+│    ├── build.gradle
+│    └── src
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── CommonsUtil.java
+└── util-guava // Another implementation of util, using Guava
+    ├── build.gradle
+    └── src
+        └── main
+            └── java
+                └── org
+                    └── example
+                        └── GuavaUtil.java
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/groovy",files="settings.gradle[tags=do-this]"]
+====
+====
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/kotlin/app",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/groovy/app",files="build.gradle[tags=do-this]"]
+====
+====
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/kotlin/util-commons",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/groovy/util-commons",files="build.gradle[tags=do-this]"]
+====
+====
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/kotlin/util-guava",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/groovy/util-guava",files="build.gradle[tags=do-this]"]
+====
+
+<1> This build logically splits the source into multiple projects.  Each project can be built independently, and Gradle can run tasks in parallel.  This means that if you change a single source file in one of the projects, Gradle will only need to recompile and rebuild that project, not the entire build.
+<2> The `application` plugin is only applied to the `app` project, which is the only project that needs it.
+<3> Each project only adds the dependencies it needs.  This means that the classpath for each subproject is much smaller, which can lead to faster build times and less confusion.
+<4> Each project only adds the specific plugins it needs.
+<5> Each project only adds the dependencies it needs.  Projects can effectively use <<java_library_plugin.adoc#sec:java_library_separation,API vs. Implementation separation>>.
+
+=== References
+
+- <<multi_project_builds.adoc#multi_project_builds,Structuring Projects with Gradle>>
+- <<organizing_gradle_projects.adoc#sec:settings_file,Organizing Gradle Projects>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+[[no_source_in_root]]
+== Do Not Put Source Files in the Root Project
+:keywords: structuring-builds
+
+Do not put source files in your root project; instead, put them in a separate project.
+
+=== Explanation
+
+The root project is a special link:{groovyDslPath}/org.gradle.api.Project.html[Project] in Gradle that serves as the entry point for your build.
+
+It is the place to configure some settings and conventions that apply globally to the entire build, that are not configured via link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings].
+For example, you can _declare_ (but not apply) plugins here to ensure the same plugin version is consistently available across all projects and define other configurations shared by all projects within the build.
+
+NOTE: Be careful not to apply plugins unnecessarily in the root project - many plugins only affect source code and should only be applied to the projects that contain source code.
+
+The root project should not be used for source files, instead they should be located in a separate Gradle project.
+
+Setting up your build like this from the start will also make it easier to add new projects as your build grows in the future.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+.A common way to structure new builds
+[source, kotlin]
+----
+├── build.gradle.kts // Applies the `java-library` plugin to the root project
+├── settings.gradle.kts
+└── src // This directory shouldn't exist
+    └── main
+        └── java
+            └── org
+                └── example
+                    └── MyClass1.java
+----
+=====
+[.multi-language-sample]
+=====
+.A common way to structure new builds
+[source, groovy]
+----
+├── build.gradle // Applies the `java-library` plugin to the root project
+├── settings.gradle
+└── src // This directory shouldn't exist
+    └── main
+        └── java
+            └── org
+                └── example
+                    └── MyClass1.java
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/noSourceInRoot-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/noSourceInRoot-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> The `java-library` plugin is applied to the root project, as there are Java source files are in the root project.
+
+==== Do This Instead
+
+
+[.multi-language-sample]
+=====
+.A better way to structure new builds
+[source, kotlin]
+----
+├── core
+│    ├── build.gradle.kts // Applies the `java-library` plugin to only the `core` project
+│    └── src // Source lives in a "core" (sub)project
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── MyClass1.java
+└── settings.gradle.kts
+
+----
+=====
+[.multi-language-sample]
+=====
+.A better way to structure new builds
+[source, groovy]
+----
+├── core
+│    ├── build.gradle // Applies the `java-library` plugin to only the `core` project
+│    └── src // Source lives in a "core" (sub)project
+│        └── main
+│            └── java
+│                └── org
+│                    └── example
+│                        └── MyClass1.java
+└── settings.gradle
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/noSourceInRoot-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/noSourceInRoot-do/groovy",files="settings.gradle[tags=do-this]"]
+====
+====
+include::sample[dir="snippets/bestPractices/noSourceInRoot-do/kotlin/core",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/noSourceInRoot-do/groovy/core",files="build.gradle[tags=do-this]"]
+====
+
+<1> The root project exists only to configure the build, informing Gradle of a (sub)project named `core`.
+<2> The `java-library` plugin is only applied to the `core` project, which contains the Java source files.
+
+=== References
+
+- <<multi_project_builds.adoc#multi_project_builds,Structuring Projects with Gradle>>
+- <<organizing_gradle_projects.adoc#sec:settings_file,Organizing Gradle Projects>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+[[use_the_gradle_properties_file]]
+== Set build flags in `gradle.properties`
+
+Set Gradle build property flags in the `gradle.properties` file.
+
+=== Explanation
+
+Instead of using command-line options or environment variables, set build flags in the root project's `gradle.properties` file.
+
+Gradle comes with a long list of <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>, which have names that begin with `org.gradle` and can be used to configure the behavior of the build tool.
+These properties can have a **major impact** on build performance, so it’s important to understand how they work.
+
+You should not rely on supplying these properties via the command-line for every Gradle invocation.
+Providing these properties via the command line is intended for short-term testing and debugging purposes, but it’s prone to being forgotten or inconsistently applied across environments.
+A permanent, idiomatic location to set and share these properties is in the `gradle.properties` file located in the root project directory.
+This file should be added to source control in order to share these properties across different machines and between developers.
+
+You should understand the default values of the properties your build uses and avoid explicitly setting properties to those defaults.
+Any change to a property's default value in Gradle will follow the standard <<feature_lifecycle.adoc#backwards_compatibility,deprecation cycle>>, and users will be properly notified.
+
+NOTE: Properties set this way are not inherited across build boundaries when using <<composite_builds.adoc#composite_builds,composite builds>>.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── build.gradle
+└── settings.gradle
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/useTheGradlePropertiesFile-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useTheGradlePropertiesFile-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+This build is run with `gradle run -Dorg.gradle.continue=true`, so that the failure of the `first` task does **not** prevent the `second` task from executing.
+
+This relies on person running the build to remember to set this property, which is error prone and not portable across different machines and environments.
+
+==== Do This Instead
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── build.gradle.kts
+└── gradle.properties
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── build.gradle
+└── gradle.properties
+└── settings.gradle
+----
+=====
+
+.gradle.properties
+[source,properties]
+----
+include::{snippetsPath}/bestPractices/useTheGradlePropertiesFile-do/kotlin/gradle.properties[tag=do-this]
+----
+
+This build sets the `org.gradle.continue` property in the `gradle.properties` file.
+
+Now it can be executed using only `gradle run`, and the continue property will always be set automatically across all environments.
+
+=== References
+
+- <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:properties,`#properties`>>

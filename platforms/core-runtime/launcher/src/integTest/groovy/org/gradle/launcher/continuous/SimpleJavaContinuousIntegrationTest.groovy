@@ -28,6 +28,13 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
     def setup() {
         buildFile << """
             apply plugin: 'java'
+
+            repositories {
+                mavenCentral()
+            }
+            dependencies {
+                implementation "junit:junit:4.13.2"
+            }
         """
     }
 
@@ -97,7 +104,9 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
     def "can run tests"() {
         when:
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
-        def testFile = file("src/test/java/TestThing.java") << "class TestThing extends Thing{}"
+        def testFile = file("src/test/java/TestThing.java") << "public class TestThing extends Thing { @org.junit.Test public void test() {} }"
+
+        then:
         def resourceFile = file("src/main/resources/thing.text") << "thing"
 
         then:
@@ -113,7 +122,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         skipped(":processResources")
 
         when:
-        testFile.text = "class TestThing extends Thing { static public int FLAG = 1; }"
+        testFile.text = "public class TestThing extends Thing { static public int FLAG = 1; @org.junit.Test public void test() {} }"
 
         then:
         buildTriggeredAndSucceeded()
@@ -132,7 +141,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
     def "failing main source build ignores changes to test source"() {
         when:
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
-        def testSourceFile = file("src/test/java/ThingTest.java") << "class ThingTest {}"
+        def testSourceFile = file("src/test/java/ThingTest.java") << "public class ThingTest { @org.junit.Test public void test() {} }"
 
         then:
         succeeds("test")
@@ -152,7 +161,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
 
         when:
-        testSourceFile.text = "class ThingTest {}"
+        testSourceFile.text = "public class ThingTest { @org.junit.Test public void test() {} }"
 
         then:
         noBuildTriggered()

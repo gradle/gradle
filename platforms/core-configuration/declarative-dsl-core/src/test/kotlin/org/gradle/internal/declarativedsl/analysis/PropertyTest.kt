@@ -18,21 +18,22 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelClass
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
+import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
-import org.gradle.internal.declarativedsl.assertIs
 
 
 class PropertyTest {
@@ -67,6 +68,7 @@ class PropertyTest {
         assertEquals(DataTypeInternal.DefaultIntDataType.ref, property.valueType)
     }
 
+    @Suppress("unused")
     private
     interface MyReceiver {
         @get:Restricted
@@ -78,7 +80,7 @@ class PropertyTest {
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val writeOnlyPropertyContributor = object : PropertyExtractor {
-        override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> {
+        override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> {
             return if (kClass == MyReceiver::class) {
                 listOf(
                     CollectedPropertyInformation(
@@ -98,11 +100,12 @@ class PropertyTest {
 
     private
     fun testPropertyContributor(name: String, type: KType) = object : PropertyExtractor {
-        override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> {
-            val returnType = type.toDataTypeRef()!!
-            return listOf(CollectedPropertyInformation(name, type, returnType, DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite, false, false, false, emptyList()))
-                .filter { propertyNamePredicate(it.name) }
-        }
+        override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
+            host.inContextOfModelClass(kClass) {
+                val returnType = host.modelTypeRef(type)
+                listOf(CollectedPropertyInformation(name, type, returnType, DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite, false, false, false, emptyList()))
+                    .filter { propertyNamePredicate(it.name) }
+            }
     }
 
     private

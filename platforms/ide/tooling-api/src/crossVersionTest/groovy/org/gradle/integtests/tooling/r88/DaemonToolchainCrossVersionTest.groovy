@@ -23,18 +23,20 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
+import org.junit.Assume
+import spock.lang.Ignore
 
 // 8.8 did not support configuring the set of available Java homes or disabling auto-detection
 @TargetGradleVersion(">=8.9")
 class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
-    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    @Requires(IntegTestPreconditions.Java21HomeAvailable)
     def "Given daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
-        def jdk8 = AvailableJavaHomes.jdk8
-        writeJvmCriteria(jdk8.javaVersion.majorVersion)
+        def jdk = AvailableJavaHomes.jdk21
+        writeJvmCriteria(jdk.javaVersion.majorVersion)
         captureJavaHome()
-        withInstallations(jdk8.javaHome)
+        withInstallations(jdk.javaHome)
 
         when:
         withConnection {
@@ -42,13 +44,14 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         }
 
         then:
-        assertDaemonUsedJvm(jdk8.javaHome)
+        assertDaemonUsedJvm(jdk.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given other daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)
+        Assume.assumeNotNull(otherJvm)
+
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
         withInstallations(otherJvm.javaHome)
@@ -62,14 +65,35 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         assertDaemonUsedJvm(otherJvm.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Ignore("https://github.com/gradle/gradle/issues/32969")
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given criteria matching JAVA_HOME environment variable and disabled auto-detection When executing any task Then daemon jvm was set up with expected configuration"() {
+        given:
+        def otherJvm = AvailableJavaHomes.differentVersion
+        writeJvmCriteria(otherJvm.javaVersion.majorVersion)
+        captureJavaHome()
+
+        when:
+        withConnection {
+            it.newBuild()
+                .setEnvironmentVariables(["JAVA_HOME": otherJvm.javaHome.absolutePath])
+                .forTasks("help").withArguments(
+                "-Dorg.gradle.java.installations.auto-detect=false",
+            ).run()
+        }
+
+        then:
+        assertDaemonUsedJvm(otherJvm.javaHome)
+    }
+
+    @Requires(IntegTestPreconditions.Java21HomeAvailable)
     def "Given daemon toolchain criteria that doesn't match installed ones When executing any task Then fails with the expected message"() {
         given:
-        def jdk11 = AvailableJavaHomes.getJdk11()
+        def jdk = AvailableJavaHomes.jdk21
         // Java 10 is not available
         writeJvmCriteria("10")
         captureJavaHome()
-        withInstallations(jdk11.javaHome)
+        withInstallations(jdk.javaHome)
 
         when:
         withConnection {

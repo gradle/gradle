@@ -18,8 +18,7 @@ package org.gradle.internal.instantiation;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Contextual
 public class ClassGenerationException extends GradleException {

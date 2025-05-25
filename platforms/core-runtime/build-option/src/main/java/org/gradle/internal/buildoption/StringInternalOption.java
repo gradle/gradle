@@ -16,7 +16,7 @@
 
 package org.gradle.internal.buildoption;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class StringInternalOption implements InternalOption<String> {
     private final String systemPropertyName;

@@ -17,5 +17,7 @@
 /**
  * Task classes for visual studio.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.ide.visualstudio.tasks.internal;
+
+import org.jspecify.annotations.NullMarked;

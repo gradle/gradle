@@ -16,7 +16,8 @@
 
 package org.gradle.jvm.application.scripts;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -41,6 +42,11 @@ public interface JavaAppStartScriptGenerationDetails {
 
     String getMainClassName();
 
+    /**
+     * The default JVM options that are always passed to the application.
+     *
+     * @return the default JVM options
+     */
     List<String> getDefaultJvmOpts();
 
     /**

@@ -40,7 +40,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
 
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
+    testImplementation(testFixtures(projects.declarativeDslCore))
+    testImplementation(testFixtures(projects.declarativeDslEvaluator))
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.logging)
@@ -49,6 +51,7 @@ dependencies {
 
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(testFixtures(projects.declarativeDslCore))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

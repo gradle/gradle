@@ -49,42 +49,57 @@ include::sample[dir="snippets/dependencyManagement/introductionDependencies/groo
 
 In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_.
 
-== 1. The Basics
+== Learning the Basics
 
 If you want to understand the basics of dependency management and you are new to Gradle, start <<declaring_dependencies.adoc#one-declaring-dependencies,here>>.
 
-== 2. Declaring Dependencies
+=== 1. Declaring Dependencies
 
 You can add external libraries to your Java project, such as `Guava`.
 These libraries are <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,_dependencies_>> of your project.
 They are added using the `dependencies{}` block in your build file.
 
-== 3. Declaring Repositories
+=== 2. Dependency Configurations
+
+Every dependency declared for a Gradle project applies to a specific scope, known as a <<dependency_configurations.adoc#two-dependency-configurations,_configurations_>>.
+These _configurations_ are typically created by applying plugins or must be created directly using APIs.
+
+=== 3. Declaring Repositories
 
 You can <<declaring_repositories_basics.adoc#declaring-repositories-basics,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
 During a build, Gradle locates and downloads the dependencies, a process called _dependency resolution_.
 
-== 4. Centralizing Dependencies
+=== 4. Centralizing Dependencies
 
 To keep dependencies and their versions declared in a <<platforms.adoc#platforms,single, manageable location>> (i.e., centralized), you can use _platforms_ and _version catalogs_.
 
 A _platform_ is a set of modules intended to be used together.
 A _version catalog_ is a centralized list of dependency coordinates that can be referenced in multiple projects.
 
-== 5. Managing Dependencies
+=== 5. Managing Constraints and Conflicts
+
 Conflicts can arise when the same library is declared multiple times or when different libraries provide the same functionality.
 This usually leads to failing builds.
 
 You can manage conflicts using <<resolution_rules.adoc#using-resolution-rules,resolution rules>> or <<dependency_locking.adoc#locking-versions,dependency locking>>.
 
-== 6. Understanding Dependency Resolution
+== Advanced Concepts
 
-In order to influence how Gradle resolves dependencies, it's important to understand <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,how it works>>. This section covers variants, attributes, capabilities and dependency caching.
+In order to influence how Gradle resolves dependencies, it's important to understand <<dependency_resolution.adoc#dependency-resolution-basics,how it works>>.
 
-== 7. Controlling Dependency Resolution
+=== 1. Dependency Resolution
 
-Once you have a grasp of how dependency resolution works, you can <<dependency_resolution_basics.adoc#dependency-resolution-basics,view, control and influence it>>. This section covers graph and artifact resolution, as well as artifact transforms.
+Gradle's <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution process>> determines which modules and versions are required to fulfill a build's declared dependencies.
+It is done in two steps, _graph resolution_ and _artifact resolution_.
 
-== 8. Publishing Libraries
+=== 2. Graph Resolution
 
-If you are considering publishing your library for consumption as a dependency, check out our <<publishing_setup.adoc#publishing_components,publishing chapter>>.
+During <<graph_resolution.adoc#dependency-graph-resolution,graph resolution>>, Gradle constructs a _dependency graph_, resolving version conflicts and ensuring the intended dependencies are selected.
+
+=== 3. Variant Selection
+
+<<variant_aware_resolution.adoc#sec:understanding-variant-selection,Variant selection>> traverses the resolved dependency graph by choosing the most compatible _variant_ of each module based on _attributes_ and _capabilities_.
+
+=== 4. Artifact Resolution
+
+Finally, <<artifact_resolution.adoc#artifact-resolution,Artifact resolution>> is how Gradle determines which files or _artifacts_ published by the selected variants to download and use during the build.

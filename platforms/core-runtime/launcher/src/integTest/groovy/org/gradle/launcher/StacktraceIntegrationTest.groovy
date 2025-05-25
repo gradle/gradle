@@ -17,6 +17,8 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class StacktraceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -67,6 +69,7 @@ class StacktraceIntegrationTest extends AbstractIntegrationSpec {
         assertCauseWithStacktrace('show stacktrace was ALWAYS')
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "emits actionable message when wrong configuration is used"() {
         setup:
         executer.requireDaemon().requireIsolatedDaemons()

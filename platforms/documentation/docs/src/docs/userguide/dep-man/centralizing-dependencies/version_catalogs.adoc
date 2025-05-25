@@ -14,6 +14,7 @@
 
 [[version-catalog]]
 = Version Catalogs
+:keywords: toml, libs.versions.toml
 
 A version catalog is a selected list of dependencies that can be referenced in build scripts, simplifying dependency management.
 
@@ -223,7 +224,7 @@ To avoid generating subgroup accessors, use camelCase notation:
 |`libs.groovyCore`
 
 |`groovyJson-core`
-|`libs.groovyJsonCore`
+|`libs.groovyJson.core`
 
 |===
 
@@ -384,3 +385,32 @@ Creating a version catalog programmatically uses the link:{javadocPath}/org/grad
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=catalog_with_bundle]"]
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=catalog_with_bundle]"]
 ====
+
+[[sec:buildsrc-version-catalog]]
+== Using a catalog in `buildSrc`
+
+Version catalogs provide a centralized way to manage dependencies in a  project.
+However, **`buildSrc` does not automatically inherit the version catalog from the main project**, so additional configuration is required.
+
+To access a version catalog inside `buildSrc`, you need to explicitly import it in `buildSrc/settings.gradle(.kts)`:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/kotlin",files="buildSrc/settings.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/groovy",files="buildSrc/settings.gradle[]"]
+====
+
+Once the version catalog is imported, dependencies can be referenced using a few tricks:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/groovy",files="buildSrc/build.gradle[]"]
+====
+
+In **precompiled script plugins** inside `buildSrc`, the version catalog can be accessed using `extensions.getByType(VersionCatalogsExtension)` as demonstrated in the dependencies block of this convention plugin:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/kotlin",files="buildSrc/src/main/kotlin/java-commons-convention.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/groovy",files="buildSrc/src/main/groovy/java-commons-convention.gradle[]"]
+====
+
+However, the plugins block in the **precompiled script plugin** cannot access the version catalog.

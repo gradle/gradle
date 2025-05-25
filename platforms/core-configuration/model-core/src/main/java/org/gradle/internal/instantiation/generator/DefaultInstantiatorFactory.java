@@ -18,7 +18,7 @@ package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.instantiation.DeserializationInstantiator;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -29,19 +29,21 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.state.ManagedFactory;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+@NullMarked
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private static final int MANAGED_FACTORY_ID = Objects.hashCode(ManagedTypeFactory.class.getName());
 
     private final ServiceRegistry defaultServices;
-    private final CrossBuildInMemoryCacheFactory cacheFactory;
+    private final ClassCacheFactory cacheFactory;
     private final List<InjectAnnotationHandler> annotationHandlers;
     private final PropertyRoleAnnotationHandler roleHandler;
     private final DefaultInstantiationScheme injectOnlyScheme;
@@ -50,7 +52,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final DefaultInstantiationScheme decoratingLenientScheme;
     private final ManagedFactory managedFactory;
 
-    public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, PropertyRoleAnnotationHandler roleAnnotationHandler) {
+    public DefaultInstantiatorFactory(ClassCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, PropertyRoleAnnotationHandler roleAnnotationHandler) {
         this.cacheFactory = cacheFactory;
         this.annotationHandlers = injectHandlers;
         this.roleHandler = roleAnnotationHandler;

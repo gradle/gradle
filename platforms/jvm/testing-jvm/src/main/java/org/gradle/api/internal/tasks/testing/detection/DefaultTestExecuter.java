@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassPro
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.internal.tasks.testing.results.TestRetryShieldingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
 import org.gradle.api.logging.Logger;
@@ -82,8 +83,8 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
 
         ForkedTestClasspath classpath = testClasspathFactory.create(
-            testExecutionSpec.getClasspath(), testExecutionSpec.getModulePath(),
-            testFramework, testExecutionSpec.getTestIsModule()
+            testExecutionSpec.getClasspath(),
+            testExecutionSpec.getModulePath()
         );
 
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
@@ -116,6 +117,19 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
 
+        // What is this?
+        // In some versions of the Gradle retry plugin, it would retry any test that had any kind of failure associated with it.
+        // We attempt to capture assumption violations as failures for skipped tests.
+        //
+        // This would cause any test that had been skipped to be executed multiple times. This could sometimes cause real failures.
+        // To workaround this, we shield the test retry result processor from seeing test assumption failures.
+        if (testResultProcessor != null) {
+            // KMP calls this code with a delegating test result processor that does not return sensible Class objects
+            String canonicalName = testResultProcessor.getClass().getCanonicalName();
+            if (canonicalName != null && canonicalName.endsWith("org.gradle.testretry.internal.executer.RetryTestResultProcessor")) {
+                testResultProcessor = new TestRetryShieldingTestResultProcessor(testResultProcessor);
+            }
+        }
         new TestMainAction(detector, processor, testResultProcessor, workerLeaseService, clock, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
     }
 

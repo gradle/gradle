@@ -17,19 +17,12 @@
 package org.gradle.internal.component.external.model.maven;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ExternalModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
-import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -58,17 +51,6 @@ public class MavenDependencyMetadata extends ExternalModuleDependencyMetadata {
     }
 
     @Override
-    protected GraphVariantSelectionResult selectLegacyConfigurations(
-        GraphVariantSelector variantSelector,
-        ImmutableAttributes consumerAttributes,
-        ComponentGraphResolveState targetComponentState,
-        ImmutableAttributesSchema consumerSchema
-    ) {
-        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
-        return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
-    }
-
-    @Override
     public List<ExcludeMetadata> getExcludes() {
         return getDependencyDescriptor().getConfigurationExcludes();
     }
@@ -90,8 +72,13 @@ public class MavenDependencyMetadata extends ExternalModuleDependencyMetadata {
     }
 
     @Override
-    protected ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> artifacts) {
+    protected ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> newArtifacts) {
+        return new MavenDependencyMetadata(dependencyDescriptor, getReason(), isEndorsingStrictVersions(), newArtifacts);
+    }
+
+    @Override
+    protected ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts) {
         MavenDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
-        return new MavenDependencyMetadata(newDelegate, getReason(), isEndorsingStrictVersions(), artifacts);
+        return new MavenDependencyMetadata(newDelegate, getReason(), isEndorsingStrictVersions(), newArtifacts);
     }
 }

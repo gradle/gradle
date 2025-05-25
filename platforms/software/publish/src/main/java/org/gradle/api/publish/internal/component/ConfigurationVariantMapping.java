@@ -15,7 +15,7 @@
  */
 package org.gradle.api.publish.internal.component;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
@@ -31,12 +31,11 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -108,12 +107,13 @@ public class ConfigurationVariantMapping {
     }
 
     // Cannot be private due to reflective instantiation
-    static class DefaultConfigurationVariant implements ConfigurationVariant {
+    static abstract class DefaultConfigurationVariant implements ConfigurationVariant {
         private final ConfigurationInternal outgoingConfiguration;
 
         @Inject
         public DefaultConfigurationVariant(ConfigurationInternal outgoingConfiguration) {
             this.outgoingConfiguration = outgoingConfiguration;
+            getDescription().convention(outgoingConfiguration.getDescription()).finalizeValueOnRead();
         }
 
         @Override
@@ -134,11 +134,6 @@ public class ConfigurationVariantMapping {
         @Override
         public String getName() {
             return outgoingConfiguration.getName();
-        }
-
-        @Override
-        public Optional<String> getDescription() {
-            return Optional.ofNullable(outgoingConfiguration.getDescription());
         }
 
         @Override

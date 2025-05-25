@@ -17,7 +17,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 
 class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -47,62 +46,43 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         file("tests/build/classes/java/unitTest").assertHasDescendants("Test.class")
     }
 
-    def "calling withSourcesJar is deprecated when the java plugin is not applied"() {
+    def "calling withSourcesJar before a component is available works"() {
         given:
         buildFile << """
             plugins {
                 id 'java-base'
             }
-
-            sourceSets {
-                main
-            }
-
             java {
                 withSourcesJar()
             }
+            apply plugin: 'java-library'
         """
 
         expect:
-        executer.expectDeprecationWarning("withSourcesJar() was called without the presence of the java component. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Apply a JVM component plugin such as: java-library, application, groovy, or scala Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_extension_without_java_component")
-        succeeds("help")
+        succeeds("sourcesJar")
     }
 
-    def "calling withJavadocJar is deprecated when the java plugin is not applied"() {
+    def "calling withJavadocJar before a component is available works"() {
         given:
         buildFile << """
             plugins {
                 id 'java-base'
             }
-
-            sourceSets {
-                main
-            }
-
-            task javadoc {
-
-            }
-
             java {
                 withJavadocJar()
             }
+            apply plugin: 'java-library'
         """
 
         expect:
-        executer.expectDeprecationWarning("withJavadocJar() was called without the presence of the java component. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Apply a JVM component plugin such as: java-library, application, groovy, or scala Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_extension_without_java_component")
-        succeeds("help")
+        succeeds("javadoc")
     }
 
-    def "calling consistentResolution(Action) is deprecated when the java plugin is not applied"() {
+    def "calling consistentResolution(Action) before a component is available works"() {
         given:
         buildFile << """
             plugins {
                 id 'java-base'
-            }
-
-            sourceSets {
-                main
-                test
             }
 
             java {
@@ -110,10 +90,10 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
                 }
             }
+            apply plugin: 'java-library'
         """
 
         expect:
-        executer.expectDeprecationWarning("consistentResolution(Action) was called without the presence of the java component. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Apply a JVM component plugin such as: java-library, application, groovy, or scala Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_extension_without_java_component")
         succeeds("help")
     }
 

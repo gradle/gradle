@@ -18,7 +18,6 @@ package org.gradle.internal.jvm.inspection;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -31,12 +30,14 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.EnvironmentVariableJavaHomeInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -51,7 +52,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@NonNullApi
+@NullMarked
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
     private final BuildOperationRunner buildOperationRunner;
     private final Installations installations;
@@ -119,6 +120,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     private static List<InstallationSupplier> builtInSuppliers(ToolchainConfiguration toolchainConfiguration, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
         List<InstallationSupplier> allSuppliers = new ArrayList<>();
         allSuppliers.add(new EnvironmentVariableListInstallationSupplier(toolchainConfiguration, fileResolver, System.getenv()));
+        allSuppliers.add(new EnvironmentVariableJavaHomeInstallationSupplier(System.getenv()));
         allSuppliers.add(new LocationListInstallationSupplier(toolchainConfiguration, fileResolver));
         allSuppliers.add(new CurrentInstallationSupplier());
         allSuppliers.add(new AutoInstalledInstallationSupplier(toolchainConfiguration, jdkCacheDirectory));
@@ -234,7 +236,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         return t -> seen.add(keyExtractor.apply(t));
     }
 
-    @NonNullApi
+    @NullMarked
     private static class ToolchainDetectionBuildOperation implements CallableBuildOperation<Set<InstallationLocation>> {
         private final Callable<Set<InstallationLocation>> detectionStrategy;
 
@@ -255,7 +257,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class Installations {
 
         private final Supplier<Set<InstallationLocation>> initializer;

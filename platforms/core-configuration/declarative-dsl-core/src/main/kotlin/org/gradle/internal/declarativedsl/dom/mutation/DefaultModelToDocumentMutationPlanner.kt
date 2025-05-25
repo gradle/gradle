@@ -24,16 +24,18 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
-import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.analysis.sameType
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode.PropertyAugmentation.None
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode.PropertyAugmentation.Plus
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultPropertyNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution.PropertyAssignmentResolved
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
@@ -66,10 +68,17 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
             is ModelMutation.SetPropertyValue ->
                 withMatchingProperties(
                     scopeLocationMatcher, documentMemberMatcher, mutationRequest, mutation.property,
-                    mapFoundPropertyToDocumentMutation = { ReplaceValue(it.value) { mutation.newValue.value(mutationArguments) } },
+                    mapFoundPropertyToDocumentMutation = {
+                        when (it.augmentation) {
+                            None -> ReplaceValue(it.value) { mutation.newValue.value(mutationArguments) }
+                            Plus -> ReplaceNode(it) {
+                                NewDocumentNodes(listOf(DefaultPropertyNode(it.name, SyntheticallyProduced, mutation.newValue.value(mutationArguments), None)))
+                            }
+                        }
+                    },
                     mapMatchingScopeToDocumentMutation = {
                         AddChildrenToEndOfBlock(it.elements.last()) {
-                            NewDocumentNodes(listOf(DefaultPropertyNode(mutation.property.property.name, SyntheticallyProduced, mutation.newValue.value(mutationArguments))))
+                            NewDocumentNodes(listOf(DefaultPropertyNode(mutation.property.property.name, SyntheticallyProduced, mutation.newValue.value(mutationArguments), None)))
                         }
                     }
                 )
@@ -181,7 +190,7 @@ class DocumentMemberAndTypeMatcher(
     val typeRefContext = SchemaTypeRefContext(schema)
 
     fun typeIsSubtypeOf(subtype: DataType, supertype: DataType): Boolean =
-        subtype.ref.isEquivalentTo(supertype.ref) ||
+        SchemaTypeRefContext(schema).sameType(subtype, supertype) ||
             subtype is DataClass && supertype is DataClass && supertype.name in subtype.supertypes
 
     fun <T> ifScopeMatchesType(scope: Scope, typedMember: TypedMember, then: (ElementNode) -> T): T? {
@@ -246,5 +255,5 @@ class DocumentMemberAndTypeMatcher(
 
     private
     fun DataTypeRef.isEquivalentTo(other: DataTypeRef) =
-        sameType(typeRefContext.resolveRef(this), typeRefContext.resolveRef(other))
+        SchemaTypeRefContext(schema).sameType(typeRefContext.resolveRef(this), typeRefContext.resolveRef(other))
 }

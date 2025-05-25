@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -40,6 +40,8 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
@@ -47,7 +49,6 @@ import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -65,7 +66,7 @@ import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
  * A {@link TestExecutionListener} that maps JUnit5 events to Gradle test events.
  * Most importantly, it will map assertion and platform failures to Gradle's {@link TestFailure} class, which we can send through the TAPI.
  */
-@NonNullApi
+@NullMarked
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
 
     private final static List<TestFailureMapper> MAPPERS = Arrays.asList(
@@ -124,6 +125,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testExecutionResult.getStatus() == ABORTED) {
+            testExecutionResult.getThrowable().ifPresent(throwable -> resultProcessor.failure(getId(testIdentifier), DefaultTestFailure.fromTestAssumptionFailure(throwable)));
             reportSkipped(testIdentifier);
             return;
         }
@@ -260,11 +262,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private Set<TestIdentifier> getAncestors(TestIdentifier testIdentifier) {
         Set<TestIdentifier> result = new LinkedHashSet<>();
-        Optional<String> parentId = testIdentifier.getParentId();
-        while (parentId.isPresent()) {
-            TestIdentifier parent = currentTestPlan.getTestIdentifier(parentId.get());
-            result.add(parent);
-            parentId = parent.getParentId();
+        Optional<TestIdentifier> parent = getParent(testIdentifier);
+        while (parent.isPresent()) {
+            result.add(parent.get());
+            parent = getParent(parent.get());
         }
         return result;
     }
@@ -279,9 +280,20 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             if (isTestClassIdentifier(current)) {
                 return current;
             }
-            current = current.getParentId().map(currentTestPlan::getTestIdentifier).orElse(null);
+            current = getParent(current).orElse(null);
         }
         return null;
+    }
+
+    @SuppressWarnings("deprecation")
+    private Optional<TestIdentifier> getParent(TestIdentifier testIdentifier) {
+        try {
+            return testIdentifier.getParentIdObject().map(currentTestPlan::getTestIdentifier);
+        // Some versions of the JDK throw a BootstrapMethodError
+        } catch (NoSuchMethodError | BootstrapMethodError ignore) {
+            // To support pre-1.10 versions of the JUnit Platform
+            return testIdentifier.getParentId().map(currentTestPlan::getTestIdentifier);
+        }
     }
 
     private boolean isTestClassIdentifier(TestIdentifier testIdentifier) {

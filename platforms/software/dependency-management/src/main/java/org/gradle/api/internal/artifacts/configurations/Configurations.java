@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 
@@ -31,11 +30,6 @@ public class Configurations {
             }
         }
         return out;
-    }
-
-    @Deprecated // TODO:Finalize Upload Removal - Issue #21439
-    public static String uploadTaskName(String configurationName) {
-        return "upload" + StringUtils.capitalize(configurationName);
     }
 
 }

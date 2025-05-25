@@ -129,11 +129,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
-    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
         final GradleInternal gradle = getBuildController().getGradle();
         ServiceRegistry services = gradle.getServices();

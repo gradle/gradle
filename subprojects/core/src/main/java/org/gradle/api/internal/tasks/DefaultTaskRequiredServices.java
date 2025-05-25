@@ -27,8 +27,8 @@ import org.gradle.api.services.internal.RegisteredBuildServiceProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;

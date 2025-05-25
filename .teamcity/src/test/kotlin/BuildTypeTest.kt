@@ -35,16 +35,25 @@ class BuildTypeTest {
         DslContext.initForTest()
     }
 
-    private
-    val buildModel = CIBuildModel(
-        projectId = "Gradle_Check",
-        branch = VersionedSettingsBranch("master"),
-        buildScanTags = listOf("Check"),
-        subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
-    )
+    private val buildModel =
+        CIBuildModel(
+            projectId = "Gradle_Check",
+            branch = VersionedSettingsBranch("master"),
+            buildScanTags = listOf("Check"),
+            subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json")),
+        )
 
     @Test
     fun `CompileAll parameters are correct`() {
+        val linuxPaths =
+            listOf(
+                "%linux.java8.oracle.64bit%",
+                "%linux.java11.openjdk.64bit%",
+                "%linux.java17.openjdk.64bit%",
+                "%linux.java21.openjdk.64bit%",
+                "%linux.java24.openjdk.64bit%",
+            )
+        val expectedInstallationPaths = linuxPaths.joinToString(",")
         val gradleStep = CompileAll(buildModel, buildModel.stages[0]).steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
         assertEquals(
             listOf(
@@ -52,33 +61,42 @@ class BuildTypeTest {
                 "-PmaxParallelForks=%maxParallelForks%",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
                 "-s",
-                "--no-configuration-cache",
                 "%additional.gradle.parameters%",
-                "--daemon",
                 "--continue",
                 "-DbuildScan.PartOf=QuickFeedbackLinuxOnly,QuickFeedback,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
                 "-Dscan.tag.CompileAll",
                 "-Porg.gradle.java.installations.auto-download=false",
                 "-Dscan.tag.Check",
                 "-PteamCityBuildId=%teamcity.build.id%",
-                "\"-Porg.gradle.java.installations.paths=%linux.java7.oracle.64bit%,%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java23.openjdk.64bit%\"",
+                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "-Porg.gradle.java.installations.auto-download=false",
-                "-Porg.gradle.java.installations.auto-detect=false"
+                "-Porg.gradle.java.installations.auto-detect=false",
             ).joinToString(" "),
-            gradleStep.gradleParams
+            gradleStep.gradleParams,
         )
     }
 
     @Test
     fun `functional test parameters are correct`() {
-        val functionalTest = FunctionalTest(
-            buildModel,
-            "TestFunctionalTest",
-            "Test Functional Test",
-            "Test Functional Test",
-            TestCoverage(4, TestType.platform, Os.WINDOWS, JvmVersion.java23, JvmVendor.openjdk),
-            buildModel.stages[2]
-        )
+        val functionalTest =
+            FunctionalTest(
+                buildModel,
+                "TestFunctionalTest",
+                "Test Functional Test",
+                "Test Functional Test",
+                TestCoverage(4, TestType.PLATFORM, Os.WINDOWS, JvmVersion.JAVA_24, JvmVendor.OPENJDK),
+                buildModel.stages[2],
+            )
+
+        val windowsPaths =
+            listOf(
+                "%windows.java8.openjdk.64bit%",
+                "%windows.java11.openjdk.64bit%",
+                "%windows.java17.openjdk.64bit%",
+                "%windows.java21.openjdk.64bit%",
+                "%windows.java24.openjdk.64bit%",
+            )
+        val expectedInstallationPaths = windowsPaths.joinToString(",")
         val gradleStep = functionalTest.steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
         assertEquals(
             listOf(
@@ -86,26 +104,24 @@ class BuildTypeTest {
                 "-PmaxParallelForks=4",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
                 "-s",
-                "--no-configuration-cache",
                 "%additional.gradle.parameters%",
-                "--daemon",
                 "--continue",
-                "-DbuildScan.PartOf=PlatformJava23AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
-                "-PtestJavaVersion=23",
+                "-DbuildScan.PartOf=PlatformJava24AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+                "-PtestJavaVersion=24",
                 "-PtestJavaVendor=openjdk",
                 "-Dscan.tag.FunctionalTest",
                 "-Dscan.value.coverageOs=windows",
                 "-Dscan.value.coverageArch=amd64",
                 "-Dscan.value.coverageJvmVendor=openjdk",
-                "-Dscan.value.coverageJvmVersion=java23",
+                "-Dscan.value.coverageJvmVersion=java24",
                 "-PflakyTests=exclude",
                 "-Dscan.tag.Check",
                 "-PteamCityBuildId=%teamcity.build.id%",
-                "\"-Porg.gradle.java.installations.paths=%windows.java8.openjdk.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java23.openjdk.64bit%\"",
+                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "-Porg.gradle.java.installations.auto-download=false",
-                "-Porg.gradle.java.installations.auto-detect=false"
+                "-Porg.gradle.java.installations.auto-detect=false",
             ).joinToString(" "),
-            gradleStep.gradleParams
+            gradleStep.gradleParams,
         )
     }
 }

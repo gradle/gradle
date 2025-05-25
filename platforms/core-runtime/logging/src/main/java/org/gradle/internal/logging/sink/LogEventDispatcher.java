@@ -19,8 +19,7 @@ package org.gradle.internal.logging.sink;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class LogEventDispatcher implements OutputEventListener {
     private final OutputEventListener stdoutChain;

@@ -16,8 +16,8 @@
 package org.gradle.internal.typeconversion;
 
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Formatter;

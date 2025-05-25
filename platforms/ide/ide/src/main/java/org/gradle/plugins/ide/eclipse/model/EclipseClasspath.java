@@ -22,6 +22,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -248,7 +249,7 @@ public abstract class EclipseClasspath {
      * @since 8.1
      */
     @Incubating
-    public abstract Property<File> getBaseSourceOutputDir();
+    public abstract DirectoryProperty getBaseSourceOutputDir();
 
     /**
      * Whether to download and associate source Jars with the dependency Jars. Defaults to true.

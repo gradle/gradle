@@ -14,6 +14,7 @@
 
 [[working_with_files]]
 = Working With Files
+:keywords: projectlayout, project.file, filecollection, project.copy, filetree, archiveFileName, archiveFile, destinationDirectory, archiveBaseName, archiveAppendix, archiveVersion, archiveClassifier, archiveExtension
 
 File operations are fundamental to nearly every Gradle build.
 They involve handling source files, managing file dependencies, and generating reports.
@@ -932,7 +933,8 @@ $ gradle -q myCustomZip
 include::{snippetsPath}/files/archiveNaming/tests/zipWithCustomName.out[]
 ----
 
-You can also override the default `archiveBaseName` value for _all_ the archive tasks in your build by using the _project_ property `archivesBaseName`, as demonstrated by the following example:
+You can also override the default `archiveBaseName` value for _all_ the archive tasks in your build by configuring the `archivesName` property in the `base` block, as demonstrated by the following example.
+The block is defined by the `base` plugin and backed by the `BasePluginExtension` class.
 
 ====
 include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[]"]
@@ -1005,11 +1007,12 @@ This is necessary for projects like https://reproducible-builds.org/[reproducibl
 
 Reproducing the same byte-for-byte archive poses some challenges since the order of the files in an archive is influenced by the underlying file system.
 Each time a ZIP, TAR, JAR, WAR or EAR is built from source, the order of the files inside the archive may change.
-Files that only have a different timestamp also causes differences in archives from build to build.
+Files that only have a different timestamp or permissions also causes differences in archives from build to build.
 
 All link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask] (e.g. Jar, Zip) tasks shipped with Gradle include support for producing reproducible archives.
 
 For example, to make a `Zip` task reproducible you need to set link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:reproducibleFileOrder[Zip.isReproducibleFileOrder()] to `true` and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:preserveFileTimestamps[Zip.isPreserveFileTimestamps()] to `false`.
+Additionally, you need to set permissions explicitly, for example link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:dirPermissions[Zip.getDirPermissions()] to `755` and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:filePermissions[Zip.getFilePermissions()] to `644`.
 In order to make all archive tasks in your build reproducible, consider adding the following configuration to your build file:
 
 ====

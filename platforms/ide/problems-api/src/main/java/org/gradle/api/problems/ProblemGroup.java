@@ -18,8 +18,8 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.DefaultProblemGroup;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.Immutable;
  * <p>
  * Groups are organized in hierarchy where the parent group should represent the more broad problem group.
  * <p>
- * Two problem groups  are considered equal if their {@link #getName()} and their parents' are equal.
+ * Two problem groups  are considered equal if their {@link #getName()} and their parents are equal.
  *
  * @since 8.8
  * @see ProblemId

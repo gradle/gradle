@@ -14,6 +14,7 @@
 
 [[installation]]
 = Installing Gradle
+:keywords: install
 
 [[gs:installation]]
 == Gradle Installation
@@ -283,15 +284,15 @@ Open a console (or a Windows command prompt) and run `gradle -v` to run gradle a
 Gradle {gradleVersion}
 ------------------------------------------------------------
 
-Build time:    2024-06-17 18:10:00 UTC
-Revision:      6028379bb5a8512d0b2c1be6403543b79825ef08
+Build time:    2025-05-13 06:56:13 UTC
+Revision:      3c890746756262d3778e12eaa5155d661d7cbdf2
 
-Kotlin:        1.9.23
-Groovy:        3.0.21
-Ant:           Apache Ant(TM) version 1.10.13 compiled on January 4 2023
-Launcher JVM:  11.0.23 (Eclipse Adoptium 11.0.23+9)
-Daemon JVM:    /Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home (no JDK specified, using current Java home)
-OS:            Mac OS X 14.5 aarch64
+Kotlin:        2.1.21
+Groovy:        4.0.26
+Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+Launcher JVM:  22.0.1 (Oracle Corporation 22.0.1+8-16)
+Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)
+OS:            Mac OS X 15.5 aarch64
 
 ----
 

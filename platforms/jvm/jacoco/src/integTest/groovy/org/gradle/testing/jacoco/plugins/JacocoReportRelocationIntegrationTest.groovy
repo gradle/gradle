@@ -17,11 +17,17 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
 class JacocoReportRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+
+    @Override
+    def setup() {
+        JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()
+    }
 
     @Override
     protected String getTaskName() {

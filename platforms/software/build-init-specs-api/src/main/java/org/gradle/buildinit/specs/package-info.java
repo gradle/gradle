@@ -19,5 +19,7 @@
  *
  * @since 8.11
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.buildinit.specs;
+
+import org.jspecify.annotations.NullMarked;

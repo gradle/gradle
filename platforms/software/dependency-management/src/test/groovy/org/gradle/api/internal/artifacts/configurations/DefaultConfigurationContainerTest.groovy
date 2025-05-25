@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
@@ -26,6 +25,7 @@ import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
@@ -36,16 +36,15 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
-import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Specification
 
 class DefaultConfigurationContainerTest extends Specification {
@@ -60,7 +59,7 @@ class DefaultConfigurationContainerTest extends Specification {
     }
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    private ObjectFactory objectFactory = TestUtil.objectFactory()
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
     private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
         getValidator() >> Mock(MutationValidator)
@@ -69,14 +68,14 @@ class DefaultConfigurationContainerTest extends Specification {
         create(_, _, _, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
-        instantiator,
+        objectFactory,
         resolver,
         listenerManager,
         StandaloneDomainObjectContext.ANONYMOUS,
         TestFiles.fileCollectionFactory(),
         buildOperationRunner,
         new PublishArtifactNotationParserFactory(
-                instantiator,
+                objectFactory,
                 metaDataProvider,
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
@@ -85,22 +84,24 @@ class DefaultConfigurationContainerTest extends Specification {
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
+        CollectionCallbackActionDecorator.NOOP,
         projectStateRegistry,
-        Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
         TestFiles.taskDependencyFactory(),
-        TestUtil.problemsService()
+        TestUtil.problemsService(),
+        new DocumentationRegistry()
     )
-    private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-        instantiator,
+    private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,
+        TestUtil.instantiatorFactory().decorateLenient(),
         callbackActionDecorator,
         metaDataProvider,
         StandaloneDomainObjectContext.ANONYMOUS,
         Mock(AttributesSchemaInternal),
         rootComponentMetadataBuilderFactory,
         configurationFactory,
-        Mock(ResolutionStrategyFactory)
+        Mock(ResolutionStrategyFactory),
+        TestUtil.problemsService()
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {
@@ -209,14 +210,11 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.RESOLVABLE, "b") {
             resolvable("b", {})
         }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "c") {
-            resolvableUnlocked("c")
+        verifyLocked(ConfigurationRoles.RESOLVABLE, "c") {
+            resolvableLocked("c")
         }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "d") {
-            resolvableUnlocked("d", {})
-        }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "e") {
-            maybeCreateResolvableUnlocked("e")
+        verifyLocked(ConfigurationRoles.RESOLVABLE, "d") {
+            resolvableLocked("d", {})
         }
     }
 
@@ -228,14 +226,11 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.CONSUMABLE, "b") {
             consumable("b", {})
         }
-        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "c") {
-            consumableUnlocked("c")
+        verifyLocked(ConfigurationRoles.CONSUMABLE, "c") {
+            consumableLocked("c")
         }
-        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "d") {
-            consumableUnlocked("d", {})
-        }
-        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "e") {
-            maybeCreateConsumableUnlocked("e")
+        verifyLocked(ConfigurationRoles.CONSUMABLE, "d") {
+            consumableLocked("d", {})
         }
     }
 
@@ -247,69 +242,50 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.DEPENDENCY_SCOPE, "b") {
             dependencyScope("b", {})
         }
-        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "c") {
-            dependencyScopeUnlocked("c")
+        verifyLocked(ConfigurationRoles.DEPENDENCY_SCOPE, "c") {
+            dependencyScopeLocked("c")
         }
-        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "d") {
-            dependencyScopeUnlocked("d", {})
+        verifyLocked(ConfigurationRoles.DEPENDENCY_SCOPE, "d") {
+            dependencyScopeLocked("d", {})
         }
-        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "e") {
-            maybeCreateDependencyScopeUnlocked("e")
-        }
-        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "f") {
-            maybeCreateDependencyScopeUnlocked("f", false)
+        verifyLocked(ConfigurationRoles.DEPENDENCY_SCOPE, "e") {
+            maybeCreateDependencyScopeLocked("e", false)
         }
     }
 
     def "creates resolvable dependency scope configuration"() {
         expect:
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "a") {
-            resolvableDependencyScopeUnlocked("a")
+        verifyLocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "a") {
+            resolvableDependencyScopeLocked("a")
         }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "b") {
-            resolvableDependencyScopeUnlocked("b", {})
-        }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "c") {
-            maybeCreateResolvableDependencyScopeUnlocked("c")
+        verifyLocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "b") {
+            resolvableDependencyScopeLocked("b", {})
         }
     }
 
     def "can create migrating configurations"() {
         expect:
-        verifyUnlocked(role, "a") {
-            migratingUnlocked("a", role)
-        }
-        verifyUnlocked(role, "b") {
-            migratingUnlocked("b", role) {}
-        }
-        verifyUnlocked(role, "c") {
-            maybeCreateMigratingUnlocked("c", role)
+        verifyLocked(role, "a") {
+            migratingLocked("a", role)
         }
 
         where:
         role << [
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
-            ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE,
             ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
-            ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE,
+            ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE,
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
         ]
     }
 
     def "cannot create arbitrary roles with migrating factory methods"() {
         when:
-        configurationContainer.migratingUnlocked("foo", role)
+        configurationContainer.migratingLocked("foo", role)
 
         then:
         thrown(InvalidUserDataException)
 
         when:
-        configurationContainer.migratingUnlocked("bar", role) {}
-
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configurationContainer.maybeCreateMigratingUnlocked("baz", role)
+        configurationContainer.migratingLocked("bar", role) {}
 
         then:
         thrown(InvalidUserDataException)
@@ -361,10 +337,10 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         name                                                | action
-        "consumableUnlocked(String, Action)"                | { consumableUnlocked("foo", it) }
-        "resolvableUnlocked(String, Action)"                | { resolvableUnlocked("foo", it) }
-        "dependencyScopeUnlocked(String, Action)"           | { dependencyScopeUnlocked("foo", it) }
-        "resolvableDependencyScopeUnlocked(String, Action)" | { resolvableDependencyScopeUnlocked("foo", it) }
+        "consumableLocked(String, Action)"                | { consumableLocked("foo", it) }
+        "resolvableLocked(String, Action)"                | { resolvableLocked("foo", it) }
+        "dependencyScopeLocked(String, Action)"           | { dependencyScopeLocked("foo", it) }
+        "resolvableDependencyScopeLocked(String, Action)" | { resolvableDependencyScopeLocked("foo", it) }
     }
 
     def "role locked configurations default to non-visible"() {
@@ -377,26 +353,30 @@ class DefaultConfigurationContainerTest extends Specification {
         !configurationContainer.dependencyScope("f", {}).get().visible
     }
 
-    def "cannot maybeCreate invalid role (#role)"() {
-        when:
-        configurationContainer.maybeCreate(new NoContextRoleBasedConfigurationCreationRequest("foo", role));
-
-        then:
-        def e = thrown(GradleException)
-        e.message == "Cannot maybe create invalid role: ${role.getName()}"
-
-        where:
-        role << [ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE]
-    }
-
     // withType when used with a class that is not a super-class of the container does not work with registered elements
-    @NotYetImplemented
+    @ToBeImplemented
     def "can find all configurations even when they're registered"() {
         when:
         configurationContainer.register("foo")
         configurationContainer.create("bar")
         then:
-        configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar", "foo"]
+        configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar"] // This should include "foo" too, but it doesn't yet
+    }
+
+    def "can't #addMethod a #description to a configuration container"() {
+        when:
+        configurationContainer."$addMethod"(addMe)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Adding a $description directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container."
+
+        where:
+        description                         | addMethod     | addMe
+        "configuration"                     | "add"         | Mock(Configuration.class)
+        "configuration provider"            | "addLater"    | Mock(Provider.class)
+        "collection of configurations"      | "addAll"      | [Mock(Configuration.class), Mock(Configuration.class)]
+        "provider of configurations"        | "addAllLater" | Mock(Provider.class)
     }
 
     def verifyRole(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
@@ -410,7 +390,7 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
 
-    def verifyUnlocked(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
+    def verifyLocked(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
         verifyEagerConfiguration(name, producer) {
             assert !(it instanceof ResolvableConfiguration)
             assert !(it instanceof DependencyScopeConfiguration)
@@ -418,7 +398,23 @@ class DefaultConfigurationContainerTest extends Specification {
             assert role.resolvable == it.isCanBeResolved()
             assert role.declarable == it.isCanBeDeclared()
             assert role.consumable == it.isCanBeConsumed()
+
+            def conf = it
+            verifyUsageChangeFailsProperly { conf.canBeConsumed = !conf.canBeConsumed }
+            verifyUsageChangeFailsProperly { conf.canBeResolved = !conf.canBeResolved }
+            verifyUsageChangeFailsProperly { conf.canBeDeclared = !conf.canBeDeclared }
         }
+    }
+
+    private verifyUsageChangeFailsProperly(Closure step) {
+        boolean thrown = false
+        try {
+            step.call()
+        } catch (GradleException e) {
+            assert e.message.startsWith("Cannot change the allowed usage of configuration")
+            thrown = true
+        }
+        assert thrown
     }
 
     def verifyEagerConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {

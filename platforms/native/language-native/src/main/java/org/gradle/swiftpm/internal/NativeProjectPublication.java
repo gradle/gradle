@@ -21,8 +21,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class NativeProjectPublication implements ProjectComponentPublication {
     private final DisplayName displayName;

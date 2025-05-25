@@ -26,10 +26,10 @@ import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.internal.logging.ConsoleRenderer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;

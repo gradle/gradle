@@ -18,11 +18,14 @@ package org.gradle.normalization.internal;
 
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.normalization.RuntimeClasspathNormalization;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
+@ServiceScope(Scope.Project.class)
 public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
     ResourceFilter getClasspathResourceFilter();
 

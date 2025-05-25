@@ -18,7 +18,7 @@
  * Problem specific interfaces and classes related to event notifications.
  */
 
-@NonNullApi
+@NullMarked
 package org.gradle.tooling.events.problems;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

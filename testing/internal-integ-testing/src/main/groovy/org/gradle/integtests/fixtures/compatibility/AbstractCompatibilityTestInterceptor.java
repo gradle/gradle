@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
@@ -69,10 +68,8 @@ public abstract class AbstractCompatibilityTestInterceptor extends AbstractConte
     }
 
     private GradleDistributionTool versionedToolFrom(GradleDistribution distribution) {
-        if (!distribution.worksWith(Jvm.current())) {
+        if (!distribution.daemonWorksWith(Jvm.current().getJavaVersionMajor())) {
             return new GradleDistributionTool(distribution, "does not work with current JVM");
-        } else if (!distribution.worksWith(OperatingSystem.current())) {
-            return new GradleDistributionTool(distribution, "does not work with current OS");
         } else {
             return new GradleDistributionTool(distribution);
         }

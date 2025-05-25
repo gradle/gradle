@@ -42,8 +42,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;

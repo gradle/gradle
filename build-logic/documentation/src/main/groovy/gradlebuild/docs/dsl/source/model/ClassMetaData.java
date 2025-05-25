@@ -17,10 +17,9 @@ package gradlebuild.docs.dsl.source.model;
 
 import gradlebuild.docs.model.Attachable;
 import gradlebuild.docs.model.ClassMetaDataRepository;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.util.GUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -159,7 +158,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         if (property.getType() == null) {
             property.setType(type);
         }
-        if (!GUtil.isTrue(property.getRawCommentText())) {
+        if (property.getRawCommentText() == null || property.getRawCommentText().isEmpty()) {
             property.setRawCommentText(rawCommentText);
         }
         property.setSetter(setterMethod);

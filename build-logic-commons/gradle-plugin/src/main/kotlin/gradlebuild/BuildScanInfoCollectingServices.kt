@@ -16,7 +16,6 @@
 
 package gradlebuild
 
-import com.gradle.develocity.agent.gradle.scan.BuildScanConfiguration
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.provider.Provider
@@ -35,7 +34,7 @@ fun <T : AbstractBuildScanInfoCollectingService> Project.registerBuildScanInfoCo
     /* which tasks we need to monitor? For example, cache-miss-monitor monitors `AbstractCompile` tasks */
     taskFilter: (Task) -> Boolean,
     /* pass the collected information in build-logic and main build to build scan */
-    buildScanAction: BuildScanConfiguration.(Any, Any) -> Unit
+    buildScanAction: (gradleRootProject: Project, infoCollectedInBuildLogic: Any, infoCollectedInMainBuild: Any) -> Unit
 ) {
     val gradleRootProject = when {
         project.name == "gradle" -> project.rootProject
@@ -54,10 +53,9 @@ fun <T : AbstractBuildScanInfoCollectingService> Project.registerBuildScanInfoCo
             gradleRootProject.extensions.extraProperties.set("collectedInfo-${klass.simpleName}-${rootProjectName}", buildService.get().collectedInformation)
 
             if (!isInBuildLogic) { // BuildScanExtension is only available in the gradle project
-                val buildScan = gradleRootProject.extensions.findByType<BuildScanConfiguration>()
                 val infoCollectedInBuildLogic = gradleRootProject.extensions.extraProperties.get("collectedInfo-${klass.simpleName}-build-logic")!!
                 val infoCollectedInMainBuild = gradleRootProject.extensions.extraProperties.get("collectedInfo-${klass.simpleName}-gradle")!!
-                buildScan?.buildScanAction(infoCollectedInBuildLogic, infoCollectedInMainBuild)
+                buildScanAction(gradleRootProject, infoCollectedInBuildLogic, infoCollectedInMainBuild)
             }
         }
     }

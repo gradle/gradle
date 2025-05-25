@@ -16,7 +16,7 @@
 
 package org.gradle.internal
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.GradleException
 import spock.lang.Specification
 
@@ -100,5 +100,19 @@ class FileUtilsTest extends Specification {
         "a${SEP}a"        | "a${SEP}a"     || true
         "a${SEP}a${SEP}a" | "a${SEP}a"     || true
         "a${SEP}ab"       | "a${SEP}a"     || false
+    }
+
+    def "can add suffix to filename"() {
+        expect:
+        FileUtils.addSuffixToName(original, suffix) == result
+
+        where:
+        original            | suffix     | result
+        "file.zip"          | "-1"       | "file-1.zip"
+        "file.tar.gz"       | "-bla-bla" | "file-bla-bla.tar.gz"
+        "file.with.dots.gz" | "-2"       | "file-2.with.dots.gz"
+        "file"              | "-1"       | "file-1"
+        "file"              | ""         | "file"
+        "file."             | "-2"       | "file-2."
     }
 }

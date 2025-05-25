@@ -16,11 +16,13 @@
 
 package org.gradle.api.distribution.plugins;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
@@ -28,7 +30,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.provider.Provider;
@@ -74,10 +75,9 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(BasePlugin.class);
-        DefaultArtifactPublicationSet defaultArtifactPublicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
 
         DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.getObjects(), fileOperations, callbackActionDecorator);
-        distributions.all(dist -> configureDistribution((ProjectInternal) project, dist, defaultArtifactPublicationSet));
+        distributions.all(dist -> configureDistribution((ProjectInternal) project, dist));
 
         // TODO: Maintain old behavior of checking for empty-string distribution base names.
         // It would be nice if we could do this as validation on the property itself.
@@ -95,8 +95,7 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
      */
     private static void configureDistribution(
         ProjectInternal project,
-        Distribution dist,
-        DefaultArtifactPublicationSet defaultArtifactPublicationSet
+        Distribution dist
     ) {
         dist.getContents().from("src/" + dist.getName() + "/dist");
 
@@ -125,8 +124,9 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
         addAssembleTask(project, dist, assembleTaskName, zipTask, tarTask);
 
         // Build zips and tars by default when running the build-wide assemble task.
-        defaultArtifactPublicationSet.addCandidate(new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
-        defaultArtifactPublicationSet.addCandidate(new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+        PublishArtifactSet archivesArtifacts = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts();
+        archivesArtifacts.add(new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+        archivesArtifacts.add(new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
     }
 
     /**
@@ -147,7 +147,7 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
             CopySpec childSpec = project.copySpec();
             childSpec.with(distribution.getContents());
             childSpec.into((Callable<String>) () ->
-                TextUtil.minus(task.getArchiveFileName().get(), "." + task.getArchiveExtension().get())
+                TextUtil.removeTrailing(task.getArchiveFileName().get(), "." + task.getArchiveExtension().get())
             );
             task.with(childSpec);
         });
@@ -176,11 +176,11 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
     private static void addAssembleTask(
         ProjectInternal project,
         Distribution dist,
-        String assembleTaskName,
+        String distAssembleTaskName,
         TaskProvider<Zip> zipTask,
         TaskProvider<Tar> tarTask
     ) {
-        project.getTasks().register(assembleTaskName, DefaultTask.class, assembleTask -> {
+        project.getTasks().register(distAssembleTaskName, DefaultTask.class, assembleTask -> {
             assembleTask.setDescription("Assembles the " + dist.getName() + " distributions");
             assembleTask.setGroup(DISTRIBUTION_GROUP);
             assembleTask.dependsOn(zipTask);

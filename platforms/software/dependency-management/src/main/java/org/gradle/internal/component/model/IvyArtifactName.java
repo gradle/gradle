@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the 'name' part of an Ivy artifact, independent of which module version the artifact might belong to.

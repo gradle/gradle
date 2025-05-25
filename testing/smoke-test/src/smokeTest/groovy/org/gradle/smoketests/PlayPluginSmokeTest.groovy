@@ -53,30 +53,21 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('build')
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 7))
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils", 7))
-            .expectLegacyDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION)
-            .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
-            .expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
-            .expectLegacyDeprecationWarning(COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION)
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8))
+            .withJdkWarningChecksDisabled()
+            .expectDeprecationWarning(supportedJvmDeprecation(9), "https://github.com/gradle/gradle/issues/30530")
             .build()
 
         then:
         result.task(':build').outcome == SUCCESS
     }
 
-    private String orgGradleUtilTypeDeprecation(String type, int major) {
-        "The org.gradle.util.$type type has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "org_gradle_util_reports_deprecations${major >= 8 ? '_8' : ''}")}"
+    private String supportedJvmDeprecation(int major) {
+        "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
+            "This will fail with an error in Gradle ${major+1}.0. " +
+            "Use JVM 17 or greater to execute Gradle. " +
+            "Projects can continue to use older JVM versions via toolchains. " +
+            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "minimum_daemon_jvm_version")}"
     }
-
-    public static final String COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION = "The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Please use the filePermissions(Action) method instead. " +
-        "Consult the upgrading guide for further information: " +
-        new DocumentationRegistry().getDocumentationFor("upgrading_version_8","unix_file_permissions_deprecated")
 
 
     @Override

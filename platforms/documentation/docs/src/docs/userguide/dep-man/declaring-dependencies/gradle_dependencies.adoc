@@ -1,0 +1,55 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sub:gradle_distribution_dependencies]]
+= Gradle distribution-specific dependencies
+
+Gradle provides special dependency notations for projects that build Gradle plugins or tools that integrate with Gradle.
+
+Using these dependencies ensures compatibility with Gradle’s internal APIs while keeping plugin and build logic development streamlined.
+
+[[sub:api_dependencies]]
+== Gradle API dependency
+
+You can declare a dependency on the API of the current version of Gradle by using the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:gradleApi()[`DependencyHandler.gradleApi()`] method.
+This is useful when you are developing custom Gradle tasks or plugins:
+
+====
+include::sample[dir="snippets/base/customExternalTask/kotlin/task",files="build.gradle.kts[tags=gradle-api-dependencies]"]
+include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=gradle-api-dependencies]"]
+====
+
+[[sub:testkit_dependencies]]
+== Gradle TestKit dependency
+
+You can declare a dependency on the `TestKit` API of the current version of Gradle by using the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:gradleTestKit()[`DependencyHandler.gradleTestKit()`] method.
+This is useful for writing and executing functional tests for Gradle plugins and build scripts:
+
+====
+include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
+====
+
+The <<test_kit.adoc#test_kit, TestKit chapter>> explains the use of `TestKit` by example.
+
+[[sub:groovy_dependencies]]
+== Local Groovy dependency
+
+You can declare a dependency on the Groovy that is distributed with Gradle by using the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:localGroovy()[`DependencyHandler.localGroovy()`] method.
+This is useful when you are developing custom Gradle tasks or plugins in Groovy:
+
+====
+include::sample[dir="snippets/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=bundled-groovy-dependency]"]
+include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradle[tags=bundled-groovy-dependency]"]
+====

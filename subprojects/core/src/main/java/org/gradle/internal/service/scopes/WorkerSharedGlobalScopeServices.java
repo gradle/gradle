@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
@@ -114,7 +115,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return Time.clock();
     }
 
-    @Provides
+    @Provides({ClassCacheFactory.class, CrossBuildInMemoryCacheFactory.class})
     CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
         return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
     }
@@ -150,7 +151,14 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     @Provides
-    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory, PropertyFactory propertyFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
+    ManagedFactoryRegistry createManagedFactoryRegistry(
+        NamedObjectInstantiator namedObjectInstantiator,
+        InstantiatorFactory instantiatorFactory,
+        PropertyFactory propertyFactory,
+        FileCollectionFactory fileCollectionFactory,
+        FileFactory fileFactory,
+        FilePropertyFactory filePropertyFactory
+    ) {
         return new DefaultManagedFactoryRegistry().withFactories(
             instantiatorFactory.getManagedFactory(),
             new ConfigurableFileCollectionManagedFactory(fileCollectionFactory),

@@ -16,14 +16,14 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 // TODO Replace the use of this with synchronized caches from Guava
-@NonNullApi
+@NullMarked
 public class Synchronizer {
 
     private final Lock lock = new ReentrantLock();

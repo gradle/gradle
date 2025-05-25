@@ -26,9 +26,11 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
 import org.gradle.internal.problems.failure.StackFramePredicate;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ServiceScope(Scope.BuildTree.class)
 public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
 
     private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
@@ -62,7 +65,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @javax.annotation.Nullable ClassLoaderScopeOrigin origin) {
+    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
         if (origin instanceof ClassLoaderScopeOrigin.Script) {
             ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
             lock.lock();
@@ -75,7 +78,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @javax.annotation.Nullable HashCode implementationHash) {
+    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @org.jspecify.annotations.Nullable HashCode implementationHash) {
     }
 
     @Override
@@ -146,6 +149,6 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             return null;
         }
 
-        return new Location(source.getLongDisplayName(), source.getShortDisplayName(), frame.getFileName(), lineNumber);
+        return new Location(source.getLongDisplayName(), source.getShortDisplayName(), source.getFileName(), lineNumber);
     }
 }

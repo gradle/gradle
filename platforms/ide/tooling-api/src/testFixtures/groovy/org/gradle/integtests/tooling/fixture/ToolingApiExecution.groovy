@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
 
@@ -82,14 +81,6 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        if (!gradle.daemonIdleTimeoutConfigurable && OperatingSystem.current().isWindows()) {
-            // Older daemon don't have configurable ttl and they hung for 3 hours afterwards.
-            // This is a real problem on windows due to eager file locking and continuous CI failures.
-            // On linux it's a lesser problem - long-lived daemons hung and steal resources but don't lock files.
-            // So, for windows we'll only run tests against target gradle that supports ttl
-            return false
-        }
-
         ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
         Spec<GradleVersion> toolingVersionSpec = toVersionSpec(toolingVersionAnnotation)
         if (!toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion)) {

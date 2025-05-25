@@ -41,6 +41,8 @@ import java.util.function.Function
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVADOC_TOOL
 import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JDK_CAPABILITIES
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.NATIVE_IMAGE
 
 class JavaToolchainQueryServiceTest extends Specification {
 
@@ -155,7 +157,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     def "uses jdk if requested via capabilities = #capabilities"() {
         given:
-        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre.hs-adpt", "7.9.jre", "7.7.jre", "14.0.2+12.jre", "8.0.1.jdk"])
+        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre.hs-adpt", "7.9.jre", "7.7.jre", "14.0.2+12.jre", "8.0.1.jdk.native", "21.0.6-native"])
 
         when:
         def filter = createSpec()
@@ -164,19 +166,20 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.languageVersion == JavaLanguageVersion.of(8)
-        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.jdk")
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.jdk.native")
 
         where:
         capabilities << [
             EnumSet.of(JAVA_COMPILER),
             EnumSet.of(JAVADOC_TOOL),
-            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+            JDK_CAPABILITIES,
+            EnumSet.of(NATIVE_IMAGE)
         ]
     }
 
     def "fails when no jdk is present and requested capabilities = #capabilities"() {
         given:
-        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre", "7.9.jre", "7.7.jre", "14.0.2+12.jre"])
+        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre", "7.9.jre", "7.7.jre", "14.0.2+12.jre", "21.0.6-native"])
 
         when:
         def filter = createSpec()
@@ -186,14 +189,15 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(ToolchainProvisioningException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=8, vendor=any vendor, implementation=vendor-specific}. " +
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=8, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled."
 
         where:
         capabilities << [
             EnumSet.of(JAVA_COMPILER),
             EnumSet.of(JAVADOC_TOOL),
-            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+            JDK_CAPABILITIES,
+            EnumSet.of(NATIVE_IMAGE)
         ]
     }
 
@@ -223,7 +227,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(ToolchainProvisioningException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=12, vendor=any vendor, implementation=vendor-specific}. " +
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=12, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
             "Toolchain auto-provisioning is not enabled."
     }
 
@@ -474,9 +478,13 @@ class JavaToolchainQueryServiceTest extends Specification {
             jvmName = "J9"
         }
 
-        def additionalCapabilities = location.name.contains("jdk")
-            ? JavaInstallationCapability.JDK_CAPABILITIES
-            : Collections.<JavaInstallationCapability> emptySet()
+        def additionalCapabilities= EnumSet.noneOf(JavaInstallationCapability)
+        if (location.name.contains("jdk")) {
+            additionalCapabilities.addAll(JDK_CAPABILITIES)
+        }
+        if (location.name.contains("native")) {
+            additionalCapabilities.add(NATIVE_IMAGE)
+        }
 
         new JvmMetadataWithAddedCapabilities(
             JvmInstallationMetadata.from(

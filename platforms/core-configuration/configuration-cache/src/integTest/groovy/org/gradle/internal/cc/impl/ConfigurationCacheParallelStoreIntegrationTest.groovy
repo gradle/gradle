@@ -29,7 +29,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         """
 
         def createBuildFile = {
-            file(getDefaultBuildFileName()) << """
+            file(buildFile.name) << """
                 task t {
                     outputs.file({ -> throw new RuntimeException("\${ project.identityPath } went BOOM!") })
                 }

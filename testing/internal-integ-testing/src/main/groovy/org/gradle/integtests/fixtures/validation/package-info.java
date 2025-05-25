@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
+@GroovyNullMarked
 package org.gradle.integtests.fixtures.validation;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.util.GroovyNullMarked;

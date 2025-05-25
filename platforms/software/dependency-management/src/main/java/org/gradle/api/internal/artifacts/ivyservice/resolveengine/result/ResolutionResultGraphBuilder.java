@@ -44,8 +44,8 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -170,9 +170,9 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         fromComponent.addVariantDependencies(variantDependencies.build());
     }
 
-    // TODO: Dependency locking failures should be attached to the resolution result just like
-    // dependency verification failures are. Dependency locking failures are not unresolved dependencies
-    // and should not be modeled as one.
+    // TODO: It is quite odd that we attach these extra failures as edges from the root variant.
+    //       These extra failures are _not_ edges, but are modeled as such since a ResolutionResult
+    //       has no way to model failures that are not attached to an edge.
     public void addDependencyLockingFailures(long rootId, Set<UnresolvedDependency> extraFailures) {
         if (extraFailures.isEmpty()) {
             return;

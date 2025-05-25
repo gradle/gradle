@@ -27,8 +27,7 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Resolves a plugin either by determining that it is already on the classpath

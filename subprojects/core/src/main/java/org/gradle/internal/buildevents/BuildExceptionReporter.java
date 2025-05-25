@@ -16,10 +16,9 @@
 package org.gradle.internal.buildevents;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -44,8 +43,9 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static java.lang.String.join;
-import static org.apache.commons.lang.StringUtils.repeat;
+import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.gradle.api.logging.LogLevel.DEBUG;
 import static org.gradle.api.logging.LogLevel.INFO;
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption.LONG_OPTION;
@@ -74,14 +74,14 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 /**
  * Reports the build exception, if any.
  */
-@NonNullApi
+@NullMarked
 public class BuildExceptionReporter implements Action<Throwable> {
     private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
 
-    @NonNullApi
+    @NullMarked
     private enum ExceptionStyle {
         NONE, FULL
     }
@@ -115,11 +115,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     @Override
-    public void execute(@Nonnull Throwable failure) {
+    public void execute(@NonNull Throwable failure) {
         execute(failure, t -> Collections.emptyList());
     }
 
-    public void execute(@Nonnull Throwable failure, ProblemLocator problemLocator) {
+    public void execute(@NonNull Throwable failure, ProblemLocator problemLocator) {
         if (failure instanceof MultipleBuildFailures) {
             renderMultipleBuildExceptions((MultipleBuildFailures) failure, problemLocator);
         } else {
@@ -421,10 +421,14 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private static String getMessage(Throwable throwable, ProblemLocator problemLocator) {
         try {
             String msg = throwable instanceof CompilationFailedIndicator ? ((CompilationFailedIndicator) throwable).getShortMessage() : throwable.getMessage();
-            StringBuilder builder = new StringBuilder(msg == null ? "" : msg);
+            StringBuilder builder = new StringBuilder();
             Collection<InternalProblem> problems = problemLocator.findAll(throwable);
             if (!problems.isEmpty()) {
-                builder.append(System.lineSeparator());
+                // Skip the exception message unless it is a compilation error
+                if (throwable instanceof CompilationFailedIndicator) {
+                    builder.append(msg == null ? "" : msg);
+                    builder.append(System.lineSeparator());
+                }
                 StringWriter problemWriter = new StringWriter();
                 new ProblemRenderer(problemWriter).render(new ArrayList<>(problems));
                 builder.append(problemWriter);
@@ -437,6 +441,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
                         builder.append(diagnosticCounts);
                     }
                 }
+            } else {
+                builder.append(msg == null ? "" : msg);
             }
 
             String message = builder.toString();
@@ -465,7 +471,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class FailureDetails {
         Throwable failure;
         final BufferingStyledTextOutput summary = new BufferingStyledTextOutput();
@@ -503,7 +509,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private class ContextImpl implements FailureResolutionAware.Context {
         private final BufferingStyledTextOutput resolution;
 

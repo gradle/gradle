@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Lightweight, immutable model of an artifact for configuration reporting.

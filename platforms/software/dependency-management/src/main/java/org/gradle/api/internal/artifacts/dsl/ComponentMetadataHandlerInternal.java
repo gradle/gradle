@@ -21,9 +21,12 @@ import org.gradle.api.internal.artifacts.MetadataResolutionContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Consumer;
 
+@ServiceScope(Scope.Project.class)
 public interface ComponentMetadataHandlerInternal {
     ComponentMetadataProcessor createComponentMetadataProcessor(MetadataResolutionContext resolutionContext);
     void setVariantDerivationStrategy(VariantDerivationStrategy strategy);

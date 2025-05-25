@@ -20,8 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractPropertyValueSource<P extends AbstractPropertyValueSource.Parameters> implements ValueSource<String, P>, Describable {
 

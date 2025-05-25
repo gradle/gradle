@@ -22,7 +22,7 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTrace
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTrace
 
 
 interface StepContext
@@ -39,7 +39,7 @@ data class AnalysisStepResult(
     val languageTreeResult: LanguageTreeResult,
     val resolutionResult: ResolutionResult,
     val resolutionTrace: ResolutionTrace,
-    val assignmentTrace: AssignmentTrace
+    val propertyLinkTrace: PropertyLinkTrace
 ) : StepResult
 
 

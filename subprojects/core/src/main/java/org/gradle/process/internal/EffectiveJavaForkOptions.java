@@ -18,9 +18,9 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.process.JavaForkOptions;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.util.List;
@@ -36,7 +36,7 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
  *
  * Strongly relates to {@link JavaForkOptions}.
  */
-@NonNullApi
+@NullMarked
 public class EffectiveJavaForkOptions {
 
     private final String executable;
@@ -101,7 +101,7 @@ public class EffectiveJavaForkOptions {
             '}';
     }
 
-    @NonNullApi
+    @NullMarked
     public static class ReadOnlyJvmOptions {
         private final JvmOptions delegate;
 

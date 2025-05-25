@@ -76,13 +76,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
         assertValidationFailsWith([
-            warning(unsupportedValueTypeConfig { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
-            warning(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
         ])
 
         and:
@@ -602,6 +602,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         supportedType | value
         'Integer'     | 'Integer.valueOf(0)'
         'String'      | '"foo"'
+        'Letter'      | 'Letter.A'
+        // This was allowed in older versions of Gradle
+        // Map<Enum, Options>
         'Enum'        | 'Letter.A'
     }
 
@@ -640,15 +643,15 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=1")
         assertValidationFailsWith([
-            warning(nestedMapUnsupportedKeyTypeConfig { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
+            error(nestedMapUnsupportedKeyTypeConfig { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
         ])
 
         and:
         verifyAll(receivedProblem) {
             fqid == 'validation:property-validation:nested-map-unsupported-key-type'
             contextualLabel == "Type 'MyTask' property 'mapWithUnsupportedKey' where key of nested map is of type 'java.lang.Boolean'"
-            details == 'Key of nested map must be one of the following types: \'Enum\', \'Integer\', \'String\''
-            solutions == [ 'Change type of key to one of the following types: \'Enum\', \'Integer\', \'String\'' ]
+            details == "Key of nested map must be an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'"
+            solutions == [ "Change type of key to an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'" ]
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapWithUnsupportedKey',
@@ -680,7 +683,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         def reason = "Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types."
         assertValidationFailsWith([
-            warning(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
+            error(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
                 'validation_problems', 'unsupported_nested_type'),
         ])
 
@@ -778,7 +781,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationFailsWith([
-            warning(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
+            error(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
                 'validation_problems', 'unsupported_nested_type'),
         ])
 
@@ -832,7 +835,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         assertValidationSucceeds()
     }
 
-    def "missing Java Toolchain plugin causes a deprecation warning"() {
+    def "missing Java Toolchain plugin causes a build failure"() {
         given:
         source("producer/settings.gradle") << ""
         source("producer/build.gradle") << "plugins { id 'java' }"
@@ -852,21 +855,15 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             .run()
 
         executer.inDirectory(file("consumer"))
-            .expectDocumentedDeprecationWarning(
-                "Using task ValidatePlugins without applying the Java Toolchain plugin. " +
-                    "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain"
-            )
 
         then:
-        succeeds "validatePlugins"
+        fails "validatePlugins"
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'deprecation:missing-java-toolchain-plugin'
-            contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin. This behavior has been deprecated.'
+            fqid == 'validation:missing-java-toolchain-plugin'
+            contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.'
+            definition.documentationLink.url.endsWith("/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain_90")
         }
-
     }
 }

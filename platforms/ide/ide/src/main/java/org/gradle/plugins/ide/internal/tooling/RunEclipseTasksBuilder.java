@@ -62,7 +62,7 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
             // If no tasks is specified then the default tasks will be executed.
             // To work around this, we assign a new empty task for execution.
             String placeHolderTaskName = placeHolderTaskName(project, "nothing");
-            project.task(placeHolderTaskName);
+            project.getTasks().register(placeHolderTaskName);
             taskPaths.add(placeHolderTaskName);
         }
 

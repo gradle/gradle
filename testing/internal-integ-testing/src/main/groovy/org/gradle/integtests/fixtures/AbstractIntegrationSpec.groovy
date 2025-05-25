@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
@@ -49,7 +49,6 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.Matchers
-import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
@@ -61,6 +60,7 @@ import java.util.regex.Pattern
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.gradle.util.Matchers.matchesRegexp
 
 /**
@@ -84,7 +84,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     boolean ignoreCleanupAssertions
 
     private boolean enableProblemsApiCheck = false
-    private BuildOperationsFixture buildOperationsFixture = null
+    protected BuildOperationsFixture buildOperationsFixture = null
 
     GradleExecuter getExecuter() {
         if (executor == null) {
@@ -120,9 +120,6 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
 
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
-
-    @Lazy
-    private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
 
     def setup() {
         // Verify that the previous test (or fixtures) has cleaned up state correctly
@@ -206,7 +203,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
      * Want syntax highlighting inside of IntelliJ? Consider using {@link AbstractIntegrationSpec#buildFile(String)}
      */
     TestFile getBuildFile() {
-        testDirectory.file(getDefaultBuildFileName())
+        getBuildFile(GROOVY)
     }
 
     String getTestJunitCoordinates() {
@@ -214,19 +211,15 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     }
 
     TestFile getBuildKotlinFile() {
-        testDirectory.file(defaultBuildKotlinFileName)
+        getBuildFile(KOTLIN)
     }
 
-    protected String getDefaultBuildFileName() {
-        'build.gradle'
-    }
-
-    protected String getDefaultBuildKotlinFileName() {
-        'build.gradle.kts'
+    TestFile getBuildFile(GradleDsl dsl, Object... path) {
+        testDirectory.file(*path, dsl.fileNameFor("build"))
     }
 
     protected TestFile getSettingsFile() {
-        testDirectory.file(settingsFileName)
+        getSettingsFile(GROOVY)
     }
 
     protected TestFile getInitScriptFile() {
@@ -235,7 +228,11 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
 
 
     protected TestFile getSettingsKotlinFile() {
-        testDirectory.file(settingsKotlinFileName)
+        getSettingsFile(KOTLIN)
+    }
+
+    protected TestFile getSettingsFile(GradleDsl dsl) {
+        testDirectory.file(dsl.fileNameFor("settings"))
     }
 
     protected TestFile getPropertiesFile() {
@@ -246,12 +243,8 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         testDirectory.file('gradle/libs.versions.toml')
     }
 
-    protected static String getSettingsFileName() {
-        return 'settings.gradle'
-    }
-
-    protected static String getSettingsKotlinFileName() {
-        return 'settings.gradle.kts'
+    private static String getSettingsFileName(GradleDsl dsl) {
+        return dsl.fileNameFor("settings")
     }
 
     protected static String getInitScriptFileName() {
@@ -413,11 +406,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         }
         def currentDirectory = testDirectory
         for (; ;) {
-            def settingsFile = currentDirectory.file(settingsFileName)
+            def settingsFile = currentDirectory.file(getSettingsFileName(GROOVY))
             if (settingsFile.exists()) {
                 return settingsFile
             }
-            settingsFile = currentDirectory.file(settingsKotlinFileName)
+            settingsFile = currentDirectory.file(getSettingsFileName(KOTLIN))
             if (settingsFile.exists()) {
                 return settingsFile
             }
@@ -850,7 +843,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     private List<ReceivedProblem> receivedProblems
 
-    private List<ReceivedProblem> getReceivedProblems() {
+    protected List<ReceivedProblem> getReceivedProblems() {
         if (receivedProblems == null) {
             receivedProblems = getCollectedProblems()
             // sometimes we receive problems in a non-deterministic order. To make the tests stable we sort them before performing the assertions.

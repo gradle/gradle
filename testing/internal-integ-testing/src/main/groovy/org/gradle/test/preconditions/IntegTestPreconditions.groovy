@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.KillProcessAvailability
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.util.internal.VersionNumber
 
 // These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
 // permitted subtypes to use the parent type's methods without importing them
@@ -137,12 +136,22 @@ class IntegTestPreconditions {
     }
 
     /**
+     * A JVM that is not able to run a Gradle worker is available.
+     */
+    static class UnsupportedWorkerJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AvailableJavaHomes.unsupportedWorkerJdks.isEmpty()
+        }
+    }
+
+    /**
      * A JVM that is not able to run the Gradle daemon is available.
      */
     static class UnsupportedDaemonJavaHomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.unsupportedDaemonJdk != null
+            return !AvailableJavaHomes.unsupportedDaemonJdks.isEmpty()
         }
     }
 
@@ -191,33 +200,12 @@ class IntegTestPreconditions {
         }
     }
 
-    static class MoreThanOneJavacAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.availableJdksWithJavac.size() >= 2
-        }
-    }
-
     static class MoreThanOneJava8HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.getAvailableJdks(
                 JavaVersion.toVersion(8)
             ).size() > 1
-        }
-    }
-
-    static class HighestSupportedLTSJavaHomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getHighestSupportedLTS()
-        }
-    }
-
-    static class LowestSupportedLTSJavaHomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getLowestSupportedLTS()
         }
     }
 
@@ -368,13 +356,6 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             return System.getProperty('java.runtime.version') != null
-        }
-    }
-
-    static final class Groovy3OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return VersionNumber.parse(GroovySystem.version).major <= 3
         }
     }
 }

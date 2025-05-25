@@ -21,7 +21,8 @@ import org.gradle.internal.declarativedsl.evaluationSchema.MinimalSchemaBuilding
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.gradleConfigureLambdas
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
-import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.DefaultRuntimeFunctionCandidatesProvider
+import org.gradle.internal.declarativedsl.mappingToJvm.DefaultRuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimePropertyResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
@@ -36,6 +37,7 @@ import org.gradle.internal.declarativedsl.ndoc.namedDomainObjectContainers
  * * importing types from functions that return or configure custom types.
  * * for every type included in the schema, importing all supertypes that might potentially be declarative.
  * * support for [org.gradle.api.NamedDomainObjectContainer]: configuring functions from properties, and element factories.
+ * * the top-level standard library functions that should be available by default in DCL
  *
  * If object conversion is supported by the schema, also brings the basic DCL conversion capabilities
  * for resolving properties and member functions, see [conversionSupport]
@@ -45,6 +47,9 @@ fun EvaluationSchemaBuilder.gradleDslGeneralSchema() {
     /** This should go before [MinimalSchemaBuildingComponent], as it needs to claim the properties */
     registerAnalysisSchemaComponent(GradlePropertyApiAnalysisSchemaComponent())
 
+    /** This should go before [MinimalSchemaBuildingComponent], as it needs its function extractor to take priority */
+    registerAnalysisSchemaComponent(StandardLibraryComponent)
+
     registerAnalysisSchemaComponent(MinimalSchemaBuildingComponent())
 
     registerAnalysisSchemaComponent(TypeDiscoveryFromRestrictedFunctions())
@@ -52,6 +57,9 @@ fun EvaluationSchemaBuilder.gradleDslGeneralSchema() {
     registerAnalysisSchemaComponent(SupertypeTypeDiscovery())
 
     ifConversionSupported {
+        /** This should go before the default runtime function resolution implementation by [conversionSupport] in order to intercept the calls to the intrinsics. */
+        registerObjectConversionComponent(StandardLibraryComponent)
+
         registerObjectConversionComponent(conversionSupport)
     }
 
@@ -65,5 +73,5 @@ fun EvaluationSchemaBuilder.gradleDslGeneralSchema() {
 private
 val conversionSupport: ObjectConversionComponent = object : ObjectConversionComponent {
     override fun runtimePropertyResolvers(): List<RuntimePropertyResolver> = listOf(ReflectionRuntimePropertyResolver)
-    override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(MemberFunctionResolver(gradleConfigureLambdas))
+    override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(DefaultRuntimeFunctionResolver(gradleConfigureLambdas, DefaultRuntimeFunctionCandidatesProvider))
 }

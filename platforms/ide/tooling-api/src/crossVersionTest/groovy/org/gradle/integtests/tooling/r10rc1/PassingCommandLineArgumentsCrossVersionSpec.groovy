@@ -60,6 +60,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         file('sysProperty.txt').text.contains('welcomeToTheJungle')
     }
 
+    @TargetGradleVersion('<9.0') // -b removed in Gradle 9.0
     def "can use custom build file"() {
         given:
         file("foo.gradle") << """
@@ -73,7 +74,6 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         noExceptionThrown()
-
     }
 
     def "can use custom log level"() {
@@ -157,7 +157,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         noExceptionThrown()
     }
 
-    @TargetGradleVersion(">=3.0 <5.0")
+    @TargetGradleVersion(">=4.0 <5.0")
     def "can configure searchUpwards via build arguments"() {
         given:
         file('build.gradle') << "assert !gradle.startParameter.searchUpwards"

@@ -522,75 +522,6 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
     }
 
-    def "tests only classes from plugin source set"() {
-        buildFile << """
-            sourceSets {
-                plugin {
-                    java {
-                        srcDir 'src/plugin/java'
-                        compileClasspath = configurations.compileClasspath
-                    }
-                }
-            }
-
-            gradlePlugin {
-                pluginSourceSet sourceSets.plugin
-            }
-        """
-
-        file("src/main/java/MainTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import org.gradle.work.*;
-
-            @DisableCachingByDefault(because = "test task")
-            public class MainTask extends DefaultTask {
-                // WIll not be called out because it's in the main source set
-                public long getBadProperty() {
-                    return 0;
-                }
-
-                @TaskAction public void execute() {}
-            }
-        """
-
-        file("src/plugin/java/PluginTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import org.gradle.work.*;
-
-            @DisableCachingByDefault(because = "test task")
-            public class PluginTask extends DefaultTask {
-                // WIll be called out because it's among the plugin's sources
-                public long getBadProperty() {
-                    return 0;
-                }
-
-                @TaskAction public void execute() {}
-            }
-        """
-
-        expect:
-        assertValidationFailsWith([
-            error(missingAnnotationConfig { type('PluginTask').property('badProperty').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-        ])
-
-        and:
-        verifyAll(receivedProblem) {
-            fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'PluginTask\' property \'badProperty\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
-            solutions == [
-                'Add an input or output annotation',
-                'Mark it as @Internal',
-            ]
-            additionalData.asMap == [
-                'typeName' : 'PluginTask',
-                'propertyName' : 'badProperty',
-            ]
-        }
-    }
-
     def "detects missing DisableCachingByDefault annotations"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -611,25 +542,8 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationFailsWith([
-            warning("""
-                Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
-
-                Reason: The task author should make clear why a task is not cacheable.
-
-                Possible solutions:
-                  1. Add @DisableCachingByDefault(because = ...).
-                  2. Add @CacheableTask.
-                  3. Add @UntrackedTask(because = ...).
-            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default"),
-            warning("""
-                Type 'MyTransformAction' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
-
-                Reason: The transform action author should make clear why a transform action is not cacheable.
-
-                Possible solutions:
-                  1. Add @DisableCachingByDefault(because = ...).
-                  2. Add @CacheableTransform.
-            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default")
+            error(missingCachingAnnotationConfig { forTask().type("MyTask") }, "validation_problems", "disable_caching_by_default"),
+            error(missingCachingAnnotationConfig { forTransformAction().type("MyTransformAction") }, "validation_problems", "disable_caching_by_default")
         ])
 
          and:

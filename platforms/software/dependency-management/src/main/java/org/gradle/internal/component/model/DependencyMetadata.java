@@ -16,21 +16,17 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A dependency that can participate in dependency resolution.
  * Note that various subtypes provide additional details, but these are not required by the core resolution engine.
- *
- * @implSpec See the specification note on {@link #selectVariants(GraphVariantSelector, ImmutableAttributes, ComponentGraphResolveState, ImmutableAttributesSchema, Set)}
  */
 public interface DependencyMetadata {
     /**
@@ -41,13 +37,30 @@ public interface DependencyMetadata {
     ComponentSelector getSelector();
 
     /**
-     * Select the matching variants for this dependency from the given target component.
-     *
-     * @implSpec An instance of {@link ResolutionFailureHandler} is supplied to this method, and
-     * any failures during selection should be routed through that handler. This is done to keep all failure handling done
-     * in a consistent manner.  See {@link GraphVariantSelector} for comparison.
+     * Optionally override standard variant selection if this type of dependency has a selection
+     * mechanism that that is not variant-aware.
      */
-    GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema, Set<CapabilitySelector> explicitRequestedCapabilities);
+    default @Nullable List<? extends VariantGraphResolveState> overrideVariantSelection(
+        GraphVariantSelector variantSelector,
+        ImmutableAttributes consumerAttributes,
+        ComponentGraphResolveState targetComponentState,
+        ImmutableAttributesSchema consumerSchema
+    ) {
+        return null;
+    }
+
+    /**
+     * Select variants from a target component if that component does not support variant selection.
+     */
+    default List<? extends VariantGraphResolveState> selectLegacyVariants(
+        GraphVariantSelector variantSelector,
+        ImmutableAttributes consumerAttributes,
+        ComponentGraphResolveState targetComponentState,
+        ImmutableAttributesSchema consumerSchema
+    ) {
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+        return Collections.singletonList(selected);
+    }
 
     /**
      * Returns a view of the excludes filtered for this dependency in this configuration.

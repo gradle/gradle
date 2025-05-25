@@ -24,7 +24,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.concurrent)
     implementation(projects.functional)

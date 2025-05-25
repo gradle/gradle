@@ -17,7 +17,7 @@
 /**
  * The Gradle build configuration resolvers internals.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.internal.buildconfiguration.resolvers;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

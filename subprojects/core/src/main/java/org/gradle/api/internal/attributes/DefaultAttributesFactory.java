@@ -17,29 +17,38 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultAttributesFactory implements AttributesFactory {
+public final class DefaultAttributesFactory implements AttributesFactory {
+
+    private final AttributeValueIsolator attributeValueIsolator;
+    private final PropertyFactory propertyFactory;
+
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, ImmutableList<DefaultImmutableAttributesContainer>> children;
-    private final AttributeValueIsolator attributeValueIsolator;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
 
     public DefaultAttributesFactory(
         AttributeValueIsolator attributeValueIsolator,
         IsolatableFactory isolatableFactory,
-        NamedObjectInstantiator instantiator
+        NamedObjectInstantiator instantiator,
+        PropertyFactory propertyFactory
     ) {
         this.attributeValueIsolator = attributeValueIsolator;
+        this.propertyFactory = propertyFactory;
+
         this.root = ImmutableAttributes.EMPTY;
         this.children = new ConcurrentHashMap<>();
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
@@ -50,17 +59,17 @@ public class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
-    public DefaultMutableAttributeContainer mutable() {
-        return new DefaultMutableAttributeContainer(this, attributeValueIsolator);
+    public AttributeContainerInternal mutable() {
+        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory);
     }
 
     @Override
-    public HierarchicalMutableAttributeContainer mutable(AttributeContainerInternal fallback) {
-        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator));
+    public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
+        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory));
     }
 
     @Override
-    public HierarchicalMutableAttributeContainer join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+    public AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
         return new HierarchicalMutableAttributeContainer(this, fallback, primary);
     }
 
@@ -83,7 +92,8 @@ public class DefaultAttributesFactory implements AttributesFactory {
         }
     }
 
-    ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
+    /* package */ ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
+        assertAttributeNotAlreadyPresentFast(node, key);
 
         // Try to retrieve a cached value without locking
         ImmutableList<DefaultImmutableAttributesContainer> cachedChildren = children.get(node);
@@ -139,6 +149,7 @@ public class DefaultAttributesFactory implements AttributesFactory {
             .build();
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary) {
         if (fallback == ImmutableAttributes.EMPTY) {
@@ -160,6 +171,7 @@ public class DefaultAttributesFactory implements AttributesFactory {
         return current;
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException {
         if (attributes1 == ImmutableAttributes.EMPTY) {
@@ -168,6 +180,8 @@ public class DefaultAttributesFactory implements AttributesFactory {
         if (attributes2 == ImmutableAttributes.EMPTY) {
             return attributes1;
         }
+
+        // Note that the CURRENT container is attributes2 here, we merge attributes1 INTO it, which seems backwards...
         ImmutableAttributes current = attributes2;
         for (Attribute<?> attribute : attributes1.keySet()) {
             AttributeValue<?> entry = current.findEntry(attribute.getName());
@@ -175,7 +189,7 @@ public class DefaultAttributesFactory implements AttributesFactory {
                 Object currentAttribute = entry.get();
                 Object existingAttribute = attributes1.getAttribute(attribute);
                 if (!currentAttribute.equals(existingAttribute)) {
-                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute);
+                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute, buildSameNameDifferentTypeErrorMsg(attribute, attributes2.findAttribute(attribute.getName())));
                 }
             }
             if (attributes1 instanceof DefaultImmutableAttributesContainer) {
@@ -188,17 +202,75 @@ public class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
-    public ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
+    public ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes) {
+        /*
+         * This should use safeConcat, but can't because of how the GradleModuleMetadataParser
+         * uses the DefaultAttributesFactory in consumeAttributes.  See the "can detect incompatible X when merging" tests
+         * in DefaultAttributesFactoryTest for examples of the type of behavior this method must
+         * support.
+         *
+         * Eventually, we should construct that set of attributes differently, in a way that
+         * allows us to use a safeConcat here.  Possibly we can use a different implementation
+         * of this method in a different factory implementation, and let this one do safeConcat.
+         */
         ImmutableAttributes result = ImmutableAttributes.EMPTY;
-        for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
-            /*
-                The order of the concatenation arguments here is important, as we have tests like
-                ConfigurationCacheDependencyResolutionIntegrationTest and ConfigurationCacheDependencyResolutionIntegrationTest
-                that rely on a particular order of failures when there are multiple invalid attribute type
-                conversions.  So even if it looks unnatural to list result second, this should remain.
-             */
-            result = concat(of(entry.getKey(), Cast.uncheckedNonnullCast(entry.getValue())), result);
+        for (Map.Entry<Attribute<?>, Isolatable<?>> entry : attributes.entrySet()) {
+            result = uncheckedConcat(result, entry.getKey(), entry.getValue());
         }
         return result;
+    }
+
+    /**
+     * Concatenates a key/value pair to an immutable attributes instance, assuming the key and value are the same type.
+     * <p>
+     * We know these are the same type when they are added to the mutable attribute container, but lose the type
+     * safety when adding the key and value to the attributes map. We should instead create some kind of {@code AttributePair}
+     * type that allows us to maintain type safety here.
+     */
+    private <T> ImmutableAttributes uncheckedConcat(ImmutableAttributes attributes, Attribute<T> key, Isolatable<?> value) {
+        Isolatable<T> castValue = Cast.uncheckedCast(value);
+        return concat(attributes, key, castValue);
+    }
+
+    /**
+     * Verifies that an attribute with the same name but different types as the given key is not
+     * already present in the given container.
+     *
+     * @param container the container to check
+     * @param key the attribute to check for
+     * @throws IllegalArgumentException if attribute with same name and different type already exists
+     */
+    public void assertAttributeNotAlreadyPresent(AttributeContainer container, Attribute<?> key) {
+        for (Attribute<?> attribute : container.keySet()) {
+            String name = key.getName();
+            if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
+                throw new IllegalArgumentException(buildSameNameDifferentTypeErrorMsg(key, attribute));
+            }
+        }
+    }
+
+    @NonNull
+    private String buildSameNameDifferentTypeErrorMsg(Attribute<?> newAttribute, Attribute<?> oldAttribute) {
+        return "Cannot have two attributes with the same name but different types. "
+            + "This container already has an attribute named '" + newAttribute.getName() + "' of type '" + oldAttribute.getType().getName()
+            + "' and you are trying to store another one of type '" + newAttribute.getType().getName() + "'";
+    }
+
+    /**
+     * Verifies that an attribute with the same name but different types as the given key is not
+     * already present in the given immutable container.
+     * <p>
+     * When checking <strong>immutable</strong> containers, we can make use of the faster check via {@link ImmutableAttributes#findEntry(String)}
+     * to check for attribute existence by name first, and then iif we find a match we can use the slower exhaustive check to
+     * verify the type.  This speeds up the process for most cases, when the name alone will be unique.
+     *
+     * @param container the container to check
+     * @param key the attribute to check for
+     * @throws IllegalArgumentException if attribute with same name and different type already exists
+     */
+    private void assertAttributeNotAlreadyPresentFast(ImmutableAttributes container, Attribute<?> key) {
+        if (container.findEntry(key.getName()) != AttributeValue.MISSING) {
+            assertAttributeNotAlreadyPresent(container, key);
+        }
     }
 }

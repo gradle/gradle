@@ -16,10 +16,8 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
-import com.nhaarman.mockitokotlin2.mock
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
@@ -29,11 +27,9 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.FlushableEncoder
-import org.gradle.internal.serialize.beans.services.BeanConstructors
-import org.gradle.internal.serialize.beans.services.DefaultBeanStateReaderLookup
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
+import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
-import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
@@ -43,9 +39,9 @@ import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
@@ -80,16 +76,12 @@ abstract class AbstractUserTypeCodecTest {
         return any.uncheckedCast()
     }
 
-    private
+    internal
     fun writeToByteArray(graph: Any, codec: Codec<Any?>): ByteArray {
         val outputStream = ByteArrayOutputStream()
         writeTo(
             outputStream, graph, codec,
-            object : AbstractProblemsListener() {
-                override fun onProblem(problem: PropertyProblem) {
-                    println(problem)
-                }
-            }
+            loggingProblemsListener()
         )
         return outputStream.toByteArray()
     }
@@ -110,13 +102,13 @@ abstract class AbstractUserTypeCodecTest {
         }
     }
 
-    private
+    internal
     fun readFromByteArray(bytes: ByteArray, codec: Codec<Any?>) =
-        readFrom(ByteArrayInputStream(bytes), codec)
+        readFrom(ByteArrayInputStream(bytes), codec, loggingProblemsListener())
 
     private
-    fun readFrom(inputStream: ByteArrayInputStream, codec: Codec<Any?>) =
-        readContextFor(inputStream, codec).run {
+    fun readFrom(inputStream: ByteArrayInputStream, codec: Codec<Any?>, problemsListener: ProblemsListener) =
+        readContextFor(inputStream, codec, problemsListener).run {
             withIsolateMock(codec) {
                 runReadOperation {
                     read()
@@ -137,21 +129,29 @@ abstract class AbstractUserTypeCodecTest {
             encoder = encoder,
             classEncoder = DefaultClassEncoder(mock()),
             beanStateWriterLookup = DefaultBeanStateWriterLookup(),
+            isIntegrityCheckEnabled = false,
             logger = mock(),
             tracer = null,
             problemsListener = problemHandler
         )
 
     private
-    fun readContextFor(inputStream: ByteArrayInputStream, codec: Codec<Any?>) =
+    fun readContextFor(inputStream: ByteArrayInputStream, codec: Codec<Any?>, problemsListener: ProblemsListener) =
         DefaultReadContext(
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
             beanStateReaderLookup = beanStateReaderLookupForTesting(),
+            isIntegrityCheckEnabled = false,
             logger = mock(),
-            problemsListener = mock(),
+            problemsListener = problemsListener,
             classDecoder = DefaultClassDecoder(mock(), mock())
         )
+
+    private fun loggingProblemsListener() = object : AbstractProblemsListener() {
+        override fun onProblem(problem: PropertyProblem) {
+            println(problem)
+        }
+    }
 
     private
     fun userTypesCodec() = codecs().userTypesCodec()
@@ -189,13 +189,6 @@ abstract class AbstractUserTypeCodecTest {
         flowProviders = mock(),
         transformStepNodeFactory = mock(),
         problems = mock(),
+        attributeDesugaring = mock(),
     )
 }
-
-
-internal
-fun beanStateReaderLookupForTesting(): BeanStateReaderLookup =
-    DefaultBeanStateReaderLookup(
-        BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
-        TestUtil.instantiatorFactory()
-    )

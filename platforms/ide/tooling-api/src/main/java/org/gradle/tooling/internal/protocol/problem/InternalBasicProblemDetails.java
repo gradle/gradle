@@ -17,10 +17,13 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol. </p>
+ */
 public interface InternalBasicProblemDetails extends InternalProblemDetails {
 
     InternalProblemCategory getCategory();

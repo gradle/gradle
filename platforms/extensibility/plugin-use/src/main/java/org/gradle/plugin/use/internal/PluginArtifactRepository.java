@@ -29,8 +29,8 @@ import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository
 import org.gradle.api.internal.artifacts.repositories.RepositoryContentDescriptorInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 

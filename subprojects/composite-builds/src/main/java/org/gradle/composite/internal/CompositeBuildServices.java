@@ -18,7 +18,8 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorNotationConverter;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ComponentSelectorNotationConverter;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.HoldsProjectState;
@@ -34,21 +35,15 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
-import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
     @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new CompositeBuildSessionScopeServices());
-    }
-
-    @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildTreeScopeServices());
-        registration.add(DefaultBuildTreeLocalComponentProvider.class);
+        registration.add(BuildTreeLocalComponentProvider.class, HoldsProjectState.class, DefaultBuildTreeLocalComponentProvider.class);
     }
 
     @Override
@@ -56,19 +51,12 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         registration.add(PluginResolverContributor.class, HoldsProjectState.class, CompositeBuildPluginResolverContributor.class);
     }
 
-    private static class CompositeBuildSessionScopeServices implements ServiceRegistrationProvider {
-        @Provides
-        public ValueSnapshotterSerializerRegistry createCompositeBuildsValueSnapshotterSerializerRegistry() {
-            return new CompositeBuildsValueSnapshotterSerializerRegistry();
-        }
-    }
-
     private static class CompositeBuildTreeScopeServices implements ServiceRegistrationProvider {
         @Provides
         public void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(BuildStateFactory.class);
-            serviceRegistration.add(DefaultIncludedBuildFactory.class);
-            serviceRegistration.add(DefaultIncludedBuildTaskGraph.class);
+            serviceRegistration.add(IncludedBuildFactory.class, DefaultIncludedBuildFactory.class);
+            serviceRegistration.add(BuildTreeWorkGraphController.class, DefaultIncludedBuildTaskGraph.class);
         }
 
         @Provides
@@ -91,11 +79,11 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             CompositeBuildContext context,
             Instantiator instantiator,
             ObjectFactory objectFactory,
-            ModuleSelectorNotationConverter moduleSelectorNotationParser,
+            ComponentSelectorNotationConverter componentSelectorNotationParser,
             AttributesFactory attributesFactory
         ) {
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-            return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
+            return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, componentSelectorNotationParser, capabilityNotationParser);
         }
 
         @Provides

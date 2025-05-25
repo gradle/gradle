@@ -34,7 +34,7 @@ public abstract class CustomTest extends DefaultTask {
 
     @TaskAction
     void runTests() {
-        try (GroupTestEventReporter root = getTestEventReporterFactory().createTestEventReporter(
+        try (GroupTestEventReporter root = getTestEventReporterFactory().createTestEventReporter( // <1>
             "root",
             getLayout().getBuildDirectory().dir("test-results/custom-test").get(),
             getLayout().getBuildDirectory().dir("reports/tests/custom-test").get()
@@ -43,7 +43,7 @@ public abstract class CustomTest extends DefaultTask {
 
             List<String> failedTests = new ArrayList<>();
 
-            try (GroupTestEventReporter junittest = root.reportTestGroup("CustomJUnitTestSuite")) {
+            try (GroupTestEventReporter junittest = root.reportTestGroup("CustomJUnitTestSuite")) { // <2>
                 junittest.started(Instant.now());
 
                 LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
@@ -57,10 +57,10 @@ public abstract class CustomTest extends DefaultTask {
 
                 summary.getFailures().forEach(result -> {
                     try (TestEventReporter test = junittest.reportTest(result.getTestIdentifier().getDisplayName(),
-                        result.getTestIdentifier().getLegacyReportingName())) {
+                        result.getTestIdentifier().getLegacyReportingName())) { // <3>
                         test.started(Instant.now());
                         String testName = String.valueOf(result.getTestIdentifier().getParentIdObject());
-                        failedTests.add(testName);
+                        failedTests.add(testName);  // <4>
                         test.metadata(Instant.now(),"Parent class:", String.valueOf(result.getTestIdentifier().getParentId().get()));
                         test.failed(Instant.now(), String.valueOf(result.getException()));
                     }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -341,22 +340,22 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private static String expected(String text) {
-        return emphatize(text, "blue");
+        return emphasize(text, "blue");
     }
 
     private static String actual(String text) {
-        return emphatize(text, "#ee442f");
+        return emphasize(text, "#ee442f");
     }
 
     private static String warning(String text) {
-        return emphatize(text, "#c59434");
+        return emphasize(text, "#c59434");
     }
 
     private static String grey(String text) {
-        return emphatize(text, "#cccccc");
+        return emphasize(text, "#cccccc");
     }
 
-    private static String emphatize(String text, String color) {
+    private static String emphasize(String text, String color) {
         return "<span style=\"font-weight:bold; color: " + color + "\">" + text + "</span>";
     }
 
@@ -374,7 +373,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                 } else {
                     sb.append("(not found)");
                 }
-                String keyDetails = StringEscapeUtils.escapeHtml(sb.toString());
+                @SuppressWarnings("deprecation")
+                String keyDetails = org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(sb.toString());
                 String keyInfo = "<b>" + keyId + " " + keyDetails + "</b>";
                 switch (error.getKind()) {
                     case PASSED_NOT_TRUSTED:

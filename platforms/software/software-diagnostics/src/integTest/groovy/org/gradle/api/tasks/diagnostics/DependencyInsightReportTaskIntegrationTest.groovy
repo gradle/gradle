@@ -16,13 +16,11 @@
 
 package org.gradle.api.tasks.diagnostics
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import org.gradle.util.GradleVersion
-import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
@@ -303,7 +301,6 @@ org:leaf:1.0
 """
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/24356")
     def "displays information about conflicting modules when failOnVersionConflict is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -343,25 +340,12 @@ org:leaf:1.0
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        outputContains """Dependency resolution failed because of conflict on the following module:
-   - org:leaf2 between versions 2.5, 1.5 and 1.0
+        outputContains """org:leaf2:1.0 FAILED
+   Failures:
+      - Could not resolve org:leaf2:1.0.
+          - Conflict found for module 'org:leaf2': between versions 2.5, 1.5 and 1.0
 
-org:leaf2:2.5
-  Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-   Selection reasons:
-      - By conflict resolution: between versions 2.5, 1.5 and 1.0
-
-org:leaf2:2.5
-\\--- org:toplevel3:1.0
-     \\--- conf
-
-org:leaf2:1.0 -> 2.5
+org:leaf2:1.0 FAILED
 +--- org:middle1:1.0
 |    \\--- org:toplevel:1.0
 |         \\--- conf
@@ -369,84 +353,20 @@ org:leaf2:1.0 -> 2.5
      \\--- org:toplevel4:1.0
           \\--- conf
 
-org:leaf2:1.5 -> 2.5
+org:leaf2:1.5 FAILED
+   Failures:
+      - Could not resolve org:leaf2:1.5. (already reported)
+
+org:leaf2:1.5 FAILED
 \\--- org:toplevel2:1.0
      \\--- conf
-"""
-    }
 
-    @Issue("https://github.com/gradle/gradle/issues/24356")
-    def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
-        given:
-        mavenRepo.module("org", "leaf1").publish()
-        mavenRepo.module("org", "leaf2").publish()
-        mavenRepo.module("org", "leaf2", "1.5").publish()
-        mavenRepo.module("org", "leaf2", "2.5").publish()
-        mavenRepo.module("org", "leaf3").publish()
-        mavenRepo.module("org", "leaf4").publish()
+org:leaf2:2.5 FAILED
+   Failures:
+      - Could not resolve org:leaf2:2.5. (already reported)
 
-        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
-        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
-        mavenRepo.module("org", "middle3").dependsOnModules('leaf2').publish()
-
-        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
-
-        mavenRepo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
-        mavenRepo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
-
-        mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
-
-        buildFile << """
-            repositories {
-                maven { url = "${mavenRepo.uri}" }
-            }
-
-            configurations {
-                conf {
-                    resolutionStrategy.failOnVersionConflict()
-                    incoming.afterResolve {
-                        // If executed, the below will cause the resolution failure on version conflict to be thrown, breaking dependency insight
-                        it.artifacts.artifacts
-                    }
-                }
-            }
-            dependencies {
-                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0', 'org:toplevel4:1.0'
-            }
-        """
-
-        when:
-        run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
-
-        then:
-        outputContains """Dependency resolution failed because of conflict on the following module:
-   - org:leaf2 between versions 2.5, 1.5 and 1.0
-
-org:leaf2:2.5
-  Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-   Selection reasons:
-      - By conflict resolution: between versions 2.5, 1.5 and 1.0
-
-org:leaf2:2.5
+org:leaf2:2.5 FAILED
 \\--- org:toplevel3:1.0
-     \\--- conf
-
-org:leaf2:1.0 -> 2.5
-+--- org:middle1:1.0
-|    \\--- org:toplevel:1.0
-|         \\--- conf
-\\--- org:middle3:1.0
-     \\--- org:toplevel4:1.0
-          \\--- conf
-
-org:leaf2:1.5 -> 2.5
-\\--- org:toplevel2:1.0
      \\--- conf
 """
     }
@@ -1538,9 +1458,9 @@ org:leaf:[1.5,2.0] FAILED
 project :A FAILED
    Failures:
       - Could not resolve project :A.
-        Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
           - Unable to find a matching variant of project :A:
               - No variants exist.
+          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
 
 project :A FAILED
 \\--- conf
@@ -1554,9 +1474,9 @@ project :A FAILED
 project :C FAILED
    Failures:
       - Could not resolve project :C.
-        Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
           - Unable to find a matching variant of project :C:
               - No variants exist.
+          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
 
 project :C FAILED
 \\--- project :B

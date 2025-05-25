@@ -14,21 +14,23 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.files)
-    api(projects.stdlibJavaExtensions)
     api(projects.logging)
-    api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.resources)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvmShared)
     api(projects.workers)
 
     api(libs.groovy)
     api(libs.gson)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.classloaders)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
@@ -43,6 +45,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.maven)
     implementation(projects.messaging)
+    implementation(projects.modelCore)
     implementation(projects.modelGroovy)
     implementation(projects.pluginsGroovy)
     implementation(projects.pluginsJava)
@@ -65,7 +68,7 @@ dependencies {
 
     integTestImplementation(projects.baseServicesGroovy)
 
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestImplementation(libs.groovyTest)

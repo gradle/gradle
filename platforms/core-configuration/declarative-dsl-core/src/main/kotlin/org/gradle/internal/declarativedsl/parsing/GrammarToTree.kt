@@ -2,6 +2,8 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.language.AccessChain
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AugmentationOperatorKind
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Element
@@ -79,6 +81,7 @@ import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderImpl
 import org.jetbrains.kotlin.com.intellij.psi.TokenType.ERROR_ELEMENT
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.lexer.KtTokens.ARROW
 import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
 import org.jetbrains.kotlin.lexer.KtTokens.COLON
@@ -275,7 +278,7 @@ class GrammarToTree(
     fun propertyAccessStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
         when (val tokenType = node.tokenType) {
             ANNOTATED_EXPRESSION -> tree.unsupported(node, AnnotationUsage)
-            BINARY_EXPRESSION -> binaryStatement(tree, node) as ElementResult<Expr>
+            BINARY_EXPRESSION -> binaryStatement(tree, node).flatMap { if (it is Expr) Element(it) else tree.parsingError(node, "Unexpected assignment target") }
             REFERENCE_EXPRESSION -> propertyAccess(tree, node, null, referenceExpression(node).value, tree.sourceData(node))
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
             ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
@@ -365,7 +368,7 @@ class GrammarToTree(
                         propertyAccess(tree, node, checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!)
                     } else {
                         val functionCall = checked(functionCallSelector!!)
-                        Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, functionCall.sourceData))
+                        Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, isInfix = false, functionCall.sourceData))
                     }
                 }
             }
@@ -474,7 +477,7 @@ class GrammarToTree(
 
                 val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
                 elementIfNoFailures {
-                    Element(FunctionCall(null, name!!, arguments.map(::checked), tree.sourceData(node)))
+                    Element(FunctionCall(null, name!!, arguments.map(::checked), isInfix = false, tree.sourceData(node)))
                 }
             }
         }
@@ -540,7 +543,7 @@ class GrammarToTree(
 
 
     private
-    fun valueArgument(tree: CachingLightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.ValueArgument> =
+    fun valueArgument(tree: CachingLightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.SingleValueArgument> =
         syntacticOrFailure {
             if (node.tokenType == PARENTHESIZED) return@syntacticOrFailure valueArgument(tree, tree.getFirstChildExpressionUnwrapped(node)!!)
 
@@ -674,18 +677,50 @@ class GrammarToTree(
                     elementIfNoFailures {
                         val operationToken = operation!!.asText.getOperationSymbol()
                         when (operationToken) {
-                            EQ -> {
+                            EQ, KtTokens.PLUSEQ -> {
                                 val lhs = checkForFailure(
                                     propertyAccessStatement(tree, leftArg!!)
                                         .flatMap { if (it is NamedReference) Element(it) else tree.unsupported(node, UnsupportedAssignmentLeftHandSide) }
                                 )
                                 val expr = checkForFailure(expression(tree, rightArg!!))
                                 elementIfNoFailures {
-                                    Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
+                                    if (operationToken == EQ) {
+                                        Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
+                                    } else {
+                                        val assignmentAugmentationKind = when (operationToken) {
+                                            KtTokens.PLUSEQ -> AugmentationOperatorKind.PlusAssign
+                                            else -> error("unexpected operation token $operationToken")
+                                        }
+                                        Element(AugmentingAssignment(checked(lhs), checked(expr), assignmentAugmentationKind, tree.sourceData(node)))
+                                    }
                                 }
                             }
 
-                            IDENTIFIER -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.InfixFunctionCall)
+                            IDENTIFIER -> {
+                                val infixFunctionName = checkNotNull(operation)
+                                if (infixFunctionName.asText != "to") {
+                                    tree.unsupported(node, infixFunctionName, UnsupportedLanguageFeature.InfixFunctionCall)
+                                } else run {
+                                    val receiver = checkForFailure(expression(tree, leftArg!!))
+                                    val argument = checkForFailure(expression(tree, rightArg!!))
+                                    elementIfNoFailures {
+                                        val args = listOf(leftArg to checked(receiver), rightArg to checked(argument))
+                                            .map { (ast, parsed) -> ast to FunctionArgument.Positional(parsed, parsed.sourceData) }
+
+                                        args.find { (_, parsed) -> parsed.expr is FunctionCall && parsed.expr.isInfix }
+                                            ?.let { (ast, _) -> tree.unsupported(node, checkNotNull(ast), UnsupportedLanguageFeature.InfixFunctionCallChain) }
+                                            ?: Element(
+                                                FunctionCall(
+                                                    receiver = null,
+                                                    infixFunctionName.asText,
+                                                    args.map { (_, parsed) -> parsed },
+                                                    isInfix = true,
+                                                    tree.sourceData(node)
+                                                )
+                                            )
+                                    }
+                                }
+                            }
 
                             else -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
                         }

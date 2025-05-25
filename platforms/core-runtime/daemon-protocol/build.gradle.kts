@@ -21,8 +21,9 @@ plugins {
 description = "The messages and types sent between client and daemon"
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(projects.baseServices)
+    api(projects.classloaders)
     api(projects.loggingApi)
     api(projects.serialization)
     api(projects.logging)
@@ -39,6 +40,7 @@ dependencies {
     api(projects.core)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(projects.enterpriseLogging)
     implementation(projects.time)
 

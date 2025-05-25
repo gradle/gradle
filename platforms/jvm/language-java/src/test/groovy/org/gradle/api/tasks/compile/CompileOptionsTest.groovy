@@ -16,17 +16,14 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNull
-import static org.junit.Assert.assertTrue
-
 class CompileOptionsTest extends Specification {
-    static final TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
 
     CompileOptions compileOptions
 
@@ -55,41 +52,6 @@ class CompileOptionsTest extends Specification {
         compileOptions.debugOptions != null
     }
 
-    def testFork() {
-        compileOptions.fork = false
-        assertNull(compileOptions.forkOptions.memoryMaximumSize)
-
-        expect:
-        compileOptions.fork([memoryMaximumSize: '1g'])
-        assertTrue(compileOptions.fork)
-        assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
-    }
-
-    def "debug"() {
-        compileOptions.debug = false
-        boolean debugUseCalled = false
-
-        compileOptions.debugOptions = [define: {Map args ->
-            debugUseCalled = true
-            args == TEST_DEBUG_OPTION_MAP
-        }] as DebugOptions
-
-        expect:
-        assert compileOptions.debug(TEST_DEBUG_OPTION_MAP).is(compileOptions)
-        compileOptions.debug
-        debugUseCalled
-    }
-
-    def "define"() {
-        compileOptions.debug = false
-        compileOptions.fork = false
-        compileOptions.define(debug: true)
-
-        expect:
-        compileOptions.debug
-        !compileOptions.fork
-    }
-
     def "converts GStrings to Strings when getting all compiler arguments"() {
         given:
         compileOptions.compilerArgs << "Foo${23}"
@@ -113,4 +75,22 @@ class CompileOptionsTest extends Specification {
         expect:
         compileOptions.debugOptions == debugOptions.get()
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/32606")
+    def "getAllCompilerArgs() returns only Strings"() {
+        given:
+        def commandLineArgumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ["${'make this a GString'}"]
+            }
+        }
+        compileOptions.compilerArgumentProviders.add(commandLineArgumentProvider)
+
+        expect:
+        commandLineArgumentProvider.asArguments().iterator().next() instanceof GString
+        compileOptions.allCompilerArgs.size() == 1
+        compileOptions.allCompilerArgs[0] instanceof String
+    }
+
 }

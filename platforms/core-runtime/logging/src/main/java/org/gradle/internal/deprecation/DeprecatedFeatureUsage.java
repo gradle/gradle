@@ -22,10 +22,9 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.InternalDocLink;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 public class DeprecatedFeatureUsage extends FeatureUsage {
 

@@ -5,8 +5,7 @@ plugins {
 description = "Contains plugins for building Groovy projects."
 
 dependencies {
-    api(libs.jsr305)
-    api(libs.groovy)
+    api(libs.jspecify)
     api(libs.inject)
 
     api(projects.baseServices)
@@ -16,22 +15,24 @@ dependencies {
     api(projects.modelCore)
     api(projects.buildProcessServices)
 
-    implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.classloaders)
     implementation(projects.core)
     implementation(projects.fileCollections)
     implementation(projects.jvmServices)
     implementation(projects.languageGroovy)
     implementation(projects.languageJvm)
-    implementation(projects.logging)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.reporting)
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 
     implementation(libs.guava)
+
+    runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.languageGroovy))

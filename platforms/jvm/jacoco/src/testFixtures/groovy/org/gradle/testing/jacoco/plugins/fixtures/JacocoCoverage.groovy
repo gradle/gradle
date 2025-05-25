@@ -18,15 +18,17 @@ package org.gradle.testing.jacoco.plugins.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.junit.Assume
 
 final class JacocoCoverage {
 
     private JacocoCoverage() {}
 
-    private static final String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.7.1.201405082137', '0.7.6.201602180812', '0.8.3'].asImmutable()
+    private static final String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.7.6.201602180812'].asImmutable()
     // Order matters here, as we want to test the latest version first
     // Relies on Groovy keeping the order of the keys in a map literal
     private static final Map<JavaVersion, JacocoVersion> JDK_CUTOFFS = [
+        (JavaVersion.VERSION_24): JacocoVersion.SUPPORTS_JDK_24,
         (JavaVersion.VERSION_23): JacocoVersion.SUPPORTS_JDK_23,
         (JavaVersion.VERSION_21): JacocoVersion.SUPPORTS_JDK_21,
         (JavaVersion.VERSION_20): JacocoVersion.SUPPORTS_JDK_20,
@@ -47,6 +49,10 @@ final class JacocoCoverage {
         return filter(JacocoVersion.SUPPORTS_JDK_8)
     }
 
+    static void assumeDefaultJacocoWorksOnCurrentJdk() {
+        Assume.assumeTrue(supportedVersionsByJdk.contains(JacocoPlugin.DEFAULT_JACOCO_VERSION))
+    }
+
     private static List<String> filter(JacocoVersion threshold) {
         ALL.findAll { new JacocoVersion(it) >= threshold }.asImmutable()
     }
@@ -63,6 +69,7 @@ final class JacocoCoverage {
         static final SUPPORTS_JDK_20 = new JacocoVersion(0, 8, 9)
         static final SUPPORTS_JDK_21 = new JacocoVersion(0, 8, 11)
         static final SUPPORTS_JDK_23 = new JacocoVersion(0, 8, 12)
+        static final SUPPORTS_JDK_24 = new JacocoVersion(0, 8, 13)
 
         private final int major
         private final int minor

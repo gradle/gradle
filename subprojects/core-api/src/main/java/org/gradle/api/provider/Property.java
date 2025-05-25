@@ -17,9 +17,9 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.model.ObjectFactory;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A container object that represents a configurable value of a specific type. A {@link Property} is also a
@@ -40,12 +40,17 @@ import javax.annotation.Nullable;
  * </p>
  *
  * <p>
+ * Instances of this interface are not thread-safe for reading and writing.
+ * It is not safe to share the same Property instance between different projects.
+ * </p>
+ * <p>
  * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  * </p>
  *
  * @param <T> Type of value represented by the property
  * @since 4.3
  */
+@ManagedType
 @SupportsKotlinAssignmentOverloading
 public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention {
     /**

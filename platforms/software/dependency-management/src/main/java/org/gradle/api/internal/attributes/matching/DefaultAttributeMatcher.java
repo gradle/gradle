@@ -137,7 +137,7 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "MixedMutabilityReturnType"})
     public List<AttributeMatcher.MatchingDescription<?>> describeMatching(ImmutableAttributes candidate, ImmutableAttributes requested) {
         if (requested.isEmpty() || candidate.isEmpty()) {
             return Collections.emptyList();
@@ -228,6 +228,7 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return new CachedQuery(requestedAttributes, attributes);
         }
 
+        @SuppressWarnings("MixedMutabilityReturnType")
         private static <T extends HasAttributes> List<T> getMatchesFromCandidateIndices(int[] indices, List<? extends T> candidates) {
             if (indices.length == 0) {
                 return Collections.emptyList();

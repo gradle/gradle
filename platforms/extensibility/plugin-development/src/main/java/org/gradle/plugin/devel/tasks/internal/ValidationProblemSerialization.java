@@ -47,7 +47,7 @@ import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultPropertyTraceData;
-import org.gradle.api.problems.internal.DefaultTaskPathLocation;
+import org.gradle.api.problems.internal.DefaultTaskLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.GeneralData;
@@ -56,9 +56,10 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
@@ -68,7 +69,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-@Nonnull
+@NullMarked
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
@@ -258,7 +259,7 @@ public class ValidationProblemSerialization {
             return fileLocation;
         }
 
-        @Nonnull
+        @NonNull
         private static FileLocation readObject(JsonReader in) throws IOException {
             String subtype = null;
             String path = null;
@@ -347,10 +348,10 @@ public class ValidationProblemSerialization {
         }
     }
 
-    public static class TaskLocationAdapter extends TypeAdapter<DefaultTaskPathLocation> {
+    public static class TaskLocationAdapter extends TypeAdapter<DefaultTaskLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable DefaultTaskPathLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable DefaultTaskLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
@@ -363,17 +364,17 @@ public class ValidationProblemSerialization {
         }
 
         @Override
-        public DefaultTaskPathLocation read(JsonReader in) throws IOException {
+        public DefaultTaskLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            DefaultTaskPathLocation buildTreePath = readObject(in);
+            DefaultTaskLocation buildTreePath = readObject(in);
             in.endObject();
 
             Objects.requireNonNull(buildTreePath, "buildTreePath must not be null");
             return buildTreePath;
         }
 
-        @Nonnull
-        private static DefaultTaskPathLocation readObject(JsonReader in) throws IOException {
+        @NonNull
+        private static DefaultTaskLocation readObject(JsonReader in) throws IOException {
             String buildTreePath = null;
             while (in.hasNext()) {
                 String name = in.nextName();
@@ -383,7 +384,7 @@ public class ValidationProblemSerialization {
                     in.skipValue();
                 }
             }
-            return new DefaultTaskPathLocation(buildTreePath);
+            return new DefaultTaskLocation(buildTreePath);
         }
     }
 
@@ -456,8 +457,8 @@ public class ValidationProblemSerialization {
                 new PluginIdLocationAdapter().write(out, (DefaultPluginIdLocation) value);
                 return;
             }
-            if (value instanceof DefaultTaskPathLocation) {
-                new TaskLocationAdapter().write(out, (DefaultTaskPathLocation) value);
+            if (value instanceof DefaultTaskLocation) {
+                new TaskLocationAdapter().write(out, (DefaultTaskLocation) value);
             }
         }
 
@@ -666,7 +667,7 @@ public class ValidationProblemSerialization {
             }
         }
 
-        private static @Nonnull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
+        private static @NonNull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
             switch (type) {
                 case DEPRECATION_DATA:
                     return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));

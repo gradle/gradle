@@ -37,7 +37,7 @@ public class BuildTreeState implements Closeable {
 
     public BuildTreeState(BuildInvocationScopeId buildInvocationScopeId, ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
         services = ServiceRegistryBuilder.builder()
-            .scope(Scope.BuildTree.class)
+            .scopeStrictly(Scope.BuildTree.class)
             .displayName("build tree services")
             .parent(parent)
             .provider(new BuildTreeScopeServices(buildInvocationScopeId, this, modelServices))

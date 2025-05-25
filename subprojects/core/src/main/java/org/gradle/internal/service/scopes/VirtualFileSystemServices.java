@@ -98,8 +98,6 @@ import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.FileWatchingFilter;
 import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Optional;
@@ -109,8 +107,6 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class VirtualFileSystemServices extends AbstractGradleModuleServices {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
 
     /**
      * When file system watching is enabled, this system property can be used to invalidate the entire VFS.
@@ -211,6 +207,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
             FileChangeListeners fileChangeListeners,
+            NativeServices.FileEventFunctionsProvider fileEvents,
             FileSystem fileSystem,
             WatchableFileSystemDetector watchableFileSystemDetector
         ) {
@@ -220,6 +217,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(
                 OperatingSystem.current(),
                 nativeCapabilities,
+                fileEvents,
                 fileWatchingFilter.getImmutableLocations()::contains)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
@@ -265,16 +263,17 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         private static Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
             OperatingSystem operatingSystem,
             NativeCapabilities nativeCapabilities,
+            NativeServices.FileEventFunctionsProvider fileEvents,
             Predicate<String> immutableLocationsFilter
         ) {
             if (nativeCapabilities.useFileSystemWatching()) {
                 try {
                     if (operatingSystem.isMacOsX()) {
-                        return Optional.of(new DarwinFileWatcherRegistryFactory(immutableLocationsFilter));
+                        return Optional.of(new DarwinFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
                     } else if (operatingSystem.isWindows()) {
-                        return Optional.of(new WindowsFileWatcherRegistryFactory(immutableLocationsFilter));
+                        return Optional.of(new WindowsFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
                     } else if (operatingSystem.isLinux()) {
-                        return Optional.of(new LinuxFileWatcherRegistryFactory(immutableLocationsFilter));
+                        return Optional.of(new LinuxFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
                     NativeServices.logFileSystemWatchingUnavailable(e);

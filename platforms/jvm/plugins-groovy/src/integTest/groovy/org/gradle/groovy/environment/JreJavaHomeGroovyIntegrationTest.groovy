@@ -23,8 +23,10 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
-
-    @Requires(IntegTestPreconditions.BestJreAvailable)
+    @Requires(value = [
+        IntegTestPreconditions.BestJreAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with a JRE")
     def "groovy java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre

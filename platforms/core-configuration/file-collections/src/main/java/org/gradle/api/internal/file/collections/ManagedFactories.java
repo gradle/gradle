@@ -20,8 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.state.ManagedFactory;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ManagedFactories {
     public static class ConfigurableFileCollectionManagedFactory implements ManagedFactory {

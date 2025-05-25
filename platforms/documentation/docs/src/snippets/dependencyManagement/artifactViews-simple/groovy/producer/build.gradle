@@ -1,3 +1,4 @@
+// tag::artifact-views-lib[]
 plugins {
     id 'java-library'
 }
@@ -7,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    // Define your dependencies here
+    // Define some dependencies here
 }
 
 // Define a task that produces a custom artifact
@@ -18,7 +19,7 @@ tasks.register('createProductionArtifact', Jar) {
 }
 
 configurations {
-    // Define a custom configuration and extend from runtimeClasspath
+    // Define a custom configuration and extend from apiElements
     apiProductionElements {
         extendsFrom(configurations.apiElements)
         attributes {
@@ -29,6 +30,7 @@ configurations {
         }
     }
 }
+// end::artifact-views-lib[]
 
 tasks.register('checkProducerVariants') {
     def producerProject = project(':producer')

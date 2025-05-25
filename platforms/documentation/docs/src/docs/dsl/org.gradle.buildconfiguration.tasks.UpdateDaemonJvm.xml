@@ -25,12 +25,21 @@
                 </tr>
             </thead>
             <tr>
-                <td>jvmVersion</td>
-                <td><literal>defaults to current JVM version</literal></td>
+                <td>languageVersion</td>
+                <td>defaults to current JVM version</td>
             </tr>
             <tr>
-                <td>jvmVendor</td>
-                <td><literal>defaults to allowing any JVM vendor</literal></td>
+                <td>toolchainDownloadUrls</td>
+                <td>defaults to using the toolchain repositories to resolve the platforms configured in <literal>toolchainPlatforms</literal></td>
+            </tr>
+            <tr>
+                <td>toolchainPlatforms</td>
+                <td>defaults to the combination of <literal>aarch64</literal> and <literal>x86_64</literal> architectures
+                    with the following operating systems: <literal>Linux</literal>, <literal>MacOS</literal>, <literal>Windows</literal>, <literal>FreeBSD</literal>, <literal>Solaris</literal> and <literal>Unix</literal></td>
+            </tr>
+            <tr>
+                <td>vendor</td>
+                <td>defaults to allowing any JVM vendor</td>
             </tr>
         </table>
     </section>

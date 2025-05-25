@@ -804,7 +804,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == 'Could not parse module metadata <resource>'
-        e.cause.message == 'Expected BEGIN_OBJECT but was BEGIN_ARRAY at line 1 column 2 path $'
+        e.cause.message == 'Expected BEGIN_OBJECT but was BEGIN_ARRAY at line 1 column 2 path $\nSee https://github.com/google/gson/blob/main/Troubleshooting.md#unexpected-json-structure'
     }
 
     def "fails on missing format version"() {
@@ -848,7 +848,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse module metadata <resource>: unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 1.1."
-        e.cause.message == "Expected BEGIN_ARRAY but was BEGIN_OBJECT at line 1 column 42 path \$.variants"
+        e.cause.message == "Expected BEGIN_ARRAY but was BEGIN_OBJECT at line 1 column 42 path \$.variants\nSee https://github.com/google/gson/blob/main/Troubleshooting.md#unexpected-json-structure"
     }
 
     def "is lenient with version checks if we manage to parse content (#label, version = #version)"() {

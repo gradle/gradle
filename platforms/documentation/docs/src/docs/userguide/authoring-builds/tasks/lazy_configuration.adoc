@@ -135,6 +135,8 @@ In <<working_with_files.adoc#working_with_files,Working with Files>>, we introdu
 | link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree]
 |===
 
+WARNING: Avoid using `FileTree` when order matters — it has no guaranteed, stable file order and may cause unpredictable behavior.
+
 All of these types are also considered lazy types.
 
 There are more strongly typed models used to represent elements of the file system:

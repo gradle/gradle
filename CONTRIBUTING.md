@@ -96,7 +96,7 @@ All code contributions should contain the following:
 
 Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
-* Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
+* Be careful when using features introduced in Java 9 or later. Some parts of Gradle still need to run on Java 8.
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
 
 You can consult the [Architecture documentation](architecture) to learn about some of the architecture of Gradle.
@@ -338,7 +338,7 @@ To create a Gradle distribution from the source tree you can run either of the f
 
     ./gradlew :distributions-full:binDistributionZip
 
-This will create a minimal distribution at `subprojects/distributions-full/build/distributions/gradle-<version>-bin.zip`, just what's needed to run Gradle (i.e. no sources nor docs).
+This will create a minimal distribution at `packaging/distributions-full/build/distributions/gradle-<version>-bin.zip`, just what's needed to run Gradle (i.e. no sources nor docs).
 
 You can then use it as a Gradle Wrapper local distribution in a Gradle based project by using a `file:/` URL pointing to the built distribution:
 
@@ -348,7 +348,7 @@ To create a full distribution (includes sources and docs):
 
     ./gradlew :distributions-full:allDistributionZip
 
-The full distribution will be created at `subprojects/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
+The full distribution will be created at `packaging/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
 
     ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
 

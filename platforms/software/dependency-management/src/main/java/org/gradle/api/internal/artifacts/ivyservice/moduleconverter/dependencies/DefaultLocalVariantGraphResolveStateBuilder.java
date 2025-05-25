@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,10 +52,11 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -89,16 +90,37 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        // Starting in Gradle 9.0, the logic for creating the root variant and for creating a
-        // consumable variant will differ, as the root variant should not have artifacts.
-        // However, until then, since the root variant can still be consumed, it must have artifacts.
-        return doCreateVariantState(
-            configuration,
-            componentId,
+        finalize(configuration, "resolved");
+
+        ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
+        CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> dependencies = getConfigurationDependencyState(
+            configuration.asDescribable(),
+            configuration.getHierarchy(),
+            attributes,
             dependencyCache,
             model,
-            calculatedValueContainerFactory,
-            "resolved"
+            calculatedValueContainerFactory
+        );
+
+        // TODO: The root node should have no capabilities, as it has no artifacts.
+        // However, changing this prevents conflicts between code being compiled and its
+        // dependencies from being detected during compilation -- though this also
+        // can lead to some false positives.
+        ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
+        LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
+            configuration.getName(),
+            configuration.isTransitive(),
+            attributes,
+            capabilities,
+            false
+        );
+
+        return new DefaultLocalVariantGraphResolveState(
+            idGenerator.nextVariantId(),
+            componentId,
+            metadata,
+            dependencies,
+            Collections.emptySet()
         );
     }
 
@@ -110,29 +132,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        return doCreateVariantState(
-            configuration,
-            componentId,
-            dependencyCache,
-            model,
-            calculatedValueContainerFactory,
-            "consumed as a variant"
-        );
-    }
-
-    private DefaultLocalVariantGraphResolveState doCreateVariantState(
-        ConfigurationInternal configuration,
-        ComponentIdentifier componentId,
-        DependencyCache dependencyCache,
-        ModelContainer<?> model,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        String observationReason
-    ) {
-        // Perform any final mutating actions for this configuration and its parents.
-        // Then, lock this configuration and its parents from mutation.
-        // After we observe a configuration (by building its metadata), its state should not change.
-        configuration.runDependencyActions();
-        configuration.markAsObserved(observationReason);
+        finalize(configuration, "consumed as a variant");
 
         String configurationName = configuration.getName();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configurationName);
@@ -156,13 +156,14 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             }
         });
 
-        // Collect all dependencies and excludes in hierarchy.
-        // After running the dependency actions and preventing from mutation above, we know the
-        // hierarchy will not change anymore and all configurations in the hierarchy
-        // will no longer be mutated.
-        Set<Configuration> hierarchy = configuration.getHierarchy();
-        CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> dependencies =
-            getConfigurationDependencyState(configuration.asDescribable(), hierarchy, attributes, dependencyCache, model, calculatedValueContainerFactory);
+        CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> dependencies = getConfigurationDependencyState(
+            configuration.asDescribable(),
+            configuration.getHierarchy(),
+            attributes,
+            dependencyCache,
+            model,
+            calculatedValueContainerFactory
+        );
 
         LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
             configurationName,
@@ -176,11 +177,22 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             idGenerator.nextVariantId(),
             componentId,
             metadata,
-            idGenerator,
-            calculatedValueContainerFactory,
             dependencies,
             artifactSets.build()
         );
+    }
+
+    /**
+     * Perform any final mutating actions for this configuration and its parents.
+     * Then, lock this configuration and its parents from mutation.
+     * After we observe a configuration (by building its metadata), its state should not change.
+     */
+    private static void finalize(ConfigurationInternal configuration, String reason) {
+        // Perform any final mutating actions for this configuration and its parents.
+        // Then, lock this configuration and its parents from mutation.
+        // After we observe a configuration (by building its metadata), its state should not change.
+        configuration.runDependencyActions();
+        configuration.markAsObserved(reason);
     }
 
     private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getVariantArtifacts(

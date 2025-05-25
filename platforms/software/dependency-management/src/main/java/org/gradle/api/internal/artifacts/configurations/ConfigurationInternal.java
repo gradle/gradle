@@ -27,8 +27,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -137,23 +137,6 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      * Returns the role used to create this configuration and set its initial allowed usage.
      */
     ConfigurationRole getRoleAtCreation();
-
-    /**
-     * Indicates if the allowed usages of this configuration (consumable, resolvable, declarable) can be changed.
-     *
-     * @return {@code true} if so; {@code false} otherwise
-     */
-    boolean usageCanBeMutated();
-
-    /**
-     * Update a configuration's allowed and disallowed usage to match the given role
-     *
-     * This method does <strong>NOT</strong> warn.  This method does <strong>NOT</strong> modify deprecation status.  It
-     * is only meant to be called by the container.
-     *
-     * @param role the role specifying the usage the conf should possess
-     */
-     void setAllowedUsageFromRole(ConfigurationRole role);
 
     /**
      * Test if the given configuration can either be declared against or extends another

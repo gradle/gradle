@@ -21,25 +21,32 @@ import model.StageName
 import model.TestCoverage
 
 fun buildScanTagParam(tag: String) = """-Dscan.tag.$tag"""
-fun buildScanCustomValueParam(key: String, value: String) = """-Dscan.value.$key=$value"""
+
+fun buildScanCustomValueParam(
+    key: String,
+    value: String,
+) = """-Dscan.value.$key=$value"""
 
 fun TestCoverage.asBuildScanCustomValue() =
-    "${testType.name.toCapitalized()}${testJvmVersion.name.toCapitalized()}${vendor.displayName}${os.asName()}${arch.asName()}"
+    testType.name.toCamelCase().toCapitalized() +
+        testJvmVersion.toCapitalized() +
+        "${vendor.displayName}${os.asName()}${arch.asName()}"
 
 // Generates a build scan custom value "PartOf=X,Y,Z"
 // where X, Y, Z are all the stages including current stage
 // For example, for the stage PullRequestFeedback, the custom value will be "PartOf=PullRequestFeedback,ReadyForNightly,ReadyForRelease"
-private fun Stage.getBuildScanCustomValues(): List<String> {
-    return StageName.values()
+private fun Stage.getBuildScanCustomValues(): List<String> =
+    StageName
+        .values()
         .slice(this.stageName.ordinal until StageName.READY_FOR_RELEASE.ordinal + 1)
         .map { it.uuid }
-}
 
 fun Stage.getBuildScanCustomValueParam(testCoverage: TestCoverage? = null): String {
-    val customValues = if (testCoverage != null) {
-        listOf(testCoverage.asBuildScanCustomValue()) + getBuildScanCustomValues()
-    } else {
-        getBuildScanCustomValues()
-    }
+    val customValues =
+        if (testCoverage != null) {
+            listOf(testCoverage.asBuildScanCustomValue()) + getBuildScanCustomValues()
+        } else {
+            getBuildScanCustomValues()
+        }
     return "-DbuildScan.PartOf=${customValues.joinToString(",")}"
 }

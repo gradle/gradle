@@ -18,8 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the target that a plugin should be applied to, such as a Gradle, Settings or Project object.

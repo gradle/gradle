@@ -42,7 +42,7 @@ public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSou
 
     private void generate(String packageName, String className, ProjectDescriptor current) throws IOException {
         writeHeader(packageName);
-        writeLn("@NonNullApi");
+        writeLn("@NullMarked");
         writeLn("public class " + className + " extends DelegatingProjectDependency {");
         writeLn();
         writeLn("    @Inject");

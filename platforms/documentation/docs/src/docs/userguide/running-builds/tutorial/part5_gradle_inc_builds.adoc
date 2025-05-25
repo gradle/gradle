@@ -43,6 +43,7 @@ Learn the basics of Gradle's incremental builds.
 4. You applied a plugin to your app in <<part4_gradle_plugins#part4_begin,part 4>>.
 
 == Step 1. Understanding Incremental Builds
+
 It's important to know that Gradle optimizes your build in a variety of ways.
 One such optimization is called _incremental builds_.
 
@@ -51,11 +52,12 @@ An _incremental build_ is a build that avoids running tasks whose inputs did not
 For incremental builds to work, tasks must define their inputs and outputs. At build time, Gradle will determine whether the input or outputs have changed. If they have changed, Gradle will execute the task. Otherwise, it will skip execution.
 
 == Step 2. Updating Gradle Properties
+
 To better see incremental builds in action, we are going to switch the console output to verbose.
 
-In the top-level folder of your app (`tutorial`), create a `gradle.properties` file.
+In the top-level folder of your app (`tutorial`), create a `gradle.properties` file:
 
-[source,properties]
+[source,bash]
 ----
 $ touch gradle.properties
 ----
@@ -69,7 +71,9 @@ org.gradle.console=verbose
 ----
 
 == Step 3. Analyzing Incremental Builds
+
 Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
+
 [source,text]
 ----
 $ ./gradlew :app:clean :app:build
@@ -98,6 +102,7 @@ No surprise here, Gradle invoked all the tasks needed to build the app.
 This was done successfully.
 
 Run the build again to view the _incremental build_ optimization in action:
+
 [source,text]
 ----
 $ ./gradlew :app:build
@@ -125,6 +130,7 @@ Most tasks now have the `UP-TO-DATE` label.
 This is how Gradle lets us know that inputs and outputs have not changed and therefore some tasks did not re-run.
 
 == Step 4. Understanding Outcome Labels
+
 There are four labels that developers can use to view task outcomes when verbose mode is turned on:
 
 |===

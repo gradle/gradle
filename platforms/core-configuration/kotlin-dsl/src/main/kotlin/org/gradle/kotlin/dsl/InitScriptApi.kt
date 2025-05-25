@@ -22,8 +22,6 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.DeprecatedProcessOperations
-import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
@@ -35,9 +33,6 @@ import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
-import org.gradle.process.ExecResult
-import org.gradle.process.ExecSpec
-import org.gradle.process.JavaExecSpec
 import java.io.File
 import java.net.URI
 
@@ -56,10 +51,9 @@ abstract class InitScriptApi(
 
     init {
         @Suppress("DEPRECATION")
-        if (!org.gradle.kotlin.dsl.precompile.PrecompiledInitScript::class.java.isAssignableFrom(this::class.java) &&
-            !org.gradle.kotlin.dsl.KotlinInitScript::class.java.isAssignableFrom(this::class.java)) {
+        if (!KotlinInitScript::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(InitScriptApi::class.java)
-                .willBeRemovedInGradle9()
+                .willBeRemovedInGradle10()
                 .undocumented()
                 .nagUser()
         }
@@ -67,13 +61,6 @@ abstract class InitScriptApi(
 
     protected
     abstract val fileOperations: FileOperations
-
-    protected
-    abstract val processOperations: ProcessOperations
-
-    private
-    val deprecatedProcessOperations
-        get() = DeprecatedProcessOperations(processOperations)
 
     /**
      * Configures the classpath of the init script.
@@ -360,30 +347,4 @@ abstract class InitScriptApi(
     @Suppress("unused")
     fun delete(configuration: DeleteSpec.() -> Unit): WorkResult =
         fileOperations.delete(configuration)
-
-    /**
-     * Executes an external command.
-     *
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param configuration The block to use to configure the [ExecSpec].
-     * @return The result of the execution.
-     */
-    @Suppress("unused")
-    @Deprecated(message = "This method will be removed in Gradle 9.0. Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead.")
-    fun exec(configuration: ExecSpec.() -> Unit): ExecResult =
-        deprecatedProcessOperations.exec(configuration)
-
-    /**
-     * Executes an external Java process.
-     *
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param configuration The block to use to configure the [JavaExecSpec].
-     * @return The result of the execution.
-     */
-    @Suppress("unused")
-    @Deprecated(message = "This method will be removed in Gradle 9.0. Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead.")
-    fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
-        deprecatedProcessOperations.javaexec(configuration)
 }

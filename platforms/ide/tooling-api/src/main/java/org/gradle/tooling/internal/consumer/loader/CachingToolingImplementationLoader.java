@@ -17,7 +17,6 @@ package org.gradle.tooling.internal.consumer.loader;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -27,6 +26,7 @@ import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Closeable;
 import java.util.concurrent.Callable;
@@ -62,7 +62,7 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private class ConsumerConnectionCreator implements Callable<ConsumerConnection> {
         private final Distribution distribution;
         private final ProgressLoggerFactory progressLoggerFactory;

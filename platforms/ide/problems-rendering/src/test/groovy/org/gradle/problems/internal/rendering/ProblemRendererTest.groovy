@@ -21,7 +21,11 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.IsolatableToBytesSerializer
+import org.gradle.api.problems.internal.ProblemsInfrastructure
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Issue
 import spock.lang.Specification
@@ -48,11 +52,20 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[0] == "  test-id-display-name"
+        renderedTextLines[0] == "test-id-display-name"
     }
 
     def DefaultProblemBuilder createProblemBuilder() {
-        new DefaultProblemBuilder(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer))
+        new DefaultProblemBuilder(
+            new ProblemsInfrastructure(
+                new AdditionalDataBuilderFactory(),
+                Mock(Instantiator),
+                Mock(PayloadSerializer),
+                Mock(IsolatableFactory),
+                Mock(IsolatableToBytesSerializer),
+                Mock(ProblemStream)
+            )
+        )
     }
 
     def "individual problem header is correct when contextual label is present"() {
@@ -66,7 +79,8 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[0] == "  contextual-label"
+        renderedTextLines[0] == "display-name"
+        renderedTextLines[1] == "  contextual-label"
     }
 
     def "individual problem with details are displayed"() {
@@ -80,7 +94,7 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "    details"
+        renderedTextLines[2] == "    details"
     }
 
     def "individual problem with multiline details are displayed and indented correctly"() {
@@ -94,8 +108,8 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "    details:1"
-        renderedTextLines[2] == "    details:2"
+        renderedTextLines[2] == "    details:1"
+        renderedTextLines[3] == "    details:2"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32016")
@@ -107,6 +121,7 @@ class ProblemRendererTest extends Specification {
             .build()
         def problem2 = createProblemBuilder()
             .id("id", "display-name", level1Group)
+            .contextualLabel("Some context for one problem")
             .details("details:1\ndetails:2")
             .build()
 
@@ -115,10 +130,11 @@ class ProblemRendererTest extends Specification {
 
         then:
         renderedText.normalize() == """\
-            |  display-name
+            |display-name
+            |  Unlabelled problem details:
             |    details:1
             |    details:2
-            |  display-name
+            |  Some context for one problem
             |    details:1
             |    details:2""".stripMargin()
     }

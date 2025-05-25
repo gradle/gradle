@@ -15,50 +15,44 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
 import org.gradle.internal.exceptions.ResolutionProvider;
-import org.gradle.internal.logging.text.TreeFormatter;
 
-import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.util.internal.TextUtil.getPluralEnding;
-
 public class VersionConflictException extends GraphValidationException implements ResolutionProvider {
-    private static final int MAX_SEEN_MODULE_COUNT = 10;
-    private final Collection<Conflict> conflicts;
 
     private final List<String> resolutions;
 
-    public VersionConflictException(Collection<Conflict> conflicts, List<String> resolutions) {
-        super(buildMessage(conflicts));
-        this.conflicts = conflicts;
+    public VersionConflictException(Conflict conflict, List<String> resolutions) {
+        super(buildMessage(conflict));
         this.resolutions = resolutions;
     }
 
-    public Collection<Conflict> getConflicts() {
-        return conflicts;
+    private static String buildMessage(Conflict conflict) {
+        String conflictDescription = getConflictDescription(conflict);
+        ModuleIdentifier moduleId = conflict.getModuleId();
+
+        return "Conflict found for module '" + moduleId.getGroup() + ":" + moduleId.getName() + "': " + conflictDescription;
     }
 
-    private static String buildMessage(Collection<Conflict> conflicts) {
-        TreeFormatter formatter = new TreeFormatter();
-
-        String plural = getPluralEnding(conflicts);
-        formatter.node("Conflict" + plural + " found for the following module" + plural);
-        formatter.startChildren();
-
-        conflicts.stream().limit(MAX_SEEN_MODULE_COUNT)
-            .forEach(conflict -> formatter.node(conflict.getMessage()));
-
-        if (conflicts.size() > MAX_SEEN_MODULE_COUNT) {
-            formatter.node("... and more");
+    private static String getConflictDescription(Conflict conflict) {
+        String conflictDescription = null;
+        for (ComponentSelectionDescriptor description : conflict.getSelectionReason().getDescriptions()) {
+            if (description.getCause().equals(ComponentSelectionCause.CONFLICT_RESOLUTION)) {
+                conflictDescription = description.getDescription();
+            }
         }
-        formatter.endChildren();
-        return formatter.toString();
+        assert conflictDescription != null;
+        return conflictDescription;
     }
 
     @Override
     public List<String> getResolutions() {
         return resolutions;
     }
+
 }

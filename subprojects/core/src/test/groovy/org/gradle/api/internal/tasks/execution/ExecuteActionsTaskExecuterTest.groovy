@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.TaskProperties
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
@@ -82,6 +81,7 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 
 class ExecuteActionsTaskExecuterTest extends Specification {
+    def problems = TestUtil.problemsService()
     def task = Mock(TaskInternal)
     def taskOutputs = Mock(TaskOutputsEnterpriseInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
@@ -102,7 +102,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
-    def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP)
+    def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
     def executionContext = Mock(TaskExecutionContext)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
@@ -155,7 +155,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         outputSnapshotter,
         overlappingOutputDetector,
         validationWarningReporter,
-        virtualFileSystem
+        virtualFileSystem,
+        problems
     )
 
     def executer = new ExecuteActionsTaskExecuter(
@@ -189,7 +190,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getValidationAction() >> { { c -> } as TaskExecutionContext.ValidationAction }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
-        ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
     }
 
     void noMoreInteractions() {

@@ -29,6 +29,7 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
@@ -104,17 +105,17 @@ private
 class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
     override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> {
         return if (kClass.isGeneratedAccessors()) {
-            allClassesReachableFromGetters(kClass)
+            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass)
         } else {
             emptyList()
         }
     }
 
     private
-    fun allClassesReachableFromGetters(kClass: KClass<*>) = buildSet {
+    fun allClassesReachableFromGetters(host: SchemaBuildingHost, kClass: KClass<*>) = buildSet {
         fun visit(kClass: KClass<*>) {
             if (add(kClass)) {
-                val properties = propertyFromTypesafeProjectGetters.extractProperties(kClass)
+                val properties = propertyFromTypesafeProjectGetters.extractProperties(host, kClass)
                 val typesFromGetters = properties.mapNotNull { it.originalReturnType.classifier as? KClass<*> }
                 typesFromGetters.forEach(::visit)
             }
@@ -125,9 +126,9 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
 
 private
 class TypesafeProjectPropertyProducer : PropertyExtractor {
-    override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
+    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
         if (kClass.isGeneratedAccessors()) {
-            propertyFromTypesafeProjectGetters.extractProperties(kClass, propertyNamePredicate)
+            propertyFromTypesafeProjectGetters.extractProperties(host, kClass, propertyNamePredicate)
         } else emptyList()
 }
 

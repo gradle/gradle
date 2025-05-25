@@ -21,8 +21,10 @@ import model.CIBuildModel
 import model.TestCoverage
 import projects.FunctionalTestProject
 
-class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: FunctionalTestProject) :
-    OsAwareBaseGradleBuildType(os = functionalTestProject.testCoverage.os, init = {
+class FunctionalTestsPass(
+    model: CIBuildModel,
+    functionalTestProject: FunctionalTestProject,
+) : OsAwareBaseGradleBuildType(os = functionalTestProject.testCoverage.os, init = {
         id("${functionalTestProject.testCoverage.asId(model)}_Trigger")
         name = functionalTestProject.name + " (Trigger)"
         type = Type.COMPOSITE

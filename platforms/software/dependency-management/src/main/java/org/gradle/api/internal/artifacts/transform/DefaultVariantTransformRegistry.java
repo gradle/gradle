@@ -34,8 +34,8 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.ServiceLookup;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Set;

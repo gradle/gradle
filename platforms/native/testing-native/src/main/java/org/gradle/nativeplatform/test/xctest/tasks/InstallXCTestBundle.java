@@ -39,8 +39,8 @@ import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator
 import org.gradle.process.ExecOperations;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;

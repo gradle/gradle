@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -25,15 +24,16 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
 
-@NonNullApi
+@NullMarked
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
     private final IntermediateBuildActionRunner actionRunner;

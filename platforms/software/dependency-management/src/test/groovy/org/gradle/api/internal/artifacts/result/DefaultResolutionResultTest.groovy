@@ -19,12 +19,12 @@ package org.gradle.api.internal.artifacts.result
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
@@ -140,7 +140,7 @@ class DefaultResolutionResultTest extends Specification {
 
     def "doesn't throw class cast exception when the source of the edge is a project"() {
         def projectId = new DefaultProjectComponentIdentifier(
-            Stub(BuildIdentifier),
+            DefaultBuildIdentifier.ROOT,
             Stub(Path),
             Stub(Path),
             'test project'
@@ -148,7 +148,8 @@ class DefaultResolutionResultTest extends Specification {
         def mid = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
         org.gradle.internal.Factory<String> broken = { "too bad" }
         def dep = new DefaultUnresolvedDependencyResult(
-            Stub(ComponentSelector), false,
+            Stub(ComponentSelector),
+            false,
             Stub(ComponentSelectionReason),
             new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, ImmutableMap.of(1L, Stub(ResolvedVariantResult)), ImmutableList.of(Stub(ResolvedVariantResult)), null),
             new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken, [])

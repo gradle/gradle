@@ -21,8 +21,8 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.ProjectModel;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**

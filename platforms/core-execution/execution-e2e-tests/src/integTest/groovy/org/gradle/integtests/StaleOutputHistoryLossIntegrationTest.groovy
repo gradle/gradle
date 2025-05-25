@@ -45,7 +45,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << "apply plugin: 'base'\n"
         // When adding support for a new JDK version, the previous release might not work with it yet.
-        Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.worksWith(Jvm.current()))
+        Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.daemonWorksWith(Jvm.current().javaVersionMajor))
     }
 
     GradleVersion getMostRecentReleaseVersion() {
@@ -91,41 +91,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         buildDirName | defaultDir | description
         'build'      | true       | 'default build directory'
         'out'        | false      | 'reconfigured build directory'
-    }
-
-    def "production class files outside of 'build' are removed"() {
-        given:
-        def javaProject = new StaleOutputJavaProject(testDirectory, 'out')
-        buildFile << """
-            apply plugin: 'java'
-
-            sourceSets {
-                main {
-                    java.destinationDirectory.set(file('out/classes/java/main'))
-                }
-            }
-        """.stripIndent()
-
-        when:
-        result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
-
-        then:
-        javaProject.mainClassFile.assertIsFile()
-        javaProject.redundantClassFile.assertIsFile()
-
-        when:
-        forceDelete(javaProject.redundantSourceFile)
-        succeeds JAR_TASK_NAME
-
-        then:
-        javaProject.mainClassFile.assertIsFile()
-        javaProject.redundantClassFile.assertDoesNotExist()
-
-        when:
-        succeeds JAR_TASK_NAME
-
-        then:
-        javaProject.assertBuildTasksSkipped(result)
     }
 
     // We register the output directory before task execution and would have deleted output files at the end of configuration.

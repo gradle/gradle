@@ -4,17 +4,13 @@ plugins {
 
 description = "Plugins for building Scala code with Gradle."
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedMethod", // 2 occurrences
-    )
-}
-
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
@@ -24,14 +20,14 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformBase)
     api(projects.platformJvm)
+    api(projects.scopedPersistentCache)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workers)
-    api(projects.buildProcessServices)
 
-    api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.time)
     implementation(projects.serviceLookup)
@@ -53,6 +49,8 @@ dependencies {
         exclude(module="log4j-api")
     }
 
+    runtimeOnly(libs.groovy)
+
     testImplementation(projects.baseServicesGroovy)
     testImplementation(projects.files)
     testImplementation(projects.resources)
@@ -65,6 +63,7 @@ dependencies {
 
     integTestImplementation(projects.jvmServices)
 
+    testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.languageJvm))
 
     testRuntimeOnly(projects.distributionsCore) {

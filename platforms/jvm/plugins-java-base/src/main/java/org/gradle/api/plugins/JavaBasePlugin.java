@@ -16,23 +16,16 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
-import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -42,30 +35,27 @@ import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.plugins.internal.NaggingJavaPluginConvention;
 import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
-import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -73,11 +63,10 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -98,7 +87,6 @@ import java.util.function.Supplier;
 public abstract class JavaBasePlugin implements Plugin<Project> {
     public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
 
-    @SuppressWarnings("unused")
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
     public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
@@ -160,16 +148,13 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         configureBuildNeeded(project);
         configureBuildDependents(project);
         configureArchiveDefaults(project);
+        configureJavaExecTasks(project);
     }
 
-    @SuppressWarnings("deprecation")
     private DefaultJavaPluginExtension addExtensions(final Project project) {
         DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec);
-        DeprecationLogger.whileDisabled(() ->
-            project.getConvention().getPlugins().put("java", new NaggingJavaPluginConvention(objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension))));
-        return javaPluginExtension;
+        return (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec);
     }
 
     private void configureSourceSetDefaults(Project project, final JavaPluginExtension javaPluginExtension) {
@@ -264,7 +249,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         );
     }
 
-    private void definePathsForSourceSet(final SourceSet sourceSet, final Project project) {
+    private static void definePathsForSourceSet(final SourceSet sourceSet, final Project project) {
         ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
         outputConventionMapping.map("resourcesDir", () -> {
             String classesDirName = "resources/" + sourceSet.getName();
@@ -284,37 +269,31 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        SourceSetConfigurationCreationRequest implementationRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), implementationConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration implementationConfiguration = configurations.maybeCreate(implementationRequest);
+        Configuration implementationConfiguration = configurations.dependencyScopeLocked(implementationConfigurationName);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
-        SourceSetConfigurationCreationRequest compileOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyRequest);
+        Configuration compileOnlyConfiguration = configurations.dependencyScopeLocked(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        SourceSetConfigurationCreationRequest compileClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE);
-        Configuration compileClasspathConfiguration = configurations.maybeCreate(compileClasspathRequest);
+        Configuration compileClasspathConfiguration = configurations.resolvableLocked(compileClasspathConfigurationName);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
         @SuppressWarnings("deprecation")
-        SourceSetConfigurationCreationRequest annotationProcessorRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
-        Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorRequest);
+        Configuration annotationProcessorConfiguration = configurations.resolvableDependencyScopeLocked(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
-        SourceSetConfigurationCreationRequest runtimeOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyRequest);
+        Configuration runtimeOnlyConfiguration = configurations.dependencyScopeLocked(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        SourceSetConfigurationCreationRequest runtimeClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathRequest);
+        Configuration runtimeClasspathConfiguration = configurations.resolvableLocked(runtimeClasspathConfigurationName);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
@@ -342,7 +321,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
                 return javaVersionSupplier.get();
             });
 
-            compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
 
@@ -398,6 +376,14 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
     }
 
+    private void configureJavaExecTasks(Project project) {
+        project.getTasks().withType(JavaExec.class).configureEach(javaExec -> {
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
+                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(javaExec, propertyFactory));
+            javaExec.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
+        });
+    }
+
     private <T> Provider<T> getToolchainTool(
         Project project,
         BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper,
@@ -407,108 +393,5 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
         return toolchainOverride.orElse(extension.getToolchain())
             .flatMap(spec -> toolMapper.apply(service, spec));
-    }
-
-    /**
-     * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile
-     * and override the deprecated methods.
-     */
-    private static class BackwardCompatibilityOutputDirectoryConvention implements Callable<Directory> {
-        private final AbstractCompile compile;
-        private boolean recursiveCall;
-
-        public BackwardCompatibilityOutputDirectoryConvention(AbstractCompile compile) {
-            this.compile = compile;
-        }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        @Nullable
-        public Directory call() throws Exception {
-            Method getter = GeneratedSubclasses.unpackType(compile).getMethod("getDestinationDir");
-            if (getter.getDeclaringClass() == AbstractCompile.class) {
-                // Subclass has not overridden the getter, so ignore
-                return null;
-            }
-
-            // Subclass has overridden the getter, so call it
-
-            if (recursiveCall) {
-                // Already querying AbstractCompile.getDestinationDirectory()
-                // In that case, this convention should not be used.
-                return null;
-            }
-            recursiveCall = true;
-            File legacyValue;
-            try {
-                // This will call a subclass implementation of getDestinationDir(), which possibly will not call the overridden getter
-                // In the Kotlin plugin, the subclass manages its own field which will be used here.
-                // This was to support tasks that extended AbstractCompile and had their own getDestinationDir().
-                // We actually need to keep this as compile.getDestinationDir to maintain compatibility.
-                legacyValue = compile.getDestinationDir();
-            } finally {
-                recursiveCall = false;
-            }
-            if (legacyValue == null) {
-                return null;
-            } else {
-                return compile.getProject().getLayout().getProjectDirectory().dir(legacyValue.getAbsolutePath());
-            }
-        }
-    }
-
-    /**
-     * An {@link AbstractRoleBasedConfigurationCreationRequest} that provides context for error messages and warnings
-     * emitted when creating the configurations implicitly associated with a {@link SourceSet}.
-     */
-    private static final class SourceSetConfigurationCreationRequest extends AbstractRoleBasedConfigurationCreationRequest {
-        private final String sourceSetName;
-
-        private SourceSetConfigurationCreationRequest(String sourceSetName, String configurationName, ConfigurationRole role) {
-            super(configurationName, role);
-            this.sourceSetName = sourceSetName;
-        }
-
-        public String getSourceSetName() {
-            return sourceSetName;
-        }
-
-        @Override
-        public void warnAboutNeedToMutateUsage(DeprecatableConfiguration conf) {
-            String msgDiscovery = getUsageDiscoveryMessage(conf);
-            String msgExpectation = getUsageExpectationMessage();
-
-            DeprecationLogger.deprecate(msgDiscovery + msgExpectation)
-                .withAdvice(getUsageMutationAdvice())
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("building_java_projects", "sec:implicit_sourceset_configurations")
-                .nagUser();
-        }
-
-        private String getUsageDiscoveryMessage(DeprecatableConfiguration conf) {
-            String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
-            return String.format("When creating configurations during sourceSet %s setup, Gradle found that configuration %s already exists with permitted usage(s):\n" +
-                "%s\n", sourceSetName, getConfigurationName(), currentUsageDesc);
-        }
-
-        private String getUsageExpectationMessage() {
-            String expectedUsageDesc = UsageDescriber.describeRole(getRole());
-            return String.format("Yet Gradle expected to create it with the usage(s):\n" +
-                "%s\n" +
-                "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, getConfigurationName());
-        }
-
-        @Override
-        public void failOnInabilityToMutateUsage() {
-            List<String> resolutions = ImmutableList.of(
-                RoleBasedConfigurationCreationRequest.getDefaultReservedNameAdvice(getConfigurationName()),
-                getUsageMutationAdvice()
-            );
-            throw new UnmodifiableUsageException(getConfigurationName(), resolutions);
-        }
-
-        private String getUsageMutationAdvice() {
-            return String.format("Create source set %s prior to creating or accessing the configurations associated with it.", sourceSetName);
-        }
     }
 }

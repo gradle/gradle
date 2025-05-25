@@ -51,7 +51,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         projectDir = temporaryFolder.testDirectory
         // When adding support for a new JDK version, the previous release might not work with it yet.
-        Assume.assumeTrue(otherVersion.worksWith(Jvm.current()))
+        Assume.assumeTrue(otherVersion.daemonWorksWith(Jvm.current().javaVersionMajor))
 
         settingsFile.touch()
     }
@@ -233,7 +233,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 implementation "org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}"
-                runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
+                runtimeOnly 'org.slf4j:slf4j-simple:2.0.17'
             }
 
             application.mainClass = 'Main'

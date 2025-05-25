@@ -18,15 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 class PotentialConflictFactory {
 
     private static final PotentialConflict NO_CONFLICT = new NoConflict();
 
-    static <T> PotentialConflict potentialConflict(@Nullable final ConflictContainer<ModuleIdentifier, T>.Conflict conflict) {
+    static <T> PotentialConflict potentialConflict(final ConflictContainer<ModuleIdentifier, T>.@Nullable Conflict conflict) {
         if (conflict == null) {
             return NO_CONFLICT;
         }

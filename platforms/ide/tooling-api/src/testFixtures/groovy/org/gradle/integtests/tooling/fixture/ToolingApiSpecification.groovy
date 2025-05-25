@@ -34,11 +34,11 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.ResultAssertion
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
@@ -71,8 +71,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @ToolingApiTest
 @CleanupTestDirectory
-@ToolingApiVersion('>=7.0')
-@TargetGradleVersion('>=3.0')
+@ToolingApiVersion('>=8.0')
+@TargetGradleVersion('>=4.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation {
     /**
@@ -84,7 +84,6 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
-    GradleConnectionException caughtGradleConnectionException
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
@@ -321,7 +320,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("8.13")) {
+        if (targetVersion >= GradleVersion.version("9.0")) {
+            return ['artifactTransforms', 'buildEnvironment', 'dependencies', 'dependencyInsight', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'outgoingVariants', 'resolvableConfigurations']
+        } else if (targetVersion >= GradleVersion.version("8.13")) {
             return ['artifactTransforms', 'buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
         } else if (targetVersion >= GradleVersion.version("7.5")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
@@ -356,7 +357,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of invisible implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitInvisibleTasks() {
-        if (targetVersion >= GradleVersion.version("6.8")) {
+        if (targetVersion >= GradleVersion.version("9.0")) {
+            return ['prepareKotlinBuildScriptModel']
+        } else if (targetVersion >= GradleVersion.version("6.8")) {
             return ['prepareKotlinBuildScriptModel', 'components', 'dependentComponents', 'model']
         } else if (targetVersion >= GradleVersion.version("5.3")) {
             return ['prepareKotlinBuildScriptModel']
@@ -442,21 +445,13 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void assertHasConfigureSuccessfulLogging() {
-        if (targetDist.isToolingApiLogsConfigureSummary()) {
-            assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
-        } else {
-            assert stdout.toString().contains("BUILD SUCCESSFUL")
-        }
+        assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         validateOutput(getResult())
     }
 
     void assertHasConfigureFailedLogging() {
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
-        if (targetDist.isToolingApiLogsConfigureSummary()) {
-            assert failureOutput.contains("CONFIGURE FAILED")
-        } else {
-            assert failureOutput.contains("BUILD FAILED")
-        }
+        assert failureOutput.contains("CONFIGURE FAILED")
         validateOutput(getFailure())
     }
 
@@ -498,14 +493,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     void validateOutput(ExecutionResult result) {
         List<String> maybeExpectedDeprecations = []
         if (filterJavaVersionDeprecation) {
-            maybeExpectedDeprecations.add(normalizeDeprecationWarning(
-                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-                    "This will fail with an error in Gradle 9.0. " +
-                    "Use JVM 17 or greater to execute Gradle. " +
-                    "Projects can continue to use older JVM versions via toolchains. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${targetDist.version.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
-            ))
+            maybeExpectedDeprecations.add(
+                normalizeDeprecationWarning(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(targetDist.version))
+            )
         }
 
         // Check for deprecation warnings.

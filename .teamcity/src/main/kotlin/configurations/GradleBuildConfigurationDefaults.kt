@@ -14,7 +14,6 @@ import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.cleanUpGitUntrackedFilesAndDirectories
 import common.compileAllDependency
-import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
@@ -24,18 +23,20 @@ import jetbrains.buildServer.configs.kotlin.BuildStep.ExecutionMode
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
-import model.StageName
 
 const val GRADLE_RUNNER_STEP_NAME = "GRADLE_RUNNER"
 const val GRADLE_RETRY_RUNNER_STEP_NAME = "GRADLE_RETRY_RUNNER"
 
-fun checkCleanDirUnixLike(dir: String, exitOnFailure: Boolean = true) = """
+fun checkCleanDirUnixLike(
+    dir: String,
+    exitOnFailure: Boolean = true,
+) = """
     REPO=$dir
     if [ -e ${'$'}REPO ] ; then
         tree ${'$'}REPO
@@ -46,16 +47,19 @@ fun checkCleanDirUnixLike(dir: String, exitOnFailure: Boolean = true) = """
         echo "${'$'}REPO does not exist"
     fi
 
-""".trimIndent()
+    """.trimIndent()
 
-fun checkCleanDirWindows(dir: String, exitOnFailure: Boolean = true) = """
+fun checkCleanDirWindows(
+    dir: String,
+    exitOnFailure: Boolean = true,
+) = """
+    
     IF exist $dir (
         TREE $dir
         RMDIR /S /Q $dir
         ${if (exitOnFailure) "EXIT 1" else ""}
     )
-
-""".trimIndent()
+    """.trimIndent()
 
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     if (model.publishStatusToGitHub) {
@@ -66,13 +70,15 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
 fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
         vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
-        provider = github {
-            authType = token {
-                token = "%github.bot-teamcity.token%"
+        provider =
+            github {
+                authType =
+                    token {
+                        token = "%github.bot-teamcity.token%"
+                    }
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+                filterTargetBranch = "+:refs/heads/${VersionedSettingsBranch.fromDslContext().branchName}"
             }
-            filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
-            filterTargetBranch = "+:refs/heads/${VersionedSettingsBranch.fromDslContext().branchName}"
-        }
     }
 }
 
@@ -92,16 +98,21 @@ fun BaseGradleBuildType.tcParallelTests(numberOfBatches: Int) {
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
         vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
-        publisher = github {
-            githubUrl = "https://api.github.com"
-            authType = personalToken {
-                token = "%github.bot-gradle.token%"
+        publisher =
+            github {
+                githubUrl = "https://api.github.com"
+                authType =
+                    personalToken {
+                        token = "%github.bot-gradle.token%"
+                    }
             }
-        }
     }
 }
 
-fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
+fun ProjectFeatures.buildReportTab(
+    title: String,
+    startPage: String,
+) {
     feature {
         type = "ReportTab"
         param("startPage", startPage)
@@ -116,7 +127,6 @@ fun BaseGradleBuildType.gradleRunnerStep(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
-    daemon: Boolean = true,
     maxParallelForks: String = "%maxParallelForks%",
     isRetry: Boolean = false,
 ) {
@@ -125,21 +135,40 @@ fun BaseGradleBuildType.gradleRunnerStep(
     val extraBuildScanTags: List<String> = if (isRetry) listOf("RetriedBuild") else emptyList()
 
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id) + extraBuildScanTags
-    val parameters = (
-        buildToolGradleParameters(daemon, maxParallelForks = maxParallelForks) +
-            listOf(extraParameters) +
-            buildScanTags.map { buildScanTagParam(it) } +
-            functionalTestParameters(os, arch)
-        ).joinToString(separator = " ") + if (isRetry) " -PretryBuild" else ""
+    val parameters =
+        (
+            buildToolGradleParameters(maxParallelForks = maxParallelForks) +
+                listOf(extraParameters) +
+                buildScanTags.map { buildScanTagParam(it) } +
+                functionalTestParameters(os, arch)
+        ).joinToString(separator = " ")
 
     steps {
         gradleWrapper(this@gradleRunnerStep) {
+            id = stepName
             name = stepName
             tasks = "clean $gradleTasks"
             gradleParams = parameters
             executionMode = stepExecutionMode
             if (isRetry) {
                 onlyRunOnGitHubMergeQueueBranch()
+            }
+        }
+        if (isRetry) {
+            script {
+                name = "MARK_BUILD_SUCCESSFUL_ON_RETRY_SUCCESS"
+                id = name
+                executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE
+                conditions {
+                    equals("teamcity.build.step.status.$GRADLE_RUNNER_STEP_NAME", "failure")
+                    equals("teamcity.build.step.status.$GRADLE_RETRY_RUNNER_STEP_NAME", "success")
+                }
+                scriptContent =
+                    """
+                    echo "marking this build as successful because the retry build succeeded"
+                    echo "##teamcity[buildStatus status='SUCCESS']"
+                    echo "##teamcity[addBuildTag 'BuildRetrySuccess']"
+                    """.trimIndent()
             }
         }
     }
@@ -149,19 +178,17 @@ fun applyDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
     gradleTasks: String,
-    dependsOnQuickFeedbackLinux: Boolean = false,
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     timeout: Int = 90,
-    daemon: Boolean = true,
     buildJvm: Jvm = BuildToolBuildJvm,
-    extraSteps: BuildSteps.() -> Unit = {}
+    extraSteps: BuildSteps.() -> Unit = {},
 ) {
     buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm)
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os)
-    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon)
+    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters)
 
     buildType.steps {
         extraSteps()
@@ -169,7 +196,7 @@ fun applyDefaults(
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
-    applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
+    applyDefaultDependencies(model, buildType)
 }
 
 private fun BaseGradleBuildType.addRetrySteps(
@@ -179,18 +206,16 @@ private fun BaseGradleBuildType.addRetrySteps(
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     maxParallelForks: String = "%maxParallelForks%",
-    daemon: Boolean = true,
 ) {
     killProcessStep(KILL_ALL_GRADLE_PROCESSES, os, arch, executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE)
     cleanUpGitUntrackedFilesAndDirectories()
-    gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon, maxParallelForks = maxParallelForks, isRetry = true)
+    gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks, isRetry = true)
 }
 
 fun applyTestDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
     gradleTasks: String,
-    dependsOnQuickFeedbackLinux: Boolean = false,
     buildJvm: Jvm = BuildToolBuildJvm,
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -198,8 +223,7 @@ fun applyTestDefaults(
     timeout: Int = 90,
     maxParallelForks: String = "%maxParallelForks%",
     extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
-    daemon: Boolean = true,
-    preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
+    preSteps: BuildSteps.() -> Unit = {}, // the steps before runner steps
 ) {
     buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm, arch = arch)
 
@@ -208,7 +232,7 @@ fun applyTestDefaults(
     }
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon, maxParallelForks = maxParallelForks)
+    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks)
     buildType.addRetrySteps(model, gradleTasks, os, arch, extraParameters)
     buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
 
@@ -217,16 +241,13 @@ fun applyTestDefaults(
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
-    applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
+    applyDefaultDependencies(model, buildType)
 }
 
-fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsOnQuickFeedbackLinux: Boolean) {
-    if (dependsOnQuickFeedbackLinux) {
-        // wait for quick feedback phase to finish successfully
-        buildType.dependencies {
-            dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
-        }
-    }
+fun applyDefaultDependencies(
+    model: CIBuildModel,
+    buildType: BuildType,
+) {
     if (buildType !is CompileAll) {
         buildType.dependencies {
             compileAllDependency(CompileAll.buildTypeId(model))

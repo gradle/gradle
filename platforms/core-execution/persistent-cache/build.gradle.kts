@@ -9,18 +9,19 @@ description = """Persistent caches on disk and cross process locking.
 """.trimMargin()
 
 dependencies {
-    api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
-    api(projects.serialization)
     api(projects.buildOperations)
+    api(projects.concurrent)
     api(projects.files)
+    api(projects.serialization)
+    api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.io)
     implementation(projects.time)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

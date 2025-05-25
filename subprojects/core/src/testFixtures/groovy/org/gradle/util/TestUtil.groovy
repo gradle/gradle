@@ -44,7 +44,6 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAn
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemReporter
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.InternalProblem
@@ -52,6 +51,7 @@ import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.ProblemSummarizer
+import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.util.internal.PatternSets
@@ -406,6 +406,8 @@ class TestProblems implements InternalProblems {
             new ExceptionProblemRegistry(),
             null,
             new MockInstantiator(),
+            null,
+            null,
             null
         )
     }
@@ -421,13 +423,8 @@ class TestProblems implements InternalProblems {
     }
 
     @Override
-    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
-        delegate.additionalDataBuilderFactory
-    }
-
-    @Override
-    Instantiator getInstantiator() {
-        return delegate.instantiator
+    ProblemsInfrastructure getInfrastructure() {
+        return delegate.getInfrastructure()
     }
 
     @Override

@@ -12,25 +12,27 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.files)
     api(projects.platformBase)
     api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.workers)
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
+    implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.testSuitesBase)
 
+    implementation(libs.commonsLang)
     implementation(libs.guava)
 
     testImplementation(projects.native)
@@ -38,7 +40,7 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.resourcesHttp))
 
     testFixturesImplementation(libs.commonsLang)

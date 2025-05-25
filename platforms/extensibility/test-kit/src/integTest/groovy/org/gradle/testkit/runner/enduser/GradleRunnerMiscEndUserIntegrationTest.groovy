@@ -64,6 +64,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 || f.name.contains("commons-io")
                 || f.name.contains("guava")
                 || f.name.contains("gradle-base-services")
+                || f.name.contains("gradle-classloaders")
                 || f.name.contains("gradle-stdlib-java-extensions")
                 || f.name.contains("gradle-file-temp")
                 || f.name.contains("gradle-tooling-api")

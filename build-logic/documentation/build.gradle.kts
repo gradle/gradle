@@ -17,12 +17,12 @@ dependencies {
         exclude(module = "servlet-api")
     }
     implementation("com.vladsch.flexmark:flexmark-all")
-    implementation("commons-lang:commons-lang")
+    implementation("org.apache.commons:commons-lang3")
     implementation("org.asciidoctor:asciidoctor-gradle-jvm")
     implementation("org.asciidoctor:asciidoctorj")
-    implementation("org.asciidoctor:asciidoctorj-pdf")
     implementation("dev.adamko.dokkatoo:dokkatoo-plugin")
     implementation("org.jetbrains.dokka:dokka-core")
+    implementation("org.jspecify:jspecify")
 
     testImplementation(gradleTestKit())
 }

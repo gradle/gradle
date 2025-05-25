@@ -15,22 +15,18 @@
  */
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.internal.Factory
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
 
@@ -50,7 +46,7 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
             val target = Target(project)
 
-            registerCompileKotlinPluginsBlocks(kotlinBaseApiPlugin, target)
+            registerCompileKotlinPluginsBlocks(kotlinBaseApiPlugin)
 
             if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(target)) {
 
@@ -63,8 +59,7 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
     }
 
     private fun Project.registerCompileKotlinPluginsBlocks(
-        kotlinBaseApiPlugin: KotlinBaseApiPlugin,
-        target: Target,
+        kotlinBaseApiPlugin: KotlinBaseApiPlugin
     ) {
         val taskName = "compilePluginsBlocks"
         val pluginDependencyScope = configurations.dependencyScope("${taskName}PluginClasspath")
@@ -77,27 +72,20 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
         kotlinBaseApiPlugin.registerKotlinJvmCompileTask(
             taskName = taskName,
-            moduleName = "gradle-kotlin-dsl-plugins-blocks",
+            compilerOptions = kotlinBaseApiPlugin.createCompilerJvmOptions(),
+            explicitApiMode = provider { ExplicitApiMode.Disabled },
         ).configure { task ->
             task.enabled = false
             task.multiPlatformEnabled.set(false)
-            if (target.jvmTarget.isPresent) {
-                task.compilerOptions.jvmTarget.set(target.jvmTarget.map { JvmTarget.fromTarget(it.toString()) })
-            }
             task.libraries.from(sourceSets["main"].compileClasspath)
             task.pluginClasspath.from(pluginClasspath.get())
-            task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName))
+            task.compilerOptions.moduleName.set("gradle-kotlin-dsl-plugins-blocks")
+            task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName!!))
         }
     }
 
     private
     class Target(override val project: Project) : PrecompiledScriptPluginsSupport.Target {
-
-        override val jvmTarget: Provider<JavaVersion> =
-            DeprecationLogger.whileDisabled(Factory {
-                @Suppress("DEPRECATION")
-                project.kotlinDslPluginOptions.jvmTarget.map { JavaVersion.toVersion(it) }
-            })!!
 
         override val kotlinSourceDirectorySet: SourceDirectorySet
             get() = project.sourceSets["main"].kotlin

@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -238,6 +238,9 @@ public class JvmOptions {
             || extraJvmArgString.startsWith("-agentlib:jdwp");
     }
 
+    /**
+     * Adds extra JVM args and implicitly converts given arguments to just Strings
+     */
     public void jvmArgs(Iterable<?> arguments) {
         addExtraJvmArgs(arguments);
         checkDebugConfiguration(extraJvmArgs);
@@ -271,7 +274,7 @@ public class JvmOptions {
                     systemProperty(keyValue.substring(0, equalsIndex), keyValue.substring(equalsIndex + 1));
                 }
             } else {
-                extraJvmArgs.add(argument);
+                extraJvmArgs.add(argStr);
             }
         }
     }

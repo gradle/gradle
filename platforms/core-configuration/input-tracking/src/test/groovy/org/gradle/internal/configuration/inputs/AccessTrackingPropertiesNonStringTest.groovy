@@ -129,10 +129,11 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
     def "entrySet() enumeration is tracked for non-strings"() {
         when:
-        def result = ImmutableSet.copyOf(getMapUnderTestToRead().entrySet())
+        ImmutableSet.Builder<Map.Entry<Object, Object>> iterated = ImmutableSet.builder()
+        getMapUnderTestToRead().entrySet().forEach(iterated::add)
 
         then:
-        result == innerMap.entrySet()
+        iterated.build() == innerMap.entrySet()
         1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
         1 * listener.onAccess('existing', 'existingStringValue')
         1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
@@ -182,10 +183,11 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
     def "keySet() enumeration is tracked for strings only"() {
         when:
-        def result = ImmutableSet.copyOf(getMapUnderTestToRead().keySet())
+        ImmutableSet.Builder<Object> iterated = ImmutableSet.builder()
+        getMapUnderTestToRead().keySet().forEach(iterated::add)
 
         then:
-        result == innerMap.keySet()
+        iterated.build() == innerMap.keySet()
         1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
         1 * listener.onAccess('existing', 'existingStringValue')
         1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)

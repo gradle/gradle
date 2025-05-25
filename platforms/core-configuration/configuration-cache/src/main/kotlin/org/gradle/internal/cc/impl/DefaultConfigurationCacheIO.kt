@@ -551,6 +551,7 @@ class DefaultConfigurationCacheIO internal constructor(
         codecs.userTypesCodec(),
         encoder,
         beanStateWriterLookup,
+        startParameter.isIntegrityCheckEnabled,
         logger,
         tracer,
         problems,
@@ -569,6 +570,7 @@ class DefaultConfigurationCacheIO internal constructor(
         codecs.userTypesCodec(),
         decoder,
         beanStateReaderLookup,
+        startParameter.isIntegrityCheckEnabled,
         logger,
         problems,
         classDecoder(),
@@ -657,7 +659,7 @@ class DefaultConfigurationCacheIO internal constructor(
             attributesFactory = service(),
             valueSourceProviderFactory = service(),
             calculatedValueContainerFactory = service(),
-            patternSetFactory = factory(),
+            patternSetFactory = service(),
             fileOperations = service(),
             fileFactory = service(),
             includedTaskGraph = service(),
@@ -669,13 +671,10 @@ class DefaultConfigurationCacheIO internal constructor(
             parallelStore = startParameter.isParallelStore,
             parallelLoad = startParameter.isParallelLoad,
             problems = service(),
+            attributeDesugaring = service(),
         )
 
     private
     inline fun <reified T : Any> service() =
         host.service<T>()
-
-    private
-    inline fun <reified T> factory() =
-        host.factory(T::class.java)
 }

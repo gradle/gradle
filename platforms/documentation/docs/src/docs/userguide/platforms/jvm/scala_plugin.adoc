@@ -115,6 +115,7 @@ include::sample[dir="snippets/scala/customizedLayout/kotlin",files="build.gradle
 include::sample[dir="snippets/scala/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
 ====
 
+[[sec:scala_version]]
 == Scala version
 
 The Scala version can be declared directly on the `scala` extension.
@@ -239,11 +240,6 @@ The Scala source files of this source set. Contains all `.scala` and `.java` fil
 The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
 Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 _Default value:_ `[__projectDir__/src/__name__/scala]`.
-
-`allScala` — link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
-All Scala source files of this source set. Contains only the `.scala` files found in the Scala source directories. _Default value:_ non-null.
-
-These extensions are backed by an object of type link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet].
 
 The Scala plugin also modifies some source set properties:
 

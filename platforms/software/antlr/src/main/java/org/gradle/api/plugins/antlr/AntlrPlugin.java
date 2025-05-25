@@ -55,7 +55,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
-        final Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeUnlocked(ANTLR_CONFIGURATION_NAME)
+        final Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeLocked(ANTLR_CONFIGURATION_NAME)
             .setVisible(false);
 
         antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
@@ -64,7 +64,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         apiConfiguration.extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
-        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));
+        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.antlrClasspath.convention(antlrConfiguration));
 
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(
             new Action<SourceSet>() {

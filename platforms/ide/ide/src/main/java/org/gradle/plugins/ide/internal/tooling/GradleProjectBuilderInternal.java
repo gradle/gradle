@@ -16,12 +16,12 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public interface GradleProjectBuilderInternal extends ToolingModelBuilder {
 
     /**

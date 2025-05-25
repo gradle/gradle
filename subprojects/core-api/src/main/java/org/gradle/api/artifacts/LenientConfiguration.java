@@ -16,9 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.specs.Spec;
-
-import java.io.File;
 import java.util.Set;
 
 /**
@@ -34,6 +31,7 @@ import java.util.Set;
  * </ul>
  */
 public interface LenientConfiguration {
+
     /**
      * Returns successfully resolved direct dependencies.
      * <p>
@@ -44,17 +42,6 @@ public interface LenientConfiguration {
      * @since 3.3
      */
     Set<ResolvedDependency> getFirstLevelModuleDependencies();
-
-    /**
-     * Returns successfully resolved dependencies that match the given spec.
-     *
-     * @param dependencySpec dependency spec
-     * @return only resolved dependencies
-     *
-     * @deprecated Use {@link #getFirstLevelModuleDependencies()}.
-     */
-    @Deprecated
-    Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
 
     /**
      * Returns all successfully resolved dependencies including transitive dependencies.
@@ -78,28 +65,6 @@ public interface LenientConfiguration {
     Set<UnresolvedDependency> getUnresolvedModuleDependencies();
 
     /**
-     * Returns successfully resolved files. Ignores dependencies or files that cannot be resolved.
-     *
-     * @return resolved dependencies files
-     * @since 3.3
-     *
-     * @deprecated Use a lenient {@link ArtifactView} instead.
-     */
-    @Deprecated
-    Set<File> getFiles();
-
-    /**
-     * Returns successfully resolved files. Ignores dependencies or files that cannot be resolved.
-     *
-     * @param dependencySpec dependency spec
-     * @return resolved dependencies files
-     *
-     * @deprecated Use a lenient {@link ArtifactView} with a {@code componentFilter} instead.
-     */
-    @Deprecated
-    Set<File> getFiles(Spec<? super Dependency> dependencySpec);
-
-    /**
      * Gets successfully resolved artifacts. Ignores dependencies or files that cannot be resolved.
      * <p>
      * Prefer {@link ArtifactView#getArtifacts()}.
@@ -109,14 +74,4 @@ public interface LenientConfiguration {
      */
     Set<ResolvedArtifact> getArtifacts();
 
-    /**
-     * Gets successfully resolved artifacts. Ignores dependencies or files that cannot be resolved.
-     *
-     * @param dependencySpec dependency spec
-     * @return successfully resolved artifacts for dependencies that match given dependency spec
-     *
-     * @deprecated Use a lenient {@link ArtifactView} with a {@code componentFilter} instead.
-     */
-    @Deprecated
-    Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec);
 }

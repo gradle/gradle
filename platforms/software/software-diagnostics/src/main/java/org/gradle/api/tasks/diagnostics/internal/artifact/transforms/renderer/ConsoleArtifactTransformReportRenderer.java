@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.renderer;
 
 import com.google.common.collect.Streams;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ArtifactTransformReportModel;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ReportArtifactTransform;
@@ -110,7 +110,7 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
     private void writeSuggestions(List<ReportArtifactTransform> transforms) {
         output.style(StyledTextOutput.Style.Info);
         if (transforms.stream().anyMatch(t -> !t.isCacheable())) {
-            output.println("Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: " + documentationRegistry.getDocumentationFor("artifact_transforms", "artifact_transforms_with_caching") + ".");
+            output.println("Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: " + documentationRegistry.getDocumentationFor("artifact_transforms", "sec:caching-transforms") + ".");
         }
     }
 

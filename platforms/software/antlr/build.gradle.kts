@@ -12,14 +12,16 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.modelCore)
+    api(projects.requestHandlerWorker)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.platformJvm)
@@ -27,7 +29,6 @@ dependencies {
     implementation(projects.pluginsJavaLibrary)
 
     implementation(libs.guava)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     compileOnly("antlr:antlr:2.7.7") {

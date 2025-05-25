@@ -17,9 +17,9 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -42,8 +42,8 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
     }
 
     @Provides
-    LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
-        return loggingManagerFactory.create();
+    LoggingManagerInternal createLoggingManager(LoggingManagerFactory loggingManagerFactory) {
+        return loggingManagerFactory.createLoggingManager();
     }
 
     @Provides

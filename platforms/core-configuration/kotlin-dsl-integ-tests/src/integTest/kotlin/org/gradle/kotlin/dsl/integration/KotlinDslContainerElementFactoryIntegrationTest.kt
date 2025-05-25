@@ -63,7 +63,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         )
 
         buildAndFail("printNames") // no DCL support by default
-            .assertHasErrorOutput("Unresolved reference: $otherElementFactoryName")
+            .assertHasErrorOutput("Unresolved reference '$otherElementFactoryName'")
 
         with(build("printNames", enableDclCliFlag)) {
             assertTaskExecuted(":printNames")

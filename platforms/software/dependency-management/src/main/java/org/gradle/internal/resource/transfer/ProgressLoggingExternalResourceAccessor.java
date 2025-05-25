@@ -29,8 +29,8 @@ import org.gradle.internal.resource.ExternalResourceReadBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 

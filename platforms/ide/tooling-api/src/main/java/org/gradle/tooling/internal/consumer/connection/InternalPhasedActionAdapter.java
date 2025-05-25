@@ -18,8 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class InternalPhasedActionAdapter implements InternalPhasedAction {
     @Nullable private final InternalBuildActionVersion2<?> projectsLoadedAction;

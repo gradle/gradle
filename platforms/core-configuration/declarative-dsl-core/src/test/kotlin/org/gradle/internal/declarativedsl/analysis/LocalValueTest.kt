@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.Test
 
 
-val schema =
-    schemaFromTypes(TopLevel::class, listOf(TopLevel::class, MyClass::class), emptyList(), emptyMap(), emptyList())
+private val schema =
+    schemaFromTypes(TopLevel::class, listOf(TopLevel::class, MyClass::class))
 
 
 class LocalValueTest {

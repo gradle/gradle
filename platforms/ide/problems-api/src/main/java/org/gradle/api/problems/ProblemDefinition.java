@@ -17,15 +17,14 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Describes a specific problem without context.
  * <p>
  * For example, in the domain of Java compilation problems, an unused variable warning could be described as such:
  * <ul>
- *     <li>category: compilation:java</li>
+ *     <li>group: compilation:java</li>
  *     <li>unused variable</li>
  *     <li>severity: WARNING</li>
  *     <li>...</li>

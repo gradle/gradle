@@ -27,12 +27,12 @@ class ConsoleRendererTest extends Specification {
     @Requires(UnitTestPreconditions.NotWindows)
     def "produces triple-slash file URLs"() {
         expect:
-        renderer.asClickableFileUrl(new File("/foo/bar/baz")) == "file:///foo/bar/baz"
+        renderer.asClickableFileUrl(new File("/foo/teŝt files/bar")) == "file:///foo/te%C5%9Dt%20files/bar"
     }
 
     @Requires(UnitTestPreconditions.Windows)
     def "produces triple-slash file URLs on Windows"() {
         expect:
-        renderer.asClickableFileUrl(new File("C:\\foo\\bar\\baz")) == "file:///C:/foo/bar/baz"
+        renderer.asClickableFileUrl(new File("C:\\foo\\teŝt files\\bar")) == "file:///C:/foo/te%C5%9Dt%20files/bar"
     }
 }

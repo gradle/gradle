@@ -18,7 +18,7 @@
  * Package containing all parts concerning the transport of problems
  * between the worker and the daemon process.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.process.internal.worker.problem;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

@@ -20,8 +20,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.ProblemAggregation;
 import org.gradle.tooling.events.problems.ProblemAggregationEvent;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultProblemAggregationEvent extends BaseProgressEvent implements ProblemAggregationEvent {
 

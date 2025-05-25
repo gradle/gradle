@@ -15,11 +15,11 @@
  */
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class TransformingConverter<N, T, R> implements NotationConverter<N, R> {
     private final NotationConverter<N, T> converter;
     private final Transformer<? extends R, T> transformer;
@@ -44,7 +44,7 @@ public class TransformingConverter<N, T, R> implements NotationConverter<N, R> {
     }
 
 
-    @NonNullApi
+    @NullMarked
     private static class ResultImpl<T> implements NotationConvertResult<T> {
         private boolean hasResult;
         private T result;

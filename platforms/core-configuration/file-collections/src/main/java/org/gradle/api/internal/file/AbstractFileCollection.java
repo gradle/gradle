@@ -35,6 +35,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -55,9 +56,9 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected final TaskDependencyFactory taskDependencyFactory;
-    protected final Factory<PatternSet> patternSetFactory;
+    protected final PatternSetFactory patternSetFactory;
 
-    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
     }

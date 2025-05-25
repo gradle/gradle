@@ -21,8 +21,8 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.operations.execution.CachingDisabledReasonCategory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,9 +65,8 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
         return originMetadata == null ? null : originMetadata.getBuildInvocationId();
     }
 
-    @Nullable
     @Override
-    public byte[] getOriginBuildCacheKeyBytes() {
+    public byte @Nullable [] getOriginBuildCacheKeyBytes() {
         return originMetadata == null
             ? null
             : originMetadata.getBuildCacheKey().toByteArray();

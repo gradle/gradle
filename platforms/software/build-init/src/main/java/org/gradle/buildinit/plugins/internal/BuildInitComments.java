@@ -16,9 +16,9 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public enum BuildInitComments {
     /**
      * Comments are included for generated source files and build files.

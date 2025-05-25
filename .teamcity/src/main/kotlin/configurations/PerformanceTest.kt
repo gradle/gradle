@@ -16,6 +16,7 @@
 
 package configurations
 
+import common.INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
 import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
@@ -25,7 +26,6 @@ import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.getBuildScanCustomValueParam
 import common.gradleWrapper
-import common.individualPerformanceTestArtifactRules
 import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
@@ -48,81 +48,87 @@ class PerformanceTest(
     val bucketIndex: Int,
     extraParameters: String = "",
     performanceTestTaskSuffix: String = "PerformanceTest",
-    preBuildSteps: BuildSteps.() -> Unit = {}
+    preBuildSteps: BuildSteps.() -> Unit = {},
 ) : BaseGradleBuildType(
-    stage = stage,
-    init = {
-        this.id(performanceTestBuildSpec.asConfigurationId(model, "bucket${bucketIndex + 1}"))
-        this.name = "$description${if (performanceTestBuildSpec.withoutDependencies) " (without dependencies)" else ""}"
-        val type = performanceTestBuildSpec.type
-        val os = performanceTestBuildSpec.os
-        val arch = performanceTestBuildSpec.arch
-        val buildTypeThis = this
-        val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
-        applyPerformanceTestSettings(os = os, arch = arch, timeout = type.timeout)
-        artifactRules = individualPerformanceTestArtifactRules
+        stage = stage,
+        init = {
+            this.id(performanceTestBuildSpec.asConfigurationId(model, "bucket${bucketIndex + 1}"))
+            this.name = description
+            val type = performanceTestBuildSpec.type
+            val os = performanceTestBuildSpec.os
+            val arch = performanceTestBuildSpec.arch
+            val buildTypeThis = this
+            val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
+            applyPerformanceTestSettings(os = os, arch = arch, timeout = type.timeout)
+            artifactRules = INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
 
-        params {
-            text(
-                "performance.baselines",
-                type.defaultBaselines,
-                display = ParameterDisplay.PROMPT,
-                allowEmpty = true,
-                description = "The baselines you want to run performance tests against. Empty means default baseline."
-            )
-            param("env.PERFORMANCE_CHANNEL", performanceTestBuildSpec.channel())
-            param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
-            when (os) {
-                Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
-                else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin:/opt/swift/4.2.4-RELEASE-ubuntu18.04/usr/bin")
-            }
-        }
-        failureConditions {
-            // We have test-retry to handle the crash in tests
-            javaCrash = false
-            // We want to see the flaky tests for flakiness detection
-            supportTestRetry = (performanceTestBuildSpec.type != PerformanceTestType.flakinessDetection)
-        }
-        if (testProjects.isNotEmpty()) {
-            steps {
-                preBuildSteps()
-                killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
-                substDirOnWindows(os)
-
-                repeat(if (performanceTestBuildSpec.type == PerformanceTestType.flakinessDetection) 2 else 1) { repeatIndex: Int ->
-                    gradleWrapper {
-                        name = "GRADLE_RUNNER${if (repeatIndex == 0) "" else "_2"}"
-                        tasks = ""
-                        workingDir = os.perfTestWorkingDir
-
-                        val typeExtraParameters = if (type.extraParameters.isEmpty()) "" else " ${type.extraParameters}"
-
-                        gradleParams = (
-                            performanceTestCommandLine(
-                                "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it$typeExtraParameters" }}",
-                                "%performance.baselines%",
-                                extraParameters,
-                                os,
-                                arch
-                            ) + "-DenableTestDistribution=%enableTestDistribution%" +
-                                buildToolGradleParameters() +
-                                stage.getBuildScanCustomValueParam() +
-                                buildScanTagParam("PerformanceTest")
-                            ).joinToString(separator = " ")
-                    }
+            params {
+                text(
+                    "performance.baselines",
+                    type.defaultBaselines,
+                    display = ParameterDisplay.PROMPT,
+                    allowEmpty = true,
+                    description = "The baselines you want to run performance tests against. Empty means default baseline.",
+                )
+                param("env.PERFORMANCE_CHANNEL", performanceTestBuildSpec.channel())
+                param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
+                when (os) {
+                    Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
+                    else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin:/opt/swift/4.2.4-RELEASE-ubuntu18.04/usr/bin")
                 }
-                removeSubstDirOnWindows(os)
-                killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
-                checkCleanM2AndAndroidUserHome(os)
             }
-        }
+            failureConditions {
+                // We have test-retry to handle the crash in tests
+                javaCrash = false
+                // We want to see the flaky tests for flakiness detection
+                supportTestRetry = (performanceTestBuildSpec.type != PerformanceTestType.FLAKINESS_DETECTION)
+            }
+            if (testProjects.isNotEmpty()) {
+                steps {
+                    preBuildSteps()
+                    killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
+                    substDirOnWindows(os)
 
-        applyDefaultDependencies(model, this, !performanceTestBuildSpec.withoutDependencies)
-    }
-)
+                    repeat(if (performanceTestBuildSpec.type == PerformanceTestType.FLAKINESS_DETECTION) 2 else 1) { repeatIndex: Int ->
+                        gradleWrapper {
+                            name = "GRADLE_RUNNER${if (repeatIndex == 0) "" else "_2"}"
+                            tasks = ""
+                            workingDir = os.perfTestWorkingDir
 
-fun getPerformanceTestTaskNames(performanceSubProject: String, testProjects: List<String>, performanceTestTaskSuffix: String): List<String> {
-    return testProjects.map {
+                            val typeExtraParameters = if (type.extraParameters.isEmpty()) "" else " ${type.extraParameters}"
+
+                            gradleParams =
+                                (
+                                    performanceTestCommandLine(
+                                        "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(
+                                            " ",
+                                        ) { "$it$typeExtraParameters" }}",
+                                        "%performance.baselines%",
+                                        extraParameters,
+                                        os,
+                                        arch,
+                                    ) + "-DenableTestDistribution=%enableTestDistribution%" +
+                                        buildToolGradleParameters() +
+                                        stage.getBuildScanCustomValueParam() +
+                                        buildScanTagParam("PerformanceTest")
+                                ).joinToString(separator = " ")
+                        }
+                    }
+                    removeSubstDirOnWindows(os)
+                    killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
+                    checkCleanM2AndAndroidUserHome(os)
+                }
+            }
+
+            applyDefaultDependencies(model, this)
+        },
+    )
+
+fun getPerformanceTestTaskNames(
+    performanceSubProject: String,
+    testProjects: List<String>,
+    performanceTestTaskSuffix: String,
+): List<String> =
+    testProjects.map {
         ":$performanceSubProject:$it$performanceTestTaskSuffix"
     }
-}

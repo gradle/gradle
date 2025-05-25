@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
@@ -41,9 +41,12 @@ abstract public class JUnitPlatformTestToolchain<T extends JUnitPlatformToolchai
     @Inject
     protected abstract DependencyFactory getDependencyFactory();
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     @Override
     public TestFramework createTestFramework(Test task) {
-        return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false, task.getDryRun());
+        return getObjectFactory().newInstance(JUnitPlatformTestFramework.class, task.getFilter(), task.getDryRun());
     }
 
     @Override

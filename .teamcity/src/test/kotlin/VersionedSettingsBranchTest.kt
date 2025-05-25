@@ -33,10 +33,13 @@ class VersionedSettingsBranchTest {
             "release,   1",
             "release6x, 2",
             "release7x, 3",
-            "release27x,23"
-        ]
+            "release27x,23",
+        ],
     )
-    fun branchesWithVcsTriggerEnabled(branchName: String, expectedNightlyPromotionTriggerHour: Int?) {
+    fun branchesWithVcsTriggerEnabled(
+        branchName: String,
+        expectedNightlyPromotionTriggerHour: Int?,
+    ) {
         val vsb = VersionedSettingsBranch(branchName)
         assertTrue(vsb.enableVcsTriggers)
         assertEquals(expectedNightlyPromotionTriggerHour, vsb.nightlyPromotionTriggerHour)
@@ -48,7 +51,7 @@ class VersionedSettingsBranchTest {
             "experimental",
             "placeholder-1",
             "whatever",
-        ]
+        ],
     )
     fun branchesWithVcsTriggerDisabled(branchName: String) {
         val vsb = VersionedSettingsBranch(branchName)

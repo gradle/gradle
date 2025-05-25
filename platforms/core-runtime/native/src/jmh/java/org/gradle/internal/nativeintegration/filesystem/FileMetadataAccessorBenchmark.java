@@ -16,6 +16,7 @@
 package org.gradle.internal.nativeintegration.filesystem;
 
 import com.google.common.collect.ImmutableMap;
+import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadata;
@@ -50,13 +51,13 @@ import java.util.UUID;
 @Measurement(iterations = 5)
 @State(Scope.Benchmark)
 public class FileMetadataAccessorBenchmark {
+    private static final Native NATIVE_INTEGRATION = Native.init(new File("build/tmp/jmh-benchmark"));
     private static final Map<String, FileMetadataAccessor> ACCESSORS = ImmutableMap.<String, FileMetadataAccessor>builder()
         .put(FallbackFileMetadataAccessor.class.getSimpleName(), new FallbackFileMetadataAccessor())
-        .put(NativePlatformBackedFileMetadataAccessor.class.getSimpleName(), new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class)))
+        .put(NativePlatformBackedFileMetadataAccessor.class.getSimpleName(), new NativePlatformBackedFileMetadataAccessor(NATIVE_INTEGRATION.get(Files.class)))
         .put(Jdk7FileMetadataAccessor.class.getSimpleName(), new Jdk7FileMetadataAccessor())
         .put(NioFileMetadataAccessor.class.getSimpleName(), new NioFileMetadataAccessor())
         .build();
-
 
     @Param({
         "FallbackFileMetadataAccessor",

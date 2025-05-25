@@ -1997,12 +1997,12 @@ details p {
 }
 
 .listingblock code[data-lang]:before {
-	display: none;
-	content: attr(data-lang);
+	display: block;
+	content: attr(data-lang) "  ";
 	position: absolute;
 	font-size: 0.75em;
 	top: 0.425rem;
-	right: 0.5rem;
+	right: 1.0rem;
 	line-height: 1;
 	text-transform: uppercase;
 	color: #999;
@@ -2176,6 +2176,10 @@ table.pyhltable .linenodiv {
 .quoteblock.abstract blockquote:before,
 .quoteblock.abstract blockquote p:first-of-type:before {
 	display: none;
+}
+
+table.stretch {
+    width: 100%;
 }
 
 table.tableblock {
@@ -3943,7 +3947,6 @@ body.dark-theme {
 .site-footer__copy,
 .site-footer__secondary-links {
 	flex-grow: 0;
-	flex-basis: 280px;
 	/* 1. */
 }
 

@@ -46,7 +46,6 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -55,8 +54,8 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -108,12 +107,15 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
+    @Nullable
     private File destinationDir;
 
     private boolean failOnError = true;
 
+    @Nullable
     private String title;
 
+    @Nullable
     private String maxMemory;
 
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
@@ -121,6 +123,7 @@ public abstract class Javadoc extends SourceTask {
     private FileCollection classpath = getProject().files();
     private final ModularitySpec modularity;
 
+    @Nullable
     private String executable;
     private final Property<JavadocTool> javadocTool;
 
@@ -263,7 +266,7 @@ public abstract class Javadoc extends SourceTask {
     /**
      * <p>Sets the directory to generate the documentation into.</p>
      */
-    public void setDestinationDir(File destinationDir) {
+    public void setDestinationDir(@Nullable File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
@@ -282,7 +285,7 @@ public abstract class Javadoc extends SourceTask {
      *
      * @param maxMemory The amount of memory
      */
-    public void setMaxMemory(String maxMemory) {
+    public void setMaxMemory(@Nullable String maxMemory) {
         this.maxMemory = maxMemory;
     }
 
@@ -304,48 +307,6 @@ public abstract class Javadoc extends SourceTask {
      */
     public void setTitle(@Nullable String title) {
         this.title = title;
-    }
-
-    /**
-     * Returns whether Javadoc generation is accompanied by verbose output.
-     *
-     * @see #setVerbose(boolean)
-     * @deprecated This method duplicates the functionality of {@code getOptions().isVerbose()}. It will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    @Internal
-    public boolean isVerbose() {
-        DeprecationLogger.deprecateMethod(Javadoc.class, "isVerbose()")
-            .replaceWith("getOptions().isVerbose()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
-            .nagUser();
-        return options.isVerbose();
-    }
-
-    /**
-     * Sets whether Javadoc generation is accompanied by verbose output or not. The verbose output is done via println
-     * (by the underlying Ant task). Thus it is not handled by our logging.
-     *
-     * @param verbose Whether the output should be verbose.
-     * @deprecated This method duplicates the functionality of {@code getOptions().verbose()}. It will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public void setVerbose(boolean verbose) {
-        if (verbose) {
-            DeprecationLogger.deprecateMethod(Javadoc.class, "setVerbose(true)")
-                .replaceWith("getOptions().verbose()")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
-                .nagUser();
-            options.verbose();
-        } else {
-            DeprecationLogger.deprecateMethod(Javadoc.class, "setVerbose(false)")
-                .withAdvice("Passing false to this method does nothing. You may want to call getOptions().quiet().")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
-                .nagUser();
-        }
     }
 
     /**

@@ -2,9 +2,14 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Infrastructure that bootstraps a worker process"
+description = "Contains the main class that is loaded in a worker process, which is able to execute arbitrary actions. " +
+    "These classes are loaded in a separate worker daemon process and should have a minimal dependency set."
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.serviceLookup)
@@ -18,8 +23,10 @@ dependencies {
     api(projects.problemsApi)
     api(projects.processMemoryServices)
     api(projects.native)
-    api(libs.jsr305)
 
+    api(libs.jspecify)
+
+    implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.enterpriseLogging)
     implementation(projects.serviceProvider)

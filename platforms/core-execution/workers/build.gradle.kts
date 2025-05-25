@@ -7,33 +7,32 @@ description = "Infrastructure for starting and managing worker processes"
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.hashing)
-    api(projects.stdlibJavaExtensions)
+    api(projects.daemonServerWorker)
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.modelCore)
     api(projects.processMemoryServices)
-    api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
     api(projects.workerMain)
-    api(projects.buildProcessServices)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(projects.fileTemp)
-    implementation(projects.processServices)
-    implementation(projects.fileCollections)
-    implementation(projects.fileOperations)
+    implementation(projects.hashing)
+    implementation(projects.requestHandlerWorker)
+    implementation(projects.serialization)
+    implementation(projects.snapshots)
     implementation(projects.time)
-    implementation(projects.serviceRegistryBuilder)
 
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
@@ -56,9 +55,6 @@ dependencies {
     testFixturesImplementation(libs.groovyJson)
     testFixturesImplementation(projects.baseServices)
 
-    testRuntimeOnly(projects.distributionsCore) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
-    }
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }

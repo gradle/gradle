@@ -20,8 +20,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialization.Cached;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -252,6 +252,12 @@ public interface JvmInstallationMetadata {
             }
             if (getToolByExecutable("javadoc").exists()) {
                 capabilities.add(JavaInstallationCapability.JAVADOC_TOOL);
+            }
+            if (getToolByExecutable("jar").exists()) {
+                capabilities.add(JavaInstallationCapability.JAR_TOOL);
+            }
+            if (getToolByExecutable("native-image").exists()) {
+                capabilities.add(JavaInstallationCapability.NATIVE_IMAGE);
             }
             boolean isJ9vm = jvmName.contains("J9");
             if (isJ9vm) {

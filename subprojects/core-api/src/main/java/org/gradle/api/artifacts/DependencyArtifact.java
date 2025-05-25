@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Data class that represents an artifact included in a {@link org.gradle.api.artifacts.Dependency}.

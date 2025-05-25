@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.process.ExecResult
+import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -32,7 +33,6 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
-    def execHandleFactory = TestFiles.execHandleFactory(tmpDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     def instantiator = TestUtil.instantiatorFactory()
     def factory = DefaultExecActionFactory.of(
@@ -42,8 +42,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         executorFactory,
         TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")),
         new DefaultBuildCancellationToken(),
-        TestUtil.objectFactory(),
-        execHandleFactory
+        TestUtil.objectFactory()
     )
 
     def javaexec() {
@@ -69,7 +68,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        thrown(ExecException)
+        thrown(ProcessExecutionException)
     }
 
     def javaexecWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
@@ -109,7 +108,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        thrown(ExecException)
+        thrown(ProcessExecutionException)
     }
 
     @Requires(UnitTestPreconditions.NotWindows)

@@ -17,12 +17,12 @@
 package org.gradle.api.publish.maven.internal.validation;
 
 import com.google.common.base.Strings;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
+import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 /**
  * Static util class containing publication checks specific to Maven publications.
  */
-@NonNullApi
+@NullMarked
 public abstract class MavenPublicationErrorChecker extends PublicationErrorChecker {
     /**
      * When the artifacts declared in a component are modified for publishing (name/classifier/extension), then the
@@ -132,7 +132,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
         }).collect(Collectors.joining("\n"));
     }
 
-    @NonNullApi
+    @NullMarked
     private enum ArtifactDifference {
         FILE,
         CLASSIFIER,

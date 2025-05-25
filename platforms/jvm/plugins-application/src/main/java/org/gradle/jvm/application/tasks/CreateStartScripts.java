@@ -17,9 +17,12 @@
 package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.plugins.AppEntryPoint;
+import org.gradle.api.internal.plugins.MainClass;
+import org.gradle.api.internal.plugins.MainModule;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
@@ -33,15 +36,15 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
@@ -91,19 +94,23 @@ import java.util.stream.Collectors;
  * <p>
  * The default implementations used by this task use <a href="https://docs.groovy-lang.org/latest/html/documentation/template-engines.html#_simpletemplateengine">Groovy's SimpleTemplateEngine</a>
  * to parse the template, with the following variables available:
- *
  * <ul>
- * <li>{@code applicationName}</li>
- * <li>{@code optsEnvironmentVar}</li>
- * <li>{@code exitEnvironmentVar}</li>
- * <li>{@code mainModule}</li>
- * <li>{@code mainClass}</li>
- * <li>{@code executableDir}</li>
- * <li>{@code defaultJvmOpts}</li>
- * <li>{@code appNameSystemProperty}</li>
- * <li>{@code appHomeRelativePath}</li>
- * <li>{@code classpath}</li>
+ * <li>{@code applicationName} - See {@link JavaAppStartScriptGenerationDetails#getApplicationName()}.</li>
+ * <li>{@code optsEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getOptsEnvironmentVar()}.</li>
+ * <li>{@code exitEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getExitEnvironmentVar()}.</li>
+ * <li>{@code moduleEntryPoint} - The module entry point, or {@code null} if none. Will also include the main class name if present, in the form {@code [moduleName]/[className]}.</li>
+ * <li>{@code mainClassName} - The main class name, or usually {@code ""} if none. For legacy reasons, this may be set to {@code --module [moduleEntryPoint]} when using a main module.
+ * This behavior should not be relied upon and may be removed in a future release.</li>
+ * <li>{@code entryPointArgs} - The arguments to be used on the command-line to enter the application, as a joined string. It should be inserted before the program arguments.</li>
+ * <li>{@code defaultJvmOpts} - See {@link JavaAppStartScriptGenerationDetails#getDefaultJvmOpts()}.</li>
+ * <li>{@code appNameSystemProperty} - See {@link JavaAppStartScriptGenerationDetails#getAppNameSystemProperty()}.</li>
+ * <li>{@code appHomeRelativePath} - The path, relative to the script's own path, of the app home.</li>
+ * <li>{@code classpath} - See {@link JavaAppStartScriptGenerationDetails#getClasspath()}. It is already encoded as a joined string.</li>
+ * <li>{@code modulePath} (different capitalization) - See {@link JavaAppStartScriptGenerationDetails#getModulePath()}. It is already encoded as a joined string.</li>
  * </ul>
+ * <p>
+ * The encoded paths expect a variable named {@code APP_HOME} to be present in the script, set to the application home directory which can be resolved using {@code appHomeRelativePath}.
+ * </p>
  * <p>
  * Example:
  * <pre>
@@ -256,34 +263,6 @@ public abstract class CreateStartScripts extends ConventionTask {
     }
 
     /**
-     * The main class name used to start the Java application.
-     */
-    @Input
-    @Optional
-    @Nullable
-    @Deprecated
-    public String getMainClassName() {
-        DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        return mainClass.getOrNull();
-    }
-
-    @Deprecated
-    public void setMainClassName(@Nullable String mainClassName) {
-        DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        this.mainClass.set(mainClassName);
-    }
-
-    /**
      * The application's default JVM options. Defaults to an empty list.
      */
     @Nullable
@@ -380,7 +359,7 @@ public abstract class CreateStartScripts extends ConventionTask {
         StartScriptGenerator generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         generator.setApplicationName(getApplicationName());
-        generator.setMainClassName(fullMainArgument());
+        generator.setEntryPoint(getEntryPoint());
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
         generator.setExitEnvironmentVar(getExitEnvironmentVar());
@@ -395,19 +374,11 @@ public abstract class CreateStartScripts extends ConventionTask {
         generator.generateWindowsScript(getWindowsScript());
     }
 
-    private String fullMainArgument() {
-        String main = "";
+    private AppEntryPoint getEntryPoint() {
         if (mainModule.isPresent()) {
-            main += "--module ";
-            main += mainModule.get();
-            if (mainClass.isPresent()) {
-                main += "/";
-            }
+            return new MainModule(mainModule.get(), mainClass.getOrNull());
         }
-        if (mainClass.isPresent()) {
-            main += mainClass.get();
-        }
-        return main;
+        return new MainClass(mainClass.getOrElse(""));
     }
 
     @Input

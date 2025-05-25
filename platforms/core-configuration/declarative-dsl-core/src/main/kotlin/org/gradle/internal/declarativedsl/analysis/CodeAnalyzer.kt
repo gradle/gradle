@@ -3,6 +3,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LocalValue
@@ -35,6 +36,7 @@ class CodeAnalyzerImpl(
     fun doResolveStatement(context: AnalysisContext, statement: DataStatement) {
         when (statement) {
             is Assignment -> statementResolver.doResolveAssignment(context, statement)
+            is AugmentingAssignment -> statementResolver.doResolveAugmentingAssignment(context, statement)
             is LocalValue -> statementResolver.doResolveLocalValue(context, statement)
             is Expr -> statementResolver.doResolveExpressionStatement(context, statement)
         }

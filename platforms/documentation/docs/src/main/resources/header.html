@@ -134,8 +134,7 @@
             <div class="search-container"></div>
             <h3 id="overview">Overview</h3>
             <ul>
-                <li><a href="../userguide/userguide.html">What is Gradle?</a></li>
-                <li><a href="../userguide/quick_start.html">Quick Start</a></li>
+                <li><a href="../userguide/userguide.html">Getting Started</a></li>
             </ul>
 
             <h3 id="what-is-new">Releases</h3>
@@ -168,15 +167,15 @@
                 <li><a href="../userguide/getting_started_eng.html">Getting Started</a></li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#running-introduction" aria-expanded="false" aria-controls="introduction">Learning the Basics</a>
                     <ul id="running-introduction">
-                        <li><a href="../userguide/gradle_basics.html">1. Gradle Basics</a></li>
-                        <li><a href="../userguide/gradle_wrapper_basics.html">2. Gradle Wrapper Basics</a></li>
-                        <li><a href="../userguide/command_line_interface_basics.html">3. Command-Line Interface Basics</a></li>
+                        <li><a href="../userguide/gradle_basics.html">1. Core Concepts</a></li>
+                        <li><a href="../userguide/gradle_wrapper_basics.html">2. Wrapper Basics</a></li>
+                        <li><a href="../userguide/command_line_interface_basics.html">3. CLI Basics</a></li>
                         <li><a href="../userguide/settings_file_basics.html">4. Settings File Basics</a></li>
                         <li><a href="../userguide/build_file_basics.html">5. Build File Basics</a></li>
-                        <li><a href="../userguide/dependency_management_basics.html">6. Dependency Management Basics</a></li>
-                        <li><a href="../userguide/task_basics.html">7. Task Basics</a></li>
+                        <li><a href="../userguide/dependency_management_basics.html">6. Dependencies Basics</a></li>
+                        <li><a href="../userguide/task_basics.html">7. Tasks Basics</a></li>
                         <li><a href="../userguide/plugin_basics.html">8. Plugins Basics</a></li>
-                        <li><a href="../userguide/gradle_optimizations.html">9. Incremental Builds + Caching</a></li>
+                        <li><a href="../userguide/gradle_optimizations.html">9. Caching Basics</a></li>
                         <li><a href="../userguide/build_scans.html">10. Build Scans</a></li>
 
                     </ul>
@@ -192,13 +191,25 @@
                         <li><a href="../userguide/part7_gradle_refs.html">7. Using Reference Materials</a></li>
                     </ul>
                 </li>
-                <li><a href="../userguide/gradle_ides.html">Gradle in the IDE</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Gradle Features</a>
+                    <ul id="gradle-features">
+                        <li><a href="../userguide/command_line_interface.html">Gradle Command-Line Interface</a></li>
+                        <li><a href="../userguide/logging.html">Gradle Log Levels</a></li>
+                        <li><a href="../userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
+                        <li><a href="../userguide/gradle_daemon.html">Gradle Daemon</a></li>
+                        <li><a href="../userguide/inspect.html">Build Scans</a></li>
+                        <li><a href="../userguide/continuous_builds.html">Continuous Builds</a></li>
+                        <li><a href="../userguide/file_system_watching.html">File System Watching</a></li>
+                    </ul>
+                </li>
+                <li><a href="../userguide/directory_layout.html">Gradle-managed Directories</a></li>
+                <li><a href="../userguide/build_environment.html">Configuring the Build Environment</a></li>
             </ul>
 
             <h3 id="authoring-gradle-builds">Authoring Gradle Builds</h3>
             <ul>
                 <li><a href="../userguide/getting_started_dev.html">Getting Started</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#learning-the-basics" aria-expanded="false" aria-controls="learning-the-basics">Learning the Basics</a>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#beyond-the-basics" aria-expanded="false" aria-controls="beyond-the-basics">Beyond the Basics</a>
                     <ul id="authoring-introduction">
                         <li><a href="../userguide/gradle_directories.html">1. Gradle Directories</a></li>
                         <li><a href="../userguide/intro_multi_project_builds.html">2. Multi-Project Builds</a></li>
@@ -231,9 +242,9 @@
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-multi-project-builds" aria-expanded="false" aria-controls="authoring-multi-project-builds">Structuring Builds</a>
                     <ul id="authoring-multi-project-builds">
-                        <li><a href="../userguide/multi_project_builds.html">Structuring Projects with Gradle</a></li>
-                        <li><a href="../userguide/declaring_dependencies_between_subprojects.html">Declaring Dependencies between Subprojects</a></li>
-                        <li><a href="../userguide/sharing_build_logic_between_subprojects.html">Sharing Build Logic between Subprojects</a></li>
+                        <li><a href="../userguide/organizing_gradle_projects.html">Structuring and Organizing Gradle Projects</a></li>
+                        <li><a href="../userguide/multi_project_builds.html">Multi-Project Builds</a></li>
+                        <li><a href="../userguide/sharing_build_logic_between_subprojects.html">Sharing Build Logic in BuildSrc</a></li>
                         <li><a href="../userguide/composite_builds.html">Composite Builds</a></li>
                         <li><a href="../userguide/multi_project_configuration_and_execution.html">Configuration on Demand</a></li>
                     </ul>
@@ -270,16 +281,22 @@
                         <li><a href="../userguide/ant.html">Using Ant from Gradle</a></li>
                     </ul>
                 </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#how-to" aria-expanded="false" aria-controls="how-to">How-To-Guides</a>
+                    <ul id="how-to-authoring">
+                        <li><a href="../userguide/how_to_convert_single_build_to_multi_build.html">How to Convert a Single-Project Build into a Multi-Project Build</a></li>
+                    </ul>
+                </li>
             </ul>
 
             <h3 id="optimizing-build-performance">Optimizing Gradle Builds</h3>
             <ul>
-                <li><a href="../userguide/build_environment.html">Configuring the Build Environment</a></li>
-                <li><a href="../userguide/directory_layout.html">Gradle-managed Directories</a></li>
-                <li><a href="../userguide/logging.html">Logging with Gradle</a></li>
-                <li><a href="../userguide/config_gradle.html">Configuring Gradle</a></li>
-                <li><a href="../userguide/performance.html">Improving Performance</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#build-cache" aria-expanded="false" aria-controls="optimizing-build-performance">Build Cache</a>
+                <li><a href="../userguide/performance.html">Improving Performance Basics</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#configuration-cache" aria-expanded="false" aria-controls="configuration-cache">Configuration Cache</a>
+                    <ul id="configuration-cache">
+                        <li><a href="../userguide/configuration_cache.html">Enabling and Configuring</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#build-cache" aria-expanded="false" aria-controls="build-cache">Build Cache</a>
                     <ul id="build-cache">
                         <li><a href="../userguide/build_cache.html">Enabling and Configuring</a></li>
                         <li><a href="../userguide/build_cache_use_cases.html">Why use the Build Cache?</a></li>
@@ -291,11 +308,6 @@
                         <li><a href="../userguide/common_caching_problems.html">Troubleshooting</a></li>
                     </ul>
                 </li>
-                <li><a href="../userguide/configuration_cache.html">Configuration Cache</a></li>
-                <li><a href="../userguide/continuous_builds.html">Continuous Builds</a></li>
-                <li><a href="../userguide/inspect.html">Inspecting Builds</a></li>
-                <li><a href="../userguide/isolated_projects.html">Isolated Projects</a></li>
-                <li><a href="../userguide/file_system_watching.html">File System Watching</a></li>
             </ul>
 
             <h3 id="managing-dependencies">Dependency Management</h3>
@@ -308,8 +320,14 @@
                         <li><a href="../userguide/declaring_repositories.html">3. Declaring Repositories</a></li>
                         <li><a href="../userguide/centralizing_dependencies.html">4. Centralizing Dependencies</a></li>
                         <li><a href="../userguide/dependency_constraints_conflicts.html">5. Dependency Constraints and Conflict Resolution</a></li>
-                        <li><a href="../userguide/dependency_resolution.html">6. Dependency Resolution</a></li>
-                        <li><a href="../userguide/variant_aware_resolution.html">7. Variant Aware Dependency Resolution</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#understanding_dep_res" aria-expanded="false" aria-controls="understanding_dep_res">Advanced Concepts</a>
+                    <ul id="understanding_dep_res">
+                        <li><a href="../userguide/dependency_resolution.html">1. Dependency Resolution</a></li>
+                        <li><a href="../userguide/graph_resolution.html">2. Graph Resolution</a></li>
+                        <li><a href="../userguide/variant_aware_resolution.html">3. Variant Selection</a></li>
+                        <li><a href="../userguide/artifact_resolution.html">4. Artifact Resolution</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependencies" aria-expanded="false" aria-controls="declaring-dependencies">Declaring Dependencies</a>
@@ -319,6 +337,8 @@
                         <li><a href="../userguide/dependency_versions.html">Declaring Versions and Ranges</a></li>
                         <li><a href="../userguide/dependency_constraints.html">Declaring Dependency Constraints</a></li>
                         <li><a href="../userguide/declaring_configurations.html">Creating Dependency Configurations</a></li>
+                        <li><a href="../userguide/gradle_dependencies.html">Gradle Distribution-Specific Dependencies</a></li>
+                        <li><a href="../userguide/dependency_verification.html">Verifying Dependencies</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-repositories" aria-expanded="false" aria-controls="declaring-repositories">Declaring Repositories</a>
@@ -346,19 +366,11 @@
                         <li><a href="../userguide/dependency_caching.html">Caching Dependencies</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#understanding_dep_res" aria-expanded="false" aria-controls="understanding_dep_res">Understanding Dependency Resolution</a>
-                    <ul id="understanding_dep_res">
-                        <li><a href="../userguide/dependency_resolution_model.html">Understanding Dependency Resolution</a></li>
-                        <li><a href="../userguide/variant_model.html">Understanding Variant Selection</a></li>
-                        <li><a href="../userguide/component_capabilities.html">Capabilities</a></li>
-                        <li><a href="../userguide/variant_attributes.html">Variants and Attributes</a></li>
-                    </ul>
-                </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-resolution" aria-expanded="false" aria-controls="dependency-resolution">Controlling Dependency Resolution</a>
                     <ul id="dependency-resolution">
-                        <li><a href="../userguide/dependency_resolution_basics.html">Dependency Resolution</a></li>
-                        <li><a href="../userguide/dependency_graph_resolution.html">Graph Resolution</a></li>
-                        <li><a href="../userguide/artifact_resolution.html">Artifact Resolution</a></li>
+                        <li><a href="../userguide/dependency_resolution_consistency.html">Consistent Dependency Resolution</a></li>
+                        <li><a href="../userguide/component_capabilities.html">Capabilities</a></li>
+                        <li><a href="../userguide/variant_attributes.html">Variants and Attributes</a></li>
                         <li><a href="../userguide/artifact_views.html">Artifact Views</a></li>
                         <li><a href="../userguide/artifact_transforms.html">Artifact Transforms</a></li>
                     </ul>
@@ -373,11 +385,18 @@
                         <li><a href="../userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#other" aria-expanded="false" aria-controls="other">Other Topics</a>
-                    <ul id="other">
-                        <li><a href="../userguide/dependency_verification.html">Verifying Dependencies</a></li>
-                        <li><a href="../userguide/dependency_version_alignment.html">Aligning Dependencies</a></li>
-                        <li><a href="../userguide/feature_variants.html">Modeling Feature Variants and Optional Dependencies</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#how-to" aria-expanded="false" aria-controls="how-to">How-To-Guides</a>
+                    <ul id="how-to">
+                        <li><a href="../userguide/how_to_downgrade_transitive_dependencies.html">How to Downgrade Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_upgrade_transitive_dependencies.html">How to Upgrade Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_exclude_transitive_dependencies.html">How to Exclude Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_prevent_accidental_dependency_upgrades.html">How to Prevent Accidental or Eager Dependency Upgrades</a></li>
+                        <li><a href="../userguide/how_to_align_dependency_versions.html">How to Align Dependency Versions</a></li>
+                        <li><a href="../userguide/how_to_share_outputs_between_projects.html">How to Share Outputs Between Projects</a></li>
+                        <li><a href="../userguide/how_to_resolve_specific_artifacts.html">How to Resolve Specific Artifacts from a Module Dependency</a></li>
+                        <li><a href="../userguide/how_to_use_local_forks.html">How to Use a Local Fork of a Module Dependency</a></li>
+                        <li><a href="../userguide/how_to_fix_version_catalog_problems.html">How to Fix Version Catalog Problems</a></li>
+                        <li><a href="../userguide/how_to_create_feature_variants_of_a_library.html">How to Create Feature Variants of a Library</a></li>
                     </ul>
                 </li>
             </ul>
@@ -423,8 +442,12 @@
             <h3 id="third-party-integration">Integration</h3>
             <ul>
                 <li><a href="../userguide/third_party_integration.html">Third-party Tools</a></li>
-                <li><a href="../userguide/tooling_api.html">Tooling API</a></li>
-                <li><a href="../userguide/test_reporting_api.html">Test Reporting API</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#third-party-api" aria-expanded="false" aria-controls="third-party-api">APIs</a>
+                    <ul id="third-party-api">
+                        <li><a href="../userguide/tooling_api.html">Tooling API</a></li>
+                        <li><a href="../userguide/test_reporting_api.html">Test Reporting API</a></li>
+                    </ul>
+                </li>
             </ul>
 
             <h3 id="reference">Reference</h3>
@@ -439,24 +462,25 @@
                         <li><a href="../userguide/migrating_from_groovy_to_kotlin_dsl.html">Groovy to Kotlin DSL Migration</a></li>
                     </ul>
                 </li>
-                <li><a href="../userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
-                <li><a href="../userguide/gradle_daemon.html">Gradle Daemon</a></li>
-                <li><a href="../userguide/command_line_interface.html">Command-Line Interface</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#gradle-best-practices" aria-expanded="false" aria-controls="gradle-best-practices">Gradle Best Practices</a>
+                    <ul id="gradle-best-practices">
+                        <li><a href="../userguide/best_practices.html">Introduction</a></li>
+                        <li><a href="../userguide/best_practices_general.html">General Best Practices</a></li>
+                        <li><a href="../userguide/best_practices_dependencies.html">Best Practices for Dependencies</a></li>
+                        <li><a href="../userguide/best_practices_tasks.html">Best Practices for Tasks</a></li>
+                        <li><a href="../userguide/best_practices_performance.html">Best Practices for Performance</a></li>
+                    </ul>
+                </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#core-plugins" aria-expanded="false" aria-controls="core-plugins">Core Plugins</a>
                     <ul id="core-plugins">
                         <li><a href="../userguide/plugin_reference.html">List of Core Plugins</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#howto" aria-expanded="false" aria-controls="other">How To Guides</a>
-                    <ul id="howto">
-                        <li><a href="../userguide/cross_project_publications.html">How to share outputs between projects</a></li>
-                    </ul>
-                </li>
+                <li><a href="../userguide/isolated_projects.html">Isolated Projects</a></li>
                 <li><a href="../samples/index.html">Samples</a></li>
                 <li><a href="../userguide/glossary.html">Glossary</a></li>
                 <li><a href="https://community.gradle.org/cookbook/">Cookbook</a></li>
                 <li><a href="../userguide/userguide_single.html">Single Page Version</a></li>
-                <li><a href="../userguide/userguide.pdf">PDF Version</a></li>
             </ul>
         </nav>
         <!-- End Primary Navigation -->

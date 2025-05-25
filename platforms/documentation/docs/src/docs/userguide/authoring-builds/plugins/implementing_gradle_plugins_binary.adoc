@@ -14,6 +14,7 @@
 
 [[implemention_binary_plugins]]
 = Implementing Binary Plugins
+:keywords: binary, plugin
 
 *Binary plugins* refer to plugins that are compiled and distributed as JAR files.
 These plugins are usually written in Java or Kotlin and provide custom functionality or tasks to a Gradle build.
@@ -604,7 +605,7 @@ For logic that is executed as part of task execution, use the <<worker_api.adoc#
 Variants of a plugin refer to different flavors or configurations of the plugin that are tailored to specific needs or use cases.
 These variants can include different implementations, extensions, or configurations of the base plugin.
 
-The most convenient way to configure additional plugin variants is to use <<feature_variants.adoc#feature_variants,feature variants>>, a concept available in all Gradle projects that apply one of the Java plugins:
+The most convenient way to configure additional plugin variants is to use <<how_to_create_feature_variants_of_a_library#feature_variants,feature variants>>, a concept available in all Gradle projects that apply one of the Java plugins:
 
 [source,kotlin]
 ----

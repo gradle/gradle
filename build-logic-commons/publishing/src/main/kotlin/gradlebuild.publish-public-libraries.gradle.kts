@@ -62,7 +62,7 @@ fun configureJavadocVariant() {
 
 fun MavenPublication.configureGradleModulePublication() {
     from(components["java"])
-    artifactId = moduleIdentity.baseName.get()
+    artifactId = gradleModule.identity.baseName.get()
     versionMapping {
         usage("java-api") {
             fromResolutionResult()
@@ -74,13 +74,13 @@ fun MavenPublication.configureGradleModulePublication() {
 
     pom {
         packaging = "jar"
-        name = moduleIdentity.baseName.map { "${project.group}:$it" }
+        name = gradleModule.identity.baseName.map { "${project.group}:$it" }
     }
 }
 
 fun publishNormalizedToLocalRepository() {
     val localRepository = layout.buildDirectory.dir("repo")
-    val baseName = moduleIdentity.baseName
+    val baseName = gradleModule.identity.baseName
 
     publishing {
         repositories {
@@ -92,7 +92,7 @@ fun publishNormalizedToLocalRepository() {
         publications {
             create<MavenPublication>("local") {
                 configureGradleModulePublication()
-                version = moduleIdentity.version.get().baseVersion.version
+                version = gradleModule.identity.version.get().baseVersion.version
             }
         }
     }
@@ -131,10 +131,7 @@ fun publishNormalizedToLocalRepository() {
     // For local consumption by tests
     configurations.create("localLibsRepositoryElements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named("gradle-local-repository"))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling.EMBEDDED))
+            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named("gradle-local-repository"))
         }
         isCanBeResolved = false
         isCanBeConsumed = true

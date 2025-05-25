@@ -17,8 +17,7 @@ package org.gradle.internal.metaobject;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An object that can be worked with in a dynamic fashion.

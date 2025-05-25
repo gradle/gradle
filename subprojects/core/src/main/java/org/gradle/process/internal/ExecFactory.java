@@ -58,8 +58,6 @@ public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaE
 
         Builder withExternalProcessStartedListener(ExternalProcessStartedListener externalProcessStartedListener);
 
-        Builder withExecHandleFactory(ClientExecHandleBuilderFactory execHandleBuilderFactory);
-
         Builder withoutExternalProcessStartedListener();
 
         ExecFactory build();

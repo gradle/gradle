@@ -24,6 +24,7 @@ import org.gradle.internal.jvm.inspection.ProbedSystemProperty
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.jvm.toolchain.internal.install.JvmInstallationMetadataMatcher
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ClientExecHandleBuilder
 import org.gradle.process.internal.ClientExecHandleBuilderFactory
@@ -68,14 +69,6 @@ class JvmInstallationMetadataMatcherTest extends Specification {
         'semeru11'       | semeruJvm11()            | JavaVersion.VERSION_11  | JvmVendorSpec.IBM         | JvmImplementation.J9
         'semeru16'       | semeruJvm16()            | JavaVersion.VERSION_16  | JvmVendorSpec.IBM         | JvmImplementation.J9
         'semeru17'       | semeruJvm17()            | JavaVersion.VERSION_17  | JvmVendorSpec.IBM         | JvmImplementation.J9
-
-        'semeru11'       | semeruJvm11()            | JavaVersion.VERSION_11  | JvmVendorSpec.IBM_SEMERU  | JvmImplementation.VENDOR_SPECIFIC
-        'semeru16'       | semeruJvm16()            | JavaVersion.VERSION_16  | JvmVendorSpec.IBM_SEMERU  | JvmImplementation.VENDOR_SPECIFIC
-        'semeru17'       | semeruJvm17()            | JavaVersion.VERSION_17  | JvmVendorSpec.IBM_SEMERU  | JvmImplementation.VENDOR_SPECIFIC
-
-        'semeru11'       | semeruJvm11()            | JavaVersion.VERSION_11  | JvmVendorSpec.IBM_SEMERU  | JvmImplementation.J9
-        'semeru16'       | semeruJvm16()            | JavaVersion.VERSION_16  | JvmVendorSpec.IBM_SEMERU  | JvmImplementation.J9
-        'semeru17'       | semeruJvm17()            | JavaVersion.VERSION_17  | JvmVendorSpec.IBM_SEMERU  | JvmImplementation.J9
     }
 
     def createExecHandleFactory(Map<String, String> actualProperties) {

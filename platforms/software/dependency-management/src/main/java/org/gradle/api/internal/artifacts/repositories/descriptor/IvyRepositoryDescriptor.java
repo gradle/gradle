@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,7 +104,7 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
         builder.put(Property.M2_COMPATIBLE.name(), m2Compatible);
     }
 
-    @NonNullApi
+    @NullMarked
     private static class Resource {
         final URI baseUri;
         final String pattern;

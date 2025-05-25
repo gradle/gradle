@@ -16,10 +16,10 @@
 
 package org.gradle.internal.daemon.client.serialization;
 
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 import org.objectweb.asm.AnnotationVisitor;

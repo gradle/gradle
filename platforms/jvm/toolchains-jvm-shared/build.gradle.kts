@@ -22,7 +22,7 @@ description = "Declarations to define JVM toolchains shared between launcher and
 
 dependencies {
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
@@ -42,7 +42,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.dependencyManagement)
@@ -56,7 +55,9 @@ dependencies {
 }
 
 packageCycles {
-    excludePatterns.add("org/gradle/jvm/toolchain/**")
+    // Needed for the factory methods in the interface since the implementation is in an internal package
+    // which in turn references the interface.
+    excludePatterns.add("org/gradle/jvm/toolchain/JavaToolchainDownload**")
 }
 
 integTest.usesJavadocCodeSnippets.set(true)

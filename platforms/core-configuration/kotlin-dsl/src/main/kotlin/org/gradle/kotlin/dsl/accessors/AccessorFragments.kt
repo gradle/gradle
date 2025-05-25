@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.Flag
+import kotlinx.metadata.KmFunction
+import kotlinx.metadata.KmProperty
 import kotlinx.metadata.KmType
 import kotlinx.metadata.KmTypeProjection
 import kotlinx.metadata.KmVariance
-import kotlinx.metadata.flagsOf
+import kotlinx.metadata.hasAnnotations
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Action
 import org.gradle.api.Incubating
@@ -39,6 +39,8 @@ import org.gradle.kotlin.dsl.support.bytecode.InternalNameOf
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionAttributes
+import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyAttributes
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
@@ -52,11 +54,9 @@ import org.gradle.kotlin.dsl.support.bytecode.newValueParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.nullable
 import org.gradle.kotlin.dsl.support.bytecode.providerConvertibleOfStar
 import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsAttributes
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
-import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Type
@@ -66,7 +66,6 @@ internal
 fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForConfiguration -> fragmentsForConfiguration(accessor)
     is Accessor.ForExtension -> fragmentsForExtension(accessor)
-    is Accessor.ForConvention -> fragmentsForConvention(accessor)
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
     is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
@@ -108,7 +107,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = publicFunctionWithAnnotationsFlags, // has @Incubating
+                    functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating
                     receiverType = kotlinProjectType,
                     valueParameters = listOf(
                         newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinModelType)))
@@ -118,7 +117,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                     signature = signature
                 )
             }
-    ))
+        ))
 }
 
 private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerElementFactory): Fragments = accessor.run {
@@ -156,13 +155,13 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
                     ALOAD(0)
                     ALOAD(1)
                     ALOAD(2)
-                    invokeRuntime("maybeRegister", signature.desc)
+                    invokeRuntime("maybeRegister", signature.descriptor)
                     RETURN()
                 }
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = publicFunctionWithAnnotationsFlags, // has @Incubating
+                    functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating
                     receiverType = kotlinReceiverType,
                     valueParameters = listOf(
                         newValueParameterOf("name", KotlinType.string),
@@ -189,8 +188,8 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
     val propertyName = name.original
     val className = "${propertyName.uppercaseFirstChar()}ConfigurationAccessorsKt"
     val (functionFlags, deprecationBlock) =
-        if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
-        else publicFunctionFlags to ""
+        if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsAttributes to config.getDeclarationDeprecationBlock()
+        else publicFunctionAttributes to ""
 
     className to sequenceOf(
         AccessorFragment(
@@ -219,7 +218,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = nullable(GradleType.dependency),
                     name = signature.name,
@@ -270,7 +269,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -321,7 +320,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -372,7 +371,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -424,7 +423,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 val methodBody: MethodVisitor.() -> Unit = {
                     ALOAD(0)
                     LDC(propertyName)
-                    for (i in 1..7) { ALOAD(i) }
+                    for (i in 1..7) {
+                        ALOAD(i)
+                    }
                     @Suppress("MaxLineLength")
                     invokeRuntime(
                         "addExternalModuleDependencyTo",
@@ -461,7 +462,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -514,7 +515,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.typeParameter,
                     name = propertyName,
@@ -564,7 +565,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -608,7 +609,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -790,9 +791,27 @@ fun fragmentsForContainerElementOf(
 
 
 private
-fun MetadataFragmentScope.maybeHasAnnotations(flags: Int): Int = when {
-    useLowPriorityInOverloadResolution -> flags + flagsOf(Flag.HAS_ANNOTATIONS)
-    else -> flags
+fun MetadataFragmentScope.maybeFunctionHasAnnotations(attributes: KmFunction.() -> Unit): KmFunction.() -> Unit = when {
+    useLowPriorityInOverloadResolution -> {
+        {
+            attributes(this)
+            hasAnnotations = true
+        }
+    }
+
+    else -> attributes
+}
+
+private
+fun MetadataFragmentScope.maybePropertyHasAnnotations(attributes: KmProperty.() -> Unit): KmProperty.() -> Unit = when {
+    useLowPriorityInOverloadResolution -> {
+        {
+            attributes(this)
+            hasAnnotations = true
+        }
+    }
+
+    else -> attributes
 }
 
 
@@ -833,7 +852,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
-                    flags = maybeHasAnnotations(readOnlyPropertyFlags),
+                    propertyAttributes = maybePropertyHasAnnotations(readOnlyPropertyAttributes),
                     name = propertyName,
                     receiverType = receiverType,
                     returnType = kotlinExtensionType,
@@ -872,7 +891,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = maybeHasAnnotations(publicFunctionFlags),
+                    functionAttributes = maybeFunctionHasAnnotations(publicFunctionAttributes),
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -890,71 +909,6 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
 private
 fun MethodVisitor.withLowPriorityInOverloadResolution() {
     visitAnnotation("Lkotlin/internal/LowPriorityInOverloadResolution;", true).visitEnd()
-}
-
-
-private
-fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
-
-    val accessorSpec = accessor.spec
-    val className = internalNameForAccessorClassOf(accessorSpec)
-    val (accessibleReceiverType, name, conventionType) = accessorSpec
-    val receiverType = accessibleReceiverType.type.kmType
-    val propertyName = name.kotlinIdentifier
-    val receiverTypeName = accessibleReceiverType.internalName()
-    val (kotlinConventionType, jvmConventionType) = accessibleTypesFor(conventionType)
-
-    return className to sequenceOf(
-
-        AccessorFragment(
-            source = conventionAccessor(accessorSpec),
-            signature = jvmGetterSignatureFor(
-                propertyName,
-                accessorDescriptorFor(receiverTypeName, jvmConventionType)
-            ),
-            bytecode = {
-                publicStaticMethod(signature) {
-                    loadConventionOf(name, conventionType, jvmConventionType)
-                    ARETURN()
-                }
-            },
-            metadata = {
-                kmPackage.properties += newPropertyOf(
-                    name = propertyName,
-                    receiverType = receiverType,
-                    returnType = kotlinConventionType,
-                    getterSignature = signature
-                )
-            }
-        ),
-
-        AccessorFragment(
-            source = "",
-            bytecode = {
-                publicStaticMethod(signature) {
-                    ALOAD(1)
-                    loadConventionOf(name, conventionType, jvmConventionType)
-                    invokeAction()
-                    RETURN()
-                }
-            },
-            metadata = {
-                kmPackage.functions += newFunctionOf(
-                    receiverType = receiverType,
-                    returnType = KotlinType.unit,
-                    name = propertyName,
-                    valueParameters = listOf(
-                        newValueParameterOf("configure", actionTypeOf(kotlinConventionType))
-                    ),
-                    signature = signature
-                )
-            },
-            signature = JvmMethodSignature(
-                propertyName,
-                "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
-            )
-        )
-    )
 }
 
 
@@ -1028,19 +982,6 @@ fun TypeAccessibility.Accessible.internalName() =
 private
 fun MethodVisitor.invokeAction() {
     INVOKEINTERFACE(GradleTypeName.action, "execute", "(Ljava/lang/Object;)V")
-}
-
-
-private
-fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAccessibility, jvmReturnType: InternalName) {
-    ALOAD(0)
-    LDC(name.original)
-    invokeRuntime(
-        "conventionPluginOf",
-        "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
-    )
-    if (returnType is TypeAccessibility.Accessible)
-        CHECKCAST(jvmReturnType)
 }
 
 

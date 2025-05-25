@@ -53,11 +53,8 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaExecSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -467,7 +464,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use {@link TaskContainer#register(String) tasks.register(String)} instead
      */
+    @Deprecated
     Task task(String name) throws InvalidUserDataException;
 
     /**
@@ -510,7 +510,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use a {@link TaskContainer#register(String, Class, Action) tasks.register} variant instead
      */
+    @Deprecated
     Task task(Map<String, ?> args, String name) throws InvalidUserDataException;
 
     /**
@@ -529,7 +532,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use a {@link TaskContainer#register(String, Class, Action) tasks.register} variant instead
      */
+    @Deprecated
     Task task(Map<String, ?> args, String name, Closure configureClosure);
 
     /**
@@ -542,7 +548,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use {@link TaskContainer#register(String, Action) tasks.register(String, Action)} instead
      */
+    @Deprecated
     Task task(String name, @DelegatesTo(Task.class) Closure configureClosure);
 
     /**
@@ -557,7 +566,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see TaskContainer#create(String, Action)
      * @since 4.10
+     *
+     * @deprecated Use {@link TaskContainer#register(String, Action) tasks.register(String, Action)} instead
      */
+    @Deprecated
     Task task(String name, Action<? super Task> configureAction);
 
     /**
@@ -1003,7 +1015,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
+    <T> Provider<T> provider(Callable<? extends @Nullable T> value);
 
     /**
      * Provides access to methods to create various kinds of {@link Provider} instances.
@@ -1060,52 +1072,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return {@link WorkResult} that can be used to check if delete did any work.
      */
     WorkResult delete(Action<? super DeleteSpec> action);
-
-    /**
-     * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.
-     *
-     * @param closure The closure for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
-
-    /**
-     * Executes an external Java process.
-     * <p>
-     * The given action configures a {@link org.gradle.process.JavaExecSpec}, which is used to launch the process.
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param action The action for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult javaexec(Action<? super JavaExecSpec> action);
-
-    /**
-     * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
-     *
-     * @param closure The closure for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
-
-    /**
-     * Executes an external command.
-     * <p>
-     * The given action configures a {@link org.gradle.process.ExecSpec}, which is used to launch the process.
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param action The action for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult exec(Action<? super ExecSpec> action);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
@@ -1291,18 +1257,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link org.gradle.api.plugins.Convention} for this project.</p> <p>You can access this property in your build file
-     * using <code>convention</code>. You can also access the properties and methods of the convention object
-     * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
-     *
-     * @return The <code>Convention</code>. Never returns null.
-     * @see ExtensionAware#getExtensions()
-     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
-     */
-    @Deprecated
-    org.gradle.api.plugins.Convention getConvention();
-
-    /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>
      *
      * @param otherProject The project to compare the nesting level with.
@@ -1429,7 +1383,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return A map from property name to value.
      */
-    Map<String, ?> getProperties();
+    Map<String, ? extends @Nullable Object> getProperties();
 
     /**
      * <p>Returns the value of the given property.  This method locates a property as follows:</p>

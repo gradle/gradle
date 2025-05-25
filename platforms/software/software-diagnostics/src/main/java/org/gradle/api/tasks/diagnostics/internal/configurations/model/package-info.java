@@ -18,7 +18,7 @@
  * Internal immutable value types responsible for containing the model of configuration data in a project
  * for use in reporting.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

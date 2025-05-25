@@ -17,7 +17,7 @@
 /**
  * Classes used for Groovy generated classes.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

@@ -9,6 +9,7 @@ import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.AdditionalData;
 
 // tag::snippet[]
 public class ProblemReportingPlugin implements Plugin<Project> {
@@ -16,6 +17,11 @@ public class ProblemReportingPlugin implements Plugin<Project> {
     public static final ProblemGroup PROBLEM_GROUP = ProblemGroup.create("sample-group", "Sample Group");
 
     private final ProblemReporter problemReporter;
+
+    interface SomeData extends AdditionalData {
+        void setName(String name);
+        String getName();
+    }
 
     @Inject
     public ProblemReportingPlugin(Problems problems) { // <1>
@@ -28,6 +34,9 @@ public class ProblemReportingPlugin implements Plugin<Project> {
             .details("The plugin 'x' is deprecated since version 2.5")
             .solution("Please use plugin 'y'")
             .severity(Severity.WARNING)
+            .additionalData(SomeData.class, additionalData -> {
+                additionalData.setName("Some name"); // <4>
+            })
         );
     }
 }

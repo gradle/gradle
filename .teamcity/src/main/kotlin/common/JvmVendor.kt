@@ -16,8 +16,10 @@
 
 package common
 
-enum class JvmVendor(val displayName: String) {
-    oracle("Oracle"),
-    openjdk("Adoptium"),
-    zulu("Zulu")
+enum class JvmVendor(
+    val displayName: String,
+) {
+    ORACLE("Oracle"),
+    OPENJDK("Adoptium"),
+    ZULU("Zulu"),
 }

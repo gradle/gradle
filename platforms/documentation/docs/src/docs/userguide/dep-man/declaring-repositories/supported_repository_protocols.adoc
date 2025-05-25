@@ -51,7 +51,7 @@ These protocols determine how Gradle communicates with the repositories to resol
 | <<#sec:gcs-repositories,Documentation>>
 |===
 
-NOTE: Usernames and passwords should never be stored in plain text in your build files. Instead, store credentials in a local `gradle.properties` file or use an open-source Gradle plugin for encrypting and consuming credentials, such as the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin].
+NOTE: Usernames and passwords should never be stored in plain text in your build files. Instead, store credentials in a local `gradle.properties` file, or provide the credentials via environment variables.
 
 The transport protocol is specified as part of the repository URL.
 

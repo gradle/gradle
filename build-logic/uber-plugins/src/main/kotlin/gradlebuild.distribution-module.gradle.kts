@@ -1,4 +1,3 @@
-import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.packaging.tasks.ExtractJavaAbi
@@ -31,18 +30,26 @@ plugins {
 
 val libs = project.the<ExternalModulesExtension>()
 
-val apiStubElements = configurations.consumable("apiStubElements") {
+// Disallow Groovy production code in distribution modules
+pluginManager.withPlugin("groovy") {
+    tasks.named<GroovyCompile>("compileGroovy") {
+        doFirst {
+            throw Exception("You must not add Groovy production code in a distribution module")
+        }
+    }
+}
+
+configurations.consumable("apiStubElements") {
     isVisible = false
     extendsFrom(configurations.named("implementation").get())
     extendsFrom(configurations.named("compileOnly").get())
     attributes {
-        attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
+        // Only use the category attribute, to make sure this cannot be confused with anything else
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("api-stubs"))
     }
 }
 
-// FIXME Publishing API stubs for mixed Java/Kotlin subprojects don't work currently;
-//       we only publish the Kotlin stubs for some reason
-pluginManager.withPlugin("gradlebuild.jvm-library") {
+pluginManager.withPlugin("gradlebuild.java-library") {
     val extractorClasspathConfig by configurations.creating
 
     dependencies {

@@ -16,17 +16,21 @@
 
 package org.gradle.internal.declarativedsl.common
 
-import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.dsl.DependencyCollector
+import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal.DefaultUnknown
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import kotlin.reflect.typeOf
 
 
 internal
@@ -49,8 +53,8 @@ private
 class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionComponent {
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(
-        gavDependencyParam = DefaultDataParameter("dependency", String::class.toDataTypeRef(), false, DefaultUnknown),
-        projectDependencyParam = DefaultDataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, DefaultUnknown)
+        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()), false, DefaultUnknown) },
+        dependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()), false, DefaultUnknown) },
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
@@ -60,4 +64,9 @@ class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionC
     override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
         dependencyCollectorFunctionExtractorAndRuntimeResolver
     )
+
+    override fun typeDiscovery(): List<TypeDiscovery> {
+        // External Dependency is used by the runtime PlatformDependencyModifiers function resolver, and isn't added otherwise
+        return listOf(FixedTypeDiscovery(PlatformDependencyModifiers::class, listOf(ExternalDependency::class)))
+    }
 }

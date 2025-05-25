@@ -16,22 +16,27 @@
 
 package org.gradle.scala.environment
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
+import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 @TargetCoverage({ScalaCoverage.SUPPORTED_BY_JDK})
-class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
+class JreJavaHomeScalaIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
-    @Requires(IntegTestPreconditions.BestJreAvailable)
+    @Requires(value = [
+        IntegTestPreconditions.BestJreAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with a JRE")
     def "scala java cross compilation works when JAVA_HOME is set to JRE"() {
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre
@@ -51,7 +56,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     ${mavenCentralRepository()}
 
                     dependencies {
-                        implementation 'org.scala-lang:scala-library:2.11.12'
+                        implementation '${ScalaCompilationFixture.scalaDependency(version)}'
                     }
                     """
         when:
@@ -72,7 +77,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     ${mavenCentralRepository()}
 
                     dependencies {
-                        implementation 'org.scala-lang:scala-library:2.11.12'
+                        implementation '${ScalaCompilationFixture.scalaDependency(version)}'
                     }
                     """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
@@ -87,7 +92,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         file(srcDir, 'org/test/ScalaClazz.scala') << """
         package org.test{
             object ScalaClazz {
-                def main(args: Array[String]) {
+                def main(args: Array[String]): Unit = {
                     println("Hello, world!")
                 }
             }

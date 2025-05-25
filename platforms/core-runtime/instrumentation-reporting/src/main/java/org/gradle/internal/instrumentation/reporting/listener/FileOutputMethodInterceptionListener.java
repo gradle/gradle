@@ -17,8 +17,8 @@
 package org.gradle.internal.instrumentation.reporting.listener;
 
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;

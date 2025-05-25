@@ -17,14 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentModuleMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
@@ -35,26 +33,18 @@ import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -66,9 +56,9 @@ import java.util.stream.Collectors;
  * the actual resolution.
  */
 public class DefaultConfigurationResolver implements ConfigurationResolver {
+
     private final RepositoriesSupplier repositoriesSupplier;
     private final ShortCircuitingResolutionExecutor resolutionExecutor;
-    private final AttributeDesugaring attributeDesugaring;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler;
     private final AttributeSchemaServices attributeSchemaServices;
@@ -76,14 +66,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     public DefaultConfigurationResolver(
         RepositoriesSupplier repositoriesSupplier,
         ShortCircuitingResolutionExecutor resolutionExecutor,
-        AttributeDesugaring attributeDesugaring,
         ArtifactTypeRegistry artifactTypeRegistry,
         ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler,
         AttributeSchemaServices attributeSchemaServices
     ) {
         this.repositoriesSupplier = repositoriesSupplier;
         this.resolutionExecutor = resolutionExecutor;
-        this.attributeDesugaring = attributeDesugaring;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.componentModuleMetadataHandler = componentModuleMetadataHandler;
         this.attributeSchemaServices = attributeSchemaServices;
@@ -92,13 +80,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     @Override
     public ResolverResults resolveBuildDependencies(ConfigurationInternal configuration, CalculatedValue<ResolverResults> futureCompleteResults) {
         RootComponentMetadataBuilder.RootComponentState root = configuration.toRootComponent();
-        VisitedGraphResults missingConfigurationResults = maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, root);
-        if (missingConfigurationResults != null) {
-            return DefaultResolverResults.buildDependenciesResolved(missingConfigurationResults, ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
-                DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE)
-            );
-        }
-
         ResolutionParameters params = getResolutionParameters(configuration, root, false);
         LegacyResolutionParameters legacyParams = new ConfigurationLegacyResolutionParameters(configuration.getResolutionStrategy());
         return resolutionExecutor.resolveBuildDependencies(legacyParams, params, futureCompleteResults);
@@ -107,17 +88,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     @Override
     public ResolverResults resolveGraph(ConfigurationInternal configuration) {
         RootComponentMetadataBuilder.RootComponentState root = configuration.toRootComponent();
-        VisitedGraphResults missingConfigurationResults = maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, root);
-        if (missingConfigurationResults != null) {
-            ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
-                missingConfigurationResults, configuration.getResolutionHost(), ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE, new ShortCircuitingResolutionExecutor.EmptyLenientConfiguration()
-            );
-            return DefaultResolverResults.graphResolved(missingConfigurationResults, ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
-                DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-                    ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE, resolvedConfiguration
-                )
-            );
-        }
 
         AttributeContainerInternal attributes = root.getRootVariant().getAttributes();
         List<ResolutionAwareRepository> filteredRepositories = repositoriesSupplier.get().stream()
@@ -205,7 +175,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         @Override
-        public List<String> forVersionConflict(Set<Conflict> conflicts) {
+        public List<String> forVersionConflict(Conflict conflict) {
             if (owningProject == null) {
                 // owningProject is null for settings execution
                 return Collections.emptyList();
@@ -213,8 +183,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
             String taskPath = owningProject.getBuildTreePath().append(Path.path("dependencyInsight")).getPath();
 
-            ModuleVersionIdentifier identifier = conflicts.iterator().next().getVersions().get(0);
-            String dependencyNotation = identifier.getGroup() + ":" + identifier.getName();
+            ModuleIdentifier moduleId = conflict.getModuleId();
+            String dependencyNotation = moduleId.getGroup() + ":" + moduleId.getName();
 
             return Collections.singletonList(String.format(
                 "Run with %s --configuration %s --dependency %s to get more insight on how to solve the conflict.",
@@ -274,46 +244,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         return false;
-    }
-
-    /**
-     * Verifies if the configuration has been removed from the container before it was resolved.
-     * This fails and has failed in the past, but only when the configuration has dependencies.
-     * The short-circuiting done in {@link ShortCircuitingResolutionExecutor} made us not fail
-     * when we should have. So, detect that case and deprecate it. This should be removed in 9.0,
-     * and we will fail later on without any extra logic when calling
-     * {@link RootComponentMetadataBuilder.RootComponentState#getRootVariant()}
-     */
-    @Nullable
-    private VisitedGraphResults maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(
-        ConfigurationInternal configuration,
-        RootComponentMetadataBuilder.RootComponentState root
-    ) {
-        // The root variant may not exist if the backing configuration was removed from the container before resolution.
-        if (!root.hasRootVariant()) {
-            configuration.runDependencyActions();
-            if (configuration.getAllDependencies().isEmpty()) {
-                DeprecationLogger.deprecateBehaviour("Removing a configuration from the container before resolution")
-                    .withAdvice("Do not remove configurations from the container and resolve them after.")
-                    .willBecomeAnErrorInGradle9()
-                    .undocumented()
-                    .nagUser();
-
-                LocalComponentGraphResolveState rootComponent = root.getRootComponent();
-                MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
-                    rootComponent.getModuleVersionId(),
-                    rootComponent.getId(),
-                    configuration.getAttributes().asImmutable(),
-                    ImmutableCapabilities.of(rootComponent.getDefaultCapability()),
-                    configuration.getName(),
-                    attributeDesugaring
-                );
-
-                return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
-            }
-        }
-
-        return null;
     }
 
 }

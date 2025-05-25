@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -48,12 +46,6 @@ public interface VisitedGraphResults {
      * These failures are also accessible via the resolution result.
      */
     Set<UnresolvedDependency> getUnresolvedDependencies();
-
-    /**
-     * Returns an optional failure describing an error that occurred during resolution.
-     * This failure does not encompass unresolved dependencies and is _not_ captured in the resolution result.
-     */
-    Optional<ResolveException> getResolutionFailure();
 
     /**
      * Returns the root of the dependency graph.

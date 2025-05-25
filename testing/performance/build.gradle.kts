@@ -15,7 +15,7 @@ dependencies {
 
     performanceTestImplementation(testFixtures(projects.toolingApi))
 
-    performanceTestImplementation(libs.commonsLang3)
+    performanceTestImplementation(libs.commonsLang)
     performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(libs.gradleProfiler)
     performanceTestImplementation(libs.jettyServer)
@@ -31,5 +31,15 @@ dependencies {
     }
     performanceTestLocalRepository(projects.toolingApi) {
         because("IDE tests use the Tooling API.")
+    }
+}
+
+dependencyAnalysis {
+    issues {
+        onUnusedDependencies {
+            exclude(libs.junitJupiter)
+        }
+
+        ignoreSourceSet(sourceSets.performanceTest.name)
     }
 }

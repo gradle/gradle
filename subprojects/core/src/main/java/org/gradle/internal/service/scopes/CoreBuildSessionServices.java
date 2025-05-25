@@ -69,7 +69,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
-import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
@@ -164,8 +163,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory,
-        JavaModuleDetector javaModuleDetector,
-        ClientExecHandleBuilderFactory clientExecHandleBuilderFactory
+        JavaModuleDetector javaModuleDetector
     ) {
         return execFactory.forContext()
             .withFileResolver(fileResolver)
@@ -174,7 +172,6 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
             .withBuildCancellationToken(buildCancellationToken)
             .withObjectFactory(objectFactory)
             .withJavaModuleDetector(javaModuleDetector)
-            .withExecHandleFactory(clientExecHandleBuilderFactory)
             .build();
     }
 

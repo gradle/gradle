@@ -31,13 +31,10 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
     val allTestedVersions: List<GradleVersion>
 
     val mainTestedVersions: List<GradleVersion>
-    val lowestInterestingVersion: GradleVersion
-    val lowestTestedVersion: GradleVersion
+    val lowestInterestingVersion: GradleVersion = GradleVersion.version("0.8")
+    val lowestTestedVersion: GradleVersion = GradleVersion.version("3.0")
 
     init {
-        lowestTestedVersion = GradleVersion.version("3.0")
-        lowestInterestingVersion = GradleVersion.version("0.8")
-
         val releasedVersions = releasedVersionsFile.asFile.reader().use {
             Gson().fromJson(it, ReleasedVersions::class.java)
         }
@@ -73,5 +70,6 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
     private
     fun VersionNumber.format() =
         // reformat according to our versioning scheme, since toString() would typically convert 1.0 to 1.0.0
-        GradleVersion.version("$major.${minor}${if (micro > 0) ".$micro" else ""}${if (qualifier != null) "-$qualifier" else ""}")
+        // starting with Gradle 9.0, the version number is always 3 digits (SemVer)
+        GradleVersion.version("$major.${minor}${if (micro > 0 || major >= 9) ".$micro" else ""}${if (qualifier != null) "-$qualifier" else ""}")
 }

@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
+    public static final String WORKER_GRADLE_REMAPPING_PREFIX = "worker";
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
     private final File gradleUserHomeDir;
@@ -83,6 +84,19 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
 
     /**
      * Configures the Java command that will be used to launch the child process.
+     * <p>
+     * Due to Windows command line length limitations, it becomes very easy to exceed the maximum command line length
+     * by supplying large classpaths to the new process. Depending on the Java version, we have two approaches to
+     * avoid this problem:
+     * <ul>
+     *     <li>Java 8 and earlier: We serialize the classpath to stdin. We start Java with a security manager that
+     *     reads the classpath from stdin and hacks it into the system ClassLoader with reflection. Due to changes
+     *     in the classloader structure, this no longer works after Java 8.</li>
+     *     <li>Java 9 and later: We use an options file to pass the classpath to the new process. Options files
+     *     were added to java in Java 9 (they existed for javac in prior versions)</li>
+     * </ul>
+     *
+     * @see <a href="https://issues.gradle.org/browse/GRADLE-3287">Context</a>
      */
     public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo, boolean useOptionsFile) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
@@ -97,7 +111,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
         if (runAsModule) {
             execSpec.getMainModule().set("gradle.worker");
         }
-        execSpec.getMainClass().set("worker." + GradleWorkerMain.class.getName());
+        execSpec.getMainClass().set(WORKER_GRADLE_REMAPPING_PREFIX + "." + GradleWorkerMain.class.getName());
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
@@ -106,7 +120,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
         } else {
             // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
             execSpec.classpath(workerMainClassPath);
-            execSpec.systemProperty("java.security.manager", "worker." + BootstrapSecurityManager.class.getName());
+            execSpec.systemProperty("java.security.manager", WORKER_GRADLE_REMAPPING_PREFIX + "." + BootstrapSecurityManager.class.getName());
         }
 
         // Serialize configuration for the worker process to it stdin
