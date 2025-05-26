@@ -49,10 +49,14 @@ tasks.register<Tar>("tar") {
 // when using them, we get "Cannot access 'preserveFileTimestamps': it is private in 'AbstractArchiveTask'"
 // tag::reproducible[]
 tasks.withType<AbstractArchiveTask>().configureEach {
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
-    dirPermissions { unix("755") }
-    filePermissions { unix("644") }
+    // Use file timestamps from the file system
+    isPreserveFileTimestamps = true
+    // Make file order based on the file system
+    isReproducibleFileOrder = false
+    // Use directory permissions from the file system
+    dirPermissions.unset()
+    // Use file permissions from the file system
+    filePermissions.unset()
 }
 // end::reproducible[]
 
