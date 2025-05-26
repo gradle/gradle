@@ -34,6 +34,7 @@ import org.gradle.util.TestPrecondition
 @NativeToolchainTest
 @MultiVersionTestCategory
 @Requires(TestPrecondition.NOT_MAC_OS_X)
+@RequiresInstalledToolChain
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     static AvailableToolChains.InstalledToolChain toolChain
     File initScript

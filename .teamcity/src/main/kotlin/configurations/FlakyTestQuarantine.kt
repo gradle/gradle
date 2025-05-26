@@ -68,5 +68,5 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
         checkCleanM2AndAndroidUserHome(os)
     }
 
-    applyDefaultDependencies(model, this, true)
+    applyDefaultDependencies(model, this)
 })

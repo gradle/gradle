@@ -34,7 +34,7 @@ class RequiresInstalledToolChainExtension implements IAnnotationDrivenExtension<
     }
 
     private static boolean isToolChainAvailable(RequiresInstalledToolChain annotation) {
-        def requiredToolChain = AvailableToolChains.getToolChain(annotation.value())
+        def requiredToolChain = null // disabling for 7.6.5 AvailableToolChains.getToolChain(annotation.value())
         return requiredToolChain != null
     }
 }

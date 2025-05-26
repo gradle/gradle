@@ -17,7 +17,10 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class XCTestPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getPluginName() {

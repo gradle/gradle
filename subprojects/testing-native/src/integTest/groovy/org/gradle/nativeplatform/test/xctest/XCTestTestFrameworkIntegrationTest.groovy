@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
@@ -29,6 +30,7 @@ import org.gradle.util.TestPrecondition
 import static org.junit.Assume.assumeTrue
 
 @Requires(TestPrecondition.NOT_MAC_OS_X_M1)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)

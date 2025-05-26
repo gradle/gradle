@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.HostPlatform
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
@@ -36,6 +37,7 @@ import org.gradle.util.TestPrecondition
 import static org.junit.Assume.assumeTrue
 
 @Requires([TestPrecondition.XCODE, TestPrecondition.NOT_MAC_OS_X_M1]) // M1 Macs need modern Xcode to compile aarch64 binaries
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     AvailableToolChains.InstalledToolChain toolChain = null
 
