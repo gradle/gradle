@@ -600,6 +600,7 @@ It will now fail with an error, suggesting a review of the relevant documentatio
 
 In Gradle 9.0, the default behavior of archive tasks (such as `Jar`, `Ear`, `War`, `Zip`, and `AbstractArchiveTask`) has changed to produce reproducible archives by default.
 That means that:
+
 - File order in the archive is now deterministic.
 - Files have fixed timestamps (timestamps depends on the archive type).
 - All directories have fixed permissions set to `0755`.
@@ -616,13 +617,13 @@ You can restore the previous behaviour for one or more properties for your task 
 [source,kotlin]
 ----
 tasks.withType<AbstractArchiveTask>().configureEach {
-    // File order is not deterministic
+    // Makes file order non deterministic
     isReproducibleFileOrder = false
-    // File timestamps are read from the file system
+    // Use file timestamps from the file system
     isPreserveFileTimestamps = true
-    // Directory permissions are read from the file system
+    // Use directory permissions from the file system
     dirPermissions.unset()
-    // File permissions are read from the file system
+    // Use file permissions from the file system
     filePermissions.unset()
 }
 ----
@@ -633,13 +634,13 @@ tasks.withType<AbstractArchiveTask>().configureEach {
 [source,groovy]
 ----
 tasks.withType(AbstractArchiveTask).configureEach {
-    // File order is not deterministic
+    // Makes file order non deterministic
     reproducibleFileOrder = false
-    // File timestamps are read from the file system
+    // Use file timestamps from the file system
     preserveFileTimestamps = true
-    // Directory permissions are read from the file system
+    // Use directory permissions from the file system
     dirPermissions.unset()
-    // File permissions are read from the file system
+    // Use file permissions from the file system
     filePermissions.unset()
 }
 ----
