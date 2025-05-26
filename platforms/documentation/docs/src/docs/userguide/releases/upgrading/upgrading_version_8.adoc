@@ -608,7 +608,7 @@ That means that:
 
 This change improves the reproducibility of builds and ensures that the generated archives are consistent across different environments.
 
-You can restore the previous behaviour for one or more properties for your task with the next snippet:
+You can restore the previous behaviour for one or more properties for your task with the next configuration:
 
 ====
 [.multi-language-sample]
@@ -617,7 +617,7 @@ You can restore the previous behaviour for one or more properties for your task 
 [source,kotlin]
 ----
 tasks.withType<AbstractArchiveTask>().configureEach {
-    // Makes file order non deterministic
+    // Make file order based on the file system
     isReproducibleFileOrder = false
     // Use file timestamps from the file system
     isPreserveFileTimestamps = true
