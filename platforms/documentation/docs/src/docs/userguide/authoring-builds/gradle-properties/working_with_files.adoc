@@ -1023,7 +1023,9 @@ If desired this behaviour can be changed.
 For example, to make a `Zip` task file order based on the file system you need to set link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:reproducibleFileOrder[Zip.isReproducibleFileOrder()] to `false`.
 To preserve file system timestamps set link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:preserveFileTimestamps[Zip.isPreserveFileTimestamps()] to `true`.
 To use file system permission unset values of link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:dirPermissions[Zip.getDirPermissions()] and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:filePermissions[Zip.getFilePermissions()] to `644`.
-Add the following configuration to change one or more properties:
+Alternatively to preserve file system permissions globally for you build you can add `org.gradle.archives.preserve-file-system-permissions=true` to `gradle.properties` file.
+
+Add the following configuration to change one or more properties on a task level:
 
 ====
 include::sample[dir="snippets/files/archives/kotlin",files="build.gradle.kts[tags=reproducible]"]
