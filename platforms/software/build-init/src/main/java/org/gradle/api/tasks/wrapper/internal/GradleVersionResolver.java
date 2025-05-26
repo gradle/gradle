@@ -20,35 +20,72 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.gradle.api.GradleException;
 import org.gradle.api.resources.TextResource;
-import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.WrapperVersionException;
+import org.gradle.api.resources.TextResourceFactory;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DistributionLocator;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.LATEST;
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.NIGHTLY;
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_CANDIDATE;
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_NIGHTLY;
 
-class GradleVersionResolver {
+public class GradleVersionResolver {
 
-    private TextResource latest;
-    private TextResource releaseCandidate;
-    private TextResource nightly;
-    private TextResource releaseNightly;
+    public static final String LATEST = "latest";
+    public static final String NIGHTLY = "nightly";
+    public static final String RELEASE_NIGHTLY = "release-nightly";
+    public static final String RELEASE_CANDIDATE = "release-candidate";
+    public static final String RELEASE_MILESTONE = "release-milestone";
 
+    public static final List<String> PLACE_HOLDERS = Arrays.asList(LATEST, RELEASE_CANDIDATE, RELEASE_MILESTONE, RELEASE_NIGHTLY, NIGHTLY); // order these from most-to-least stable
+
+    private final TextResource latest;
+    private final TextResource releaseCandidate;
+    private final TextResource releaseMilestone;
+    private final TextResource nightly;
+    private final TextResource releaseNightly;
+
+    @Nullable
     private GradleVersion gradleVersion;
     private String gradleVersionString = GradleVersion.current().getVersion();
 
-    void setTextResources(TextResource latest, TextResource releaseCandidate, TextResource nightly, TextResource releaseNightly) {
-        this.latest = latest;
-        this.releaseCandidate = releaseCandidate;
-        this.nightly = nightly;
-        this.releaseNightly = releaseNightly;
+
+    public GradleVersionResolver(TextResourceFactory textFactory) {
+        String versionUrl = DistributionLocator.getBaseUrl() + "/versions";
+        this.latest = textFactory.fromUri(versionUrl + "/current");
+        this.releaseCandidate = textFactory.fromUri(versionUrl + "/release-candidate");
+        this.releaseMilestone = textFactory.fromUri(versionUrl + "/milestone");
+        this.nightly = textFactory.fromUri(versionUrl + "/nightly");
+        this.releaseNightly = textFactory.fromUri(versionUrl + "/release-nightly");
     }
 
-    String resolve(String version) {
+    public GradleVersion getGradleVersion() {
+        if (gradleVersion == null) {
+            gradleVersion = GradleVersion.version(resolve(gradleVersionString));
+        }
+        return gradleVersion;
+    }
+
+    public void setGradleVersionString(String gradleVersionString) {
+        if (!isPlaceHolder(gradleVersionString)) {
+            try {
+                this.gradleVersion = GradleVersion.version(gradleVersionString);
+            } catch (Exception e) {
+                throw new WrapperVersionException("Invalid version specified for argument '--gradle-version'", e);
+            }
+        }
+
+        if (!this.gradleVersionString.equals(gradleVersionString)) {
+            this.gradleVersionString = gradleVersionString;
+            this.gradleVersion = null;
+        }
+    }
+
+    private String resolve(@Nullable String version) {
         if (version == null) {
             return GradleVersion.current().getVersion();
         }
@@ -61,12 +98,14 @@ class GradleVersionResolver {
                 return getVersion(releaseNightly.asString(), version);
             case RELEASE_CANDIDATE:
                 return getVersion(releaseCandidate.asString(), version);
+            case RELEASE_MILESTONE:
+                return getVersion(releaseMilestone.asString(), version);
             default:
                 return version;
         }
     }
 
-    static String getVersion(String json, String placeHolder) {
+    private static String getVersion(String json, String placeHolder) {
         Type type = new TypeToken<Map<String, String>>() {}.getType();
         Map<String, String> map = new Gson().fromJson(json, type);
         String version = map.get("version");
@@ -76,29 +115,33 @@ class GradleVersionResolver {
         return version;
     }
 
-    static boolean isPlaceHolder(String version) {
-        return DefaultWrapperVersionsResources.PLACE_HOLDERS.contains(version);
+    private static boolean isPlaceHolder(String version) {
+        return PLACE_HOLDERS.contains(version);
     }
 
-    GradleVersion getGradleVersion() {
-        if (gradleVersion == null) {
-            gradleVersion = GradleVersion.version(resolve(gradleVersionString));
-        }
-        return gradleVersion;
-    }
-
-    void setGradleVersionString(String gradleVersionString) {
-        if (!isPlaceHolder(gradleVersionString)) {
-            try {
-                this.gradleVersion = GradleVersion.version(gradleVersionString);
-            } catch (Exception e) {
-                throw new WrapperVersionException("Invalid version specified for argument '--gradle-version'", e);
-            }
+    /**
+     * This exception is thrown when the wrapper task is run in an attempt to update the wrapper version and
+     * an invalid version is specified.
+     */
+    public static final class WrapperVersionException extends GradleException implements ResolutionProvider {
+        public WrapperVersionException(String message, @Nullable Throwable cause) {
+            super(message, cause);
         }
 
-        if (this.gradleVersionString != gradleVersionString) {
-            this.gradleVersionString = gradleVersionString;
-            this.gradleVersion = null;
+        @Override
+        public List<String> getResolutions() {
+            return Arrays.asList(suggestActualVersion(), suggestDynamicVersions());
+        }
+
+        private static String suggestActualVersion() {
+            return "Specify a valid Gradle release listed on https://gradle.org/releases/.";
+        }
+
+        private static String suggestDynamicVersions() {
+            String validStrings = PLACE_HOLDERS.stream()
+                .map(s -> String.format("'%s'", s))
+                .collect(Collectors.joining(", "));
+            return String.format("Use one of the following dynamic version specifications: %s.", validStrings);
         }
     }
 }
