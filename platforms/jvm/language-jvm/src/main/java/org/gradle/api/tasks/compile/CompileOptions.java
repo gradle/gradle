@@ -35,10 +35,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
@@ -48,9 +44,6 @@ import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 
 /**
  * Main options for Java compilation.
@@ -517,13 +510,6 @@ public abstract class CompileOptions implements Serializable {
      */
     @Optional
     @OutputDirectory
-    @ReplacesEagerProperty(
-        replacedAccessors = {
-            @ReplacedAccessor(value = GETTER, name = "getAnnotationProcessorGeneratedSourcesDirectory"),
-            @ReplacedAccessor(value = SETTER, name = "setAnnotationProcessorGeneratedSourcesDirectory")
-        },
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
-    )
     public DirectoryProperty getGeneratedSourceOutputDirectory() {
         return generatedSourceOutputDirectory;
     }

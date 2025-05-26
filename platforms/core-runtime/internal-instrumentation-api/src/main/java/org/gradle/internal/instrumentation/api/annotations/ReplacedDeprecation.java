@@ -58,7 +58,7 @@ public @interface ReplacedDeprecation {
     boolean withDslReference() default false;
 
     enum RemovedIn {
-        GRADLE9,
+        GRADLE10,
         UNSPECIFIED
     }
 }

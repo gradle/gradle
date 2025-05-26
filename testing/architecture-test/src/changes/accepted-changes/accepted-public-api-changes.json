@@ -1578,6 +1578,22 @@
         },
         {
             "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory()",
+            "acceptation": "Removed deprecated methods",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(java.io.File)",
+            "acceptation": "Removed deprecated methods",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
             "member": "Method org.gradle.api.tasks.compile.CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(org.gradle.api.provider.Provider)",
             "acceptation": "Remove deprecated method",
             "changes": [
@@ -3165,6 +3181,14 @@
             "type": "org.gradle.plugins.ear.EarPluginConvention",
             "member": "Method org.gradle.plugins.ear.EarPluginConvention.setLibDirName(java.lang.String)",
             "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.setMain(java.lang.String)",
+            "acceptation": "Removed deprecated methods",
             "changes": [
                 "Method has been removed"
             ]

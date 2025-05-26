@@ -33,10 +33,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
@@ -44,10 +40,6 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.stream.Collectors;
-
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
-import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
@@ -73,14 +65,6 @@ public abstract class TestReport extends DefaultTask {
      * @since 7.4
      */
     @OutputDirectory
-    @ReplacesEagerProperty(
-        replacedAccessors = {
-            @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
-            @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
-        },
-        binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
-    )
     public abstract DirectoryProperty getDestinationDirectory();
 
     /**

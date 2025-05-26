@@ -29,7 +29,6 @@ dependencies {
 
     implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
-    implementation(projects.logging)
     implementation(projects.testSuitesBase)
 
     implementation(libs.commonsLang)
