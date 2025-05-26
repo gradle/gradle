@@ -221,14 +221,14 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         }
 
         switch (deprecationSpec.getRemovedIn()) {
-            case GRADLE9:
-                depreactionBuilder.add(".willBeRemovedInGradle9()\n");
+            case GRADLE10:
+                depreactionBuilder.add(".willBecomeAnErrorInGradle10()\n");
                 break;
             case UNSPECIFIED:
-                depreactionBuilder.add(".startingWithGradle9($S)\n", "this property is replaced with a lazy version");
+                depreactionBuilder.add(".startingWithGradle10($S)\n", "this property is replaced with a lazy version");
                 break;
             default:
-                throw new UnsupportedOperationException("Only unset or 9 is currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());
+                throw new UnsupportedOperationException("Only unset or 10 is currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());
         }
 
         if (deprecationSpec.getWithUpgradeGuideVersion() != -1) {

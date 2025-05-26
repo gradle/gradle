@@ -34,7 +34,7 @@ public @interface ReplacedDeprecation {
     boolean enabled() default true;
 
     /**
-     * Corresponds to .willBeRemovedInGradle9() in the DeprecationLogger
+     * Corresponds to .willBecomeAnErrorInGradle10() in the DeprecationLogger
      */
     RemovedIn removedIn() default RemovedIn.UNSPECIFIED;
 
@@ -58,7 +58,9 @@ public @interface ReplacedDeprecation {
     boolean withDslReference() default false;
 
     enum RemovedIn {
-        GRADLE9,
+        // For removed properties
+        GRADLE10,
+        // For properties that were changed to lazy
         UNSPECIFIED
     }
 }

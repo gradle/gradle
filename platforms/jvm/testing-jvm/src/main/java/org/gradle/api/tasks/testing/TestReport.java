@@ -79,7 +79,7 @@ public abstract class TestReport extends DefaultTask {
             @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
         },
         binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE10)
     )
     public abstract DirectoryProperty getDestinationDirectory();
 
