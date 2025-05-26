@@ -38,7 +38,9 @@ class ConfigurationCacheEnvironment(
     @EventScope(Scope.BuildTree::class)
     interface Listener {
         fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
+        fun systemProperty(name: String, value: String?)
         fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
+        fun envVariable(name: String, value: String?)
     }
 
     private
@@ -53,23 +55,31 @@ class ConfigurationCacheEnvironment(
     }
 
     override fun getSystemProperties(): Environment.Properties =
-        TrackingProperties(System.getProperties().uncheckedCast()) { prefix, snapshot ->
-            listener.systemPropertiesPrefixedBy(prefix, snapshot)
-        }
+        TrackingProperties(System.getProperties().uncheckedCast(),
+            { prefix, snapshot -> listener.systemPropertiesPrefixedBy(prefix, snapshot)},
+            {name, value -> listener.systemProperty(name, value)}
+        )
 
     override fun getVariables(): Environment.Properties =
-        TrackingProperties(System.getenv()) { prefix, snapshot ->
-            listener.envVariablesPrefixedBy(prefix, snapshot)
-        }
+        TrackingProperties(System.getenv(), { prefix, snapshot ->
+            listener.envVariablesPrefixedBy(prefix, snapshot)},
+            {name, value -> listener.envVariable(name, value)}
+        )
 
     private
     class TrackingProperties(
         map: Map<String, String>,
-        val onByNamePrefix: (String, Map<String, String?>) -> Unit
+        val onByNamePrefix: (String, Map<String, String?>) -> Unit,
+        val onByName: (String, String?) -> Unit
     ) : DefaultProperties(map) {
         override fun byNamePrefix(prefix: String): Map<String, String> =
             super.byNamePrefix(prefix).also { snapshot ->
                 onByNamePrefix(prefix, snapshot)
+            }
+
+        override fun get(name: String): String? =
+            super.get(name).also { value ->
+                onByName(name, value)
             }
     }
 }
@@ -95,5 +105,7 @@ open class DefaultEnvironment : Environment {
     open class DefaultProperties(val map: Map<String, String>) : Environment.Properties {
         override fun byNamePrefix(prefix: String): Map<String, String> =
             map.filterKeysByPrefix(prefix)
+
+        override fun get(name: String): String? = map[name]
     }
 }

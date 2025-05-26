@@ -369,6 +369,13 @@ class ConfigurationCacheFingerprintWriter(
         addSystemPropertiesPrefixedByToFingerprint(prefix, snapshot)
     }
 
+    override fun systemProperty(name: String, value: String?) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+        addSystemPropertyToFingerprint(name, value)
+    }
+
     private
     fun addSystemPropertiesPrefixedByToFingerprint(prefix: String, snapshot: Map<String, String?>) {
         val filteredSnapshot = snapshot.mapValues { e ->
@@ -386,6 +393,13 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         addEnvVariablesPrefixedByToFingerprint(prefix, snapshot)
+    }
+
+    override fun envVariable(name: String, value: String?) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+        addEnvVariableToFingerprint(name, value)
     }
 
     private
