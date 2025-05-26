@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.wrapper;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.FileLookup;
@@ -28,11 +29,12 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
-import org.gradle.api.tasks.wrapper.internal.InternalWrapper;
+import org.gradle.api.tasks.wrapper.internal.GradleVersionResolver;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
 import org.gradle.work.DisableCachingByDefault;
@@ -65,7 +67,7 @@ import java.util.Properties;
  * your VCS. The scripts delegate to this JAR.
  */
 @DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
-public abstract class Wrapper extends InternalWrapper {
+public abstract class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = WrapperDefaults.DISTRIBUTION_PATH;
 
     /**
@@ -89,6 +91,9 @@ public abstract class Wrapper extends InternalWrapper {
         PROJECT, GRADLE_USER_HOME
     }
 
+
+    private final GradleVersionResolver gradleVersionResolver;
+
     private Object scriptFile = WrapperDefaults.SCRIPT_PATH;
     private Object jarFile = WrapperDefaults.JAR_FILE_PATH;
     private String distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
@@ -104,6 +109,8 @@ public abstract class Wrapper extends InternalWrapper {
 
     public Wrapper() {
         getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
+
+        gradleVersionResolver = new GradleVersionResolver(getProject().getResources().getText());
     }
 
     @TaskAction
@@ -348,6 +355,18 @@ public abstract class Wrapper extends InternalWrapper {
         }
 
         return WrapperGenerator.getDistributionUrl(getResolvedGradleVersion(), distributionType);
+    }
+
+    private boolean isCurrentVersion() {
+        return GradleVersion.current().equals(getResolvedGradleVersion());
+    }
+
+    private GradleVersion getResolvedGradleVersion() {
+        return gradleVersionResolver.getGradleVersion();
+    }
+
+    private void setUnresolvedGradleVersion(String gradleVersion) {
+        this.gradleVersionResolver.setGradleVersionString(gradleVersion);
     }
 
     /**

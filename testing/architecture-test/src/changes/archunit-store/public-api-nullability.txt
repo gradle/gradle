@@ -196,7 +196,6 @@ Class <org.gradle.api.tasks.testing.testng.TestNGOptions> is not annotated (dire
 Class <org.gradle.api.tasks.wrapper.Wrapper$DistributionType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (Wrapper.java:0)
 Class <org.gradle.api.tasks.wrapper.Wrapper$PathBase> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (Wrapper.java:0)
 Class <org.gradle.api.tasks.wrapper.Wrapper> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (Wrapper.java:0)
-Class <org.gradle.api.tasks.wrapper.WrapperVersionsResources> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (WrapperVersionsResources.java:0)
 Class <org.gradle.authentication.Authentication> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (Authentication.java:0)
 Class <org.gradle.authentication.aws.AwsImAuthentication> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (AwsImAuthentication.java:0)
 Class <org.gradle.authentication.http.BasicAuthentication> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (BasicAuthentication.java:0)

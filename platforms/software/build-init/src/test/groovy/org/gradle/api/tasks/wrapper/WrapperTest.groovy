@@ -16,39 +16,38 @@
 
 package org.gradle.api.tasks.wrapper
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonParseException
+import com.google.gson.reflect.TypeToken
+import org.gradle.api.GradleException
+import org.gradle.api.Project
+import org.gradle.api.resources.TextResourceFactory
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
-import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.DistributionLocator
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
 
+import java.lang.reflect.Type
+
 class WrapperTest extends AbstractTaskTest {
-    private static final String RELEASE = "7.6"
-    private static final String RELEASE_CANDIDATE = "7.7-rc-5"
-    private static final String NIGHTLY = "8.1-20221207164726+0000"
-    private static final String RELEASE_NIGHTLY = "8.0-20221207164726+0000"
     private static final String TARGET_WRAPPER_FINAL = "gradle/wrapper"
     private Wrapper wrapper
     private TestFile expectedTargetWrapperJar
     private File expectedTargetWrapperProperties
 
-    def createVersionTextResource(String version) {
-        wrapper.getProject().getResources().text.fromString("""{ "version" : "${version}" }""")
-    }
-
     def setup() {
         wrapper = createTask(Wrapper.class)
 
-        def latest = createVersionTextResource(RELEASE)
-        def releaseCandidate = createVersionTextResource(RELEASE_CANDIDATE)
-        def nightly = createVersionTextResource(NIGHTLY)
-        def releaseNightly = createVersionTextResource(RELEASE_NIGHTLY)
-        wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly))
-        wrapper.setGradleVersion("1.0")
+        wrapper.setGradleVersion("8.0")
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
                 TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
         expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
@@ -107,17 +106,18 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.setGradleVersion(version)
 
         then:
-        "https://services.gradle.org/distributions$snapshot/gradle-$out-bin.zip" == wrapper.getDistributionUrl()
+        def downloadUrl = new VersionResolver(project).resolveDownloadUrl(version, urlSuffix)
+        downloadUrl == null || downloadUrl == wrapper.getDistributionUrl()
 
         where:
-        version                     | out                         | snapshot
-        "1.0-milestone-1"           | "1.0-milestone-1"           | ""
-        "0.9.1-20101224110000+1100" | "0.9.1-20101224110000+1100" | "-snapshots"
-        "0.9.1"                     | "0.9.1"                     | ""
-        "latest"                    | RELEASE                     | ""
-        "release-candidate"         | RELEASE_CANDIDATE           | ""
-        "nightly"                   | NIGHTLY                     | "-snapshots"
-        "release-nightly"           | RELEASE_NIGHTLY             | "-snapshots"
+        version                     | urlSuffix
+        "8.14.1"                    | "8"
+        "7.6-milestone-1"           | "7"
+        "latest"                    | "current"
+        "release-candidate"         | "release-candidate"
+        "release-milestone"         | "milestone"
+        "nightly"                   | "nightly"
+        "release-nightly"           | "release-nightly"
     }
 
     def "uses explicitly defined distribution url"() {
@@ -237,9 +237,75 @@ class WrapperTest extends AbstractTaskTest {
         String distributionUrl = wrapper.getDistributionUrl()
 
         then:
-        distributionUrl.contains("\u0131") == false
+        !distributionUrl.contains("\u0131")
 
         cleanup:
         Locale.setDefault(originalLocale)
+    }
+
+    private static class VersionResolver {
+
+        private final TextResourceFactory textResourceFactory
+
+        VersionResolver(Project project) {
+            this.textResourceFactory = project.getResources().getText()
+        }
+
+        def resolveDownloadUrl(String version, String urlSuffix) {
+            String versionUrl = DistributionLocator.getBaseUrl() + "/versions/" + urlSuffix
+            String json = textResourceFactory.fromUri(versionUrl).asString()
+
+            Map<String, String> versionInfo = versionInfoFromJson(json, version)
+            if (versionInfo.isEmpty()) {
+                return null
+            }
+            return downloadUrlFromVersionInfo(versionInfo, version)
+        }
+
+        private static String downloadUrlFromVersionInfo(Map<String, String> versionInfo, String version) {
+            def downloadUrl = versionInfo.get("downloadUrl")
+            if (downloadUrl == null) {
+                throw new GradleException("There is currently no version information available for version: " + version + ".")
+            }
+            return downloadUrl
+        }
+
+        private static Map<String, String> versionInfoFromJson(String json, String version) {
+            Gson gson = new GsonBuilder()
+                .registerTypeAdapter(new TypeToken<List<Map<String, String>>>() {}.getType(), new MapListDeserializer())
+                .create()
+
+            List<Map<String, String>> list = gson.fromJson(json, new TypeToken<List<Map<String, String>>>() {}.getType())
+
+            Map<String, String> versionInfo
+            if (list.size() == 1) {
+                versionInfo = list[0]
+            } else {
+                versionInfo = list.stream()
+                    .filter { it.get("version") == version }
+                    .findFirst()
+                    .orElseThrow { new GradleException("Can't find version: " + version) }
+            }
+            versionInfo
+        }
+
+        static class MapListDeserializer implements JsonDeserializer<List<Map<String, String>>> {
+            @Override
+            List<Map<String, String>> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                List<Map<String, String>> list = new ArrayList<>()
+
+                if (json.isJsonArray()) {
+                    for (JsonElement element : json.getAsJsonArray()) {
+                        Map<String, String> map = context.deserialize(element, new TypeToken<Map<String, String>>(){}.getType())
+                        list.add(map)
+                    }
+                } else if (json.isJsonObject()) {
+                    Map<String, String> map = context.deserialize(json, new TypeToken<Map<String, String>>(){}.getType())
+                    list.add(map)
+                }
+
+                return list
+            }
+        }
     }
 }
