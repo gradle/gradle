@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.wrapper;
+package org.gradle.api.tasks.wrapper.internal;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.gradle.api.GradleException;
 import org.gradle.api.resources.TextResource;
-import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.WrapperVersionException;
 import org.gradle.util.GradleVersion;
 
