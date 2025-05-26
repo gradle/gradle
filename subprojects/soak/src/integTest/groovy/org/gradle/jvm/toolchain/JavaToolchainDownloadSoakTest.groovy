@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 import static org.junit.Assume.assumeFalse
 
@@ -65,6 +66,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
     }
 
+    @Ignore(value = "https://github.com/foojayio/discoapi/issues/121")
     def "can download missing j9 jdk automatically"() {
         assumeFalse("J9 JDKs are not available on aarch64 or JDK untar support for the archive is broken",
             System.getProperty("os.arch") == "aarch64")
