@@ -37,7 +37,7 @@ val JApiCompatibility.jApiClass: JApiClass
 
 internal
 val JApiClass.isKotlin: Boolean
-    get() = newClass.orNull()?.isKotlin ?: false
+    get() = newClass.map { it.isKotlin }.orElse(false)
 
 
 internal

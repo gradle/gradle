@@ -83,6 +83,7 @@ public class LineFilter extends Reader {
         transformedLine = builder.toString();
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private void ensureData() throws IOException {
         while (state == State.SKIP_LINE || (state == State.NORMAL && (transformedLine == null || transformedIndex >= transformedLine.length()))) {
             readTransformedLine();

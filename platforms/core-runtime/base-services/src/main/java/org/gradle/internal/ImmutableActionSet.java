@@ -52,7 +52,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
 
         ImmutableSet.Builder<Action<? super T>> builder = ImmutableSet.builder();
         for (Action<? super T> action : actions) {
-            if (action == Actions.DO_NOTHING || (action instanceof EmptySet)) {
+            if (action == Actions.DO_NOTHING || action instanceof EmptySet) {
                 continue;
             }
             unpackAction(action, builder);

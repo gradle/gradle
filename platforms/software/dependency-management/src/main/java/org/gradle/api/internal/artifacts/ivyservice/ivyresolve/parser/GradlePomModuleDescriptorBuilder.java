@@ -263,7 +263,7 @@ public class GradlePomModuleDescriptorBuilder {
         if (pomDependencyMgt != null) {
             result = pomDependencyMgt.getScope();
         }
-        if ((result == null) || !SCOPES.containsKey(result)) {
+        if (result == null || !SCOPES.containsKey(result)) {
             result = "compile";
         }
         return result;

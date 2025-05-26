@@ -156,6 +156,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
+    @SuppressWarnings("UnnecessaryParentheses")
     protected boolean hasWithName(String name) {
         return (project.getModelRegistry() != null && project.getModelRegistry().state(ModelPath.path("tasks." + name)) != null) || super.hasWithName(name);
     }

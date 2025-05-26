@@ -17,6 +17,7 @@
 package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.ApiChange;
+import groovy.transform.CompileStatic;
 import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
 import org.gradle.util.internal.CollectionUtils;
@@ -24,6 +25,7 @@ import org.gradle.util.internal.CollectionUtils;
 import java.util.HashSet;
 import java.util.Set;
 
+@CompileStatic
 public class AcceptedRegressionsRulePostProcess implements PostProcessViolationsRule {
 
     @Override

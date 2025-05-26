@@ -196,6 +196,7 @@ class DependencyState {
         }
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private static boolean isNewReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
         return (reasons.size() == 1 && !reason.equals(reasons.get(0)))
             || !reasons.contains(reason);

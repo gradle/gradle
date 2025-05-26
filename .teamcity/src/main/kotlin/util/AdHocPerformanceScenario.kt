@@ -68,7 +68,7 @@ abstract class AdHocPerformanceScenario(
                 JvmVendor.OPENJDK.name.lowercase(),
                 display = ParameterDisplay.PROMPT,
                 description = "The java vendor to run the performance tests",
-                options = JvmVendor.values().map { it.displayName to it.name.lowercase() },
+                options = JvmVendor.entries.map { it.displayName to it.name.lowercase() },
             )
             when (os) {
                 Os.WINDOWS -> {

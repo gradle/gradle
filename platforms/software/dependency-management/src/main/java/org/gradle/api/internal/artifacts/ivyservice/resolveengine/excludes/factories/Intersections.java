@@ -178,6 +178,7 @@ class Intersections {
         }
 
         @Override
+        @SuppressWarnings("UnnecessaryParentheses")
         public boolean applies(ExcludeSpec left, ExcludeSpec right) {
             // We want to use the more specific AnyWithAny intersection if possible
             return (left instanceof ExcludeAnyOf && !(right instanceof ExcludeAnyOf))
