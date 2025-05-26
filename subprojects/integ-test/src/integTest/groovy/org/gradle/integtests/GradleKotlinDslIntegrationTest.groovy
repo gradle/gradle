@@ -138,6 +138,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         // TODO Remove this once the Kotlin DSL upgrades 'pattern("layout") {' to 'patternLayout {
         // Using expectDeprecationWarning did not work as some setup do not trigger one
         executer.noDeprecationChecks()
+        executer.withStackTraceChecksDisabled()
         // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
         // of internal APIs is not broken by refactorings on the Gradle side
         buildFile << """
