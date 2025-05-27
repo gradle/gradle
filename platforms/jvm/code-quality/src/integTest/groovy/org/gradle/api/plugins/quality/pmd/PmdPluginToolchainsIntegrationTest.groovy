@@ -35,7 +35,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
     def "uses jdk from toolchains set through java plugin"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
-        Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersion.majorVersion as Integer))
+        Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersionMajor))
 
         given:
         goodCode()
@@ -54,7 +54,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
     def "uses jdk from toolchains set through pmd task"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
-        Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersion.majorVersion as Integer))
+        Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersionMajor))
 
         given:
         goodCode()
