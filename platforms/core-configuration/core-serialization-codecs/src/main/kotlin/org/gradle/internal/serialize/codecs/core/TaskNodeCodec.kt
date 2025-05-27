@@ -16,7 +16,6 @@
 
 package org.gradle.internal.serialize.codecs.core
 
-import org.gradle.api.Describable
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GeneratedSubclasses
