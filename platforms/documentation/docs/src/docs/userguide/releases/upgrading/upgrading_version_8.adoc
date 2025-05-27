@@ -125,6 +125,59 @@ Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for det
 
 NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 6.8 and newer.
 
+==== Upgrade to Groovy 4.0.26
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.26.html[4.0.26], from 3.0.24.
+Also see the https://groovy-lang.org/releasenotes/groovy-4.0.html[4.0 release notes] for more details on the changes from 3.x to 4.x.
+
+===== Properties with `is`-prefix and `Boolean` types are no longer usable by Groovy
+Groovy 4 no longer detects getters with `is`-prefix and `Boolean` type as a property. Gradle's own interpretation of properties currently remains
+the same, but will be changed in Gradle 10.0 to be consistent with Groovy 4. See <<#groovy_boolean_properties, the deprecation about this>> for more details.
+
+===== Non-abstract managed properties may no longer be attached
+**TODO, waiting on https://github.com/gradle/gradle/issues/33215 resolution**
+
+===== Closures may prefer the delegate over the owner in more cases when using the `DELEGATE_FIRST` strategy
+Groovy 4.0.26 has changed the behavior of closures using the `DELEGATE_FIRST` strategy. Dynamic lookups for properties and methods will now prefer the delegate over the owner.
+This can result in different behavior when using closures in Gradle scripts, such as certain methods not being found or (e.g. with `with(...) { }`) map keys being preferred over properties or methods
+from outside the closure.
+
+Workarounds include using `@CompileStatic` to avoid the dynamic lookup, or prefixing the call with `owner.`, `this.` or `super.` as appropriate.
+
+For full clarity, in Groovy 3, the lookup order was:
+
+1. Delegate's `invokeMethod`, which chooses known methods and does no dynamic lookup.
+2. Owner's `invokeMethod`, which chooses known methods and does no dynamic lookup.
+3. Delegate's `invokeMissingMethod`, which does dynamic lookup including via properties.
+4. Owner's `invokeMissingMethod`, which does dynamic lookup including via properties.
+
+In Groovy 4, the lookup order is:
+
+1. Delegate's `invokeMethod`, which chooses known methods and does no dynamic lookup.
+2. Delegate's `invokeMissingMethod`, which does dynamic lookup including via properties.
+3. Owner's `invokeMethod`, which chooses known methods and does no dynamic lookup.
+4. Owner's `invokeMissingMethod`, which does dynamic lookup including via properties.
+
+===== Private properties and methods may be inaccessible in closures
+Closures created in a parent class that reference properties or methods of the parent class may not be able to access them.
+This is a https://issues.apache.org/jira/browse/GROOVY-11568[Groovy bug] that will not be fixed until Groovy 5.
+A workaround is to use `@CompileStatic` to avoid the dynamic lookup.
+
+This is tracked by https://github.com/gradle/gradle/issues/32476.
+
+===== Super methods may be inaccessible from Groovy 3.x code
+Groovy 4 changed how super methods are resolved, which may cause some super methods to be inaccessible from Groovy 3.x code,
+as they do not contain the appropriate runtime code to locate the super methods.
+
+==== Plugins written with the Groovy DSL require Gradle >= 7.0
+
+When building and publishing plugins using the Groovy DSL on Gradle 9.x, those plugins will only be usable on Gradle 7.0 or newer.
+This is because Gradle 7.0 is the first release that embeds Groovy 3.0 or higher, which is required to partially run Groovy 4.0 compiled code.
+However, because it is still a major version change, some code may not work as expected.
+It is recommended to run these plugins on Gradle 9.0 or newer to ensure full compatibility with Groovy 4.0.
+
+NOTE: Plugins written using the Groovy DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 5.0 and newer.
+
 [[validate_plugins_without_java_toolchain_90]]
 ==== `ValidatePlugins` task now requires Java Toolchains
 
@@ -901,7 +954,8 @@ Gradle recognizes methods with a `Boolean` return type and a `is`-prefix as a bo
 Groovy 4 more closely follows the Java Bean specification and link:https://issues.apache.org/jira/browse/GROOVY-10708[no longer supports this exception].
 
 Gradle will emit a deprecation warning when it detects that a boolean property is derived from a method with a `Boolean` return type and `is`-prefix.
-In Gradle 9.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to be considered up-to-date, even when a `Boolean` property appears to be an input.
+In Gradle 9.0, Groovy 4 will no longer recognize this as a property, e.g. in buildscripts. Gradle's property-based behavior will not change, e.g. they will still be considered for up-to-date checks.
+In Gradle 10.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to be considered up-to-date, even when a `Boolean` property appears to be an input.
 
 There are two options to fix this:
 
