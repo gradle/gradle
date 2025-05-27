@@ -67,9 +67,7 @@ public abstract class EclipseWtp {
      * @since 4.9
      */
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Configures wtp component.

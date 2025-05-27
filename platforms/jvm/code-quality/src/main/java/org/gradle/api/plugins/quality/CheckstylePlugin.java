@@ -61,9 +61,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getToolchainService();
 
     @Override
     protected CodeQualityExtension createExtension() {

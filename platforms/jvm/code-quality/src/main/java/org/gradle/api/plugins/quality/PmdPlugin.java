@@ -77,9 +77,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getToolchainService();
 
     @Override
     protected CodeQualityExtension createExtension() {

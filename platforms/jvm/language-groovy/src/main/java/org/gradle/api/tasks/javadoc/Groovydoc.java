@@ -508,7 +508,5 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 }

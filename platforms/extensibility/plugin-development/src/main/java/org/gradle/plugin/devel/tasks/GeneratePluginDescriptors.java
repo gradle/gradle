@@ -96,9 +96,7 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 
     private void clearOutputDirectory(File directoryToClear) {
         try {

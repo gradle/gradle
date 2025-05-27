@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.provider.Provider
+import org.gradle.language.cpp.internal.NativeDependencyCache
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.language.swift.SwiftPlatform
@@ -51,7 +52,7 @@ class DefaultSwiftBinaryTest extends Specification {
         _ * configurations.resolvableDependencyScopeLocked("nativeLinkDebug") >> link
         _ * configurations.resolvableLocked('nativeRuntimeDebug') >> runtime
 
-        binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
+        binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, Stub(NativeDependencyCache), project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }
 
     def "compileModules is a transformed view of compile"() {

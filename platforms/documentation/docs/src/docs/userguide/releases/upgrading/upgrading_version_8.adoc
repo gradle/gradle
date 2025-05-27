@@ -195,6 +195,11 @@ or better yet, upgrade to the latest version of the link:https://docs.gradle.com
 
 For Gradle 8.x, the minimum supported version was 3.0.
 
+==== All Gradle-provided classes now have `abstract` getter injection methods
+
+All Gradle-provided classes that have `@Inject` annotated getters now have those getters declared as `abstract`.
+This will require all classes that extend Gradle-provided classes to be `abstract`.
+
 === Updated Defaults and APIs
 
 ==== Upgraded default versions of code quality tools
@@ -230,6 +235,11 @@ These types were not intended to be subclassed.
 However, if your build logic or a plugin attempts to override these methods, it will now result in a runtime failure.
 
 === Removed Features and Deprecated APIs
+
+==== Injection getters are now `abstract`
+
+All injection getters (getters annoted with `@Inject`) in types provided by Gradle are now marked as `abstract`. Some classes
+were also made `abstract` to allow this to happen. If you extended one of these types, you will need to make your class `abstract` as well.
 
 ==== Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
 

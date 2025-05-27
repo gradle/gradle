@@ -21,9 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -38,8 +36,6 @@ import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-
-import javax.inject.Inject;
 
 public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Provider<String> baseName;
@@ -94,28 +90,13 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         nativeRuntime.extendsFrom(getImplementationDependencies());
 
         ArtifactView includeDirs = includePathConfiguration.getIncoming().artifactView(viewConfiguration -> {
-           viewConfiguration.attributes(attributeContainer -> {
-               attributeContainer.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
-           });
+            viewConfiguration.attributes(attributeContainer -> {
+                attributeContainer.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+            });
         });
         includePath = componentHeaderDirs.plus(includeDirs.getFiles());
         linkLibraries = nativeLink;
         runtimeLibraries = nativeRuntime;
-    }
-
-    @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected TemporaryFileProvider getTemporaryFileProvider() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected NativeDependencyCache getNativeDependencyCache() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
