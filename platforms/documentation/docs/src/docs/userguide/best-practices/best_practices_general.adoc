@@ -588,7 +588,7 @@ Now it can be executed using only `gradle run`, and the continue property will a
 <<tags_reference.adoc#tag:properties,`#properties`>>
 
 [[favor_composite_builds]]
-== Favor `build-logic` Composite Builds over `buildSrc`
+== Favor `build-logic` Composite Builds for Build Logic
 :keywords: structuring-builds,composite-builds,buildSrc
 
 You should setup a <<composite_builds.adoc#defining_composite_builds,Composite Build>> (often called an "included build") to hold your build logic—including any custom plugins, convention plugins, and other build-specific customizations.
@@ -607,6 +607,7 @@ The automatically available `buildSrc` is great for rapid prototyping, but it co
 One important caveat to this recommendation is when creating `Settings` plugins.
 Defining these in a `build-logic` project requires it to be included in the `pluginManagement` block of the main build's `settings.gradle(.kts)` file, in order to make these plugins available to the build early enough to be applied to the `Settings` instance.
 This is possible, but reduces Build Caching capability, potentially impacting performance.
+A better solution is to use a separate, minimal, included build (e.g. `build-logic-settings`) to hold only `Settings` plugins.
 
 Another potential reason to use `buildSrc` is if you have a very large number of subprojects within your included `build-logic`.
 Applying a different set of `build-logic` plugins to the subprojects in your _including_ build will result in a different classpath being used for each.
