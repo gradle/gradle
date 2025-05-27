@@ -21,6 +21,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -85,7 +85,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                 try (InputStream propertiesInputStream = new FileInputStream(propertiesFile)) {
                     cachedProperties.load(propertiesInputStream);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 for (Map.Entry<?, ?> entry : properties.entrySet()) {
                     String previousValue = cachedProperties.getProperty(entry.getKey().toString());
@@ -117,7 +117,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                     properties.store(propertiesFileOutputStream, null);
                 }
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

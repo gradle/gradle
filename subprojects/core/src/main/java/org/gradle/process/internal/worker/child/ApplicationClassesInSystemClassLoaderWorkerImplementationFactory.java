@@ -17,10 +17,10 @@
 package org.gradle.process.internal.worker.child;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -181,7 +181,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 encoder.flush();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         execSpec.setStandardInput(buffer.getInputStream());
     }

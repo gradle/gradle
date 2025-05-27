@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.StreamsHandler;
 import org.gradle.util.internal.DisconnectableInputStream;
@@ -76,7 +75,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
         try {
             standardInputWriter.closeInput();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

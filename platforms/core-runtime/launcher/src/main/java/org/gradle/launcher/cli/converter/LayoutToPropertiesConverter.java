@@ -17,13 +17,13 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -128,7 +128,7 @@ public class LayoutToPropertiesConverter {
                     properties.load(inputStream);
                 }
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return properties;

@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.jspecify.annotations.NullMarked;
@@ -81,7 +81,7 @@ public class LegacyTestReportGenerator implements TestReportGenerator {
         try (TestResultsProvider provider = this.provider.get()) {
             testReport.generateReport(provider, outputDir.toFile());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

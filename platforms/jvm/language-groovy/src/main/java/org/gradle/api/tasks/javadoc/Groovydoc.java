@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
@@ -34,6 +33,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.workers.WorkerExecutor;
@@ -102,7 +102,7 @@ public abstract class Groovydoc extends SourceTask {
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
         FileSystemOperations fsOperations = getServices().get(FileSystemOperations.class);
 

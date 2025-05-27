@@ -26,7 +26,6 @@ import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.signing.signatory.SignatorySupport;
 
@@ -68,7 +67,7 @@ public class PgpSignatory extends SignatorySupport {
             PGPSignature signature = generator.generate();
             writeSignatureTo(signatureDestination, signature);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } catch (PGPException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

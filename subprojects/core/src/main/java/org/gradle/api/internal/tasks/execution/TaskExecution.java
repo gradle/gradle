@@ -359,7 +359,7 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
-        if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
+        if (!(cause instanceof UncheckedIOException)) {
             return UncheckedException.throwAsUncheckedException(cause);
         }
         boolean isDestinationDir = propertyName.equals("destinationDir");

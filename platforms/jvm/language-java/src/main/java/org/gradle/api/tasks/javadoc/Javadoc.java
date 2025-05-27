@@ -46,6 +46,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -59,7 +60,6 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -146,7 +146,7 @@ public abstract class Javadoc extends SourceTask {
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
 
         StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());

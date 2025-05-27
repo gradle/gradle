@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
@@ -66,6 +65,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
@@ -488,7 +488,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         try {
             Files.createDirectories(binaryResultsDir.toPath());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         // Record test events to `results`, and test outputs to `testOutputStore`

@@ -17,16 +17,16 @@
 package org.gradle.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 /**
  * Various utilities for dealing with IO actions.
@@ -104,7 +104,7 @@ public abstract class IoActions {
                 resource.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -141,13 +141,10 @@ public abstract class IoActions {
                         throw new IOException(String.format("Unable to create directory '%s'", parentFile));
                     }
                 }
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), encoding));
-                try {
+                try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(file.toPath()), encoding))) {
                     action.execute(writer);
-                } finally {
-                    writer.close();
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw new UncheckedIOException(String.format("Could not write to file '%s'.", file), e);
             }
         }

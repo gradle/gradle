@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,7 +101,7 @@ public class MetadataExtracter {
             try {
                 in.close();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return grammarPackageName;
