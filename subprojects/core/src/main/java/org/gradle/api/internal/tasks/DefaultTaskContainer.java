@@ -477,9 +477,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> T createWithoutConstructor(String name, Class<T> type, long uniqueId) {
+    public <T extends Task> T createWithoutConstructor(String name, Class<T> type, long uniqueId, UserCodeSource userCodeSource) {
         assertCanMutate("createWithoutConstructor(String, Class, Object...)");
-        return doCreate(taskIdentityFactory.recreate(name, type, project, uniqueId, getUserCodeSource()), null, Actions.doNothing());
+        return doCreate(taskIdentityFactory.recreate(name, type, project, uniqueId, userCodeSource), null, Actions.doNothing());
     }
 
     @Override
