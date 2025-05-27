@@ -1,8 +1,5 @@
 package configurations
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import model.CIBuildModel
