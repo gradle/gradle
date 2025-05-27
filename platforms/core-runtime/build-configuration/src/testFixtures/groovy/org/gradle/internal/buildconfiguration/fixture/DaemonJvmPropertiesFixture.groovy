@@ -31,7 +31,7 @@ import org.gradle.util.internal.GUtil
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform
+import static org.gradle.internal.buildconfiguration.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform
 
 @SelfType(AbstractIntegrationSpec)
 trait DaemonJvmPropertiesFixture {

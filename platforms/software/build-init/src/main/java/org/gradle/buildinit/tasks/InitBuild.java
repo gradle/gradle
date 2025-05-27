@@ -81,10 +81,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InitBuild extends DefaultTask {
+    public static final int DEFAULT_JAVA_VERSION = 21;
+
     private static final String SOURCE_PACKAGE_DEFAULT = "org.example";
     private static final String SOURCE_PACKAGE_PROPERTY = "org.gradle.buildinit.source.package";
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
-    private static final int DEFAULT_JAVA_VERSION = 21;
 
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;

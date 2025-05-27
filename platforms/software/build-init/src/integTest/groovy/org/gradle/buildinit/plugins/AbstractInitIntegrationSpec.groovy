@@ -52,6 +52,7 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         executer.beforeExecute {
             executer.inDirectory(targetDir)
             executer.ignoreMissingSettingsFile()
+            executer.withToolchainDetectionEnabled()
         }
     }
 
@@ -81,6 +82,10 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         targetDir.file("gradle/wrapper/gradle-wrapper.properties").assertIsFile()
     }
 
+    protected void assertDaemonJvmCriteriaGenerated() {
+        daemonJvmCriteriaFile.assertIsFile()
+    }
+
     protected void commonFilesGenerated(BuildInitDsl scriptDsl, dslFixture = dslFixtureFor(scriptDsl)) {
         dslFixture.assertGradleFilesGenerated()
         targetDir.file(".gitignore").assertIsFile()
@@ -90,6 +95,7 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         gradlePropertiesGenerated {
             assertConfigurationCacheEnabled()
         }
+        assertDaemonJvmCriteriaGenerated()
     }
 
     protected void commonJvmFilesGenerated(BuildInitDsl scriptDsl) {
@@ -121,6 +127,10 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
 
     protected ScriptDslFixture rootProjectDslFixtureFor(BuildInitDsl dsl) {
         ScriptDslFixture.of(dsl, targetDir, null)
+    }
+
+    protected TestFile getDaemonJvmCriteriaFile() {
+        targetDir.file("gradle/gradle-daemon-jvm.properties")
     }
 
     protected TestFile pom() {
