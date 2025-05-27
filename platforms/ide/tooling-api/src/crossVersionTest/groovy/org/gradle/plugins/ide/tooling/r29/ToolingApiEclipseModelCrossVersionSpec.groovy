@@ -52,10 +52,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
             project(':groovy-project') { apply plugin: 'groovy' }
             project(':scala-project') { apply plugin: 'scala' }
         """
-        createDirs("java-project", "groovy-project", "scala-project")
+        includeProjects("java-project", "groovy-project", "scala-project")
         settingsFile << """
             rootProject.name = 'root'
-            include 'java-project', 'groovy-project', 'scala-project'
         """
 
         when:

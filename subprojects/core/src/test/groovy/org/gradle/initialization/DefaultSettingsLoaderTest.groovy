@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization
 
+
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
@@ -30,10 +31,19 @@ import org.gradle.internal.logging.ToStringLogger
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.nio.file.Files
+
 class DefaultSettingsLoaderTest extends Specification {
-    private projectRootDir = FileUtils.canonicalize(new File("someDir"))
+    private projectRootDir = createTempProjectDir()
+
+    File createTempProjectDir() {
+        def file = Files.createTempDirectory("DefaultSettingsLoaderTestTempProjectDir_").toFile()
+        file.deleteOnExit()
+        FileUtils.canonicalize(file)
+    }
     private mockBuildLayout = new BuildLayout(null, projectRootDir, null, Stub(ScriptFileResolver))
     @SuppressWarnings('GroovyAssignabilityCheck')
     private mockBuildLayoutFactory = Mock(BuildLayoutFactory) {
@@ -84,7 +94,7 @@ class DefaultSettingsLoaderTest extends Specification {
 
     private logger = new ToStringLogger()
     private builtInCommands = [new InitBuiltInCommand(), new HelpBuiltInCommand()]
-    private DefaultSettingsLoader settingsLoader = new DefaultSettingsLoader(mockSettingsProcessor, mockBuildLayoutFactory, builtInCommands, logger)
+    private DefaultSettingsLoader settingsLoader = new DefaultSettingsLoader(mockSettingsProcessor, mockBuildLayoutFactory, builtInCommands, logger, TestUtil.problemsService())
 
     def "running default task loads settings"() {
         when:

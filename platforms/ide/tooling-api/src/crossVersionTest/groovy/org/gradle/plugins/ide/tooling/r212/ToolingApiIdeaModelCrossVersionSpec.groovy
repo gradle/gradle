@@ -30,7 +30,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "explicit idea project language level does not overwrite module language level"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        includeProjects("root", "child1", "child2", "child3")
         buildFile << """
             apply plugin: 'idea'
 
