@@ -171,6 +171,7 @@
          <trusted-key id="70cd19bfd9f6c330027d6f260315bfb7970a144f" group="com.sun.xml.bind"/>
          <trusted-key id="7616eb882daf57a11477aaf559a252fb1199d873" group="com.google.code.findbugs"/>
          <trusted-key id="76e94e8ff0ab5af3b6f8366972fefd1572eb75e1" group="org.spockframework"/>
+         <trusted-key id="7b79add11f8a779fe90fd3d0893a028475557671" group="com.gradle"/>
          <trusted-key id="7c669810892cbd3148fa92995b05ccde140c2876" group="org.eclipse.jgit" name="org.eclipse.jgit"/>
          <trusted-key id="7faa0f2206de228f0db01ad741321490758aad6f" group="org.codehaus.groovy"/>
          <trusted-key id="829d279ba9a3c503eb98a0e53c48f45a0e97af7e" group="org.gebish"/>
@@ -779,9 +780,9 @@
             <pgp value="8569c95cadc508b09fe90f3002216ed811210daa"/>
          </artifact>
       </component>
-      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.7.6">
-         <artifact name="gradle-enterprise-conventions-plugin-0.7.6.jar">
-            <sha256 value="b3ff4bba6c5ac6e50e7225c7d1f69c0a9bc2ae9f3ce2bfacdc3f1b3999c2e758" origin="Artifact is not signed"/>
+      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.10.3">
+         <artifact name="gradle-enterprise-conventions-plugin-0.10.3.jar">
+            <sha256 value="9105916bca549ce9c1788209424c34870d89572d7d0dcaa4d8cd25290b9e7492" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.21">
@@ -1244,11 +1245,6 @@
       <component group="org.gradle" name="gradle-tooling-api" version="6.0.1">
          <artifact name="gradle-tooling-api-6.0.1.jar">
             <sha256 value="843245599385e906a4133fed1765c4d9f2e697b0091bb681cffd71dc426ff76b" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle" name="test-retry-gradle-plugin" version="1.4.0">
-         <artifact name="test-retry-gradle-plugin-1.4.0.jar">
-            <sha256 value="fc7ee40f9d73a6a9575c0335baf8084c51cdaf85dea4d220110659a80546bd7c" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.ci.health" name="common" version="0.63">

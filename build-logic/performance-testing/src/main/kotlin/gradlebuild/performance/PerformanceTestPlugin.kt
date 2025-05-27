@@ -17,6 +17,7 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment.isIntel
 import gradlebuild.basics.BuildEnvironment.isLinux
 import gradlebuild.basics.BuildEnvironment.isMacOsX
@@ -87,6 +88,7 @@ import java.time.ZoneId.systemDefault
 import java.time.format.DateTimeFormatter.ofPattern
 import java.util.concurrent.Callable
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.text.set
 
 
 object Config {
@@ -223,7 +225,9 @@ class PerformanceTestPlugin : Plugin<Project> {
             outputs.cacheIf { false }
             outputs.file(outputJson)
 
-            predictiveSelection.enabled.set(false)
+            extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
+                enabled.set(false)
+            }
         }
 
     private
@@ -429,7 +433,7 @@ class PerformanceTestExtension(
                 mustRunAfter(currentlyRegisteredTestProjects)
                 testSpecificConfigurator(this)
 
-                retry {
+                extensions.findByType<DevelocityTestConfiguration>()?.testRetry {
                     maxRetries.set(0)
                 }
             }
@@ -442,7 +446,7 @@ class PerformanceTestExtension(
                 description = "Runs performance tests on $testProject - supposed to be used on CI"
                 channel = "commits$channelSuffix"
 
-                retry {
+                extensions.findByType<DevelocityTestConfiguration>()?.testRetry {
                     maxRetries.set(1)
                 }
 
