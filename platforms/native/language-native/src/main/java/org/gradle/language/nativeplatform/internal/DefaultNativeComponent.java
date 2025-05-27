@@ -57,6 +57,11 @@ public abstract class DefaultNativeComponent {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ObjectFactory getObjects() {
+        throw new UnsupportedOperationException();
+    }
+
     // TODO - this belongs with the 'var' data structure
     protected FileCollection createSourceView(final String defaultLocation, List<String> sourceExtensions) {
         final PatternSet patternSet = new PatternSet();
@@ -68,7 +73,7 @@ public abstract class DefaultNativeComponent {
             public Object call() {
                 FileTree tree;
                 if (source.getFrom().isEmpty()) {
-                    tree = getProjectLayout().getProjectDirectory().dir(defaultLocation).getAsFileTree();
+                    tree = getObjects().fileTree().setDir(getProjectLayout().getProjectDirectory().dir(defaultLocation)).builtBy(source);
                 } else {
                     tree = source.getAsFileTree();
                 }
