@@ -17,11 +17,9 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 
-@InspectsBuildOutput
 class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     static final String OUT = "-- out --"

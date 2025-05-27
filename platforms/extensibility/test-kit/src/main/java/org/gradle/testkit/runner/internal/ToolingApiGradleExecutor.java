@@ -18,7 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
@@ -45,9 +45,11 @@ import org.gradle.tooling.events.task.TaskSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.wrapper.GradleUserHomeLookup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -73,6 +75,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     private static final String CLEANUP_THREAD_NAME = "gradle-runner-cleanup";
 
     private final static AtomicBoolean SHUTDOWN_REGISTERED = new AtomicBoolean();
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiGradleExecutor.class);
 
     private static void maybeRegisterCleanup() {
         if (SHUTDOWN_REGISTERED.compareAndSet(false, true)) {
@@ -115,9 +119,18 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions %s and later.",
                     targetGradleVersion.getVersion(), MINIMUM_SUPPORTED_GRADLE_VERSION.getVersion()));
             } else {
-                checkDeprecationWarning(targetGradleVersion);
+                if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
+                    // We do not use the DeprecationLogger here, since the DeprecationLogger
+                    // is only properly initialized in the daemon.
+                    LOGGER.warn(
+                        "The version of Gradle you are using ({}) is deprecated with TestKit. " +
+                            "TestKit will only support the last 5 major versions in future. " +
+                            "This will fail with an error in Gradle 10.0. {}",
+                        targetGradleVersion.getVersion(),
+                        Documentation.userManual("third_party_integration", "sec:embedding_compatibility").getConsultDocumentationMessage()
+                    );
+                }
             }
-
 
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
 
@@ -137,8 +150,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             if (!parameters.getInjectedClassPath().isEmpty()) {
                 if (targetGradleVersion.compareTo(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince()) < 0) {
                     throw new UnsupportedFeatureException("support plugin classpath injection", targetGradleVersion, TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince());
-                } else {
-                    checkDeprecationWarning(targetGradleVersion);
                 }
                 launcher.withInjectedClassPath(parameters.getInjectedClassPath());
             }
@@ -175,16 +186,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
 
         return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks);
-    }
-
-    private static void checkDeprecationWarning(GradleVersion targetGradleVersion) {
-        if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
-            DeprecationLogger.deprecate(String.format("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.",
-                    targetGradleVersion.getVersion()))
-                .willBecomeAnErrorInGradle10()
-                .withUserManual("third_party_integration", "sec:embedding_compatibility")
-                .nagUser();
-        }
     }
 
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {

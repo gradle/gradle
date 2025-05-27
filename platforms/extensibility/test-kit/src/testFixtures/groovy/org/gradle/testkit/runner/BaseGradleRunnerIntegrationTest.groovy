@@ -37,19 +37,13 @@ import org.gradle.internal.logging.LoggingConfigurationBuildOptions
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
-import org.gradle.testkit.runner.fixtures.CustomEnvironmentVariables
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.HideEnvVariableValuesInDaemonLog
-import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
-import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.InspectsGroupedOutput
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
-import org.gradle.testkit.runner.fixtures.WithNoSourceTaskOutcome
 import org.gradle.testkit.runner.internal.GradleProvider
-import org.gradle.testkit.runner.internal.feature.TestKitFeature
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
@@ -70,10 +64,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final GradleVersion MIN_TESTED_VERSION = TestKitFeature.RUN_BUILDS.since
-    public static final GradleVersion CUSTOM_DAEMON_DIR_SUPPORT_VERSION = GradleVersion.version("2.2")
-    public static final GradleVersion NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION = GradleVersion.version("3.4")
-    public static final GradleVersion ENVIRONMENT_VARIABLES_SUPPORT_VERSION = GradleVersion.version("3.5")
+    public static final GradleVersion MIN_TESTED_VERSION = DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
+
     public static final GradleVersion INSPECTS_GROUPED_OUTPUT_SUPPORT_VERSION = GradleVersion.version("5.0")
     public static final GradleVersion HIDE_ENV_VARIABLE_VALUE_IN_DAEMON_LOG_VERSION = GradleVersion.version("6.7")
 
@@ -158,8 +150,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     DaemonsFixture testKitDaemons(GradleVersion gradleVersion) {
-        def daemonDirName = gradleVersion < CUSTOM_DAEMON_DIR_SUPPORT_VERSION ? "daemon" : TEST_KIT_DAEMON_DIR_NAME
-        daemons(testKitDir.file(daemonDirName), gradleVersion)
+        daemons(testKitDir.file(TEST_KIT_DAEMON_DIR_NAME), gradleVersion)
     }
 
     DaemonsFixture daemons(File daemonDir, GradleVersion version) {
@@ -209,12 +200,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     static class Interceptor extends AbstractMultiTestInterceptor {
 
         private static final Map<Class<? extends Annotation>, GradleVersion> MINIMUM_VERSIONS_BY_ANNOTATIONS = [
-            (InspectsExecutedTasks): TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since,
-            (InspectsBuildOutput): TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since,
-            (InjectsPluginClasspath): TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since,
-            (CustomDaemonDirectory): CUSTOM_DAEMON_DIR_SUPPORT_VERSION,
-            (WithNoSourceTaskOutcome): NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION,
-            (CustomEnvironmentVariables): ENVIRONMENT_VARIABLES_SUPPORT_VERSION,
             (InspectsGroupedOutput): INSPECTS_GROUPED_OUTPUT_SUPPORT_VERSION,
             (HideEnvVariableValuesInDaemonLog): HIDE_ENV_VARIABLE_VALUE_IN_DAEMON_LOG_VERSION
         ]
@@ -397,18 +382,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
                 def gradleVersion = testedGradleDistribution.gradleVersion
 
-                if (testDetails.getAnnotation(InjectsPluginClasspath) && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InjectsPluginClasspath]) {
-                    return false
-                }
-
-                if (testDetails.getAnnotation(InspectsBuildOutput) && debug && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InspectsBuildOutput]) {
-                    return false
-                }
-
-                if (testDetails.getAnnotation(InspectsExecutedTasks) && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InspectsExecutedTasks]) {
-                    return false
-                }
-
                 if (testDetails.getAnnotation(NoDebug) && debug) {
                     return false
                 }
@@ -417,15 +390,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     return false
                 }
 
-                if (testDetails.getAnnotation(CustomDaemonDirectory) && gradleVersion < CUSTOM_DAEMON_DIR_SUPPORT_VERSION) {
-                    return false
-                }
-                if (testDetails.getAnnotation(WithNoSourceTaskOutcome) && gradleVersion < NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION) {
-                    return false
-                }
-                if (testDetails.getAnnotation(CustomEnvironmentVariables) && gradleVersion < ENVIRONMENT_VARIABLES_SUPPORT_VERSION) {
-                    return false
-                }
                 if (testDetails.getAnnotation(InspectsGroupedOutput) && gradleVersion < INSPECTS_GROUPED_OUTPUT_SUPPORT_VERSION) {
                     return false
                 }
