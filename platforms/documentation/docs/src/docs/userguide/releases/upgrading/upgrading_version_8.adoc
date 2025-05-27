@@ -199,11 +199,11 @@ For Gradle 8.x, the minimum supported version was 3.0.
 
 ==== Upgraded default versions of code quality tools
 
-The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.23.0[10.23.0].
+The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.24.0[10.24.0].
 
 The default version of CodeNarc is link:https://github.com/CodeNarc/CodeNarc/blob/v3.6.0/CHANGELOG.md#version-360--feb-2025[3.6.0].
 
-The default version of Pmd is link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.12.0[7.12.0]
+The default version of Pmd is link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.13.0[7.13.0]
 
 ==== Upgraded default versions of testing frameworks
 
