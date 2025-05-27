@@ -22,8 +22,8 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.11.4") // Sync with `build-logic/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
+    id("com.gradle.develocity").version("3.19.2") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.3")
     id("gradlebuild.base.allprojects")
     id("gradlebuild.internal.cc-experiment")
 }

@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
-import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
-import gradlebuild.basics.maxTestDistributionPartitionSecond
-import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.tasks.ClasspathManifest
-import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.testJavaVendor
 import gradlebuild.basics.testJavaVersion
 import gradlebuild.basics.testing.excludeSpockAnnotation
@@ -33,7 +29,6 @@ import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
-import java.time.Duration
 import java.util.jar.Attributes
 
 plugins {
@@ -41,7 +36,6 @@ plugins {
     idea // Need to apply the idea plugin, so the extended configuration is taken into account on sync
     id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
-    id("org.gradle.test-retry")
 }
 
 extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", tasks)
@@ -171,7 +165,11 @@ fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
         archiveBaseName.set(moduleIdentity.baseName)
         archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
-        manifest.attributes(mapOf(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle", Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
+        manifest.attributes(
+            mapOf(
+                Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
+                Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version })
+        )
     }
 }
 
@@ -190,6 +188,7 @@ fun Test.configureFlakyTest() {
             excludeSpockAnnotation("org.gradle.test.fixtures.Flaky")
             (options as JUnitPlatformOptions).excludeTags("org.gradle.test.fixtures.Flaky")
         }
+
         FlakyTestStrategy.ONLY -> {
             // Note there is an issue: https://github.com/spockframework/spock/issues/1288
             // JUnit Platform `includeTags` works before Spock engine, thus excludes all spock tests.
@@ -261,11 +260,9 @@ fun configureTests() {
         configureJvmForTest()
         addOsAsInputs()
 
-        val testName = name
-
         if (BuildEnvironment.isCiServer) {
             configureRerun()
-            retry {
+            extensions.findByType<DevelocityTestConfiguration>()?.testRetry {
                 maxRetries.convention(determineMaxRetries())
                 maxFailures.set(determineMaxFailures())
             }
@@ -277,55 +274,6 @@ fun configureTests() {
         useJUnitPlatform()
         configureSpock()
         configureFlakyTest()
-
-        distribution {
-            this as TestDistributionExtensionInternal
-            // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-            server.set(uri("https://ge.gradle.org"))
-        }
-
-        if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
-            println("Remote test distribution has been enabled for $testName")
-
-            distribution {
-                this as TestDistributionExtensionInternal
-                enabled.set(true)
-                project.maxTestDistributionPartitionSecond?.apply {
-                    preferredMaxDuration.set(Duration.ofSeconds(this))
-                }
-                // No limit; use all available executors
-                distribution.maxRemoteExecutors.set(if (project.isPerformanceProject()) 0 else null)
-
-                // Test distribution annotation-class filters
-                // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
-                localOnly {
-                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.LocalOnly")
-                }
-                remoteOnly {
-                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.RemoteOnly")
-                }
-
-                if (BuildEnvironment.isCiServer) {
-                    when {
-                        OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))
-                        OperatingSystem.current().isWindows -> requirements.set(listOf("os=windows", "gbt-dogfooding"))
-                        OperatingSystem.current().isMacOsX -> requirements.set(listOf("os=macos", "gbt-dogfooding"))
-                    }
-                } else {
-                    requirements.set(listOf("gbt-dogfooding"))
-                }
-            }
-        }
-
-        if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // GitHub actions for contributor PRs uses public build scan instance
-            // in this case we need to explicitly configure the PTS server
-            // Don't move this line into the lambda as it may cause config cache problems
-            (predictiveSelection as PredictiveTestSelectionExtensionInternal).server.set(uri("https://ge.gradle.org"))
-            predictiveSelection {
-                enabled.convention(project.predictiveTestSelectionEnabled)
-            }
-        }
     }
 }
 
