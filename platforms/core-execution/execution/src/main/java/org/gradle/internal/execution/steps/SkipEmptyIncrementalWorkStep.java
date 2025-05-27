@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListeners;
@@ -48,12 +49,13 @@ public class SkipEmptyIncrementalWorkStep extends AbstractSkipEmptyWorkStep<Prev
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
 
     public SkipEmptyIncrementalWorkStep(
+        ExecutionProblemHandler problemHandler,
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners,
         Supplier<OutputsCleaner> outputsCleanerSupplier,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
-        super(workInputListeners, delegate);
+        super(problemHandler, workInputListeners, delegate);
         this.outputChangeListener = outputChangeListener;
         this.outputsCleanerSupplier = outputsCleanerSupplier;
     }

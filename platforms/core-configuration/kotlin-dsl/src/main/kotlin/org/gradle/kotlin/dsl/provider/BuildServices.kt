@@ -41,8 +41,8 @@ import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-import org.gradle.kotlin.dsl.normalization.KotlinDslCompileAvoidanceClasspathHashCache
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
+import org.gradle.kotlin.dsl.normalization.KotlinDslCompileAvoidanceClasspathHashCache
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.plugin.management.internal.PluginHandler
@@ -147,8 +147,9 @@ object BuildServices : ServiceRegistrationProvider {
         classpathFingerprinter: ClasspathFingerprinter
     ): ClasspathHasher =
         DefaultClasspathHasher(
+            fileCollectionSnapshotter,
             if (isKotlinScriptCompilationAvoidanceEnabled) {
-                KotlinCompileClasspathFingerprinter(kotlinDslCompileAvoidanceClasspathHashCache, fileCollectionSnapshotter)
+                KotlinCompileClasspathFingerprinter(kotlinDslCompileAvoidanceClasspathHashCache)
             } else {
                 classpathFingerprinter
             },
