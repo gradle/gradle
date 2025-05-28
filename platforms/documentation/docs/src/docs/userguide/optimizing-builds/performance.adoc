@@ -91,7 +91,7 @@ It is a Java (JDK 21) `Application and library project` using Kotlin build files
 
 image::performance/performance-1.png[]
 
-It builds in *21 seconds* using Gradle 10.0.
+It builds in *21 seconds* using Gradle 8.10.
 
 [[sec:update-versions]]
 == 1. Update Versions
@@ -106,7 +106,7 @@ Staying up to date also makes major version upgrades smoother by providing early
 
 You can use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> to update the version of Gradle by running `gradle wrapper --gradle-version X.X` where `X.X` is the desired version.
 
-When our reference project is updated to use Gradle 13.0, the build (`./gradlew clean build`) takes *8 seconds*:
+When our reference project is updated to use Gradle 8.13, the build (`./gradlew clean build`) takes *8 seconds*:
 
 image::performance/performance-2.png[]
 
