@@ -69,7 +69,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     private static void setStyling(Project project, GradleDocumentationExtension extension) {
         getDokkaExtension(project).getPluginsConfiguration().named("html", DokkaHtmlPluginParameters.class, config -> {
             config.getCustomStyleSheets().from(extension.getSourceRoot().file("kotlin/styles/gradle.css"));
-            config.getCustomAssets().from(extension.getSourceRoot().file("kotlin/images/gradle-logo.svg"));
+            config.getCustomAssets().from(extension.getSourceRoot().file("kotlin/images/logo-icon.svg"));
             config.getFooterMessage().set("Gradle Kotlin DSL Reference");
         });
     }
