@@ -1,0 +1,17 @@
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+compileTestJava - Compiles test Java source.
+components - Displays the components produced by project ':app'. [deprecated]
+dependentComponents - Displays the dependent components of components in project ':app'. [deprecated]
+generateDocs
+processResources - Processes main resources.
+processTestResources - Processes test resources.
+startScripts - Creates OS specific scripts to run the project as a JVM application.
