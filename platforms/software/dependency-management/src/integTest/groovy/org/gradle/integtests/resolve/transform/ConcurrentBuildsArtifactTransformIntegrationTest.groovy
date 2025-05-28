@@ -22,11 +22,12 @@ import org.junit.Rule
 
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         server.start()
-        buildFile << """
+        buildFile """
 enum Color { Red, Green, Blue }
 def type = Attribute.of("artifactType", String)
 dependencies {
@@ -55,7 +56,7 @@ dependencies {
     compile files(f)
 }
 
-task redThings {
+tasks.register('redThings') {
     def files = configurations.compile.incoming.artifactView {
         attributes {
             attribute(type, "red")
@@ -66,7 +67,7 @@ task redThings {
     }
 }
 
-task blueThings {
+tasks.register('blueThings') {
     def files = configurations.compile.incoming.artifactView {
         attributes {
             attribute(type, "blue")
@@ -80,25 +81,25 @@ task blueThings {
     }
 
     def setupTransform(String beforeTransformLogic = "") {
-        buildFile << """
-        abstract class ToColor implements TransformAction<Parameters> {
-            interface Parameters extends TransformParameters {
-                @Input
-                Property<Color> getColor()
-            }
+        buildFile """
+            abstract class ToColor implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    Property<Color> getColor()
+                }
 
-            @InputArtifact
-            abstract Provider<FileSystemLocation> getInputArtifact()
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
 
-            void transform(TransformOutputs outputs) {
-                $beforeTransformLogic
-                def input = inputArtifact.get().asFile
-                def color = parameters.color.get()
-                println "Transforming \$input.name to \$color"
-                def out = outputs.file(color.toString())
-                out.text = input.name
+                void transform(TransformOutputs outputs) {
+                    $beforeTransformLogic
+                    def input = inputArtifact.get().asFile
+                    def color = parameters.color.get()
+                    println "Transforming \$input.name to \$color"
+                    def out = outputs.file(color.toString())
+                    out.text = input.name
+                }
             }
-        }
         """
     }
 
@@ -106,22 +107,22 @@ task blueThings {
         given:
         // Run two builds where one build applies one transform and the other build the second
         setupTransform()
-        buildFile << """
+        buildFile """
 task block1 {
     doLast {
         ${server.callFromBuild("block1")}
     }
 }
-block1.mustRunAfter redThings
-blueThings.mustRunAfter block1
 
 task block2 {
     doLast {
         ${server.callFromBuild("block2")}
     }
 }
-block2.mustRunAfter blueThings
 
+block1.mustRunAfter redThings
+blueThings.mustRunAfter block1
+block2.mustRunAfter blueThings
 """
         // Ensure build scripts compiled
         run("help")
@@ -159,7 +160,6 @@ block2.mustRunAfter blueThings
      */
     def "concurrent builds can transform the same file at the same time"() {
         given:
-        // Run two builds concurrently
         setupTransform("${server.callFromBuildUsingExpression("parameters.color.get()")}")
         buildFile << """
 task block1 {
@@ -186,13 +186,14 @@ blueThings.mustRunAfter redThings
         def blueBlock = server.expectConcurrentAndBlock("Blue", "Blue")
 
         when:
-        // Block until both builds are ready to start resolving
+        // Run two builds concurrently
         def build1 = executer.withTasks("block1", "redThings", "blueThings").start()
         def build2 = executer.withTasks("block2", "redThings", "blueThings").start()
 
-        // Resolve concurrently
+        // Block until both builds are ready to start resolving
         block.waitForAllPendingCalls()
         block.releaseAll()
+        // Resolve concurrently
         redBlock.waitForAllPendingCalls()
         redBlock.releaseAll()
         blueBlock.waitForAllPendingCalls()
