@@ -281,7 +281,7 @@ public class GraphVariantSelector {
         if (targetVariant.getMetadata().isDeprecated()) {
             DeprecationLogger.deprecateConfiguration(targetVariant.getName())
                 .forConsumption()
-                .willBecomeAnErrorInGradle9()
+                .willBecomeAnErrorInNextMajorGradleVersion()
                 .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
