@@ -49,6 +49,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val bouncycastlePgp = "org.bouncycastle:bcpg-jdk18on"
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
+    val bouncycastleUtil = "org.bouncycastle:bcutil-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
@@ -237,6 +238,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         awsS3Sts to License.Apache2,
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
+        bouncycastleUtil to License.MIT,
         bsh to License.Apache2,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
