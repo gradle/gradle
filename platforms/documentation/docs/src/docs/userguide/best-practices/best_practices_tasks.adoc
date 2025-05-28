@@ -156,7 +156,7 @@ NOTE: Tasks with no group are hidden from the <<command_line_interface.adoc#sec:
 
 ==== Don't Do This
 
-Tasks without a group appear under the "other" category in `gradle tasks --all` output, making them harder to locate:
+Tasks without a group appear under the "other" category in `./gradlew tasks --all` output, making them harder to locate:
 
 ====
 include::sample[dir="snippets/bestPractices/groupTasks-avoid/kotlin",files="app/build.gradle.kts[tags=avoid-this]"]
