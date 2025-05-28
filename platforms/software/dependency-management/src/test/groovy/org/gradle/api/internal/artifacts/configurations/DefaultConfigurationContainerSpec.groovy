@@ -62,9 +62,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         decorate(_ as Action) >> { it[0] }
     }
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
-        getValidator() >> Mock(MutationValidator)
-    }
+    def metadataBuilder = Mock(DefaultRootComponentMetadataBuilder)
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
         create(_, _, _, _) >> metadataBuilder
     }

@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyMetadataFactory
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder
@@ -92,55 +91,6 @@ class DefaultRootComponentMetadataBuilderTest extends AbstractProjectBuilderSpec
         then:
         differentConf.rootComponent.is(root.rootComponent)
         differentConf.rootComponent.metadata.is(root.rootComponent.metadata)
-    }
-
-    def "reevaluates component metadata when #mutationType change"() {
-        project.configurations.resolvable("root")
-        project.configurations.consumable("conf")
-
-        def root = builder.toRootComponent('root')
-        def variant = root.rootComponent.candidatesForGraphVariantSelection.getVariantByConfigurationName('conf')
-
-        when:
-        builder.validator.validateMutation(mutationType)
-        def otherRoot = builder.toRootComponent('root')
-
-        then:
-        root.rootComponent.is(otherRoot.rootComponent)
-        root.rootComponent.metadata.is(otherRoot.rootComponent.metadata)
-        !otherRoot.rootComponent.candidatesForGraphVariantSelection.getVariantByConfigurationName('conf').is(variant)
-
-        when:
-
-        where:
-        mutationType << [
-            MutationValidator.MutationType.DEPENDENCIES,
-            MutationValidator.MutationType.DEPENDENCY_ATTRIBUTES,
-            MutationValidator.MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES,
-            MutationValidator.MutationType.ARTIFACTS,
-            MutationValidator.MutationType.USAGE,
-            MutationValidator.MutationType.HIERARCHY
-        ]
-    }
-
-    def "does not reevaluate component metadata when #mutationType change"() {
-        project.configurations.resolvable("root")
-        project.configurations.consumable("conf")
-
-        def root = builder.toRootComponent('root')
-        def variant = root.rootComponent.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
-
-        when:
-        builder.validator.validateMutation(mutationType)
-        def otherRoot = builder.toRootComponent('root')
-
-        then:
-        root.rootComponent.is(otherRoot.rootComponent)
-        root.rootComponent.metadata.is(otherRoot.rootComponent.metadata)
-        otherRoot.rootComponent.candidatesForGraphVariantSelection.getVariantByConfigurationName('conf').is(variant)
-
-        where:
-        mutationType << [MutationValidator.MutationType.STRATEGY]
     }
 
 }
