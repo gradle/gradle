@@ -24,13 +24,21 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.internal.UncheckedException;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Generates Javadocs in a particular way.
@@ -94,7 +102,10 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This breaks the provider
             options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
 
-            task.source(extension.getDocumentedSource().filter(f -> f.getName().endsWith(".java")));
+            task.source(extension.getDocumentedSource()
+                .filter(f -> f.getName().endsWith(".java"))
+                .filter(new DeduplicatePackageInfoFiles())
+            );
 
             task.setClasspath(extension.getClasspath());
 
@@ -123,5 +134,41 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setClasspath(layout.files());
             task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
         });
+    }
+
+    private static class DeduplicatePackageInfoFiles implements Spec<File> {
+
+        private final Pattern pattern = Pattern.compile("package\\s*([^;\\s]+)\\s*;");
+
+        private final Set<String> packagesSeenBefore = new HashSet<>();
+
+        @SuppressWarnings("UnnecessaryLocalVariable")
+        @Override
+        public boolean isSatisfiedBy(File file) {
+            try {
+                if (file.getName().equals("package-info.java")) {
+                    String packageName = getPackageName(file);
+                    boolean notSeeBefore = packagesSeenBefore.add(packageName);
+                    return notSeeBefore; // we pass through package-info.java files for packages we have not seen before, block the rest
+                } else {
+                    return true; // not a package-info.java file, we ignore it
+                }
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e, true);
+            }
+        }
+
+        private String getPackageName(File file) throws IOException {
+            String packageLine = Files.lines(file.toPath())
+                .filter(line -> line.startsWith("package"))
+                .findFirst()
+                .orElseThrow(() -> new IOException("Can't find package definition in file " + file));
+            Matcher matcher = pattern.matcher(packageLine);
+            if (matcher.find()) {
+                return matcher.group(1);
+            } else {
+                throw new IOException("Can't extract package name from file " + file);
+            }
+        }
     }
 }
