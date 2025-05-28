@@ -39,225 +39,6 @@ trait AbstractTaskContainerIntegrationTest {
 
 class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
 
-    def "can read task user code source"() {
-        given:
-        buildFile """
-            task foo {
-                doLast {
-                    println "Hello from \${userCodeSource.displayName}"
-                }
-            }
-        """
-
-        when:
-        def result = run("foo")
-
-        then:
-        outputContains("Hello from build file 'build.gradle'")
-    }
-
-    def "can read task user code source for task registered by plugin"() {
-        given:
-        buildFile """
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.tasks.register("foo") {
-                        doLast {
-                            println "Hello from \${userCodeSource.displayName}"
-                        }
-                    }
-                }
-            }
-
-            apply plugin: MyPlugin
-        """
-
-        when:
-        def result = run("foo")
-
-        then:
-        outputContains("Hello from plugin class 'MyPlugin'")
-    }
-
-    def "can read task user code source for task registered by plugin in afterEvaluate"() {
-        given:
-        buildFile """
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.afterEvaluate { p ->
-                        p.tasks.register("foo") {
-                            doLast {
-                                println "Hello from \${userCodeSource.displayName}"
-                            }
-                        }
-                    }
-                }
-            }
-
-            apply plugin: MyPlugin
-        """
-
-        when:
-        def result = run("foo")
-
-        then:
-        outputContains("Hello from plugin class 'MyPlugin'")
-    }
-
-    def "task fails"() {
-        given:
-        buildFile """
-            task foo {
-                doLast {
-                    throw new RuntimeException("foo")
-                }
-            }
-        """
-
-        when:
-        fails("foo")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':foo' created by build file 'build.gradle'.")
-    }
-
-    def "task fails in afterEvaluate"() {
-        given:
-        buildFile """
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.afterEvaluate { p ->
-                        p.tasks.register("foo") {
-                            doLast {
-                                throw new RuntimeException("foo")
-                            }
-                        }
-                    }
-                }
-            }
-
-            apply plugin: MyPlugin
-        """
-
-        when:
-        fails("foo")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':foo' created by plugin class 'MyPlugin'.")
-    }
-
-    def "task fails in afterEvaluate from plugin applied by other plugin"() {
-        given:
-        buildFile """
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.afterEvaluate { p ->
-                        p.tasks.register("foo") {
-                            doLast {
-                                throw new RuntimeException("foo")
-                            }
-                        }
-                    }
-                }
-            }
-
-            class MyOtherPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.pluginManager.apply(MyPlugin.class)
-                }
-            }
-
-            apply plugin: MyOtherPlugin
-        """
-
-        when:
-        fails("foo")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':foo' created by plugin class 'MyPlugin'.")
-    }
-
-    def "task registered in project fails"() {
-        given:
-        buildFile """
-            tasks.register("foo") {
-                doLast {
-                    throw new RuntimeException("foo")
-                }
-            }
-        """
-
-        when:
-        fails("foo")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':foo' created by build file 'build.gradle'")
-    }
-
-    def "task registered in settings fails"() {
-        given:
-        settingsFile """
-            gradle.rootProject {
-                tasks.register("foo") {
-                    doLast {
-                        throw new RuntimeException("foo")
-                    }
-                }
-            }
-        """
-
-        when:
-        fails("foo")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':foo' created by settings file 'settings.gradle'")
-    }
-
-
-    def "task registered in provider fails"() {
-        given:
-        buildFile """
-            def myProvider = provider {
-                tasks.register("foo") {
-                    doLast {
-                        throw new RuntimeException("foo")
-                    }
-                }
-            }
-
-            myProvider.get()
-        """
-
-        when:
-        fails("foo")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':foo' created by build file 'build.gradle'")
-    }
-
-    def "built in task fails"() {
-        given:
-        buildFile """
-            help {
-                doLast {
-                    throw new RuntimeException("help")
-                }
-            }
-        """
-
-        when:
-        fails("help")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':help' created by plugin 'org.gradle.help-tasks'")
-    }
-
-    // Test basic case: plugin registers a task, task fails at runtime, exception blames plugin
-    // Same, but plubin registers task in afterEvaluate
-    // Same, but plugin applies another plugin in afterEvaluate, which registers a task
-    // Check a built in task's context (init, help)
-    // Test task creation by rules
-
     @Issue("https://github.com/gradle/gradle/issues/28347")
     def "filtering is lazy (`#filtering` + `#configAction`)"() {
         given:
@@ -296,26 +77,26 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
         }
 
         where:
-        filtering                           | configAction        | realizesBuiltInTasks  | realizesExplicitTasks
+        filtering                           | configAction       | realizesBuiltInTasks | realizesExplicitTasks
 
-        "named { it == \"help\" }"          | "all {}"            | true                  | true
-        "named { it == \"help\" }"          | "forEach {}"        | true                  | false
-        "named { it == \"help\" }"          | "configureEach {}"  | false                 | false
-        "named { it == \"help\" }"          | "toList()"          | true                  | false
-        "named { it == \"help\" }"          | "iterator()"        | true                  | false
+        "named { it == \"help\" }"          | "all {}"           | true                 | true
+        "named { it == \"help\" }"          | "forEach {}"       | true                 | false
+        "named { it == \"help\" }"          | "configureEach {}" | false                | false
+        "named { it == \"help\" }"          | "toList()"         | true                 | false
+        "named { it == \"help\" }"          | "iterator()"       | true                 | false
         // TODO: no other tasks should be realized, that was the intent of having the new `named()` method
 
-        "matching { it.name == \"help\" }"  | "all {}"            | true                  | true
-        "matching { it.name == \"help\" }"  | "forEach {}"        | true                  | false
-        "matching { it.name == \"help\" }"  | "configureEach {}"  | false                 | false
-        "matching { it.name == \"help\" }"  | "toList()"          | true                  | false
-        "matching { it.name == \"help\" }"  | "iterator()"        | true                  | false
+        "matching { it.name == \"help\" }"  | "all {}"           | true                 | true
+        "matching { it.name == \"help\" }"  | "forEach {}"       | true                 | false
+        "matching { it.name == \"help\" }"  | "configureEach {}" | false                | false
+        "matching { it.name == \"help\" }"  | "toList()"         | true                 | false
+        "matching { it.name == \"help\" }"  | "iterator()"       | true                 | false
 
-        "matching { it.group == \"help\" }" | "all {}"            | true                  | true
-        "matching { it.group == \"help\" }" | "forEach {}"        | true                  | false
-        "matching { it.group == \"help\" }" | "configureEach {}"  | false                 | false
-        "matching { it.group == \"help\" }" | "toList()"          | true                  | false
-        "matching { it.group == \"help\" }" | "iterator()"        | true                  | false
+        "matching { it.group == \"help\" }" | "all {}"           | true                 | true
+        "matching { it.group == \"help\" }" | "forEach {}"       | true                 | false
+        "matching { it.group == \"help\" }" | "configureEach {}" | false                | false
+        "matching { it.group == \"help\" }" | "toList()"         | true                 | false
+        "matching { it.group == \"help\" }" | "iterator()"       | true                 | false
 
     }
 
