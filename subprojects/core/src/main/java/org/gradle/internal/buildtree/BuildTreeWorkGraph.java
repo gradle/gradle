@@ -18,7 +18,6 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
-import org.gradle.composite.internal.BuildController;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -41,8 +40,6 @@ public interface BuildTreeWorkGraph {
      * <p>This can be called only once for a given graph.</p>
      */
     FinalizedGraph scheduleWork(Consumer<? super Builder> action);
-
-    BuildController getBuildController(BuildState build);
 
     interface FinalizedGraph {
         /**

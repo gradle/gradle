@@ -18,7 +18,6 @@ package org.gradle.composite.internal;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
-import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
@@ -57,11 +56,6 @@ public interface BuildController extends Stoppable {
      * @return true if any tasks were scheduled, false if not.
      */
     boolean scheduleQueuedTasks();
-
-    /**
-     * Returns finalized execution plan for this build. This method should be called only after {@link #finalizeWorkGraph}.
-     */
-    FinalizedExecutionPlan getFinalizedExecutionPlan();
 
     /**
      * Prepares the work graph, once all tasks have been scheduled.
