@@ -399,13 +399,18 @@ public interface ArchUnitFixture {
         private static final PackageMatchers INCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.includes")));
         private static final PackageMatchers EXCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.excludes")));
 
+        public static boolean test(String packageName) {
+            return INCLUDES.test(packageName) && !EXCLUDES.test(packageName);
+        }
+
         public InGradlePublicApiPackages() {
             super("in Gradle public API packages");
         }
 
         @Override
         public boolean test(JavaClass input) {
-            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName());
+            String packageName = input.getPackageName();
+            return test(packageName);
         }
 
         private static Set<String> parsePackageMatcher(String packageList) {
