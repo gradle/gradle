@@ -118,8 +118,12 @@ class GroovyCoverage {
 
         // For each Groovy version, find the highest supported JDK
         return groovyVersions.collectEntries {groovyVersion ->
-                def highestSupportedJvm = jvmToGroovySupport.find { it.supports(groovyVersion) }.jvm
-                return  [(groovyVersion): highestSupportedJvm]
+                def highestSupportedJvm = jvmToGroovySupport.find { it.supports(groovyVersion) }
+                if (highestSupportedJvm == null) {
+                    return [:]
+                } else {
+                    return [(groovyVersion): highestSupportedJvm.jvm]
+                }
             }.toSorted { a, b ->
                 return VersionNumber.parse(b.key).compareTo(VersionNumber.parse(a.key))
             }
