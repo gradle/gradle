@@ -123,6 +123,36 @@ include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.
 
 Consult the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
 
+[[include_existing_projects_only]]
+=== Including projects without an existing directory
+
+When you include a subproject in your `settings.gradle(.kts)` file, Gradle expects that the associated directory for that project exists and is writable.
+
+WARNING: Starting with **Gradle 9.0**, this is enforced strictly: **If a project directory is missing or read-only, the build will fail.** This replaces earlier behavior where Gradle would silently allow missing project directories.
+
+Here's how you can create a missing directory at configuration time:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+include("project-without-directory")
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+[.multi-language-sample]
+======
+.settings.gradle
+[source,groovy]
+----
+include 'project-without-directory'
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+=====
+
 == Modifying a subproject path
 
 Let's take a hypothetical project with the following structure:

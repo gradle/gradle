@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +75,7 @@ public class TransformExecutionResultSerializer {
             }
             return builder.build();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

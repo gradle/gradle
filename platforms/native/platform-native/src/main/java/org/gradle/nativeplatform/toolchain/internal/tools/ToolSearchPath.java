@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.os.OperatingSystem;
@@ -83,7 +83,7 @@ public class ToolSearchPath {
                 }
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         return null;

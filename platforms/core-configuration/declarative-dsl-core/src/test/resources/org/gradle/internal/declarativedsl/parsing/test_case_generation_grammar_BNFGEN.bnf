@@ -1,10 +1,12 @@
-<start> ::= <statement>{100};
+<start> ::= <startPerLine> {250};
 
-<statement> ::= 10 <assignment> "\n" | 3 <block> "\n" | <functionChain> "\n";
-<statementIndent1> ::= 5 "  " <assignment> "\n" | 3 "  " <blockIndent1> "\n" | "  " <functionChain> "\n";
-<statementIndent2> ::= 3 "    " <assignment> "\n" | "    " <functionChain> "\n";
+<startPerLine> ::= <statement> "\n";
 
-<assignment> ::= <directlyAssignableExpression> "=" <assignmentValue>;
+<statement> ::= 10 <assignment> | 3 <block> | <expression>;
+<statementIndent1> ::= 5 "  " <assignment> "\n" | 3 "  " <blockIndent1> "\n" | "  " <expression> "\n";
+<statementIndent2> ::= 3 "    " <assignment> "\n" | "    " <expression> "\n";
+
+<assignment> ::= 10 <directlyAssignableExpression> "=" <assignmentValue> | 2 <directlyAssignableExpression> "+=" <assignmentValue>;
 <directlyAssignableExpression> ::= <simpleIdentifier> | <simpleIdentifier> <navigationSuffix>;
 <assignmentValue> ::= 10 <literalOrIdentifier> | 5 <simpleIdentifier> | 3 <simpleIdentifier> <navigationSuffix> {1,3} <valueArguments>;
 
@@ -14,14 +16,16 @@
 <annotatedLambdaIndent1> ::= " {}\n" | 10 " {\n" <statementIndent2>{1,10} "  }\n";
 
 
-<functionChain> ::= <simpleIdentifier> <postfixUnarySuffixes>;
+<expression> ::= 10 <simpleExpression> | <simpleExpression> " to " <simpleExpression>;
+<simpleExpression> ::= <simpleIdentifier> <postfixUnarySuffixes> | 3 <primaryExpression>;
+<primaryExpression> ::= <simpleIdentifier> | <stringLiteral> | <literalConstant>;
 <postfixUnarySuffixes> ::= <navigationSuffix> {1,3} <valueArguments> | <valueArguments> | <valueArguments> <navSuffixAndValueArguments> {1,3};
 <navSuffixAndValueArguments> ::= <navigationSuffix> <valueArguments>;
 
 
 <valueArguments> ::= "(" <valueArgument> ")" | "(" <valueArgument> <furtherArguments>{1,2}  ")";
 <furtherArguments> ::= "," <valueArgument>;
-<valueArgument> ::= 5 <functionChain> | 20 <literalOrIdentifier> | 3 <simpleIdentifier> "=" <functionChain> | 10 <simpleIdentifier> "=" <literalOrIdentifier>;
+<valueArgument> ::= 5 <expression> | <simpleIdentifier> "=" <expression>;
 
 <navigationSuffix> ::= "." <simpleIdentifier>;
 

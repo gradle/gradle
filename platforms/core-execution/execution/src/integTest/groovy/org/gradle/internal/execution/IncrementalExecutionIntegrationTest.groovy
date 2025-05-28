@@ -64,7 +64,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, snapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, FileSystemLocationSnapshotHasher.DEFAULT)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
         @Override
@@ -371,12 +371,23 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         result.executionReasons == ["Output property 'file' has been removed for ${outputFilesRemovedUnitOfWork.displayName}"]
     }
 
+    interface DifferentType {}
+
     def "out-of-date when implementation changes"() {
         expect:
         execute(unitOfWork)
         outOfDate(
-            builder.withImplementation(ImplementationSnapshot.of("DifferentType", TestHashCodes.hashCodeFrom(1234))).build(),
-            "The type of ${unitOfWork.displayName} has changed from 'org.gradle.internal.execution.UnitOfWork' to 'DifferentType'."
+            builder.withImplementation(DifferentType).build(),
+            "The type of ${unitOfWork.displayName} has changed from '$UnitOfWork.name' to '$DifferentType.name'."
+        )
+    }
+
+    def "out-of-date when additional implementation is added"() {
+        expect:
+        execute(unitOfWork)
+        outOfDate(
+            builder.withAdditionalImplementation(ImplementationSnapshot.of("AdditionalType", TestHashCodes.hashCodeFrom(1234))).build(),
+            "One or more additional actions for ${unitOfWork.displayName} have changed."
         )
     }
 

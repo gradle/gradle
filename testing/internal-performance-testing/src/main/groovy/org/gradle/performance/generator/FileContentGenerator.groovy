@@ -117,14 +117,24 @@ abstract class FileContentGenerator {
             String includedProjects = ""
             if (config.subProjects != 0) {
                 includedProjects = """
-                    ${(0..config.subProjects - 1).collect { projectNumber ->
-                    "include(\"project$projectNumber${(0..config.projectDepth).collect { subprojectNumber -> ":sub${subprojectNumber}project${projectNumber}" }.join("")}\")"
-                }.join("\n")}
+                    ${
+                    (0..config.subProjects - 1).collect { projectNumber ->
+                        "include(\"project$projectNumber${getSubProjectPath(projectNumber)}\")"
+                    }.join("\n")
+                }
                 """
             }
 
             return includedProjects + generateEnableFeaturePreviewCode()
         }
+    }
+
+    String getSubProjectPath(projectNumber) {
+        def depth = config.projectDepth
+        if(depth <= 0) {
+            return ""
+        }
+        return (0..(depth-1)).collect { subprojectNumber -> ":sub${subprojectNumber}project${projectNumber}" }.join("")
     }
 
     abstract protected String generateEnableFeaturePreviewCode()
@@ -327,7 +337,8 @@ abstract class FileContentGenerator {
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
         def children = dependencyTree.getTransitiveChildClassIds(classNumber)
-        (0..Math.max(propertyCount, children.size()) - 1).each {
+        def i = Math.max(propertyCount, children.size()) - 1
+        (0..Math.max(0, i)).each {
             def propertyType
             if (it < children.size()) {
                 def childNumber = children.get(it)
@@ -367,7 +378,8 @@ abstract class FileContentGenerator {
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
         def children = dependencyTree.getTransitiveChildClassIds(classNumber)
-        (0..Math.max(propertyCount, children.size()) - 1).each {
+        def i = Math.max(propertyCount, children.size()) - 1
+        (0..Math.max(0, i)).each {
             def propertyType
             def propertyValue
             if (it < children.size()) {
@@ -435,7 +447,7 @@ abstract class FileContentGenerator {
         def subProjectDependencies = ''
         if (subProjectNumbers?.size() > 0) {
             def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
-            subProjectDependencies = subProjectNumbers.collect {
+            subProjectDependencies = new HashSet<Integer>(subProjectNumbers).collect {
                 it == abiProjectNumber ? projectDependencyDeclaration(hasParent ? api : implementation, abiProjectNumber) : projectDependencyDeclaration(implementation, it)
             }.join("\n            ")
         }

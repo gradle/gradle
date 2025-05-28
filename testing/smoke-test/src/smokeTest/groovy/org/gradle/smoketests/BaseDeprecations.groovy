@@ -18,25 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.api.internal.DocumentationRegistry
 
-import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
-
 class BaseDeprecations {
     public static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
-
-    public static final String ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION = "The AbstractArchiveTask.archivePath property has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Please use the archiveFile property instead. " +
-        String.format(RECOMMENDATION, "information", DOCUMENTATION_REGISTRY.getDslRefForProperty("org.gradle.api.tasks.bundling.AbstractArchiveTask","archivePath"))
-
-    public static final String CONVENTION_TYPE_DEPRECATION = "The org.gradle.api.plugins.Convention type has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","deprecated_access_to_conventions")
-
-    public static final String JAVA_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","java_convention_deprecation")
 
     final SmokeTestGradleRunner runner
 

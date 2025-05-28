@@ -91,9 +91,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(owner, this, rootComponentIdentity, schema);
         this.problemsService = problemsService;
-
-        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
-        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
 
     @Override
@@ -384,6 +381,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         super.add(configuration);
         configureAction.execute(configuration);
         configuration.preventUsageMutation();
+        configuration.setVisible(false);
         return configuration;
     }
 

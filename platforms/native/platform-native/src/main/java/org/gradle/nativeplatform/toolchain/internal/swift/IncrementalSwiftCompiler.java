@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.swift;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
@@ -27,7 +28,6 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
     private final Compiler<SwiftCompileSpec> compiler;
@@ -74,7 +74,7 @@ public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
                     didRemove = true;
                 }
             } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
+                throw UncheckedException.throwAsUncheckedException(ex);
             }
         }
         return didRemove;

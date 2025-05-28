@@ -34,15 +34,11 @@ import java.util.Set;
 
 public interface ConfigurationInternal extends DeprecatableConfiguration, Configuration {
 
+    // This type is referenced by Nebula:
+    // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/db24ee7e0b5c5c6f6327cdfd377e90e505bb1fd2/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L59
     enum InternalState {
         UNRESOLVED,
-        BUILD_DEPENDENCIES_RESOLVED,
-        GRAPH_RESOLVED,
-
-        // This state should be removed, but it is referenced by nebula gradle-resolution-rules-plugin.
-        // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/623bbbcd4f187101bc233e46c4d9ec960c02e1a7/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L62
-        @Deprecated
-        ARTIFACTS_RESOLVED
+        OBSERVED
     }
 
     String getDisplayName();
@@ -64,24 +60,25 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
 
     /**
      * Marks this configuration as observed, meaning its state has been seen by some external operation
-     * and further changes to this context that would change its public state are forbidden.
+     * and further changes to this configuration that would change its public state are forbidden.
+     * <p>
+     * The state guarded by this method includes all mutable state except for the dependencies,
+     * dependency constraints, and global excludes of this configuration. After configuration
+     * dependencies are observed, {@link #markDependenciesObserved()} should be called.
      *
      * @param reason Describes the external operation that observed this configuration
      */
     void markAsObserved(String reason);
 
     /**
-     * Legacy observation mechanism, will be removed in Gradle 9.0.
-     * <p>
-     * Prefer {@link #markAsObserved(String)}
+     * Marks the dependencies of a configuration observed, after which the dependencies,
+     * dependency constraints, and global excludes of this configuration cannot be mutated.
+     *
+     * @throws IllegalStateException if {@link #markAsObserved(String)} has not yet been called.
      */
-    void markAsObserved(InternalState requestedState);
+    void markDependenciesObserved();
 
     DomainObjectContext getDomainObjectContext();
-
-    void addMutationValidator(MutationValidator validator);
-
-    void removeMutationValidator(MutationValidator validator);
 
     /**
      * Visits the variants of this configuration.

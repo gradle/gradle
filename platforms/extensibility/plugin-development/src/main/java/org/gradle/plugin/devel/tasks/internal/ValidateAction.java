@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.tasks.internal;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -35,6 +34,7 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.util.internal.TextUtil;
@@ -217,7 +217,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             try {
                 return new ClassReader(Files.asByteSource(fileDetails.getFile()).read());
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

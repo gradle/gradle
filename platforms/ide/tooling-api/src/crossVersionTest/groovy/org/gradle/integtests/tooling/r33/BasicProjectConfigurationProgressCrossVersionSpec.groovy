@@ -53,8 +53,8 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         given:
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
 
         when:
         def events = ProgressEvents.create()
@@ -89,8 +89,9 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         given:
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+
+        includeProjects("a", "b")
         file("a/build.gradle") << """
             throw new RuntimeException("broken")
 """
@@ -217,6 +218,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
     }
 
     def buildSrc() {
+        createProjectSubDirs("buildSrc/a", "buildSrc/b")
         file("buildSrc/settings.gradle") << "include 'a', 'b'"
         file("buildSrc/build.gradle") << """
             allprojects {

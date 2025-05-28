@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -47,6 +46,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -232,7 +232,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
                     assert lines.size() == 2;
                     analysisMap.put(new File(lines.get(0)), new File(lines.get(1)));
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         }

@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.pmd
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
@@ -34,6 +35,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
     def "uses jdk from toolchains set through java plugin"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
+        Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersionMajor))
 
         given:
         goodCode()
@@ -52,6 +54,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
     def "uses jdk from toolchains set through pmd task"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
+        Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersionMajor))
 
         given:
         goodCode()

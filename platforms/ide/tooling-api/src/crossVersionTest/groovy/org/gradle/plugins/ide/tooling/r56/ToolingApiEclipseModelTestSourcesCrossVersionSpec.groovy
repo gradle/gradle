@@ -151,10 +151,7 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
     @TargetGradleVersion(">=7.5")
     def "Project dependencies can have test attributes"() {
         setup:
-        createDirs("a", "b", "c", "d")
-        settingsFile << """
-            include 'a', 'b', 'c', 'd'
-        """
+        includeProjects("a", "b", "c", "d")
         file("a/build.gradle") << """
             plugins {
                 id 'java-library'

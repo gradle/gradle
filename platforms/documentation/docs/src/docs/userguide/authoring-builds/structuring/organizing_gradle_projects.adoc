@@ -425,6 +425,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-capabil
 
 You can learn more about multi-project builds in <<composite_builds.adoc#composite_builds,Composite Builds>>.
 
+[[sec:structuring_recommendations]]
 == Structuring Recommendations
 
 Source code and build logic should be organized in a clear, consistent, and meaningful way.
@@ -555,58 +556,6 @@ The following example shows a standard Gradle project layout:
 ├── subproject-one
 │   └── build.gradle
 └── subproject-two
-    └── build.gradle
-----
-=====
-====
-
-=== Use a `gradle.properties` file
-
-In Gradle, you can define properties in several ways:
-
-- Directly in a build script
-- In a `gradle.properties` file
-- On the command line using `-P`
-
-The `gradle.properties` file provides a clean and centralized way to define reusable configuration values.
-It’s especially suited for <<build_environment.adoc#sec:gradle_configuration_properties,build environment settings>>, such as:
-
-- JVM memory settings
-- Project-wide flags or toggles
-- API tokens (non-sensitive)
-- Feature enablement
-
-Gradle automatically loads properties from:
-
-- A `gradle.properties` file in the project root
-- A `gradle.properties` file in your `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory (for user-wide settings)
-
-For example:
-
-====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-.
-├── gradle.properties
-├── settings.gradle.kts
-├── subproject-a/
-│   └── build.gradle.kts
-└── subproject-b/
-    └── build.gradle.kts
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-.
-├── gradle.properties
-├── settings.gradle
-├── subproject-a/
-│   └── build.gradle
-└── subproject-b/
     └── build.gradle
 ----
 =====

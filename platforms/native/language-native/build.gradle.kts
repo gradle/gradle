@@ -24,7 +24,6 @@ dependencies {
     api(projects.files)
     api(projects.fileCollections)
     api(projects.fileOperations)
-    api(projects.fileTemp)
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)

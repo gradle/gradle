@@ -160,9 +160,6 @@ public class LocalComponentGraphResolveStateFactory {
             }
         }
 
-        @Override
-        public void invalidate() {}
-
     }
 
     /**
@@ -208,11 +205,6 @@ public class LocalComponentGraphResolveStateFactory {
                     visitor.accept(variantState);
                 });
             });
-        }
-
-        @Override
-        public void invalidate() {
-            cache.invalidate();
         }
 
     }

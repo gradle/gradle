@@ -132,8 +132,9 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
     def "nested action can run further nested actions"() {
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
+
         buildFile << """
             allprojects {
                 apply plugin: CustomPlugin
@@ -173,8 +174,9 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
 
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b'
         """
+
+        includeProjects("a", "b")
         buildFile << """
             allprojects {
                 apply plugin: CustomPlugin

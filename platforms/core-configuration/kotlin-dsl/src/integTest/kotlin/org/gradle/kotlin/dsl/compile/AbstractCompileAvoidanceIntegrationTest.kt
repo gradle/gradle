@@ -132,7 +132,7 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
     }
 
     protected
-    fun configureProjectAndExpectCompileFailure(expectedFailure: String) {
+    fun configureProjectAndExpectCompileFailure(@Suppress("SameParameterValue") expectedFailure: String) {
         val error = executer.runWithFailure().error
         MatcherAssert.assertThat(error, CoreMatchers.containsString(expectedFailure))
     }

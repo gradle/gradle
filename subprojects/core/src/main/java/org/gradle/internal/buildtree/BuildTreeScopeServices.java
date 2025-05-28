@@ -143,8 +143,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer, ObjectFactory objectFactory) {
-        return objectFactory.newInstance(DefaultTaskSelector.class, new TaskNameResolver(), projectConfigurer);
+    protected TaskSelector createTaskSelector(ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultTaskSelector.class, new TaskNameResolver());
     }
 
     @Provides

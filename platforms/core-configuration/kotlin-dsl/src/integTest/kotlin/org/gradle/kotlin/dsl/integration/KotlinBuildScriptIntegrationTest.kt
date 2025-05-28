@@ -22,6 +22,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
+        file("bar").mkdirs()
         withSettings(
             """
             rootProject.name = "foo"
@@ -31,7 +32,6 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withBuildScript(
             """
-
             open class ProjectPlugin : Plugin<Project> {
                 override fun apply(target: Project) {
                     target.task("run") {

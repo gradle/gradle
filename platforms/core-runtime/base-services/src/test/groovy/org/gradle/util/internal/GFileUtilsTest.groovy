@@ -16,7 +16,6 @@
 
 package org.gradle.util.internal
 
-import org.gradle.api.UncheckedIOException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -101,7 +100,7 @@ class GFileUtilsTest extends Specification {
         expect:
         readFileQuietly(temp.file("foo.txt")) == "hey"
         // end of message is platform specific
-        readFileQuietly(new File("missing")).startsWith "Unable to read file 'missing' due to: org.gradle.api.UncheckedIOException: java.nio.file.NoSuchFileException: missing"
+        readFileQuietly(new File("missing")).startsWith "Unable to read file 'missing' due to: java.io.UncheckedIOException: java.nio.file.NoSuchFileException: missing"
         readFileQuietly(temp.createDir("dir")).startsWith "Unable to read file"
     }
 

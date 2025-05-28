@@ -48,24 +48,16 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class ComponentReport extends DefaultTask {
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     @Inject
-    protected ModelRegistry getModelRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ModelRegistry getModelRegistry();
 
     @Inject
-    protected TypeAwareBinaryRenderer getBinaryRenderer() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract TypeAwareBinaryRenderer getBinaryRenderer();
 
     @TaskAction
     public void report() {

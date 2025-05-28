@@ -212,11 +212,11 @@ configurations.compile.withDependencies {
 
         then:
         fails "mutateResolved"
-        failure.assertHasCause("Cannot change dependencies of dependency configuration ':compile' after it has been resolved.")
+        failure.assertHasCause("Cannot mutate the state of configuration ':compile' after the configuration was resolved. After a configuration has been observed, it should not be modified.")
 
         and:
         fails "mutateParent"
-        failure.assertHasCause("Cannot change dependencies of dependency configuration ':conf' after it has been included in dependency resolution.")
+        failure.assertHasCause("Cannot mutate the state of configuration ':conf' after the configuration's child configuration ':compile' was resolved. After a configuration has been observed, it should not be modified.")
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
@@ -536,11 +536,218 @@ configurations.compile.withDependencies {
             }
         """
 
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Cannot mutate the dependency attributes of configuration ':deps' after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified.")
+    }
+
+    def "can add dependency from provider, configure each dependency, and add constraint for each"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.conf.dependencies.configureEach {
+                if (it.group == "org" && it.name == "foo") {
+                    configurations.conf.dependencyConstraints.add(project.dependencies.constraints.create("org:foo:2.0"))
+                }
+            }
+
+            task resolve {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':deps' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':parent' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency constraint attributes of configuration ':deps' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency constraint attributes of configuration ':parent' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds("resolve")
     }
+
+    def "can add dependency from provider, configure each dependency in withDependencies, and add constraint for each"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.conf.withDependencies { deps ->
+                deps.configureEach {
+                    if (it.group == "org" && it.name == "foo") {
+                        configurations.conf.dependencyConstraints.add(project.dependencies.constraints.create("org:foo:2.0"))
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "can add dependency from provider, configure each dependency in withDependencies, and mutate them"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.conf.withDependencies {
+                it.configureEach {
+                    it.version {
+                        require("2.0")
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "can add dependency from provider, configure each configuration dependencies, and mutate them"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.conf.dependencies.configureEach {
+                it.version {
+                    require("2.0")
+                }
+            }
+
+            task resolve {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    // This is not desired behavior.
+    def "can add dependency from provider, resolve the configuration, mutate the dependency, and resolve the configuration again"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            println(configurations.conf.incoming.files*.name)
+            configurations.conf.dependencies.each { // Mutating conf's dependencies after resolution should be forbidden.
+                it.version {
+                    require("2.0")
+                }
+            }
+            println(configurations.conf.incoming.files*.name)
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""[foo-1.0.jar]
+[foo-1.0.jar]""")
+    }
+
+    // This is not desired behavior.
+    def "can add dependency from provider from other configuration, resolve that configuration, mutate the dependency, and resolve the original configuration"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                confA
+                confB {
+                    dependencies.addAllLater(provider {
+                        confA.dependencies
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                confA("org:foo:1.0")
+            }
+
+            println(configurations.confB.files*.name)
+            configurations.confB.dependencies.each { // Mutating confB's dependencies after resolution should be forbidden.
+                it.version {
+                    require("2.0")
+                }
+            }
+            println(configurations.confA.files*.name)
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""[foo-1.0.jar]
+[foo-2.0.jar]""")
+    }
+
 }

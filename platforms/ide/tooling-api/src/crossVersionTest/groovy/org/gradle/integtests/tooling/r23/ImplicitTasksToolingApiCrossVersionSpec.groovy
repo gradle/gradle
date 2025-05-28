@@ -23,9 +23,7 @@ import org.gradle.tooling.model.GradleProject
 class ImplicitTasksToolingApiCrossVersionSpec extends ToolingApiSpecification {
 
     def "implicit/placeholder tasks are visible from tooling api"() {
-        file("settings.gradle") << """
-            include "subproject"
-        """
+        includeProjects("subproject")
 
         when:
         GradleProject project = withConnection { it.getModel(GradleProject.class) }

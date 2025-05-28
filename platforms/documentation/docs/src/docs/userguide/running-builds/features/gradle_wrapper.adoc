@@ -215,7 +215,7 @@ $ gradlew.bat build
 include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
-If the Gradle distribution is unavailable on the machine, the Wrapper will download it and store it in the local file system.
+If the Gradle distribution was not provisioned to `GRADLE_USER_HOME` before, the Wrapper will download it and store it in `GRADLE_USER_HOME`.
 Any subsequent build invocation will reuse the existing local distribution as long as the distribution URL in the Gradle properties doesn't change.
 
 NOTE: The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.

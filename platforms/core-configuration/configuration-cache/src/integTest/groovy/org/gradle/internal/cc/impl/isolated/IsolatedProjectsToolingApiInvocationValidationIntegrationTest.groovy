@@ -19,10 +19,7 @@ package org.gradle.internal.cc.impl.isolated
 class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def "reports cross project access from build script when fetching custom tooling model"() {
         given:
-        settingsFile << """
-            include('a')
-            include('b')
-        """
+        includeProjects("a", "b")
         withSomeToolingModelBuilderPluginInBuildSrc()
         buildFile << """
             allprojects {
@@ -56,10 +53,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
 
     def "reports cross project access from model builder while fetching custom tooling model"() {
         given:
-        settingsFile << """
-            include('a')
-            include('b')
-        """
+        includeProjects("a", "b")
         withSomeToolingModelBuilderPluginInBuildSrc("""
             project.subprojects.each { it.extensions }
         """)

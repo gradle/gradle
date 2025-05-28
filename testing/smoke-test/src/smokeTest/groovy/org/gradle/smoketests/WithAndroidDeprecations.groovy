@@ -17,7 +17,7 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.internal.Pair
+import groovy.transform.TupleConstructor
 import org.gradle.util.GradleVersion
 
 import java.util.function.Consumer
@@ -25,18 +25,28 @@ import java.util.function.Consumer
 @SelfType(BaseDeprecations)
 trait WithAndroidDeprecations {
 
-    private static final List<Pair<String, String>> IS_PROPERTIES = [
-        Pair.of("com.android.build.gradle.internal.dsl.BuildType\$AgpDecorated.isCrunchPngs", "getCrunchPngs"),
-        Pair.of("com.android.build.gradle.internal.dsl.BuildType.isUseProguard", "getUseProguard"),
-        Pair.of("com.android.build.api.variant.impl.ApplicationVariantImpl.isWearAppUnbundled", "getWearAppUnbundled"),
+    @TupleConstructor
+    private static class IsPropertyInfo {
+        String name
+        String existing
+        String replacement
+        String location
+    }
+
+    private static final List<IsPropertyInfo> IS_PROPERTIES = [
+        new IsPropertyInfo("crunchPngs", "isCrunchPngs", "getCrunchPngs", "com.android.build.gradle.internal.dsl.BuildType\$AgpDecorated"),
+        new IsPropertyInfo("useProguard", "isUseProguard", "getUseProguard", "com.android.build.gradle.internal.dsl.BuildType"),
+        new IsPropertyInfo("wearAppUnbundled", "isWearAppUnbundled", "getWearAppUnbundled", "com.android.build.api.variant.impl.ApplicationVariantImpl"),
     ]
 
     private void expectIsPropertyDeprecationWarningsUsing(Consumer<String> deprecationFunction) {
         for (def prop : IS_PROPERTIES) {
-            def existing = prop.left
-            def replacement = prop.right
-
-            deprecationFunction.accept("Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named '${replacement}' with the same behavior and mark the old one with @Deprecated, or change the type of '${existing}' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties")
+            deprecationFunction.accept(
+                "Declaring '${prop.name}' as a property using an 'is-' method with a Boolean type on ${prop.location} has been deprecated. " +
+                    "Starting with Gradle 10.0, this property will no longer be treated like a property. " +
+                    "The combination of method name and return type is not consistent with Java Bean property rules. " +
+                    "Add a method named '${prop.replacement}' with the same behavior and mark the old one with @Deprecated, or change the type of '${prop.location}.${prop.existing}' (and the setter) to 'boolean'. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties")
         }
     }
 

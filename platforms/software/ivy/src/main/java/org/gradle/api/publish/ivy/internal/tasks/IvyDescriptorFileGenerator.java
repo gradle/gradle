@@ -18,7 +18,6 @@ package org.gradle.api.publish.ivy.internal.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Streams;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -35,6 +34,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.CollectionUtils;
@@ -336,7 +336,7 @@ public final class IvyDescriptorFileGenerator {
                 try {
                     new ModelWriter(model).writeDescriptor(writer);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             });
         }

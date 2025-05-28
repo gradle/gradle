@@ -19,7 +19,6 @@ package org.gradle.internal;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -242,7 +241,7 @@ public abstract class Try<T extends @Nullable Object> {
                 throw (Error) failure;
             }
             if (failure instanceof IOException) {
-                throw new UncheckedIOException((IOException) failure);
+                throw UncheckedException.throwAsUncheckedException(failure);
             }
             throw new RuntimeException(failure);
         }

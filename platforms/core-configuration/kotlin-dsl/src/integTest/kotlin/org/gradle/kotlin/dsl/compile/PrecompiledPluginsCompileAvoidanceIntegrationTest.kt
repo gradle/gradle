@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.compile
 
 import org.gradle.util.internal.ToBeImplemented
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -28,7 +27,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
     fun `avoids buildscript recompilation when task is configured in precompiled script plugin`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("foo")
                 tasks.register("foo")
@@ -44,7 +42,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 tasks.register("foo") { doLast { println("bar from task") } }
             """
@@ -59,7 +56,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
     fun `recompiles buildscript when plugins applied from a precompiled plugin change`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 plugins {
                     id("java-library")
@@ -77,7 +73,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 plugins {
                     id("java")
@@ -97,7 +92,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
             }
         """
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 $extensionClass
                 project.extensions.create<TestExtension>("foo")
@@ -116,7 +110,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled()
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 $extensionClass
                 project.extensions.create<TestExtension>("bar")
@@ -129,7 +122,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
     fun `avoids buildscript recompilation on non ABI change in precompiled script plugin`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("foo")
             """
@@ -144,7 +136,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("bar")
             """
@@ -156,7 +147,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
     fun `recompiles buildscript when new task is registered in precompiled script plugin`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("foo")
             """
@@ -171,7 +161,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("bar")
                 tasks.register("foo")
@@ -181,7 +170,8 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
     }
 
     private
-    fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
+    fun withPrecompiledScriptPluginInBuildSrc(pluginSource: String) {
+        val pluginId = "my-plugin"
         withKotlinDslPluginInBuildSrc()
         withFile("buildSrc/src/main/kotlin/$pluginId.gradle.kts", pluginSource)
     }

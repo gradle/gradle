@@ -137,18 +137,11 @@ import java.util.Set;
  * <li>The <em>extensions</em> added to the task by plugins. Each extension is available as a read-only property with the same
  * name as the extension.</li>
  *
- * <li>The <em>convention</em> properties added to the task by plugins. A plugin can add properties and methods to a task through
- * the task's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
- *
  * <li>The <em>extra properties</em> of the task. Each task object maintains a map of additional properties. These
  * are arbitrary name -&gt; value pairs which you can use to dynamically add properties to a task object.  Once defined, the properties
  * of this scope are readable and writable.</li>
  *
  * </ul>
- *
- * <h4>Dynamic Methods</h4>
- *
- * <p>A {@link Plugin} may add methods to a {@code Task} using its {@link org.gradle.api.plugins.Convention} object.</p>
  *
  * <h3>Parallel Execution</h3>
  * <p>
@@ -527,8 +520,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * <li>If this task has an extension with the given name, return the extension. </li>
      *
-     * <li>If this task's convention object has a property with the given name, return the value of the property.</li>
-     *
      * <li>If this task has an extra property with the given name, return the value of the property.</li>
      *
      * <li>If not found, throw {@link MissingPropertyException}</li>
@@ -558,8 +549,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * <ol>
      *
      * <li>The task object itself.  For example, the <code>enabled</code> project property.</li>
-     *
-     * <li>The task's convention object.</li>
      *
      * <li>The task's extra properties.</li>
      *

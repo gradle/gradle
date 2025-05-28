@@ -39,6 +39,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -53,7 +54,6 @@ import org.jspecify.annotations.NullMarked;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -205,14 +205,10 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     @Inject
-    protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract WorkerProcessFactory getWorkerProcessBuilderFactory();
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     /**
      * Generate the parsers.
@@ -238,7 +234,7 @@ public abstract class AntlrTask extends SourceTask {
                 try {
                     getDeleter().ensureEmptyDirectory(outputDirectory);
                 } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
+                    throw UncheckedException.throwAsUncheckedException(ex);
                 }
                 grammarFiles.addAll(stableSources.getFiles());
             }
@@ -352,7 +348,5 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 }

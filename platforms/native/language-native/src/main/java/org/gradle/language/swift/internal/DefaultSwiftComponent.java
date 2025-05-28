@@ -17,7 +17,6 @@
 package org.gradle.language.swift.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
@@ -41,20 +40,19 @@ public abstract class DefaultSwiftComponent<T extends SwiftBinary> extends Defau
     private final Property<SwiftVersion> sourceCompatibility;
     private final SetProperty<TargetMachine> targetMachines;
 
-    public DefaultSwiftComponent(String name, ObjectFactory objectFactory) {
-        this(name, SwiftBinary.class, objectFactory);
+    public DefaultSwiftComponent(String name) {
+        this(name, SwiftBinary.class);
     }
 
-    public DefaultSwiftComponent(String name, Class<? extends SwiftBinary> binaryType, ObjectFactory objectFactory) {
-        super(objectFactory);
+    public DefaultSwiftComponent(String name, Class<? extends SwiftBinary> binaryType) {
         this.name = name;
         this.swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
-        this.module = objectFactory.property(String.class);
-        this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
+        this.module = getObjectFactory().property(String.class);
+        this.sourceCompatibility = getObjectFactory().property(SwiftVersion.class);
 
         this.names = Names.of(name);
-        this.binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, binaryType));
-        this.targetMachines = objectFactory.setProperty(TargetMachine.class);
+        this.binaries = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultBinaryCollection.class, binaryType));
+        this.targetMachines = getObjectFactory().setProperty(TargetMachine.class);
     }
 
     @Override

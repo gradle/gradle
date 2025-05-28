@@ -40,7 +40,7 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
                 FileSystemSnapshot snapshot;
                 try {
-                    snapshot = fileCollectionSnapshotter.snapshot(value.getFiles()).getSnapshot();
+                    snapshot = fileCollectionSnapshotter.snapshot(value.getFiles());
                 } catch (Exception ex) {
                     throw new OutputFileSnapshottingException(propertyName, ex);
                 }

@@ -16,7 +16,6 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
@@ -28,6 +27,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.PathToFileResolver;
@@ -35,6 +35,7 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
@@ -123,7 +124,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             }
         } else {
             if (!directory.mkdirs()) {
-                throw new UncheckedIOException(String.format("Could not create cache directory: %s", directory));
+                throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not create cache directory: %s", directory)), true);
             }
         }
     }

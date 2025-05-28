@@ -15,13 +15,6 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        maven {
-            name = "Gradle public repository"
-            url = uri("https://repo.gradle.org/gradle/public")
-            content {
-                includeModule("org.openmbee.junit", "junit-xml-parser")
-            }
-        }
         gradlePluginPortal()
     }
     includeBuild("build-logic-settings")
@@ -36,7 +29,7 @@ buildscript {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("4.0.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("4.0.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }

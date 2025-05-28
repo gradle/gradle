@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.hash;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,7 +43,7 @@ class ChecksumHasher implements FileHasher {
             }
             return hasher.hash();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -195,15 +195,20 @@ or better yet, upgrade to the latest version of the link:https://docs.gradle.com
 
 For Gradle 8.x, the minimum supported version was 3.0.
 
+==== All Gradle-provided classes now have `abstract` getter injection methods
+
+All Gradle-provided classes that have `@Inject` annotated getters now have those getters declared as `abstract`.
+This will require all classes that extend Gradle-provided classes to be `abstract`.
+
 === Updated Defaults and APIs
 
 ==== Upgraded default versions of code quality tools
 
-The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.23.0[10.23.0].
+The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.24.0[10.24.0].
 
 The default version of CodeNarc is link:https://github.com/CodeNarc/CodeNarc/blob/v3.6.0/CHANGELOG.md#version-360--feb-2025[3.6.0].
 
-The default version of Pmd is link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.12.0[7.12.0]
+The default version of Pmd is link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.13.0[7.13.0]
 
 ==== Upgraded default versions of testing frameworks
 
@@ -230,6 +235,11 @@ These types were not intended to be subclassed.
 However, if your build logic or a plugin attempts to override these methods, it will now result in a runtime failure.
 
 === Removed Features and Deprecated APIs
+
+==== Injection getters are now `abstract`
+
+All injection getters (getters annoted with `@Inject`) in types provided by Gradle are now marked as `abstract`. Some classes
+were also made `abstract` to allow this to happen. If you extended one of these types, you will need to make your class `abstract` as well.
 
 ==== Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
 
@@ -267,6 +277,15 @@ This means it is no longer possible to set a custom build file path via the `Gra
 The _"convention"_ concept—represented by the `org.gradle.api.plugins.Convention` type—has been deprecated since Gradle 8.2 and is now fully removed in Gradle 9.0.
 
 Core Gradle plugins that previously registered deprecated conventions have been updated accordingly.
+
+This implies removal of the Conventions API. These have been removed:
+
+- `org.gradle.api.Task.getConvention()`
+- `org.gradle.api.Project.getConvention()`
+- `org.gradle.api.plugins.Convention`
+- `org.gradle.api.internal.HasConvention`
+
+Existing plugins that use these APIs will fail with Gradle 9.0+ and should be updated to use the Extensions API instead.
 
 The table below shows which conventions have been removed and how to migrate:
 
@@ -2956,7 +2975,7 @@ The concept of conventions is outdated and superseded by <<implementing_gradle_p
 
 To reflect this in the Gradle API, the following elements are deprecated:
 
-- `org.gradle.api.Project.getConvention()
+- `org.gradle.api.Project.getConvention()`
 - `org.gradle.api.plugins.Convention`
 - `org.gradle.api.internal.HasConvention`
 
@@ -3930,7 +3949,7 @@ This is done to reduce confusion about what such relative paths should resolve a
 [[task_convention]]
 ==== Calling `Task.getConvention()`, `Task.getExtensions()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getConvention--[Task.getConvention()], link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
+Calling `Task.getConvention()`, link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
 
 See the <<configuration_cache#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 

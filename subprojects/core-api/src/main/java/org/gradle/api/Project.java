@@ -149,9 +149,6 @@ import java.util.concurrent.Callable;
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
  *
- * <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
- * to a project through the project's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
- *
  * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
  * property.</li>
@@ -202,9 +199,6 @@ import java.util.concurrent.Callable;
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
  * a closure or {@link org.gradle.api.Action} as a parameter.</li>
- *
- * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and method to
- * a project through the project's {@link org.gradle.api.plugins.Convention} object.</li>
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
  * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
@@ -404,9 +398,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <ol>
      *
      * <li>The project object itself.  For example, the <code>rootDir</code> project property.</li>
-     *
-     * <li>The project's {@link org.gradle.api.plugins.Convention} object.  For example, the <code>srcRootName</code> java plugin
-     * property.</li>
      *
      * <li>The project's extra properties.</li>
      *

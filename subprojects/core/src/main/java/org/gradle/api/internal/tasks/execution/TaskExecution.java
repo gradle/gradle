@@ -23,6 +23,9 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
@@ -41,6 +44,8 @@ import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.Sync;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerManager;
@@ -111,6 +116,7 @@ public class TaskExecution implements MutableUnitOfWork {
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
+    private final MissingTaskDependencyDetector missingTaskDependencyDetector;
 
     public TaskExecution(
         TaskInternal task,
@@ -127,7 +133,8 @@ public class TaskExecution implements MutableUnitOfWork {
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         TaskCacheabilityResolver taskCacheabilityResolver,
-        TaskDependencyFactory taskDependencyFactory
+        TaskDependencyFactory taskDependencyFactory,
+        MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         this.task = task;
         this.context = context;
@@ -144,6 +151,7 @@ public class TaskExecution implements MutableUnitOfWork {
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
+        this.missingTaskDependencyDetector = missingTaskDependencyDetector;
     }
 
     @Override
@@ -304,7 +312,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
         List<InputChangesAwareTaskAction> taskActions = task.getTaskActions();
         for (InputChangesAwareTaskAction taskAction : taskActions) {
-            visitor.visitImplementation(taskAction.getActionImplementation(classLoaderHierarchyHasher));
+            visitor.visitAdditionalImplementation(taskAction.getActionImplementation(classLoaderHierarchyHasher));
         }
     }
 
@@ -359,7 +367,7 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
-        if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
+        if (!(cause instanceof UncheckedIOException)) {
             return UncheckedException.throwAsUncheckedException(cause);
         }
         boolean isDestinationDir = propertyName.equals("destinationDir");
@@ -457,18 +465,56 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     @Override
-    public void validate(WorkValidationContext validationContext) {
-        Class<?> taskType = GeneratedSubclasses.unpackType(task);
-        // TODO This should probably use the task class info store
-        boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
-        TypeValidationContext typeValidationContext = validationContext.forType(taskType, cacheable);
-        context.getTaskProperties().validateType(typeValidationContext);
+    public void validate(WorkValidationContext workValidationContext) {
+        TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
+        context.getTaskProperties().validateType(validationContext);
         context.getTaskProperties().validate(new DefaultPropertyValidationContext(
             fileResolver,
             reservedFileSystemLocationRegistry,
-            typeValidationContext
+            validationContext
         ));
-        context.getValidationAction().validate(typeValidationContext);
+    }
+
+    @Override
+    public void checkOutputDependencies(WorkValidationContext workValidationContext) {
+        TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
+        context.getOutputDependencyCheckAction().checkOutputDependencies(validationContext);
+    }
+
+    @Override
+    public FileCollectionStructureVisitor getInputDependencyChecker(WorkValidationContext workValidationContext) {
+        TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
+        return new FileCollectionStructureVisitor() {
+            @Override
+            public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                contents.forEach(root -> missingTaskDependencyDetector.visitUnfilteredInputLocation(
+                    context.getLocalTaskNode(), validationContext, root.getAbsolutePath()));
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                if (patterns.isEmpty()) {
+                    missingTaskDependencyDetector.visitUnfilteredInputLocation(
+                        context.getLocalTaskNode(), validationContext, root.getAbsolutePath());
+                } else {
+                    missingTaskDependencyDetector.visitFilteredInputLocation(
+                        context.getLocalTaskNode(), validationContext, root.getAbsolutePath(), patterns.getAsSpec());
+                }
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                missingTaskDependencyDetector.visitUnfilteredInputLocation(
+                    context.getLocalTaskNode(), validationContext, file.getAbsolutePath());
+            }
+        };
+    }
+
+    private TypeValidationContext getTypeValidationContext(WorkValidationContext validationContext) {
+        Class<?> taskType = GeneratedSubclasses.unpackType(task);
+        // TODO This should probably use the task class info store
+        boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
+        return validationContext.forType(taskType, cacheable);
     }
 
     @Override

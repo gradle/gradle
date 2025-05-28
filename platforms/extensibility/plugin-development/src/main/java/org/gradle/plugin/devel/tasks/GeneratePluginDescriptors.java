@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -26,6 +25,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.plugin.devel.PluginDeclaration;
@@ -96,15 +96,13 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 
     private void clearOutputDirectory(File directoryToClear) {
         try {
             getDeleter().ensureEmptyDirectory(directoryToClear);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -112,7 +110,7 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
         try {
             PropertiesUtils.store(properties, descriptorFile);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

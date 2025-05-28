@@ -63,9 +63,9 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
             jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
         }
 
-        task<DependencyReportTask>("dependencyReport") {
+        tasks.register<DependencyReportTask>("dependencyReport") {
             outputs.upToDateWhen { false }
-            outputFile = buildDir.resolve("dependencies.txt")
+            outputFile = layout.buildDirectory.file("dependencies.txt").get().getAsFile()
         }
         """
     }

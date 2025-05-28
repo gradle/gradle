@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.groovy.compile
+package org.gradle.integtests.fixtures
 
-import org.gradle.internal.jvm.Jvm
+trait ProjectDirectoryCreator {
+    def includeProjects(String... names) {
+        createProjectSubDirs(names.collect { it.replace(":", "/")  }.toArray() as String[])
+        settingsFile << """
+            include ${names.collect { "'$it'" }.join(",")}
+        """
+    }
 
-class SameToolchainGroovyCompileIntegrationTest extends AbstractToolchainGroovyCompileIntegrationTest {
-
-    @Override
-    Jvm computeJdkForTest() {
-        Jvm.current()
+    def createProjectSubDirs(String... names) {
+        createDirs(names)
     }
 }
