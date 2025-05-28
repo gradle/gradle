@@ -21,10 +21,10 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -342,7 +342,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static JvmTestSuite createDefaultTestSuite(
         JvmFeatureInternal mainFeature,
-        RoleBasedConfigurationContainerInternal configurations,
+        ConfigurationContainer configurations,
         TaskContainer tasks,
         ExtensionContainer extensions,
         ObjectFactory objectFactory

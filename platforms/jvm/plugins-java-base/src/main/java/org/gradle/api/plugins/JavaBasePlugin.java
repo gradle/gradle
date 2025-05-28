@@ -269,35 +269,35 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        Configuration implementationConfiguration = configurations.dependencyScopeLocked(implementationConfigurationName);
-        implementationConfiguration.setVisible(false);
-        implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
+        Configuration implementationConfiguration = configurations.dependencyScopeLocked(implementationConfigurationName, conf -> {
+            conf.setDescription("Implementation only dependencies for " + sourceSetName + ".");
+        });
 
-        Configuration compileOnlyConfiguration = configurations.dependencyScopeLocked(compileOnlyConfigurationName);
-        compileOnlyConfiguration.setVisible(false);
-        compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
+        Configuration compileOnlyConfiguration = configurations.dependencyScopeLocked(compileOnlyConfigurationName, conf -> {
+            conf.setDescription("Compile only dependencies for " + sourceSetName + ".");
+        });
 
-        Configuration compileClasspathConfiguration = configurations.resolvableLocked(compileClasspathConfigurationName);
-        compileClasspathConfiguration.setVisible(false);
-        compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
-        compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
-        jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
+        Configuration compileClasspathConfiguration = configurations.resolvableLocked(compileClasspathConfigurationName, conf -> {
+            conf.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
+            conf.setDescription("Compile classpath for " + sourceSetName + ".");
+            jvmPluginServices.configureAsCompileClasspath(conf);
+        });
 
         @SuppressWarnings("deprecation")
-        Configuration annotationProcessorConfiguration = configurations.resolvableDependencyScopeLocked(annotationProcessorConfigurationName);
-        annotationProcessorConfiguration.setVisible(false);
-        annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
-        jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
+        Configuration annotationProcessorConfiguration = configurations.resolvableDependencyScopeLocked(annotationProcessorConfigurationName, conf -> {
+            conf.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
 
-        Configuration runtimeOnlyConfiguration = configurations.dependencyScopeLocked(runtimeOnlyConfigurationName);
-        runtimeOnlyConfiguration.setVisible(false);
-        runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
+        Configuration runtimeOnlyConfiguration = configurations.dependencyScopeLocked(runtimeOnlyConfigurationName, conf -> {
+            conf.setDescription("Runtime only dependencies for " + sourceSetName + ".");
+        });
 
-        Configuration runtimeClasspathConfiguration = configurations.resolvableLocked(runtimeClasspathConfigurationName);
-        runtimeClasspathConfiguration.setVisible(false);
-        runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
-        runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
-        jvmPluginServices.configureAsRuntimeClasspath(runtimeClasspathConfiguration);
+        Configuration runtimeClasspathConfiguration = configurations.resolvableLocked(runtimeClasspathConfigurationName, conf -> {
+            conf.setDescription("Runtime classpath of " + sourceSetName + ".");
+            conf.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
