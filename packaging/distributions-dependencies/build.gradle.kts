@@ -47,6 +47,7 @@ val archunitVersion = "1.2.0"
 val bytebuddyVersion = "1.17.5"
 val jettyVersion = "9.4.36.v20210114"
 val sshdVersion = "2.12.1"
+val jGitVersion = "7.2.1.202505142326-r"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -129,8 +130,8 @@ dependencies {
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
         api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
-        api(libs.jgit)                  { version { strictly("5.13.3.202401111512-r"); because("6.x requires Java 11") }}
-        api(libs.jgitSsh)               { version { strictly("5.13.3.202401111512-r") }}
+        api(libs.jgit)                  { version { strictly(jGitVersion) }}
+        api(libs.jgitSsh)               { version { strictly(jGitVersion) }}
         api(libs.joda)                  { version { strictly("2.14.0"); because("Only pulled in by AWS SDK") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.2.16") }}
