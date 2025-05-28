@@ -241,7 +241,7 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                degradeGracefullyOr(finalizedGraph) { saveWorkGraph() }
+                degradeGracefullyOr { saveWorkGraph() }
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -589,9 +589,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun degradeGracefullyOr(finalizedGraph: BuildTreeWorkGraph.FinalizedGraph, action: () -> Unit) {
-        val rootBuildExecutionPlan = (finalizedGraph as BuildTreeWorkGraph).getBuildController(buildStateRegistry.rootBuild).finalizedExecutionPlan
-        if (!(degradationController as DefaultConfigurationCacheDegradationController).shouldDegradeGracefully(rootBuildExecutionPlan)) {
+    fun degradeGracefullyOr(action: () -> Unit) {
+        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).shouldDegradeGracefully(deferredRootBuildGradle.gradle)
+        if (!shouldDegrade) {
             action()
         }
         crossConfigurationTimeBarrier()

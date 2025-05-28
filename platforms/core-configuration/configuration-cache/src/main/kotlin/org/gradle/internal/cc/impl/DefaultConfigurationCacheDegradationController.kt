@@ -18,8 +18,8 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.provider.Provider
-import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.TaskNode
 import java.util.concurrent.ConcurrentHashMap
 
@@ -33,19 +33,16 @@ class DefaultConfigurationCacheDegradationController : ConfigurationCacheDegrada
         tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
     }
 
-    fun shouldDegradeGracefully(executionPlan: FinalizedExecutionPlan): Boolean {
+    fun shouldDegradeGracefully(gradle: GradleInternal): Boolean {
         if (tasksDegradationRequests.isEmpty()) return false
-        executionPlan.contents.scheduledNodes.visitNodes { scheduled, _ ->
-            for (node in scheduled) {
-                if (node is TaskNode) {
-                    val task = node.task
-                    val taskDegradationReasons = tasksDegradationRequests[task]
-                        ?.mapNotNull { it.orNull }
-                        ?.sorted()
+        gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
+            scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
+                val taskDegradationReasons = tasksDegradationRequests[task]
+                    ?.mapNotNull { it.orNull }
+                    ?.sorted()
 
-                    if (!taskDegradationReasons.isNullOrEmpty()) {
-                        currentDegradationReasons[task] = taskDegradationReasons
-                    }
+                if (!taskDegradationReasons.isNullOrEmpty()) {
+                    currentDegradationReasons[task] = taskDegradationReasons
                 }
             }
         }
