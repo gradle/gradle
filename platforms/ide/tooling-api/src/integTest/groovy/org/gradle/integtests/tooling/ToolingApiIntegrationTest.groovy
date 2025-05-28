@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling
 import org.gradle.api.logging.LogLevel
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.SimpleCrossVersionFixture
+import org.gradle.integtests.fixtures.OtherGradleVersionFixture
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
@@ -38,7 +38,7 @@ import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.LOG_LEV
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.runLogScript
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.validateLogs
 
-class ToolingApiIntegrationTest extends AbstractIntegrationSpec implements SimpleCrossVersionFixture {
+class ToolingApiIntegrationTest extends AbstractIntegrationSpec implements OtherGradleVersionFixture {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 

@@ -20,7 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.SimpleCrossVersionFixture
+import org.gradle.integtests.fixtures.OtherGradleVersionFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
@@ -49,7 +49,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @Issue("GRADLE-1933")
 @Retry(condition = { onWindowsSocketDisappearance(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "concurrent tooling api is only supported for forked mode")
-class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec implements SimpleCrossVersionFixture {
+class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec implements OtherGradleVersionFixture {
 
     @Rule
     final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()

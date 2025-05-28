@@ -18,7 +18,7 @@ package org.gradle.integtests
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.SimpleCrossVersionFixture
+import org.gradle.integtests.fixtures.OtherGradleVersionFixture
 import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
@@ -31,7 +31,7 @@ import static org.gradle.integtests.fixtures.StaleOutputJavaProject.JAR_TASK_NAM
 import static org.gradle.util.internal.GFileUtils.forceDelete
 
 @IntegrationTestTimeout(240)
-class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec implements SimpleCrossVersionFixture {
+class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec implements OtherGradleVersionFixture {
 
     private final GradleExecuter mostRecentReleaseExecuter = otherVersion.executer(temporaryFolder, buildContext) as AbstractGradleExecuter
 

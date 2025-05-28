@@ -24,7 +24,7 @@ import org.junit.Assume
 /**
  * A fixture allowing an integration test to leverage another arbitrary Gradle distribution.
  */
-trait SimpleCrossVersionFixture {
+trait OtherGradleVersionFixture {
 
     /**
      * Get the distribution for another Gradle version, ensuring that Gradle version
