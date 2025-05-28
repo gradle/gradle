@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
@@ -104,9 +103,9 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
     ResolutionHost getResolutionHost();
 
     /**
-     * @see ResolutionParameters#getRootComponent()
+     * Return true if this is a detached configuration, false otherwise.
      */
-    RootComponentMetadataBuilder.RootComponentState toRootComponent();
+    boolean isDetachedConfiguration();
 
     /**
      * Version locks to use during resolution as a result of consistent resolution.

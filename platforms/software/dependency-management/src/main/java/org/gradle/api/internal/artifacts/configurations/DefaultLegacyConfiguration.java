@@ -25,7 +25,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -52,7 +51,7 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
     public DefaultLegacyConfiguration(
         DomainObjectContext domainObjectContext,
         String name,
-        ConfigurationsProvider configurationsProvider,
+        boolean isDetached,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
@@ -62,7 +61,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         AttributesFactory attributesFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder,
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
@@ -79,7 +77,7 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         super(
             domainObjectContext,
             name,
-            configurationsProvider,
+            isDetached,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
@@ -89,7 +87,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
             artifactNotationParser,
             capabilityNotationParser,
             attributesFactory,
-            rootComponentMetadataBuilder,
             exceptionMapper,
             attributeDesugaring,
             userCodeApplicationContext,

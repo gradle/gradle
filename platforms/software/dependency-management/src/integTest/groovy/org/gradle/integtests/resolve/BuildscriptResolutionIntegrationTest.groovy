@@ -137,10 +137,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                     assert root.moduleVersion.group == "unspecified"
                     assert root.moduleVersion.name == "unspecified"
                     assert root.moduleVersion.version == "unspecified"
-                    assert root.id instanceof ModuleComponentIdentifier
-                    assert root.id.module == "unspecified"
-                    assert root.id.group == "unspecified"
-                    assert root.id.version == "unspecified"
+                    assert root.id instanceof RootComponentIdentifier
                 }
             }
         """
@@ -156,10 +153,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             assert root.moduleVersion.group == "unspecified"
             assert root.moduleVersion.name == "unspecified"
             assert root.moduleVersion.version == "unspecified"
-            assert root.id instanceof ModuleComponentIdentifier
-            assert root.id.module == "unspecified"
-            assert root.id.group == "unspecified"
-            assert root.id.version == "unspecified"
+            assert root.id instanceof RootComponentIdentifier
         """
 
         expect:
@@ -173,10 +167,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             assert root.moduleVersion.group == "unspecified"
             assert root.moduleVersion.name == "unspecified"
             assert root.moduleVersion.version == "unspecified"
-            assert root.id instanceof ModuleComponentIdentifier
-            assert root.id.module == "unspecified"
-            assert root.id.group == "unspecified"
-            assert root.id.version == "unspecified"
+            assert root.id instanceof RootComponentIdentifier
         """
 
         when:
@@ -193,10 +184,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             assert root.moduleVersion.group == "unspecified"
             assert root.moduleVersion.name == "unspecified"
             assert root.moduleVersion.version == "unspecified"
-            assert root.id instanceof ModuleComponentIdentifier
-            assert root.id.module == "unspecified"
-            assert root.id.group == "unspecified"
-            assert root.id.version == "unspecified"
+            assert root.id instanceof RootComponentIdentifier
         """
 
         buildFile << """

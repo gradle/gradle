@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -56,7 +55,6 @@ import javax.inject.Inject;
 public class DefaultConfigurationFactory {
 
     private final ObjectFactory objectFactory;
-    private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DomainObjectContext domainObjectContext;
     private final FileCollectionFactory fileCollectionFactory;
@@ -78,7 +76,6 @@ public class DefaultConfigurationFactory {
     @Inject
     public DefaultConfigurationFactory(
         ObjectFactory objectFactory,
-        ConfigurationResolver resolver,
         ListenerManager listenerManager,
         DomainObjectContext domainObjectContext,
         FileCollectionFactory fileCollectionFactory,
@@ -97,7 +94,6 @@ public class DefaultConfigurationFactory {
         DocumentationRegistry documentationRegistry
     ) {
         this.objectFactory = objectFactory;
-        this.resolver = resolver;
         this.listenerManager = listenerManager;
         this.domainObjectContext = domainObjectContext;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -122,9 +118,9 @@ public class DefaultConfigurationFactory {
      */
     DefaultLegacyConfiguration create(
         String name,
-        ConfigurationsProvider configurationsProvider,
+        boolean isDetached,
+        ConfigurationResolver resolver,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder,
         ConfigurationRole role
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
@@ -133,7 +129,7 @@ public class DefaultConfigurationFactory {
             DefaultLegacyConfiguration.class,
             domainObjectContext,
             name,
-            configurationsProvider,
+            isDetached,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
@@ -142,7 +138,6 @@ public class DefaultConfigurationFactory {
             artifactNotationParser,
             capabilityNotationParser,
             attributesFactory,
-            rootComponentMetadataBuilder,
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
@@ -163,9 +158,8 @@ public class DefaultConfigurationFactory {
      */
     DefaultResolvableConfiguration createResolvable(
         String name,
-        ConfigurationsProvider configurationsProvider,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
+        ConfigurationResolver resolver,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
@@ -173,7 +167,7 @@ public class DefaultConfigurationFactory {
             DefaultResolvableConfiguration.class,
             domainObjectContext,
             name,
-            configurationsProvider,
+            false,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
@@ -182,7 +176,6 @@ public class DefaultConfigurationFactory {
             artifactNotationParser,
             capabilityNotationParser,
             attributesFactory,
-            rootComponentMetadataBuilder,
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
@@ -202,9 +195,8 @@ public class DefaultConfigurationFactory {
      */
     DefaultConsumableConfiguration createConsumable(
         String name,
-        ConfigurationsProvider configurationsProvider,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
+        ConfigurationResolver resolver,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
@@ -212,7 +204,7 @@ public class DefaultConfigurationFactory {
             DefaultConsumableConfiguration.class,
             domainObjectContext,
             name,
-            configurationsProvider,
+            false,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
@@ -221,7 +213,6 @@ public class DefaultConfigurationFactory {
             artifactNotationParser,
             capabilityNotationParser,
             attributesFactory,
-            rootComponentMetadataBuilder,
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
@@ -241,9 +232,8 @@ public class DefaultConfigurationFactory {
      */
     DefaultDependencyScopeConfiguration createDependencyScope(
         String name,
-        ConfigurationsProvider configurationsProvider,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
+        ConfigurationResolver resolver,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
@@ -251,7 +241,7 @@ public class DefaultConfigurationFactory {
             DefaultDependencyScopeConfiguration.class,
             domainObjectContext,
             name,
-            configurationsProvider,
+            false,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
@@ -260,7 +250,6 @@ public class DefaultConfigurationFactory {
             artifactNotationParser,
             capabilityNotationParser,
             attributesFactory,
-            rootComponentMetadataBuilder,
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,

@@ -16,21 +16,15 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-
 /**
- * Represents the identity of the component that a dependency management instance exposes.
+ * Represents the module identity of the component that a dependency management instance exposes.
  *
  * This is used both as the identity of the root component of a resolution, and the public identity
  * of the components that a dependency management instance exposes.
  *
- * TODO: This could use a better name. Maybe something like LocalComponentIdentity
+ * TODO: We should migrate away from this type. Not all components have a module identity.
  */
 public interface Module {
-    /**
-     * Get this module's componentId.
-     */
-    ComponentIdentifier getComponentId();
 
     String getGroup();
 
@@ -39,4 +33,5 @@ public interface Module {
     String getVersion();
 
     String getStatus();
+
 }
