@@ -23,15 +23,9 @@ import java.util.Objects;
 
 public class GradleDistributionTool implements VersionedTool {
     private final GradleDistribution distribution;
-    private final String ignored;
 
     public GradleDistributionTool(GradleDistribution distribution) {
-        this(distribution, null);
-    }
-
-    public GradleDistributionTool(GradleDistribution distribution, String ignored) {
         this.distribution = distribution;
-        this.ignored = ignored;
     }
 
     @Override
@@ -41,10 +35,6 @@ public class GradleDistributionTool implements VersionedTool {
 
     public GradleDistribution getDistribution() {
         return distribution;
-    }
-
-    public String getIgnored() {
-        return ignored;
     }
 
     @Override
