@@ -25,7 +25,6 @@ import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
-import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
@@ -206,11 +205,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             if (plan != null) {
                 controller.finalizeWorkGraph(plan);
             }
-        }
-
-        @Override
-        public FinalizedExecutionPlan getFinalizedExecutionPlan() {
-            return plan.getFinalizedExecutionPlan();
         }
 
         @Override

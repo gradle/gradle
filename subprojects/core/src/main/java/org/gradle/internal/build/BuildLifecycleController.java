@@ -95,7 +95,7 @@ public interface BuildLifecycleController {
     void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action);
 
     /**
-     * Finalizes the work graph after it has been populated.
+     * Finalizes the work graph after it has not been populated.
      */
     void finalizeWorkGraph(BuildWorkPlan plan);
 
