@@ -40,8 +40,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p>
  * DeprecationTimeline is mandatory and is added using one of:
  * <ul>
- *   <li>{@link DeprecationMessageBuilder#willBeRemovedInGradle9()}
- *   <li>{@link DeprecationMessageBuilder#willBecomeAnErrorInGradle9()}
+ *   <li>{@link DeprecationMessageBuilder#willBeRemovedInGradle10()}
+ *   <li>{@link DeprecationMessageBuilder#willBecomeAnErrorInGradle10()}
  * </ul>
  * <p>
  * After DeprecationTimeline is set, Documentation reference must be added using one of:

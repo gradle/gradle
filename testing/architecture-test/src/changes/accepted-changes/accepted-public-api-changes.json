@@ -4130,6 +4130,54 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestResourceDirs()",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestResources()",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestSourceDirs()",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestSources()",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestResourceDirs(java.util.Set)",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestSourceDirs(java.util.Set)",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.plugins.signing.Sign",
             "member": "Method org.gradle.plugins.signing.Sign.getCallbackActionDecorator()",
             "acceptation": "Making all injecting getters abstract",
