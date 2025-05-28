@@ -23,7 +23,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
@@ -156,18 +155,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     @Provides
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {
         return new DefaultDependencyManagementServices(parent);
-    }
-
-    @Provides
-    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new DependencyMetaDataProviderImpl();
-    }
-
-    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        @Override
-        public Module getModule() {
-            return new AnonymousModule();
-        }
     }
 
     @Provides
