@@ -30,7 +30,7 @@ class DefaultGradleDistribution implements GradleDistribution {
      *
      * @see <a href="https://docs.gradle.org/current/userguide/compatibility.html#java_runtime">link</a>
      */
-    private static final Map<Integer, String> MAX_SUPPORTED_JAVA_VERSIONS = [
+    private static final TreeMap<Integer, String> MAX_SUPPORTED_JAVA_VERSIONS = [
         9: "4.3",
         10: "4.7",
         11: "5.0",
@@ -46,24 +46,24 @@ class DefaultGradleDistribution implements GradleDistribution {
         21: "8.5",
         22: "8.8",
         23: "8.10",
-        24: "8.14"
+        24: "8.14",
     ]
 
     /**
      * The java version mapped to the first Gradle version that required it as
      * a minimum for the daemon.
      */
-    private static final Map<Integer, String> MIN_SUPPORTED_DAEMON_JAVA_VERSIONS = [
+    private static final TreeMap<Integer, String> MIN_SUPPORTED_DAEMON_JAVA_VERSIONS = [
         8: "5.0",
-        17: "9.0"
+        17: "9.0",
     ]
 
     /**
      * The java version mapped to the first Gradle version that required it as
      * a minimum for clients.
      */
-    private static final Map<Integer, String> MIN_SUPPORTED_CLIENT_JAVA_VERSIONS = [
-        8: "5.0"
+    private static final TreeMap<Integer, String> MIN_SUPPORTED_CLIENT_JAVA_VERSIONS = [
+        8: "5.0",
     ]
 
     private final GradleVersion version;
@@ -132,38 +132,29 @@ class DefaultGradleDistribution implements GradleDistribution {
     }
 
     private int getMaxSupportedJavaVersion() {
-        return findCorrespondingVersion(
-            8, // Java 8 support was added in Gradle 2.0
-            MAX_SUPPORTED_JAVA_VERSIONS
-        )
+        return findHighestSupportedKey(MAX_SUPPORTED_JAVA_VERSIONS)
+            .orElse(8) // Java 8 support was added in Gradle 2.0
     }
 
     private int getMinSupportedClientJavaVersion() {
-        return findCorrespondingVersion(
-            7, // Java 7 has been required since Gradle 3.0
-            MIN_SUPPORTED_CLIENT_JAVA_VERSIONS
-        )
+        return findHighestSupportedKey(MIN_SUPPORTED_CLIENT_JAVA_VERSIONS)
+            .orElse(7) // Java 7 has been required since Gradle 3.0
     }
 
     private int getMinSupportedDaemonJavaVersion() {
-        return findCorrespondingVersion(
-            7, // Java 7 has been required since Gradle 3.0
-            MIN_SUPPORTED_DAEMON_JAVA_VERSIONS
-        )
+        return findHighestSupportedKey(MIN_SUPPORTED_DAEMON_JAVA_VERSIONS)
+            .orElse(7) // Java 7 has been required since Gradle 3.0
     }
 
-    private int findCorrespondingVersion(int start, Map<Integer, String> versionMap) {
-        int current = start
-
-        for (Map.Entry<Integer, String> entry : versionMap) {
-            if (isOlder(entry.value)) {
-                return current
-            } else {
-                current = entry.key
-            }
-        }
-
-        return current
+    /**
+     * Find the highest key such that the corresponding value is the
+     * same or newer than the current Gradle version.
+     */
+    private Optional<Integer> findHighestSupportedKey(NavigableMap<Integer, String> versionMap) {
+        return versionMap.descendingMap().entrySet().stream()
+            .filter { isSameOrNewer(it.value) }
+            .findFirst()
+            .map { it.key }
     }
 
     @Override
