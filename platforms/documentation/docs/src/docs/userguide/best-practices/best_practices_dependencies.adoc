@@ -145,8 +145,8 @@ NOTE: While https://github.com/gradle/gradle/issues/32443[`dependencyResolutionM
 You could set up repositories in individual `build.gradle.kts` files with:
 
 ====
-include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 ==== Do This Instead
@@ -154,8 +154,8 @@ include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/groovy",fil
 Instead, you should set them up in `settings.gradle.kts` like this:
 
 ====
-include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/kotlin",files="settings.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/groovy",files="settings.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-do/groovy",files="settings.gradle[tags=do-this]"]
 ====
 
 === Tags

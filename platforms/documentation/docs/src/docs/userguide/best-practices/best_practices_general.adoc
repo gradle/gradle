@@ -151,8 +151,8 @@ As a temporary workaround consider copying the necessary code into your own code
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> Casting to `AttributeContainerInternal` and using `toMap()` should be avoided as it relies on an internal API.
@@ -160,14 +160,14 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 ==== Do This Instead
 
 ====
-include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> Implementing your own version of `toMap()` that only uses public APIs is a lot more robust.
 
 === References
-
+se
 - link:https://docs.gradle.org/current/javadoc/[Gradle API]
 
 === Tags
