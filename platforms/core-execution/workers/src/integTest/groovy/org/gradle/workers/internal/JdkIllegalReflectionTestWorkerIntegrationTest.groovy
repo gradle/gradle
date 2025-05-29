@@ -22,8 +22,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
-import static org.hamcrest.CoreMatchers.containsString
-
 /**
  * Ensures test behavior and actual application behavior are equivalent when
  * production code attempts to perform reflection on JDK internals.
@@ -83,9 +81,9 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
 
         expect:
         fails "test"
-        def results = new DefaultTestExecutionResult(file("."))
-        results.assertTestClassesExecuted("example.MainTest")
-        results.testClass("example.MainTest").assertTestFailed("runTest", containsString('module java.base does not open java.lang to unnamed module'))
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(file(".")).testClassDoesNotExist("example.MainTest")
     }
 
     @Requires(UnitTestPreconditions.Jdk16OrLater)
