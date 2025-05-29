@@ -33,8 +33,8 @@ This can lead to unnecessary task execution and decreased build performance.
 Here is a task that writes output to two separate files:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=depended-upon-task-setup]"]
-include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=depended-upon-task-setup]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-do/kotlin",files="build.gradle.kts[tags=depended-upon-task-setup]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-do/groovy",files="build.gradle[tags=depended-upon-task-setup]"]
 ====
 
 <1> *Task With Multiple Outputs*: `helloWorld` task prints "Hello" to its `messageFile` and "World" to its `audienceFile`.
@@ -45,8 +45,8 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.
 If you want to translate the greeting in the `message.txt` file using another task, you could do this:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> *Translation Task Setup*: `translateBad` requires `helloWorld` to run first to produce the message file otherwise it will fail with an error as the file does not exist.
@@ -57,8 +57,8 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.
 Instead, you should explicitly wire task inputs and outputs like this:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> *Register Implicit Task Dependency*: `translateGood` requires only one of the files that is produced by `helloWorld`.
