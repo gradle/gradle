@@ -66,6 +66,8 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      * Sets the normalizer to use for this property.
      *
      * @since 4.3
+
+     * @implNote Only two normalizers are supported: {@link CompileClasspathNormalizer} and {@link ClasspathNormalizer}.
      */
     TaskInputFilePropertyBuilder withNormalizer(Class<? extends FileNormalizer> normalizer);
 
