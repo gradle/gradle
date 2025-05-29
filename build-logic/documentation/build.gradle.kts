@@ -20,8 +20,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3")
     implementation("org.asciidoctor:asciidoctor-gradle-jvm")
     implementation("org.asciidoctor:asciidoctorj")
-    implementation("dev.adamko.dokkatoo:dokkatoo-plugin")
-    implementation("org.jetbrains.dokka:dokka-core")
+    implementation("org.jetbrains.dokka:dokka-gradle-plugin")
     implementation("org.jspecify:jspecify")
 
     testImplementation(gradleTestKit())

@@ -297,6 +297,7 @@
          </trusted-key>
          <trusted-key id="CF17E92C9FFA55316B5DB83901D734EE5EE9C3F8" group="org.eclipse.sisu"/>
          <trusted-key id="CF4B3A3F53BEF9A2CE2CBFB895962C5E716C39AA" group="com.autonomousapps"/>
+         <trusted-key id="CFBE6E7934FB211224EE1C2B0C0A9468268C79AE" group="org.jetbrains"/>
          <trusted-key id="D40633BFD9FDB773C896E9025DFB46C505B694FE" group="com.github.bbottema"/>
          <trusted-key id="D54A395B5CF3F86EB45F6E426B1B008864323B92">
             <trusting group="org.antlr"/>
@@ -815,11 +816,6 @@
             <sha256 value="81d795f8d22c09bdae192d3e2f40624d6a14325ae745547bbce9df74361be598" origin="Needed because PGP signature verification failed!">
                <also-trust value="eb08b570e408d4646705e70a949614d439ea2b11455f1652ab0330de8954dab9"/>
             </sha256>
-         </artifact>
-      </component>
-      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="2.3.1">
-         <artifact name="dokkatoo-plugin-2.3.1.jar">
-            <pgp value="CB764D538CF417822B4108341CF69814023DEDE9"/>
          </artifact>
       </component>
       <component group="dev.drewhamilton.poko" name="poko-annotations-jvm" version="0.16.0">
@@ -1436,11 +1432,6 @@
       <component group="org.jetbrains" name="annotations" version="24.0.1">
          <artifact name="annotations-24.0.1.jar">
             <pgp value="33FD4BFD33554634053D73C0C2148900BCD3C2AF"/>
-         </artifact>
-      </component>
-      <component group="org.jetbrains" name="markdown-jvm" version="0.5.2">
-         <artifact name="markdown-jvm-0.5.2.jar">
-            <pgp value="CFBE6E7934FB211224EE1C2B0C0A9468268C79AE"/>
          </artifact>
       </component>
       <component group="org.jetbrains.kotlin" name="kotlin-scripting-compiler-impl-embeddable" version="1.6.21">
