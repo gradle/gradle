@@ -243,7 +243,7 @@ Any log messages your build classes write using these logging toolkits will be r
 This feature is deprecated and will be removed in the next major version without a replacement.
 
 The <<configuration_cache.adoc#config_cache,configuration cache>> limits the ability to customize Gradle's logging UI.
-The custom logger can only implement <<configuration_cache.adoc#config_cache:requirements:build_listeners,supported listener interfaces>>.
+The custom logger can only implement <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners,supported listener interfaces>>.
 These interfaces do not receive events when the configuration cache entry is reused because the configuration phase is skipped.
 ====
 
