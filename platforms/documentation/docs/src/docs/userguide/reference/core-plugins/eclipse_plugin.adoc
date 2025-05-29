@@ -15,7 +15,7 @@
 [[eclipse_plugin]]
 = The Eclipse Plugins
 
-WARNING: The Eclipse Plugins are not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
+WARNING: The Eclipse Plugins are not compatible with the <<configuration_cache_status.adoc#config_cache:plugins:core,configuration cache>>.
 
 The Eclipse plugins generate files that are used by the http://eclipse.org[Eclipse IDE], thus making it possible to import the project into Eclipse (`File` - `Import...` - `Existing Projects into Workspace`).
 
