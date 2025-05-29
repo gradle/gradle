@@ -298,8 +298,6 @@ packageCycles {
 
 tasks.test {
     setForkEvery(200)
-    systemProperty("user.language", "en")
-    systemProperty("user.country", "US")
 }
 
 tasks.compileTestGroovy {
