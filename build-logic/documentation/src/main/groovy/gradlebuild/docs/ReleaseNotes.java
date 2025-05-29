@@ -39,7 +39,7 @@ public abstract class ReleaseNotes {
     /**
      * The Javascript embedded in the release notes
      */
-    public abstract RegularFileProperty getReleaseNotesJsFile();
+    public abstract ConfigurableFileCollection getJavascriptFiles();
 
     /**
      * The location of the release notes assets

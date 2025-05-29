@@ -10,7 +10,7 @@
 <meta name="twitter:description" content="Gradle @version@ adds support for Java 24, Native Image toolchains, improved skipped test reporting, lazy dependency configuration for better performance, richer diagnostics via the Problems API, and a new integrity check mode for the configuration cache.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-Gradle @version@ is the first patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
+[Gradle @version@](https://gradle.org/releases#@version@) is the first patch release for Gradle 8.14<span class="js-build-time"></span>.
 
 It fixes the following issues:
 
