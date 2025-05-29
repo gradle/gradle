@@ -341,10 +341,10 @@ Gradle automatically generates a `Closure`-taking method at runtime for each met
 As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use
 link:{javadocPath}/org/gradle/api/Project.html#configure(java.lang.Object,groovy.lang.Closure)[Project#configure].
 
-==== `IdeaModule` API Cleanup
+==== Removal of deprecated `testSourceDirs` and `testResourceDirs` from `IdeaModule`
 
-The deprecated `testSourceDirs` and `testResourceDirs` properties of the `IdeaModule` type have been removed.
-This affects the `org.gradle.plugins.ide.idea.model.IdeaModule` type, not the `org.gradle.tooling.model.idea.IdeaModule` type.
+The deprecated `testSourceDirs` and `testResourceDirs` properties have been removed from `org.gradle.plugins.ide.idea.model.IdeaModule`.  
+This change does not affect the `org.gradle.tooling.model.idea.IdeaModule` type used in the Tooling API.
 Use the `testSources` and `testResources` properties instead.
 
 ==== Removal of Unix mode based file permissions
