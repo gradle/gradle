@@ -315,7 +315,7 @@ testing {
 
 rootProject.name = "gradle"
 
-FeaturePreviews.Feature.values().forEach { feature ->
+FeaturePreviews.Feature.entries.forEach { feature ->
     if (feature.isActive) {
         enableFeaturePreview(feature.name)
     }
@@ -440,13 +440,9 @@ abstract class GeneratorTask : DefaultTask() {
         val head = if (markdownFile.exists()) {
             val content = markdownFile.readText().lines()
             val markerPos = content.indexOfFirst { it.contains(markerComment) }
-            if (markerPos < 0) {
-                throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
-            }
+            require(markerPos >= 0) { "Could not locate the generated diagram in $markdownFile" }
             val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
-            if (endPos < 0) {
-                throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
-            }
+            require(endPos >= 0) { "Could not locate the end of the generated diagram in $markdownFile" }
             content.subList(0, markerPos)
         } else {
             emptyList()
