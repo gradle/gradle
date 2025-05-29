@@ -1,4 +1,4 @@
-rootProject.name = "avoidDuplicateDependencies"
+rootProject.name = "avoidDuplicateDependencies-avoid"
 
 dependencyResolutionManagement {
     repositories {

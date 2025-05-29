@@ -1,8 +1,5 @@
 
 > Configure project :
-Bad map
-org.gradle.usage -> java-runtime
-org.gradle.category -> library
 Good map
 org.gradle.usage -> java-runtime
 org.gradle.category -> library
@@ -12,10 +9,10 @@ org.gradle.category -> library
 Projects:
 
 ------------------------------------------------------------
-Root project 'avoid-internal'
+Root project 'avoid-internal-do'
 ------------------------------------------------------------
 
-Root project 'avoid-internal'
+Root project 'avoid-internal-do'
 No sub-projects
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks

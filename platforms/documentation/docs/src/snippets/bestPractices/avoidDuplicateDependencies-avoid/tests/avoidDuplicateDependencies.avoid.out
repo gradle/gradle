@@ -1,8 +1,8 @@
 
-> Task :avoid-this:dependencies
+> Task :dependencies
 
 ------------------------------------------------------------
-Project ':avoid-this'
+Root project 'avoidDuplicateDependencies-avoid'
 ------------------------------------------------------------
 
 annotationProcessor - Annotation processors and their dependencies for source set 'main'.
