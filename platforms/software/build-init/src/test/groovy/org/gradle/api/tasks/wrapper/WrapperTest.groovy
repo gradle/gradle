@@ -16,9 +16,10 @@
 
 package org.gradle.api.tasks.wrapper
 
+import org.gradle.api.resources.TextResourceFactory
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
-import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsAPI
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
@@ -29,25 +30,30 @@ import org.gradle.wrapper.WrapperExecutor
 class WrapperTest extends AbstractTaskTest {
     private static final String RELEASE = "7.6"
     private static final String RELEASE_CANDIDATE = "7.7-rc-5"
+    private static final String MILESTONE = "7.8-milestone-1"
     private static final String NIGHTLY = "8.1-20221207164726+0000"
     private static final String RELEASE_NIGHTLY = "8.0-20221207164726+0000"
+    private static final String DUMMY_API_URL = "http://some-api-url/%s"
     private static final String TARGET_WRAPPER_FINAL = "gradle/wrapper"
     private Wrapper wrapper
     private TestFile expectedTargetWrapperJar
     private File expectedTargetWrapperProperties
+    private TextResourceFactory textResourceFactory = Mock(TextResourceFactory)
 
-    def createVersionTextResource(String version) {
+    private def createVersionTextResource(String version) {
         wrapper.getProject().getResources().text.fromString("""{ "version" : "${version}" }""")
+    }
+
+    private def versionUrl(String placeHolder) {
+        if (placeHolder == "latest") {
+            return String.format(DUMMY_API_URL, "current")
+        }
+        return String.format(DUMMY_API_URL, placeHolder)
     }
 
     def setup() {
         wrapper = createTask(Wrapper.class)
-
-        def latest = createVersionTextResource(RELEASE)
-        def releaseCandidate = createVersionTextResource(RELEASE_CANDIDATE)
-        def nightly = createVersionTextResource(NIGHTLY)
-        def releaseNightly = createVersionTextResource(RELEASE_NIGHTLY)
-        wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly))
+        wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsAPI(DUMMY_API_URL, textResourceFactory))
         wrapper.setGradleVersion("1.0")
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
                 TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
@@ -103,6 +109,10 @@ class WrapperTest extends AbstractTaskTest {
     }
 
     def "downloads for '#version' from repository "() {
+        given:
+        int invocations = isPlaceholder ? 1 : 0
+        invocations * textResourceFactory.fromUri(versionUrl(version)) >> createVersionTextResource(out)
+
         when:
         wrapper.setGradleVersion(version)
 
@@ -110,14 +120,15 @@ class WrapperTest extends AbstractTaskTest {
         "https://services.gradle.org/distributions$snapshot/gradle-$out-bin.zip" == wrapper.getDistributionUrl()
 
         where:
-        version                     | out                         | snapshot
-        "1.0-milestone-1"           | "1.0-milestone-1"           | ""
-        "0.9.1-20101224110000+1100" | "0.9.1-20101224110000+1100" | "-snapshots"
-        "0.9.1"                     | "0.9.1"                     | ""
-        "latest"                    | RELEASE                     | ""
-        "release-candidate"         | RELEASE_CANDIDATE           | ""
-        "nightly"                   | NIGHTLY                     | "-snapshots"
-        "release-nightly"           | RELEASE_NIGHTLY             | "-snapshots"
+        version                     | out                         | snapshot     | isPlaceholder
+        "1.0-milestone-1"           | "1.0-milestone-1"           | ""           | false
+        "0.9.1-20101224110000+1100" | "0.9.1-20101224110000+1100" | "-snapshots" | false
+        "0.9.1"                     | "0.9.1"                     | ""           | false
+        "latest"                    | RELEASE                     | ""           | true
+        "release-candidate"         | RELEASE_CANDIDATE           | ""           | true
+        "milestone"                 | MILESTONE                   | ""           | true
+        "nightly"                   | NIGHTLY                     | "-snapshots" | true
+        "release-nightly"           | RELEASE_NIGHTLY             | "-snapshots" | true
     }
 
     def "uses explicitly defined distribution url"() {

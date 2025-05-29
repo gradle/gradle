@@ -29,7 +29,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
-import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsAPI;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.internal.UncheckedException;
@@ -285,11 +285,8 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Incubating
     public void setWrapperVersionsResources(WrapperVersionsResources wrapperVersionsResources) {
-        DefaultWrapperVersionsResources defaultWrapperVersionsResources = (DefaultWrapperVersionsResources) wrapperVersionsResources;
-        gradleVersionResolver.setTextResources(defaultWrapperVersionsResources.getLatest(),
-            defaultWrapperVersionsResources.getReleaseCandidate(),
-            defaultWrapperVersionsResources.getNightly(),
-            defaultWrapperVersionsResources.getReleaseNightly());
+        DefaultWrapperVersionsAPI defaultWrapperVersionsResources = (DefaultWrapperVersionsAPI) wrapperVersionsResources;
+        gradleVersionResolver.setWrapperVersionsResources(defaultWrapperVersionsResources);
     }
 
     /**
@@ -312,10 +309,10 @@ public abstract class Wrapper extends DefaultTask {
      * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
-        "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
+        "The following labels are allowed: latest, release-candidate, milestone, nightly, and release-nightly.")
     public void setGradleVersion(String gradleVersion) {
         distributionUrlConfigured = true;
-        this.gradleVersionResolver.setGradleVersionString(gradleVersion);
+        this.gradleVersionResolver.setGradleVersionRequest(gradleVersion);
     }
 
     /**
