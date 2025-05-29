@@ -161,17 +161,17 @@ You can also configure any authentication details that are required to connect t
 [[supported_maven_repositories]]
 === Supported Repositories
 
-Gradle's `maven-publish` plugin can be used to publish artifacts to a wide range of Maven-compatible repositories, including:
+Gradle's `maven-publish` plugin is compatible with the link:https://maven.apache.org/plugins/maven-deploy-plugin/[Maven Deploy Plugin] and supports publishing to any repository that adheres to the same standards and protocols.
+This includes a wide range of Maven-compatible repositories, such as:
 
 * **Local repositories** (e.g. `~/.m2/repository`)
 * **Custom remote Maven repositories**
-* **Repository managers** such as **Sonatype Nexus** and **JFrog Artifactory**
+* **Repository managers** like **Sonatype Nexus** and **JFrog Artifactory**
 * **GitHub Packages**
 * **Internal corporate Maven repositories**
 
-The `maven-publish` plugin supports all standard repository protocols and can be used to publish to most destinations.
-
-NOTE: Maven Central is no longer a typical Maven repository—it requires staging, signing, and validation steps, so **publishing requires a third-party plugin**.
+However, note that **link:https://central.sonatype.com/[Maven Central]** is moving away from the legacy protocol used by the link:https://maven.apache.org/plugins/maven-deploy-plugin/[Maven Deploy Plugin].
+Publishing to Maven Central now **requires a third-party plugin**.
 
 [[publishing_maven:snapshot_and_release_repositories]]
 === Snapshot and release repositories
