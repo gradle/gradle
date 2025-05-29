@@ -19,7 +19,7 @@ tasks.register<SimplePrintingTask>("helloWorld") { // <2>
 }
 // end::depended-upon-task-setup[]
 
-// tag::avoid-this[]
+// tag::do-this[]
 abstract class SimpleTranslationTask : DefaultTask() {
     @get:InputFile
     abstract val messageFile: RegularFileProperty
@@ -42,12 +42,6 @@ abstract class SimpleTranslationTask : DefaultTask() {
     }
 }
 
-tasks.register<SimpleTranslationTask>("translateBad") {
-    dependsOn(tasks.named("helloWorld")) // <2>
-}
-// end::avoid-this[]
-
-// tag::do-this[]
 tasks.register<SimpleTranslationTask>("translateGood") {
     inputs.file(tasks.named<SimplePrintingTask>("helloWorld").map { messageFile }) // <1>
 }

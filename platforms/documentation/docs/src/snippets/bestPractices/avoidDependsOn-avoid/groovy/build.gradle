@@ -46,9 +46,3 @@ tasks.register("translateBad", SimpleTranslationTask) {
     dependsOn(tasks.named("helloWorld")) // <2>
 }
 // end::avoid-this[]
-
-// tag::do-this[]
-tasks.register("translateGood", SimpleTranslationTask) {
-    inputs.file(tasks.named("helloWorld", SimplePrintingTask).map { messageFile }) // <1>
-}
-// end::do-this[]
