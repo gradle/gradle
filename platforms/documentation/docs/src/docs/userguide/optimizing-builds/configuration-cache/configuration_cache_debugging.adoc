@@ -246,13 +246,13 @@ The current integrity checks primarily focus on identifying serialization protoc
 Consequently, they are less effective against hardware-related problems, such as bit rot or damaged storage sectors.
 Due to these limitations and the performance overhead introduced by integrity checks, we recommend enabling them selectively as a troubleshooting measure rather than leaving them permanently enabled.
 
-== Inspecting Cache Entries
+== Inspect Cache Entries
 
 The link:https://github.com/gradle/gcc2speedscope[`gcc2speedscope` tool], developed by Gradle, analyzes the space usage of the Gradle Configuration Cache by converting debug logs into interactive flamegraphs compatible with link:https://www.speedscope.app/[speedscope.app].
 
 This visualization helps identify large or unnecessary objects within the cache.
 
-== Debugging the Configuration Phase
+== Debug the Configuration Phase
 
 The link:https://github.com/gradle/gradle-trace-converter[`gradle-trace-converter`] is a command-line tool developed by Gradle to analyze and convert Build Operation traces into formats like Chrome's Perfetto trace and CSV timelines.
 
