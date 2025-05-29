@@ -104,6 +104,16 @@ It is constrained to be idempotent (produce the same result every time) and side
 
 ==== Don't Do This
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/usePluginsBlock-avoid/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/usePluginsBlock-avoid/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/usePluginsBlock-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/usePluginsBlock-avoid/groovy",files="build.gradle[tags=avoid-this]"]
@@ -115,6 +125,16 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-avoid/groovy",files=
 <4> *Apply a Third-Party Plugin*: The syntax is the same as for core Gradle plugins, but the version is not present at the point of application in your buildscript.
 
 ==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/usePluginsBlock-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/usePluginsBlock-do/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/usePluginsBlock-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -150,6 +170,16 @@ As a temporary workaround consider copying the necessary code into your own code
 
 ==== Don't Do This
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidInternal-avoid/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidInternal-avoid/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/avoidInternal-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/avoidInternal-avoid/groovy",files="build.gradle[tags=avoid-this]"]
@@ -158,6 +188,16 @@ include::sample[dir="snippets/bestPractices/avoidInternal-avoid/groovy",files="b
 <1> Casting to `AttributeContainerInternal` and using `toMap()` should be avoided as it relies on an internal API.
 
 ==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidInternal-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidInternal-do/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/avoidInternal-do/kotlin",files="build.gradle.kts[tags=do-this]"]
