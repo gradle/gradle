@@ -74,6 +74,8 @@ public class Path implements Comparable<Path> {
     private volatile String fullPath;
 
     private Path(String[] segments, boolean absolute) {
+        assert !(segments.length == 0 && !absolute) : "Empty relative paths are forbidden";
+
         this.segments = segments;
         this.absolute = absolute;
 
@@ -98,9 +100,18 @@ public class Path implements Comparable<Path> {
      * </pre>
      */
     public Path append(Path path) {
+        if (segments.length == 0) {
+            if (absolute == path.absolute) {
+                return path;
+            } else {
+                return new Path(path.segments, absolute);
+            }
+        }
+
         if (path.segments.length == 0) {
             return this;
         }
+
         String[] concat = new String[segments.length + path.segments.length];
         System.arraycopy(segments, 0, concat, 0, segments.length);
         System.arraycopy(path.segments, 0, concat, segments.length, path.segments.length);

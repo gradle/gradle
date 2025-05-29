@@ -142,11 +142,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public Path calculateIdentityPathForProject(Path path) {
-        return path;
-    }
-
-    @Override
     protected void ensureChildBuildConfigured() {
         // nothing to do for the root build
     }
