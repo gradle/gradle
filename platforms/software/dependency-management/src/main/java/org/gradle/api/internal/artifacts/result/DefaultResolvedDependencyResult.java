@@ -21,18 +21,41 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
-public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
+public class DefaultResolvedDependencyResult implements ResolvedDependencyResult {
+
+    private final ComponentSelector requested;
+    private final ResolvedComponentResult from;
+    private final boolean constraint;
     private final ResolvedComponentResult selectedComponent;
     private final ResolvedVariantResult selectedVariant;
 
-    public DefaultResolvedDependencyResult(ComponentSelector requested,
-                                           boolean constraint,
-                                           ResolvedComponentResult selectedComponent,
-                                           ResolvedVariantResult selectedVariant,
-                                           ResolvedComponentResult from) {
-        super(requested, from, constraint);
+    public DefaultResolvedDependencyResult(
+        ComponentSelector requested,
+        ResolvedComponentResult from,
+        boolean constraint,
+        ResolvedComponentResult selectedComponent,
+        ResolvedVariantResult selectedVariant
+    ) {
+        this.requested = requested;
+        this.from = from;
+        this.constraint = constraint;
         this.selectedComponent = selectedComponent;
         this.selectedVariant = selectedVariant;
+    }
+
+    @Override
+    public ComponentSelector getRequested() {
+        return requested;
+    }
+
+    @Override
+    public ResolvedComponentResult getFrom() {
+        return from;
+    }
+
+    @Override
+    public boolean isConstraint() {
+        return constraint;
     }
 
     @Override
@@ -53,4 +76,5 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
             return getRequested() + " -> " + getSelected().getId();
         }
     }
+
 }

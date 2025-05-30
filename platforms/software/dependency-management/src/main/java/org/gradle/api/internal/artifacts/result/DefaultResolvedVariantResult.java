@@ -34,14 +34,16 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     private final DisplayName displayName;
     private final AttributeContainer attributes;
     private final ImmutableCapabilities capabilities;
-    private final ResolvedVariantResult externalVariant;
+    private final @Nullable ResolvedVariantResult externalVariant;
     private final int hashCode;
 
-    public DefaultResolvedVariantResult(ComponentIdentifier owner,
-                                        DisplayName displayName,
-                                        AttributeContainer attributes,
-                                        ImmutableCapabilities capabilities,
-                                        @Nullable ResolvedVariantResult externalVariant) {
+    public DefaultResolvedVariantResult(
+        ComponentIdentifier owner,
+        DisplayName displayName,
+        AttributeContainer attributes,
+        ImmutableCapabilities capabilities,
+        @Nullable ResolvedVariantResult externalVariant
+    ) {
         this.owner = owner;
         this.displayName = displayName;
         this.attributes = attributes;
@@ -56,13 +58,13 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     }
 
     @Override
-    public AttributeContainer getAttributes() {
-        return attributes;
+    public String getDisplayName() {
+        return displayName.getDisplayName();
     }
 
     @Override
-    public String getDisplayName() {
-        return displayName.getDisplayName();
+    public AttributeContainer getAttributes() {
+        return attributes;
     }
 
     @Override

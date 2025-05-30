@@ -19,15 +19,13 @@ package org.gradle.api.internal.artifacts.result
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.artifacts.component.ComponentSelector
-import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
@@ -102,7 +100,7 @@ class DefaultResolutionResultTest extends Specification {
         def dep1 = newDependency('b', 'b', '1')
         root.addDependencies(ImmutableSet.of(dep1))
 
-        def dep2 = new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, ResolutionResultDataBuilder.newVariant(), dep1.selected)
+        def dep2 = new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), dep1.selected, false, root, ResolutionResultDataBuilder.newVariant())
         (dep1.selected as DefaultResolvedComponentResult).addDependencies(ImmutableSet.of(dep2))
 
         when:
@@ -145,22 +143,25 @@ class DefaultResolutionResultTest extends Specification {
             Stub(Path),
             'test project'
         )
+
         def mid = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
-        org.gradle.internal.Factory<String> broken = { "too bad" }
+        def variant = Stub(ResolvedVariantResult)
+        def requested = DefaultModuleComponentSelector.newSelector(mid)
+        def from = new DefaultResolvedComponentResult(mid, ComponentSelectionReasons.requested(), projectId, ImmutableMap.of(1L, variant), ImmutableList.of(variant), null)
+
         def dep = new DefaultUnresolvedDependencyResult(
-            Stub(ComponentSelector),
+            requested,
+            from,
             false,
-            Stub(ComponentSelectionReason),
-            new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, ImmutableMap.of(1L, Stub(ResolvedVariantResult)), ImmutableList.of(Stub(ResolvedVariantResult)), null),
-            new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken, [])
+            ComponentSelectionReasons.requested(),
+            new ModuleVersionNotFoundException(requested, { "too bad" }, [])
         )
-        def edge = new UnresolvedDependencyEdge(dep)
 
         when:
-        def from = edge.from
+        def edge = new UnresolvedDependencyEdge(dep)
 
         then:
-        from.is(projectId)
+        edge.from.is(projectId)
     }
 
     private ResolutionResult newResolutionResult(ResolvedComponentResultInternal root) {

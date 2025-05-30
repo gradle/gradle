@@ -24,10 +24,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 @UsedByScanPlugin
 public interface UnresolvedDependencyResult extends DependencyResult {
-    /**
-     * Returns the selector that was attempted to be resolved. This may not be the same as the requested component.
-     */
-    ComponentSelector getAttempted();
 
     /**
      * Returns the reasons why the failed selector was attempted.
@@ -38,4 +34,10 @@ public interface UnresolvedDependencyResult extends DependencyResult {
      * The failure that occurred.
      */
     Throwable getFailure();
+
+    /**
+     * Returns the selector that was attempted to be resolved. This may not be the same as the requested component.
+     */
+    ComponentSelector getAttempted();
+
 }

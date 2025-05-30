@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
@@ -193,6 +194,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
     public static ModuleComponentSelector newSelector(ModuleIdentifier id, String version) {
         return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableSet.of());
+    }
+
+    public static ModuleComponentSelector newSelector(ModuleVersionIdentifier id) {
+        return new DefaultModuleComponentSelector(id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion()), ImmutableAttributes.EMPTY, ImmutableSet.of());
     }
 
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {

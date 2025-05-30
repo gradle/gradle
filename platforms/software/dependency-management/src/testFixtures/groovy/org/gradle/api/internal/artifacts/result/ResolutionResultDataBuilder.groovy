@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -32,27 +33,27 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.util.AttributeTestUtil
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ResolutionResultDataBuilder {
 
     static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(newSelector(group, module, version), false, newModule(group, module, selectedVersion), newVariant("variant"), newModule())
+        new DefaultResolvedDependencyResult(newSelector(group, module, version), newModule(), false, newModule(group, module, selectedVersion), newVariant("variant"))
     }
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
         def requested = newSelector(group, module, version)
         org.gradle.internal.Factory<String> broken = { "broken" }
-        new DefaultUnresolvedDependencyResult(requested, false, ComponentSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId(group, module), version), broken))
+        new DefaultUnresolvedDependencyResult(requested, newModule(group, module, selectedVersion), false, ComponentSelectionReasons.requested(), new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId(group, module), version), broken))
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1', ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested(), ResolvedVariantResult variant = newVariant(), String repoId = null) {
-        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, module), version), ImmutableMap.of(1L, variant), ImmutableList.of(variant), repoId)
+        def mid = DefaultModuleVersionIdentifier.newId(group, module, version)
+        new DefaultResolvedComponentResult(mid, selectionReason, DefaultModuleComponentIdentifier.newId(mid), ImmutableMap.of(1L, variant), ImmutableList.of(variant), repoId)
     }
 
     static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(componentSelector, false, newModule(group, module, selectedVersion), newVariant("variant"), newModule())
+        new DefaultResolvedDependencyResult(componentSelector, newModule(), false, newModule(group, module, selectedVersion), newVariant("variant"))
     }
 
     static ResolvedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:], String ownerGroup = 'com', String ownerModule = 'foo', String ownerVersion = '1.0') {
@@ -61,7 +62,7 @@ class ResolutionResultDataBuilder {
             mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
         }
         def ownerId = DefaultModuleComponentIdentifier.newId(
-            newId(ownerGroup, ownerModule, ownerVersion)
+            DefaultModuleVersionIdentifier.newId(ownerGroup, ownerModule, ownerVersion)
         )
         return new DefaultResolvedVariantResult(ownerId, Describables.of(name), mutableAttributes, ImmutableCapabilities.EMPTY, null)
     }

@@ -38,16 +38,16 @@ public interface ResolvedVariantResult {
     ComponentIdentifier getOwner();
 
     /**
-     * The attributes associated with this variant.
-     */
-    AttributeContainer getAttributes();
-
-    /**
      * The display name of this variant, for diagnostics.
      *
      * @since 4.6
      */
     String getDisplayName();
+
+    /**
+     * The attributes associated with this variant.
+     */
+    AttributeContainer getAttributes();
 
     /**
      * The capabilities provided by this variant
