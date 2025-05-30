@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
@@ -69,7 +69,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes root ProjectComponentIdentifier"() {
         given:
-        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.ROOT, Path.ROOT, "someProject")
+        def identifier = new DefaultProjectComponentIdentifier(ProjectIdentity.forRootProject(Path.ROOT, "root"))
 
         when:
         def result = serialize(identifier, serializer) as ProjectComponentIdentifierInternal
@@ -84,7 +84,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes root build ProjectComponentIdentifier"() {
         given:
-        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":a:b"), Path.path(":a:b"), "b")
+        def identifier = new DefaultProjectComponentIdentifier(ProjectIdentity.forSubproject(Path.ROOT, Path.path(":subproject")))
 
         when:
         def result = serialize(identifier, serializer) as ProjectComponentIdentifierInternal
@@ -99,7 +99,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes other build root ProjectComponentIdentifier"() {
         given:
-        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":prefix:someProject"), Path.ROOT, "someProject")
+        def identifier = new DefaultProjectComponentIdentifier(ProjectIdentity.forRootProject(Path.path(":build"), "root"))
 
         when:
         def result = serialize(identifier, serializer) as ProjectComponentIdentifierInternal
@@ -114,7 +114,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes other build ProjectComponentIdentifier"() {
         given:
-        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":prefix:a:b"), Path.path(":a:b"), "b")
+        def identifier = new DefaultProjectComponentIdentifier(ProjectIdentity.forSubproject(Path.path(":build"), Path.path(":subproject")))
 
         when:
         def result = serialize(identifier, serializer) as ProjectComponentIdentifierInternal
@@ -157,7 +157,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
     }
 
     void assertSameProjectId(ProjectComponentIdentifierInternal result, ProjectComponentIdentifierInternal selector) {
-        assert result.projectIdentity.buildIdentifier == selector.projectIdentity.buildIdentifier
+        assert result.projectIdentity.buildPath == selector.projectIdentity.buildPath
         assert result.projectIdentity.buildTreePath == selector.projectIdentity.buildTreePath
         assert result.projectIdentity.projectPath == selector.projectIdentity.projectPath
         assert result.projectIdentity.projectName == selector.projectIdentity.projectName

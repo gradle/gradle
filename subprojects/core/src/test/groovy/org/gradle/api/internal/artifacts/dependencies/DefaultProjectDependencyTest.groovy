@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
@@ -34,7 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 class DefaultProjectDependencyTest extends Specification {
 
     ProjectState projectState = Stub(ProjectState) {
-        getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "test-project")
+        getIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "test-project")
     }
 
     private ProjectDependency projectDependency
@@ -137,7 +136,7 @@ class DefaultProjectDependencyTest extends Specification {
         differentConf.setTargetConfiguration("conf2")
 
         def otherProjectState = Mock(ProjectState) {
-            getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.path(":foo"), Path.path(":foo"), "foo")
+            getIdentity() >> ProjectIdentity.forSubproject(Path.ROOT, Path.path(":bar"))
         }
         def differentProject = new DefaultProjectDependency(otherProjectState)
         differentProject.setTargetConfiguration("conf1")
