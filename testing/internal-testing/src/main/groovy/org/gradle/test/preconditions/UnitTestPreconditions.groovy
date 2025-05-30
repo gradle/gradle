@@ -110,6 +110,18 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class NotAlpine implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            String env = System.getenv("TEST_DISTRIBUTION_AGENT_CAPABILITIES")
+            if (env == null) {
+                return true
+            } else {
+                return !env.toLowerCase().contains("alpine");
+            }
+        }
+    }
+
     static final class NotWindowsJavaBefore11 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
