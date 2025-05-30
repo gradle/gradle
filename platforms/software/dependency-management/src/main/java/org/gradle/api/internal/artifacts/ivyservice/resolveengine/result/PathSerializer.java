@@ -16,29 +16,37 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.util.Path;
 
 import java.io.IOException;
 
 /**
- * A thread-safe and reusable serializer for {@link BuildIdentifier}.
+ * A thread-safe and reusable serializer for {@link Path}.
  */
-public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifier> {
-
-    private final PathSerializer pathSerializer = new PathSerializer();
+public class PathSerializer extends AbstractSerializer<Path> {
 
     @Override
-    public BuildIdentifier read(Decoder decoder) throws IOException {
-        return new DefaultBuildIdentifier(pathSerializer.read(decoder));
+    public Path read(Decoder decoder) throws IOException {
+        boolean isRoot = decoder.readBoolean();
+
+        if (isRoot) {
+            return Path.ROOT;
+        } else {
+            return Path.path(decoder.readString());
+        }
     }
 
     @Override
-    public void write(Encoder encoder, BuildIdentifier value) throws IOException {
-        pathSerializer.write(encoder, ((DefaultBuildIdentifier) value).getIdentityPath());
+    public void write(Encoder encoder, Path value) throws IOException {
+        boolean isRoot = value.equals(Path.ROOT);
+        encoder.writeBoolean(isRoot);
+
+        if (!isRoot) {
+            encoder.writeString(value.getPath());
+        }
     }
 
 }

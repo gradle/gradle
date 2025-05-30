@@ -24,13 +24,13 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -140,10 +140,7 @@ class DefaultResolutionResultTest extends Specification {
 
     def "doesn't throw class cast exception when the source of the edge is a project"() {
         def projectId = new DefaultProjectComponentIdentifier(
-            DefaultBuildIdentifier.ROOT,
-            Stub(Path),
-            Stub(Path),
-            'test project'
+            ProjectIdentity.forRootProject(Path.ROOT, "bar")
         )
         def mid = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
         org.gradle.internal.Factory<String> broken = { "too bad" }
