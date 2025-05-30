@@ -143,6 +143,7 @@ data class TargetTypedSchema(
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
+    // DCL:
     val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
     val softwareTypeEntries: List<SoftwareTypeEntry<TypeOf<*>>>,
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>

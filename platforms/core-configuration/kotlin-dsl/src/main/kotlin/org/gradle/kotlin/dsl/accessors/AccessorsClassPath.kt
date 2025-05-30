@@ -317,6 +317,7 @@ sealed class InaccessibilityReason {
     data class NonAvailable(val type: String) : InaccessibilityReason()
     data class Synthetic(val type: String) : InaccessibilityReason()
     data class TypeErasure(val type: String) : InaccessibilityReason()
+    data class DeprecatedAsHidden(val type: String) : InaccessibilityReason()
 
     val explanation
         get() = when (this) {
@@ -324,6 +325,7 @@ sealed class InaccessibilityReason {
             is NonAvailable -> "`$type` is not available"
             is Synthetic -> "`$type` is synthetic"
             is TypeErasure -> "`$type` parameter types are missing"
+            is DeprecatedAsHidden -> "`$type` is deprecated as hidden"
         }
 }
 
@@ -380,12 +382,18 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
             ?: return TypeAccessibilityInfo(listOf(nonAvailable(className)))
         val classReader = ClassReader(classBytes)
         val access = classReader.access
+
+        val visibilityAndDeprecation by lazy(LazyThreadSafetyMode.NONE) {
+            kotlinVisibilityAndDeprecationFor(classReader)
+        }
+
         return TypeAccessibilityInfo(
             listOfNotNull(
                 when {
                     ACC_PUBLIC !in access -> nonPublic(className)
                     ACC_SYNTHETIC in access -> synthetic(className)
-                    isNonPublicKotlinType(classReader) -> nonPublic(className)
+                    visibilityAndDeprecation.isNonPublicType -> nonPublic(className)
+                    visibilityAndDeprecation.isDeprecatedAsHidden -> deprecatedAsHidden(className)
                     else -> null
                 }
             ),
@@ -393,13 +401,19 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         )
     }
 
-    private
-    fun isNonPublicKotlinType(classReader: ClassReader) =
-        kotlinVisibilityFor(classReader)?.let { it != Visibility.PUBLIC } ?: false
+    private data class VisibilityAndDeprecation(
+        val isNonPublicType: Boolean,
+        val isDeprecatedAsHidden: Boolean
+    )
 
     private
-    fun kotlinVisibilityFor(classReader: ClassReader) =
-        classReader(KotlinVisibilityClassVisitor()).visibility
+    fun kotlinVisibilityAndDeprecationFor(classReader: ClassReader): VisibilityAndDeprecation =
+        classReader(KotlinVisibilityClassVisitor()).run {
+            VisibilityAndDeprecation(
+                isNonPublicType = visibility != null && visibility != Visibility.PUBLIC,
+                isDeprecatedAsHidden = isDeprecatedAsHidden
+            )
+        }
 
     private
     fun hasTypeParameters(classReader: ClassReader): Boolean =
@@ -488,12 +502,22 @@ private
 class KotlinVisibilityClassVisitor : ClassVisitor(ASM_LEVEL) {
 
     var visibility: Visibility? = null
+    var isDeprecatedAsHidden: Boolean = false
 
     override fun visitAnnotation(desc: String?, visible: Boolean): AnnotationVisitor? =
         when (desc) {
             "Lkotlin/Metadata;" -> ClassDataFromKotlinMetadataAnnotationVisitor { classData ->
                 visibility = Flags.VISIBILITY[classData.flags]
             }
+
+            "Lkotlin/Deprecated;" ->
+                object : AnnotationVisitor(ASM_LEVEL) {
+                    override fun visitEnum(name: String, descriptor: String, value: String) {
+                        if (name == "level" && value == "HIDDEN") {
+                            isDeprecatedAsHidden = true
+                        }
+                    }
+                }
 
             else -> null
         }
@@ -557,6 +581,11 @@ fun nonAvailable(type: String): InaccessibilityReason =
 internal
 fun nonPublic(type: String): InaccessibilityReason =
     InaccessibilityReason.NonPublic(type)
+
+
+internal
+fun deprecatedAsHidden(type: String): InaccessibilityReason =
+    InaccessibilityReason.DeprecatedAsHidden(type)
 
 
 internal
