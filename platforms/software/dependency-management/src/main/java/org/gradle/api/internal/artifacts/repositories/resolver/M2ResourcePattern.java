@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.PatternHelper;
@@ -51,8 +52,8 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier) {
             MavenUniqueSnapshotComponentIdentifier snapshotId = (MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId();
             pattern = pattern
-                    .replaceFirst("-\\[revision]", "-" + snapshotId.getTimestampedVersion())
-                    .replace("[revision]", snapshotId.getSnapshotVersion());
+                .replaceFirst("-\\[revision]", "-" + snapshotId.getTimestampedVersion())
+                .replace("[revision]", snapshotId.getSnapshotVersion());
         }
         return pattern;
     }
@@ -76,11 +77,12 @@ public class M2ResourcePattern extends AbstractResourcePattern {
     @Override
     public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
         String pattern = getBase().getPath();
-        if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
-            throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
+        String substitutedPattern = substituteTokens(pattern, toAttributes(componentIdentifier));
+        String modulePath = StringUtils.substringBeforeLast(substitutedPattern, "/");
+        if (modulePath.equals(substitutedPattern)) {
+            throw new UnsupportedOperationException("Cannot locate module version path for " + componentIdentifier.getDisplayName() + " from pattern " + pattern);
         }
-        String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_VERSION_PATTERN.length() - 1);
-        return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(componentIdentifier)));
+        return getBase().getRoot().resolve(modulePath);
     }
 
     @Override
