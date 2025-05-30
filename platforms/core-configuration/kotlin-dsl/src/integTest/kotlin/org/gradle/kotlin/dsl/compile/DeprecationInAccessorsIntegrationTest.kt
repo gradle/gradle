@@ -17,8 +17,6 @@
 package org.gradle.kotlin.dsl.compile
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -39,7 +37,6 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     """
 
 
-    @Requires(IntegTestPreconditions.NotConfigCached::class)
     @Test
     fun `if an extension type is deprecated in Java, suppresses deprecation and deprecates the accessors`() {
         withFile(
@@ -133,7 +130,6 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
 
-    @Requires(IntegTestPreconditions.NotConfigCached::class)
     @Test
     fun `if an extension type is deprecated in Kotlin, suppresses deprecation and deprecates the accessors`() {
         withPrecompiledScriptPluginInBuildSrc(
