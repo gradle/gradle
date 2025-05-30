@@ -16,11 +16,11 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.FailsWith
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can define task with abstract read-only Property<T> property"() {
@@ -74,8 +74,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33215")
-    def "reports failure to query read-only unmanaged Property<T> with final getter"() {
+    def "reports failure to query non-abstract Property<T> with Groovy property"() {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -101,8 +100,121 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
-    def "reports failure to query read-only unmanaged Property<T>"() {
+    @Issue("https://github.com/gradle/gradle/issues/33215")
+    def "non-abstract Property<T> with Groovy property carries task dependencies"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @OutputFile
+                final Property<String> output = project.objects.property(String)
+
+                MyTask() {
+                    output.convention("output")
+                }
+
+                @Internal
+                ${ValueSupplier.class.name} getOutputValueSupplier() {
+                    return (${ValueSupplier.class.name}) output
+                }
+
+                @TaskAction
+                void go() {
+                    outputValueSupplier.producer.visitProducerTasks {
+                        println("outside: output is produced by \${it.name}")
+                    }
+                }
+            }
+
+            tasks.create("thing", MyTask) {
+                outputValueSupplier.producer.visitProducerTasks {
+                    println("inside: output is produced by \${it.name}")
+                }
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("outside: output is produced by thing")
+        outputContains("inside: output is produced by thing")
+    }
+
+    def "reports failure to query non-abstract Property<T> with final getter"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                private final Property<Integer> count = project.objects.property(Integer)
+
+                @Internal
+                public final Property<Integer> getCount() {
+                    return count;
+                }
+
+                @TaskAction
+                void go() {
+                    println("count = \${count.get()}")
+                }
+            }
+
+            tasks.create("thing", MyTask) {
+                println("property = \$count")
+            }
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        outputContains("property = task ':thing' property 'count'")
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
+    }
+
+    def "non-abstract Property<T> with final getter carries task dependencies"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                private final Property<String> output = project.objects.property(String)
+
+                MyTask() {
+                    output.convention("output")
+                }
+
+                @OutputFile
+                public final Property<String> getOutput() {
+                    return output;
+                }
+
+                @Internal
+                ${ValueSupplier.class.name} getOutputValueSupplier() {
+                    return (${ValueSupplier.class.name}) output
+                }
+
+                @TaskAction
+                void go() {
+                    outputValueSupplier.producer.visitProducerTasks {
+                        println("inside: output is produced by \${it.name}")
+                    }
+                }
+            }
+
+            tasks.create("thing", MyTask) {
+                outputValueSupplier.producer.visitProducerTasks {
+                    println("outside: output is produced by \${it.name}")
+                }
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("outside: output is produced by thing")
+        outputContains("inside: output is produced by thing")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "non-final getters do not trigger attachOwner/attachProducer logic")
+    def "reports failure to query non-abstract Property<T> with non-final getter"() {
         given:
         file("buildSrc/src/main/java/MyTask.java") << """
             import org.gradle.api.*;
@@ -136,6 +248,50 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("property = task ':thing' property 'count'")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
+    }
+
+    @FailsWith(reason = "non-final getters do not trigger attachOwner/attachProducer logic", value = AssertionError)
+    def "non-abstract Property<T> with non-final getter carries task dependencies"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                private final Property<String> output = project.objects.property(String)
+
+                MyTask() {
+                    output.convention("output")
+                }
+
+                @OutputFile
+                public Property<String> getOutput() {
+                    return output;
+                }
+
+                @Internal
+                ${ValueSupplier.class.name} getOutputValueSupplier() {
+                    return (${ValueSupplier.class.name}) output
+                }
+
+                @TaskAction
+                void go() {
+                    outputValueSupplier.producer.visitProducerTasks {
+                        println("inside: output is produced by \${it.name}")
+                    }
+                }
+            }
+
+            tasks.create("thing", MyTask) {
+                outputValueSupplier.producer.visitProducerTasks {
+                    println("outside: output is produced by \${it.name}")
+                }
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("outside: output is produced by thing")
+        outputContains("inside: output is produced by thing")
     }
 
     def "can define task with abstract read-only ConfigurableFileCollection property"() {
