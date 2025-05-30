@@ -819,6 +819,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    fun `kotlinDslAccessorsReport prints the accessor sources`() {
+        withDefaultSettings()
+        withBuildScript("")
+
+        val output = build(":kotlinDslAccessorsReport").output
+        assertThat(output, containsString("val org.gradle.api.Project.`ext`: org.gradle.api.plugins.ExtraPropertiesExtension"))
+    }
+
+    @Test
     fun `accessor to extension of jvm type is accessible and typed`() {
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
@@ -867,8 +876,38 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        val result = build("help", "-I", "init.gradle")
+        val result = build("kotlinDslAccessorsReport", "-I", "init.gradle")
+
         assertThat(result.output, containsString("Type of `testExtension` receiver is Any"))
+
+        assertThat(
+            "the accessors report prints the source that is consistent with the real accessors",
+            result.output,
+            allOf(
+                containsString(
+                    """
+                    |    /**
+                    |     * Retrieves the `testExtension` extension.
+                    |     *
+                    |     * `testExtension` is not accessible in a type safe way because:
+                    |     * - `TestExtension` is not available
+                    |     */
+                    |    val org.gradle.api.Project.`testExtension`: Any
+                    """.trimMargin()
+                ),
+                containsString(
+                    """
+                    |    /**
+                    |     * Configures the `testExtension` extension.
+                    |     *
+                    |     * `testExtension` is not accessible in a type safe way because:
+                    |     * - `TestExtension` is not available
+                    |     */
+                    |    fun org.gradle.api.Project.`testExtension`(configure: Action<Any>): Unit
+                    """.trimMargin()
+                )
+            )
+        )
     }
 
     @Test
