@@ -84,9 +84,7 @@ internal fun maybeDeprecationAnnotations(deprecation: Deprecated?): String {
         |        ${deprecatedAnnotation(deprecation)}
         """.trimIndent() + "\n        "
 
-        DeprecationLevel.HIDDEN -> """
-        |${deprecatedAnnotation(deprecation)}
-        """.trimIndent() + "\n        "
+        DeprecationLevel.HIDDEN -> ""
     }
 }
 

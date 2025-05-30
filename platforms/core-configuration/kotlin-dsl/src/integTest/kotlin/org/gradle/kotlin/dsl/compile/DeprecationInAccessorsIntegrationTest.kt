@@ -107,9 +107,28 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-    private fun deprecatedKotlinScriptPlugin(isError: Boolean): String {
-        val level = if (isError) "ERROR" else "WARNING"
-        val suppression = if (isError) "DEPRECATION_ERROR" else "deprecation"
+    private fun deprecatedKotlinScriptPlugin(deprecationLevel: DeprecationLevel): String {
+        val level = deprecationLevel.name
+        val suppression = when (deprecationLevel) {
+            DeprecationLevel.ERROR -> "DEPRECATION_ERROR"
+            DeprecationLevel.WARNING -> "deprecation"
+            DeprecationLevel.HIDDEN -> ""
+        }
+
+        val extConstructionExpr = when (deprecationLevel) {
+            DeprecationLevel.HIDDEN -> "Class.forName(\"My_plugin_gradle\\${'$'}DeprecatedExt\").kotlin.constructors.single().call()"
+            else -> "DeprecatedExt()"
+        }
+
+        val taskClassExpr = when (deprecationLevel) {
+            DeprecationLevel.HIDDEN -> "Class.forName(\"My_plugin_gradle\\${'$'}DeprecatedTask\")"
+            else -> "DeprecatedTask::class"
+        }
+
+        val typeArgsForTaskRegister = when (deprecationLevel) {
+            DeprecationLevel.HIDDEN -> "<DefaultTask>"
+            else -> ""
+        }
 
         return """
             @Deprecated("Just don't", level = DeprecationLevel.$level)
@@ -122,10 +141,10 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             @Suppress("$suppression")
-            extensions.add("myExtension", DeprecatedExt())
+            extensions.add("myExtension", $extConstructionExpr)
 
             @Suppress("$suppression")
-            tasks.register("myTask", DeprecatedTask::class)
+            tasks.register$typeArgsForTaskRegister("myTask", $taskClassExpr)
         """
     }
 
@@ -134,7 +153,7 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     fun `if an extension type is deprecated in Kotlin, suppresses deprecation and deprecates the accessors`() {
         withPrecompiledScriptPluginInBuildSrc(
             pluginId,
-            deprecatedKotlinScriptPlugin(isError = false)
+            deprecatedKotlinScriptPlugin(DeprecationLevel.WARNING)
         )
         withBuildScript(usageScript)
 
@@ -182,7 +201,7 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     fun `if an extension type is deprecated as error in Kotlin, suppresses deprecation and makes the accessors deprecated`() {
         withPrecompiledScriptPluginInBuildSrc(
             pluginId,
-            deprecatedKotlinScriptPlugin(isError = true)
+            deprecatedKotlinScriptPlugin(DeprecationLevel.ERROR)
         )
         withBuildScript(usageScript)
 
@@ -199,6 +218,43 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             assertThatDescription(containsString(taskDeprecationLine))
         }
     }
+
+    @Test
+    fun `if an extension type is deprecated as hidden in Kotlin, generates accessors for inaccessible types`() {
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            deprecatedKotlinScriptPlugin(DeprecationLevel.HIDDEN)
+        )
+        withBuildScript("""
+            plugins { id("$pluginId") }
+
+            println("Has non-empty build file")
+        """)
+
+        repeat(2) {
+            executer.expectDeprecationWarningWithPattern(".*`My_plugin_gradle.DeprecatedExt` is deprecated as hidden.*")
+        }
+
+        build(":kotlinDslAccessorsReport").apply {
+            assertOutputContains(
+                """
+                |     * `myExtension` is not accessible in a type safe way because:
+                |     * - `My_plugin_gradle.DeprecatedExt` is deprecated as hidden
+                |     */
+                |    val org.gradle.api.Project.`myExtension`: Any
+                """.trimMargin()
+            )
+            assertOutputContains(
+                """
+                |     * `myExtension` is not accessible in a type safe way because:
+                |     * - `My_plugin_gradle.DeprecatedExt` is deprecated as hidden
+                |     */
+                |    fun org.gradle.api.Project.`myExtension`(configure: Action<Any>): Unit =
+                """.trimMargin()
+            )
+        }
+    }
+
 
     private fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
         withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin())
