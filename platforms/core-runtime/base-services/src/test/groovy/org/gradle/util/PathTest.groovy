@@ -139,6 +139,18 @@ class PathTest extends Specification {
         path.append(Path.path('relative:subpath')) == Path.path(':path:relative:subpath')
     }
 
+    def "appending empty paths"() {
+        def relativeFoo = path("foo")
+        def absoluteFoo = path(':foo')
+
+        expect:
+        ROOT.append(ROOT).is(ROOT)
+        ROOT.append(absoluteFoo).is(absoluteFoo)
+        absoluteFoo.append(ROOT).is(absoluteFoo)
+        relativeFoo.append(ROOT).is(relativeFoo)
+        ROOT.append(relativeFoo) == absoluteFoo
+    }
+
     def "appends path to relative path"() {
         when:
         def path = path('path')

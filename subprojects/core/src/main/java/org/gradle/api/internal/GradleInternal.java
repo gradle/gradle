@@ -128,6 +128,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     /**
      * Returns a unique path for this build within the current Gradle invocation.
+     * <p>
+     * Prefer {@link BuildState#getIdentityPath()}.
      */
     Path getIdentityPath();
 

@@ -111,11 +111,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public Path calculateIdentityPathForProject(Path projectPath) {
-        return getBuildController().getGradle().getIdentityPath().append(projectPath);
-    }
-
-    @Override
     public File getBuildRootDir() {
         return buildDefinition.getBuildRootDir();
     }

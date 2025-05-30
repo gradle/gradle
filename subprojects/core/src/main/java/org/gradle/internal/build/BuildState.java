@@ -60,7 +60,9 @@ public interface BuildState {
     /**
      * Calculates the identity path for a project in this build.
      */
-    Path calculateIdentityPathForProject(Path projectPath) throws IllegalStateException;
+    default Path calculateIdentityPathForProject(Path projectPath) {
+        return getIdentityPath().append(projectPath);
+    }
 
     /**
      * Loads the projects for this build so that {@link #getProjects()} can be used, if not already done.
