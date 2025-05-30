@@ -48,6 +48,8 @@ import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +58,7 @@ import java.util.Set;
 /**
  * Detects empty resolutions and skips a lot of work in those cases.
  */
+@ServiceScope(Scope.Project.class)
 public class ShortCircuitingResolutionExecutor {
     private final ResolutionExecutor delegate;
     private final AttributeDesugaring attributeDesugaring;

@@ -48,7 +48,6 @@ import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
@@ -93,13 +92,11 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
-    def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
@@ -110,7 +107,6 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
-        _ * rootComponentMetadataBuilder.newBuilder(_, _) >> rootComponentMetadataBuilder
     }
 
     void defaultValues() {
@@ -1626,7 +1622,7 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.ALL) {
-        return confFactory(projectPath, buildPath).create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role)
+        return confFactory(projectPath, buildPath).create(confName, false, resolver, Factories.constant(resolutionStrategy), role)
     }
 
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
@@ -1654,7 +1650,6 @@ This method is only meant to be called on configurations which allow the (non-de
         )
         new DefaultConfigurationFactory(
             TestUtil.objectFactory(),
-            resolver,
             listenerManager,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),
