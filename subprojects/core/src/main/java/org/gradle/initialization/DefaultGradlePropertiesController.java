@@ -76,7 +76,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     @Override
     public void loadGradleProperties(ProjectIdentity projectId, File projectDir) {
-        LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(projectId.getBuildIdentifier())
+        LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(new DefaultBuildIdentifier(projectId.getBuildPath()))
             .checkLoaded();
         getOrCreateGradleProperties(projectId).loadProperties(loadedBuildProperties, projectDir);
     }

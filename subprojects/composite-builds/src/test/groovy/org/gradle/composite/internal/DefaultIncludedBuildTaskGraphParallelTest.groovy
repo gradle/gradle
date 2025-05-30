@@ -271,20 +271,17 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     TaskInternal task(BuildServices services, Node dependsOn) {
         def projectState = Stub(ProjectState)
+        def buildId = Path.path(services.identifier.buildPath)
+        def projectId = ProjectIdentity.forRootProject(buildId, "root")
         def project = Stub(ProjectInternal) {
-            getProjectIdentity() >> new ProjectIdentity(
-                services.identifier,
-                Path.ROOT,
-                Path.ROOT,
-                "root"
-            )
+            getProjectIdentity() >> projectId
         }
         def task = Stub(TaskInternal)
         def dependencies = Stub(TaskDependency)
         _ * dependencies.getDependencies(_) >> [dependsOn].toSet()
         _ * task.taskDependencies >> dependencies
         _ * task.project >> project
-        _ * task.identityPath >> Path.path(services.identifier.buildPath).child("task")
+        _ * task.identityPath >> projectId.buildTreePath.child("task")
         _ * task.taskIdentity >> TestTaskIdentities.create("task", DefaultTask, project)
         _ * task.destroyables >> Stub(TaskDestroyablesInternal)
         _ * task.localState >> Stub(TaskLocalStateInternal)

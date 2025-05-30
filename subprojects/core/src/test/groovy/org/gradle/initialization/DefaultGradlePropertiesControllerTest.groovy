@@ -27,7 +27,7 @@ import spock.lang.Specification
 class DefaultGradlePropertiesControllerTest extends Specification {
 
     private final rootBuildId = DefaultBuildIdentifier.ROOT
-    private final rootProjectId = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root")
+    private final rootProjectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
     private final buildRootDir = new File("buildRootDir")
 
     private final GradlePropertiesLoader gradlePropertiesLoader = Mock(GradlePropertiesLoader)
