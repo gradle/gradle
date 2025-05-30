@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.wrapper
 
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.wrapper.internal.GradleVersionResolver
 import spock.lang.Specification
 
 class GradleVersionResolverTest extends Specification {
