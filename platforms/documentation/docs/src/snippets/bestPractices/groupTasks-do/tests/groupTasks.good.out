@@ -1,0 +1,11 @@
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Documentation tasks
+-------------------
+generateDocs - Generates project documentation from source files.
+javadoc - Generates Javadoc API documentation for the 'main' feature.

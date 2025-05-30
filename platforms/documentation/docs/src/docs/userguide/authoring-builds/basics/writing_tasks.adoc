@@ -48,6 +48,7 @@ include::sample[dir="snippets/tasks/tutorialTask/kotlin", files="build.gradle.kt
 include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[tags=register]"]
 ====
 
+[[task_group_and_description]]
 == Task group and description
 
 Setting the *group* and *description* properties on your tasks can help users understand how to use your task:
