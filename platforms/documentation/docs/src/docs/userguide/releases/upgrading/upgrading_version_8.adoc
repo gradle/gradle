@@ -127,22 +127,25 @@ NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x 
 
 ==== Upgrade to Groovy 4.0.26
 
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.26.html[4.0.26], from 3.0.24.
-Also see the https://groovy-lang.org/releasenotes/groovy-4.0.html[4.0 release notes] for more details on the changes from 3.x to 4.x.
+Groovy has been upgraded from version 3.0.24 to https://groovy-lang.org/changelogs/changelog-4.0.26.html[4.0.26].
+For a complete overview of changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
 
-===== Properties with `is`-prefix and `Boolean` types are no longer usable by Groovy
-Groovy 4 no longer detects getters with `is`-prefix and `Boolean` type as a property. Gradle's own interpretation of properties currently remains
-the same, but will be changed in Gradle 10.0 to be consistent with Groovy 4. See <<#groovy_boolean_properties, the deprecation about this>> for more details.
+===== `is`-prefixed `Boolean` properties no longer recognized by Groovy
+Groovy 4 no longer treats getters with an `is` prefix and a `Boolean` return type as properties.
+Gradle still recognizes these as properties for now, but this behavior will change in Gradle 10.0 to align with Groovy 4.
+See <<#groovy_boolean_properties,the deprecation notice>> for more details.
 
 ===== Non-abstract managed properties may no longer be attached
 **TODO, waiting on https://github.com/gradle/gradle/issues/33215 resolution**
 
-===== Closures may prefer the delegate over the owner in more cases when using the `DELEGATE_FIRST` strategy
-Groovy 4.0.26 has changed the behavior of closures using the `DELEGATE_FIRST` strategy. Dynamic lookups for properties and methods will now prefer the delegate over the owner.
-This can result in different behavior when using closures in Gradle scripts, such as certain methods not being found or (e.g. with `with(...) { }`) map keys being preferred over properties or methods
-from outside the closure.
+===== `DELEGATE_FIRST` closures may now prefer the delegate in some cases
+Groovy 4.0.26 has changed the behavior of closures using the `DELEGATE_FIRST` strategy.
+Dynamic lookups for properties and methods will now prefer the delegate over the owner.
+This can result in different behavior when using closures in Gradle scripts, such as certain methods not being found
+or (e.g. with `.with { }`) some dynamic properties taking precedence over outer properties or methods.
+Generally, this should not affect Gradle scripts, as Gradle does not use `DELEGATE_FIRST` closures with dynamic properties in its API.
 
-Workarounds include using `@CompileStatic` to avoid the dynamic lookup, or prefixing the call with `owner.`, `this.` or `super.` as appropriate.
+Workarounds include using `@CompileStatic` to avoid dynamic lookups, or explicitly qualifying calls with `owner.`, `this.`, or `super.` as needed.
 
 For full clarity, in Groovy 3, the lookup order was:
 
@@ -159,22 +162,26 @@ In Groovy 4, the lookup order is:
 4. Owner's `invokeMissingMethod`, which does dynamic lookup including via properties.
 
 ===== Private properties and methods may be inaccessible in closures
-Closures created in a parent class that reference properties or methods of the parent class may not be able to access them.
-This is a https://issues.apache.org/jira/browse/GROOVY-11568[Groovy bug] that will not be fixed until Groovy 5.
-A workaround is to use `@CompileStatic` to avoid the dynamic lookup.
+Closures defined in a parent class that reference its private properties or methods may no longer have access to them in subclasses.
+This is due to a https://issues.apache.org/jira/browse/GROOVY-11568[Groovy bug] that will not be resolved until Groovy 5.
+This applies to both buildscripts and plugins written in Groovy.
+
+As a workaround, apply `@CompileStatic` to the class to remove the dynamic lookup.
 
 This is tracked by https://github.com/gradle/gradle/issues/32476.
 
 ===== Super methods may be inaccessible from Groovy 3.x code
-Groovy 4 changed how super methods are resolved, which may cause some super methods to be inaccessible from Groovy 3.x code,
-as they do not contain the appropriate runtime code to locate the super methods.
+Groovy 4 changed how `super` method calls are resolved at runtime.
+As a result, code compiled with Groovy 3.x may be unable to access `super` methods,
+as the code does not contain the appropriate runtime code to locate them.
+This only applies to plugins written in Groovy 3.x, from Gradle 8.x and earlier.
 
-==== Plugins written with the Groovy DSL require Gradle >= 7.0
+==== Plugins written with the Groovy DSL support only Gradle 7.0 and above
 
-When building and publishing plugins using the Groovy DSL on Gradle 9.x, those plugins will only be usable on Gradle 7.0 or newer.
-This is because Gradle 7.0 is the first release that embeds Groovy 3.0 or higher, which is required to partially run Groovy 4.0 compiled code.
-However, because it is still a major version change, some code may not work as expected.
-It is recommended to run these plugins on Gradle 9.0 or newer to ensure full compatibility with Groovy 4.0.
+Plugins built and published using the Groovy DSL on Gradle 9.x are only supported on Gradle 7.0 or above.
+Gradle 7.0 is the first release that embeds Groovy 3.0 and can run Groovy 4.0 code.
+
+Since Gradle 9.0 uses Groovy 4.0, some code may behave unexpectedly. For full compatibility, it's recommended to run these plugins on Gradle 9.0 or later.
 
 NOTE: Plugins written using the Groovy DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 5.0 and newer.
 
@@ -396,7 +403,7 @@ link:{javadocPath}/org/gradle/api/Project.html#configure(java.lang.Object,groovy
 
 ==== Removal of deprecated `testSourceDirs` and `testResourceDirs` from `IdeaModule`
 
-The deprecated `testSourceDirs` and `testResourceDirs` properties have been removed from `org.gradle.plugins.ide.idea.model.IdeaModule`.  
+The deprecated `testSourceDirs` and `testResourceDirs` properties have been removed from `org.gradle.plugins.ide.idea.model.IdeaModule`.
 This change does not affect the `org.gradle.tooling.model.idea.IdeaModule` type used in the Tooling API.
 Use the `testSources` and `testResources` properties instead.
 
@@ -954,8 +961,8 @@ Gradle recognizes methods with a `Boolean` return type and a `is`-prefix as a bo
 Groovy 4 more closely follows the Java Bean specification and link:https://issues.apache.org/jira/browse/GROOVY-10708[no longer supports this exception].
 
 Gradle will emit a deprecation warning when it detects that a boolean property is derived from a method with a `Boolean` return type and `is`-prefix.
-In Gradle 9.0, Groovy 4 will no longer recognize this as a property, e.g. in buildscripts. Gradle's property-based behavior will not change, e.g. they will still be considered for up-to-date checks.
-In Gradle 10.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to be considered up-to-date, even when a `Boolean` property appears to be an input.
+In Gradle 9.0, Groovy 4 will no longer recognize this as a property in build scripts and Groovy source files. Gradle's property-based behavior will not change. Gradle will still consider these properties for up-to-date checks.
+In Gradle 10.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to behave differently when a `Boolean` property is used as an input.
 
 There are two options to fix this:
 
