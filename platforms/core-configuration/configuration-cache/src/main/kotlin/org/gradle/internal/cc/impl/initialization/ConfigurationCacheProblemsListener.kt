@@ -146,23 +146,25 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     fun locationForTask(task: TaskInternal) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
 
     private
-    fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
-        task.isCompatibleWithConfigurationCache -> problems
-        else -> problems.forIncompatibleTask(locationForTask(task), task.reasonTaskIsIncompatibleWithConfigurationCache.get())
+    fun problemsListenerFor(task: TaskInternal): ProblemsListener {
+        val trace = locationForTask(task)
+        return when {
+            !task.isCompatibleWithConfigurationCache -> problems.forIncompatibleTask(trace, task.reasonTaskIsIncompatibleWithConfigurationCache.get())
+            else -> problems.forTask(task)
+        }
     }
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (isBuildSrcBuild(invocationSource) || isSupportedListener(listener)) {
             return
         }
-        problems.onProblem(
-            listenerRegistrationProblem(
-                invocationDescription,
-                InvalidUserCodeException(
-                    "Listener registration '$invocationDescription' by $invocationSource is unsupported."
-                )
+        val problem = listenerRegistrationProblem(
+            invocationDescription,
+            InvalidUserCodeException(
+                "Listener registration '$invocationDescription' by $invocationSource is unsupported."
             )
         )
+        problems.onProblem(problem)
     }
 
     private

@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.Task
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
@@ -31,6 +32,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
+import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
@@ -49,9 +51,13 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.TaskInternal
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
+import java.util.Collections
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -80,7 +86,10 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider
+    val buildNameProvider: BuildNameProvider,
+
+    private val
+    degradationController: ConfigurationCacheDegradationController
 ) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
@@ -105,6 +114,9 @@ class ConfigurationCacheProblems(
     val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
+    val degradationReasons = mutableMapOf<Task, List<String>>()
+
+    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     private
@@ -116,6 +128,9 @@ class ConfigurationCacheProblems(
                 return false
             }
             if (isFailingBuildDueToSerializationError) {
+                return true
+            }
+            if (shouldDegradeGracefully()) {
                 return true
             }
             val summary = summarizer.get()
@@ -164,9 +179,28 @@ class ConfigurationCacheProblems(
         }
     }
 
+    override fun forTask(task: Task): ProblemsListener {
+        val taskDegradationReasons = degradationReasons.getOrDefault(task, Collections.emptyList())
+        return if (taskDegradationReasons.isNotEmpty()) {
+            val trace = locationForTask(task)
+            val notSeenBefore = incompatibleTasks.add(trace)
+            if (notSeenBefore) {
+                // this method is invoked whenever a problem listener is needed in the context of an incompatible task,
+                // report the incompatible task itself the first time only
+                reportIncompatibleTask(trace, taskDegradationReasons.joinToString())
+            }
+            degradationRequestedProblemsListener()
+        } else this
+    }
+
+    private fun degradationRequestedProblemsListener() = object : AbstractProblemsListener() {
+        override fun onProblem(problem: PropertyProblem) {
+            onProblem(problem, ProblemSeverity.Suppressed, true)
+        }
+    }
+
     private
     fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
-
         val problem = problemFactory
             .problem {
                 message(trace.containingUserCodeMessage)
@@ -184,8 +218,8 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
-        if (summarizer.onProblem(problem, severity)) {
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity, degradationRequested: Boolean = false) {
+        if (summarizer.onProblem(problem, severity, degradationRequested)) {
             problemsService.onProblem(problem, severity)
             report.onProblem(problem)
         }
@@ -332,6 +366,7 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == Store && degradationReasons.isNotEmpty() -> log("Configuration caching disabled${degradationSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -346,6 +381,12 @@ class ConfigurationCacheProblems(
                 // else not storing or loading and no problems to report
             }
         }
+    }
+
+    private
+    fun degradationSummary(): String {
+        val degradationLocations = degradationReasons.keys.map { locationForTask(it) }
+        return " because degradation was requested by:\n${degradationLocations.joinToString("\n") { "- ${it.render()}" }}"
     }
 
     private
@@ -378,4 +419,13 @@ class ConfigurationCacheProblems(
             else -> "$this $plural"
         }
     }
+
+    private
+    fun shouldDegradeGracefully(): Boolean {
+        degradationReasons.putAll((degradationController as DefaultConfigurationCacheDegradationController).currentDegradationReasons)
+        return degradationReasons.isNotEmpty()
+    }
+
+    private
+    fun locationForTask(task: Task) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
 }

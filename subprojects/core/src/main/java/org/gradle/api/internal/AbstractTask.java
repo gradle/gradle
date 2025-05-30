@@ -84,6 +84,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
@@ -203,6 +204,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskExecutionAccessChecker = services.get(TaskExecutionAccessChecker.class);
 
         this.timeout = project.getObjects().property(Duration.class);
+
+        //TODO-RC source dependencies seems a case that does not match well to tasks
+        //Here, if source dependencies are used, all tasks need to request graceful degradation
+        ConfigurationCacheDegradationController deprecations = services.get(ConfigurationCacheDegradationController.class);
+        VcsMappingsStore vcsMappings = services.get(VcsMappingsStore.class);
+        deprecations.requireConfigurationCacheDegradation(this, getProject()
+            .provider(() -> vcsMappings.asResolver().hasRules() ? "Source dependencies" : null)
+        );
     }
 
     private void assertDynamicObject() {
