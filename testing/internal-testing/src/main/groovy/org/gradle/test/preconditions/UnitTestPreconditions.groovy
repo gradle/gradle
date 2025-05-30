@@ -122,7 +122,7 @@ class UnitTestPreconditions {
             }
 
             if (ret) {
-                throw new Exception("FUCK: ${env}")
+                throw new Exception("FUCK: " + System.getenv())
             }
             return ret
         }
