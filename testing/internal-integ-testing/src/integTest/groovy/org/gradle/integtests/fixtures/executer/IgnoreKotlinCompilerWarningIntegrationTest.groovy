@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import java.util.concurrent.ConcurrentHashMap
 
 // This is a workaround on our side
 @Issue('https://youtrack.jetbrains.com/issue/KT-29546')
