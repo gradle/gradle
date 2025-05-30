@@ -114,11 +114,17 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             String env = System.getenv("TEST_DISTRIBUTION_AGENT_CAPABILITIES")
+            boolean ret
             if (env == null) {
-                return true
+                ret = true
             } else {
-                return !env.toLowerCase().contains("alpine");
+                ret = !env.toLowerCase().contains("alpine");
             }
+
+            if (ret) {
+                throw new Exception("FUCK: ${env}")
+            }
+            return ret
         }
     }
 
