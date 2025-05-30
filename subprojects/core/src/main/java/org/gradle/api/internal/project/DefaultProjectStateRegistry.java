@@ -101,8 +101,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentifier());
         if (registry != null) {
             for (ProjectStateImpl project : registry.projectsByPath.values()) {
-                projectsById.remove(project.identifier);
-                projectsByPath.remove(project.identityPath);
+                projectsById.remove(project.getComponentIdentifier());
+                projectsByPath.remove(project.getIdentityPath());
             }
             CompositeStoppable.stoppable(registry.projectsByPath.values()).stop();
             registry.projectsByPath.clear();
@@ -111,12 +111,19 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     private ProjectState addProject(BuildState owner, DefaultBuildProjectRegistry projectRegistry, DefaultProjectDescriptor descriptor) {
         Path projectPath = descriptor.path();
-        Path identityPath = owner.calculateIdentityPathForProject(projectPath);
+
+        ProjectIdentity identity;
+        if (projectPath.equals(Path.ROOT)) {
+            identity = ProjectIdentity.forRootProject(owner.getIdentityPath(), descriptor.getName());
+        } else {
+            identity = ProjectIdentity.forSubproject(owner.getIdentityPath(), projectPath);
+        }
+
         ServiceRegistry buildServices = owner.getMutableModel().getServices();
         IProjectFactory projectFactory = buildServices.get(IProjectFactory.class);
         StateTransitionControllerFactory stateTransitionControllerFactory = buildServices.get(StateTransitionControllerFactory.class);
-        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
-        projectsByPath.put(identityPath, projectState);
+        ProjectStateImpl projectState = new ProjectStateImpl(owner, identity, descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
+        projectsByPath.put(identity.getBuildTreePath(), projectState);
         projectsById.put(projectState.getComponentIdentifier(), projectState);
         projectRegistry.add(projectPath, projectState);
         return projectState;
@@ -241,13 +248,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     private class ProjectStateImpl implements ProjectState, Closeable {
-        private final Path projectPath;
-        private final String projectName;
-        private final ProjectComponentIdentifier identifier;
+
         private final DefaultProjectDescriptor descriptor;
         private final IProjectFactory projectFactory;
         private final BuildState owner;
-        private final Path identityPath;
         private final ProjectIdentity identity;
         private final ResourceLock allProjectsLock;
         private final ResourceLock projectLock;
@@ -258,32 +262,27 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         ProjectStateImpl(
             BuildState owner,
-            Path identityPath,
-            Path projectPath,
-            String projectName,
+            ProjectIdentity identity,
             DefaultProjectDescriptor descriptor,
             IProjectFactory projectFactory,
             StateTransitionControllerFactory stateTransitionControllerFactory,
             ServiceRegistry buildServices
         ) {
             this.owner = owner;
-            this.identityPath = identityPath;
-            this.projectPath = projectPath;
-            this.projectName = projectName;
             this.descriptor = descriptor;
             this.projectFactory = projectFactory;
-            this.identity = new ProjectIdentity(owner.getBuildIdentifier(), identityPath, projectPath, projectName);
-            this.identifier = new DefaultProjectComponentIdentifier(identity);
+            this.identity = identity;
             this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
-            this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
-            this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identityPath);
+            this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identity.getBuildTreePath());
+            this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identity.getBuildTreePath());
             this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, buildServices);
         }
 
         @Override
         public DisplayName getDisplayName() {
+            Path identityPath = identity.getBuildTreePath();
             if (identityPath.equals(Path.ROOT)) {
-                return Describables.withTypeAndName("root project", projectName);
+                return Describables.withTypeAndName("root project", identity.getProjectName());
             } else {
                 return Describables.withTypeAndName("project", identityPath.getPath());
             }
@@ -302,6 +301,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Nullable
         @Override
         public ProjectState getParent() {
+            Path identityPath = identity.getBuildTreePath();
             return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
         }
 
@@ -311,10 +311,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             if (descriptor.getParent() != null) {
                 // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
                 // Ideally they would be exactly the same, always
-                Path parentPath = owner.calculateIdentityPathForProject(descriptor.getParent().path());
-                ProjectStateImpl parentState = projectsByPath.get(parentPath);
+                Path parentProjectPath = descriptor.getParent().path();
+                Path parentIdentityPath = ProjectIdentity.computeProjectIdentityPath(owner.getIdentityPath(), parentProjectPath);
+                ProjectStateImpl parentState = projectsByPath.get(parentIdentityPath);
                 if (parentState == null) {
-                    throw new IllegalStateException("Parent project " + parentPath + " is not registered for project " + identityPath);
+                    throw new IllegalStateException("Parent project " + parentIdentityPath + " is not registered for " + identity);
                 }
                 return parentState;
             } else {
@@ -342,17 +343,19 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         private ProjectStateImpl getStateForChild(DefaultProjectDescriptor child) {
-            return projectsByPath.get(owner.calculateIdentityPathForProject(child.path()));
+            Path childProjectPath = child.path();
+            Path childIdentityPath = ProjectIdentity.computeProjectIdentityPath(owner.getIdentityPath(), childProjectPath);
+            return projectsByPath.get(childIdentityPath);
         }
 
         @Override
         public String getName() {
-            return projectName;
+            return identity.getProjectName();
         }
 
         @Override
         public Path getIdentityPath() {
-            return identityPath;
+            return identity.getBuildTreePath();
         }
 
         @Override
@@ -362,7 +365,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public Path getProjectPath() {
-            return projectPath;
+            return identity.getProjectPath();
         }
 
         @Override
@@ -416,7 +419,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public ProjectComponentIdentifier getComponentIdentifier() {
-            return identifier;
+            return new DefaultProjectComponentIdentifier(identity);
         }
 
         @Override
