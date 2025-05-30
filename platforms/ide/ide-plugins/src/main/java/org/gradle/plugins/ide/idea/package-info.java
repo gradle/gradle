@@ -15,6 +15,6 @@
  */
 
 /**
- * TODO: Document this package.
+ * A {@link org.gradle.api.Plugin} for generating IDEA files.
  */
 package org.gradle.plugins.ide.idea;

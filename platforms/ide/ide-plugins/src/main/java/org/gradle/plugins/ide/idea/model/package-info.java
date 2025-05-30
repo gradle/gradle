@@ -15,6 +15,6 @@
  */
 
 /**
- * TODO: Document this package.
+ * Classes for the model used by the {@link org.gradle.plugins.ide.idea.IdeaPlugin}.
  */
 package org.gradle.plugins.ide.idea.model;

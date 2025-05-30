@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 
 /**
- * Classes for build caches.
+ * Classes for build caches and for types to extend build cache functionality.
  *
  * @since 3.3
  */
-
-// We already have a similar package-info.java in :build-cache-spi
-// We must have a package-info.java for every package directory, but for each package
-// @NullMarked must only be declared once, otherwise `:docs:javadocAll` fails.
-//@NullMarked
+@NullMarked
 package org.gradle.caching;
+
+import org.jspecify.annotations.NullMarked;

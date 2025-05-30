@@ -40,6 +40,7 @@ includeBuild("build-logic")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
+val projectBaseDirs = mutableListOf<File>()
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
@@ -314,7 +315,7 @@ testing {
 
 rootProject.name = "gradle"
 
-FeaturePreviews.Feature.values().forEach { feature ->
+FeaturePreviews.Feature.entries.forEach { feature ->
     if (feature.isActive) {
         enableFeaturePreview(feature.name)
     }
@@ -347,6 +348,55 @@ gradle.rootProject {
         outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
         platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
     }
+    tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
+        description = "Map packages to the list of package-info.java files that apply to them"
+        outputFile = layout.projectDirectory.file("build/architecture/package-info.json")
+        packageInfoFiles = provider { GeneratePackageInfoDataTask.findPackageInfoFiles(projectBaseDirs) }
+    }
+}
+
+
+@CacheableTask
+abstract class GeneratePackageInfoDataTask : DefaultTask() {
+
+    companion object {
+        val packageLineRegex = Regex("""package\s*([^;\s]+)\s*;""")
+
+        fun findPackageInfoFiles(projectBaseDirs: List<File>): List<File> =
+            listOf("src/main/java", "src/main/groovy").let { sourceRootPaths ->
+                projectBaseDirs.flatMap { projectBaseDir ->
+                    sourceRootPaths.asSequence().mapNotNull { sourceRootPath ->
+                        projectBaseDir.resolve(sourceRootPath).takeIf { it.exists() }
+                    }.flatMap { sourceRoot ->
+                        sourceRoot.walkTopDown().filter { it.isFile && it.name == "package-info.java" }
+                    }
+                }
+            }
+    }
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val packageInfoFiles: ListProperty<File>
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    private val baseDir = project.layout.settingsDirectory.asFile
+
+    @TaskAction
+    fun action() {
+        val results = mutableListOf<Pair<String, String>>()
+
+        for (packageInfoFile in packageInfoFiles.get()) {
+            val packageLine = packageInfoFile.useLines { lines -> lines.first { it.startsWith("package") } }
+            val packageName = packageLineRegex.find(packageLine)!!.groupValues[1]
+            results.add(packageName to packageInfoFile.relativeTo(baseDir).path)
+        }
+
+        val outputData = results.groupBy(keySelector = { it.first }, valueTransform = { it.second })
+        outputFile.get().asFile.writeText(Gson().toJson(outputData))
+    }
+
 }
 
 abstract class GeneratePlatformsDataTask : DefaultTask() {
@@ -390,13 +440,9 @@ abstract class GeneratorTask : DefaultTask() {
         val head = if (markdownFile.exists()) {
             val content = markdownFile.readText().lines()
             val markerPos = content.indexOfFirst { it.contains(markerComment) }
-            if (markerPos < 0) {
-                throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
-            }
+            require(markerPos >= 0) { "Could not locate the generated diagram in $markdownFile" }
             val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
-            if (endPos < 0) {
-                throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
-            }
+            require(endPos >= 0) { "Could not locate the end of the generated diagram in $markdownFile" }
             content.subList(0, markerPos)
         } else {
             emptyList()
@@ -511,7 +557,9 @@ class ProjectScope(
 ) {
     fun subproject(projectName: String) {
         include(projectName)
-        project(":$projectName").projectDir = file("$basePath/$projectName")
+        val projectDir = file("$basePath/$projectName")
+        projectBaseDirs.add(projectDir)
+        project(":$projectName").projectDir = projectDir
     }
 }
 
