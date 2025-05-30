@@ -461,4 +461,66 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .generatedSourceFile(fqName(groovyInterceptorClass))
             .containsElementsIn(groovyInterceptorClass)
     }
+
+    def "should generate correct deprecation for removedIn = GRADLE9"() {
+        given:
+        def givenSource = source"""
+            package org.gradle.test;
+
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+            import java.io.File;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(
+                    replacedAccessors = {
+                        @ReplacedAccessor(value = AccessorType.GETTER, name = "getDestinationDir"),
+                        @ReplacedAccessor(value = AccessorType.SETTER, name = "setDestinationDir")
+                    },
+                    deprecation = @ReplacedDeprecation(removedIn = ReplacedDeprecation.RemovedIn.GRADLE9)
+                )
+                public abstract DirectoryProperty getDestinationDirectory();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedInterceptor = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+
+            import java.io.File;
+            import org.gradle.api.Generated;
+            import org.gradle.internal.deprecation.DeprecationLogger;
+            import org.gradle.test.Task;
+
+            @Generated
+            public final class Task_Adapter {
+                public static File access_get_getDestinationDir(Task self) {
+                    DeprecationLogger.deprecate("The usage of Task.destinationDir")
+                            .withContext("Property 'destinationDir' was removed and this compatibility shim will be removed in Gradle 10.0. Please use 'destinationDirectory' property instead.")
+                            .willBecomeAnErrorInGradle10()
+                            .undocumented()
+                            .nagUser();
+                    return self.getDestinationDirectory().getAsFile().getOrNull();
+                }
+
+                public static void access_set_setDestinationDir(Task self, File arg0) {
+                    DeprecationLogger.deprecate("The usage of Task.destinationDir")
+                            .withContext("Property 'destinationDir' was removed and this compatibility shim will be removed in Gradle 10.0. Please use 'destinationDirectory' property instead.")
+                            .willBecomeAnErrorInGradle10()
+                            .undocumented()
+                            .nagUser();
+                    self.getDestinationDirectory().fileValue(arg0);
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedInterceptor))
+            .containsElementsIn(generatedInterceptor)
+    }
 }
