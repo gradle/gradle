@@ -39,9 +39,11 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import gradlebuild.basics.util.KotlinSourceParser
 import org.gradle.workers.WorkAction
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import java.io.File
 
 
@@ -54,8 +56,8 @@ abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportPar
                 if (srcDir.exists()) {
                     val collector = CompositeVersionsToIncubatingCollector(
                         listOf(
-                            JavaVersionsToIncubatingCollector(srcDir),
-                            KotlinVersionsToIncubatingCollector()
+                            JavaVersionsToIncubatingCollector(srcDir, settingsDir = parameters.settingsDir.get().asFile),
+                            KotlinVersionsToIncubatingCollector(settingsDir = parameters.settingsDir.get().asFile)
                         )
                     )
                     srcDir.walkTopDown().forEach { sourceFile ->
@@ -103,8 +105,8 @@ abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportPar
                     "<h2>Incubating since $version (${versions[version]?.run { "released on $this" } ?: "unreleased"})</h2>"
                 )
                 writer.println("<ul>")
-                incubatingDescriptions.sorted().forEach { incubating ->
-                    writer.println("   <li>${incubating.escape()}</li>")
+                incubatingDescriptions.sortedBy { it.name }.forEach { incubating ->
+                    writer.println("   <li>${incubating.name.escape()}</li>")
                 }
                 writer.println("</ul>")
             }
@@ -120,8 +122,8 @@ abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportPar
             val versions = versionsDates()
             versionToIncubating.toSortedMap().forEach { (version, incubatingDescriptions) ->
                 val releaseDate = versions[version] ?: "unreleased"
-                incubatingDescriptions.sorted().forEach { incubating ->
-                    writer.println("$version;$releaseDate;$incubating")
+                incubatingDescriptions.sortedBy { it.name }.forEach { incubating ->
+                    writer.println("$version;$releaseDate;${incubating.name};${incubating.relativePath};${incubating.lineNumber}")
                 }
             }
         }
@@ -156,7 +158,7 @@ typealias Version = String
 
 
 private
-typealias IncubatingDescription = String
+data class IncubatingDescription(val name: String, val relativePath: String, val lineNumber: Int)
 
 
 private
@@ -190,7 +192,7 @@ const val VERSION_NOT_FOUND = "Not found"
 
 
 private
-class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingCollector {
+class JavaVersionsToIncubatingCollector(srcDir: File, val settingsDir: File) : VersionsToIncubatingCollector {
 
     private
     val solver = JavaSymbolSolver(CombinedTypeSolver(JavaParserTypeSolver(srcDir), ReflectionTypeSolver()))
@@ -203,7 +205,8 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
         JavaParser().parse(sourceFile).getResult().get().run {
             solver.inject(this)
             findAllIncubating()
-                .map { node -> toVersionIncubating(sourceFile, node) }
+                .map { node ->
+                    toVersionIncubating(sourceFile, node) }
                 .forEach { (version, incubating) ->
                     versionsToIncubating.getOrPut(version) { mutableSetOf() }.add(incubating)
                 }
@@ -226,8 +229,18 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
                 // This is needed to find the JavaDoc of a package declaration in 'package-info.java'
                 ?: (node as? PackageDeclaration)?.parentNode?.get()?.childNodes?.filterIsInstance<JavadocComment>()?.singleOrNull()?.parse()?.let { findVersionFromJavadoc(it) }
                 ?: VERSION_NOT_FOUND,
-            nodeName(node, this, sourceFile)
+            toIncubatingDescription(node, this, sourceFile)
         )
+
+    private
+    fun toIncubatingDescription(node: Node, unit: CompilationUnit, file: File): IncubatingDescription {
+        val nodeName = nodeName(node, unit, file)
+        return IncubatingDescription(
+            name = nodeName,
+            relativePath = settingsDir.toPath().relativize(file.toPath()).toString(),
+            lineNumber = node.begin.map { it.line }.orElse(-1)
+        )
+    }
 
     private
     fun findVersionFromJavadoc(javadoc: Javadoc): String? =
@@ -266,7 +279,7 @@ val NEWLINE_REGEX = "\\n\\s*".toRegex()
 
 
 private
-class KotlinVersionsToIncubatingCollector : VersionsToIncubatingCollector {
+class KotlinVersionsToIncubatingCollector(val settingsDir: File) : VersionsToIncubatingCollector {
 
     override fun collectFrom(sourceFile: File): VersionsToIncubating {
 
@@ -284,7 +297,7 @@ class KotlinVersionsToIncubatingCollector : VersionsToIncubatingCollector {
     }
 
     private
-    fun buildIncubatingDescription(sourceFile: File, ktFile: KtFile, declaration: KtNamedDeclaration): String {
+    fun buildIncubatingDescription(sourceFile: File, ktFile: KtFile, declaration: KtNamedDeclaration): IncubatingDescription {
         var incubating = "${declaration.typeParametersString}${declaration.fullyQualifiedName}"
         if (declaration is KtCallableDeclaration) {
             incubating += declaration.valueParametersString
@@ -295,7 +308,17 @@ class KotlinVersionsToIncubatingCollector : VersionsToIncubatingCollector {
                 incubating += ", top-level in ${sourceFile.name}"
             }
         }
-        return incubating.replace(NEWLINE_REGEX, " ")
+        return IncubatingDescription(
+            name = incubating.replace(NEWLINE_REGEX, " "),
+            relativePath = settingsDir.toPath().relativize(sourceFile.toPath()).toString(),
+            lineNumber = getLineNumber(declaration, ktFile)
+        )
+    }
+
+    private
+    fun getLineNumber(declaration: KtDeclaration, ktFile: KtFile): Int {
+        val startOffset = declaration.startOffsetSkippingComments
+        return ktFile.viewProvider.document?.getLineNumber(startOffset)?.plus(1) ?: -1
     }
 
     private

@@ -16,6 +16,10 @@ val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("all
     group = "verification"
     reports.from(resolver("txt"))
     htmlReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.html")
+    csvReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.csv")
+    currentCommit = providers.exec {
+        commandLine("git", "rev-parse", "HEAD")
+    }.standardOutput.asText.map { it.trim() }
 }
 
 tasks.register<Zip>("allIncubationReportsZip") {
@@ -23,6 +27,7 @@ tasks.register<Zip>("allIncubationReportsZip") {
     destinationDirectory = layout.buildDirectory.dir("reports/incubation")
     archiveBaseName = "incubating-apis"
     from(allIncubationReports.get().htmlReportFile)
+    from(allIncubationReports.get().csvReportFile)
     from(resolver("html"))
 }
 
