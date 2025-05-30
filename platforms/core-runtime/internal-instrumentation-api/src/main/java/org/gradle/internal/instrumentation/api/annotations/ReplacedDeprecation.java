@@ -58,8 +58,8 @@ public @interface ReplacedDeprecation {
     boolean withDslReference() default false;
 
     enum RemovedIn {
-        // For removed properties
-        GRADLE10,
+        // For properties removed in Gradle 9
+        GRADLE9,
         // For properties that were changed to lazy
         UNSPECIFIED
     }

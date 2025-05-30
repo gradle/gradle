@@ -79,7 +79,7 @@ public abstract class AbstractCompile extends SourceTask {
             @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
         },
         binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE10, withUpgradeGuideMajorVersion = 7, withUpgradeGuideSection = "compile_task_wiring")
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withUpgradeGuideMajorVersion = 7, withUpgradeGuideSection = "compile_task_wiring")
     )
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
