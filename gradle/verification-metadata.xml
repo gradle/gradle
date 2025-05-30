@@ -1309,21 +1309,6 @@
             <pgp value="5DE533CB43DAF8BC3E372283E7AE839CD7C58886"/>
          </artifact>
       </component>
-      <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.5.0.201909110433-r">
-         <artifact name="org.eclipse.jgit-5.5.0.201909110433-r.jar">
-            <pgp value="7C669810892CBD3148FA92995B05CCDE140C2876"/>
-         </artifact>
-      </component>
-      <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.7.0.202003110725-r">
-         <artifact name="org.eclipse.jgit-5.7.0.202003110725-r.jar">
-            <pgp value="7C669810892CBD3148FA92995B05CCDE140C2876"/>
-         </artifact>
-      </component>
-      <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.8.0.202006091008-r">
-         <artifact name="org.eclipse.jgit-5.8.0.202006091008-r.jar">
-            <pgp value="7C669810892CBD3148FA92995B05CCDE140C2876"/>
-         </artifact>
-      </component>
       <component group="org.freemarker" name="freemarker" version="2.3.32">
          <artifact name="freemarker-2.3.32.jar">
             <pgp value="13AC2213964ABE1D1C147C0E1939A2520BAB1D90"/>
