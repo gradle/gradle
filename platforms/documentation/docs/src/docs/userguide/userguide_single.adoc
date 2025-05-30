@@ -86,7 +86,6 @@ include::service_injection.adoc[leveloffset=+2]
 == STRUCTURING BUILDS
 
 include::multi_project_builds.adoc[leveloffset=+2]
-include::declaring_dependencies_between_subprojects.adoc[leveloffset=+2]
 include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
 include::composite_builds.adoc[leveloffset=+2]
 include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
@@ -190,15 +189,12 @@ include::dependency_caching.adoc[leveloffset=+2]
 
 == UNDERSTANDING DEPENDENCY RESOLUTION
 
-include::dependency_resolution_model.adoc[leveloffset=+2]
-include::variant_model.adoc[leveloffset=+2]
 include::component_capabilities.adoc[leveloffset=+2]
 include::variant_attributes.adoc[leveloffset=+2]
 
 == CONTROLLING DEPENDENCY RESOLUTION
 
-include::dependency_resolution_basics.adoc[leveloffset=+2]
-include::dependency_graph_resolution.adoc[leveloffset=+2]
+include::graph_resolution.adoc[leveloffset=+2]
 include::artifact_resolution.adoc[leveloffset=+2]
 include::artifact_views.adoc[leveloffset=+2]
 include::artifact_transforms.adoc[leveloffset=+2]
@@ -215,8 +211,8 @@ include::publishing_ivy.adoc[leveloffset=+2]
 == OTHER TOPICS
 
 include::dependency_verification.adoc[leveloffset=+2]
-include::dependency_version_alignment.adoc[leveloffset=+2]
-include::feature_variants.adoc[leveloffset=+2]
+include::how_to_align_dependency_versions.adoc[leveloffset=+2]
+include::how_to_create_feature_variants_of_a_library.adoc[leveloffset=+2]
 
 [[part:platforms]]
 == **PLATFORMS**
@@ -266,7 +262,7 @@ include::plugin_reference.adoc[leveloffset=2]
 
 == HOW TO GUIDES
 
-include::cross_project_publications.adoc[leveloffset=2]
+include::how_to_share_outputs_between_projects.adoc[leveloffset=2]
 
 == **LICENSE INFORMATION**
 
