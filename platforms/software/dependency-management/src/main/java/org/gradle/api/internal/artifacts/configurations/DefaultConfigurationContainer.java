@@ -40,7 +40,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -68,7 +68,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
     @Inject
     public DefaultConfigurationContainer(
@@ -80,7 +80,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory,
-        InternalProblems problemsService
+        ProblemsInternal problemsService
     ) {
         super(Configuration.class, instantiator, Named.Namer.INSTANCE, callbackDecorator);
 

@@ -26,7 +26,7 @@ import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -52,9 +52,9 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final InspectionScheme inspectionScheme;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
-    public SoftwareTypeRegistrationPluginTarget(PluginTarget delegate, SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public SoftwareTypeRegistrationPluginTarget(PluginTarget delegate, SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme, ProblemsInternal problems) {
         this.delegate = delegate;
         this.softwareTypeRegistry = softwareTypeRegistry;
         this.inspectionScheme = inspectionScheme;

@@ -19,5 +19,5 @@ package org.gradle.api.problems.internal;
 import java.util.Collection;
 
 public interface ProblemLocator {
-    Collection<InternalProblem> findAll(Throwable t);
+    Collection<ProblemInternal> findAll(Throwable t);
 }

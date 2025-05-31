@@ -18,7 +18,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -161,7 +161,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         OverlappingOutputDetector overlappingOutputDetector,
         StartParameter startParameter,
         TimeoutHandler timeoutHandler,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);

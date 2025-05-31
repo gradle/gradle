@@ -16,7 +16,7 @@
 
 package org.gradle.problems.internal;
 
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummaryData;
 
@@ -30,7 +30,7 @@ public class NoOpProblemReportCreator implements ProblemReportCreator {
     }
 
     @Override
-    public void addProblem(InternalProblem problem) {
+    public void addProblem(ProblemInternal problem) {
         // no op
     }
 }
