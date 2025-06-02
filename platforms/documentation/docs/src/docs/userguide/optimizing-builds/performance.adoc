@@ -771,7 +771,7 @@ include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="b
 include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-every]"]
 ====
 
-WARNING: Forking a VVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
+WARNING: Forking a JVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
 
 ==== C. Disable test reports
 
