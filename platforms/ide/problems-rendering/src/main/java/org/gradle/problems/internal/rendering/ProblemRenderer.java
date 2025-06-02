@@ -22,8 +22,8 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
+import org.jspecify.annotations.Nullable;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collections;
@@ -71,6 +71,7 @@ public class ProblemRenderer {
         } else {
             output.printf(sep);
             sep = "%n";
+            formatMultiline(output, problemId.getDisplayName(), 0);
             for (InternalProblem problem : problems) {
                 output.printf(sep);
                 renderProblem(output, problem);
@@ -79,10 +80,10 @@ public class ProblemRenderer {
     }
 
     static void renderProblem(PrintWriter output, InternalProblem problem) {
-        formatMultiline(output, getProblemLabel(problem), 0);
+        formatMultiline(output, getProblemLabel(problem), 1);
         if (problem.getDetails() != null) {
             output.printf("%n");
-            formatMultiline(output, problem.getDetails(), 1);
+            formatMultiline(output, problem.getDetails(), 2);
         }
     }
 
