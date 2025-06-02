@@ -531,7 +531,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             }
             task anotherBroken {
                 doLast {
-                    println("configurations = " + project.configurations.all)
+                    println("configurations = " + project.configurations)
                 }
             }
 

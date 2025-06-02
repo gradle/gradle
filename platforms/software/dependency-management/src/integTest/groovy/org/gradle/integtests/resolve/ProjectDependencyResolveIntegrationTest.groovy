@@ -27,7 +27,6 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
-        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << """
             rootProject.name = 'test'
         """
@@ -122,6 +121,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         """
 
         file("b/build.gradle") << """
+            plugins {
+                id("jvm-ecosystem")
+            }
             configurations {
                 compile
             }
@@ -521,10 +523,8 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         }
     }
 
-    // TODO #9591: This does not reflect desired behavior. The recursive copy is a detached configuration, which
-    // effectively replaces the root component, preventing the consumable configuration from being selected.
     @Issue('GRADLE-3280')
-    def "cannot resolve recursive copy of configuration with cyclic project dependencies"() {
+    def "can resolve recursive copy of configuration with cyclic project dependencies"() {
         given:
         settingsFile << "include 'a', 'b', 'c'"
         def common = """
@@ -586,12 +586,8 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         expect:
         succeeds(":a:assertCanResolve")
 
-        when:
-        fails(":a:assertCanResolveRecursiveCopy")
-
-        then:
-        failure.assertHasCause("Could not resolve all files for configuration ':a:resCopy'.")
-        failure.assertHasErrorOutput("No variants exist.")
+        and:
+        succeeds(":a:assertCanResolveRecursiveCopy")
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
@@ -855,5 +851,45 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         declaredDependency   | projectDescription  | expectedCommand
         "project(':')"       | "root project :"         | ":outgoingVariants"
         "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
+    }
+
+    def "can resolve a variant of a child project during configuration from a parent project when the child project resolves a configuration during configuration time"() {
+        mavenRepo.module("org", "foo").publish()
+
+        settingsFile << """
+            include 'a'
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(':a'))
+            }
+
+            // Execute resolution at configuration time, causing
+            // project :a to be resolved on-demand at configuration time.
+            assert configurations.compileClasspath.incoming.files*.name == ["main"]
+        """
+
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+
+            // Execute resolution at configuration time
+            assert configurations.compileClasspath.incoming.files*.name == ["foo-1.0.jar"]
+        """
+
+        expect:
+        succeeds("help")
     }
 }
