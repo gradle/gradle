@@ -19,8 +19,7 @@ package org.gradle.launcher.exec;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @UsedByScanPlugin
 public final class RunBuildBuildOperationType implements BuildOperationType<RunBuildBuildOperationType.Details, RunBuildBuildOperationType.Result> {

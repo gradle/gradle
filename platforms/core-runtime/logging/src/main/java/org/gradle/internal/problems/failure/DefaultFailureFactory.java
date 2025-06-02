@@ -24,8 +24,8 @@ import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;

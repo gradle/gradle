@@ -35,8 +35,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.time.Clock;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link org.gradle.BuildListener} which logs the build progress.

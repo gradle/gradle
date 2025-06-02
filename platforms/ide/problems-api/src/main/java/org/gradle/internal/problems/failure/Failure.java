@@ -17,8 +17,8 @@
 package org.gradle.internal.problems.failure;
 
 import org.gradle.api.problems.internal.InternalProblem;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
