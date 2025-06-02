@@ -190,7 +190,7 @@ object ThrowingProblemsListener : AbstractProblemsListener() {
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
         // TODO: consider throwing more specific exception
         throw ConfigurationCacheError(
-            "Failed to isolate 'GradleLifecycle' action:: $trace: ${StructuredMessage.build(message).render()}",
+            "Failed to isolate 'GradleLifecycle' action: $trace: ${StructuredMessage.build(message).render()}",
             error.maybeUnwrapInvocationTargetException()
         )
     }
