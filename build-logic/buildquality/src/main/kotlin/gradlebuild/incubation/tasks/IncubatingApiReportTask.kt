@@ -4,6 +4,7 @@ import gradlebuild.incubation.action.IncubatingApiReportWorkAction
 import gradlebuild.modules.extension.ExternalModulesExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
@@ -55,8 +56,12 @@ abstract class IncubatingApiReportTask : DefaultTask() {
     @get:Inject
     abstract val workerExecutor: WorkerExecutor
 
+    @get:Inject
+    abstract val layout: ProjectLayout
+
     @TaskAction
     fun analyze() = workerExecutor.processIsolation { classpath.from(additionalClasspath) }.submit(IncubatingApiReportWorkAction::class) {
+        repositoryRoot = layout.settingsDirectory
         srcDirs.from(this@IncubatingApiReportTask.sources)
         htmlReportFile = this@IncubatingApiReportTask.htmlReportFile
         textReportFile = this@IncubatingApiReportTask.textReportFile
