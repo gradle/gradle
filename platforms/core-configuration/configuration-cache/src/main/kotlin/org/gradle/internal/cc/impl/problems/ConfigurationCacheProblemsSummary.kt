@@ -16,9 +16,9 @@
 
 package org.gradle.internal.cc.impl.problems
 
+import com.google.common.collect.Comparators
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import com.google.common.collect.Ordering
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -180,7 +180,8 @@ class Summary(
 
     private
     fun topProblemsForConsole(): Sequence<UniquePropertyProblem> =
-        Ordering.from(consoleComparatorForProblemWithSeverity()).leastOf(uniqueProblems.entries, MAX_CONSOLE_PROBLEMS)
+        uniqueProblems.entries.stream()
+            .collect(Comparators.least(MAX_CONSOLE_PROBLEMS, consoleComparatorForProblemWithSeverity()))
             .asSequence()
             .map { it.key }
 
