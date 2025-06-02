@@ -153,7 +153,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in Gradle 10.0. Consider using the Foobar plugin instead.")
+        executer.expectDocumentedDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in Gradle 10.0. Consider using the Foobar plugin instead.")
         executer.withWarningMode(WarningMode.Fail)
 
         then:
@@ -281,9 +281,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         2.times {
-            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0.")
-            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0.")
-            executer.expectDocumentedDeprecationWarning(/The Task\.\w+\(\) method has been deprecated\. This is scheduled to be removed in Gradle 10\.0\./)
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0.")
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0.")
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0.")
             run("broken", "buildSrc:broken", "included:broken")
 
             outputContains("Build file '${file("included/build.gradle")}': line 5")

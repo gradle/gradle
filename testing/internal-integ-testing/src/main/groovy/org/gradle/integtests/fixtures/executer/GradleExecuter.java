@@ -352,29 +352,32 @@ public interface GradleExecuter extends Stoppable {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
-     * Expects exactly the given deprecation warning.
+     * Expects the given deprecation warning.
      *
-     * This may show up with a strikethrough in IntelliJ as if it were deprecated.  This method is still okay to use.  You can
-     * also switch to the more specific {@link #expectDocumentedDeprecationWarning(String)} if the warning includes a documentation
-     * link and you don't want to (ironically) see code testing deprecation appearing as if it itself were deprecated.
+     * @implNote URLs to documentation should use /current/ as the version. This fixture will automatically replace it with the actual version tested.
      */
-    GradleExecuter expectDeprecationWarning(String warning);
+    GradleExecuter expectDocumentedDeprecationWarning(String warning);
 
     /**
      * Do not call this method directly.
+     *
      * @see #expectDocumentedDeprecationWarning(String)
      */
     GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
-     * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
-     */
-    GradleExecuter expectDocumentedDeprecationWarning(String warning);
-
-    /**
      * Disable deprecation warning checks.
      */
     GradleExecuter noDeprecationChecks();
+
+    /**
+     * Expects a message that contains the word "deprecated" in the output.
+     *
+     * This is not intended to test for Gradle deprecation warnings. Use {@link #expectDocumentedDeprecationWarning(String)} instead.
+     *
+     * This method is used to document builds that emit deprecation messages from external tools like javac or the Kotlin compiler.
+     */
+    GradleExecuter expectDeprecatedMessage(String warning);
 
     /**
      * Disable automatic Java version deprecation warning filtering.

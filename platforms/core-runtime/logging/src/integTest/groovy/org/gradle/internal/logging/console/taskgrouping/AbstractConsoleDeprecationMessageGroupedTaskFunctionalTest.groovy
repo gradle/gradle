@@ -50,7 +50,7 @@ abstract class AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest extend
 
         when:
         if (shouldCheckDeprecations()) {
-            executer.expectDeprecationWarning(expectedOutput)
+            executer.expectDeprecatedMessage(expectedOutput)
         }
         succeeds('compileJava')
 

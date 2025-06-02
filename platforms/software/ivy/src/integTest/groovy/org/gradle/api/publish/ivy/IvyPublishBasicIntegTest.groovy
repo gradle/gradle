@@ -298,7 +298,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
         expect: "build warned about transitive = true variant"
         executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published.")
+        executer.expectDocumentedDeprecationWarning("Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published.")
         succeeds 'publish'
     }
 
