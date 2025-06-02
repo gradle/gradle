@@ -58,7 +58,7 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
             Class.forName("org.testng.TestNG");
         } catch (ClassNotFoundException e) {
             throw new TestFrameworkNotAvailableException(
-                "Failed to load TestNG. ",
+                "Failed to load TestNG.",
                 Arrays.asList(
                     "Please ensure that TestNG is available on the test runtime classpath.",
                     getUpgradeGuide()
@@ -84,13 +84,13 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-        assertTestFrameworkAvailable();
-
-        // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
-        try {
-            testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
-        } catch (Throwable e) {
-            throw new GradleException(String.format("Could not load test class '%s'.", testClass.getTestClassName()), e);
+        if (startedProcessing) {
+            // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
+            try {
+                testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
+            } catch (Throwable e) {
+                throw new GradleException(String.format("Could not load test class '%s'.", testClass.getTestClassName()), e);
+            }
         }
     }
 
