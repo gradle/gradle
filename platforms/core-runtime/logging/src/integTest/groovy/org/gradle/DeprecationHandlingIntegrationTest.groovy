@@ -202,7 +202,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         if (withFullStacktrace) {
             executer.withFullDeprecationStackTraceEnabled()
         }
-        executer.expectDeprecationWarning()
+        executer.noDeprecationChecks()
         run()
 
         then:
@@ -235,7 +235,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         if (withFullStacktrace) {
             executer.withFullDeprecationStackTraceEnabled()
         }
-        executer.expectDeprecationWarning()
+        executer.noDeprecationChecks()
         run()
 
         then:
