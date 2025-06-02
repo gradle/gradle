@@ -61,7 +61,7 @@ abstract class IncubatingApiReportTask : DefaultTask() {
 
     @TaskAction
     fun analyze() = workerExecutor.processIsolation { classpath.from(additionalClasspath) }.submit(IncubatingApiReportWorkAction::class) {
-        settingsDir = layout.settingsDirectory
+        repositoryRoot = layout.settingsDirectory
         srcDirs.from(this@IncubatingApiReportTask.sources)
         htmlReportFile = this@IncubatingApiReportTask.htmlReportFile
         textReportFile = this@IncubatingApiReportTask.textReportFile

@@ -24,7 +24,7 @@ import org.gradle.workers.WorkParameters
 
 
 interface IncubatingApiReportParameter : WorkParameters {
-    val settingsDir: DirectoryProperty
+    val repositoryRoot: DirectoryProperty
     val srcDirs: ConfigurableFileCollection
     val htmlReportFile: RegularFileProperty
     val textReportFile: RegularFileProperty

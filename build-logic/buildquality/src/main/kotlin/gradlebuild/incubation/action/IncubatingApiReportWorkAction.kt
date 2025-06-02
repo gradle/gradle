@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import java.io.File
+import java.nio.file.Path
 
 
 abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportParameter> {
@@ -52,12 +53,13 @@ abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportPar
     override fun execute() {
         try {
             val versionToIncubating = mutableMapOf<Version, MutableSet<IncubatingDescription>>()
+            val repositoryRoot = parameters.repositoryRoot.get().asFile.toPath()
             parameters.srcDirs.forEach { srcDir ->
                 if (srcDir.exists()) {
                     val collector = CompositeVersionsToIncubatingCollector(
                         listOf(
-                            JavaVersionsToIncubatingCollector(srcDir, settingsDir = parameters.settingsDir.get().asFile),
-                            KotlinVersionsToIncubatingCollector(settingsDir = parameters.settingsDir.get().asFile)
+                            JavaVersionsToIncubatingCollector(srcDir, repositoryRoot = repositoryRoot),
+                            KotlinVersionsToIncubatingCollector(repositoryRoot = repositoryRoot)
                         )
                     )
                     srcDir.walkTopDown().forEach { sourceFile ->
@@ -123,7 +125,7 @@ abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportPar
             versionToIncubating.toSortedMap().forEach { (version, incubatingDescriptions) ->
                 val releaseDate = versions[version] ?: "unreleased"
                 incubatingDescriptions.sortedBy { it.name }.forEach { incubating ->
-                    writer.println("$version;$releaseDate;${incubating.name};${incubating.relativePath};${incubating.lineNumber}")
+                    writer.println("$version;$releaseDate;${incubating.name};${incubating.sourceRelativePath};${incubating.lineNumber}")
                 }
             }
         }
@@ -158,7 +160,7 @@ typealias Version = String
 
 
 private
-data class IncubatingDescription(val name: String, val relativePath: String, val lineNumber: Int)
+data class IncubatingDescription(val name: String, val sourceRelativePath: Path, val lineNumber: Int)
 
 
 private
@@ -192,7 +194,7 @@ const val VERSION_NOT_FOUND = "Not found"
 
 
 private
-class JavaVersionsToIncubatingCollector(srcDir: File, val settingsDir: File) : VersionsToIncubatingCollector {
+class JavaVersionsToIncubatingCollector(srcDir: File, val repositoryRoot: Path) : VersionsToIncubatingCollector {
 
     private
     val solver = JavaSymbolSolver(CombinedTypeSolver(JavaParserTypeSolver(srcDir), ReflectionTypeSolver()))
@@ -237,7 +239,7 @@ class JavaVersionsToIncubatingCollector(srcDir: File, val settingsDir: File) : V
         val nodeName = nodeName(node, unit, file)
         return IncubatingDescription(
             name = nodeName,
-            relativePath = settingsDir.toPath().relativize(file.toPath()).toString(),
+            sourceRelativePath = repositoryRoot.relativize(file.toPath()),
             lineNumber = node.begin.map { it.line }.orElse(-1)
         )
     }
@@ -279,7 +281,7 @@ val NEWLINE_REGEX = "\\n\\s*".toRegex()
 
 
 private
-class KotlinVersionsToIncubatingCollector(val settingsDir: File) : VersionsToIncubatingCollector {
+class KotlinVersionsToIncubatingCollector(val repositoryRoot: Path) : VersionsToIncubatingCollector {
 
     override fun collectFrom(sourceFile: File): VersionsToIncubating {
 
@@ -310,7 +312,7 @@ class KotlinVersionsToIncubatingCollector(val settingsDir: File) : VersionsToInc
         }
         return IncubatingDescription(
             name = incubating.replace(NEWLINE_REGEX, " "),
-            relativePath = settingsDir.toPath().relativize(sourceFile.toPath()).toString(),
+            sourceRelativePath = repositoryRoot.relativize(sourceFile.toPath()),
             lineNumber = getLineNumber(declaration, ktFile)
         )
     }

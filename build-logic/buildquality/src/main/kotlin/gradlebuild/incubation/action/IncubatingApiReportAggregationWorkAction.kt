@@ -25,7 +25,7 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
 
     companion object {
         val LOGGER: Logger = LoggerFactory.getLogger(IncubatingApiReportAggregationWorkAction::class.java.name) as Logger
-        const val GITHUB_BASE_URL = "https://github.com/gradle/gradle/blob/"
+        const val GITHUB_BASE_URL = "https://github.com/gradle/gradle/blob"
     }
 
     override fun execute() {
@@ -105,13 +105,16 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
             data.toSortedMap().forEach { (category, projectsWithProblems) ->
                 projectsWithProblems.forEach { (project, problems) ->
                     problems.forEach {
-                        val url = "$GITHUB_BASE_URL/$currentCommit/${it.relativePath.escape()}#L${it.lineNumber}"
+                        val url = "$GITHUB_BASE_URL/$currentCommit/${it.relativePath}#L${it.lineNumber}".urlEncodeSpace()
                         writer.println("=HYPERLINK(\"$url\",\"${it.name}\");$project;${category.removePrefix("Incubating since ")};")
                     }
                 }
             }
         }
     }
+
+    private
+    fun String.urlEncodeSpace() = replace(" ", "%20")
 
     private
     fun String.escape() = replace("<", "&lt;").replace(">", "&gt;")

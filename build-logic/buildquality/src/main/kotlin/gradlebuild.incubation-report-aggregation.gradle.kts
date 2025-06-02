@@ -1,3 +1,4 @@
+import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
 import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
 
@@ -17,9 +18,7 @@ val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("all
     reports.from(resolver("txt"))
     htmlReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.html")
     csvReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.csv")
-    currentCommit = providers.exec {
-        commandLine("git", "rev-parse", "HEAD")
-    }.standardOutput.asText.map { it.trim() }
+    currentCommit = project.buildCommitId
 }
 
 tasks.register<Zip>("allIncubationReportsZip") {
