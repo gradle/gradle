@@ -74,6 +74,13 @@ tasks {
         )
 
         jvmArgumentProviders.add(
+            PackageInfoData(
+                layout.settingsDirectory,
+                rootProject.tasks.named("packageInfoData").get().outputs.files.elements.map { it.single() },
+            )
+        )
+
+        jvmArgumentProviders.add(
             ArchUnitFreezeConfiguration(
                 ruleStoreDir.asFile,
                 providers.gradleProperty("archunitRefreeze").map { true })
@@ -89,6 +96,20 @@ tasks {
 
         finalizedBy(reorderRuleStore)
     }
+}
+
+class PackageInfoData(
+    @get:Internal
+    val basePath: Directory,
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    val json: Provider<FileSystemLocation>,
+) : CommandLineArgumentProvider {
+
+    override fun asArguments(): Iterable<String> = listOf(
+        "-Dorg.gradle.architecture.package-info-base-path=${basePath.asFile.absolutePath}",
+        "-Dorg.gradle.architecture.package-info-json=${json.get().asFile.absolutePath}",
+    )
 }
 
 class ArchUnitPlatformsData(
