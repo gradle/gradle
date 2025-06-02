@@ -50,7 +50,7 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
         build("kotlinDslAccessorsReport").apply {
             assertOutputContains("settings.gradle.kts:9:5: 'fun SharedModelDefaults.mySoftwareType(configureAction: Action<MyExtension>): Unit' is deprecated. Deprecated model type.")
             assertOutputContains("build.gradle.kts:1:1: 'fun Project.mySoftwareType(configure: Action<in MyExtension>): Unit' is deprecated. Deprecated model type.")
-            assertOutputContains("build.gradle.kts:3:9: 'fun NamedDomainObjectContainer<MyElement>.myElement(name: String?, configure: Action<in MyElement>): Unit' is deprecated. Deprecated element type.")
+            assertOutputContains("build.gradle.kts:3:9: 'fun NamedDomainObjectContainer<MyElement>.myElement(name: String, configure: Action<in MyElement>): Unit' is deprecated. Deprecated element type.")
 
             assertOutputContains("""
             |    @Suppress("deprecation")

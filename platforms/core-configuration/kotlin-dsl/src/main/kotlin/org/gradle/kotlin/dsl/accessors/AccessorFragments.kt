@@ -22,6 +22,7 @@ import kotlinx.metadata.KmType
 import kotlinx.metadata.KmTypeProjection
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.hasAnnotations
+import kotlinx.metadata.isNullable
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Action
 import org.gradle.api.Incubating
@@ -170,7 +171,7 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
                     functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating and maybe deprecations
                     receiverType = kotlinReceiverType,
                     valueParameters = listOf(
-                        newValueParameterOf("name", KotlinType.string),
+                        newValueParameterOf("name", KotlinType.string.also { it.isNullable = false }),
                         newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinElementType)))
                     ),
                     returnType = KotlinType.unit,
