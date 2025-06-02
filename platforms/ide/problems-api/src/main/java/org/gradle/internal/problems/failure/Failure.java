@@ -83,4 +83,6 @@ public interface Failure {
      * The original exception.
      */
     Throwable getOriginal();
+
+    Failure withoutProblems();
 }

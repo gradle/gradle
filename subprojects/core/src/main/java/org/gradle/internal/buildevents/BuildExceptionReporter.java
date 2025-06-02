@@ -480,7 +480,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
 
         void appendDetails() {
-            renderStyledError(failure, details);
+            renderStyledError(failure.withoutProblems(), details);
         }
 
         void renderStackTrace() {
