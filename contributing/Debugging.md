@@ -19,7 +19,7 @@ For most cases, use [listening debugger](https://www.jetbrains.com/help/idea/att
 
 The build should create debugging run configurations for you [automatically](../build-logic/idea/src/main/kotlin/gradlebuild.ide.gradle.kts#L82) if you're using Intellij version 2025.1 or later.
 
-Before you start debugging, start the "Daemon debug" or "Debug Launcher" configuration. 
+Before you start debugging, start the "Daemon debug" or "Debug Launcher" configuration.
 It will be automatically reused for subsequent test runs.
 
 Be careful when stopping the test — ensure you stop the test itself, not the debugger.
@@ -40,7 +40,7 @@ In test code, you can access the current executer via `executer` and modify its 
 
 You may find these resources helpful for debugging Gradle builds in general:
 * [Gradle Troubleshooting](https://docs.gradle.org/current/userguide/troubleshooting.html)
-* [Debugging Options](https://docs.gradle.org/current/userguide/command_line_interface.html#sec:command_line_debugging) 
+* [Debugging Options](https://docs.gradle.org/current/userguide/command_line_interface.html#sec:command_line_debugging)
 
 Our [blog series](https://blog.gradle.org/how-gradle-works-1) about how Gradle works can help understand why multiple JVMs are involved in the build process.
 
@@ -58,7 +58,7 @@ Note that by default, port 5006 is used for debugging the launcher, so you'll al
 
 ## Debugging wrapper
 
-The main obstacle to wrapper debugging is the minification of the wrapper jar. 
+The main obstacle to wrapper debugging is the minification of the wrapper jar.
 To mitigate this, minifying is disabled when the `debugLauncher` property is present.
 Keep in mind that this may not be exactly the same as the production environment and could behave differently in some corner cases.
 
@@ -116,6 +116,18 @@ To debug a build for those tests, use [the same parameters](#gradle-debug-option
 
 Add `-Dorg.gradle.debug=true` to the `LongRunningOperation` you want to debug with `LongRunningOperation.withArguments(...)`.
 
+## Debugging Test Workers
+
+To debug a test worker started by Gradle during an integration test, add the `--debug-jvm` argument to Gradle invocation in your test.
+
+After doing this, when running the test (using either Run or Debug) your launch should pause and wait for you to attach a debugger to the worker process with a message like:
+
+```
+Listening for transport dt_socket at address: 5005`
+```
+
+Attach a Remote Debugger to that port (5005 by default) in your IDE via launching a new Debug configuration and you can debug the Test Worker.
+
 ## Debugging sync (project import) in IntelliJ IDEA
 
 This is useful if a problem with Gradle surfaces when IntelliJ is trying to (re-)import a Gradle build.
@@ -125,7 +137,7 @@ which communicates with a Gradle daemon to fetch the models needed to update the
 Since the IDE operates in a separate process, remote debugging is required.
 
 TIP: Use different *versions* of IntelliJ for viewing Gradle-sources-to-be-debugged and the target build.
-Since a locally built Gradle distribution is typically used for debugging, you may need to completely restart the IDE used for syncing the target build.  
+Since a locally built Gradle distribution is typically used for debugging, you may need to completely restart the IDE used for syncing the target build.
 In this case, it is handy to keep the IDE with Gradle sources independent.
 For instance, use **IntelliJ Ultimate** to view Gradle sources and **IntelliJ Community** to sync the target build.
 
@@ -158,5 +170,5 @@ We can trigger a sync by doing any of the following:
 
 ![](./images/trigger-sync.jpg)
 
-1. Stop the Gradle daemon before doing a repeated sync if you disconnected the debugger. 
+1. Stop the Gradle daemon before doing a repeated sync if you disconnected the debugger.
 2. Keep the current debugging session connected by letting the program run past finishing the current sync iteration you were debugging.
