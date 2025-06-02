@@ -31,18 +31,53 @@ import java.util.Map;
  */
 public interface Failure {
 
+    /**
+     * The class name of the throwable.
+     *
+     * @since 9.0
+     */
     String getClassName();
 
+    /**
+     * The message of the failure.
+     *
+     * @since 9.0
+     */
     @Nullable
     String getMessage();
 
+    /**
+     * The metadata of the failure.
+     *
+     * @since 9.0
+     */
     Map<String, String> getMetadata();
 
+    /**
+     * The stack trace of the failure.
+     *
+     * @since 9.0
+     */
     List<StackTraceElement> getStackTrace();
 
+    /**
+     * The class level annotations of the underlying exception class.
+     *
+     * @since 9.0
+     */
     List<String> getClassLevelAnnotations();
 
+    /**
+     * The causes of this failure.
+     *
+     * @since 9.0
+     */
     List<Failure> getCauses();
 
+    /**
+     * Problems associated with this failure.
+     *
+     * @since 9.0
+     */
     List<Problem> getProblems();
 }
