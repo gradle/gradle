@@ -358,10 +358,12 @@ public interface GradleExecuter extends Stoppable {
      * also switch to the more specific {@link #expectDocumentedDeprecationWarning(String)} if the warning includes a documentation
      * link and you don't want to (ironically) see code testing deprecation appearing as if it itself were deprecated.
      */
-    default GradleExecuter expectDeprecationWarning(String warning) {
-        return expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(warning));
-    }
+    GradleExecuter expectDeprecationWarning(String warning);
 
+    /**
+     * Do not call this method directly.
+     * @see #expectDocumentedDeprecationWarning(String)
+     */
     GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
