@@ -154,13 +154,14 @@ class ConfigurationCacheProblems(
             throw error
         }
 
+        val wrappedMessage = StructuredMessage.build(message)
+        val originalError = error.maybeUnwrapInvocationTargetException()
         val wrappedError = ConfigurationCacheError(
             // TODO: the message is not precise, since some errors can happen during load
-            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message).render()}",
-            error.maybeUnwrapInvocationTargetException()
+            "Configuration cache state could not be cached: $trace: ${wrappedMessage.render()}",
+            originalError
         )
-        val failure = failureFactory.create(error)
-        val problem = PropertyProblem(trace, StructuredMessage.build(message), wrappedError, failure)
+        val problem = PropertyProblem(trace, wrappedMessage, wrappedError, failureFactory.create(originalError))
         onProblem(problem, ProblemSeverity.Interrupting)
     }
 
