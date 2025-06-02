@@ -42,7 +42,8 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
             resultProcessor.started(suiteDescriptor, new TestStartEvent(clock.getCurrentTime()));
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
-            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not start %s.", suiteDescriptor), t);
+            String msg = String.format("Could not start %s: %s", suiteDescriptor, t.getMessage());
+            Throwable rawFailure = new TestSuiteExecutionException(msg, t);
             resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         }
     }
