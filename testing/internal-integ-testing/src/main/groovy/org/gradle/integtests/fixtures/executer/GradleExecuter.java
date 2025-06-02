@@ -352,16 +352,6 @@ public interface GradleExecuter extends Stoppable {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
-     * Expects exactly one deprecation warning in the build output. If more than one warning is produced,
-     * or no warning is produced at all, the assertion fails.
-     *
-     * @see #expectDeprecationWarnings(int)
-     * @deprecated Use {@link #expectDeprecationWarning(String)} instead.
-     */
-    @Deprecated
-    GradleExecuter expectDeprecationWarning();
-
-    /**
      * Expects exactly the given deprecation warning.
      *
      * This may show up with a strikethrough in IntelliJ as if it were deprecated.  This method is still okay to use.  You can
@@ -382,15 +372,6 @@ public interface GradleExecuter extends Stoppable {
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
      */
     GradleExecuter expectDocumentedDeprecationWarning(String warning);
-
-    /**
-     * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
-     * the execution, the assertion fails.
-     *
-     * @deprecated Use {@link #expectDeprecationWarning(String)} instead.
-     */
-    @Deprecated
-    GradleExecuter expectDeprecationWarnings(int count);
 
     /**
      * Disable deprecation warning checks.
