@@ -51,7 +51,6 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
     public DefaultDependencyScopeConfiguration(
         DomainObjectContext domainObjectContext,
         String name,
-        boolean isDetached,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
@@ -76,7 +75,7 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
         super(
             domainObjectContext,
             name,
-            isDetached,
+            false,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
