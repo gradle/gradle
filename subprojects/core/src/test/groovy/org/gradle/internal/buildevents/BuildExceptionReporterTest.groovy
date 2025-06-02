@@ -46,8 +46,8 @@ class BuildExceptionReporterTest extends Specification {
     final BuildClientMetaData clientMetaData = Mock()
     final GradleEnterprisePluginManager gradleEnterprisePluginManager = Mock()
     final LoggingConfiguration configuration = new DefaultLoggingConfiguration()
-    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData, gradleEnterprisePluginManager)
     final FailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier()
+    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData, gradleEnterprisePluginManager, failureFactory)
 
 
     static final String MESSAGE = "<message>"

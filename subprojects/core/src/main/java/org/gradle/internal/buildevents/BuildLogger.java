@@ -32,8 +32,8 @@ import org.gradle.internal.InternalBuildListener;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
 
@@ -44,6 +44,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     private final Logger logger;
     private final BuildExceptionReporter exceptionReporter;
     private final BuildResultLogger resultLogger;
+    private final FailureFactory failureFactory;
     private String action;
 
     public BuildLogger(
@@ -54,14 +55,27 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
         BuildStartedTime buildStartedTime,
         Clock clock,
         WorkValidationWarningReporter workValidationWarningReporter,
-        GradleEnterprisePluginManager gradleEnterprisePluginManager
+        GradleEnterprisePluginManager gradleEnterprisePluginManager,
+        FailureFactory failureFactory
     ) {
         this.logger = logger;
-        exceptionReporter = new BuildExceptionReporter(textOutputFactory, loggingConfiguration, requestMetaData.getClient(), gradleEnterprisePluginManager);
-        resultLogger = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, new TersePrettyDurationFormatter(), workValidationWarningReporter);
+        this.failureFactory = failureFactory;
+        exceptionReporter = new BuildExceptionReporter(
+            textOutputFactory,
+            loggingConfiguration,
+            requestMetaData.getClient(),
+            gradleEnterprisePluginManager,
+            failureFactory
+        );
+        resultLogger = new BuildResultLogger(
+            textOutputFactory,
+            buildStartedTime,
+            clock,
+            new TersePrettyDurationFormatter(),
+            workValidationWarningReporter
+        );
     }
 
-    @SuppressWarnings("deprecation") // StartParameter.getSettingsFile() and StartParameter.getBuildFile()
     @Override
     public void beforeSettings(Settings settings) {
         StartParameter startParameter = settings.getStartParameter();
@@ -111,7 +125,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     }
 
     public void logResult(Throwable buildFailure) {
-        logResult(DefaultFailureFactory.withDefaultClassifier().create(buildFailure));
+        logResult(failureFactory.create(buildFailure));
     }
 
     public void logResult(@Nullable Failure buildFailure) {

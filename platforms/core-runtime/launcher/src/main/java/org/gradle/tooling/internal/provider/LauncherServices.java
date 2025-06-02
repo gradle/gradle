@@ -58,6 +58,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -107,8 +108,18 @@ public class LauncherServices extends AbstractGradleModuleServices {
 
     static class ToolingGlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
-        BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
-            return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
+        BuildLoggerFactory createBuildLoggerFactory(
+            StyledTextOutputFactory styledTextOutputFactory,
+            WorkValidationWarningReporter workValidationWarningReporter,
+            FailureFactory failureFactory
+        ) {
+            return new BuildLoggerFactory(
+                styledTextOutputFactory,
+                workValidationWarningReporter,
+                Time.clock(),
+                null,
+                failureFactory
+            );
         }
     }
 
@@ -211,6 +222,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
             StartParameter startParameter,
+            FailureFactory failureFactory,
             InternalProblems problemsService,
             ProblemStream problemStream,
             ExceptionProblemRegistry registry
@@ -240,6 +252,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                     buildStartedTime,
                                     buildRequestMetaData,
                                     buildLoggerFactory,
+                                    failureFactory,
                                     registry
                                 ),
                                 options),
@@ -252,8 +265,20 @@ public class LauncherServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
-            return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, clock, gradleEnterprisePluginManager);
+        BuildLoggerFactory createBuildLoggerFactory(
+            StyledTextOutputFactory styledTextOutputFactory,
+            WorkValidationWarningReporter workValidationWarningReporter,
+            Clock clock,
+            GradleEnterprisePluginManager gradleEnterprisePluginManager,
+            FailureFactory failureFactory
+        ) {
+            return new BuildLoggerFactory(
+                styledTextOutputFactory,
+                workValidationWarningReporter,
+                clock,
+                gradleEnterprisePluginManager,
+                failureFactory
+            );
         }
     }
 }

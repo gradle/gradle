@@ -36,8 +36,8 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.NonNull;
@@ -88,16 +88,35 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
     private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
+    private final FailureFactory failureFactory;
 
-    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData, @Nullable GradleEnterprisePluginManager gradleEnterprisePluginManager) {
+    public BuildExceptionReporter(
+        StyledTextOutputFactory textOutputFactory,
+        LoggingConfiguration loggingConfiguration,
+        BuildClientMetaData clientMetaData,
+        @Nullable GradleEnterprisePluginManager gradleEnterprisePluginManager,
+        FailureFactory failureFactory
+    ) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
         this.gradleEnterprisePluginManager = gradleEnterprisePluginManager;
+        this.failureFactory = failureFactory;
     }
 
-    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
-        this(textOutputFactory, loggingConfiguration, clientMetaData, null);
+    public BuildExceptionReporter(
+        StyledTextOutputFactory textOutputFactory,
+        LoggingConfiguration loggingConfiguration,
+        BuildClientMetaData clientMetaData,
+        FailureFactory failureFactory
+    ) {
+        this(
+            textOutputFactory,
+            loggingConfiguration,
+            clientMetaData,
+            null,
+            failureFactory
+        );
     }
 
     public void buildFinished(@Nullable Failure failure) {
@@ -109,7 +128,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     @Override
     public void execute(@NonNull Throwable throwable) {
-        Failure failure = DefaultFailureFactory.withDefaultClassifier().create(throwable);
+        Failure failure = failureFactory.create(throwable);
         renderFailure(failure);
     }
 
