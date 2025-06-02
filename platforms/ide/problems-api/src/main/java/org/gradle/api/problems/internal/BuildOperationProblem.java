@@ -31,16 +31,16 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-public class DevelocityProblem implements Problem {
+public class BuildOperationProblem implements Problem {
     private final InternalProblem problem;
 
-    public DevelocityProblem(InternalProblem problem) {
+    public BuildOperationProblem(InternalProblem problem) {
         this.problem = problem;
     }
 
     @Override
     public ProblemDefinition getDefinition() {
-        return new DevelocityProblemDefinition(problem.getDefinition());
+        return new BuildOperationProblemDefinition(problem.getDefinition());
     }
 
     @Override
@@ -88,9 +88,9 @@ public class DevelocityProblem implements Problem {
     private ImmutableList<ProblemLocation> convertProblemLocations(List<org.gradle.api.problems.ProblemLocation> locations) {
         ImmutableList.Builder<ProblemLocation> builder = ImmutableList.builder();
         for (org.gradle.api.problems.ProblemLocation location : locations) {
-            ProblemLocation develocityLocation = convertToLocation(location);
-            if (develocityLocation != null) {
-                builder.add(develocityLocation);
+            ProblemLocation buildOperationLocation = convertToLocation(location);
+            if (buildOperationLocation != null) {
+                builder.add(buildOperationLocation);
             }
         }
         return builder.build();
@@ -99,33 +99,33 @@ public class DevelocityProblem implements Problem {
     @Nullable
     private static ProblemLocation convertToLocation(final org.gradle.api.problems.ProblemLocation location) {
         if (location instanceof org.gradle.api.problems.FileLocation) {
-            return convertToDevelocityFileLocation(location);
+            return convertToBuildOperationFileLocation(location);
         } else if (location instanceof TaskLocation) {
             // The Develocity plugin will infer the task location from the build operation hierarchy - no need to send this contextual information
             return null;
         } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
-            return new DevelocityPluginIdLocation((PluginIdLocation) location);
+            return new BuildOperationPluginIdLocation((PluginIdLocation) location);
         } else if (location instanceof org.gradle.api.problems.internal.StackTraceLocation) {
-            return new DevelocityStackTraceLocation((StackTraceLocation) location);
+            return new BuildOperationStackTraceLocation((StackTraceLocation) location);
         }
         throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
     }
 
     @NonNull
-    private static FileLocation convertToDevelocityFileLocation(org.gradle.api.problems.ProblemLocation location) {
+    private static FileLocation convertToBuildOperationFileLocation(org.gradle.api.problems.ProblemLocation location) {
         if (location instanceof org.gradle.api.problems.LineInFileLocation) {
-            return new DevelocityLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);
+            return new BuildOperationLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);
         } else if (location instanceof org.gradle.api.problems.OffsetInFileLocation) {
-            return new DevelocityOffsetInFileLocation((org.gradle.api.problems.OffsetInFileLocation) location);
+            return new BuildOperationOffsetInFileLocation((org.gradle.api.problems.OffsetInFileLocation) location);
         } else {
-            return new DevelocityFileLocation((org.gradle.api.problems.FileLocation) location);
+            return new BuildOperationFileLocation((org.gradle.api.problems.FileLocation) location);
         }
     }
 
-    private static class DevelocityProblemDefinition implements ProblemDefinition {
+    private static class BuildOperationProblemDefinition implements ProblemDefinition {
         private final org.gradle.api.problems.ProblemDefinition definition;
 
-        public DevelocityProblemDefinition(org.gradle.api.problems.ProblemDefinition definition) {
+        public BuildOperationProblemDefinition(org.gradle.api.problems.ProblemDefinition definition) {
             this.definition = definition;
         }
 
@@ -141,20 +141,20 @@ public class DevelocityProblem implements Problem {
 
         @Override
         public ProblemGroup getGroup() {
-            return new DevelocityProblemDefinition.DevelocityProblemGroup(definition.getId().getGroup());
+            return new BuildOperationProblemGroup(definition.getId().getGroup());
         }
 
         @Nullable
         @Override
         public DocumentationLink getDocumentationLink() {
             InternalDocLink documentationLink = (InternalDocLink) definition.getDocumentationLink();
-            return documentationLink == null ? null : new DevelocityProblemDefinition.DevelocityDocumentationLink(documentationLink);
+            return documentationLink == null ? null : new BuildOperationDocumentationLink(documentationLink);
         }
 
-        private static class DevelocityProblemGroup implements ProblemGroup {
+        private static class BuildOperationProblemGroup implements ProblemGroup {
             private final org.gradle.api.problems.ProblemGroup currentGroup;
 
-            public DevelocityProblemGroup(org.gradle.api.problems.ProblemGroup currentGroup) {
+            public BuildOperationProblemGroup(org.gradle.api.problems.ProblemGroup currentGroup) {
                 this.currentGroup = currentGroup;
             }
 
@@ -172,14 +172,14 @@ public class DevelocityProblem implements Problem {
             @Override
             public ProblemGroup getParent() {
                 org.gradle.api.problems.ProblemGroup parent = currentGroup.getParent();
-                return parent == null ? null : new DevelocityProblemDefinition.DevelocityProblemGroup(parent);
+                return parent == null ? null : new BuildOperationProblemGroup(parent);
             }
         }
 
-        private static class DevelocityDocumentationLink implements DocumentationLink {
+        private static class BuildOperationDocumentationLink implements DocumentationLink {
             private final InternalDocLink documentationLink;
 
-            public DevelocityDocumentationLink(InternalDocLink documentationLink) {
+            public BuildOperationDocumentationLink(InternalDocLink documentationLink) {
                 this.documentationLink = documentationLink;
             }
 
@@ -190,11 +190,11 @@ public class DevelocityProblem implements Problem {
         }
     }
 
-    private static class DevelocityFileLocation implements FileLocation {
+    private static class BuildOperationFileLocation implements FileLocation {
 
         private final org.gradle.api.problems.FileLocation location;
 
-        public DevelocityFileLocation(org.gradle.api.problems.FileLocation location) {
+        public BuildOperationFileLocation(org.gradle.api.problems.FileLocation location) {
             this.location = location;
         }
 
@@ -209,10 +209,10 @@ public class DevelocityProblem implements Problem {
         }
     }
 
-    private static class DevelocityLineInFileLocation extends DevelocityFileLocation implements LineInFileLocation {
+    private static class BuildOperationLineInFileLocation extends BuildOperationFileLocation implements LineInFileLocation {
         private final org.gradle.api.problems.LineInFileLocation lineInFileLocation;
 
-        public DevelocityLineInFileLocation(org.gradle.api.problems.LineInFileLocation lineInFileLocation) {
+        public BuildOperationLineInFileLocation(org.gradle.api.problems.LineInFileLocation lineInFileLocation) {
             super(lineInFileLocation);
             this.lineInFileLocation = lineInFileLocation;
         }
@@ -247,10 +247,10 @@ public class DevelocityProblem implements Problem {
         }
     }
 
-    private static class DevelocityStackTraceLocation implements org.gradle.operations.problems.StackTraceLocation {
+    private static class BuildOperationStackTraceLocation implements org.gradle.operations.problems.StackTraceLocation {
         private final org.gradle.api.problems.internal.StackTraceLocation stackTraceLocation;
 
-        public DevelocityStackTraceLocation(org.gradle.api.problems.internal.StackTraceLocation stackTraceLocation) {
+        public BuildOperationStackTraceLocation(org.gradle.api.problems.internal.StackTraceLocation stackTraceLocation) {
             this.stackTraceLocation = stackTraceLocation;
         }
 
@@ -259,7 +259,7 @@ public class DevelocityProblem implements Problem {
         public FileLocation getFileLocation() {
             return stackTraceLocation.getFileLocation() == null
                 ? null
-                : convertToDevelocityFileLocation(stackTraceLocation.getFileLocation());
+                : convertToBuildOperationFileLocation(stackTraceLocation.getFileLocation());
         }
 
         @Override
@@ -273,11 +273,11 @@ public class DevelocityProblem implements Problem {
         }
     }
 
-    private static class DevelocityOffsetInFileLocation extends DevelocityFileLocation implements OffsetInFileLocation {
+    private static class BuildOperationOffsetInFileLocation extends BuildOperationFileLocation implements OffsetInFileLocation {
 
         private final org.gradle.api.problems.OffsetInFileLocation offsetInFileLocation;
 
-        public DevelocityOffsetInFileLocation(org.gradle.api.problems.OffsetInFileLocation offsetInFileLocation) {
+        public BuildOperationOffsetInFileLocation(org.gradle.api.problems.OffsetInFileLocation offsetInFileLocation) {
             super(offsetInFileLocation);
             this.offsetInFileLocation = offsetInFileLocation;
         }
@@ -298,11 +298,11 @@ public class DevelocityProblem implements Problem {
         }
     }
 
-    private static class DevelocityPluginIdLocation implements org.gradle.operations.problems.PluginIdLocation {
+    private static class BuildOperationPluginIdLocation implements org.gradle.operations.problems.PluginIdLocation {
 
         private final PluginIdLocation pluginId;
 
-        public DevelocityPluginIdLocation(PluginIdLocation pluginId) {
+        public BuildOperationPluginIdLocation(PluginIdLocation pluginId) {
             this.pluginId = pluginId;
         }
 

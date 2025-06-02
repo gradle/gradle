@@ -26,11 +26,11 @@ import java.util.List;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails, ProblemUsageProgressDetails {
     private final InternalProblem problem;
-    private final DevelocityProblem develocityProblem;
+    private final BuildOperationProblem buildOperationProblem;
 
     public DefaultProblemProgressDetails(InternalProblem problem) {
         this.problem = problem;
-        this.develocityProblem = new DevelocityProblem(problem);
+        this.buildOperationProblem = new BuildOperationProblem(problem);
     }
 
     public InternalProblem getProblem() {
@@ -39,39 +39,39 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
 
     @Override
     public ProblemDefinition getDefinition() {
-        return develocityProblem.getDefinition();
+        return buildOperationProblem.getDefinition();
     }
 
     @Override
     public ProblemSeverity getSeverity() {
-        return develocityProblem.getSeverity();
+        return buildOperationProblem.getSeverity();
     }
 
     @Nullable
     @Override
     public String getContextualLabel() {
-        return develocityProblem.getContextualLabel();
+        return buildOperationProblem.getContextualLabel();
     }
 
     @Override
     public List<String> getSolutions() {
-        return develocityProblem.getSolutions();
+        return buildOperationProblem.getSolutions();
     }
 
     @Nullable
     @Override
     public String getDetails() {
-        return develocityProblem.getDetails();
+        return buildOperationProblem.getDetails();
     }
 
     @Override
     public List<ProblemLocation> getOriginLocations() {
-        return develocityProblem.getOriginLocations();
+        return buildOperationProblem.getOriginLocations();
     }
 
     @Override
     public List<ProblemLocation> getContextualLocations() {
-        return develocityProblem.getContextualLocations();
+        return buildOperationProblem.getContextualLocations();
     }
 
     @Nullable

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.api.problems.internal.DevelocityProblem;
+import org.gradle.api.problems.internal.BuildOperationProblem;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginEndOfBuildListener;
@@ -188,7 +188,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         @Override
         public List<Problem> getProblems() {
             return failure.getProblems().stream()
-                .map(DevelocityProblem::new)
+                .map(BuildOperationProblem::new)
                 .collect(Collectors.toList());
         }
 
