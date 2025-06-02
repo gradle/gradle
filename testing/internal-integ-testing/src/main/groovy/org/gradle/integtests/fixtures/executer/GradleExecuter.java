@@ -362,10 +362,6 @@ public interface GradleExecuter extends Stoppable {
         return expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(warning));
     }
 
-    default GradleExecuter expectDeprecationWarningWithPattern(String pattern) {
-        return expectDeprecationWarning(ExpectedDeprecationWarning.withSingleLinePattern(pattern));
-    }
-
     GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
