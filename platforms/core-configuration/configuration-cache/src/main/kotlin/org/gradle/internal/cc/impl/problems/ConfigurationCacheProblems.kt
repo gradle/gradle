@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Task
+import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
@@ -33,6 +35,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
+import org.gradle.internal.cc.impl.DegradationReason
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
@@ -51,13 +54,9 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.api.internal.ConfigurationCacheDegradationController
-import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.TaskInternal
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
-import java.util.Collections
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -89,7 +88,7 @@ class ConfigurationCacheProblems(
     val buildNameProvider: BuildNameProvider,
 
     private val
-    degradationController: ConfigurationCacheDegradationController
+    degradationController: DefaultConfigurationCacheDegradationController
 ) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
@@ -112,9 +111,6 @@ class ConfigurationCacheProblems(
 
     private
     val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
-
-    private
-    val degradationReasons = mutableMapOf<Task, List<String>>()
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -180,8 +176,12 @@ class ConfigurationCacheProblems(
     }
 
     override fun forTask(task: Task): ProblemsListener {
-        val taskDegradationReasons = degradationReasons.getOrDefault(task, Collections.emptyList())
-        return if (taskDegradationReasons.isNotEmpty()) {
+        val taskDegradationReasons = degradationController.degradationReasons
+            .filterIsInstance<DegradationReason.Task>()
+            .firstOrNull { it.task == task }
+            ?.reasons
+
+        return if (!taskDegradationReasons.isNullOrEmpty()) {
             val trace = locationForTask(task)
             val notSeenBefore = incompatibleTasks.add(trace)
             if (notSeenBefore) {
@@ -280,6 +280,8 @@ class ConfigurationCacheProblems(
         return "configuration-cache"
     }
 
+    fun shouldDegradeGracefully(): Boolean = degradationController.shouldDegradeGracefully()
+
     fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
         val hasTooManyProblems = hasTooManyProblems(summary)
@@ -349,11 +351,11 @@ class ConfigurationCacheProblems(
     fun outputDirectoryFor(buildDir: File): File =
         buildDir.resolve("reports/configuration-cache/$cacheKey")
 
+
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {
 
         override fun afterStart() = Unit
-
         override fun beforeComplete() {
             val summary = summarizer.get()
             val problemCount = summary.problemCount
@@ -366,7 +368,7 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && degradationReasons.isNotEmpty() -> log("Configuration caching disabled${degradationSummary()}")
+                cacheAction == Store && shouldDegradeGracefully() -> log("Configuration caching disabled${degradationSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -385,8 +387,35 @@ class ConfigurationCacheProblems(
 
     private
     fun degradationSummary(): String {
-        val degradationLocations = degradationReasons.keys.map { locationForTask(it) }
-        return " because degradation was requested by:\n${degradationLocations.joinToString("\n") { "- ${it.render()}" }}"
+        val tasks = mutableListOf<PropertyTrace>()
+        val buildLogic = mutableListOf<String>()
+
+        degradationController.degradationReasons.forEach {
+            when (it) {
+                is DegradationReason.Task -> tasks.add(locationForTask(it.task))
+                is DegradationReason.BuildLogic -> buildLogic.add(it.reason)
+            }
+        }
+
+        return StringBuilder().apply {
+            append(" because degradation was requested.")
+            if (tasks.isNotEmpty()) {
+                appendLine()
+                append("- Incompatible tasks:")
+                tasks.forEach {
+                    appendLine()
+                    append("\t- ${it.render()}")
+                }
+            }
+            if (buildLogic.isNotEmpty()) {
+                appendLine()
+                append("- Incompatible features:")
+                buildLogic.forEach {
+                    appendLine()
+                    append("\t- $it")
+                }
+            }
+        }.toString()
     }
 
     private
@@ -418,12 +447,6 @@ class ConfigurationCacheProblems(
             1 -> "1 $singular"
             else -> "$this $plural"
         }
-    }
-
-    private
-    fun shouldDegradeGracefully(): Boolean {
-        degradationReasons.putAll((degradationController as DefaultConfigurationCacheDegradationController).currentDegradationReasons)
-        return degradationReasons.isNotEmpty()
     }
 
     private

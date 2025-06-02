@@ -67,7 +67,6 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
@@ -99,7 +98,6 @@ class DefaultConfigurationCache internal constructor(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
     private val deferredRootBuildGradle: DeferredRootBuildGradle,
-    private val degradationController: ConfigurationCacheDegradationController
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -590,8 +588,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun degradeGracefullyOr(action: () -> Unit) {
-        val shouldDegrade = (degradationController as DefaultConfigurationCacheDegradationController).shouldDegradeGracefully(deferredRootBuildGradle.gradle)
-        if (!shouldDegrade) {
+        if (!problems.shouldDegradeGracefully()) {
             action()
         }
         crossConfigurationTimeBarrier()

@@ -18,34 +18,54 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
+import org.gradle.internal.service.scopes.Scope.BuildTree
+import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.vcs.internal.VcsMappingsStore
 import java.util.concurrent.ConcurrentHashMap
 
-
-class DefaultConfigurationCacheDegradationController : ConfigurationCacheDegradationController {
+@ServiceScope(BuildTree::class)
+internal class DefaultConfigurationCacheDegradationController(
+    private val vcsMappingsStore: VcsMappingsStore,
+    private val deferredRootBuildGradle: DeferredRootBuildGradle
+) : ConfigurationCacheDegradationController {
 
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
-    val currentDegradationReasons = mutableMapOf<Task, List<String>>()
+    val degradationReasons by lazy(::collectDegradationReasons)
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
     }
 
-    fun shouldDegradeGracefully(gradle: GradleInternal): Boolean {
-        if (tasksDegradationRequests.isEmpty()) return false
-        gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
-            scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
-                val taskDegradationReasons = tasksDegradationRequests[task]
-                    ?.mapNotNull { it.orNull }
-                    ?.sorted()
+    fun shouldDegradeGracefully(): Boolean = degradationReasons.isNotEmpty()
 
-                if (!taskDegradationReasons.isNullOrEmpty()) {
-                    currentDegradationReasons[task] = taskDegradationReasons
+    private fun collectDegradationReasons(): List<DegradationReason> {
+        val result = mutableListOf<DegradationReason>()
+        if (isSourceDependenciesUsed()) {
+            result.add(DegradationReason.BuildLogic("Source dependencies are used"))
+        }
+        if (tasksDegradationRequests.isNotEmpty()) {
+            deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
+                scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
+                    val taskDegradationReasons = tasksDegradationRequests[task]
+                        ?.mapNotNull { it.orNull }
+                        ?.sorted()
+
+                    if (!taskDegradationReasons.isNullOrEmpty()) {
+                        result.add(DegradationReason.Task(task, taskDegradationReasons))
+                    }
                 }
             }
         }
-        return currentDegradationReasons.isNotEmpty()
+        return result
     }
+
+    private fun isSourceDependenciesUsed(): Boolean = vcsMappingsStore.asResolver().hasRules()
+}
+
+sealed interface DegradationReason {
+    data class Task(val task: org.gradle.api.Task, val reasons: List<String>) : DegradationReason
+    data class BuildLogic(val reason: String) : DegradationReason
 }
