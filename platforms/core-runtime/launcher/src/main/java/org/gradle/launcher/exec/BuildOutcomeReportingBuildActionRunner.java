@@ -75,9 +75,9 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         Result result = delegate.run(action, buildController);
 
         ProblemLocator problemLocator = registry.getProblemLocator();
-        DefaultFailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier(problemLocator);
+        DefaultFailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier();
         Throwable buildFailure = result.getBuildFailure();
-        Failure richBuildFailure = buildFailure == null ? null : failureFactory.create(buildFailure);
+        Failure richBuildFailure = buildFailure == null ? null : failureFactory.create(buildFailure, problemLocator);
         buildLogger.logResult(richBuildFailure);
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
         if (buildFailure != null) {

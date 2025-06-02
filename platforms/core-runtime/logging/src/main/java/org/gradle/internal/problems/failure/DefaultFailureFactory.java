@@ -34,27 +34,27 @@ import java.util.Set;
 
 public class DefaultFailureFactory implements FailureFactory {
 
-    public static DefaultFailureFactory withDefaultClassifier(ProblemLocator problemLocator) {
+    public static DefaultFailureFactory withDefaultClassifier() {
         return new DefaultFailureFactory(new CompositeStackTraceClassifier(
             new InternalStackTraceClassifier(),
             StackTraceClassifier.USER_CODE
-        ), problemLocator);
-    }
-
-    public static DefaultFailureFactory withDefaultClassifier() {
-        return withDefaultClassifier(ProblemLocator.EMPTY_LOCATOR);
+        ));
     }
 
     private final StackTraceClassifier stackTraceClassifier;
-    private final ProblemLocator problemLocator;
 
-    public DefaultFailureFactory(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator) {
+    public DefaultFailureFactory(StackTraceClassifier stackTraceClassifier) {
         this.stackTraceClassifier = stackTraceClassifier;
-        this.problemLocator = problemLocator;
     }
 
     @Override
     public Failure create(Throwable failure) {
+        return new Job(stackTraceClassifier, ProblemLocator.EMPTY_LOCATOR)
+            .convert(failure);
+    }
+
+    @Override
+    public Failure create(Throwable failure, ProblemLocator problemLocator) {
         return new Job(stackTraceClassifier, problemLocator)
             .convert(failure);
     }
