@@ -612,7 +612,7 @@ A better solution is to use a separate, minimal, included build (e.g. `build-log
 Another potential reason to use `buildSrc` is if you have a very large number of subprojects within your included `build-logic`.
 Applying a different set of `build-logic` plugins to the subprojects in your _including_ build will result in a different classpath being used for each.
 This may have performance implications and make your build harder to understand.
-Using different plugin versions can cause features like <<build_services.adoc#build_services,Build Services>> to break in difficult to diagnose ways.
+Using different plugin combinations can cause features like <<build_services.adoc#build_services,Build Services>> to break in difficult to diagnose ways.
 
 Ideally, there would be no difference between using `buildSrc` and an included build, as `buildSrc` is intended to behave like an implicitly available included build.
 However, due to historical reasons, these subtle differences still exist.
