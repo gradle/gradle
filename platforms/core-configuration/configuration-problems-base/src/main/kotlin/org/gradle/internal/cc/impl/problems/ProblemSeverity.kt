@@ -20,7 +20,8 @@ enum class ProblemSeverity {
 
     /**
      * Problems that are reported to the user sometime after they are discovered,
-     * but which will fail the build, unless warning mode is active.
+     * but which will fail the build, unless [warning-mode][org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.WARN]
+     * is active.
      *
      * Collecting deferred problems is useful to provide the user with the overview
      * of potentially many things that make the build not compatible with Configuration Cache,
