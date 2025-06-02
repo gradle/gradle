@@ -9,7 +9,7 @@ description = "Provides a platform that constrains versions of external dependen
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
 val groovyVersion = GroovySystem.getVersion()
-val asmVersion = "9.2"
+val asmVersion = "9.8"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")

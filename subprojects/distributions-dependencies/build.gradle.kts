@@ -15,7 +15,7 @@ description = "Provides a platform dependency to align all distribution versions
 
 val antVersion = "1.10.13"
 val archunitVersion = "1.0.0-rc1"
-val asmVersion = "9.6"
+val asmVersion = "9.8"
 val awsS3Version = "1.12.783"
 val bouncycastleVersion = "1.80"
 val jacksonVersion = "2.16.1"
