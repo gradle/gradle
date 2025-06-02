@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitCoverage
 
+import static org.gradle.util.Matchers.matchesRegexp
+
 /**
  * Tests behavior of the test task there are problems starting test processing.
  *
@@ -58,19 +60,10 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
 
         and: "Task failure is reported"
         failure.assertHasDescription("Execution failed for task ':test'.")
-        failure.assertHasCause("Process 'Gradle Test Executor 1' finished with non-zero exit value 1")
+        failure.assertThatCause(matchesRegexp(/Process 'Gradle Test Executor \d+' finished with non-zero exit value 1/))
 
         and: "No test class results are created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
-    }
-
-    private TestFile addMyTestForJunit5() {
-        file("src/test/java/MyTest.java") << """
-            public class MyTest {
-                @org.junit.jupiter.api.Test
-                void test() {}
-            }
-        """
     }
 
     def "tests not found due to incorrect framework used (junit 4 default)"() {
@@ -90,7 +83,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
         addMyTestForJunit5()
 
         when:
-        fails('test', '-S')
+        fails('test')
 
         then: "Task failure is reported"
         failure.assertHasDescription("Execution failed for task ':test'.")
@@ -98,5 +91,14 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
 
         and: "No test class results are created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
+    }
+
+    private TestFile addMyTestForJunit5() {
+        file("src/test/java/MyTest.java") << """
+            public class MyTest {
+                @org.junit.jupiter.api.Test
+                void test() {}
+            }
+        """
     }
 }

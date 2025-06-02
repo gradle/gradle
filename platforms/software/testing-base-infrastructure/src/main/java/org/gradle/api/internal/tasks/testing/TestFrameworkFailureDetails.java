@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * A {@link TestFailureDetails} that indicates a failure in the test framework itself, like a
+ * A {@link TestFailureDetails} that indicates a failure in the test framework itself, like
  * a missing test framework, that shouldn't be reported a <em>failure of a test or tests</em>, but rather as a
  * <em>Gradle test task failure</em>.
  * <p>

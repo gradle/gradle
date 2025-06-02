@@ -58,7 +58,7 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
 
         then: "Test framework startup failure is reported"
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureHasCause(~/(Could not start Gradle Test Executor \d: Failed to load JUnit 4\.?)/)
+        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load JUnit 4\./)
 
         and: "Resolutions are provided"
         assertSuggestsCheckingTestFrameworkAvailability("JUnit 4")
@@ -98,7 +98,7 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
 
         then: "Test framework startup failure is reported"
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureHasCause(~/(Could not start Gradle Test Executor \d: Failed to load JUnit Platform\.?)/)
+        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load JUnit Platform\./)
 
         and: "Resolutions are provided"
         assertSuggestsCheckingTestFrameworkAvailability("the JUnit Platform")
@@ -138,7 +138,7 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
 
         then: "Test framework startup failure is reported"
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureHasCause(~/(Could not start Gradle Test Executor \d: Failed to load TestNG\.?)/)
+        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load TestNG\./)
 
         and: "Resolutions are provided"
         assertSuggestsCheckingTestFrameworkAvailability("TestNG")
