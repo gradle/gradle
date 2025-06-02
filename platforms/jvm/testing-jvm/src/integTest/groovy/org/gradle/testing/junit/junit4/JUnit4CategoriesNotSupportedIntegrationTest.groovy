@@ -19,8 +19,6 @@ package org.gradle.testing.junit.junit4
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-import static org.hamcrest.CoreMatchers.startsWith
-
 class JUnit4CategoriesNotSupportedIntegrationTest extends AbstractSampleIntegrationTest {
 
     def "test task fails if categories not supported"() {
