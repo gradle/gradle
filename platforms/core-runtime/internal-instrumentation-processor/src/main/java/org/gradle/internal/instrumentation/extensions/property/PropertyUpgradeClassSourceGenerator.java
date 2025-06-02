@@ -45,6 +45,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn.GRADLE9;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn.UNSPECIFIED;
 import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo.BridgeType.INSTANCE_METHOD_BRIDGE;
 import static org.gradle.internal.instrumentation.processor.codegen.CodeGenUtils.SUPPRESS_UNCHECKED_AND_RAWTYPES;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.DEPRECATION_LOGGER;
@@ -212,34 +214,38 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         String deprecatedPropertyName = requestExtra.getInterceptedPropertyName();
         DeprecationSpec deprecationSpec = requestExtra.getDeprecationSpec();
 
-        CodeBlock.Builder depreactionBuilder = CodeBlock.builder()
-            .add("$T.deprecateProperty($T.class, $S)\n", DEPRECATION_LOGGER.asClassName(), TypeUtils.typeName(callableInfo.getOwner().getType()), deprecatedPropertyName)
-            .add(".withContext($S)\n", "Property was automatically upgraded to the lazy version.");
-
-        if (!newPropertyName.equals(deprecatedPropertyName)) {
-            depreactionBuilder.add(".replaceWith($S)\n", newPropertyName);
-        }
-
+        CodeBlock.Builder deprecationBuilder;
         switch (deprecationSpec.getRemovedIn()) {
             case GRADLE9:
-                depreactionBuilder.add(".willBeRemovedInGradle9()\n");
+                String className = callableInfo.getOwner().getType().getClassName();
+                String simpleClassName = className.substring(className.lastIndexOf(".") + 1);
+                deprecationBuilder = CodeBlock.builder()
+                    .add("$T.deprecate($S)\n", DEPRECATION_LOGGER.asClassName(), String.format("The usage of %s.%s", simpleClassName, deprecatedPropertyName))
+                    .add(".withContext($S)\n", String.format("Property '%s' was removed and this compatibility shim will be removed in Gradle 10.0. Please use '%s' property instead.", deprecatedPropertyName, newPropertyName))
+                    .add(".willBecomeAnErrorInGradle10()\n");
                 break;
             case UNSPECIFIED:
-                depreactionBuilder.add(".startingWithGradle9($S)\n", "this property is replaced with a lazy version");
+                deprecationBuilder = CodeBlock.builder()
+                    .add("$T.deprecateProperty($T.class, $S)\n", DEPRECATION_LOGGER.asClassName(), TypeUtils.typeName(callableInfo.getOwner().getType()), deprecatedPropertyName)
+                    .add(".withContext($S)\n", "Property was automatically upgraded to the lazy version.");
+                if (!newPropertyName.equals(deprecatedPropertyName)) {
+                    deprecationBuilder.add(".replaceWith($S)\n", newPropertyName);
+                }
+                deprecationBuilder.add(".startingWithGradle10($S)\n", "this property is replaced with a lazy version");
                 break;
             default:
-                throw new UnsupportedOperationException("Only unset or 9 is currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());
+                throw new UnsupportedOperationException("Only " + UNSPECIFIED + " and " + GRADLE9 + " are currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());
         }
 
         if (deprecationSpec.getWithUpgradeGuideVersion() != -1) {
-            depreactionBuilder.add(".withUpgradeGuideSection($L, $S)\n", deprecationSpec.getWithUpgradeGuideVersion(), deprecationSpec.getWithUpgradeGuideSection());
+            deprecationBuilder.add(".withUpgradeGuideSection($L, $S)\n", deprecationSpec.getWithUpgradeGuideVersion(), deprecationSpec.getWithUpgradeGuideSection());
         } else if (deprecationSpec.isWithDslReference()) {
-            depreactionBuilder.add(".withDslReference()\n");
+            deprecationBuilder.add(".withDslReference()\n");
         } else {
-            depreactionBuilder.add(".undocumented()\n");
+            deprecationBuilder.add(".undocumented()\n");
         }
 
-        return depreactionBuilder.add(".nagUser()")
+        return deprecationBuilder.add(".nagUser()")
             .build();
     }
 
