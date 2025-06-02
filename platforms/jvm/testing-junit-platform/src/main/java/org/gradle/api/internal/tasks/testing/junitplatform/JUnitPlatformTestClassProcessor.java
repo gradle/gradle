@@ -111,8 +111,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     @Override
     public void stop() {
-        if (startedProcessing()) {
-            testClassExecutor.processAllTestClasses(); // TODO: needs an IS STARTED flag (other processors do, too)
+        if (startedProcessing) {
+            testClassExecutor.processAllTestClasses();
             launcherSession.close();
             super.stop();
         }
