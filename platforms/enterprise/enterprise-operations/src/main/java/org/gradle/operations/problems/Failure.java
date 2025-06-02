@@ -21,6 +21,14 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A failure reported on build operations.
+ *
+ * The main reason to have this type is so we can query failures
+ * for metadata and associated problems.
+ *
+ * @since 9.0
+ */
 public interface Failure {
 
     String getClassName();

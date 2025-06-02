@@ -40,9 +40,9 @@ import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
 import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.StringWriter;
 import java.util.ArrayDeque;
@@ -113,7 +113,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         renderFailure(failure);
     }
 
-    public void renderFailure(@NonNull Failure failure) {
+    private void renderFailure(@NonNull Failure failure) {
         List<Failure> causes = failure.getCauses();
         if (causes.size() > 1) {
             renderMultipleBuildExceptions(failure);
@@ -193,7 +193,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         if (failure.getOriginal() instanceof ContextAwareException) {
             ExceptionFormattingVisitor exceptionFormattingVisitor = new ExceptionFormattingVisitor(details);
-            ContextAwareExceptionHandler.accept(failure, exceptionFormattingVisitor);
+            ContextAwareExceptionHandler.visit(failure, exceptionFormattingVisitor);
         } else {
             details.appendDetails();
         }

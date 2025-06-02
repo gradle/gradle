@@ -70,7 +70,7 @@ public interface Failure {
     List<Failure> getCauses();
 
     /**
-     * The problems associated to the failure.
+     * The problems associated with the failure.
      */
     List<InternalProblem> getProblems();
 

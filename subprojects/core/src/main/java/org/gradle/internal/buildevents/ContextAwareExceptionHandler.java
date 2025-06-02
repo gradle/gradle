@@ -29,7 +29,7 @@ import java.util.Optional;
 
 public class ContextAwareExceptionHandler {
 
-    static void accept(Failure contextAwareException, ExceptionContextVisitor visitor) {
+    static void visit(Failure contextAwareException, ExceptionContextVisitor visitor) {
         List<Failure> causes = contextAwareException.getCauses();
         if (!causes.isEmpty()) {
             for (Failure cause : causes) {

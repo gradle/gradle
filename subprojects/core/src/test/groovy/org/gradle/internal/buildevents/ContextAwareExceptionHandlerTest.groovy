@@ -32,7 +32,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        accept(e, visitor)
+        visit(e, visitor)
 
         then:
         1 * visitor.visitCause(asFailure(cause))
@@ -49,7 +49,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        accept(e, visitor)
+        visit(e, visitor)
 
         then:
         1 * visitor.visitCause(asFailure(cause))
@@ -73,7 +73,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        accept(e, visitor)
+        visit(e, visitor)
 
         then:
         1 * visitor.visitCause(asFailure(cause))
@@ -102,7 +102,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        accept(e, visitor)
+        visit(e, visitor)
 
         then:
         1 * visitor.visitCause(asFailure(cause))
@@ -128,7 +128,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        accept(e, visitor)
+        visit(e, visitor)
 
         then:
         1 * visitor.visitCause(asFailure(cause))
@@ -160,7 +160,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         def e = new ContextAwareException(intermediate2)
 
         when:
-        accept(e, visitor)
+        visit(e, visitor)
 
         then:
         1 * visitor.visitCause(asFailure(intermediate2))
@@ -204,7 +204,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        accept(e, visitor)
+        visit(e, visitor)
 
         then:
         1 * visitor.visitCause(asFailure(cause))
@@ -228,7 +228,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         def e = new LocationAwareException(cause, "location", 42)
 
         when:
-        accept(e, visitor)
+        visit(e, visitor)
 
         then:
         1 * visitor.visitCause(asFailure(cause))
@@ -247,9 +247,9 @@ class ContextAwareExceptionHandlerTest extends Specification {
         }
     }
 
-    private void accept(ContextAwareException e, ExceptionContextVisitor visitor) {
+    private void visit(ContextAwareException e, ExceptionContextVisitor visitor) {
         def failure = failureFactory.create(e)
-        ContextAwareExceptionHandler.accept(failure, visitor)
+        ContextAwareExceptionHandler.visit(failure, visitor)
     }
 
     private List<Throwable> getReportableCauses(Throwable e) {
