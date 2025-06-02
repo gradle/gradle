@@ -27,6 +27,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Handles visiting {@link org.gradle.internal.exceptions.ContextAwareException}s.
+ *
+ * This hierarchically visits {@link org.gradle.internal.exceptions.ContextAwareException}s as
+ * described on its Javadoc.
+ */
 public class ContextAwareExceptionHandler {
 
     static void visit(Failure contextAwareException, ExceptionContextVisitor visitor) {

@@ -18,6 +18,16 @@ package org.gradle.internal.exceptions;
 
 import org.gradle.api.GradleException;
 
+/**
+ * Marker for exception types that contains {@link Contextual} exceptions as causes.
+ *
+ * On most build failures (when the build doesn't fail too early or too late), Gradle's exception reporting
+ * will have the outermost exception be a contextual exception. In that case, it will format the exception in a
+ * tree, using each contextual exception as an indented line, and then showing the first non-contextual exception
+ * after the last contextual exception.
+ *
+ * @see org.gradle.internal.buildevents.ContextAwareExceptionHandler
+ */
 public class ContextAwareException extends GradleException {
 
     public ContextAwareException(Throwable t) {
