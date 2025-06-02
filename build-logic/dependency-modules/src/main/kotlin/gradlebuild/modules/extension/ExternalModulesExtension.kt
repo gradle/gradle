@@ -135,6 +135,7 @@ abstract class ExternalModulesExtension {
     // Compile only dependencies (dynamically downloaded if needed)
     val maven3Compat = "org.apache.maven:maven-compat"
     val maven3PluginApi = "org.apache.maven:maven-plugin-api"
+    val zinc = "org.scala-sbt:zinc_2.13"
 
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
@@ -270,6 +271,7 @@ abstract class ExternalModulesExtension {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xmlApis to License.Apache2
+        xmlApis to License.Apache2,
+        zinc to License.Apache2
     )
 }

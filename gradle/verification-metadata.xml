@@ -707,8 +707,8 @@
             <pgp value="6dd3b8c64ef75253beb2c53ad908a43fb7ec07ac"/>
          </artifact>
       </component>
-      <component group="com.swoval" name="file-tree-views" version="2.1.7">
-         <artifact name="file-tree-views-2.1.7.jar">
+      <component group="com.swoval" name="file-tree-views" version="2.1.12">
+         <artifact name="file-tree-views-2.1.12.jar">
             <pgp value="ee2cfeb6a2aecf44c781c5c3dcd5181297a43d24"/>
          </artifact>
       </component>
