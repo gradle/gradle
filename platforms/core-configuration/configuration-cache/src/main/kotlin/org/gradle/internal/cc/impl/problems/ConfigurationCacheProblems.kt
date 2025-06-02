@@ -94,7 +94,7 @@ class ConfigurationCacheProblems(
     val postBuildHandler = PostBuildProblemsHandler()
 
     private
-    val warningMode = startParameter.warningMode
+    val isWarningMode: Boolean = startParameter.isWarningMode
 
     private
     var seenSerializationErrorOnStore = false
@@ -258,7 +258,7 @@ class ConfigurationCacheProblems(
     private
     fun ProblemSeverity.toProblemSeverity() = when {
         this == ProblemSeverity.Suppressed -> Severity.ADVICE
-        warningMode -> Severity.WARNING
+        isWarningMode -> Severity.WARNING
         else -> Severity.ERROR
     }
 
@@ -271,7 +271,7 @@ class ConfigurationCacheProblems(
     }
 
     fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
-        val failDueToProblems = summary.deferredProblemCount > 0 && !warningMode
+        val failDueToProblems = summary.deferredProblemCount > 0 && !isWarningMode
         val hasTooManyProblems = hasTooManyProblems(summary)
         val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
         return when {
@@ -379,7 +379,7 @@ class ConfigurationCacheProblems(
 
     private
     fun discardStateDueToProblems(summary: Summary) =
-        !warningMode && (summary.totalProblemCount > 0 || incompatibleTasks.isNotEmpty())
+        !isWarningMode && (summary.totalProblemCount > 0 || incompatibleTasks.isNotEmpty())
 
     private
     fun hasTooManyProblems(summary: Summary) =
