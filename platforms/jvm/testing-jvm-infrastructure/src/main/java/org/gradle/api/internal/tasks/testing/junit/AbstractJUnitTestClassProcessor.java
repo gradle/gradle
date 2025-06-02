@@ -31,7 +31,8 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     private final ActorFactory actorFactory;
     private Actor resultProcessorActor;
     private Action<String> executor;
-    private boolean startedProcessing;
+
+    protected boolean startedProcessing;
 
     public AbstractJUnitTestClassProcessor(ActorFactory actorFactory) {
         this.actorFactory = actorFactory;
@@ -47,10 +48,6 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
         executor = createTestExecutor(resultProcessorActor);
 
         startedProcessing = true;
-    }
-
-    protected boolean startedProcessing() {
-        return startedProcessing;
     }
 
     protected abstract TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor);
