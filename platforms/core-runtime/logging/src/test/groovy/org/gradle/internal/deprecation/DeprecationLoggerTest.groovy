@@ -48,8 +48,8 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
     def "logs deprecation warning once until reset"() {
         when:
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().undocumented().nagUser()
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
 
         then:
         def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
@@ -59,7 +59,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         when:
         DeprecationLogger.reset()
         DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
         events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
 
         then:
@@ -80,7 +80,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         and:
         1 * factory.create() >> {
-            DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().undocumented().nagUser()
+            DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
             return "result"
         }
         0 * _
@@ -109,7 +109,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         DeprecationLogger.whileDisabled {
             DeprecationLogger.whileDisabled {
             }
-            DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().undocumented().nagUser()
+            DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
         }
 
         then:
@@ -121,13 +121,13 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         async {
             start {
                 thread.blockUntil.disabled
-                DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().undocumented().nagUser()
+                DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
                 instant.logged
             }
             start {
                 DeprecationLogger.whileDisabled {
                     instant.disabled
-                    DeprecationLogger.deprecate("ignored").willBeRemovedInGradle10().undocumented().nagUser()
+                    DeprecationLogger.deprecate("ignored").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
                     thread.blockUntil.logged
                 }
             }
@@ -144,7 +144,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         DeprecationLogger.deprecate("foo")
             .withAdvice("bar.")
             .willBeRemovedInGradle10()
-            .undocumented()
+            .withUserManual("feature_lifecycle", "sec:deprecated")
             .nagUser();
 
         then:
@@ -157,7 +157,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         given:
         def documentationReference = new DocumentationRegistry().getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")
         DeprecationLogger.init(WarningMode.Summary, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
 
         when:
         DeprecationLogger.reportSuppressedDeprecations()

@@ -35,17 +35,17 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             public class DeprecatedTask extends DefaultTask {
                 @TaskAction
                 void causeDeprecationWarning() {
-                    DeprecationLogger.deprecateTask("thisIsADeprecatedTask").replaceWith("foobar").willBeRemovedInGradle10().undocumented().nagUser();
+                    DeprecationLogger.deprecateTask("thisIsADeprecatedTask").replaceWith("foobar").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                     System.out.println("DeprecatedTask.causeDeprecationWarning() executed.");
                 }
 
                 public static void someFeature() {
-                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "someFeature()").willBeRemovedInGradle10().undocumented().nagUser();
+                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "someFeature()").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                     System.out.println("DeprecatedTask.someFeature() executed.");
                 }
 
                 void otherFeature() {
-                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "otherFeature()").withAdvice("Relax. This is just a test.").willBeRemovedInGradle10().undocumented().nagUser();
+                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "otherFeature()").withAdvice("Relax. This is just a test.").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                     System.out.println("DeprecatedTask.otherFeature() executed.");
                 }
 
@@ -59,7 +59,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             public class DeprecatedPlugin implements Plugin<Project> {
                 @Override
                 public void apply(Project project) {
-                    DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle10().undocumented().nagUser();
+                    DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                     project.getTasks().create("thisIsADeprecatedTask", DeprecatedTask.class);
                 }
             }
@@ -153,7 +153,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDocumentedDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in Gradle 10.0. Consider using the Foobar plugin instead.")
+        executer.expectDocumentedDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in Gradle 10.0. Consider using the Foobar plugin instead. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
         executer.withWarningMode(WarningMode.Fail)
 
         then:
@@ -167,7 +167,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
-                org.gradle.internal.deprecation.DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle10().undocumented().nagUser() // line 2
+                org.gradle.internal.deprecation.DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser() // line 2
             }
         """.stripIndent()
 
@@ -281,9 +281,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         2.times {
-            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0.")
-            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0.")
-            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0.")
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10.0. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
             run("broken", "buildSrc:broken", "included:broken")
 
             outputContains("Build file '${file("included/build.gradle")}': line 5")
@@ -294,7 +294,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
     String deprecatedMethodUsage() {
         return """
-            ${DeprecationLogger.name}.deprecateMethod(Task.class, "someFeature()").willBeRemovedInGradle10().undocumented().nagUser();
+            ${DeprecationLogger.name}.deprecateMethod(Task.class, "someFeature()").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
         """
     }
 
