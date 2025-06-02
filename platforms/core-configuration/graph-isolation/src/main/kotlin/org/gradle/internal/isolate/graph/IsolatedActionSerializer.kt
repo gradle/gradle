@@ -194,4 +194,8 @@ object ThrowingProblemsListener : AbstractProblemsListener() {
             error.maybeUnwrapInvocationTargetException()
         )
     }
+
+    override fun onExecutionTimeProblem(problem: PropertyProblem) {
+        onProblem(problem)
+    }
 }
