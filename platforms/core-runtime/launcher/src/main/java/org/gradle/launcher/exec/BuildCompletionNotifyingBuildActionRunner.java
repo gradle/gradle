@@ -56,18 +56,15 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     private void notifyEnterprisePluginManager(Result result) {
-        List<Failure> unwrappedBuildFailure = unwrapBuildFailure(result.getBuildFailure(), result.getRichBuildFailure());
+        List<Failure> unwrappedBuildFailure = unwrapBuildFailure(result.getRichBuildFailure());
         gradleEnterprisePluginManager.buildFinished(result.getBuildFailure(), unwrappedBuildFailure);
     }
 
-    private static List<Failure> unwrapBuildFailure(@Nullable Throwable buildFailure, @Nullable Failure richBuildFailure) {
-        if (buildFailure != null && richBuildFailure == null) {
-            // There was a problem with the build that could not be translated to a Failure
-            return null;
-        }
+    @Nullable
+    private static List<Failure> unwrapBuildFailure(@Nullable Failure richBuildFailure) {
         if (richBuildFailure == null) {
-            // No build failure, empty list
-            return Collections.emptyList();
+            // No build failure
+            return null;
         }
         return richBuildFailure.getOriginal() instanceof MultipleBuildFailures
             ? richBuildFailure.getCauses()
