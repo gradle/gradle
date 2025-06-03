@@ -17,8 +17,9 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestFrameworkNotAvailableException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -30,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassProcessor {
+public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<>();
     private final File testReportDir;
     private final TestNGSpec spec;
@@ -52,16 +53,14 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
         this.actorFactory = actorFactory;
     }
 
-    @Override
-    public void assertTestFrameworkAvailable() {
+    private void assertTestFrameworkAvailable() {
         try {
             Class.forName("org.testng.TestNG");
         } catch (ClassNotFoundException e) {
             throw new TestFrameworkNotAvailableException(
                 "Failed to load TestNG.",
                 Arrays.asList(
-                    "Please ensure that TestNG is available on the test runtime classpath.",
-                    getUpgradeGuide()
+                    "Please ensure that TestNG is available on the test runtime classpath."
                 )
             );
         }

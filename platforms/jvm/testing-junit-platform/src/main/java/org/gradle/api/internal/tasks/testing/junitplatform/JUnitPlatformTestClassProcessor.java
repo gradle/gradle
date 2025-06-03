@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.tasks.testing.TestFrameworkNotAvailableException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -82,8 +83,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         return resultProcessor;
     }
 
-    @Override
-    public void assertTestFrameworkAvailable() {
+    private void assertTestFrameworkAvailable() {
         try {
             Class.forName("org.junit.platform.launcher.core.LauncherFactory");
         } catch (ClassNotFoundException e) {
@@ -91,8 +91,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 "Failed to load JUnit Platform.",
                 Arrays.asList(
                     "Please ensure that the JUnit Platform is available on the test runtime classpath.",
-                    "See the user guide for more details: " + new DocumentationRegistry().getDocumentationFor("java_testing", "using_junit5"),
-                    getUpgradeGuide()
+                    "See the user guide for more details: " + new DocumentationRegistry().getDocumentationFor("java_testing", "using_junit5")
                 )
             );
         }

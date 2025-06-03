@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestFrameworkNotAvailableException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.actor.Actor;
@@ -44,16 +45,14 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
         return new TestClassExecutionEventGenerator(resultProcessorChain, idGenerator, clock);
     }
 
-    @Override
-    public void assertTestFrameworkAvailable() {
+    private void assertTestFrameworkAvailable() {
         try {
             Class.forName("org.junit.runner.notification.RunListener");
         } catch (ClassNotFoundException e) {
             throw new TestFrameworkNotAvailableException(
                 "Failed to load JUnit 4.",
                 Arrays.asList(
-                    "Please ensure that JUnit 4 is available on the test runtime classpath.",
-                    getUpgradeGuide()
+                    "Please ensure that JUnit 4 is available on the test runtime classpath."
                 )
             );
         }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
-import org.gradle.api.internal.tasks.testing.TestFrameworkStartupFailureException;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -106,15 +105,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
                     "Received a failure event for test with unknown id '%s'. Registered test ids: '%s'",
                     testId, executing.keySet()));
         }
-        if (testFailure.getDetails().isStartupFailure()) {
-            /*
-             * This is a special case of test failure where the testing framework has completely failed to start up.
-             * We want to treat this not as a test failure, but as a TASK failure, as it indicates a task misconfiguration.
-             * We need to throw an exception here and abort normal failure processing so that this information
-             * isn't buried in the typical test results report.
-             */
-            throw new TestFrameworkStartupFailureException(testFailure);
-        } else if (testFailure.getDetails().isAssumptionFailure()) {
+        if (testFailure.getDetails().isAssumptionFailure()) {
             testState.assumptionFailure = testFailure;
         } else {
             testState.failures.add(testFailure);
