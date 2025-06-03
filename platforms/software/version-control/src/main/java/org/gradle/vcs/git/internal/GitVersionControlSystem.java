@@ -25,6 +25,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
@@ -129,9 +130,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         } catch (GitAPIException | URISyntaxException | JGitInternalException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } finally {
-            if (git != null) {
-                git.close();
-            }
+            closeGit(git);
         }
     }
 
@@ -144,9 +143,14 @@ public class GitVersionControlSystem implements VersionControlSystem {
         } catch (IOException | JGitInternalException | GitAPIException e) {
             throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
         } finally {
-            if (git != null) {
-                git.close();
-            }
+            closeGit(git);
+        }
+    }
+
+    private static void closeGit(@Nullable Git git) {
+        if (git != null) {
+            git.close();
+            RepositoryCache.clear(); // https://github.com/eclipse-jgit/jgit/issues/155#issuecomment-2765437816
         }
     }
 

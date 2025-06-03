@@ -20,6 +20,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.util.FS;
@@ -65,5 +66,6 @@ public class GitUtility {
             git.add().addFilepattern("initial-commit").call();
             git.commit().setMessage("Initial commit").call();
         }
+        RepositoryCache.clear();  // https://github.com/eclipse-jgit/jgit/issues/155#issuecomment-2765437816
     }
 }
