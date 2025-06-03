@@ -17,27 +17,29 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile """
-            def extractSchema(container) {
-                return container.collectionSchema.elements.collectEntries { e ->
-                    [ e.name, e.publicType.simpleName ]
-                }.sort()
-            }
-            def assertSchemaIs(Map expected, NamedDomainObjectCollection container) {
-                def actual = extractSchema(container)
-                def sortedExpected = expected.sort()
-                assert sortedExpected == actual
+            class SchemaUtils {
+                static Map extractSchema(container) {
+                    return container.collectionSchema.elements.collectEntries { e ->
+                        [ e.name, e.publicType.simpleName ]
+                    }.sort()
+                }
+
+                static def assertSchemaIs(Map expected, NamedDomainObjectCollection container) {
+                    assertSchemaIs(expected, extractSchema(container))
+                }
+
+                static def assertSchemaIs(Map expected, Map actual) {
+                    def sortedExpected = expected.sort()
+                    assert sortedExpected == actual
+                }
             }
         """
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "collection schema from project.container is public type"() {
         buildFile """
             interface PubType {}
@@ -56,7 +58,7 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
 
             task assertSchema {
                 doLast {
-                    assertSchemaIs(testContainer,
+                    SchemaUtils.assertSchemaIs(testContainer,
                         "foo": "PubType",
                         "bar": "PubType",
                         "baz": "PubType",
@@ -68,7 +70,6 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
         succeeds("assertSchema")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "built-in container types presents public type in schema"() {
         buildFile """
             apply plugin: 'java'
@@ -79,17 +80,20 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
             }
 
             task assertSchema {
+                def sourceSetsSchema = provider { SchemaUtils.extractSchema(sourceSets) }
+                def repositoriesSchema = provider { SchemaUtils.extractSchema(repositories) }
+                def configurationsSchema = provider { SchemaUtils.extractSchema(configurations) }
                 doLast {
-                    assertSchemaIs(sourceSets,
+                    SchemaUtils.assertSchemaIs(sourceSetsSchema.get(),
                         "main": "SourceSet",
                         "test": "SourceSet"
                     )
-                    assertSchemaIs(repositories,
+                    SchemaUtils.assertSchemaIs(repositoriesSchema.get(),
                         // TODO: These should be more specific eventually
                         "maven": "ArtifactRepository",
                         "ivy": "ArtifactRepository"
                     )
-                    assertSchemaIs(configurations,
+                    SchemaUtils.assertSchemaIs(configurationsSchema.get(),
                         'annotationProcessor':'Configuration',
                         'apiElements':'Configuration',
                         'archives':'Configuration',

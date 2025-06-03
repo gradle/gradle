@@ -18,13 +18,13 @@ package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
-class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
+class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def "logging is live"() {

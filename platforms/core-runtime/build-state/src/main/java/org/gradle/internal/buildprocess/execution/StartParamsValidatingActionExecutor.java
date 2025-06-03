@@ -19,6 +19,7 @@ package org.gradle.internal.buildprocess.execution;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -37,6 +38,9 @@ public class StartParamsValidatingActionExecutor implements BuildActionExecutor<
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
+        // The client verifies the JVM compatibility of the daemon, but check in the daemon just in case.
+        UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
+
         StartParameter startParameter = action.getStartParameter();
         if (startParameter.getProjectDir() != null) {
             if (!startParameter.getProjectDir().isDirectory()) {

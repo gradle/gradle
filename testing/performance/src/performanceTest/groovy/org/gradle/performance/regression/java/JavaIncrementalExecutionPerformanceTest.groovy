@@ -50,9 +50,10 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
 
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"], iterationMatcher = "assemble for non-abi change"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeMonolithicJavaProject"], iterationMatcher = "assemble for non-abi change with reproducible archives"),
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "largeJavaMultiProject")
     ])
-    def "assemble for non-abi change#configurationCaching"() {
+    def "assemble for non-abi change#configurationCaching#reproducibleArchives"() {
         given:
         runner.tasksToRun = ['assemble']
         runner.addBuildMutator {
@@ -60,6 +61,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
             return isGroovyProject ? new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
         }
         enableConfigurationCaching(configurationCachingEnabled)
+        enableReproducibleArchives(runner, reproducibleArchivesEnabled)
 
         when:
         def result = runner.run()
@@ -68,8 +70,10 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        configurationCachingEnabled << [true, false]
-        configurationCaching = configurationCachingMessage(configurationCachingEnabled)
+        configurationCachingEnabled | configurationCaching                                     | reproducibleArchivesEnabled | reproducibleArchives
+        true                        | configurationCachingMessage(configurationCachingEnabled) | false                       | reproducibleArchivesMessage(reproducibleArchivesEnabled)
+        false                       | configurationCachingMessage(configurationCachingEnabled) | false                       | reproducibleArchivesMessage(reproducibleArchivesEnabled)
+        false                       | configurationCachingMessage(configurationCachingEnabled) | true                        | reproducibleArchivesMessage(reproducibleArchivesEnabled)
     }
 
     @RunFor([

@@ -439,6 +439,19 @@ Gradle implicitly adds the following imports to each script:
 include::default-imports.txt[]
 ----
 
+Additionally, for Groovy, the following imports are added too:
+[source,groovy]
+----
+import java.lang.*
+import java.io.*
+import java.net.*
+import java.util.*
+import java.time.*
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
+----
+
 [[sec:build_script_external_dependencies]]
 [[sec:configuring_arbitrary_objects_using_an_external_script]]
 [[sec:closures_as_the_last_parameter_in_a_method]]

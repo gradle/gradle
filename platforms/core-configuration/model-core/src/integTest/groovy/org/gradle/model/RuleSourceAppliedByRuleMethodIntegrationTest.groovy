@@ -419,6 +419,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
             }
 
             apply plugin: MyPlugin
+            apply plugin: 'model-reporting-tasks'
         '''
 
         expect:
@@ -453,6 +454,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
             }
 
             apply plugin: MyPlugin
+            apply plugin: 'model-reporting-tasks'
         '''
 
         expect:
@@ -486,6 +488,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
             }
 
             apply plugin: MyPlugin
+            apply plugin: 'model-reporting-tasks'
         '''
 
         expect:
@@ -546,6 +549,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
             }
 
             apply plugin: MyPlugin
+            apply plugin: 'model-reporting-tasks'
         '''
 
         expect:
@@ -574,6 +578,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
             }
 
             apply type: MyPlugin
+            apply plugin: 'model-reporting-tasks'
         '''
 
         expect:

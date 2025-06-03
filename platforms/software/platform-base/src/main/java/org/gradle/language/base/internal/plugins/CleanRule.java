@@ -16,7 +16,7 @@
 
 package org.gradle.language.base.internal.plugins;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.Delete;

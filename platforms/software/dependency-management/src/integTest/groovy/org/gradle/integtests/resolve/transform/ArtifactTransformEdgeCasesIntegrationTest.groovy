@@ -16,10 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.ToBeImplemented
 
 /**
@@ -451,69 +448,35 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         """
 
         expect:
-        executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. " + """
-Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
-  - color 'red'
-  - texture 'smooth'
-Found the following transformation chains:
-  - From configuration ':squareBlueSmoothElements':
-      - With source attributes:
-          - artifactType 'txt'
-          - color 'blue'
-          - shape 'square'
-          - texture 'smooth'
-      - Candidate transformation chains:
-          - Transformation chain: 'BrokenColorTransform':
-              - 'BrokenColorTransform':
-                  - Converts from attributes:
-                      - color 'blue'
-                      - texture 'smooth'
-                  - To attributes:
-                      - color 'red'
-          - Transformation chain: 'BrokenColorTransform2':
-              - 'BrokenColorTransform2':
-                  - Converts from attributes:
-                      - color 'blue'
-                      - texture 'smooth'
-                  - To attributes:
-                      - color 'red'
- Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_ambiguous_transformation_chains"""))
-
         fails "forceResolution"
-
-        // Currently, Gradle emits a deprecation warning and this only fails because the transforms throw exceptions.
-        // After Gradle 9.0, remove the deprecation expectation and this (currently passing) assertion:
-        failure.assertHasCause("Should not actually be selected to run")
-        // ...and uncomment the assertions below, which test what SHOULD happen after the deprecation is made an error in Gradle 9.0:
-/*
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
-  - color 'red'
-  - texture 'smooth'
-Found the following transformation chains:
-  - From configuration ':squareBlueSmoothElements':
-      - With source attributes:
-          - artifactType 'txt'
-          - color 'blue'
-          - shape 'square'
-          - texture 'smooth'
-      - Candidate transformation chains:
-          - Transformation chain: 'BrokenColorTransform':
-              - 'BrokenColorTransform':
-                  - Converts from attributes:
-                      - color 'blue'
-                      - texture 'smooth'
-                  - To attributes:
-                      - color 'red'
-          - Transformation chain: 'BrokenColorTransform2':
-              - 'BrokenColorTransform2':
-                  - Converts from attributes:
-                      - color 'blue'
-                      - texture 'smooth'
-                  - To attributes:
-                      - color 'red'""")
-*/
+       - color 'red'
+       - texture 'smooth'
+     Found the following transformation chains:
+       - From configuration ':squareBlueSmoothElements':
+           - With source attributes:
+               - artifactType 'txt'
+               - color 'blue'
+               - shape 'square'
+               - texture 'smooth'
+           - Candidate transformation chains:
+               - Transformation chain: 'BrokenColorTransform':
+                   - 'BrokenColorTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - texture 'smooth'
+                       - To attributes:
+                           - color 'red'
+               - Transformation chain: 'BrokenColorTransform2':
+                   - 'BrokenColorTransform2':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - texture 'smooth'
+                       - To attributes:
+                           - color 'red'""")
+        failure.assertHasResolution("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
     }
 
     def "transforms from selected chains aren't instantiated and don't run if there are no artifacts on the source variant"() {
@@ -726,25 +689,19 @@ Found the following transformation chains:
     }
 
     // region Demo Resolving Ambiguity
-    // These tests expand a test in DisambiguateArtifactTransformIntegrationTest, and explore  how to resolve the situation
-    def "when A -> C and B -> C both produce identical attributes, the later is currently by selected, unless an additional distinct attribute is added to each result to remove the latent ambiguity"() {
+    // These tests expand a test in DisambiguateArtifactTransformIntegrationTest, and explore how to resolve the situation
+    def "when A -> C and B -> C both produce identical attributes, an additional distinct attribute must be added to each result to remove the latent ambiguity"() {
         given:
         setupDisambiguationTest()
 
-        when: "without any distinguishing attributes, we have latent ambiguity, which is reported, and an arbitrary selection is made"
-        executer.expectDeprecationWarning("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. ")
-        succeeds "resolve"
+        when: "without any distinguishing attributes, we have latent ambiguity, which now fails"
+        fails "resolve"
 
         then:
-        output.count("Transforming") == 2
-        output.count("Transforming lib.jar to lib.jar.txt") == 1
-        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
-
-        when: "if an additional attribute is present on both chains, then we produce distinct, non-mutually compatible variants, and fail with ambiguity"
-        fails 'resolve', '-PextraAttributeA', '-PextraAttributeB'
-
-        then:
-        failureCauseContains('Found multiple transformation chains')
+        failure.assertHasDescription("Could not determine the dependencies of task ':app:resolve'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':app:compileClasspath'.")
+        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:""")
+        failure.assertHasResolution("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
     }
 
     def "when A -> C and B -> C both produce identical attributes, adding an additional attribute to either removes the latent ambiguity and causes the other to be selected as the better match"() {

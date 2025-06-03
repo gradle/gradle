@@ -120,7 +120,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     );
 
                     // Write the current build operation id to a file
-                    // This needs to be Java 6 compatible, as we are in a worker
                     // Backslashes need to be escaped, so test works on Windows
                     File buildOperationIdFile = new File("${buildOperationIdFile.absolutePath.replace('\\', '\\\\')}");
                     try(FileWriter writer = new FileWriter(buildOperationIdFile)) {
@@ -192,10 +191,10 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             // and org.gradle.api.problems.internal.DefaultProblemProgressDetails.getContextualLocations.
             def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperationsFixture))
             with(problem) {
-                with(definition) {
+                this.with(definition) {
                     name == 'type'
                     displayName == 'label'
-                    with(group) {
+                    this.with(group) {
                         displayName == 'Generic'
                         name == 'generic'
                         parent == null
@@ -212,7 +211,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     assert originLocations.empty
                 } else {
                     assert originLocations.size() == 1
-                    with(originLocations[0]) {
+                    this.with(originLocations[0]) {
                         // TODO: Should have the file location for all isolation modes
                         fileLocation == null
                         stackTrace.find { it.className == 'org.someorg.test.ProblemWorkerTask' && it.methodName == 'execute' && it.fileName == 'ProblemWorkerTask.java' }

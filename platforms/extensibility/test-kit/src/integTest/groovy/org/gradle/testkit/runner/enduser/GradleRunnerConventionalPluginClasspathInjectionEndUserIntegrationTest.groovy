@@ -131,7 +131,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
 
         then:
         succeeds 'functionalTest'
-        executedAndNotSkipped ":compileGroovy"
+        executedAndNotSkipped ":compileJava"
         skipped ':functionalTest'
 
         when:

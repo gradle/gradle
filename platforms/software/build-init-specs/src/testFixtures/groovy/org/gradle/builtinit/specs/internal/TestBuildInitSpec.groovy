@@ -20,8 +20,6 @@ package org.gradle.builtinit.specs.internal
 import org.gradle.buildinit.specs.BuildInitParameter
 import org.gradle.buildinit.specs.BuildInitSpec
 
-import org.apache.commons.lang.WordUtils;
-
 /**
  * A sample {@link BuildInitSpec} implementation for testing purposes.
  */
@@ -40,7 +38,9 @@ class TestBuildInitSpec implements BuildInitSpec {
             return name
         } else {
             String spaced = getType().replace("-", " ");
-            return WordUtils.capitalizeFully(spaced);
+            @SuppressWarnings("deprecation")
+            String capitalized = org.apache.commons.lang3.text.WordUtils.capitalizeFully(spaced);
+            return capitalized;
         }
     }
 

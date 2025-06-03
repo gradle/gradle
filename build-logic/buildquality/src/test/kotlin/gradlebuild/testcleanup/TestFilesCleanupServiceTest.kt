@@ -16,7 +16,7 @@
 
 package gradlebuild.testcleanup
 
-import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -143,6 +143,7 @@ class TestFilesCleanupServiceTest {
                     override fun stopNow() {}
                 }
                 protected override fun createTestExecutionSpec() = object: TestExecutionSpec {}
+                public override fun getFailOnNoDiscoveredTests() = project.objects.property(Boolean::class.java).apply { convention(true) }
             }
 
             fun Project.registerTestWithLeftover() {

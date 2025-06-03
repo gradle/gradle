@@ -17,14 +17,16 @@
 package gradlebuild.jvm.extension
 
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.kotlin.dsl.*
 
 /**
  * An extension intended for configuring the manner in which a project is
  * compiled and tested.
  */
 abstract class UnitTestAndCompileExtension {
+
+    companion object {
+        const val NAME: String = "jvmCompile"
+    }
 
     /**
      * Set this flag to true if the project compiles against JDK internal classes.
@@ -35,67 +37,15 @@ abstract class UnitTestAndCompileExtension {
 
     /**
      * Set this flag to true if the project compiles against Java standard library APIs
-     * that were introduced after the [targetVersion] of the project.
+     * that were introduced after the target JVM bytecode version of the project.
      *
      * This workaround should be used sparingly.
      */
     abstract val usesFutureStdlib: Property<Boolean>
 
     /**
-     * Set this flag to true if the project compiles against dependencies that target a
-     * higher JVM version than the [targetVersion] of the project.
-     *
-     * This workaround should be used sparingly.
+     * The JVM version that all JVM code in this module will target.
      */
-    abstract val usesIncompatibleDependencies: Property<Boolean>
-
-    /**
-     * Stores the mutable value of the target bytecode version for this project,
-     * but is protected to prevent the user from setting it directly.
-     */
-    protected abstract val targetVersionProperty: Property<Int>
-
-    /**
-     * Get the target bytecode version for this project.
-     *
-     * To configure this value, call a `usedIn*` method.
-     */
-    val targetVersion: Provider<Int>
-        get() = targetVersionProperty
-
-    /**
-     * Declares that this Gradle module runs within a worker process.
-     */
-    fun usedInWorkers() {
-        targetVersionProperty = 8
-    }
-
-    /**
-     * Declare that this Gradle module runs as an entrypoint to user-executed
-     * processes, and therefore should compile to a lower version of Java --
-     * in order to ensure comprehensible error messages when executing Gradle
-     * on an unsupported JVM version.
-     * <p>
-     * This runtime target should only be used by the wrapper and the various
-     * "-main" modules containing main methods.
-     */
-    fun usedForStartup() {
-        targetVersionProperty = 6
-    }
-
-    /**
-     * Declares that this Gradle module runs within a client process, such
-     * as the Tooling API client or CLI client.
-     */
-    fun usedInToolingApi() {
-        targetVersionProperty = 8
-    }
-
-    /**
-     * Declares that this Gradle module runs within the Gradle daemon.
-     */
-    fun usedInDaemon() {
-        targetVersionProperty = 8
-    }
+    abstract val targetJvmVersion: Property<Int>
 
 }

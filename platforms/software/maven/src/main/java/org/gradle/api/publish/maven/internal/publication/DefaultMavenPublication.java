@@ -136,7 +136,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.publishableArtifacts = new CompositePublicationArtifactSet<>(taskDependencyFactory, MavenArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
 
-        this.pom = objectFactory.newInstance(DefaultMavenPom.class, objectFactory);
+        this.pom = objectFactory.newInstance(DefaultMavenPom.class);
         this.pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         this.pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
         this.pom.getDependencies().set(

@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transport.gcp.gcs;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;

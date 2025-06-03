@@ -35,7 +35,6 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.buildProcessStartup)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.daemonServices)
@@ -56,7 +55,7 @@ dependencies {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
 
-    integTestImplementation(testFixtures(projects.buildProcessStartup))
+    integTestImplementation(testFixtures(projects.buildProcessServices))
 
     integTestRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")

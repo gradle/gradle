@@ -23,8 +23,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
-
-import javax.annotation.Nullable
+import org.jspecify.annotations.Nullable
 
 class AndroidTestProject implements TestProject {
 
@@ -71,7 +70,6 @@ class AndroidTestProject implements TestProject {
     static String useKotlinLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
         def version = KGP_VERSIONS.latestStableOrRC
         configureForKotlinVersion(runner, version)
-        runner.args.add("-DkotlinVersion=${ version}")
         version
     }
 

@@ -21,6 +21,11 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class ManagedTypeDslIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        buildFile << '''
+            apply plugin: 'model-reporting-tasks'
+        '''
+    }
 
     def "can configure a child of a managed type using a nested closure syntax"() {
         buildFile << '''
@@ -121,8 +126,8 @@ model {
         fails "model"
 
         then:
-        failure.assertHasLineNumber(15)
-        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 14, column 5')
+        failure.assertHasLineNumber(17)
+        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 16, column 5')
         failure.assertHasCause('No signature of method: Person.address() is applicable for argument types: (')
     }
 
@@ -147,8 +152,8 @@ model {
         fails "model"
 
         then:
-        failure.assertHasLineNumber(9)
-        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 8, column 5')
+        failure.assertHasLineNumber(11)
+        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 10, column 5')
         failure.assertHasCause('No signature of method: Person.names() is applicable for argument types: (')
     }
 
@@ -174,8 +179,8 @@ model {
         fails "model"
 
         then:
-        failure.assertHasLineNumber(11)
-        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 10, column 5')
+        failure.assertHasLineNumber(13)
+        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 12, column 5')
         failure.assertHasCause('No signature of method: Person.input() is applicable for argument types: (')
     }
 
@@ -200,8 +205,8 @@ model {
         fails "model"
 
         then:
-        failure.assertHasLineNumber(10)
-        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 9, column 5')
+        failure.assertHasLineNumber(12)
+        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 11, column 5')
         failure.assertHasCause('No signature of method: Person.name() is applicable for argument types: (')
     }
 }

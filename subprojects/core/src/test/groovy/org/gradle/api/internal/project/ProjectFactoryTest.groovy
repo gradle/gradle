@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -42,7 +42,7 @@ class ProjectFactoryTest extends Specification {
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
     def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
-    def buildId = Stub(BuildIdentifier)
+    def buildId = DefaultBuildIdentifier.ROOT
     def owner = Stub(BuildState)
     def projectState = Stub(ProjectState) {
         getIdentity() >> { new ProjectIdentity(buildId, projectDescriptor.path(), projectDescriptor.path(), projectDescriptor.name) }

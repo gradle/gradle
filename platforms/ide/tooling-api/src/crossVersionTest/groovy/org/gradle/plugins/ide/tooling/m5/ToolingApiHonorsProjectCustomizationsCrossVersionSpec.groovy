@@ -37,8 +37,7 @@ project(':impl') {
     eclipse.project.name = 'gradle-impl'
 }
 '''
-        createDirs("api", "impl")
-        file('settings.gradle').text = "include 'api', 'impl'"
+        includeProjects("api", "impl")
 
         when:
         EclipseProject eclipseProject = loadToolingModel(EclipseProject)
@@ -57,8 +56,7 @@ allprojects {
     apply plugin: 'java'
 }
 '''
-        createDirs("services", "services/api", "contrib", "contrib/api")
-        file('settings.gradle').text = "include 'services:api', 'contrib:api'"
+        includeProjects("services", "services:api", "contrib", "contrib:api")
 
         when:
         EclipseProject eclipseProject = loadToolingModel(EclipseProject)

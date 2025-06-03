@@ -26,6 +26,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.internal.PublishOperation;
+import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
@@ -43,13 +44,14 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
 
 import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
- * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
+ * Publishes a {@link MavenPublication} to a {@link MavenArtifactRepository}.
  *
  * @since 1.4
  */
@@ -77,9 +79,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     }
 
     @Inject
-    protected ListenerManager getListenerManager() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ListenerManager getListenerManager();
 
     /**
      * Sets the repository to publish to.
@@ -112,8 +112,8 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         }
         MavenNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
-                RepositorySpec.of(repository),
-                normalizedPublication
+            RepositorySpec.of(repository),
+            normalizedPublication
         );
     }
 
@@ -128,7 +128,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
 
     private MavenPublisher validatingMavenPublisher() {
         return new ValidatingMavenPublisher(
-                getMavenPublishers().getRemotePublisher(getTemporaryDirFactory())
+            getMavenPublishers().getRemotePublisher(getTemporaryDirFactory())
         );
     }
 
@@ -138,8 +138,8 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         private final MavenNormalizedPublication publication;
 
         public PublishSpec(
-                RepositorySpec repository,
-                MavenNormalizedPublication publication
+            RepositorySpec repository,
+            MavenNormalizedPublication publication
         ) {
             this.repository = repository;
             this.publication = publication;
@@ -154,7 +154,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
 
         abstract MavenArtifactRepository get(ServiceRegistry services);
 
-        static class Configured extends RepositorySpec implements java.io.Serializable {
+        static class Configured extends RepositorySpec implements Serializable {
             final DefaultMavenArtifactRepository repository;
 
             public Configured(DefaultMavenArtifactRepository repository) {
@@ -186,6 +186,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
                 this.credentials = credentials;
                 this.authentications = authentications;
             }
+
             @Override
             MavenArtifactRepository get(ServiceRegistry services) {
                 DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) services.get(BaseRepositoryFactory.class).createMavenRepository();

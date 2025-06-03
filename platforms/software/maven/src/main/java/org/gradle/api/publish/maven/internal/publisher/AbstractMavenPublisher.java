@@ -20,7 +20,6 @@ import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
 import org.gradle.api.publish.maven.MavenArtifact;
@@ -149,7 +148,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             try {
                 new MetadataXpp3Writer().write(writer, metadata);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         });
         return metadataFile;
@@ -320,7 +319,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             try {
                 hash = hashFunction.hashFile(src);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
             String formattedHashString = hash.toZeroPaddedString(hashFunction.getHexDigits());
             return formattedHashString.getBytes(StandardCharsets.US_ASCII);

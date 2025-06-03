@@ -20,12 +20,12 @@ import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.ClosureBackedAction;
 
@@ -228,7 +228,7 @@ public class DefaultManifest implements ManifestInternal {
             }
             outputStream.write(manifestBytes);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -248,7 +248,7 @@ public class DefaultManifest implements ManifestInternal {
             });
             return this;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -291,7 +291,7 @@ public class DefaultManifest implements ManifestInternal {
             addJavaManifestToAttributes(javaManifest);
             addJavaManifestToSections(javaManifest);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

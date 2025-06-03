@@ -20,9 +20,9 @@ import com.google.common.base.Joiner;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
-import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 @SuppressWarnings("SameNameButDifferent")
@@ -31,6 +31,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
     private static final GradleVersion GRADLE10 = GradleVersion.version("10.0");
+    private static final GradleVersion GRADLE11 = GradleVersion.version("11.0");
 
     @Nullable
     protected String summary;
@@ -129,6 +130,22 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      */
     public WithDeprecationTimeline startingWithGradle9(String message) {
         this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE9, message);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
+     * Output: Starting with Gradle 10.0, ${message}.
+     */
+    public WithDeprecationTimeline startingWithGradle10(String message) {
+        this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE10, message);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
+     * Output: Starting with Gradle 11.0, ${message}.
+     */
+    public WithDeprecationTimeline startingWithGradle11(String message) {
+        this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE11, message);
         return new WithDeprecationTimeline(this);
     }
 

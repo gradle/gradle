@@ -6,13 +6,6 @@
 version: "v1"
 jdks:
   - params:
-      - "linux.java7.oracle.64bit"
-    os: "linux"
-    arch: "amd64"
-    vendor: "oracle"
-    version: "7u80"
-    sha256: "bad9a731639655118740bee119139c1ed019737ec802a630dd7ad7aab4309623"
-  - params:
       - "linux.java8.openjdk.64bit"
       - "linux.java8.oracle.64bit"
     os: "linux"
@@ -163,8 +156,8 @@ jdks:
     os: "macos"
     arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-11.0.26+4"
-    sha256: "c970e5917964da1b50c0029ba88a6fbe962783def4de6a8a2835af6a6859002c"
+    version: "jdk-11.0.27+6"
+    sha256: "780ae402dcd93fea0fee10d02dcd0a0b72cb7298f2ef4dddbad4d54c31a40a4d"
   - params:
       - "env.JAVA_HOME"
       - "macos.java17.openjdk.aarch64"

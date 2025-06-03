@@ -14,10 +14,30 @@
  * limitations under the License.
  */
 
+import com.autonomousapps.DependencyAnalysisExtension
+
 plugins {
     id("gradlebuild.buildscan") // Reporting: Add more data through custom tags to build scans
     id("gradlebuild.ide") // Local development: Tweak IDEA import
     id("gradlebuild.warmup-ec2") // Warm up EC2 AMI
 
-    id("com.autonomousapps.dependency-analysis") apply false // Applied via pre-compiled script plugin to relevant projects
+    id("com.autonomousapps.dependency-analysis")
+}
+
+configure<DependencyAnalysisExtension> {
+    issues {
+        all {
+            onDuplicateClassWarnings {
+                severity("fail")
+            }
+        }
+    }
+
+    usage {
+        analysis {
+            checkSuperClasses(true)
+        }
+    }
+
+    useTypesafeProjectAccessors(true) // FIXME: has no effect
 }

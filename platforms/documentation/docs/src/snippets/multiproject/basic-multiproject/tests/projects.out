@@ -2,10 +2,10 @@
 Projects:
 
 ------------------------------------------------------------
-Root project 'basic-multiproject'
+Root project 'my-project'
 ------------------------------------------------------------
 
-Root project 'basic-multiproject'
+Root project 'my-project'
 \--- Project ':app'
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks

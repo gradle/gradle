@@ -48,8 +48,9 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     def "tooling api honours java home specified in gradle.properties"() {
-        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.languageVersion) }
+        def jdk = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)
         Assume.assumeNotNull(jdk)
+
         String javaHomePath = TextUtil.escapeString(jdk.javaHome.canonicalPath)
 
         file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"

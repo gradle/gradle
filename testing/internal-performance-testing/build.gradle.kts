@@ -44,7 +44,7 @@ dependencies {
     api(libs.jatl)
     api(libs.jettyServer)
     api(libs.jettyWebApp)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.junit)
     api(libs.spock)
 
@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
     implementation(libs.jettyUtil)
-    implementation(libs.joda)
     implementation(libs.joptSimple)
     implementation(libs.mina)
     implementation(libs.slf4jApi)

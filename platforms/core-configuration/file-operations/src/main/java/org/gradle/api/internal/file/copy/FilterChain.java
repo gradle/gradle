@@ -23,8 +23,8 @@ import org.apache.commons.io.input.ReaderInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.io.FilterReader;
@@ -66,7 +66,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
         try {
             return ReaderInputStream.builder().setCharset(charset).setReader(transform(new InputStreamReader(original, charset))).get();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -130,7 +130,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
                 } catch (MissingPropertyException e) {
                     throw new GradleException(String.format("Missing property (%s) for Groovy template expansion. Defined keys %s.", e.getProperty(), properties.keySet()), e);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });

@@ -16,10 +16,9 @@
 
 package org.gradle.api.tasks.options
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Issue
 
 class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
 
@@ -208,7 +207,7 @@ Options
      --prop3     Configures command line option 'prop3'.""")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Cross-task configuration at execution time")
     def "can override option with configure task"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOption("String")

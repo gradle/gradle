@@ -21,7 +21,6 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 
@@ -62,12 +61,7 @@ public final class ConfigurationCreationTest {
         ArchRuleDefinition.noClasses()
             .should().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeLocked", String.class.getName())
             .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeLocked", String.class.getName(), Action.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateResolvableLocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateConsumableLocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeLocked", String.class.getName())
             .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeLocked", String.class.getName(), boolean.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateMigratingLocked", String.class.getName(), ConfigurationRole.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateResolvableDependencyScopeLocked", String.class.getName())
             .because("Resolvable + dependency scope configurations should be avoided and we are migrating away from maybeCreate methods")
     );
 }

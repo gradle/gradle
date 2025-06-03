@@ -43,7 +43,7 @@ tasks.register("myIntroTask", MyIntroTask) {
 // tag::prop-managed[]
 abstract class MyPropertyTask extends DefaultTask {
     @Input
-    abstract Property<String> messageProperty = project.objects.property(String)
+    abstract Property<String> getMessageProperty()
 
     @TaskAction
     void printMessage() {

@@ -25,8 +25,7 @@ import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.language.Language
-
-import javax.annotation.Nullable
+import org.jspecify.annotations.Nullable
 
 class JavaTestProject implements IncrementalTestProject {
 

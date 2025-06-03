@@ -49,11 +49,99 @@
             ]
         },
         {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "removal convention",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.getConvention()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.exec(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.exec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.getConvention()",
+            "acceptation": "Convention removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.getProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.javaexec(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.javaexec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Script",
+            "member": "Method org.gradle.api.Script.exec(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Script",
+            "member": "Method org.gradle.api.Script.exec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Script",
+            "member": "Method org.gradle.api.Script.javaexec(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Script",
+            "member": "Method org.gradle.api.Script.javaexec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Task",
+            "member": "Method org.gradle.api.Task.getConvention()",
+            "acceptation": "removal convention",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -249,6 +337,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.ProjectDependency",
+            "member": "Method org.gradle.api.artifacts.ProjectDependency.getDependencyProject()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ResolveException",
             "member": "Constructor org.gradle.api.artifacts.ResolveException(java.lang.String,java.lang.Iterable)",
             "acceptation": "Public consturctor was deprecated",
@@ -313,6 +409,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.component.BuildIdentifier",
+            "member": "Method org.gradle.api.artifacts.component.BuildIdentifier.getName()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.component.BuildIdentifier",
+            "member": "Method org.gradle.api.artifacts.component.BuildIdentifier.isCurrentBuild()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.component.ProjectComponentSelector",
             "member": "Method org.gradle.api.artifacts.component.ProjectComponentSelector.getBuildName()",
             "acceptation": "Deprecated in 8.x",
@@ -350,6 +462,30 @@
             "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Class org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Constructor org.gradle.api.artifacts.transform.VariantTransformConfigurationException(java.lang.String)",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Constructor org.gradle.api.artifacts.transform.VariantTransformConfigurationException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Constructor has been removed"
             ]
         },
         {
@@ -406,6 +542,14 @@
             "acceptation": "Method can return null values",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Method org.gradle.api.plugins.ApplicationPlugin.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -638,6 +782,62 @@
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Class org.gradle.api.plugins.Convention",
+            "acceptation": "Remove Convention",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.findPlugin(java.lang.Class)",
+            "acceptation": "Remove Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.getExtensionsAsDynamicObject()",
+            "acceptation": "Remove Convention interface",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.getPlugin(java.lang.Class)",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.Convention",
+            "member": "Method org.gradle.api.plugins.Convention.getPlugins()",
+            "acceptation": "remove convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field COMPONENTS_TASK",
+            "acceptation": "This task is no longer associated with HelpTasksPlugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field DEPENDENT_COMPONENTS_TASK",
+            "acceptation": "This task is no longer associated with HelpTasksPlugin",
+            "changes": [
+                "Field has been removed"
             ]
         },
         {
@@ -890,6 +1090,14 @@
         },
         {
             "type": "org.gradle.api.plugins.WarPlugin",
+            "member": "Field WEB_APP_GROUP",
+            "acceptation": "Removed deprecated constant.",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPlugin",
             "member": "Method org.gradle.api.plugins.WarPlugin.configureConfigurations(org.gradle.api.artifacts.ConfigurationContainer)",
             "acceptation": "Removed deprecated method",
             "changes": [
@@ -945,11 +1153,107 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getProjectLayout()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getWorkerProcessBuilderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
+            "member": "Method org.gradle.api.plugins.quality.CheckstylePlugin.getToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdPlugin",
+            "member": "Method org.gradle.api.plugins.quality.PmdPlugin.getToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.provider.Provider",
             "member": "Method org.gradle.api.provider.Provider.forUseAtConfigurationTime()",
             "acceptation": "Deprecated method removed",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",
+            "member": "Method org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor.getFileResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getDuplicatePublicationTracker()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getIvyPublisher()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getDuplicatePublicationTracker()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenPublishers()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.getFileResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.getVersionRangeMapper()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -966,6 +1270,62 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
+            "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getListenerManager()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getBuildInvocationScopeId()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getChecksumService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getFileCollectionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getProjectDependencyPublicationResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.ConfigurableReport",
+            "member": "Method org.gradle.api.reporting.ConfigurableReport.setDestination(java.io.File)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.aggregate(org.gradle.api.reporting.Reporting[])",
+            "acceptation": "Method made final to allow @SafeVarargs annotation",
+            "changes": [
+                "Method is now final"
             ]
         },
         {
@@ -1009,6 +1369,190 @@
             ]
         },
         {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getBinaryRenderer()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getFileResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getModelRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getCallbackActionDecorator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionComparator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionParser()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionSelectorScheme()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getModelRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getWorkerLeaseService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.getModelRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.specs.AndSpec",
+            "member": "Method org.gradle.api.specs.AndSpec.and(org.gradle.api.specs.Spec[])",
+            "acceptation": "Method made final to allow @SafeVarargs annotation",
+            "changes": [
+                "Method is now final"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getDirectoryFileTreeFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getDocumentationRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getFileLookup()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getFileResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getFileSystem()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getInstantiator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.AbstractCopyTask",
             "member": "Method org.gradle.api.tasks.AbstractCopyTask.setDirMode(java.lang.Integer)",
             "acceptation": "[API is being remove in Gradle 9.0]",
@@ -1022,6 +1566,30 @@
             "acceptation": "[API is being remove in Gradle 9.0]",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecActionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Delete",
+            "member": "Method org.gradle.api.tasks.Delete.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1049,11 +1617,147 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Class org.gradle.api.tasks.GroovySourceSet",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Method org.gradle.api.tasks.GroovySourceSet.getAllGroovy()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Method org.gradle.api.tasks.GroovySourceSet.getGroovy()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Method org.gradle.api.tasks.GroovySourceSet.groovy(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Method org.gradle.api.tasks.GroovySourceSet.groovy(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getExecActionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getJavaToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getProviderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.JavaExec",
             "member": "Method org.gradle.api.tasks.JavaExec.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Class org.gradle.api.tasks.ScalaSourceSet",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Method org.gradle.api.tasks.ScalaSourceSet.getAllScala()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Method org.gradle.api.tasks.ScalaSourceSet.getScala()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Method org.gradle.api.tasks.ScalaSourceSet.scala(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Method org.gradle.api.tasks.ScalaSourceSet.scala(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.SourceTask",
+            "member": "Method org.gradle.api.tasks.SourceTask.getPatternSetFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Sync",
+            "member": "Method org.gradle.api.tasks.Sync.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1164,6 +1868,30 @@
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.upload()",
             "acceptation": "Removed deprecated class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.getOutputFile()",
+            "acceptation": "remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.setOutputFile(java.io.File)",
+            "acceptation": "remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.setOutputFile(java.lang.Object)",
+            "acceptation": "remove deprecated method",
             "changes": [
                 "Method has been removed"
             ]
@@ -1298,6 +2026,14 @@
         },
         {
             "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
             "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.setForkOptions(org.gradle.api.tasks.compile.GroovyForkOptions)",
             "acceptation": "Remove deprecated method",
             "changes": [
@@ -1313,11 +2049,187 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getIncrementalCompilerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getJavaModuleDetector()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getJavaToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getProjectLayout()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getProviderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.getClientMetaData()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.getClientMetaData()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getClientMetaData()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
             "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getImmutableAttributesFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionComparator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionParser()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionSelectorScheme()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getBuildStateRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getProjectStateRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getProjectTaskLister()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1330,10 +2242,74 @@
         },
         {
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setAntGroovydoc(org.gradle.api.internal.tasks.AntGroovydoc)",
             "acceptation": "these methods were deprecated",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getJavaModuleDetector()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getJavaToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getProjectLayout()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getProviderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1354,6 +2330,14 @@
         },
         {
             "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getAntBuilder()",
+            "acceptation": "Removed deprecated accessor",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
             "member": "Method org.gradle.api.tasks.scala.ScalaDoc.setScalaDocOptions(org.gradle.api.tasks.scala.ScalaDocOptions)",
             "acceptation": "Remove deprecated method",
             "changes": [
@@ -1366,6 +2350,159 @@
             "acceptation": "Removed deprecated class",
             "changes": [
                 "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBuildOperationExecutor()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBuildOperationRunner()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getFailOnNoDiscoveredTests()",
+            "acceptation": "Adding as a stable opt-out for new behavior in 9.0",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getFileSystemOperations()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getHostnameLookup()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getInstantiator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getListenerManager()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getProgressLoggerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getActorFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getForkOptionsFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getJavaModuleDetector()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getJavaToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getModuleRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getPatternSetFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getProcessBuilderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getProviderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1449,11 +2586,43 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.wrapper.Wrapper",
+            "member": "Method org.gradle.api.tasks.wrapper.Wrapper.getFileLookup()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.caching.BuildCacheKey",
             "member": "Method org.gradle.caching.BuildCacheKey.getDisplayName()",
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.local.DirectoryBuildCache",
+            "member": "Method org.gradle.caching.local.DirectoryBuildCache.getRemoveUnusedEntriesAfterDays()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.local.DirectoryBuildCache",
+            "member": "Method org.gradle.caching.local.DirectoryBuildCache.setRemoveUnusedEntriesAfterDays(int)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getJavaModuleDetector()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1466,10 +2635,42 @@
         },
         {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setMainClassName(java.lang.String)",
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JvmVendorSpec",
+            "member": "Field IBM_SEMERU",
+            "acceptation": "Deprecated API",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removing component reporting tasks from HelpTasksPlugin",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getModel-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removing model reporting tasks from HelpTasksPlugin",
+            "changes": [
+                "Method added to public class"
             ]
         },
         {
@@ -2233,6 +3434,62 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Class org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "acceptation": "Remove Convention",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
+            "acceptation": "Remove Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPlugin(org.gradle.api.plugins.Convention,kotlin.reflect.KClass)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.getPluginByName(org.gradle.api.plugins.Convention,java.lang.String)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.withConvention(java.lang.Object,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated Convention",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module$default(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
             "acceptation": "Remove deprecated method",
@@ -2346,6 +3603,85 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.exec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getProcessOperations()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.javaexec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
+            "member": "Class org.gradle.kotlin.dsl.KotlinBuildScript",
+            "acceptation": "Convention removal",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getConvention()",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinScript.exec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinScript.javaexec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
             "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerScope.invoke(java.lang.String)",
             "acceptation": "Removed deprecated method",
@@ -2378,11 +3714,179 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.exec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getProcessOperations()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.javaexec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.TaskContainerScope",
             "member": "Method org.gradle.kotlin.dsl.TaskContainerScope.invoke(java.lang.String)",
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledInitScript(org.gradle.api.invocation.Gradle)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledInitScript.getFileOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledInitScript.getProcessOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript(org.gradle.api.Project)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript.buildscript(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript.plugins(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript(org.gradle.api.initialization.Settings)",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript.getFileOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript.getProcessOperations()",
+            "acceptation": "Remove old deprecated precompiled kotlin script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.jvm.tasks.ProcessResources",
+            "member": "Method org.gradle.language.jvm.tasks.ProcessResources.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getFileCollectionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getIncrementalCompilerBuilder()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getOperationLoggerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getTaskFileVarFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -2410,6 +3914,70 @@
             ]
         },
         {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getOperationLoggerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.CreateStaticLibrary",
+            "member": "Method org.gradle.nativeplatform.tasks.CreateStaticLibrary.getOperationLoggerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getFileSystem()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getFileSystemOperations()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getFileSystem()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getFileSystemOperations()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getSwiftStdlibToolLocator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
             "member": "Constructor org.gradle.plugin.devel.GradlePluginDevelopmentExtension(org.gradle.api.Project,org.gradle.api.tasks.SourceSet,org.gradle.api.tasks.SourceSet[])",
             "acceptation": "Deprecated in 8.x",
@@ -2423,6 +3991,14 @@
             "acceptation": "Deprecated in 8.x",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.GeneratePluginDescriptors",
+            "member": "Method org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -2444,14 +4020,6 @@
         {
             "type": "org.gradle.plugins.ear.EarPluginConvention",
             "member": "Method org.gradle.plugins.ear.EarPluginConvention.appDirName(java.lang.String)",
-            "acceptation": "Remove deprecated API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ear.EarPluginConvention",
-            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure)",
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
@@ -2538,6 +4106,94 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.api.GeneratorTask",
+            "member": "Method org.gradle.plugins.ide.api.GeneratorTask.getInstantiator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseModel",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseModel.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtp",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtp.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestResourceDirs()",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestResources()",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestSourceDirs()",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestSources()",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestResourceDirs(java.util.Set)",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestSourceDirs(java.util.Set)",
+            "acceptation": "remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.Sign",
+            "member": "Method org.gradle.plugins.signing.Sign.getCallbackActionDecorator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.Sign",
+            "member": "Method org.gradle.plugins.signing.Sign.getFileCollectionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.process.JavaForkOptions",
             "member": "Method org.gradle.process.JavaForkOptions.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
@@ -2564,6 +4220,102 @@
             "member": "Constructor org.gradle.process.ProcessExecutionException(java.lang.String,java.lang.Throwable)",
             "acceptation": "Introduced public ExecException",
             "changes": []
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getAntBuilder()",
+            "acceptation": "Removed protected method injecting internal class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getCallbackActionDecorator()",
+            "acceptation": "Removed protected method injecting internal class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getInstantiator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Class org.gradle.util.ClosureBackedAction",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Constructor org.gradle.util.ClosureBackedAction(groovy.lang.Closure)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Constructor org.gradle.util.ClosureBackedAction(groovy.lang.Closure,int)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Constructor org.gradle.util.ClosureBackedAction(groovy.lang.Closure,int,boolean)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Method org.gradle.util.ClosureBackedAction.equals(java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Method org.gradle.util.ClosureBackedAction.execute(java.lang.Object,groovy.lang.Closure)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Method org.gradle.util.ClosureBackedAction.getClosure()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Method org.gradle.util.ClosureBackedAction.hashCode()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ClosureBackedAction",
+            "member": "Method org.gradle.util.ClosureBackedAction.of(groovy.lang.Closure)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
         },
         {
             "type": "org.gradle.util.CollectionUtils",
@@ -3051,6 +4803,110 @@
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Class org.gradle.util.ConfigureUtil",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Constructor org.gradle.util.ConfigureUtil()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configure(groovy.lang.Closure,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureByMap(java.util.Map,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureByMap(java.util.Map,java.lang.Object,java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureSelf(groovy.lang.Closure,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureSelf(groovy.lang.Closure,java.lang.Object,org.gradle.internal.metaobject.ConfigureDelegate)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureUsing(groovy.lang.Closure)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$IncompleteInputException",
+            "member": "Class org.gradle.util.ConfigureUtil$IncompleteInputException",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$IncompleteInputException",
+            "member": "Constructor org.gradle.util.ConfigureUtil$IncompleteInputException(java.lang.String,java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$IncompleteInputException",
+            "member": "Method org.gradle.util.ConfigureUtil$IncompleteInputException.getMissingKeys()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$WrappedConfigureAction",
+            "member": "Class org.gradle.util.ConfigureUtil$WrappedConfigureAction",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$WrappedConfigureAction",
+            "member": "Method org.gradle.util.ConfigureUtil$WrappedConfigureAction.getConfigureClosure()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -4282,6 +6138,62 @@
             "type": "org.gradle.util.WrapUtil",
             "member": "Method org.gradle.util.WrapUtil.toSortedSet(java.util.Comparator,java.lang.Object[])",
             "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Class org.gradle.workers.IsolationMode",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field AUTO",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field CLASSLOADER",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field NONE",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Field PROCESS",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Method org.gradle.workers.IsolationMode.valueOf(java.lang.String)",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.IsolationMode",
+            "member": "Method org.gradle.workers.IsolationMode.values()",
+            "acceptation": "Removed deprecated class",
             "changes": [
                 "Method has been removed"
             ]

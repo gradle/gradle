@@ -29,6 +29,8 @@ import java.util.stream.Collectors
  * it checks the plugins *applied to* the current build.
  */
 gradle.beforeProject {
+    project.plugins.apply("jvm-toolchains") // requirement for using `ValidatePlugins` tasks
+
     val lifecycleTask = project.tasks.register("validateExternalPlugins")
     project.plugins.configureEach { configurePluginValidation(project, lifecycleTask, javaClass) }
 }

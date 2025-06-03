@@ -26,16 +26,16 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
+import org.gradle.groovy.scripts.BasicScript
+import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.writeEnum
-import org.gradle.groovy.scripts.BasicScript
-import org.gradle.internal.metaobject.ConfigureDelegate
 
 
 fun BindingsBuilder.groovyCodecs() {
@@ -109,7 +109,7 @@ object ClosureCodec : Codec<Closure<*>> {
     private
     class BrokenScript(targetType: Class<*>) : Script() {
         private
-        val targetMetadata = InvokerHelper.getMetaClass(targetType)
+        val targetMetadata = ThreadSafeMetaClassWrapper(targetType)
 
         override fun run(): Any {
             scriptReferenced()
@@ -161,4 +161,22 @@ object GroovyMetaClassCodec : Codec<MetaClass> {
     override suspend fun ReadContext.decode(): MetaClass? {
         return InvokerHelper.getMetaClass(readClass())
     }
+}
+
+
+/**
+ * MetaClass implementations in Groovy (at least, in Groovy 4) are not fully thread-safe.
+ * This wrapper adds the necessary level of thread-safety for concurrent property lookups.
+ *
+ * This can be removed after updating to a thread-safe version of Groovy runtime.
+ */
+@JvmInline
+private value class ThreadSafeMetaClassWrapper private constructor(
+    private val metaClass: MetaClass
+) {
+    constructor(cls: Class<*>) : this(synchronized(cls) { InvokerHelper.getMetaClass(cls) })
+
+    fun hasProperty(obj: Any?, propertyName: String) = synchronized(metaClass) { metaClass.hasProperty(obj, propertyName) }
+
+    fun respondsTo(obj: Any?, name: String) = synchronized(metaClass) { metaClass.respondsTo(obj, name) }
 }

@@ -25,6 +25,13 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "help displays dependents report task options"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'component-reporting-tasks'
+            }
+        """
+
         when:
         run "help", "--task", "dependentComponents"
 
@@ -38,7 +45,11 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "displays empty dependents report for an empty project"() {
         given:
-        buildFile
+        buildFile << """
+            plugins {
+                id 'component-reporting-tasks'
+            }
+        """
 
         when:
         run "dependentComponents"

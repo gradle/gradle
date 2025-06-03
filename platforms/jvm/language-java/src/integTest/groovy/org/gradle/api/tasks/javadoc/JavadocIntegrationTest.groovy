@@ -149,7 +149,7 @@ Joe!""")
 
         when:
         executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
-                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 10.0. " +
                 "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
                 "Configure an absolute path to a Java executable instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
@@ -611,6 +611,23 @@ Joe!""")
         then:
         file("build/docs/javadoc/pkg/Foo.html").assertExists()
         file("build/docs/javadoc/pkg/internal/IFoo.html").assertDoesNotExist()
+    }
+
+    def "can set nullable properties to null in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                id("java")
+            }
+            tasks.javadoc {
+                destinationDir = null
+                title = null
+                maxMemory = null
+                executable = null
+            }
+        """
+        expect:
+        succeeds "help"
     }
 
     private TestFile writeSourceFile() {

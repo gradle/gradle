@@ -12,7 +12,7 @@ repositories {
 dependencies {
     implementation "org.gradle:gradle-tooling-api:$toolingApiVersion"
     // The tooling API need an SLF4J implementation available at runtime, replace this with any other implementation
-    runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
+    runtimeOnly 'org.slf4j:slf4j-simple:2.0.17'
 }
 // end::use-tooling-api[]
 

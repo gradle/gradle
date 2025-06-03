@@ -23,8 +23,6 @@ import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
-@Requires(value = IntegTestPreconditions.Groovy3OrEarlier)
-// FIXME if Groovy 4 is bundled, cannot run without regenerating library-versions.properties
 class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override

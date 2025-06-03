@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
+import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -24,19 +25,18 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -45,10 +45,13 @@ import spock.lang.Specification
 class DefaultConfigurationContainerSpec extends Specification {
 
     private ConfigurationResolver resolver = Mock()
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    private ConfigurationResolver.Factory resolverFactory = Mock(ConfigurationResolver.Factory) {
+        create(_, _, _) >> resolver
+    }
+
+    private ObjectFactory objectFactory = TestUtil.objectFactory()
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
-    private DependencyMetaDataProvider metaDataProvider = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
     private BuildOperationRunner buildOperationRunner = Mock()
     private ProjectStateRegistry projectStateRegistry = Mock()
@@ -60,15 +63,9 @@ class DefaultConfigurationContainerSpec extends Specification {
         decorate(_ as Action) >> { it[0] }
     }
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
-        getValidator() >> Mock(MutationValidator)
-    }
-    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_, _, _, _) >> metadataBuilder
-    }
+
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
-        instantiator,
-        resolver,
+        objectFactory,
         listenerManager,
         domainObjectContext,
         fileCollectionFactory,
@@ -86,20 +83,20 @@ class DefaultConfigurationContainerSpec extends Specification {
         TestUtil.problemsService(),
         new DocumentationRegistry()
     )
+
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
-        instantiator,
+        TestUtil.instantiatorFactory().decorateLenient(),
         domainObjectCollectionCallbackActionDecorator,
-        metaDataProvider,
         domainObjectContext,
-        Mock(AttributesSchemaInternal),
-        rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory),
         TestUtil.problemsService(),
+        resolverFactory,
+        AttributeTestUtil.mutableSchema()
     )
 
     def setup() {
-        metadataBuilder.newBuilder(_, _) >> metadataBuilder
+        listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> Mock(AnonymousListenerBroadcast)
     }
 
     def "adds and gets"() {

@@ -22,6 +22,10 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
+import org.gradle.kotlin.dsl.accessors.PluginTree
+import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import javax.inject.Inject
 
@@ -45,32 +49,31 @@ internal
 fun <T> T.implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports
 ): List<String> where T : Task, T : SharedAccessorsPackageAware =
-    implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFingerprinter, classPathFiles)
-
-
-internal
-val <T> T.sharedAccessorsPackage: String where T : Task, T : SharedAccessorsPackageAware
-    get() = classPathFingerprinter.sharedAccessorsPackageFor(classPathFiles)
+    implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFiles)
 
 
 internal
 fun implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports,
-    classpathFingerprinter: ClasspathFingerprinter,
     classPathFiles: FileCollection
 ): List<String> {
-    return implicitImports.list + "${classpathFingerprinter.sharedAccessorsPackageFor(classPathFiles)}.*"
+    return implicitImports.list + "${sharedAccessorsPackageFor(pluginTreesFrom(classPathFiles))}.*"
 }
 
 
-private
-fun ClasspathFingerprinter.sharedAccessorsPackageFor(classPathFiles: FileCollection): String =
-    "$SHARED_ACCESSORS_PACKAGE_PREFIX${fingerprintHashFor(classPathFiles)}"
+internal
+fun sharedAccessorsPackageFor(pluginTrees: Map<String, PluginTree>): String {
+    fun hash(pluginTrees: Map<String, PluginTree>): HashCode {
+        val hasher = Hashing.newHasher()
+        pluginTrees.entries.forEach {
+            hasher.putString(it.key)
+            hasher.putInt(it.value.hashCode())
+        }
+        return hasher.hash()
+    }
 
-
-private
-fun ClasspathFingerprinter.fingerprintHashFor(classPathFiles: FileCollection) =
-    fingerprint(classPathFiles).hash
+    return "$SHARED_ACCESSORS_PACKAGE_PREFIX${hash(pluginTrees)}"
+}
 
 
 private

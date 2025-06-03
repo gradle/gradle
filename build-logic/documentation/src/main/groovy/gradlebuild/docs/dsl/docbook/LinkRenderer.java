@@ -19,7 +19,7 @@ import gradlebuild.docs.dsl.source.model.EnumConstantMetaData;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.dsl.source.model.TypeMetaData;
 import groovy.lang.GroovySystem;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

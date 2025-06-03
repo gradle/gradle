@@ -61,7 +61,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     // When updating DEFAULT_PMD_VERSION, also update links in Pmd and PmdExtension!
-    public static final String DEFAULT_PMD_VERSION = "6.55.0";
+    public static final String DEFAULT_PMD_VERSION = "7.13.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
     private PmdExtension extension;
@@ -77,9 +77,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getToolchainService();
 
     @Override
     protected CodeQualityExtension createExtension() {
@@ -109,11 +107,11 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void createConfigurations() {
         super.createConfigurations();
-        Configuration auxClasspath = project.getConfigurations().dependencyScopeLocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, additionalAuxDepsConfiguration -> {
+
+        project.getConfigurations().dependencyScopeLocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, additionalAuxDepsConfiguration -> {
             additionalAuxDepsConfiguration.setDescription("The additional libraries that are available for type resolution during analysis");
-            additionalAuxDepsConfiguration.setVisible(false);
+            getJvmPluginServices().configureAsRuntimeClasspath(additionalAuxDepsConfiguration);
         });
-        getJvmPluginServices().configureAsRuntimeClasspath(auxClasspath);
     }
 
     @Override
@@ -215,11 +213,11 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Configuration pmdAdditionalAuxDepsConfiguration = configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
 
         // TODO: Consider checking if the resolution consistency is enabled for compile/runtime.
-        @SuppressWarnings("deprecation") Configuration pmdAuxClasspath = configurations.resolvableLocked(sourceSet.getName() + "PmdAuxClasspath");
-        pmdAuxClasspath.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
-        pmdAuxClasspath.setVisible(false);
-        // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
-        getJvmPluginServices().configureAsRuntimeClasspath(pmdAuxClasspath);
+        Configuration pmdAuxClasspath = configurations.resolvableLocked(sourceSet.getName() + "PmdAuxClasspath", conf -> {
+            conf.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
+            // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
+            getJvmPluginServices().configureAsRuntimeClasspath(conf);
+        });
 
         // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the compileClasspathConfiguration. In particular, compile
         // classpath of the test sourceSet contains output of the main sourceSet.

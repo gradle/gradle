@@ -14,6 +14,7 @@
 
 [[toolchains]]
 = Toolchains for JVM projects
+:keywords: jdk, toolchain
 
 Working on multiple projects can require interacting with multiple versions of the Java language.
 Even within a single project different parts of the codebase may be fixed to a particular language level due to backward compatibility requirements.

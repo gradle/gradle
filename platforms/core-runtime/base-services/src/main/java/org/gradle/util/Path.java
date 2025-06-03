@@ -18,7 +18,7 @@ package org.gradle.util;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.AbstractIterator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.internal.GUtil;
@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Represents a path in Gradle.

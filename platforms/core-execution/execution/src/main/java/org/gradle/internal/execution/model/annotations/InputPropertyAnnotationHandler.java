@@ -37,7 +37,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
-import static org.gradle.api.problems.Severity.WARNING;
+import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
@@ -139,7 +139,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE) + "-for-input", "Unsupported value type for @Input annotation", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, UNSUPPORTED_VALUE_TYPE.toLowerCase(Locale.ROOT)))
-                    .severity(WARNING)
+                    .severity(ERROR)
                     .details(String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
                     .solution("Use type 'java.net.URI' instead")
             );

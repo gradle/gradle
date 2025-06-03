@@ -1,12 +1,12 @@
 import gradlebuild.basics.tasks.ClasspathManifest
-import gradlebuild.identity.extension.ModuleIdentityExtension
+import gradlebuild.identity.extension.GradleModuleExtension
 import java.util.jar.Attributes
 
 plugins {
     id("gradlebuild.module-identity")
 }
 
-val moduleIdentity = the<ModuleIdentityExtension>()
+val gradleModule = the<GradleModuleExtension>()
 
 configureJarTasks()
 
@@ -16,12 +16,12 @@ pluginManager.withPlugin("java-base") {
 
 fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
-        archiveBaseName = moduleIdentity.baseName
-        archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
+        archiveBaseName = gradleModule.identity.baseName
+        archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
         manifest.attributes(
             mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-                Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
+                Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
             )
         )
     }
@@ -46,7 +46,7 @@ fun configureClasspathManifestGeneration() {
                 externalComponents.contains(it)
             }
         }.files)
-        this.manifestFile = moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() }
+        this.manifestFile = gradleModule.identity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() }
     }
     sourceSets["main"].output.dir(classpathManifest.map { it.manifestFile.get().asFile.parentFile })
 }

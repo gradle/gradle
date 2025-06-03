@@ -19,17 +19,23 @@ package org.gradle.api.tasks.compile
 import com.google.common.collect.Iterables
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
+import org.junit.Assume
 import spock.lang.Issue
 
-@Requires([IntegTestPreconditions.NotParallelExecutor, IntegTestPreconditions.MoreThanOneJavacAvailable])
+@Requires([IntegTestPreconditions.NotParallelExecutor])
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
+
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
     def "system property java.home is not modified across compile task boundaries"() {
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-        def jdks = Iterables.cycle(AvailableJavaHomes.availableJdksWithJavac.entrySet()).iterator()
+
+        List<Jvm> java8CompatibleJdks = AvailableJavaHomes.getAvailableJdks { it.getJavaMajorVersion() >= 8 }
+        Assume.assumeTrue(java8CompatibleJdks.size() >= 2)
+        def jdks = Iterables.cycle(java8CompatibleJdks).iterator()
 
         settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
         buildFile << """
@@ -42,12 +48,12 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
                     implementation 'commons-lang:commons-lang:2.5'
                 }
             }
-"""
+        """
 
         projectNames.each { projectName ->
             def jdk = jdks.next()
-            def javaHome = TextUtil.escapeString(jdk.key.javaHome.absolutePath)
-            def version = jdk.value
+            def javaHome = TextUtil.escapeString(jdk.javaHome.absolutePath)
+            def version = jdk.javaVersion
             buildFile << """
 project(':$projectName') {
     tasks.withType(JavaCompile) {
@@ -84,4 +90,5 @@ public class Foo {
             file("${projectName}/build/classes/main/Foo.class").exists()
         }
     }
+
 }

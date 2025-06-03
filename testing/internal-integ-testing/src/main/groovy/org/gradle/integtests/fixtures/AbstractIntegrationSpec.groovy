@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
@@ -49,7 +49,6 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.Matchers
-import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
@@ -121,9 +120,6 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
 
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
-
-    @Lazy
-    private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
 
     def setup() {
         // Verify that the previous test (or fixtures) has cleaned up state correctly

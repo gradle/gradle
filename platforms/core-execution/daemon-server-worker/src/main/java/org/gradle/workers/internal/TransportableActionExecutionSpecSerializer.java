@@ -21,6 +21,8 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TransportableActionExecutionSpecSerializer implements Serializer<TransportableActionExecutionSpec> {
     private static final byte FLAT = (byte) 0;
@@ -31,7 +33,13 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
     @Override
     public void write(Encoder encoder, TransportableActionExecutionSpec spec) throws Exception {
         encoder.writeString(spec.getImplementationClassName());
-        encoder.writeBoolean(spec.isInternalServicesRequired());
+
+        Set<String> additionalServices = spec.getAdditionalWhitelistedServicesClassNames();
+        encoder.writeInt(additionalServices.size());
+        for (String additionalServiceClassName : additionalServices) {
+            encoder.writeString(additionalServiceClassName);
+        }
+
         encoder.writeString(spec.getBaseDir().getAbsolutePath());
         encoder.writeString(spec.getProjectCacheDir().getAbsolutePath());
         encoder.writeBinary(spec.getSerializedParameters());
@@ -49,7 +57,13 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
     @Override
     public TransportableActionExecutionSpec read(Decoder decoder) throws Exception {
         String implementationClassName = decoder.readString();
-        boolean usesInternalServices = decoder.readBoolean();
+
+        int additionalServicesCount = decoder.readInt();
+        Set<String> additionalWhitelistedServicesClassNames = new HashSet<>(additionalServicesCount);
+        for (int i = 0; i < additionalServicesCount; i++) {
+            additionalWhitelistedServicesClassNames.add(decoder.readString());
+        }
+
         String baseDirPath = decoder.readString();
         String projectCacheDir = decoder.readString();
         byte[] serializedParameters = decoder.readBinary();
@@ -65,6 +79,6 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
             default:
                 throw new IllegalArgumentException("Unexpected payload type.");
         }
-        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), new File(projectCacheDir), usesInternalServices);
+        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), new File(projectCacheDir), additionalWhitelistedServicesClassNames);
     }
 }

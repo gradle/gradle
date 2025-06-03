@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.jvmbytecode;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.RequestExtra;
@@ -24,7 +25,6 @@ import org.gradle.internal.instrumentation.processor.codegen.InstrumentationReso
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -66,7 +66,7 @@ public class InterceptJvmCallsResourceGenerator implements InstrumentationResour
                 try (Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
                     writer.write(types);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         };

@@ -36,7 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 /**
  * Creates source 'transformation' tasks based on the available {@link LanguageTransform}s.

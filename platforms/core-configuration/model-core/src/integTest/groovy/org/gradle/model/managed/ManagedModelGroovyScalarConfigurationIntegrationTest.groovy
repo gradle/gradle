@@ -521,6 +521,7 @@ The following types/formats are supported:
             }
 
             apply type: RulePlugin
+            apply plugin: 'model-reporting-tasks'
         '''
 
         when:

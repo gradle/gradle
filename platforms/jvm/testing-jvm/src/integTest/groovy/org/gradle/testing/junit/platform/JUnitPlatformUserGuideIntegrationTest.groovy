@@ -214,7 +214,8 @@ import org.junit.jupiter.api.*;
 @DisplayName("TestInfo Demo")
 class TestInfoDemo {
 
-    TestInfoDemo(TestInfo testInfo) {
+    @BeforeAll
+    static void initClass(TestInfo testInfo) {
         assertEquals("TestInfo Demo", testInfo.getDisplayName());
     }
 

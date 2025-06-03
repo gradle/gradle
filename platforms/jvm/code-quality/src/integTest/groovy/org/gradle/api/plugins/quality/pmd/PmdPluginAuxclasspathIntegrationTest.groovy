@@ -40,8 +40,6 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
                 ${mavenCentralRepository()}
 
                 apply plugin: 'java'
-
-                ${requiredSourceCompatibility()}
             }
 
             project("pmd-rule") {

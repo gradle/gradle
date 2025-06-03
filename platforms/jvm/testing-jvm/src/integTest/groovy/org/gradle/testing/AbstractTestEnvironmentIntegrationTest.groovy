@@ -19,6 +19,7 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
@@ -238,6 +239,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "can run tests with custom security manager"() {
         executer
                 .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")

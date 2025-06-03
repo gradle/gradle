@@ -16,6 +16,9 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+
+import java.util.function.Consumer
 
 @TargetVersions("8.0.2")
 class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec {
@@ -62,9 +65,35 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         succeedsWithPluginCompiledWithPreviousVersion()
     }
 
-    def succeedsWithPluginCompiledWithPreviousVersion() {
-        version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 'tasks' withStacktraceEnabled() requireDaemon() requireIsolatedDaemons() run()
+    def "prints deprecation when we use removed method with compatibility shim in newer Gradle version"() {
+        given:
+        prepareGroovyPluginTest """
+            project.tasks.register("myCompile", JavaCompile) {
+                options.annotationProcessorGeneratedSourcesDirectory = project.layout.buildDirectory.dir("generated/sources").get().asFile
+            }
+        """
+
+        expect:
+        succeedsWithPluginCompiledWithPreviousVersion() {
+            it.expectDeprecationWarning(
+                "The usage of CompileOptions.annotationProcessorGeneratedSourcesDirectory has been deprecated. " +
+                    "This will fail with an error in Gradle 10.0. " +
+                    "Property 'annotationProcessorGeneratedSourcesDirectory' was removed and this compatibility shim will be removed in Gradle 10.0. " +
+                    "Please use 'generatedSourceOutputDirectory' property instead."
+            )
+        }
+    }
+
+    def succeedsWithPluginCompiledWithPreviousVersion(Consumer<GradleExecuter> additionalChecks = { }) {
+        version(previous).withTasks('assemble').inDirectory(file("producer")).run()
+
+        def currentExecuter = version(current)
+            .withTasks('tasks')
+            .withStacktraceEnabled()
+            .requireDaemon()
+            .requireIsolatedDaemons()
+        additionalChecks.accept(currentExecuter)
+        currentExecuter.run()
     }
 }
 

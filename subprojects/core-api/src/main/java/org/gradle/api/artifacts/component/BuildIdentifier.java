@@ -28,19 +28,4 @@ public interface BuildIdentifier {
      */
     String getBuildPath();
 
-    /**
-     * The name of the build.
-     *
-     * @deprecated Use {@link #getBuildPath()} instead.
-     */
-    @Deprecated
-    String getName();
-
-    /**
-     * Is this build the one that's currently executing?
-     *
-     * @deprecated Compare {@link #getBuildPath()} with the build path of the current build instead.
-     */
-    @Deprecated
-    boolean isCurrentBuild();
 }

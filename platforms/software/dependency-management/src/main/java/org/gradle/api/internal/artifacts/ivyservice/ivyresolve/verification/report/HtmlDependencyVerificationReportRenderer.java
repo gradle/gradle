@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
@@ -27,6 +25,7 @@ import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
 import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import java.io.File;
@@ -154,7 +153,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         try (Writer prn = new OutputStreamWriter(new FileOutputStream(reportFile, false), StandardCharsets.UTF_8)) {
             prn.write(contents.toString());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         return reportFile;
     }
@@ -260,7 +259,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         try (InputStream in = getClass().getResourceAsStream(name)) {
             Files.copy(in, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -374,7 +373,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                 } else {
                     sb.append("(not found)");
                 }
-                String keyDetails = StringEscapeUtils.escapeHtml(sb.toString());
+                @SuppressWarnings("deprecation")
+                String keyDetails = org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(sb.toString());
                 String keyInfo = "<b>" + keyId + " " + keyDetails + "</b>";
                 switch (error.getKind()) {
                     case PASSED_NOT_TRUSTED:

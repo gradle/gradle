@@ -16,14 +16,13 @@
 
 package org.gradle.play.integtest.external
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.play.integtest.fixtures.external.AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.external.RunningPlayApp
 
 class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
 
-    @ToBeFixedForConfigurationCache(because = "`compilePlayRoutes` task of the plugin uses `Task.project` at execution time")
     def "build does not block when running play app with continuous build" () {
         when: "the build runs until it enters continuous build"
         succeeds("runPlay")
@@ -32,7 +31,6 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         appIsRunningAndDeployed()
     }
 
-    @ToBeFixedForConfigurationCache(because = "`compilePlayRoutes` task of the plugin uses `Task.project` at execution time")
     def "can run play app multiple times with continuous build" () {
         when:
         succeeds("runPlay")
@@ -79,7 +77,6 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         appIsRunningAndDeployed()
     }
 
-    @ToBeFixedForConfigurationCache(because = "`compilePlayRoutes` task of the plugin uses `Task.project` at execution time")
     def "play application is stopped when build is cancelled" () {
         when:
         succeeds("runPlay")

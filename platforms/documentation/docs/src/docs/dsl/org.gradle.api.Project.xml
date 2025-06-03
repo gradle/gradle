@@ -32,9 +32,6 @@
                 <td>configurations</td>
             </tr>
             <tr>
-                <td>convention</td>
-            </tr>
-            <tr>
                 <td>dependencies</td>
             </tr>
             <tr>
@@ -187,12 +184,6 @@
             </tr>
             <tr>
                 <td>sync</td>
-            </tr>
-            <tr>
-                <td>javaexec</td>
-            </tr>
-            <tr>
-                <td>exec</td>
             </tr>
             <tr>
                 <td>setProperty</td>

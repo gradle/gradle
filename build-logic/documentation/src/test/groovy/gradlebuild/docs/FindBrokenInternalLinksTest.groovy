@@ -43,6 +43,10 @@ class FindBrokenInternalLinksTest extends Specification {
 
         linkErrors = new File(projectDir, "build/reports/dead-internal-links.txt")
 
+        new File(projectDir, "gradle.properties") << """
+            org.jetbrains.dokka.experimental.gradle.pluginMode=V2Enabled
+            org.jetbrains.dokka.experimental.gradle.pluginMode.noWarn=true
+        """.stripIndent()
 
         new File(projectDir, "build.gradle") << """
             plugins {

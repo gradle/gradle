@@ -19,9 +19,6 @@ import gradlebuild.integrationtests.tasks.IntegrationTest
 plugins {
     // TODO Can we apply less here?
     id("gradlebuild.internal.java")
-
-//    id("gradlebuild.repositories")
-//    id("gradlebuild.integration-tests")
 }
 
 val testRepo = configurations.dependencyScope("testRepo")

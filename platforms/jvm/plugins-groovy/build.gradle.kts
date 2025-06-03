@@ -6,7 +6,6 @@ description = "Contains plugins for building Groovy projects."
 
 dependencies {
     api(libs.jspecify)
-    api(libs.groovy)
     api(libs.inject)
 
     api(projects.baseServices)
@@ -22,7 +21,6 @@ dependencies {
     implementation(projects.jvmServices)
     implementation(projects.languageGroovy)
     implementation(projects.languageJvm)
-    implementation(projects.logging)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
@@ -33,6 +31,8 @@ dependencies {
     implementation(projects.toolchainsJvmShared)
 
     implementation(libs.guava)
+
+    runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.languageGroovy))

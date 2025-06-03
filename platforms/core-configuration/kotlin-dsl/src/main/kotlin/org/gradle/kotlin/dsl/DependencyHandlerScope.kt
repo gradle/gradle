@@ -49,9 +49,12 @@ private constructor(
     override val delegate: DependencyHandler
         get() = dependencies
 
-    @Deprecated(replaceWith = ReplaceWith("constraints"), message = "This method (and the deprecation annotation) is required to ensure that the correct delegate is used" +
-        " and a constraint (versus a dependency) is applied.  We attempted to remove this method in Gradle 8.0, but found it is still necessary.  " +
-        "See: https://github.com/gradle/gradle/pull/22823", level = DeprecationLevel.HIDDEN)
+    @Deprecated(
+        replaceWith = ReplaceWith("constraints"),
+        message = "This method (and the deprecation annotation) is required to ensure that the correct delegate is used and a constraint (versus a dependency) is applied. " +
+            "Hiding this function lets the one with the receiver of DependencyConstraintHandlerScope win, but if it's removed then its parent becomes visible and is picked instead the one with the receiver of DependencyConstraintHandlerScope.",
+        level = DeprecationLevel.HIDDEN
+    )
     override fun constraints(configureAction: Action<in DependencyConstraintHandler>) {
         super.constraints(configureAction)
     }

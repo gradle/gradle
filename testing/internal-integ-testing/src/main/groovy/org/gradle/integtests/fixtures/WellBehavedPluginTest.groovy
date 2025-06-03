@@ -105,8 +105,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
             'visual-studio',
             'xcode',
-
-            'play-application',
         ])
 
         applyPlugin()

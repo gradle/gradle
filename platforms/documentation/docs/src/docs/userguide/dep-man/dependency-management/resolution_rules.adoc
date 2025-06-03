@@ -79,6 +79,8 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
 ====
 
+WARNING: Forcing a specific version of a dependency should be a conscious and deliberate decision. It can lead to conflicts or unexpected behavior, especially when transitive dependencies rely on different versions.
+
 [[sec:module-replacement]]
 == 2. Module Replacement
 
@@ -382,6 +384,8 @@ In this example, the `pluginTool` configuration will use `org.gradle:my-util:1.0
 
 To completely exclude a transitive dependency for a particular configuration, use the link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:exclude(java.util.Map)[`Configuration.exclude(Map)`] method.
 
+WARNING: Excluding a transitive dependency should be a conscious and deliberate choice. Removing a dependency that other libraries rely on can lead to runtime errors or unexpected behavior. If you choose to exclude something, make sure your code doesn't rely on it—ideally backed by comprehensive test coverage to catch potential issues early.
+
 This approach will automatically exclude the specified transitive dependency from all dependencies declared within the configuration:
 
 ====
@@ -390,6 +394,45 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 ====
 
 In this example, the `commons-collections` dependency will be excluded from the `implementation` configuration, regardless of whether it is a direct or transitive dependency.
+
+Below is a simplified usage of the `commons-beanutils` library, where we only call `PropertyUtils.setSimpleProperty()` on a POJO (Plain Old Java Object):
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="src/main/java/Main.java"]
+====
+
+This specific usage doesn't require `commons-collections`, which we've verified with test coverage.
+By excluding it, we effectively express that we're only using a subset of `commons-beanutils`.
+However, this can be risky.
+If our code were more dynamic or invoked error-handling code paths, we might encounter runtime issues.
+
+For example, if we tried to set a property that doesn't exist, the library may throw a `NoClassDefFoundError` for a missing class from `commons-collections` rather than a clear exception, because that path depends on the excluded library.
+
+Gradle handles exclusions differently than Maven—it evaluates the entire dependency graph.
+An exclusion is only applied if all paths to a dependency agree on it.
+
+For example, if another dependency (like `opencsv`) also brings in `commons-beanutils` (but without an exclusion), the transitive `commons-collections` will still appear:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-2]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-2]"]
+====
+
+To fully exclude `commons-collections`, you must also exclude it from `opencsv`:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-3]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-3]"]
+====
+
+Using excludes should be a conscious and well-tested decision.
+If the excluded dependency is needed in any code path, your build may fail at runtime.
+
+Historically, excludes have also been used as a workaround for limitations in other build systems, but there are better alternatives:
+
+* *Use <<dependency_constraints.adoc#dependency-constraints,dependency constraints>>* to update or override versions instead of excluding undesired ones.
+* *Use <<component_metadata_rules.adoc#component-metadata-rules,component metadata rules>>* to remove an unnecessary dependency—like a compile-time dependency that's erroneously added to the metadata of the library. This tells Gradle to ignore the dependency entirely (i.e., the metadata is wrong). Note that these rules are not published, so if you're creating a library others will use, an explicit `exclude` may be more appropriate.
+* *Use <<component_capabilities.adoc#capabilities,capabilities>>* to resolve mutually exclusive dependency conflicts. Some libraries can't coexist because they provide the same capability—such as `log4j` and `log4j-over-slf4j`, or `com.google.collections` and `guava`. If Gradle isn't aware of the conflict, declare the overlapping capability using a component metadata rule. If you're developing a library, avoid enforcing a specific choice—let the consumers decide which implementation to use.
 
 [[sec:conflict-resolution-strategy]]
 == 7. Force Failed Resolution Strategies

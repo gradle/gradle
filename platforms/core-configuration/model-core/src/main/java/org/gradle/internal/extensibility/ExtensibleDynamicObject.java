@@ -17,8 +17,8 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -38,8 +38,7 @@ import java.util.Map;
  *
  * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
  */
-@SuppressWarnings("deprecation")
-public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject implements org.gradle.api.internal.HasConvention {
+public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
 
     public enum Location {
         BeforeConvention, AfterConvention
@@ -47,22 +46,22 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     private final AbstractDynamicObject dynamicDelegate;
     private DynamicObject parent;
-    private final org.gradle.api.plugins.Convention convention;
+    private final DefaultExtensionContainer extensionContainer;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
     private final DynamicObject extraPropertiesDynamicObject;
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
-        this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instanceGenerator));
+        this(delegate, createDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, InstanceGenerator instanceGenerator) {
-        this(delegate, dynamicDelegate, new DefaultConvention(instanceGenerator));
+        this(delegate, dynamicDelegate, new DefaultExtensionContainer(instanceGenerator));
     }
 
-    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, org.gradle.api.plugins.Convention convention) {
+    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, DefaultExtensionContainer convention) {
         this.dynamicDelegate = dynamicDelegate;
-        this.convention = convention;
+        this.extensionContainer = convention;
         this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
 
         updateDelegates();
@@ -80,8 +79,8 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         if (beforeConvention != null) {
             delegates[idx++] = beforeConvention;
         }
-        if (convention != null) {
-            delegates[idx++] = convention.getExtensionsAsDynamicObject();
+        if (extensionContainer != null) {
+            delegates[idx++] = extensionContainer.getExtensionsAsDynamicObject();
         }
         if (afterConvention != null) {
             delegates[idx++] = afterConvention;
@@ -120,7 +119,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     public ExtraPropertiesExtension getDynamicProperties() {
-        return convention.getExtraProperties();
+        return extensionContainer.getExtraProperties();
     }
 
     public DynamicObject getParent() {
@@ -132,14 +131,8 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         updateDelegates();
     }
 
-    @Override
-    @Deprecated
-    public org.gradle.api.plugins.Convention getConvention() {
-        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-            .nagUser();
-        return convention;
+    public ExtensionContainer getExtensions() {
+        return extensionContainer;
     }
 
     public void addObject(DynamicObject object, Location location) {
@@ -168,7 +161,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
         }
-        delegates.add(convention.getExtensionsAsDynamicObject());
+        delegates.add(extensionContainer.getExtensionsAsDynamicObject());
         if (parent != null) {
             delegates.add(parent);
         }

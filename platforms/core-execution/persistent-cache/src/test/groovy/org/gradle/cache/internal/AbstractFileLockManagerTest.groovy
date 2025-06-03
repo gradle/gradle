@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.cache.FileIntegrityViolationException
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager

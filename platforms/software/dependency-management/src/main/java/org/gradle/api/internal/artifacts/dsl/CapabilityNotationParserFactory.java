@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.Factory;

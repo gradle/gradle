@@ -16,12 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.same
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
@@ -59,6 +53,12 @@ import org.gradle.nativeplatform.BuildType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyMap
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.same
 import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier.PUBLIC
@@ -66,10 +66,6 @@ import java.lang.reflect.Modifier.STATIC
 
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
-
-    abstract class CustomConvention
-
-    abstract class TestSoftwareType
 
     @Test
     fun `#buildAccessorsFor (Kotlin types)`() {
@@ -83,7 +79,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     entry<Project, (Int, Double) -> Boolean>("function2")
                 ),
                 containerElements = listOf(),
-                conventions = listOf(),
                 tasks = listOf(),
                 configurations = listOf(),
                 modelDefaults = listOf(),
@@ -139,7 +134,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val schema =
             TypedProjectSchema(
                 extensions = listOf(),
-                conventions = listOf(),
                 containerElements = listOf(),
                 tasks = listOf(),
                 configurations = listOf(
@@ -192,7 +186,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         // given:
         val defaultPackageTypes = classPathWith {
             publicClass("ExtensionReceiver")
-            publicClass("ConventionReceiver")
             publicInterface("Entry")
             publicInterface("Element", "Entry")
             publicInterface("CustomTask", Task::class.qualifiedName!!)
@@ -203,9 +196,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 TypedProjectSchema(
                     extensions = listOf(
                         ProjectSchemaEntry(schemaTypeFor("ExtensionReceiver"), "extension", entryType)
-                    ),
-                    conventions = listOf(
-                        ProjectSchemaEntry(schemaTypeFor("ConventionReceiver"), "convention", entryType)
                     ),
                     containerElements = listOf(
                         ProjectSchemaEntry(namedDomainObjectContainerOf(entryType), "element", schemaTypeFor("Element"))
@@ -290,9 +280,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 containerElements = listOf(
                     entry<SourceSetContainer, SourceSet>("main")
                 ),
-                conventions = listOf(
-                    entry<Project, CustomConvention>("customConvention")
-                ),
                 tasks = listOf(
                     entry<TaskContainer, Delete>("clean")
                 ),
@@ -329,17 +316,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val tasks = mock<TaskContainerInternal> {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
-        val customConvention = mock<CustomConvention>()
-        @Suppress("deprecation")
-        val convention = mock<org.gradle.api.plugins.Convention> {
-            on { plugins } doReturn mapOf("customConvention" to customConvention)
-        }
         val project = mock<ProjectInternal> {
             on { getConfigurations() } doReturn configurations
             on { getExtensions() } doReturn extensions
             on { getDependencies() } doReturn dependencies
             on { getTasks() } doReturn tasks
-            on { @Suppress("deprecation") getConvention() } doReturn convention
         }
 
         // when:
@@ -366,12 +347,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
                 val h: Unit = buildTypes {
                     val container: NamedDomainObjectContainer<BuildType> = this
-                }
-
-                val i: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = customConvention
-
-                val j: Unit = customConvention {
-                    val convention: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = this
                 }
 
                 val k: DependencyConstraint = dependencies.constraints.api("direct:accessor:1.0")
@@ -416,8 +391,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             sourceSets,
             dependencies,
             tasks,
-            convention,
-            customConvention,
             constraints
         ) {
             // val a
@@ -453,18 +426,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // val h
             verify(project).extensions
             verify(extensions).configure(eq("buildTypes"), any<Action<*>>())
-
-            // val i
-            @Suppress("deprecation")
-            verify(project).convention
-            @Suppress("deprecation")
-            verify(convention).plugins
-
-            // val j
-            @Suppress("deprecation")
-            verify(project).convention
-            @Suppress("deprecation")
-            verify(convention).plugins
 
             // val k
             verify(project).dependencies

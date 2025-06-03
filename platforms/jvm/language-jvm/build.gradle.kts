@@ -32,7 +32,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.testSuitesBase)
 
-    implementation(libs.commonsLang3)
+    implementation(libs.commonsLang)
     implementation(libs.guava)
 
     testImplementation(projects.native)

@@ -66,7 +66,7 @@ class ConfigurationCacheFixture {
     void assertStateStored(HasBuildActions details) {
         assertHasStoreReason(details)
 
-        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsOnStore)
+        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsAfterStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
@@ -117,9 +117,18 @@ class ConfigurationCacheFixture {
         assert details.runsTasks || details.createsModels
         if (details.runsTasks) {
             if (details.hasStoreFailure) {
-                configurationCacheBuildOperations.assertStateStoreFailed()
+                configurationCacheBuildOperations.assertStorePhaseFailed()
             } else {
-                configurationCacheBuildOperations.assertStateStored(false)
+                configurationCacheBuildOperations.assertStorePhaseSuccessful()
+            }
+            if (details.loadsAfterStore) {
+                if (details.hasLoadFailure) {
+                    configurationCacheBuildOperations.assertLoadPhaseFailed()
+                } else {
+                    configurationCacheBuildOperations.assertLoadPhaseSuccessful()
+                }
+            } else {
+                configurationCacheBuildOperations.assertLoadPhaseSkipped()
             }
         } else {
             configurationCacheBuildOperations.assertNoWorkGraphOperations()
@@ -248,7 +257,10 @@ class ConfigurationCacheFixture {
     private void assertWorkGraphOrModelStored(boolean runsTasks, boolean createsModels, boolean loadAfterStore) {
         assert runsTasks || createsModels
         if (runsTasks) {
-            configurationCacheBuildOperations.assertStateStored(loadAfterStore)
+            configurationCacheBuildOperations.assertStorePhaseSuccessful()
+            if (loadAfterStore) {
+                configurationCacheBuildOperations.assertLoadPhaseSuccessful()
+            }
         } else {
             configurationCacheBuildOperations.assertNoWorkGraphOperations()
         }
@@ -428,8 +440,10 @@ class ConfigurationCacheFixture {
         boolean runsTasks = true
         // Whether to expect tooling models, which is normally the case when running any Tooling API build action
         boolean createsModels = false
-        boolean loadsOnStore = true
+        // Whether the load operation is expected, which may not be the case when building models or dealing with incompatible tasks or store serialization errors
+        boolean loadsAfterStore = true
         boolean hasStoreFailure = true
+        boolean hasLoadFailure = false
 
         abstract String getStoreAction()
     }

@@ -18,8 +18,7 @@
 [[sec:gradle_documentation]]
 == Gradle Documentation
 
-Copyright © 2024 Gradle, Inc. All rights reserved.
-Gradle is a trademark of Gradle, Inc.
+© 2025 Gradle, Inc. Gradle®, Develocity®, Build Scan®, and the Gradlephant logo are registered trademarks of Gradle, Inc. On this resource, "Gradle" typically means "Gradle Build Tool" and does not reference Gradle, Inc. and/or its subsidiaries.
 
 Gradle's Build Tool source code is open-source and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
 

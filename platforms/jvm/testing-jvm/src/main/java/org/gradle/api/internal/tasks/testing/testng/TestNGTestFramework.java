@@ -36,7 +36,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 @UsedByScanPlugin("test-retry")
 public abstract class TestNGTestFramework implements TestFramework {
@@ -57,12 +56,7 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
-        new DslObject(options).getConventionMapping().map("outputDirectory", new Callable<File>() {
-            @Override
-            public File call() {
-                return html.getOutputLocation().getAsFile().getOrNull();
-            }
-        });
+        new DslObject(options).getConventionMapping().map("outputDirectory", () -> html.getOutputLocation().getAsFile().getOrNull());
     }
 
     @Inject

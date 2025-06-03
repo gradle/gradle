@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
-import org.gradle.api.plugins.quality.CodeNarcPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.VersionNumber
@@ -24,6 +23,9 @@ import org.gradle.util.internal.VersionNumber
 import static org.hamcrest.CoreMatchers.startsWith
 
 class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec implements CodeNarcTestFixture {
+    static final String STABLE_VERSION = "3.2.0"
+    static final String STABLE_VERSION_WITH_GROOVY4_SUPPORT = "${STABLE_VERSION}-groovy-4.0"
+
     def setup() {
         writeRuleFile()
     }
@@ -57,8 +59,8 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
 
         where:
         groovyVersion        | codenarcVersion
-        latestGroovy3Version | CodeNarcPlugin.STABLE_VERSION
-        latestGroovy4Version | CodeNarcPlugin.STABLE_VERSION_WITH_GROOVY4_SUPPORT
+        latestGroovy3Version | STABLE_VERSION
+        latestGroovy4Version | STABLE_VERSION_WITH_GROOVY4_SUPPORT
     }
 
     def "analyze bad code"() {
@@ -74,8 +76,8 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
 
         where:
         groovyVersion        | codenarcVersion
-        latestGroovy3Version | CodeNarcPlugin.STABLE_VERSION
-        latestGroovy4Version | CodeNarcPlugin.STABLE_VERSION_WITH_GROOVY4_SUPPORT
+        latestGroovy3Version | STABLE_VERSION
+        latestGroovy4Version | STABLE_VERSION_WITH_GROOVY4_SUPPORT
     }
 
     static String getLatestGroovy4Version() {

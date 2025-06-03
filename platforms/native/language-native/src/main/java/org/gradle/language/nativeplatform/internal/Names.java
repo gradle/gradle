@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class Names {
 

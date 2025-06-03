@@ -24,83 +24,65 @@ import gradlebuild.basics.ignoreIncomingBuildReceipt
 import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
-import gradlebuild.identity.extension.ModuleIdentityExtension
+import gradlebuild.identity.extension.GradleModuleExtension
 import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
 import gradlebuild.identity.provider.BuildTimestampValueSource
 import gradlebuild.identity.tasks.BuildReceipt
+import java.util.Optional
 
 plugins {
     `java-base`
 }
 
-val moduleIdentity = extensions.create<ModuleIdentityExtension>("moduleIdentity")
+val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtension.NAME).apply {
+    targetRuntimes {
+        // By default, assume a library targets only the daemon
+        // TODO: Eventually, all projects should explicitly declare their target platform(s)
+        usedInWorkers = false
+        usedInClient = false
+        usedInDaemon = true
+    }
+
+    // TODO: Most of these properties are the same across projects. We should
+    // compute these at the settings-level instead of the project-level.
+    identity {
+        baseName = "gradle-$name"
+        buildTimestamp = buildTimestamp()
+        promotionBuild = isPromotionBuild
+
+        val finalReleaseSuffix = buildFinalRelease.map { "" }
+        val rcSuffix = buildRcNumber.map { "-rc-$it" }
+        val milestoneSuffix = buildMilestoneNumber.map { "-milestone-$it" }
+        val buildVersionQualifierSuffix = buildVersionQualifier.zip(buildTimestamp) { buildVersion, timestamp -> "-$buildVersion-$timestamp" }
+        val buildTimestampSuffix = buildTimestamp.map { "-$it" }
+
+        val specifiedSuffix = atMostOneOf(finalReleaseSuffix, rcSuffix, milestoneSuffix)
+        val computedSuffix = specifiedSuffix
+            .orElse(buildVersionQualifierSuffix)
+            .orElse(buildTimestampSuffix)
+
+        val baseVersion = trimmedContentsOfFile("version.txt")
+        version = baseVersion.zip(computedSuffix) { base, suffix -> GradleVersion.version("$base$suffix") }
+        snapshot = specifiedSuffix.map { false }.orElse(true)
+        releasedVersions = version.map {
+            ReleasedVersionsDetails(
+                it.baseVersion,
+                releasedVersionsFile()
+            )
+        }
+    }
+}
 
 group = "org.gradle"
-version = collectVersionDetails(moduleIdentity)
-
-fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): String {
-    moduleIdentity.baseName.convention("gradle-$name")
-
-    val baseVersion = trimmedContentsOfFile("version.txt")
-
-    val finalRelease = buildFinalRelease
-    val rcNumber = buildRcNumber
-    val milestoneNumber = buildMilestoneNumber
-
-    if (
-        (buildFinalRelease.isPresent && buildRcNumber.isPresent) ||
-        (buildFinalRelease.isPresent && buildMilestoneNumber.isPresent) ||
-        (buildRcNumber.isPresent && buildMilestoneNumber.isPresent)
-    ) {
-        throw InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
-    }
-
-    val versionQualifier = buildVersionQualifier
-    val isFinalRelease = finalRelease.isPresent
-
-    val buildTimestamp = buildTimestamp()
-    val versionNumber = when {
-        isFinalRelease -> {
-            baseVersion
-        }
-        rcNumber.isPresent -> {
-            "$baseVersion-rc-${rcNumber.get()}"
-        }
-        milestoneNumber.isPresent -> {
-            "$baseVersion-milestone-${milestoneNumber.get()}"
-        }
-        versionQualifier.isPresent -> {
-            "$baseVersion-${versionQualifier.get()}-${buildTimestamp.get()}"
-        }
-        else -> {
-            "$baseVersion-${buildTimestamp.get()}"
-        }
-    }
-
-    val isSnapshot = !finalRelease.isPresent && !rcNumber.isPresent && !milestoneNumber.isPresent
-
-    moduleIdentity.version.convention(GradleVersion.version(versionNumber))
-    moduleIdentity.snapshot.convention(isSnapshot)
-    moduleIdentity.buildTimestamp.convention(buildTimestamp)
-    moduleIdentity.promotionBuild.convention(isPromotionBuild)
-
-    moduleIdentity.releasedVersions = provider {
-        ReleasedVersionsDetails(
-            moduleIdentity.version.get().baseVersion,
-            releasedVersionsFile()
-        )
-    }
-
-    return versionNumber
-}
+version = gradleModule.identity.version.get().version
 
 /**
  * Returns the trimmed contents of the file at the given [path] after
  * marking the file as a build logic input.
  */
-fun Project.trimmedContentsOfFile(path: String): String =
-    providers.fileContents(repoRoot().file(path)).asText.get().trim()
+fun Project.trimmedContentsOfFile(path: String): Provider<String> =
+    providers.fileContents(repoRoot().file(path)).asText.map { it.trim() }
 
 // TODO Simplify the buildTimestamp() calculation if possible
 fun Project.buildTimestamp(): Provider<String> =
@@ -136,3 +118,33 @@ fun isRunningInstallTask() =
 fun isRunningDocsTestTask() =
     setOf(":docs:docsTest", "docs:docsTest")
         .any(gradle.startParameter.taskNames::contains)
+
+
+/**
+ * Returns a new provider that takes its value from at most one
+ * of the given providers. If no input provider is present, the output
+ * provider will not be present. If more than one input provider
+ * has a value specified, the resulting provider will throw an
+ * exception when queried.
+ */
+fun <T: Any> atMostOneOf(vararg providers: Provider<T>): Provider<T> {
+    return providers.map { provider ->
+        provider.map {
+            Optional.of(it)
+        }.orElse(
+            Optional.empty<T>()
+        )
+    }.reduce { acc, next ->
+        acc.zip(next) { left, right ->
+            when {
+                left.isPresent -> {
+                    require(!right.isPresent) {
+                        "Expected at most one provider to be present"
+                    }
+                    left
+                }
+                else -> right
+            }
+        }
+    }.map { it.orElse(null) }
+}

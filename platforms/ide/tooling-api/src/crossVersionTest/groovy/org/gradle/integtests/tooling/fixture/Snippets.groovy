@@ -59,7 +59,7 @@ abstract class Snippets {
             import org.gradle.api.internal.tasks.testing.TestExecutionSpec
             import org.gradle.api.tasks.testing.AbstractTestTask
 
-            class CustomTestTask extends AbstractTestTask {
+            abstract class CustomTestTask extends AbstractTestTask {
                 CustomTestTask() {
                     binaryResultsDirectory.set(new File(getProject().buildDir, "CustomTestTask"))
                     reports.html.required.set(false)

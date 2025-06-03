@@ -4,7 +4,11 @@ plugins {
 
 description = "Implementation of messaging between Gradle processes"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.concurrent)

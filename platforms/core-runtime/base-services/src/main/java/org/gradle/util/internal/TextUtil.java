@@ -19,9 +19,9 @@ package org.gradle.util.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -178,7 +178,7 @@ public class TextUtil {
             return writer.toString();
         } catch (IOException ioe) {
             // this should never ever happen while writing to a StringWriter
-            throw new UncheckedIOException(ioe);
+            throw UncheckedException.throwAsUncheckedException(ioe);
         }
     }
 

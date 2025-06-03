@@ -26,8 +26,6 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
                 id "java-library"
             }
 
-            ${requiredSourceCompatibility()}
-
             ${mavenCentralRepository()}
 
             pmd {
@@ -61,8 +59,6 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
                 toolVersion = '$version'
                 incrementalAnalysis = ${supportIncrementalAnalysis()}
             }
-
-            ${requiredSourceCompatibility()}
 
             ${mavenCentralRepository()}
         """

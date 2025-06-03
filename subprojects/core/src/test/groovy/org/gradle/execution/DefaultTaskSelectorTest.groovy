@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
@@ -32,7 +33,17 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
     def project1 = project(":a", projectModel1)
     def resolver = Mock(TaskNameResolver)
     def projectConfigurer = Mock(ProjectConfigurer)
-    def selector = new DefaultTaskSelector(resolver, projectConfigurer)
+    def selector = new DefaultTaskSelector(resolver) {
+        @Override
+        protected ProjectConfigurer getConfigurer() {
+            return projectConfigurer
+        }
+
+        @Override
+        protected InternalProblems getProblemsService() {
+            throw new UnsupportedOperationException()
+        }
+    }
 
     def "exclude filter configures target project and selects exact match on task name when subprojects not included"() {
         def excluded = Stub(Task)

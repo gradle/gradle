@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 @TargetGradleVersion(">=5.4")
 class RunEclipseAutoBuildTasksCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
-        file("sub1").mkdirs()
+        createProjectSubDirs("sub", "sub1")
 
         buildFile << """
             apply plugin: 'eclipse'

@@ -17,8 +17,10 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListeners;
@@ -36,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -48,12 +49,13 @@ public class SkipEmptyIncrementalWorkStep extends AbstractSkipEmptyWorkStep<Prev
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
 
     public SkipEmptyIncrementalWorkStep(
+        ExecutionProblemHandler problemHandler,
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners,
         Supplier<OutputsCleaner> outputsCleanerSupplier,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
-        super(workInputListeners, delegate);
+        super(problemHandler, workInputListeners, delegate);
         this.outputChangeListener = outputChangeListener;
         this.outputsCleanerSupplier = outputsCleanerSupplier;
     }
@@ -115,7 +117,7 @@ public class SkipEmptyIncrementalWorkStep extends AbstractSkipEmptyWorkStep<Prev
                 outputChangeListener.invalidateCachesFor(SnapshotUtil.rootIndex(outputFileSnapshot).keySet());
                 outputsCleaner.cleanupOutputs(outputFileSnapshot);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return outputsCleaner.getDidWork();

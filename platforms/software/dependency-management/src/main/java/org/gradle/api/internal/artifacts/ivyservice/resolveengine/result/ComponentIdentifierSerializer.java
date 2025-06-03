@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultRootComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
@@ -83,6 +84,10 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
                 return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString());
             case SNAPSHOT:
                 return new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString(), decoder.readString());
+            case ROOT_COMPONENT: {
+                long instanceId = decoder.readLong();
+                return new DefaultRootComponentIdentifier(instanceId);
+            }
             case LIBRARY:
                 return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
             case OPAQUE:
@@ -141,6 +146,11 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
                 writeBuildIdentifierOf(projectComponentIdentifier, encoder);
                 encoder.writeString(projectComponentIdentifier.getIdentityPath().getPath());
                 encoder.writeString(projectComponentIdentifier.getProjectPath());
+                break;
+            }
+            case ROOT_COMPONENT: {
+                DefaultRootComponentIdentifier rootComponentIdentifier = (DefaultRootComponentIdentifier) value;
+                encoder.writeLong(rootComponentIdentifier.getInstanceId());
                 break;
             }
             case LIBRARY:
@@ -212,6 +222,8 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
                 return Implementation.OTHER_BUILD_ROOT_PROJECT;
             }
             return Implementation.OTHER_BUILD_PROJECT;
+        } else if (value instanceof DefaultRootComponentIdentifier) {
+            return Implementation.ROOT_COMPONENT;
         } else if (value instanceof LibraryBinaryIdentifier) {
             return Implementation.LIBRARY;
         } else if (value instanceof OpaqueComponentArtifactIdentifier) {
@@ -232,7 +244,8 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
         LIBRARY(6),
         SNAPSHOT(7),
         OPAQUE(8),
-        OPAQUE_NOTATION(9);
+        OPAQUE_NOTATION(9),
+        ROOT_COMPONENT(10);
 
         @Nullable
         public static Implementation valueOf(int id) {

@@ -17,7 +17,7 @@ package gradlebuild.docs.dsl.source.model;
 
 import gradlebuild.docs.model.Attachable;
 import gradlebuild.docs.model.ClassMetaDataRepository;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 

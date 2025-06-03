@@ -19,72 +19,117 @@ The command-line interface is the primary **method of interacting with Gradle** 
 
 image::gradle-basic-2.png[]
 
-Use of the <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> is highly encouraged.
+The Gradle CLI is the primary way to interact with a Gradle build from the terminal.
+You can use it to run tasks, inspect the build, manage dependencies, and control logging, all through flexible and powerful command-line options.
 
-Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
+TIP: Use of the <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> is highly encouraged. Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
-Executing Gradle on the command line conforms to the following structure:
+== Running commands
 
+To execute Gradle commands, use the following simple structure:
+
+[source,text]
 ----
 gradle [taskName...] [--option-name...]
 ----
 
-Options are allowed _before_ and _after_ task names.
+You can specify one or more tasks separated by spaces.
 
-----
-gradle [--option-name...] [taskName...]
-----
-
-If multiple tasks are specified, you should separate them with a space.
-
+[source,text]
 ----
 gradle [taskName1 taskName2...] [--option-name...]
 ----
 
-Options that accept values can be specified with or without `=` between the option and argument. The use of `=` is recommended.
+For example, to run a task named `build`, simply type:
 
+[source,text]
+----
+gradle build
+----
+
+To `clean` first, and then `build`:
+
+[source,text]
+----
+gradle clean build
+----
+
+== Command-line options
+
+Gradle commands can include various options to adjust their behavior.
+Options can appear _before_ or _after_ task names, like so:
+
+[source,text]
+----
+gradle [--option-name...] [taskName...]
+----
+
+For options that accept a value, use an equals sign (`=`) for clarity:
+
+[source,text]
 ----
 gradle [...] --console=plain
 ----
 
-Options that enable behavior have long-form options with inverses specified with `--no-`. The following are opposites.
+Some options are toggles and have opposite forms.
+For instance, to enable or disable the build cache:
 
+[source,text]
 ----
-gradle [...] --build-cache
-gradle [...] --no-build-cache
+gradle build --build-cache
+gradle build --no-build-cache
 ----
 
-Many long-form options have short-option equivalents. The following are equivalent:
+Gradle also provides short-option equivalents for convenience.
+The following two commands are equivalent:
 
+[source,text]
 ----
 gradle --help
 gradle -h
 ----
 
-== Command-line usage
-
-The following sections describe the use of the Gradle command-line interface.
-Some plugins also add their own command line options.
-
 [[command_line_executing_tasks]]
-=== Executing tasks
-To execute a task called `taskName` on the root project, type:
+== Executing tasks
 
+In Gradle, tasks belong to specific projects.
+To clearly indicate which task you want to run, especially in multi-project builds, use a colon (`:`) as a project separator.
+
+To execute a task named `test` at the root project level, use:
+
+[source,text]
 ----
-$ gradle :taskName
+gradle :test
 ----
 
-This will run the single `taskName` and all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,dependencies>>.
+For nested subprojects, specify the full path using colons:
+
+[source,text]
+----
+gradle :subproject:test
+----
+
+If you run a task without any colons, Gradle executes the task in the current directory's project context:
+
+[source,text]
+----
+gradle test
+----
 
 [[disambiguate_task_options_from_built_in_options]]
-=== Specify options for tasks
-To pass an option to a task, prefix the option name with `--` after the task name:
+== Task options
 
+Some tasks accept their own specific options.
+Pass these options directly after the task name, prefixed with `--`.
+
+Here's how you can pass a custom option:
+
+[source,text]
 ----
-$ gradle taskName --exampleOption=exampleValue
+gradle taskName --exampleOption=exampleValue
 ----
 
-Consult the <<command_line_interface.adoc#command_line_interface_reference,Gradle Command Line Interface reference>> to learn more.
+For more details, see the complete <<command_line_interface.adoc#command_line_interface_reference, Gradle CLI reference>>.
 
 [.text-right]
 **Next Step:** <<settings_file_basics.adoc#settings_file_basics,Learn about the Settings file>> >>

@@ -22,7 +22,7 @@ package org.gradle.integtests.tooling.jvm
 class GradlePropertiesFileBuildJvmCrossVersionSpec extends ExplicitDaemonJvmCrossVersionSpec {
 
     @Override
-    void configureBuild(String majorVersion, File javaHome) {
+    void configureBuild(int majorVersion, File javaHome) {
         propertiesFile.writeProperties("org.gradle.java.home": javaHome.canonicalPath)
     }
 

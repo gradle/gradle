@@ -24,8 +24,8 @@ import org.gradle.tooling.ConfigurableLauncher
 class DaemonToolchainsBuildJvmCrossVersionSpec extends ExplicitDaemonJvmCrossVersionSpec {
 
     @Override
-    void configureBuild(String majorVersion, File javaHome) {
-        writeJvmCriteria(majorVersion)
+    void configureBuild(int majorVersion, File javaHome) {
+        writeJvmCriteria(Integer.toString(majorVersion))
     }
 
     @Override

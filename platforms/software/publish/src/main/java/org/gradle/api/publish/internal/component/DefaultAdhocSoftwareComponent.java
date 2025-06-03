@@ -17,6 +17,7 @@ package org.gradle.api.publish.internal.component;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.AdhocComponentWithVariants;
@@ -25,10 +26,14 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.exceptions.ResolutionProvider;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +42,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     private final Map<Configuration, ConfigurationVariantMapping> variants = new LinkedHashMap<>(4);
     private final ObjectFactory objectFactory;
 
+    @Nullable
     private Set<UsageContext> cachedVariants;
 
     @Inject
@@ -89,10 +95,18 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
      */
     protected void checkNotObserved() {
         if (cachedVariants != null) {
-            DeprecationLogger.deprecateBehaviour("Gradle Module Metadata is modified after an eagerly populated publication.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "gmm_modification_after_publication_populated")
-                .nagUser();
+            throw new MetadataModificationException("Gradle Module Metadata can't be modified after an eagerly populated publication.");
+        }
+    }
+
+    public static final class MetadataModificationException extends GradleException implements ResolutionProvider {
+        public MetadataModificationException(String message) {
+            super(message);
+        }
+
+        @Override
+        public List<String> getResolutions() {
+            return Collections.singletonList(Documentation.upgradeGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage());
         }
     }
 }

@@ -12,15 +12,11 @@ dependencies {
     api(projects.buildOperations)
     api(projects.concurrent)
     api(projects.files)
-    api(projects.messaging)
     api(projects.serialization)
     api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 
-    implementation(projects.classloaders)
-    implementation(projects.buildProcessServices)
-    implementation(projects.functional)
     implementation(projects.io)
     implementation(projects.time)
 

@@ -27,6 +27,8 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.TempDir
 
+import static org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer.PROMO_PREFIX
+
 @Requires(UnitTestPreconditions.NotWindows)
 class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -73,11 +75,13 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         }
         runner.forwardOutput()
         runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
         result = runner.build()
         output = result.output
 
         then:
         !output.contains("configuration cache")
+        !output.contains(PROMO_PREFIX)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/27956")
@@ -162,7 +166,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             testing {
                 suites {
                     test {
-                        useSpock("2.2-groovy-3.0")
+                        useSpock("2.3-groovy-4.0")
                     }
                 }
             }

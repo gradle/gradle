@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven.plugins;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -57,7 +57,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import javax.inject.Inject;
 import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 /**
  * Adds the ability to publish in the Maven format to Maven repositories.

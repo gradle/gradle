@@ -17,7 +17,6 @@ package org.gradle.api.internal.catalog;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -60,12 +59,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public String getPath() {
         return delegate.getPath();
-    }
-
-    @Override
-    @Deprecated
-    public Project getDependencyProject() {
-        return delegate.getDependencyProject();
     }
 
     @Override

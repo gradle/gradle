@@ -79,7 +79,7 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
             return withRequestedAndArtifacts(newSelector, artifacts);
         } else if (target instanceof ProjectComponentSelector) {
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
-            return new DefaultProjectDependencyMetadata(projectTarget, this);
+            return new DefaultProjectDependencyMetadata(projectTarget, this.withArtifacts(artifacts));
         } else {
             throw new IllegalArgumentException("Unexpected selector provided: " + target);
         }
@@ -97,7 +97,9 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
 
     protected abstract ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector);
 
-    protected abstract ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> artifacts);
+    protected abstract ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> newArtifacts);
+
+    protected abstract ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts);
 
     @Override
     public ModuleComponentSelector getSelector() {

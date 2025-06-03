@@ -121,6 +121,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
             }
 
             apply type: RulePlugin
+            apply plugin: 'model-reporting-tasks'
         '''
 
         then:
@@ -372,6 +373,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
     def "can specify managed models with file types"() {
         when:
         buildFile '''
+            apply plugin: 'model-reporting-tasks'
+            
             @Managed
             interface FileContainer {
                 File getFile()

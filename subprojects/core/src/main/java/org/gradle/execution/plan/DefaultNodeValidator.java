@@ -66,6 +66,7 @@ public class DefaultNodeValidator implements NodeValidator {
     }
 
     private void logWarnings(List<? extends InternalProblem> problems) {
+        // We are logging all the warnings that we encountered during validation here
         problems.stream()
             .filter(DefaultNodeValidator::isWarning)
             .forEach(problem -> {
@@ -75,7 +76,8 @@ public class DefaultNodeValidator implements NodeValidator {
                 String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
                 withDocumentation(problem, DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBeRemovedInGradle9())
+                    // Bump this to a next major version when we bump Gradle major version
+                    .willBecomeAnErrorInGradle10())
                     .nagUser();
             });
     }

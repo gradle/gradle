@@ -20,7 +20,7 @@ configurations.create("good") {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
     }
-    val goodMap = attributes.keySet().associate { // <2>
+    val goodMap = attributes.keySet().associate { // <1>
         Attribute.of(it.name, it.type) to attributes.getAttribute(it)
     }
     logger.warn("Good map")

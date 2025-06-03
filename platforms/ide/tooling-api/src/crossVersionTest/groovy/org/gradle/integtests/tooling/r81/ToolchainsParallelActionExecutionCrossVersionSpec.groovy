@@ -104,13 +104,12 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
     }
 
     def setupBuildWithToolchainsResolution() {
-        createDirs("a", "b")
         settingsFile << """
             ${applyToolchainResolverPlugin()}
 
             rootProject.name = 'root'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
         buildFile << """
             allprojects {
                 apply plugin: ToolchainPlugin

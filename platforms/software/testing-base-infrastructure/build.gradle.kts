@@ -2,9 +2,13 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-gradlebuildJava.usedInWorkers()
-
 description = """Generalized test infrastructure to support executing tests in test workers."""
+
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.baseServices)

@@ -29,7 +29,9 @@ This is done as the last step when resolving artifacts, before tasks or tools li
 Each component exposes a set of <<declaring_configurations.adoc#sec:resolvable-consumable-configs,**variants**>>, where each variant is identified by a set of <<variant_aware_resolution.adoc#sec:abm-configuration-attributes,**attributes**>> (i.e., key-value pairs such as `debug=true`).
 
 When Gradle resolves a configuration, it looks at each dependency, resolves it to a component, and selects the corresponding variant from that component that matches the requested attributes.
-If the component does not have a matching variant, resolution fails *unless* Gradle can construct a sequence of transformations that will modify an existing artifact to create a valid match (without changing its transitive dependencies).
+The variant contains one or more artifacts, which represent the concrete outputs produced by a component (such as JAR files, resources, or native binaries).
+However, a consumer may need artifacts in a format that doesn't directly match any available variant.
+Rather than requiring producers to explicitly publish every possible variant, Gradle provides a powerful mechanism to dynamically adapt artifacts to the required form.
 
 **Artifact Transforms** are a mechanism for converting one type of artifact into another during the build process.
 They provide the consumer an efficient and flexible mechanism for transforming the artifacts of a given producer to the required format without needing the producer to expose variants in that format.

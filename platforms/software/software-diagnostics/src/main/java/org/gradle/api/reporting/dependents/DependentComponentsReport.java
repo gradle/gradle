@@ -123,19 +123,13 @@ public abstract class DependentComponentsReport extends DefaultTask {
     }
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected ModelRegistry getModelRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ModelRegistry getModelRegistry();
 
     @Inject
-    protected WorkerLeaseService getWorkerLeaseService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract WorkerLeaseService getWorkerLeaseService();
 
     @TaskAction
     public void report() {

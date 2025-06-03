@@ -16,12 +16,11 @@
 package org.gradle.plugins.ide.internal;
 
 import com.google.common.base.Optional;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.invocation.Gradle;
@@ -30,6 +29,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
@@ -48,9 +48,7 @@ public abstract class IdePlugin implements Plugin<Project> {
     protected Project project;
 
     @Inject
-    protected ExecOperations getExecOperations() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ExecOperations getExecOperations();
 
     /**
      * Returns the path to the correct Gradle distribution to use. The wrapper of the generating project will be used only if the execution context of the currently running Gradle is in the Gradle home (typical of a wrapper execution context). If this isn't the case, we try to use the current Gradle home, if available, as the distribution. Finally, if nothing matches, we default to the system-wide Gradle distribution.
@@ -205,7 +203,7 @@ public abstract class IdePlugin implements Plugin<Project> {
                             try {
                                 Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());
                             } catch (IOException e) {
-                                throw new UncheckedIOException(e);
+                                throw UncheckedException.throwAsUncheckedException(e);
                             }
                         }
                     }

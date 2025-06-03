@@ -2672,7 +2672,7 @@ Found the following transformation chains:
         with(executeTransformationOp.details) {
             transformerName == "FileSizer"
             subjectName == "lib.jar (project :lib)"
-            with(plannedTransformStepIdentity) {
+            this.with(plannedTransformStepIdentity) {
                 nodeType == "TRANSFORM_STEP"
                 consumerBuildPath == ":"
                 consumerProjectPath == ":app"
@@ -2745,7 +2745,7 @@ Found the following transformation chains:
         with(executeTransformationOp.details) {
             transformerName == "BrokenTransform"
             subjectName == "lib.jar (project :lib)"
-            with(plannedTransformStepIdentity) {
+            this.with(plannedTransformStepIdentity) {
                 nodeType == "TRANSFORM_STEP"
                 consumerBuildPath == ":"
                 consumerProjectPath == ":app"

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.plugins.ExtensionAware
 
 import org.gradle.kotlin.dsl.support.unsafeLazy
+import org.gradle.util.internal.TextUtil
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -61,27 +62,51 @@ data class AccessorScope(
 internal
 fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString, type.deprecation())
         is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(receiver.type.kotlinString, name, type)
+    }
+}
+
+internal fun maybeDeprecationAnnotations(deprecation: Deprecated?): String {
+    fun deprecatedAnnotation(deprecation: Deprecated) =
+        "@Deprecated(\"${TextUtil.escapeString(deprecation.message)}\", level = DeprecationLevel.${deprecation.level.name})"
+
+    return when (deprecation?.level) {
+        null -> ""
+
+        DeprecationLevel.WARNING -> """
+        |@Suppress("deprecation")
+        |        ${deprecatedAnnotation(deprecation)}
+        """.trimMargin() + "\n        "
+
+        DeprecationLevel.ERROR -> """
+        |@Suppress("DEPRECATION_ERROR")
+        |        ${deprecatedAnnotation(deprecation)}
+        """.trimIndent() + "\n        "
+
+        DeprecationLevel.HIDDEN -> ""
     }
 }
 
 
 private
-fun accessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, type: String, deprecation: Deprecated?): String = name.run {
+    val maybeDeprecation = maybeDeprecationAnnotations(deprecation)
+
     """
         /**
          * Retrieves the [$original][$type] extension.
          */
-        val $targetType.`$kotlinIdentifier`: $type get() =
+        ${maybeDeprecation}val $targetType.`$kotlinIdentifier`: $type get() =
             $thisExtensions.getByName("$stringLiteral") as $type
 
         /**
          * Configures the [$original][$type] extension.
          */
-        fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+        ${maybeDeprecation}fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
             $thisExtensions.configure("$stringLiteral", configure)
-    """
+
+    """.trimMargin()
 }
 
 
@@ -109,80 +134,21 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
 
 
 internal
-fun conventionAccessor(spec: TypedAccessorSpec): String = spec.run {
-    when (type) {
-        is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
-        is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(receiver.type.kotlinString, name, type)
-    }
-}
-
-
-private
-fun accessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
-    """
-        /**
-         * Retrieves the [$original][$type] convention.
-         *
-         * @deprecated The concept of conventions is deprecated. Use extensions instead.
-         */
-        val $targetType.`$kotlinIdentifier`: $type get() =
-            $thisConvention.getPluginByName<$type>("$stringLiteral")
-
-        /**
-         * Configures the [$original][$type] convention.
-         *
-         * @deprecated The concept of conventions is deprecated. Use extensions instead.
-         */
-        fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
-            configure.execute(`$stringLiteral`)
-
-    """
-}
-
-
-private
-fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
-    """
-        /**
-         * Retrieves the `$original` convention.
-         *
-         * ${documentInaccessibilityReasons(name, typeAccess)}
-         *
-         * @deprecated The concept of conventions is deprecated. Use extensions instead.
-         */
-        val $targetType.`$kotlinIdentifier`: Any get() =
-            $thisConvention.getPluginByName<Any>("$stringLiteral")
-
-        /**
-         * Configures the `$original` convention.
-         *
-         * ${documentInaccessibilityReasons(name, typeAccess)}
-         *
-         * @deprecated The concept of conventions is deprecated. Use extensions instead.
-         */
-        fun $targetType.`$kotlinIdentifier`(configure: Action<Any>): Unit =
-            configure(`$stringLiteral`)
-
-    """
-}
-
-
-internal
 fun existingTaskAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, type.type.kotlinString, spec.type.deprecation())
         is TypeAccessibility.Inaccessible -> inaccessibleExistingTaskAccessorFor(name, type)
     }
 }
 
 
 private
-fun accessibleExistingTaskAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleExistingTaskAccessorFor(name: AccessorNameSpec, type: String, deprecation: Deprecated?): String = name.run {
     """
         /**
          * Provides the existing [$original][$type] task.
          */
-        val TaskContainer.`$kotlinIdentifier`: TaskProvider<$type>
+        ${maybeDeprecationAnnotations(deprecation)}val TaskContainer.`$kotlinIdentifier`: TaskProvider<$type>
             get() = named<$type>("$stringLiteral")
 
     """
@@ -207,19 +173,19 @@ fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: Type
 internal
 fun existingContainerElementAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString, type.deprecation())
         is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type)
     }
 }
 
 
 private
-fun accessibleExistingContainerElementAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleExistingContainerElementAccessorFor(targetType: String, name: AccessorNameSpec, type: String, deprecation: Deprecated?): String = name.run {
     """
         /**
          * Provides the existing [$original][$type] element.
          */
-        val $targetType.`$kotlinIdentifier`: NamedDomainObjectProvider<$type>
+        ${maybeDeprecationAnnotations(deprecation)}val $targetType.`$kotlinIdentifier`: NamedDomainObjectProvider<$type>
             get() = named<$type>("$stringLiteral")
 
     """
@@ -244,21 +210,21 @@ fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name:
 internal
 fun modelDefaultAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString, type.deprecation())
         is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(name, type)
     }
 }
 
 
 private
-fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String, deprecation: Deprecated?): String = name.run {
     """
-        /**
-         * Adds model defaults for the [$original][$name] software type.
-         */
-        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
-            add("$stringLiteral", $type, configure)
-    """
+    |        /**
+    |         * Adds model defaults for the [$original][$name] software type.
+    |         */
+    |        ${maybeDeprecationAnnotations(deprecation)}fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+    |            add("$stringLiteral", $type, configure)
+    """.trimMargin()
 }
 
 
@@ -280,12 +246,6 @@ fun inaccessibleModelDefaultAccessorFor(name: AccessorNameSpec, typeAccess: Type
 private
 val thisExtensions =
     "(this as ${ExtensionAware::class.java.name}).extensions"
-
-
-@Suppress("DEPRECATION")
-private
-val thisConvention =
-    "((this as? Project)?.convention ?: (this as ${org.gradle.api.internal.HasConvention::class.java.name}).convention)"
 
 
 internal

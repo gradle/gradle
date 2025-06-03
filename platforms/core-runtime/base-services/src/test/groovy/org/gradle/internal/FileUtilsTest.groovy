@@ -16,7 +16,7 @@
 
 package org.gradle.internal
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.GradleException
 import spock.lang.Specification
 

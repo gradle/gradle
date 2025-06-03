@@ -14,37 +14,19 @@
  * limitations under the License.
  */
 
-/* Adjust top left logo */
-
-.library-name a {
-    position: relative;
-    margin-left: 65px;
-}
-
-.library-name a::before {
-    content: '';
-    background: url("../images/gradle-logo.svg") center no-repeat;
-    background-size: contain;
-    position: absolute;
-    width: 65px;
-    height: 65px;
-    top: -27px;
-    left: -72px;
-}
-
-.library-name a span::before {
-    content: 'Kotlin DSL Reference for ';
+/* Nice title next to the logo, name and version number */
+.navigation .library-name--link:after {
+    padding-left: 0.3em;
+    content: 'Kotlin DSL Reference';
 }
 
 /* Hide the module name title on the front page */
-
 div.main-content:not([data-page-type]) h1.cover {
     display: none;
 }
 
 /* Capitalize the module name */
-
-div.library-name,
+.navigation .library-name--link,
 div.sideMenuPart div.overview:first-child a[href="index.html"],
 div.breadcrumbs a:first-child {
     text-transform: capitalize;

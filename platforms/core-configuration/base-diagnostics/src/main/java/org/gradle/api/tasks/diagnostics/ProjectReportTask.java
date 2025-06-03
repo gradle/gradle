@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectHierarchyUtils;
@@ -64,9 +64,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     @Inject
-    public BuildStateRegistry getBuildStateRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildStateRegistry getBuildStateRegistry();
 
     @Inject
     protected abstract SoftwareTypeRegistry getSoftwareTypeRegistry();

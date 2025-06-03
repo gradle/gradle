@@ -19,7 +19,6 @@ package org.gradle.internal;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
@@ -203,7 +202,7 @@ public class FileUtils {
         try {
             return src.getCanonicalFile();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -119,8 +119,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             idGenerator.nextVariantId(),
             componentId,
             metadata,
-            idGenerator,
-            calculatedValueContainerFactory,
             dependencies,
             Collections.emptySet()
         );
@@ -179,8 +177,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             idGenerator.nextVariantId(),
             componentId,
             metadata,
-            idGenerator,
-            calculatedValueContainerFactory,
             dependencies,
             artifactSets.build()
         );
@@ -302,6 +298,8 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
             excludeBuilder.add(excludeRuleConverter.convertExcludeRule(excludeRule));
         }
+
+        configuration.markDependenciesObserved();
 
         return new DependencyState(dependencyBuilder.build(), fileBuilder.build(), excludeBuilder.build());
     }

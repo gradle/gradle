@@ -36,7 +36,6 @@ dependencies {
 
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
-    integTestImplementation(libs.joda)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

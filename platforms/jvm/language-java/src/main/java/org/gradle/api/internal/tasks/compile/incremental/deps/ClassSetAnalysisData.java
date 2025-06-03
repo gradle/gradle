@@ -24,7 +24,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;

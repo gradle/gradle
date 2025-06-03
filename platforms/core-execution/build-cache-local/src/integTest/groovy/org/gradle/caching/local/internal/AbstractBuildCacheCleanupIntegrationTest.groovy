@@ -65,24 +65,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
                 description = "Generates a 1MB file"
             }
         """
-    }
-
-    def withDeprecatedBuildCacheRetentionInDays(long period) {
-        settingsFile << """
-            buildCache {
-                local {
-                    removeUnusedEntriesAfterDays = ${period}
-                }
-            }
-        """
-    }
-
-    def expectRetentionMethodDeprecationWarning() {
-        executer.expectDocumentedDeprecationWarning(
-            "The DirectoryBuildCache.removeEntriesAfterDays property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#directory_build_cache_retention_deprecated"
-        )
+        requireOwnGradleUserHomeDir("Modifying cache settings in Gradle user home")
     }
 
     @ToBeFixedForConfigurationCache(because = "Cache is cleaned twice on load after store")
@@ -154,9 +137,6 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         if (buildCacheCleanup != null) {
             withBuildCacheRetentionInDays(buildCacheCleanup)
         }
-        if (deprecatedCacheCleanup != null) {
-            withDeprecatedBuildCacheRetentionInDays(deprecatedCacheCleanup)
-        }
 
         when:
         def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
@@ -164,9 +144,6 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
         createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(effectiveCleanup - 1))
         createBuildCacheEntry("2" * hashStringLength, oldTrashFile, daysAgo(effectiveCleanup + 1))
-        if (deprecatedCacheCleanup != null) {
-            expectRetentionMethodDeprecationWarning()
-        }
         run()
 
         then:
@@ -187,25 +164,18 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         assertCacheWasCleanedUpSince(lastCleanupCheck)
 
         where:
-        buildCacheCleanup | deprecatedCacheCleanup | effectiveCleanup | scenario
-        null              | null                   | 7                | "default period when not explicitly configured"
-        2                 | null                   | 2                | "configured period for build cache cleanup"
-        null              | 2                      | 2                | "configured period for deprecated build cache cleanup"
-        1                 | 10                     | 10               | "configured period for deprecated build cache cleanup when both are configured"
+        buildCacheCleanup | effectiveCleanup | scenario
+        null              | 7                | "default period when not explicitly configured"
+        2                 | 2                | "configured period for build cache cleanup"
     }
 
     def "produces reasonable message when cache retention is too short (#days days)"() {
-        settingsFile << """
-            buildCache {
-                local {
-                    removeUnusedEntriesAfterDays = ${days}
-                }
-            }
-        """
+        initializeHome()
+        withBuildCacheRetentionInDays(days)
+
         expect:
         runAndFail()
-        // TODO: Change name to Build cache, since Directory build cache is not the only cache now
-        failure.assertHasCause("Directory build cache needs to retain entries for at least a day.")
+        failure.assertHasDescription("Cache 'buildCache' cannot be set to retain entries for $days days.")
 
         where:
         days << [-1, 0]

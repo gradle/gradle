@@ -18,26 +18,18 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomRelocation;
 
 import javax.inject.Inject;
 
-public class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagementInternal {
+public abstract class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagementInternal {
 
     private final ObjectFactory objectFactory;
-    private final Property<String> downloadUrl;
     private MavenPomRelocation relocation;
 
     @Inject
     public DefaultMavenPomDistributionManagement(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        downloadUrl = objectFactory.property(String.class);
-    }
-
-    @Override
-    public Property<String> getDownloadUrl() {
-        return downloadUrl;
     }
 
     @Override

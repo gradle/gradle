@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -285,10 +284,6 @@ public abstract class ScalaDoc extends SourceTask {
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
-
-    @Inject
-    @Deprecated
-    protected abstract IsolatedAntBuilder getAntBuilder();
 
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();

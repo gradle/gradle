@@ -72,7 +72,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Input
     @ReplacesEagerProperty(
         replacedAccessors = @ReplacedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
     )
     Property<String> getMainClass();
 

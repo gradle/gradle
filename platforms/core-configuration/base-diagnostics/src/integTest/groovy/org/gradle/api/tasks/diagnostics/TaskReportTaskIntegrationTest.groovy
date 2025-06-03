@@ -445,6 +445,10 @@ b
         when:
         settingsFile << "rootProject.name = 'test-project'"
         buildFile """
+            plugins {
+                id 'component-model-base'
+            }
+
             model {
                 tasks {
                     create('a')

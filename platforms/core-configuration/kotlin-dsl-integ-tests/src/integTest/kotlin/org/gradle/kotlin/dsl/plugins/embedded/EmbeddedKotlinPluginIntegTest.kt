@@ -16,15 +16,10 @@
 
 package org.gradle.kotlin.dsl.plugins.embedded
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
-
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
@@ -52,7 +47,6 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `adds stdlib and reflect as compile only dependencies`() {
 
         withBuildScript(
@@ -70,11 +64,12 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
 
             tasks {
                 register("assertions") {
+                    val configurationsToCheck = listOf("compileOnlyClasspath", "testRuntimeClasspath").associate { Pair(it, configurations[it] as FileCollection) }
                     doLast {
                         val requiredLibs = listOf("kotlin-stdlib-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
-                        listOf("compileOnlyClasspath", "testRuntimeClasspath").forEach { configuration ->
-                            require(configurations[configuration].files.map { it.name }.containsAll(requiredLibs), {
-                                "Embedded Kotlin libraries not found in ${'$'}configuration"
+                        configurationsToCheck.forEach { (name, fileCollection) ->
+                            require(fileCollection.files.map { it.name }.containsAll(requiredLibs), {
+                                "Embedded Kotlin libraries not found in ${'$'}name"
                             })
                         }
                     }

@@ -43,7 +43,7 @@ data class VersionedSettingsBranch(
 
         private const val RELEASE_BRANCH = "release"
 
-        private const val EXPERIMENTAL_BRANCH = "experimental"
+        private const val EXPERIMENTAL_BRANCH = "xperimental"
 
         // master branch of gradle/gradle-promote
         private const val GRADLE_PROMOTE_MASTER_VCS_ROOT_ID = "Gradle_GradlePromoteMaster"

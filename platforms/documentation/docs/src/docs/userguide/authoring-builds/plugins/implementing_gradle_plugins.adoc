@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[implemention_plugins]]
-= Understanding Implementation Options for Plugins
+= Implementation Options for Plugins
 
 The choice between script, precompiled script, or binary plugins depends on your specific requirements and preferences.
 

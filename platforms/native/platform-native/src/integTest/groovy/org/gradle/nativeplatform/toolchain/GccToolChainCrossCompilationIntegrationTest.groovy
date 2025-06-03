@@ -31,10 +31,10 @@ class GccToolChainCrossCompilationIntegrationTest extends AbstractInstalledToolC
         buildFile << """
 apply plugin: 'c'
 
-model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         main(NativeExecutableSpec) {
             binaries.all {

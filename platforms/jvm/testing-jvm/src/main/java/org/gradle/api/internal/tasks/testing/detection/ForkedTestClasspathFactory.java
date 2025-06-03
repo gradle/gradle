@@ -85,12 +85,11 @@ public class ForkedTestClasspathFactory {
             moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-build-operations").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-problems-api").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-build-process-startup").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("commons-lang3").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("javax.inject").getImplementationClasspath().getAsURLs(),
             additionalImplementationClasspath
         ));

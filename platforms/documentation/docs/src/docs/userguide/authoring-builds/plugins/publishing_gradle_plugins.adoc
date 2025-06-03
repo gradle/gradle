@@ -18,6 +18,7 @@
 :plugin: Greeting Plugin
 :publishplugin: Plugin Publishing Plugin
 :plugin-reference-documentation: https://plugins.gradle.org/docs/publish-plugin[reference documentation of the {publishplugin}]
+:keywords: publish, publishing, plugin
 
 Publishing a plugin is the primary way to make it available for others to use.
 While you can publish to a private repository to restrict access, publishing to the https://plugins.gradle.org[{portal}] makes your plugin available to anyone in the world.
@@ -40,14 +41,14 @@ Follow the instructions on the https://plugins.gradle.org/user/register[registra
 
 image::plugin-portal-registration-page.png[]
 
-Store your API key in your Gradle configuration (gradle.publish.key and gradle.publish.secret) or use a plugin like Seauc Credentials plugin or Gradle Credentials plugin for secure management.
+Store your API key in your Gradle configuration (gradle.publish.key and gradle.publish.secret) or use a plugin like Seauc Credentials plugin for secure management.
 
 image::plugin-portal-api-keys.png[]
 
 It is common practice to copy and paste the text into your <<build_environment.adoc#sec:gradle_configuration_properties,$HOME/.gradle/gradle.properties>> file, but you can also place it in any other valid location.
 All the plugin requires is that the `gradle.publish.key` and `gradle.publish.secret` are available as project properties when the appropriate Plugin Portal tasks are executed.
 
-If you are concerned about placing your credentials in `gradle.properties`, check out the https://plugins.gradle.org/plugin/de.qaware.seu.as.code.credentials[Seauc Credentials plugin] or the https://plugins.gradle.org/plugin/nu.studer.credentials[Gradle Credentials plugin].
+If you are concerned about placing your credentials in `gradle.properties`, check out the https://plugins.gradle.org/plugin/de.qaware.seu.as.code.credentials[Seauc Credentials plugin].
 
 Alternatively, you can provide the API key via `GRADLE_PUBLISH_KEY` and `GRADLE_PUBLISH_SECRET` environment variables.
 This approach might be useful for CI/CD pipelines.

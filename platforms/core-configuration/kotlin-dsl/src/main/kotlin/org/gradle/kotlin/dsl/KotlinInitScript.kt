@@ -50,7 +50,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     ]
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10.0")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
 ) : @Suppress("DEPRECATION") InitScriptApi(host.target) {
@@ -75,6 +75,4 @@ abstract class KotlinInitScript(
     override val fileOperations
         get() = host.fileOperations
 
-    override val processOperations
-        get() = host.processOperations
 }

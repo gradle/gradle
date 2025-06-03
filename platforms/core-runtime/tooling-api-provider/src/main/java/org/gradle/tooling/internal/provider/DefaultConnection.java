@@ -22,7 +22,6 @@ import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
@@ -66,6 +65,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Implements the provider side of the tooling API.
+ *
+ * @see org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader
+ */
 @SuppressWarnings("deprecation")
 public class DefaultConnection implements ConnectionVersion4,
     ConfigurableConnection, InternalCancellableConnection, InternalParameterAcceptingConnection,
@@ -92,7 +96,6 @@ public class DefaultConnection implements ConnectionVersion4,
      */
     @Override
     public void configure(ConnectionParameters parameters) {
-        assertUsingSupportedJavaVersion();
         ProviderConnectionParameters providerConnectionParameters = new ProtocolToModelAdapter().adapt(ProviderConnectionParameters.class, parameters);
         File gradleUserHomeDir = providerConnectionParameters.getGradleUserHomeDir(null);
         if (gradleUserHomeDir == null) {
@@ -101,14 +104,6 @@ public class DefaultConnection implements ConnectionVersion4,
         initializeServices(gradleUserHomeDir);
         consumerVersion = GradleVersion.version(providerConnectionParameters.getConsumerVersion());
         connection.configure(providerConnectionParameters, consumerVersion);
-    }
-
-    private void assertUsingSupportedJavaVersion() {
-        try {
-            UnsupportedJavaRuntimeException.assertUsingSupportedDaemonVersion();
-        } catch (IllegalArgumentException e) {
-            LOGGER.warn(e.getMessage());
-        }
     }
 
     private void initializeServices(File gradleUserHomeDir) {
@@ -205,7 +200,6 @@ public class DefaultConnection implements ConnectionVersion4,
 
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
-        assertUsingSupportedJavaVersion();
 
         checkUnsupportedTapiVersion();
         ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);

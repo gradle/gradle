@@ -44,10 +44,16 @@ The items in this guide are meant to be _brief_, _understandable_, and _actionab
 
 == Best Practices
 
-- <<bp_general.adoc#best_practices_general,General Gradle Best Practices>>
-- <<bp_dependencies.adoc#best_practices_for_dependencies,Best Practices for Dependencies>>
-- <<bp_tasks.adoc#best_practices_for_tasks,Best Practices for Tasks>>
+- <<best_practices_general.adoc#best_practices_general,General Best Practices>>
+- <<best_practices_dependencies.adoc#best_practices_for_dependencies,Best Practices for Dependencies>>
+- <<best_practices_tasks.adoc#best_practices_for_tasks,Best Practices for Tasks>>
+- <<best_practices_performance.adoc#best_practices_for_performance,Best Practices for Performance>>
 
-== Further Reference
+== Other Advice
+
+- <<performance.adoc#performance_gradle, Improving the Performance of Gradle Builds>>
+- <<organizing_gradle_projects.adoc#sec:structuring_recommendations,Structuring Gradle Builds>>
+
+== References
 
 - <<tags_reference.adoc#tags_reference,Tags Used in Best Practices>>

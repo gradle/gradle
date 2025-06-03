@@ -17,9 +17,10 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.SupportedJavaVersions
 
 class ToolingApiClientMinJdkCompatibilityTest extends ToolingApiClientJdkCompatibilityTest {
     JavaVersion getClientJdkVersion() {
-        return JavaVersion.VERSION_1_8
+        return JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION)
     }
 }

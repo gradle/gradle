@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
@@ -36,7 +35,6 @@ import spock.lang.Unroll
 import java.nio.file.Files
 import java.util.stream.Collectors
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -104,7 +102,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build script classloader copies only non-cached jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
@@ -147,16 +144,18 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
             task showBuildscript {
                 doLast {
-                    showUrls(getClass().getClassLoader())
+                    UrlHelper.showUrls(getClass().getClassLoader())
                 }
             }
 
-            def showUrls(classloader) {
-                if (classloader instanceof java.net.URLClassLoader) {
-                    classloader.URLs.each { println ">>>" + it }
-                }
-                if (classloader.parent != null) {
-                    showUrls(classloader.parent)
+            class UrlHelper {
+                static def showUrls(classloader) {
+                    if (classloader instanceof java.net.URLClassLoader) {
+                        classloader.URLs.each { println ">>>" + it }
+                    }
+                    if (classloader.parent != null) {
+                        showUrls(classloader.parent)
+                    }
                 }
             }
         """
@@ -233,11 +232,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "cleans up unused cached entries in the Jars cache"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
+        requireOwnGradleUserHomeDir("needs its own journal")
         artifactBuilder().buildJar(file("repo/a-1.jar"))
 
         when:
@@ -275,7 +273,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
     def "cleans up unused versions of jars cache"() {
         given:
-        requireOwnGradleUserHomeDir() // messes with caches
+        requireOwnGradleUserHomeDir("messes with caches")
         def oldCacheDirs = [
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-1"),
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-2")
@@ -332,8 +330,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     @Requires(value = [
-        IntegTestPreconditions.Java8HomeAvailable,
-        IntegTestPreconditions.Java11HomeAvailable,
+        IntegTestPreconditions.Java21HomeAvailable,
+        IntegTestPreconditions.Java24HomeAvailable,
         IntegTestPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with specific predictable JDK versions")
     def "proper version is selected for multi-release jar"() {
@@ -346,7 +344,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 }
 
                 multiRelease {
-                    targetVersions 8, 11
+                    targetVersions 21, 24
                 }
             """
             file("src/main/java/org/gradle/test/mrjar/Foo.java") << """
@@ -358,12 +356,12 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                     }
                 }
             """
-            file("src/java11/java/org/gradle/test/mrjar/Foo.java") << """
+            file("src/java24/java/org/gradle/test/mrjar/Foo.java") << """
                 package org.gradle.test.mrjar;
 
                 public class Foo {
                     public static String getBar() {
-                        return "11";
+                        return "24";
                     }
                 }
             """
@@ -392,22 +390,22 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             }
         """)
 
-        def jdk8 = AvailableJavaHomes.getJdk8()
-        def jdk11 = AvailableJavaHomes.getJdk11()
+        def jdk21 = AvailableJavaHomes.getJdk21()
+        def jdk24 = AvailableJavaHomes.getJdk24()
 
         when:
-        executer.withJvm(jdk8).withArguments("-Porg.gradle.java.installations.paths=${jdk8.javaHome},${jdk11.javaHome}")
+        executer.withJvm(jdk21).withArguments("-Porg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
         succeeds("printFoo")
 
         then:
         outputContains("JAR = DEFAULT")
 
         when:
-        executer.withJvm(jdk11).withArguments("-Porg.gradle.java.installations.paths=${jdk8.javaHome},${jdk11.javaHome}")
+        executer.withJvm(jdk24).withArguments("-Porg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
         succeeds("printFoo")
 
         then:
-        outputContains("JAR = 11")
+        outputContains("JAR = 24")
     }
 
     def "class with #lambdaCount lambdas can be instrumented"() {
@@ -485,7 +483,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     @NotYetImplemented
     // Instrumentation with artifact transform doesn't support that yet
     def "transformation normalizes input jars before fingerprinting"() {
-        requireOwnGradleUserHomeDir() // inspects cached content
+        requireOwnGradleUserHomeDir("inspects cached content")
 
         given:
         def buildClassSource = '''
@@ -527,10 +525,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         getArtifactTransformJarsByName("instrumented/testClasses.jar").size() == 1
     }
 
-    void notInJarCache(String filename) {
-        inJarCache(filename, false)
-    }
-
     TestFile inJarCache(String filename, boolean shouldBeFound = true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
         assert fullpath.startsWith(jarsCacheDir.toURI().toString()) == shouldBeFound
@@ -569,15 +563,5 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         return Files.find(artifactTransformCacheDir.toPath(), Integer.MAX_VALUE, (path, attributes) -> normaliseFileSeparators(path.toString()).endsWith(jarName))
             .map { new TestFile(it.toFile()) }
             .collect(Collectors.toList())
-    }
-
-    private static boolean isCachedTransformedEntryDir(File cacheChild) {
-        return cacheChild.isDirectory() && !isCachedOriginalEntryDir(cacheChild)
-    }
-
-    private static boolean isCachedOriginalEntryDir(File cacheChild) {
-        // Cached original JARs live in directories named like o_cc87da7c824fed55002d15744c8fba93, where the name is the fingerprint of the original JAR with "o_" prefix.
-        // See CopyingClasspathFileTransformer.
-        return cacheChild.isDirectory() && cacheChild.name.startsWith("o_")
     }
 }

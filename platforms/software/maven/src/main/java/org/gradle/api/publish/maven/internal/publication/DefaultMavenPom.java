@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
@@ -36,7 +35,6 @@ import org.gradle.api.publish.maven.MavenPomMailingListSpec;
 import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
-import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.internal.MutableActionSet;
 
 import javax.inject.Inject;
@@ -46,8 +44,6 @@ import java.util.List;
 public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, MavenPomDeveloperSpec, MavenPomContributorSpec, MavenPomMailingListSpec {
 
     private final MutableActionSet<XmlProvider> xmlAction = new MutableActionSet<>();
-    private final ObjectFactory objectFactory;
-    private final MavenPublicationCoordinates mavenPublicationCoordinates;
     private final List<MavenPomLicense> licenses = new ArrayList<>();
     private MavenPomOrganization organization;
     private final List<MavenPomDeveloper> developers = new ArrayList<>();
@@ -59,10 +55,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     private final List<MavenPomMailingList> mailingLists = new ArrayList<>();
 
     @Inject
-    public DefaultMavenPom(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
-        this.mavenPublicationCoordinates = objectFactory.newInstance(MavenPublicationCoordinates.class);
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Override
     public void withXml(Action<? super XmlProvider> action) {
@@ -75,9 +68,6 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     }
 
     @Override
-    public abstract Property<Boolean> getWriteGradleMetadataMarker();
-
-    @Override
     public String getPackaging() {
         return getPackagingProperty().get();
     }
@@ -88,28 +78,13 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     }
 
     @Override
-    public abstract Property<String> getPackagingProperty();
-
-    @Override
-    public abstract Property<String> getName();
-
-    @Override
-    public abstract Property<String> getDescription();
-
-    @Override
-    public abstract Property<String> getUrl();
-
-    @Override
-    public abstract Property<String> getInceptionYear();
-
-    @Override
     public void licenses(Action<? super MavenPomLicenseSpec> action) {
         action.execute(this);
     }
 
     @Override
     public void license(Action<? super MavenPomLicense> action) {
-        configureAndAdd(DefaultMavenPomLicense.class, action, licenses);
+        configureAndAdd(MavenPomLicense.class, action, licenses);
     }
 
     @Override
@@ -120,7 +95,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void organization(Action<? super MavenPomOrganization> action) {
         if (organization == null) {
-            organization = objectFactory.newInstance(DefaultMavenPomOrganization.class, objectFactory);
+            organization = getObjectFactory().newInstance(MavenPomOrganization.class);
         }
         action.execute(organization);
     }
@@ -137,7 +112,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
 
     @Override
     public void developer(Action<? super MavenPomDeveloper> action) {
-        configureAndAdd(DefaultMavenPomDeveloper.class, action, developers);
+        configureAndAdd(MavenPomDeveloper.class, action, developers);
     }
 
     @Override
@@ -152,7 +127,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
 
     @Override
     public void contributor(Action<? super MavenPomContributor> action) {
-        configureAndAdd(DefaultMavenPomDeveloper.class, action, contributors);
+        configureAndAdd(MavenPomContributor.class, action, contributors);
     }
 
     @Override
@@ -168,7 +143,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void scm(Action<? super MavenPomScm> action) {
         if (scm == null) {
-            scm = objectFactory.newInstance(DefaultMavenPomScm.class, objectFactory);
+            scm = getObjectFactory().newInstance(MavenPomScm.class);
         }
         action.execute(scm);
     }
@@ -176,7 +151,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void issueManagement(Action<? super MavenPomIssueManagement> action) {
         if (issueManagement == null) {
-            issueManagement = objectFactory.newInstance(DefaultMavenPomProjectManagement.class, objectFactory);
+            issueManagement = getObjectFactory().newInstance(MavenPomIssueManagement.class);
         }
         action.execute(issueManagement);
     }
@@ -189,7 +164,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void ciManagement(Action<? super MavenPomCiManagement> action) {
         if (ciManagement == null) {
-            ciManagement = objectFactory.newInstance(DefaultMavenPomProjectManagement.class, objectFactory);
+            ciManagement = getObjectFactory().newInstance(MavenPomCiManagement.class);
         }
         action.execute(ciManagement);
     }
@@ -202,7 +177,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void distributionManagement(Action<? super MavenPomDistributionManagement> action) {
         if (distributionManagement == null) {
-            distributionManagement = objectFactory.newInstance(DefaultMavenPomDistributionManagement.class, objectFactory);
+            distributionManagement = getObjectFactory().newInstance(DefaultMavenPomDistributionManagement.class, getObjectFactory());
         }
         action.execute(distributionManagement);
     }
@@ -219,7 +194,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
 
     @Override
     public void mailingList(Action<? super MavenPomMailingList> action) {
-        configureAndAdd(DefaultMavenPomMailingList.class, action, mailingLists);
+        configureAndAdd(MavenPomMailingList.class, action, mailingLists);
     }
 
     @Override
@@ -228,18 +203,10 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     }
 
     @Override
-    public abstract MapProperty<String, String> getProperties();
-
-    @Override
-    public MavenPublicationCoordinates getCoordinates() {
-        return mavenPublicationCoordinates;
-    }
-
-    @Override
     public abstract Property<MavenPomDependencies> getDependencies();
 
     private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {
-        T item = objectFactory.newInstance(clazz, objectFactory);
+        T item = getObjectFactory().newInstance(clazz);
         action.execute(item);
         items.add(item);
     }

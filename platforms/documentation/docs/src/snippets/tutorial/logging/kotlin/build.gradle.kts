@@ -36,3 +36,13 @@ tasks.register("logInfo") {
     }
 }
 // end::task-capture-stdout[]
+
+// tag::task-log-stdout[]
+tasks.register("logtask") {
+    doLast {
+        logger.lifecycle("Lifecycle: Build progress info.")
+        logger.info("Info: Additional insights.")
+        logger.debug("Debug: Detailed troubleshooting info.")
+    }
+}
+// end::task-log-stdout[]

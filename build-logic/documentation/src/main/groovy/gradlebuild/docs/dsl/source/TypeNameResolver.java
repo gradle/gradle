@@ -18,7 +18,7 @@ package gradlebuild.docs.dsl.source;
 import gradlebuild.docs.dsl.source.model.ClassMetaData;
 import gradlebuild.docs.dsl.source.model.TypeMetaData;
 import gradlebuild.docs.model.ClassMetaDataRepository;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 
@@ -47,6 +47,7 @@ public class TypeNameResolver {
         primitiveTypes.add("float");
         primitiveTypes.add("double");
         primitiveTypes.add("void");
+        // TODO: sync with the documentation in writing_build_scripts.adoc
         groovyImplicitImportPackages.add("java.util.");
         groovyImplicitImportPackages.add("java.io.");
         groovyImplicitImportPackages.add("java.net.");

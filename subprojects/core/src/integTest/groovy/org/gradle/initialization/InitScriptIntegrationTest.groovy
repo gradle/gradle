@@ -16,17 +16,13 @@
 
 package org.gradle.initialization
 
-
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @LeaksFileHandles
 class InitScriptIntegrationTest extends AbstractIntegrationSpec {
@@ -83,7 +79,6 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Project hello evaluated")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def 'init script can contribute to settings - before and after'() {
         given:
         createDirs("sub1", "sub2")
@@ -105,10 +100,11 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
         executer.usingInitScript(file('init.gradle'))
 
-        buildFile << """
+        buildFile """
             task info {
+                def subprojectPaths = provider { subprojects.path.join(" - ") }
                 doLast {
-                    println "subprojects: " + subprojects.path.join(" - ")
+                    println "subprojects: " + subprojectPaths.get()
                 }
             }
         """
@@ -120,7 +116,6 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("subprojects: :sub1 - :sub2")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can apply settings plugin from init script"() {
         given:
         createDirs("sub1", "sub2")
@@ -160,10 +155,11 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
         executer.usingInitScript(file('init.gradle'))
 
-        buildFile << """
+        buildFile """
             task info {
+                def subprojectPaths = provider { subprojects.path.join(" - ") }
                 doLast {
-                    println "subprojects: " + subprojects.path.join(" - ")
+                    println "subprojects: " + subprojectPaths.get()
                 }
             }
         """

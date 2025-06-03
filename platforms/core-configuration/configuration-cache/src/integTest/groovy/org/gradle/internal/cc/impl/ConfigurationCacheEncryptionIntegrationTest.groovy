@@ -22,6 +22,7 @@ import groovy.transform.ToString
 import org.gradle.internal.encryption.impl.EncryptionKind
 import org.gradle.internal.encryption.impl.KeyStoreKeySource
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -31,6 +32,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermission
 import java.security.KeyStore
 import java.util.stream.Stream
 
@@ -320,6 +322,18 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         def keyStoreDirFiles = keyStoreDir.allDescendants()
         def keyStorePath = keyStoreDirFiles.find { it.endsWith('gradle.keystore') }
         assert !required || keyStorePath != null
-        return keyStorePath?.with { keyStoreDir.file(keyStorePath) }
+        def keystoreFile = keyStorePath?.with { keyStoreDir.file(keyStorePath) }
+        keystoreFile?.tap { assertKeystoreHasCorrectPermissions(it) }
+        return keystoreFile
+    }
+
+    protected void assertKeystoreHasCorrectPermissions(File keystoreFile) {
+        if (OperatingSystem.current().isWindows()) {
+            // no POSIX permissions on Windows
+            return
+        }
+        def actual = Files.getPosixFilePermissions(keystoreFile.toPath()).sort()
+        def expected = [PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE].sort()
+        assert actual == expected
     }
 }

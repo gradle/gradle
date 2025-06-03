@@ -265,65 +265,39 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         0 * _
     }
 
-    def "falls back to executing when immutable workspace has been tampered with"() {
+    def "fails when immutable workspace has been tampered with"() {
         def outputFile = immutableWorkspace.file("output.txt")
         outputFile.text = "output"
 
-        def originalOutputFileSnapshot = regularFile(outputFile.absolutePath, 1234L)
-        def inconsistentOutputFileSnapshot = regularFile(outputFile.absolutePath, 5678L)
-        def delegateOutputFileSnapshot = regularFile(outputFile.absolutePath, 9876L)
-
-        def inconsistentOutputFiles = ImmutableSortedMap.copyOf(
-            "outputDirectory": inconsistentOutputFileSnapshot
-        )
-
-        def originMetadata = Stub(OriginMetadata)
-
-        def delegateOutputFiles = ImmutableSortedMap.copyOf(
-            "outputDirectory": delegateOutputFileSnapshot
-        )
-        def delegateOutputState = Stub(ExecutionOutputState) {
-            getOriginMetadata() >> originMetadata
-            getOutputFilesProducedByWork() >> delegateOutputFiles
+        def originalWorkspaceSnapshot = directory(immutableWorkspace.absolutePath, [
+            regularFile(outputFile.absolutePath, 1234L)
+        ])
+        def originalWorkspaceMetadata = Stub(ImmutableWorkspaceMetadata) {
+            getOriginMetadata() >> Stub(OriginMetadata)
+            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", originalWorkspaceSnapshot.hash)
         }
-        def delegateResult = Stub(CachingResult) {
-            getExecution() >> Try.successful(Mock(ExecutionEngine.Execution))
-            getDuration() >> Duration.ofSeconds(1)
-            getAfterExecutionOutputState() >> Optional.of(delegateOutputState)
-        }
+        def tamperedWorkspaceSnapshot = directory(immutableWorkspace.absolutePath, [
+            regularFile(outputFile.absolutePath, 2345L)
+        ])
+        def tamperedOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
+            "output", tamperedWorkspaceSnapshot
+        )
 
         when:
         step.execute(work, context)
 
         then:
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(DirectorySnapshot) {
-            type >> FileType.Directory
-        }
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> tamperedWorkspaceSnapshot
+        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> tamperedOutputs
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> originalWorkspaceMetadata
 
         then:
-        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> inconsistentOutputFiles
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Stub(ImmutableWorkspaceMetadata) {
-            getOriginMetadata() >> originMetadata
-            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", originalOutputFileSnapshot.hash)
-        }
-
-        then:
-        1 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath])
-        // This is where the inconsistent immutable workspace will be moved to
-        1 * fileSystemAccess.invalidate([secondTemporaryWorkspace.absolutePath])
-
-        then: "fallback to executing the work"
-        1 * delegate.execute(work, _ as WorkspaceContext) >> delegateResult
-
-        then:
-        1 * immutableWorkspaceMetadataStore.storeWorkspaceMetadata(secondTemporaryWorkspace, _) >> { File workspace, ImmutableWorkspaceMetadata metadata ->
-            metadata.originMetadata == originMetadata
-        }
-
-        then:
-        1 * fileSystemAccess.moveAtomically(secondTemporaryWorkspace.absolutePath, immutableWorkspace.absolutePath)
-
-        then:
-        0 * _
+        def ex = thrown IllegalStateException
+        ex.message.trim() == """
+            The contents of the immutable workspace '${immutableWorkspace.absolutePath}' have been modified. These workspace directories are not supposed to be modified once they are created. The modification might have been caused by an external process, or could be the result of disk corruption.
+            output:
+             - immutable-workspace (Directory, 81e73263e0f667c2cbec4e2af9fcc55f)
+               - output.txt (RegularFile, 29090000000000000000000000000000)
+            """.stripIndent().trim()
     }
 }

@@ -20,7 +20,11 @@ plugins {
 
 description = "Logging API"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(libs.slf4jApi)

@@ -29,6 +29,14 @@ class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
+    def setup() {
+        buildFile << """
+            plugins {
+                id 'model-reporting-tasks'
+            }
+        """
+    }
+
     def "includes a relative path to the build script"() {
         given:
         buildFile << """
@@ -46,7 +54,7 @@ model {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "numbers(Numbers) { ... } @ build.gradle line 9, column 5"
+        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "numbers(Numbers) { ... } @ build.gradle line 13, column 5"
     }
 
     def "can find the relative path to a custom named build script"() {
@@ -56,6 +64,10 @@ model {
             rootProject.buildFileName = "why.gradle"
         """
         renamed << """
+plugins {
+    id 'model-reporting-tasks'
+}
+
 ${managedNumbers()}
 
 model {
@@ -70,7 +82,7 @@ model {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "numbers(Numbers) { ... } @ why.gradle line 9, column 5"
+        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "numbers(Numbers) { ... } @ why.gradle line 13, column 5"
     }
 
     def "can find the relative path when model configuration is applied from a local script inside the root dir"() {
@@ -113,7 +125,11 @@ model {
         }
 """
 
-        buildDir.file("build.gradle") << "apply from: '${normaliseFileSeparators(modelFile.getAbsolutePath())}'"
+        buildDir.file("build.gradle") << """
+            apply plugin: 'model-reporting-tasks'
+            apply from: '${normaliseFileSeparators(modelFile.getAbsolutePath())}'
+        """
+
         when:
         executer.inDirectory(buildDir)
         run "model"

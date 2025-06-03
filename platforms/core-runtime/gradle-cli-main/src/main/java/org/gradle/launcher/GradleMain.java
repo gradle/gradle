@@ -16,8 +16,6 @@
 
 package org.gradle.launcher;
 
-import org.gradle.api.internal.jvm.JavaVersionParser;
-import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.launcher.bootstrap.ProcessBootstrap;
 
 /**
@@ -25,16 +23,6 @@ import org.gradle.launcher.bootstrap.ProcessBootstrap;
  */
 public class GradleMain {
     public static void main(String[] args) throws Exception {
-        int currentMajorJavaVersion = JavaVersionParser.parseCurrentMajorVersion();
-        if (currentMajorJavaVersion < SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION) {
-            System.err.printf(
-                "Gradle requires JVM %d or later to run. You are currently using JVM %d.%n",
-                SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION,
-                currentMajorJavaVersion
-            );
-            System.exit(1);
-        }
-
         ProcessBootstrap.run(GradleMain.class.getName(), "gradle-gradle-cli", "org.gradle.launcher.Main", args);
     }
 }

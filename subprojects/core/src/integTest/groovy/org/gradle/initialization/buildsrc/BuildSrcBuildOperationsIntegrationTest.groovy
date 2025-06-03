@@ -32,8 +32,6 @@ import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 
 import java.util.regex.Pattern
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     BuildOperationsFixture ops
     def setup() {
@@ -41,7 +39,7 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "Emits extra TaskGraph build operations when loading after store")
     def "includes build identifier in build operations with #display"() {
         when:
         file("buildSrc/settings.gradle") << settings << "\n"

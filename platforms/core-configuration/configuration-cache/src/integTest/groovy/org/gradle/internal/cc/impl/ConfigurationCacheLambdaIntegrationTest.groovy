@@ -148,6 +148,7 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
 
         then:
         fixture.assertStateStoredAndDiscarded {
+            loadsAfterStore = false
             [Configuration.class, SourceDirectorySet.class].each {
                 serializationProblem(
                     "Task `:ok` of type `my.LambdaTask`: cannot serialize a lambda that captures or accepts a parameter of type '" +

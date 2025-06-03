@@ -20,6 +20,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.file.FileSystem
 import java.io.File
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
@@ -31,7 +32,8 @@ class KeyStoreKeySource(
     val encryptionAlgorithm: String,
     val customKeyStoreDir: File?,
     val keyAlias: String,
-    val cacheBuilderFactory: GlobalScopedCacheBuilderFactory
+    val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+    val fileSystem: FileSystem
 ) : SecretKeySource {
 
     private
@@ -83,6 +85,7 @@ class KeyStoreKeySource(
         val entry = KeyStore.SecretKeyEntry(newKey)
         keyStore.setEntry(alias, entry, keyProtection)
         keyStoreFile.outputStream().use { fos ->
+            fileSystem.chmod(keyStoreFile, KEYSTORE_FILE_PERMISSIONS)
             keyStore.store(fos, KEYSTORE_PASSWORD)
         }
         return newKey
@@ -122,6 +125,8 @@ class KeyStoreKeySource(
     companion object {
         // JKS does not support non-PrivateKeys
         const val KEYSTORE_TYPE = "pkcs12"
-        val KEYSTORE_PASSWORD = charArrayOf('c', 'c')
+        private val KEYSTORE_PASSWORD = charArrayOf('c', 'c')
+        // Keystore should only be readable by owner
+        private val KEYSTORE_FILE_PERMISSIONS = "0600".toInt(8)
     }
 }

@@ -38,9 +38,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
                 // clear the classpath to avoid file locking issues on PMD version < 5.5.1
                 classpath = files()
             }"""}
-
-            ${requiredSourceCompatibility()}
-        """.stripIndent()
+        """
     }
 
     def "incremental analysis cache file is not generated with incremental analysis disabled"() {

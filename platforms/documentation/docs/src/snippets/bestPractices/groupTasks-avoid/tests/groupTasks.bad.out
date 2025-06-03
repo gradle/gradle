@@ -1,0 +1,15 @@
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+compileTestJava - Compiles test Java source.
+generateDocs
+processResources - Processes main resources.
+processTestResources - Processes test resources.
+startScripts - Creates OS specific scripts to run the project as a JVM application.

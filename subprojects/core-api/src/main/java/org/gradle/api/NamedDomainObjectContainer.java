@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.Configurable;
 
@@ -32,6 +33,7 @@ import org.gradle.util.Configurable;
  *
  * @param <T> The type of objects in this container.
  */
+@ManagedType
 public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, Configurable<NamedDomainObjectContainer<T>> {
 
     /**

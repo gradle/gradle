@@ -35,7 +35,7 @@ These collection types are used for managing collections of objects, particularl
 These types are commonly used in Gradle plugins and build scripts to manage collections of objects, such as tasks, configurations, or custom domain objects.
 
 [[domainobjectset]]
-== 1. `DomainObjectSet`
+== `DomainObjectSet`
 
 A link:{javadocPath}/org/gradle/api/DomainObjectSet.html[`DomainObjectSet`] simply holds a set of configurable objects.
 
@@ -50,7 +50,7 @@ include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[
 ====
 
 [[nameddomainobjectset]]
-== 2. `NamedDomainObjectSet`
+== `NamedDomainObjectSet`
 
 A link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html[`NamedDomainObjectSet`] holds a set of configurable objects, where each element has a name associated with it.
 
@@ -65,7 +65,7 @@ include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[
 ====
 
 [[nameddomainobjectlist]]
-== 3. `NamedDomainObjectList`
+== `NamedDomainObjectList`
 
 A link:{javadocPath}/org/gradle/api/NamedDomainObjectList.html[`NamedDomainObjectList`] holds a list of configurable objects, where each element has a name associated with it.
 
@@ -80,7 +80,7 @@ include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[
 ====
 
 [[nameddomainobjectcontainer]]
-== 4. `NamedDomainObjectContainer`
+== `NamedDomainObjectContainer`
 
 A link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[`NamedDomainObjectContainer`] manages a set of objects, where each element has a name associated with it.
 
@@ -133,7 +133,7 @@ include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/build.gradle[]
 ====
 
 [[extensiblepolymorphicdomainobjectcontainer]]
-== 5. `ExtensiblePolymorphicDomainObjectContainer`
+== `ExtensiblePolymorphicDomainObjectContainer`
 
 An link:{javadocPath}/org/gradle/api/ExtensiblePolymorphicDomainObjectContainer.html[ExtensiblePolymorphicDomainObjectContainer] is a `NamedDomainObjectContainer` that allows you to
 define instantiation strategies for different types of objects.

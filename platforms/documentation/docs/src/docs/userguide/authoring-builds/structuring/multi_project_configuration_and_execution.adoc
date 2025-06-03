@@ -46,7 +46,7 @@ To configure on demand for a given build, see <<command_line_interface.adoc#sec:
 == Decoupled projects
 
 Gradle allows projects to access each other's configurations and tasks during the configuration and execution phases.
-While this flexibility empowers build authors, it limits Gradle's ability to perform optimizations such as <<#sec:mp_parallel_execution,parallel project builds>> and <<#configuration_and_execution,configuration on demand>>.
+While this flexibility empowers build authors, it limits Gradle's ability to perform optimizations such as <<#sec:parallel_execution,parallel project builds>> and <<#configuration_and_execution,configuration on demand>>.
 
 Projects are considered decoupled when they interact solely through declared dependencies and task dependencies.
 Any direct modification or reading of another project's object creates coupling between the projects.
@@ -61,7 +61,7 @@ To avoid coupling issues, it's recommended to:
 
 As Gradle evolves, it aims to provide features that leverage decoupled projects while offering solutions for common use cases like configuration injection without introducing coupling.
 
-[[sec:mp_parallel_execution]]
+[[sec:parallel_execution]]
 == Parallel projects
 
 Gradle's parallel execution feature optimizes CPU utilization to accelerate builds by concurrently executing tasks from different projects.

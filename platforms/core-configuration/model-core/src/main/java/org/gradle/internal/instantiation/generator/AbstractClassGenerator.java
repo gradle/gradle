@@ -31,26 +31,18 @@ import groovy.lang.GroovyObject;
 import groovy.lang.MetaClass;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.IsolatedAction;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
@@ -110,26 +102,6 @@ import static org.gradle.api.internal.GeneratedSubclasses.unpack;
  * </ul>
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
-    /**
-     * Types that are allowed to be instantiated directly by Gradle when exposed as a getter on a type.
-     *
-     * @implNote Keep in sync with platforms/documentation/docs/src/docs/userguide/authoring-builds/gradle-properties/properties_providers.adoc
-     * @see ManagedObjectFactory#newInstance
-     */
-    private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(
-        ConfigurableFileCollection.class,
-        ConfigurableFileTree.class,
-        ListProperty.class,
-        SetProperty.class,
-        MapProperty.class,
-        RegularFileProperty.class,
-        DirectoryProperty.class,
-        Property.class,
-        NamedDomainObjectContainer.class,
-        ExtensiblePolymorphicDomainObjectContainer.class,
-        DomainObjectSet.class,
-        DependencyCollector.class
-    );
 
     private static final ImmutableSet<Class<? extends Annotation>> NESTED_ANNOTATION_TYPES = ImmutableSet.of(
         Nested.class,
@@ -408,7 +380,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isManagedProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || hasNestedAnnotation(property));
+        return property.isReadableWithoutSetterOfPropertyType() && (property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property));
     }
 
     private static boolean hasNestedAnnotation(PropertyMetadata property) {
@@ -1056,9 +1028,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyTo(ClassGenerationVisitor visitor) {
             boolean addExtensionProperty = extensible && !hasExtensionAwareImplementation;
             boolean mixInConventionAware = conventionAware && !IConventionAware.class.isAssignableFrom(type);
-            if (addExtensionProperty || mixInConventionAware) {
-                visitor.addNoDeprecationConventionPrivateGetter();
-            }
             if (addExtensionProperty) {
                 visitor.addExtensionsProperty();
             }
@@ -1515,8 +1484,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void mixInDynamicAware();
 
-        void addNoDeprecationConventionPrivateGetter();
-
         void mixInConventionAware();
 
         void mixInGroovyObject();
@@ -1592,17 +1559,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     // To remove this deprecation, we need to do a few things:
                     // 1. We should no longer recognize isXXX for anything that is not explicitly boolean (primitive type)
                     // 2. We should be able to remove this validator completely. We do not need to make this an error.
-                    //
-                    // If we do not upgrade to Groovy 4 in Gradle 9, we can still remove this deprecation and drop support for these types of properties.
-
-                    DeprecationLogger.deprecateAction("Declaring an 'is-' property with a Boolean type")
+                    // See PropertyAccessorType, BeanDynamicObject and DefaultTypeAnnotationMetadataStore for similar special handling
+                    DeprecationLogger.deprecateAction("Declaring '" + property.getName() + "' as a property using an 'is-' method with a Boolean type on " + method.getDeclaringClass().getCanonicalName())
+                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules.")
                         .withAdvice(String.format(
                             "Add a method named '%s' with the same behavior and mark the old one with @Deprecated, or change the type of '%s.%s' (and the setter) to 'boolean'.",
                             method.getName().replace("is", "get"),
                             method.getDeclaringClass().getCanonicalName(), method.getName()
                         ))
-                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy.")
-                        .startingWithGradle9("this property will be ignored by Gradle")
+                        .startingWithGradle10("this property will no longer be treated like a property")
                         .withUpgradeGuideSection(8, "groovy_boolean_properties")
                         .nagUser();
                 }

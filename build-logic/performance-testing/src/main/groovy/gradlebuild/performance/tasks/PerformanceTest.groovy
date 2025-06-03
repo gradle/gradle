@@ -20,6 +20,10 @@ import com.google.common.collect.Sets
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.PerformanceTestService
 import gradlebuild.performance.ScenarioBuildResultData
+import gradlebuild.performance.junit4.JUnit4Failure
+import gradlebuild.performance.junit4.JUnit4Testcase
+import gradlebuild.performance.junit4.JUnit4Testsuite
+import gradlebuild.performance.junit4.SecureUnmarshaller
 import gradlebuild.performance.reporter.PerformanceReporter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
@@ -42,13 +46,9 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.process.CommandLineArgumentProvider
-import org.openmbee.junit.JUnitMarshalling
-import org.openmbee.junit.model.JUnitFailure
-import org.openmbee.junit.model.JUnitTestCase
-import org.openmbee.junit.model.JUnitTestSuite
 
 import javax.annotation.Nullable
-import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 
 /**
  * A test that checks execution time and memory consumption.
@@ -270,31 +270,39 @@ abstract class PerformanceTest extends DistributionTest {
 
     void generateResultsJson() {
         Collection<File> xmls = reports.junitXml.outputLocation.get().asFile.listFiles().findAll { it.path.endsWith(".xml") }
+        FileUtils.write(resultsJson, JsonOutput.toJson(parseJUnitReports(xmls)), StandardCharsets.UTF_8)
+    }
+
+
+    List<ScenarioBuildResultData> parseJUnitReports(Collection<File> xmls) {
+        SecureUnmarshaller secureUnmarshaller = new SecureUnmarshaller()
         List<ScenarioBuildResultData> resultData = xmls
-            .collect { JUnitMarshalling.unmarshalTestSuite(new FileInputStream(it)) }
-            .collect { extractResultFromTestSuite(it, getTestProjectName().get()) }
+            .collect { xml -> secureUnmarshaller.unmarshal(xml) }
+            .collect {it.collect { extractResultFromTestSuite(it, getTestProjectName().get()) } }
             .flatten() as List<ScenarioBuildResultData>
-        FileUtils.write(resultsJson, JsonOutput.toJson(resultData), Charset.defaultCharset())
+        return resultData
     }
 
-    static String collectFailures(JUnitTestCase testCase) {
-        List<JUnitFailure> failures = testCase.failures ?: []
-        return failures.collect { it.value }.join("\n")
+    static String collectFailures(JUnit4Testcase testCase) {
+        List<JUnit4Failure> failures = testCase.failure ?: []
+        return failures.collect { it.content }.join("\n")
     }
 
-    private List<ScenarioBuildResultData> extractResultFromTestSuite(JUnitTestSuite testSuite, String testProject) {
-        List<JUnitTestCase> testCases = testSuite.testCases ?: []
+    private List<ScenarioBuildResultData> extractResultFromTestSuite(JUnit4Testsuite testSuite, String testProject) {
+        def agentName = System.getenv("BUILD_AGENT_NAME") ?: null
+
+        List<JUnit4Testcase> testCases = testSuite.testcase ?: []
         return testCases.findAll { !it.skipped }.collect {
-            def agentName = System.getenv("BUILD_AGENT_NAME") ?: null
             new ScenarioBuildResultData(
                 scenarioName: it.name,
-                scenarioClass: it.className,
+                scenarioClass: it.classname,
                 testProject: testProject,
                 webUrl: TC_URL + buildId,
                 teamCityBuildId: buildId,
                 agentName: agentName,
-                status: (it.errors || it.failures) ? "FAILURE" : "SUCCESS",
-                testFailure: collectFailures(it))
+                status: (it.error || it.failure) ? "FAILURE" : "SUCCESS",
+                testFailure: collectFailures(it)
+            )
         }
     }
 

@@ -38,7 +38,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.*
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -556,6 +556,28 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 'propertyName' : 'bean'
             ]
         }
+    }
+
+    def "deprecate warning about trying to use custom FileNormalizer"() {
+        buildFile << """
+            interface CustomFileNormalizer extends FileNormalizer {
+            }
+
+            task customTask {
+                inputs.dir('foo')
+                    .withPropertyName('inputDir')
+                    .withNormalizer(CustomFileNormalizer)
+                outputs.file('outputDir')
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+        disableProblemsApiCheck()
+        createDir('foo')
+        expect:
+        executer.expectDocumentedDeprecationWarning("Setting normalizer of type 'CustomFileNormalizer' on property 'inputDir'. This behavior has been deprecated. This will fail with an error in Gradle 10.0.")
+        succeeds("customTask")
     }
 
     def "properly captures all attributes"() {

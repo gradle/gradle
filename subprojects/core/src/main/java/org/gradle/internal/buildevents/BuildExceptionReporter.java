@@ -16,7 +16,7 @@
 package org.gradle.internal.buildevents;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -59,7 +59,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static java.lang.String.join;
-import static org.apache.commons.lang.StringUtils.repeat;
+import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.gradle.api.logging.LogLevel.DEBUG;
 import static org.gradle.api.logging.LogLevel.INFO;
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption.LONG_OPTION;

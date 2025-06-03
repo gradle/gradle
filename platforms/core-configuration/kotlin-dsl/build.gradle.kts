@@ -23,6 +23,7 @@ dependencies {
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
+    api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
@@ -51,14 +52,12 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)
-    implementation(projects.normalizationJava)
-    implementation(projects.persistentCache)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)
+    implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
-    implementation(projects.wrapperShared)
 
     implementation("org.gradle:java-api-extractor")
     implementation("org.gradle:kotlin-dsl-shared-runtime")
@@ -93,6 +92,10 @@ dependencies {
         isTransitive = false
     }
     shadow("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0") {
+        isTransitive = false
+    }
+
+    runtimeOnly(libs.kotlinBuildToolsImpl) {
         isTransitive = false
     }
 

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -45,6 +46,7 @@ import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTestExecutable, ConfigurableComponentWithExecutable {
+    private final ProjectLayout projectLayout;
     private final Provider<CppComponent> testedComponent;
     private final RegularFileProperty executableFile;
     private final Property<Task> executableFileProducer;
@@ -56,8 +58,9 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppTestExecutable(Names names, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, RoleBasedConfigurationContainerInternal configurations, ObjectFactory objects) {
+    public DefaultCppTestExecutable(Names names, ProjectLayout projectLayout, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, RoleBasedConfigurationContainerInternal configurations, ObjectFactory objects) {
         super(names, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+        this.projectLayout = projectLayout;
         this.testedComponent = testedComponent;
         this.executableFile = objects.fileProperty();
         this.executableFileProducer = objects.property(Task.class);
@@ -112,12 +115,12 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     @Override
     public FileCollection getCompileIncludePath() {
         // TODO: This should be modeled differently, perhaps as a dependency on the implementation configuration
-        return super.getCompileIncludePath().plus(getProjectLayout().files(new Callable<FileCollection>() {
+        return super.getCompileIncludePath().plus(projectLayout.files(new Callable<FileCollection>() {
             @Override
             public FileCollection call() {
                 CppComponent tested = testedComponent.getOrNull();
                 if (tested == null) {
-                    return getProjectLayout().files();
+                    return projectLayout.files();
                 }
                 return ((DefaultCppComponent) tested).getAllHeaderDirs();
             }

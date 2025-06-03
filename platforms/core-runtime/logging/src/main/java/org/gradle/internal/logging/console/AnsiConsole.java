@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.io.Flushable;
@@ -56,7 +56,7 @@ public class AnsiConsole implements Console {
         try {
             flushable.flush();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

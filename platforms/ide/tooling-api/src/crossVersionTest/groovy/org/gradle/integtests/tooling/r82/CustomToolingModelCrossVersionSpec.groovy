@@ -76,9 +76,7 @@ class CustomPlugin implements Plugin<Project> {
         withBuildScriptIn("d")
         withBuildScriptIn("e")
 
-        settingsFile << """
-include 'a', 'b', 'c', 'd', 'e'
-"""
+        includeProjects("a", "b", "c", "d", "e")
     }
 
     @ToolingApiVersion(">=8.0 <8.2")

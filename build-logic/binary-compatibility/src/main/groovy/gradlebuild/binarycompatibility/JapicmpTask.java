@@ -192,7 +192,7 @@ public abstract class JapicmpTask extends DefaultTask {
     private Configuration resolveKotlinCompilerEmbeddable() {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
-        String kotlinVersion = new ExternalModulesExtension(true) {}.getKotlinVersion();
+        String kotlinVersion = new ExternalModulesExtension(4) {}.getKotlinVersion();
         return project.getConfigurations().detachedConfiguration(
             dependencies.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:" + kotlinVersion)
         );

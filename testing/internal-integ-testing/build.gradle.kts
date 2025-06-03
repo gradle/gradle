@@ -84,7 +84,6 @@ dependencies {
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
-    implementation(projects.buildProcessStartup)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.cli)
@@ -107,15 +106,15 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)
+    implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
 
     implementation(testFixtures(projects.buildOperations))
-    implementation(testFixtures(projects.buildProcessStartup))
+    implementation(testFixtures(projects.buildProcessServices))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)
     implementation(libs.commonsLang)
-    implementation(libs.commonsLang3)
     implementation(libs.commonsIo)
     implementation(libs.groovyJson)
     implementation(libs.httpcore)
@@ -174,11 +173,11 @@ packageCycles {
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
     destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
-    versions = moduleIdentity.releasedVersions.map {
+    versions = gradleModule.identity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
     }
-    mostRecent = moduleIdentity.releasedVersions.map { it.mostRecentRelease.version }
-    mostRecentSnapshot = moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version }
+    mostRecent = gradleModule.identity.releasedVersions.map { it.mostRecentRelease.version }
+    mostRecentSnapshot = gradleModule.identity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
 val copyTestedVersionsInfo by tasks.registering(Copy::class) {

@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
@@ -146,6 +148,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         assertWorkerExecuted("runInDaemon")
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "worker daemons honor different executable specified in fork options"() {
         def differentJvm = AvailableJavaHomes.differentJdkWithValidJre
         Assume.assumeNotNull(differentJvm)

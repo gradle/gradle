@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers
@@ -677,16 +676,19 @@ project(':common') {
 
         buildFile << """
             def flavor = Attribute.of('flavor', String)
+            def selectable = Attribute.of('selectable', String)
 
             allprojects {
                 configurations {
                     outgoing.outgoing.variants {
                         one {
                             attributes.attribute(flavor, 'bland')
+                            attributes.attribute(selectable, 'yes')
                             artifact(producer.output)
                         }
                         two {
                             attributes.attribute(flavor, 'cloying')
+                            attributes.attribute(selectable, 'no')
                         }
                     }
                 }
@@ -706,6 +708,7 @@ project(':common') {
                     attributes {
                         it.attribute(color, 'green')
                         it.attribute(flavor, 'tasty')
+                        it.attribute(selectable, 'yes')
                     }
                 }.files
 
@@ -740,7 +743,6 @@ project(':common') {
         failure.assertHasCause("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project :lib:")
 
         when:
-        2.times { executer.expectDeprecationWarning("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. ") }
         run("app:resolveView")
 
         then:
@@ -750,10 +752,8 @@ project(':common') {
         )
         outputContains("result = [app.txt, lib.jar.txt, common.jar.txt]")
 
+
         when:
-        if (!GradleContextualExecuter.isConfigCache()) {
-            2.times { executer.expectDeprecationWarning("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. ") }
-        }
         run("app:resolveView")
 
         then:

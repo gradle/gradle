@@ -22,7 +22,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention").version("0.10.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
 dependencyResolutionManagement {
@@ -33,13 +33,6 @@ dependencyResolutionManagement {
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
                 includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
-            }
-        }
-        maven {
-            name = "Gradle public repository"
-            url = uri("https://repo.gradle.org/gradle/public")
-            content {
-                includeModule("org.openmbee.junit", "junit-xml-parser")
             }
         }
         mavenCentral()

@@ -14,6 +14,7 @@
 
 [[init_scripts]]
 = Initialization Scripts
+:keywords: init, init.gradle
 
 Initialization scripts are scripts that run before the build script is executed.
 They allow you to customize the build environment or configure settings early in the build.

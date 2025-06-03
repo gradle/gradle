@@ -1,3 +1,7 @@
+plugins {
+    id 'model-reporting-tasks'
+    id 'component-reporting-tasks'
+}
 // tag::managed-type-plugin-and-dsl[]
 // tag::managed-type-and-plugin[]
 // tag::managed-type[]

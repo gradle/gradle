@@ -220,8 +220,8 @@
                     </div>
                 </section>
                 <section class="site-footer__subscribe-newsletter" id="newsletter-form-container">
-                    <header class="newsletter-form__header"><h5>Stay <code>UP-TO-DATE</code> on new features and news</h5></header>
-                    <p class="disclaimer">By entering your email, you agree to our <a href="https://gradle.org/terms/">Terms</a> and <a href="https://gradle.org/privacy/">Privacy Policy</a>, including receipt of emails. You can unsubscribe at any time.</p>
+                    <header class="newsletter-form__header"><h5>Stay <code>UP-TO-DATE</code> on new features and news:</h5></header>
+                    <p class="disclaimer">By entering your email, you agree to our <a href="https://gradle.org/terms/">Terms</a> and <a href="https://gradle.org/privacy/">Privacy Policy</a>.</p>
                     <div class="newsletter-form__container">
                         <form id="newsletter-form" class="newsletter-form" action="https://go.gradle.com/l/68052/2018-09-07/bk6wml" method="post">
                             <input id="email" class="email" name="email" type="email" placeholder="name@email.com" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" maxlength="255" required=""/>

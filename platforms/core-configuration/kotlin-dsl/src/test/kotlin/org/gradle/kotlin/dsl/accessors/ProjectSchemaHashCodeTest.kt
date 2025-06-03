@@ -217,7 +217,7 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
     }
 
     @Test
-    fun `hash code distinguishes between extensions, conventions and container elements`() {
+    fun `hash code distinguishes between extensions and container elements`() {
 
         val entries = listOf(
             entry<TaskContainer, String>("tag")
@@ -226,32 +226,6 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
         assertThat(
             hashCodeFor(
                 extensions = entries
-            ),
-            not(
-                equalTo(
-                    hashCodeFor(
-                        conventions = entries
-                    )
-                )
-            )
-        )
-
-        assertThat(
-            hashCodeFor(
-                extensions = entries
-            ),
-            not(
-                equalTo(
-                    hashCodeFor(
-                        containerElements = entries
-                    )
-                )
-            )
-        )
-
-        assertThat(
-            hashCodeFor(
-                conventions = entries
             ),
             not(
                 equalTo(
@@ -266,14 +240,12 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
     private
     fun hashCodeFor(
         extensions: TypedProjectSchemaEntryList = emptyList(),
-        conventions: TypedProjectSchemaEntryList = emptyList(),
         tasks: TypedProjectSchemaEntryList = emptyList(),
         containerElements: TypedProjectSchemaEntryList = emptyList(),
         configurations: List<String> = emptyList()
     ) = hashCodeFor(
         projectSchemaWith(
             extensions = extensions,
-            conventions = conventions,
             tasks = tasks,
             containerElements = containerElements,
             configurations = configurations

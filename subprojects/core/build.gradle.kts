@@ -18,16 +18,20 @@ tasks.classpathManifest {
 
 // Instrumentation interceptors for tests
 // Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
-sourceSets {
-    val testInterceptors = create("testInterceptors") {
-        compileClasspath += sourceSets.main.get().output
-        runtimeClasspath += sourceSets.main.get().output
-    }
-    getByName("test") {
-        compileClasspath += testInterceptors.output
-        runtimeClasspath += testInterceptors.output
+val testInterceptors = sourceSets.create("testInterceptors") {
+    compileClasspath += sourceSets.main.get().output
+    runtimeClasspath += sourceSets.main.get().output
+}
+sourceSets.test {
+    compileClasspath += testInterceptors.output
+    runtimeClasspath += testInterceptors.output
+}
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(testInterceptors.name)
     }
 }
+
 val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
@@ -116,19 +120,16 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
-    implementation(projects.buildProcessStartup)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.wrapperShared)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.commonsLang3)
     implementation(libs.errorProneAnnotations)
     implementation(libs.fastutil)
     implementation(libs.groovyAnt)
@@ -147,12 +148,10 @@ dependencies {
 
     // Libraries that are not used in this project but required in the distribution
     runtimeOnly(libs.groovyAstbuilder)
-    runtimeOnly(libs.groovyConsole)
     runtimeOnly(libs.groovyDateUtil)
     runtimeOnly(libs.groovyDatetime)
     runtimeOnly(libs.groovyDoc)
     runtimeOnly(libs.groovyNio)
-    runtimeOnly(libs.groovySql)
 
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)

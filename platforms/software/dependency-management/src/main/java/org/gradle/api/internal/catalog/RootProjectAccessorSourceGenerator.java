@@ -16,9 +16,9 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 
 public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessorsSourceGenerator {
@@ -36,7 +36,7 @@ public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessors
         try {
             generator.generate(packageName, ROOT_PROJECT_ACCESSOR_CLASSNAME, root);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

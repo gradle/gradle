@@ -23,6 +23,13 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 class ModelReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "should display the model report task options"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'model-reporting-tasks'
+            }
+        """
+        
         when:
         run "help", "--task", "model"
 

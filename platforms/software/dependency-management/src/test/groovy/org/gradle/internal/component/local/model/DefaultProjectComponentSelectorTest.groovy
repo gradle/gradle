@@ -16,12 +16,12 @@
 package org.gradle.internal.component.local.model
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
 import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
@@ -36,7 +36,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, ImmutableSet.of())
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, ImmutableSet.of())
 
         then:
         defaultBuildComponentSelector.projectPath == ":project:path"
@@ -80,9 +80,9 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "matches id (#buildName #projectPath)"() {
         expect:
-        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, ImmutableSet.of())
-        def sameIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
-        def differentIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path2"), Path.path(":project:path"), "projectName")
+        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, ImmutableSet.of())
+        def sameIdPath = new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, Path.path(":id:path"), Path.path(":project:path"), "projectName")
+        def differentIdPath = new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, Path.path(":id:path2"), Path.path(":project:path"), "projectName")
         selector.matchesStrictly(sameIdPath)
         !selector.matchesStrictly(differentIdPath)
     }
@@ -91,7 +91,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
         def capabilities = ImmutableSet.of(
             new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "blah", "1"))
         )
-        def identity = new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
+        def identity = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.path(":id:path"), Path.path(":project:path"), "projectName")
         ProjectComponentSelector selector = new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, capabilities)
 
         expect:
@@ -105,7 +105,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
         def capabilities = ImmutableSet.of(
             new DefaultFeatureCapabilitySelector("foo")
         )
-        def identity = new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
+        def identity = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.path(":id:path"), Path.path(":project:path"), "projectName")
         ProjectComponentSelector selector = new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, capabilities)
 
         expect:

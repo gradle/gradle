@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.util.internal.GUtil;

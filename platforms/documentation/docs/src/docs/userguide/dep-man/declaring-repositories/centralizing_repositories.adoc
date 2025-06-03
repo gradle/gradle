@@ -39,7 +39,7 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_projects]"]
 ====
 
-[[sec:available-modes]
+[[sec:available-modes]]
 == Available modes
 
 There are three modes for dependency resolution management:

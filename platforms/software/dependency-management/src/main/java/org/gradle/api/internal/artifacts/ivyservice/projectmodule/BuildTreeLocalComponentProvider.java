@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -24,17 +24,21 @@ import org.gradle.util.Path;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A provider of dependency resolution metadata for local components produced by any build in the build tree.
- *
- * <p>In general, you should be using {@link LocalComponentRegistry} instead of this type, as it is scoped
- * to a build and will call the appropriate method on this provider.</p>
+ * A provider of dependency resolution state for local components produced by any build in the build tree.
+ * <p>
+ * In general, you should be using {@link LocalComponentRegistry} instead of this type, as it
+ * triggers additional side effects that this provider does not.
  */
 @ServiceScope(Scope.BuildTree.class)
 @ThreadSafe
 public interface BuildTreeLocalComponentProvider {
+
     /**
-     * Get the local component for the project identified by {@code projectIdentifier}. The returned metadata will
-     * use foreign component identifiers for local components originating from builds different from {@code currentBuildPath}.
+     * Get the local component for the target project.
+     *
+     * @param targetProjectId the project to get the local component for
+     * @param sourceBuild the build that is requesting the local component
      */
-    LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, Path currentBuildPath);
+    LocalComponentGraphResolveState getComponent(ProjectIdentity targetProjectId, Path sourceBuild);
+
 }

@@ -25,6 +25,8 @@ Include only their name, impactful features should be called out separately belo
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+[Victor Merkulov](https://github.com/urdak)
+
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
 ## Upgrade instructions
@@ -41,9 +43,23 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
+### Kotlin build script compilation avoidance
+
+With this release, the mechanism for detecting ABI (Application Binary Interface) changes in [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts has been significantly improved. 
+Gradle now relies on the Kotlin distribution’s own ABI fingerprinting instead of its previous internal mechanism.
+
+The biggest advantage of the new mechanism is the ability to work in the presence of inline functions, something that Gradle wasn't handling efficiently until now.
+This results in substantial performance gains depending on your build and the changes made to the build logic.
+
+For example, in the `gradle/gradle` project, non-ABI changes to build logic now result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
+
+![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
+
 ### Kotlin 2 TO DO
 
 ### Groovy 4 TO DO
+
+### SemVer TO DO
 
 <a name="config-cache"></a>
 ### Configuration Cache improvements

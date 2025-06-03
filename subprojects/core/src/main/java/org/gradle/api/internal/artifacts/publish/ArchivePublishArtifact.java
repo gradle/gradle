@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.internal.GUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Date;
 
@@ -33,6 +34,7 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     private AbstractArchiveTask archiveTask;
 
+    @Inject
     public ArchivePublishArtifact(TaskDependencyFactory taskDependencyFactory, AbstractArchiveTask archiveTask) {
         super(taskDependencyFactory, archiveTask);
         this.archiveTask = archiveTask;

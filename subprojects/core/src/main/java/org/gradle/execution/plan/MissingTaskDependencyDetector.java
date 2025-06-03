@@ -18,30 +18,37 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 
-import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
+/**
+ * Detects missing task dependencies between tasks producing and consuming file locations.
+ *
+ * <p>
+ * The detector is triggered both when a task produces an output location and when a task consumes an input location.
+ * This is to ensure that we detect an overlap regardless of what order producer and consumer runs in.
+ * </p>
+ *
+ * <p>
+ * An overlap between inputs and outputs requiring a declared dependency exists between tasks
+ * if <em>consumer</em> consumes any file produced by <em>producer.</em>
+ * This includes <em>consumer</em> consuming a filtered set of the produced files, or
+ * consuming a parent directory of the produced output.
+ * </p>
+ */
 public class MissingTaskDependencyDetector {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy;
@@ -51,58 +58,31 @@ public class MissingTaskDependencyDetector {
         this.inputHierarchy = inputHierarchy;
     }
 
-    public void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
-        for (String outputPath : node.getMutationInfo().getOutputPaths()) {
-            inputHierarchy.getNodesAccessing(outputPath).stream()
-                .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
-                .filter(MissingTaskDependencyDetector::isEnabled)
-                .forEach(consumerWithoutDependency -> collectValidationProblem(
-                    node,
-                    consumerWithoutDependency,
-                    validationContext,
-                    outputPath)
-                );
-        }
-        Set<String> taskInputs = new LinkedHashSet<>();
-        Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
-        node.getTaskProperties().getInputFileProperties()
-            .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
-                @Override
-                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                    contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
-                }
-
-                @Override
-                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                    if (patterns.isEmpty()) {
-                        taskInputs.add(root.getAbsolutePath());
-                    } else {
-                        filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
-                    }
-                }
-
-                @Override
-                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    taskInputs.add(file.getAbsolutePath());
-                }
-            }));
-        inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
-        for (String locationConsumedByThisTask : taskInputs) {
-            collectValidationProblemsForConsumer(node, validationContext, locationConsumedByThisTask, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
-        }
-        for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
-            Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
-            inputHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
-            collectValidationProblemsForConsumer(
-                node,
-                validationContext,
-                filteredFileTreeInput.getRoot(),
-                outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec)
-            );
-        }
+    /**
+     * Records the given node accessing the given input location and checks if there are any nodes producing the location that the node does not depend on.
+     */
+    public void visitUnfilteredInputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location) {
+        inputHierarchy.recordNodeAccessingLocation(node, location);
+        collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location));
     }
 
-    private void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
+    /**
+     * Records the given node accessing the given input location with a filter, and checks if there are any nodes producing the location that the node does not depend on.
+     */
+    public void visitFilteredInputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location, Spec<FileTreeElement> spec) {
+        inputHierarchy.recordNodeAccessingFileTree(node, location, spec);
+        collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
+    }
+
+    /**
+     * Records the given node producing the given output location and checks if there are any nodes consuming the location without declaring a dependency on the producer.
+     */
+    public void visitOutputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location) {
+        // TODO We should have already recorded outputs in ResolveMutationsNode, but we should probably do it here instead
+        collectValidationProblemsForProducer(node, validationContext, location, inputHierarchy.getNodesAccessing(location));
+    }
+
+    private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
         producers.stream()
             .filter(producerNode -> hasNoSpecifiedOrder(producerNode, consumer))
             .filter(MissingTaskDependencyDetector::isEnabled)
@@ -112,6 +92,18 @@ public class MissingTaskDependencyDetector {
                 validationContext,
                 locationConsumedByThisTask
             ));
+    }
+
+    private static void collectValidationProblemsForProducer(LocalTaskNode node, TypeValidationContext validationContext, String outputPath, Collection<Node> consumers) {
+        consumers.stream()
+            .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
+            .filter(MissingTaskDependencyDetector::isEnabled)
+            .forEach(consumerWithoutDependency -> collectValidationProblem(
+                node,
+                consumerWithoutDependency,
+                validationContext,
+                outputPath)
+            );
     }
 
     private static boolean isEnabled(Node node) {
@@ -124,10 +116,10 @@ public class MissingTaskDependencyDetector {
 
     // In a perfect world, the consumer should depend on the producer.
     // Though we still don't have a good solution for the code linter and formatter use-case.
-    // And for that case, there will be a cyclic dependency between the analyze and the format task if we only take output/input locations into account.
+    // And for that case, there will be a cyclic dependency between the 'analyze' and the 'format' task if we only take output/input locations into account.
     // Therefore, we currently allow these kind of missing dependencies, as long as any order has been specified.
     // See https://github.com/gradle/gradle/issues/15616.
-    private boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode) {
+    private static boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode) {
         return missesDependency(producerNode, consumerNode) && missesDependency(consumerNode, producerNode);
     }
 
@@ -157,7 +149,7 @@ public class MissingTaskDependencyDetector {
     private static void addHardSuccessorTasksToQueue(Node node, Set<Node> seenNodes, Queue<Node> queue) {
         node.getHardSuccessors().forEach(successor -> {
             // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
-            // For example we can skip all the transform nodes between two task nodes.
+            // For example, we can skip all the transform nodes between two task nodes.
             if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
                 if (seenNodes.add(successor)) {
                     queue.add(successor);
@@ -170,7 +162,7 @@ public class MissingTaskDependencyDetector {
 
     private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
 
-    private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
+    private static void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
             problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                 .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
@@ -185,41 +177,5 @@ public class MissingTaskDependencyDetector {
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
         );
-    }
-
-    private static class FilteredTree {
-        private final String root;
-        private final PatternSet patterns;
-
-        private FilteredTree(String root, PatternSet patterns) {
-            this.root = root;
-            this.patterns = patterns;
-        }
-
-        public String getRoot() {
-            return root;
-        }
-
-        public PatternSet getPatterns() {
-            return patterns;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            FilteredTree that = (FilteredTree) o;
-            return root.equals(that.root) && patterns.equals(that.patterns);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(root, patterns);
-        }
-
     }
 }

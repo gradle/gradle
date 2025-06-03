@@ -14,6 +14,7 @@
 
 [[implemention_precompiled_plugins]]
 = Implementing Pre-compiled Script Plugins
+:keywords: precompiled, plugin
 
 A *precompiled script plugin* is typically a Kotlin script that has been compiled and distributed as Java class files packaged in a library.
 These scripts are intended to be consumed as binary Gradle plugins and are recommended for use as convention plugins.

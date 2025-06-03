@@ -37,7 +37,6 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.deprecation.Documentation
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
@@ -249,7 +248,6 @@ fun Project.enableScriptCompilationOf(
         configureKotlinCompilerArguments(
             objects,
             serviceOf(),
-            serviceOf(),
             compileClasspath,
             generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir }
         )
@@ -296,7 +294,6 @@ private fun Project.registerCompilePluginsBlocksTask(
             task.configureKotlinCompilerArgumentsLazily(
                 resolverEnvironmentStringFor(
                     project.serviceOf(),
-                    project.serviceOf(),
                     compileClasspath,
                     externalPluginSpecBuildersTask.flatMap { it.metadataOutputDir },
                 )
@@ -326,7 +323,6 @@ private
 fun configureKotlinCompilerArguments(
     objects: ObjectFactory,
     implicitImports: ImplicitImports,
-    classpathFingerprinter: ClasspathFingerprinter,
     compileClasspath: FileCollection,
     accessorsMetadata: Provider<Directory>
 ) {
@@ -334,7 +330,6 @@ fun configureKotlinCompilerArguments(
         objects,
         resolverEnvironmentStringFor(
             implicitImports,
-            classpathFingerprinter,
             compileClasspath,
             accessorsMetadata
         )

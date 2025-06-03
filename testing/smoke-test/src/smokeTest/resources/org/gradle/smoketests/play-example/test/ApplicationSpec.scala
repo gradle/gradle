@@ -1,5 +1,5 @@
 import com.google.common.collect.Lists
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatestplus.play.PlaySpec
