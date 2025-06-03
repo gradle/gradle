@@ -249,7 +249,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         buildFile << """
             dependencies {
                 configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                conf group: 'org', name: 'mavenCompile1', version: '1.0'
+                conf("org:mavenCompile1:1.0")
             }
         """
         expectChainInteractions(modules, modules)
@@ -281,7 +281,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         buildFile << """
             dependencies {
                 configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                conf group: 'org', name: 'mavenCompile1', version: '1.0'
+                conf("org:mavenCompile1:1.0")
             }
         """
         expectChainInteractions(modules, modules)
@@ -316,7 +316,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         buildFile << """
             dependencies {
                 configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                conf group: 'org', name: 'maven', version: '1.0'
+                conf("org:maven:1.0")
             }
         """
         expectChainInteractions(modules, modules, 'api')

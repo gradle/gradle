@@ -166,7 +166,7 @@ baz:1.0 requested
                             all {
                                 if (it.requested instanceof ModuleComponentSelector) {
                                     if (it.requested.module == 'leaf' && it.requested.version == '0.9') {
-                                        it.useTarget("substitute 0.9 with 1.0", group: 'org.test', name: it.requested.module, version: '1.0')
+                                        it.useTarget("org.test:\${it.requested.module}:1.0", "substitute 0.9 with 1.0")
                                     }
                                 }
                             }
@@ -182,7 +182,6 @@ baz:1.0 requested
             dependencies {
                 conf 'org.test:a:1.0'
                 conf 'org.test:b:1.0'
-
             }
         """
         resolve.prepare()
