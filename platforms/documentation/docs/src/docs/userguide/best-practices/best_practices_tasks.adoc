@@ -128,3 +128,66 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
+
+[[group_describe_tasks]]
+== Group and Describe custom Tasks
+
+When defining custom task types or registering ad-hoc tasks, always set a clear `group` and `description`.
+
+=== Explanation
+
+A good group name is short, lowercase, and reflects the purpose or domain of the task.
+For example: `documentation`, `verification`, `release`, or `publishing`.
+
+Before creating a new group, look for an existing group name that aligns with your task’s intent.
+It’s often better to reuse an established category to keep the task output organized and familiar to users.
+
+This information is used in the <<command_line_interface.adoc#sec:listing_tasks,Tasks Report>> (shown via `./gradlew tasks`) to group and describe available tasks in a readable format.
+
+Providing a group and description ensures that your tasks are:
+
+* Displayed clearly in the report
+* Categorized appropriately
+* Understandable to other users (and to your future self)
+
+NOTE: Tasks with no group are hidden from the <<command_line_interface.adoc#sec:listing_tasks,Tasks Report>> unless `--all` is specified.
+
+=== Example
+
+==== Don't Do This
+
+Tasks without a group appear under the "other" category in `./gradlew tasks --all` output, making them harder to locate:
+
+====
+include::sample[dir="snippets/bestPractices/groupTasks-avoid/kotlin",files="app/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/groupTasks-avoid/groovy",files="app/build.gradle[tags=avoid-this]"]
+====
+
+[source,text]
+----
+$ gradlew :app:tasks --all
+include::{snippetsPath}/bestPractices/groupTasks-avoid/tests/groupTasks.bad.out[]
+----
+
+==== Do this Instead
+
+When defining custom tasks, always assign a clear `group` and `description`:
+
+====
+include::sample[dir="snippets/bestPractices/groupTasks-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/groupTasks-do/groovy",files="app/build.gradle[tags=do-this]"]
+====
+
+[source,text]
+----
+$ gradlew :app:tasks --all
+include::{snippetsPath}/bestPractices/groupTasks-do/tests/groupTasks.good.out[]
+----
+
+=== References
+
+- <<writing_tasks.adoc#task_group_and_description,Task Group and Description>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`
