@@ -17,6 +17,7 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapKey;
@@ -43,7 +44,13 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
                          @MapKey("version") @Nullable String version,
                          @MapKey("configuration") @Nullable String configuration,
                          @MapKey("ext") @Nullable String ext,
-                         @MapKey("classifier") @Nullable String classifier) {
+                         @MapKey("classifier") @Nullable String classifier
+    ) {
+        DeprecationLogger.deprecateBehaviour("Declaring dependencies using map notation")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(9, "dependency_map_notation")
+            .nagUser();
+
         T dependency;
         if (configuration == null) {
             dependency = instantiator.newInstance(resultingType, group, name, version);

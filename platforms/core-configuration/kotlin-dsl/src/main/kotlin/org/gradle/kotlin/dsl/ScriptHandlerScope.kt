@@ -123,6 +123,7 @@ open class ScriptHandlerScope(
      *
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use string notation instead")
     fun DependencyHandler.classpath(
         group: String,
         name: String,
@@ -149,6 +150,7 @@ open class ScriptHandlerScope(
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use string notation instead")
     inline fun DependencyHandler.classpath(
         group: String,
         name: String,

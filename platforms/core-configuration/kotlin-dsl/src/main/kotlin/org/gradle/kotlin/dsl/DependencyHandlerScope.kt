@@ -104,6 +104,7 @@ private constructor(
      *
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use string notation instead")
     operator fun String.invoke(
         group: String,
         name: String,
@@ -129,6 +130,7 @@ private constructor(
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use string notation instead")
     inline operator fun String.invoke(
         group: String,
         name: String,
@@ -238,6 +240,7 @@ private constructor(
      *
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use string notation instead")
     operator fun Configuration.invoke(
         group: String,
         name: String,
@@ -263,6 +266,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
+    @Deprecated("Use string notation instead")
     operator fun NamedDomainObjectProvider<Configuration>.invoke(
         group: String,
         name: String,
@@ -289,6 +293,7 @@ private constructor(
      */
     @Incubating
     @JvmName("invokeDependencyScope")
+    @Deprecated("Use string notation instead")
     operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(
         group: String,
         name: String,
@@ -314,6 +319,7 @@ private constructor(
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use string notation instead")
     inline operator fun Configuration.invoke(
         group: String,
         name: String,
@@ -342,6 +348,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
+    @Deprecated("Use string notation instead")
     inline operator fun NamedDomainObjectProvider<Configuration>.invoke(
         group: String,
         name: String,
@@ -372,6 +379,7 @@ private constructor(
      */
     @Incubating
     @JvmName("invokeDependencyScope")
+    @Deprecated("Use string notation instead")
     inline operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(
         group: String,
         name: String,

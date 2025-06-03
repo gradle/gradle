@@ -42,6 +42,8 @@ Gradle also supports the Map notation, where each coordinate may be declared sep
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies-map]"]
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies-map]"]
 
+NOTE: The map notation for module dependencies has been deprecated and will not be supported starting in Gradle 10.0.0. Use the string notation instead.
+
 Module dependencies use the link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html[`ExternalModuleDependency`] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] APIs.
 These APIs provide various properties and configuration methods for defining dependencies.
 

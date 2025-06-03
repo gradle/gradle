@@ -73,6 +73,7 @@ fun addConfiguredDependencyTo(
 
 
 @Suppress("LongParameterList")
+@Deprecated("Use string notation instead")
 fun addExternalModuleDependencyTo(
     dependencyHandler: DependencyHandler,
     targetConfiguration: String,
@@ -96,7 +97,7 @@ fun addExternalModuleDependencyTo(
     dependencyHandler.add(targetConfiguration, it)
 }
 
-
+@Deprecated("Use string notation instead")
 fun externalModuleDependencyFor(
     dependencyHandler: DependencyHandler,
     group: String,
