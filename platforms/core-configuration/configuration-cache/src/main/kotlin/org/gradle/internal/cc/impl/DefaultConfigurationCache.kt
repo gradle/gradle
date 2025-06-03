@@ -80,6 +80,7 @@ class DefaultConfigurationCache internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
+    private val degradationController: DefaultConfigurationCacheDegradationController,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheRepository: ConfigurationCacheRepository,
     private val instrumentedInputAccessListener: InstrumentedInputAccessListener,
@@ -588,7 +589,8 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun degradeGracefullyOr(action: () -> Unit) {
-        if (!problems.shouldDegradeGracefully()) {
+        degradationController.commit()
+        if (!degradationController.shouldDegradeGracefully()) {
             action()
         }
         crossConfigurationTimeBarrier()

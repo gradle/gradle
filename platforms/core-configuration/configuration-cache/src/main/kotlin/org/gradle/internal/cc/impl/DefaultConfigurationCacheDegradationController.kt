@@ -31,21 +31,39 @@ internal class DefaultConfigurationCacheDegradationController(
     private val vcsMappingsStore: VcsMappingsStore,
     private val deferredRootBuildGradle: DeferredRootBuildGradle
 ) : ConfigurationCacheDegradationController {
+    private var committed = false
 
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
     val degradationReasons by lazy(::collectDegradationReasons)
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
+        ensureNotCommitted()
         tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
     }
 
-    fun shouldDegradeGracefully(): Boolean = degradationReasons.isNotEmpty()
+    private fun ensureNotCommitted() {
+        assert(!committed) { "Degradation requests already committed" }
+    }
+
+    private fun ensureCommittedOrNoRequests() {
+        assert(tasksDegradationRequests.isEmpty() || committed) { "Degradation requests not committed yet" }
+    }
+
+    fun commit() {
+        ensureNotCommitted()
+        committed = true
+    }
+
+    fun shouldDegradeGracefully(): Boolean {
+        return degradationReasons.isNotEmpty()
+    }
 
     private fun collectDegradationReasons(): List<DegradationReason> {
         val result = mutableListOf<DegradationReason>()
         if (isSourceDependenciesUsed()) {
             result.add(DegradationReason.BuildLogic("Source dependencies are used"))
         }
+        ensureCommittedOrNoRequests()
         if (tasksDegradationRequests.isNotEmpty()) {
             deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
                 scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
