@@ -1093,6 +1093,11 @@
             <pgp value="9c60c6b3a5a9df8fedd299d65be0ba8cb80602ae"/>
          </artifact>
       </component>
+      <component group="org.apache.ivy" name="ivy" version="2.5.3">
+         <artifact name="ivy-2.5.3.jar">
+            <pgp value="9c60c6b3a5a9df8fedd299d65be0ba8cb80602ae"/>
+         </artifact>
+      </component>
       <component group="org.apache.maven" name="maven-model" version="3.0.4">
          <artifact name="maven-model-3.0.4.jar">
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>
