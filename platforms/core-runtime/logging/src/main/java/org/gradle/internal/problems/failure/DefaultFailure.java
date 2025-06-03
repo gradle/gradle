@@ -64,6 +64,7 @@ class DefaultFailure implements Failure {
 
     @Override
     public String getMessage() {
+        // TODO: Remove this when we handle problems uniformly and don't do the compilation failure as a special case
         return (original instanceof CompilationFailedIndicator) ? ((CompilationFailedIndicator) original).getShortMessage() : original.getMessage();
     }
 
