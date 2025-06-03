@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -68,10 +69,8 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
             // No build failure, empty list
             return Collections.emptyList();
         }
-        return richBuildFailure.getCauses().size() > 1
-            // Multiple build failures -- extract the causes
+        return richBuildFailure.getOriginal() instanceof MultipleBuildFailures
             ? richBuildFailure.getCauses()
-            // Single build failure
             : Collections.singletonList(richBuildFailure);
     }
 }
