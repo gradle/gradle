@@ -17,12 +17,20 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
-/**
- * A {@link GradleException} thrown when the required test framework dependencies are not available at runtime.
- */
-public class TestFrameworkNotAvailableException extends GradleException {
-    public TestFrameworkNotAvailableException(String message, Exception cause) {
+import java.util.List;
+
+public class TestWorkerLifecycleException extends GradleException implements ResolutionProvider {
+    private final List<String> resolutions;
+
+    public TestWorkerLifecycleException(String message, List<String> resolutions, Throwable cause) {
         super(message, cause);
+        this.resolutions = resolutions;
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
     }
 }

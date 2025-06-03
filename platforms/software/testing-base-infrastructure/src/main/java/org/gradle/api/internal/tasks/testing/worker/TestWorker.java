@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.testing.worker;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestFrameworkNotAvailableException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestWorkerLifecycle;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -72,6 +74,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     private final BlockingQueue<Runnable> runQueue = new ArrayBlockingQueue<Runnable>(1);
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
+    private TestWorkerLifecycle lifecycle;
 
     /**
      * Note that the state object is not synchronized and not thread-safe.  Any modifications to the
@@ -153,6 +156,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
         serverConnection.useParameterSerializers(TestEventSerializer.create());
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
+        this.lifecycle = serverConnection.addOutgoing(TestWorkerLifecycle.class);
         serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
         serverConnection.connect();
     }
@@ -165,8 +169,15 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                 if (state != State.INITIALIZING) {
                     throw new IllegalStateException("A command to start processing has already been received");
                 }
-                processor.startProcessing(resultProcessor);
-                state = State.STARTED;
+                try {
+                    processor.startProcessing(resultProcessor);
+                    state = State.STARTED;
+                    lifecycle.ready();
+                } catch (TestFrameworkNotAvailableException e) {
+                    lifecycle.unavailable(e);
+                } catch (Throwable t) {
+                    lifecycle.unexpected(t);
+                }
             }
         });
     }

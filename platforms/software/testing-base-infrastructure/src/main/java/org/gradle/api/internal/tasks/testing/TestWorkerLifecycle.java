@@ -16,13 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.GradleException;
-
-/**
- * A {@link GradleException} thrown when the required test framework dependencies are not available at runtime.
- */
-public class TestFrameworkNotAvailableException extends GradleException {
-    public TestFrameworkNotAvailableException(String message, Exception cause) {
-        super(message, cause);
-    }
+public interface TestWorkerLifecycle {
+    void ready();
+    void unavailable(Throwable failure);
+    void unexpected(Throwable failure);
 }

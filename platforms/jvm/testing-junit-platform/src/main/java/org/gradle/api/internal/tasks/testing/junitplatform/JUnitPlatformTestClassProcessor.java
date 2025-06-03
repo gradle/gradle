@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestFrameworkNotAvailableException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
@@ -50,7 +49,6 @@ import org.junit.platform.launcher.core.LauncherFactory;
 import javax.annotation.WillCloseWhenClosed;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -87,13 +85,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         try {
             Class.forName("org.junit.platform.launcher.core.LauncherFactory");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException(
-                "Failed to load JUnit Platform.",
-                Arrays.asList(
-                    "Please ensure that the JUnit Platform is available on the test runtime classpath.",
-                    "See the user guide for more details: " + new DocumentationRegistry().getDocumentationFor("java_testing", "using_junit5")
-                )
-            );
+            throw new TestFrameworkNotAvailableException("Failed to load JUnit Platform.", e);
         }
     }
 

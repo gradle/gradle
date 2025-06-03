@@ -25,8 +25,6 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
-import java.util.Arrays;
-
 public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
     private final IdGenerator<?> idGenerator;
     private final JUnitSpec spec;
@@ -49,12 +47,7 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
         try {
             Class.forName("org.junit.runner.notification.RunListener");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException(
-                "Failed to load JUnit 4.",
-                Arrays.asList(
-                    "Please ensure that JUnit 4 is available on the test runtime classpath."
-                )
-            );
+            throw new TestFrameworkNotAvailableException("Failed to load JUnit 4.", e);
         }
     }
 

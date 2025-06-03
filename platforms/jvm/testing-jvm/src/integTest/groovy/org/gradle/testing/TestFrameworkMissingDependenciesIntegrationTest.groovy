@@ -134,6 +134,7 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
         executer.withStackTraceChecksDisabled()
 
         when:
+        executer.startBuildProcessInDebugger(true)
         fails('test')
 
         then: "Test framework startup failure is reported"

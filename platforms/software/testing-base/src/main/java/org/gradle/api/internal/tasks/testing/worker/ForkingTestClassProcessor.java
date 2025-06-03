@@ -17,28 +17,34 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestWorkerLifecycle;
+import org.gradle.api.internal.tasks.testing.TestWorkerLifecycleException;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
-import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ForkingTestClassProcessor implements TestClassProcessor {
+public class ForkingTestClassProcessor implements TestClassProcessor, TestWorkerLifecycle {
     private final WorkerProcessFactory workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
@@ -53,7 +59,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
     private final Set<Throwable> unrecoverableExceptions = new HashSet<Throwable>();
-
+    private final CountDownLatch readyLatch = new CountDownLatch(1);
+    private Throwable startupFailure = null;
 
     public ForkingTestClassProcessor(
         WorkerThreadRegistry workerThreadRegistry,
@@ -90,10 +97,19 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 completion = workerThreadRegistry.startWorker();
                 try {
                     remoteProcessor = forkProcess();
+                    readyLatch.await(30, TimeUnit.SECONDS);
+                    if (startupFailure != null) {
+                        throw new GradleException("Test worker could not process test classes", startupFailure);
+                    }
                 } catch (RuntimeException e) {
                     completion.leaseFinish();
                     completion = null;
                     throw e;
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    completion.leaseFinish();
+                    completion = null;
+                    throw new RuntimeException(e);
                 }
             }
 
@@ -133,6 +149,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
         });
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
+        connection.addIncoming(TestWorkerLifecycle.class, this);
         RemoteTestClassProcessor remoteProcessor = connection.addOutgoing(RemoteTestClassProcessor.class);
         connection.connect();
         remoteProcessor.startProcessing();
@@ -191,5 +208,24 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         if (!unrecoverableExceptions.isEmpty()) {
             throw new DefaultMultiCauseException("Unexpected errors were encountered while processing test results that may result in some results being incorrect or incomplete.", unrecoverableExceptions);
         }
+    }
+
+    @Override
+    public void ready() {
+        readyLatch.countDown();
+    }
+
+    @Override
+    public void unavailable(Throwable failure) {
+        this.startupFailure = new TestWorkerLifecycleException("Test worker is missing required testing framework dependencies",
+            Collections.singletonList("Ensure testing framework dependencies are on the classpath"),
+            failure);
+        readyLatch.countDown();
+    }
+
+    @Override
+    public void unexpected(Throwable failure) {
+        this.startupFailure = new TestWorkerLifecycleException("Test worker could not process tests", Collections.emptyList(), failure);
+        readyLatch.countDown();
     }
 }
