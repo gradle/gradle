@@ -47,7 +47,7 @@ abstract class GradleDelegate : Gradle {
         if (!org.gradle.kotlin.dsl.InitScriptApi::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(GradleDelegate::class.java)
                 .willBeRemovedInGradle10()
-                .undocumented()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }
