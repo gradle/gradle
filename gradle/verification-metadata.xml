@@ -1178,6 +1178,11 @@
             <pgp value="be685132afd2740d9095f9040cc0b712fee75827"/>
          </artifact>
       </component>
+      <component group="org.assertj" name="assertj-core" version="3.24.2">
+         <artifact name="assertj-core-3.24.2.jar">
+            <pgp value="be685132afd2740d9095f9040cc0b712fee75827"/>
+         </artifact>
+      </component>
       <component group="org.brotli" name="dec" version="0.1.2">
          <artifact name="dec-0.1.2.jar">
             <pgp value="3a4d86c56ca99373b6d8953dbe84d764623a3644"/>
