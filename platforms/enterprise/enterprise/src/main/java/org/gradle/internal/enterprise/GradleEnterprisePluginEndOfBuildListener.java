@@ -54,7 +54,7 @@ public interface GradleEnterprisePluginEndOfBuildListener {
 
     interface BuildFailure {
         /**
-         * The non-empty list of failures if the build did fail.
+         * The non-empty list of failures.
          *
          * @since 9.0
          */
