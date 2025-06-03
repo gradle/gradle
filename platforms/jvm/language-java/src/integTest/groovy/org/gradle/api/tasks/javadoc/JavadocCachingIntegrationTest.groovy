@@ -35,8 +35,8 @@ class JavadocCachingIntegrationTest extends AbstractIntegrationSpec implements D
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'
-                implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.17.1'
+                implementation("org.apache.logging.log4j:log4j-api:2.17.1")
+                implementation("org.apache.logging.log4j:log4j-core:2.17.1")
             }
         """
         projectDir.file("src/main/java/Foo.java") << """

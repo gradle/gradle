@@ -38,12 +38,12 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
         file("sub1/build.gradle") << """
             dependencies {
-                implementation group: 'log4j', name: 'log4j', version: '1.2.14'
+                implementation("log4j:log4j:1.2.14")
             }
         """
         file("sub2/build.gradle") << """
             dependencies {
-                implementation group: 'junit', name: 'junit', version: '4.10'
+                implementation("junit:junit:4.10")
             }
         """
         settingsFile << """

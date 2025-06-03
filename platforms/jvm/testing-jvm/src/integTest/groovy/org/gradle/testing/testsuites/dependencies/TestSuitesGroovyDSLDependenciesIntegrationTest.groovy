@@ -409,15 +409,15 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
             implementation 'org.apache.commons:commons-lang3:3.11'
 
-            testImplementation([group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'])
-            testCompileOnly([group: 'javax.servlet', name: 'servlet-api', version: '3.0-alpha-1'])
-            testRuntimeOnly([group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'])
+            testImplementation("com.google.guava:guava:30.1.1-jre")
+            testCompileOnly("javax.servlet:servlet-api:3.0-alpha-1")
+            testRuntimeOnly("mysql:mysql-connector-java:8.0.26")
 
             // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
             integTestImplementation project
-            integTestImplementation([group: 'com.google.guava', name: 'guava', version: '29.0-jre'])
-            integTestCompileOnly([group: 'javax.servlet', name: 'servlet-api', version: '2.5'])
-            integTestRuntimeOnly([group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'])
+            integTestImplementation("com.google.guava:guava:29.0-jre")
+            integTestCompileOnly("javax.servlet:servlet-api:2.5")
+            integTestRuntimeOnly("mysql:mysql-connector-java:6.0.6")
         }
 
         tasks.named('check') {
@@ -474,15 +474,14 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
             implementation 'org.apache.commons:commons-lang3:3.11'
 
-           testImplementation group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'
-            testCompileOnly group: 'javax.servlet', name: 'servlet-api', version: '3.0-alpha-1'
-            testRuntimeOnly group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'
-
+           testImplementation("com.google.guava:guava:30.1.1-jre")
+            testCompileOnly("javax.servlet:servlet-api:3.0-alpha-1")
+            testRuntimeOnly("mysql:mysql-connector-java:8.0.26")
             // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
             integTestImplementation project
-            integTestImplementation group: 'com.google.guava', name: 'guava', version: '29.0-jre'
-            integTestCompileOnly group: 'javax.servlet', name: 'servlet-api', version: '2.5'
-            integTestRuntimeOnly group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
+            integTestImplementation("com.google.guava:guava:29.0-jre")
+            integTestCompileOnly("javax.servlet:servlet-api:2.5")
+            integTestRuntimeOnly("mysql:mysql-connector-java:6.0.6")
         }
 
         tasks.named('check') {

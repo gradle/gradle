@@ -44,7 +44,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
 
             configurations.api.outgoing {
                 capability 'test:b:unspecified'
-                capability group:'org', name:'capability', version:'1.0'
+                capability("org:capability:1.0")
             }
         """
 
