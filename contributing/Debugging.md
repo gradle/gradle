@@ -118,15 +118,16 @@ Add `-Dorg.gradle.debug=true` to the `LongRunningOperation` you want to debug wi
 
 ## Debugging Test Workers
 
-To debug a test worker started by Gradle during an integration test, add the `--debug-jvm` argument to Gradle invocation in your test.
+To debug a test worker started by Gradle during an integration test, add the `--debug-jvm` argument to the Gradle invocation in your test and set a breakpoint in any code executed on the Test Worker.
 
 After doing this, when running the test (using either Run or Debug) your launch should pause and wait for you to attach a debugger to the worker process with a message like:
 
 ```
-Listening for transport dt_socket at address: 5005`
+Listening for transport dt_socket at address: 5005
 ```
 
-Attach a Remote Debugger to that port (5005 by default) in your IDE via launching a new Debug configuration and you can debug the Test Worker.
+Attach a Remote Debugger to that port (5005 by default) using your IDE via launching a new Debug configuration.
+Now your execution should halt at your breakpoint, and you will be able to debug the Test Worker.
 
 ## Debugging sync (project import) in IntelliJ IDEA
 
