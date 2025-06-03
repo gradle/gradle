@@ -20,6 +20,7 @@ import org.gradle.api.problems.internal.BuildOperationProblem;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginEndOfBuildListener;
+import org.gradle.internal.enterprise.GradleEnterprisePluginEndOfBuildListener.BuildFailure;
 import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.enterprise.GradleEnterprisePluginService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -122,10 +124,15 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         private final List<org.gradle.internal.problems.failure.Failure> buildFailures;
 
         public DefaultDevelocityPluginResult(@Nullable Throwable buildFailure, @Nullable List<org.gradle.internal.problems.failure.Failure> buildFailures) {
+            // We make sure the legacy buildFailure and the buildFailures are consistent
+            // Fail early instead of waiting for the Develocity plugin to consume the failures
+            assert (buildFailure == null && buildFailures == null) ||
+                (buildFailure != null && buildFailures != null && !buildFailures.isEmpty());
             this.buildFailure = buildFailure;
             this.buildFailures = buildFailures;
         }
 
+        @SuppressWarnings({"deprecation", "RedundantSuppression"})
         @Nullable
         @Override
         public Throwable getFailure() {
@@ -134,12 +141,16 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
         @Nullable
         @Override
-        public List<Failure> getFailures() {
-            return buildFailures != null
-                ? buildFailures.stream()
+        public BuildFailure getBuildFailure() {
+            return buildFailures == null
+                ? null
+                : this::getBuildFailures;
+        }
+
+        private List<Failure> getBuildFailures() {
+            return Objects.requireNonNull(buildFailures).stream()
                 .map(DevelocityBuildFailure::new)
-                .collect(Collectors.toList())
-                : null;
+                .collect(Collectors.toList());
         }
 
     }

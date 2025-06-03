@@ -23,28 +23,41 @@ import java.util.List;
 
 /**
  * Used to signal the end of build to the plugin.
- *
+ * <p>
  * Uses a specific listener to guarantee being invoked after user buildFinished callbacks.
  * Expected to be invoked once for a build tree.
- *
+ * <p>
  * Implemented by the Enterprise plugin.
  */
 public interface GradleEnterprisePluginEndOfBuildListener {
 
     interface BuildResult {
+        /**
+         * The failure of the build when the build failed.
+         *
+         * @deprecated Use {@link #getBuildFailure()} instead.
+         */
+        @Deprecated
         @Nullable
         Throwable getFailure();
 
         /**
          * The build failure in a more structured form.
          * <p>
-         * The non-empty list of failures if the build did fail.
-         * An empty list if the build didn't fail.
-         * {@code null} if the build failure could not be converted to a structured form. Use {@link #getFailure()} in this case.
+         * {@code null} if the build did not fail.
          *
-         * @since 8.14
+         * @since 9.0
          */
         @Nullable
+        BuildFailure getBuildFailure();
+    }
+
+    interface BuildFailure {
+        /**
+         * The non-empty list of failures if the build did fail.
+         *
+         * @since 9.0
+         */
         List<Failure> getFailures();
     }
 
