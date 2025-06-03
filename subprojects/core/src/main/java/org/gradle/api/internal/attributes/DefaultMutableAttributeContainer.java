@@ -56,7 +56,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     ) {
         this.attributesFactory = attributesFactory;
         this.attributeValueIsolator = attributeValueIsolator;
-        this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, Isolatable.class));
+        this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, AttributeEntry.class));
     }
 
     @Override
@@ -112,6 +112,12 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
 
         state.put(key, isolated);
 
+        return this;
+    }
+
+    @Override
+    public AttributeContainer addAllLater(AttributeContainer other) {
+        state.putAll(((AttributeContainerInternal) other).getEntries());
         return this;
     }
 
@@ -175,6 +181,11 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
             return null;
         }
         return Cast.uncheckedCast(state.getting(key).map(entry -> entry.getValue().isolate()).getOrNull());
+    }
+
+    @Override
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries() {
+        return state;
     }
 
     @Override

@@ -453,4 +453,103 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def e = thrown(IllegalStateException)
         e.message == "Providers passed to attributeProvider(Attribute, Provider) must always be present when queried."
     }
+
+    def "can addAllLater from another container"() {
+        def container = createContainer()
+        def a = Attribute.of("a", String)
+        def b = Attribute.of("b", String)
+        def c = Attribute.of("c", String)
+        def d = Attribute.of("d", String)
+
+        container.attribute(a, "aa")
+        def bb = new DefaultProperty<String>(Mock(PropertyHost), String).convention("bb")
+        container.attributeProvider(b, bb)
+
+        def otherContainer = createContainer()
+        otherContainer.attribute(c, "cc")
+        def dd = new DefaultProperty<String>(Mock(PropertyHost), String).convention("dd")
+        otherContainer.attributeProvider(d, dd)
+
+        when:
+        container.addAllLater(otherContainer)
+
+        then:
+        container.getAttribute(a) == "aa"
+        container.getAttribute(b) == "bb"
+        container.getAttribute(c) == "cc"
+        container.getAttribute(d) == "dd"
+
+        when:
+        bb.convention("fooooo")
+
+        then:
+        container.getAttribute(b) == "fooooo"
+
+        when:
+        dd.convention("barrrrr")
+
+        then:
+        container.getAttribute(d) == "barrrrr"
+    }
+
+    def "addAllLater overwrites existing attributes"() {
+        def container = createContainer()
+        def a = Attribute.of("a", String)
+        def b = Attribute.of("b", String)
+
+        container.attribute(a, "aa")
+        def bb = new DefaultProperty<String>(Mock(PropertyHost), String).convention("bb")
+        container.attributeProvider(b, bb)
+
+        def otherContainer = createContainer()
+        otherContainer.attribute(a, "other-a")
+        def bb2 = new DefaultProperty<String>(Mock(PropertyHost), String).convention("other-b")
+        otherContainer.attributeProvider(b, bb2)
+
+        when:
+        container.addAllLater(otherContainer)
+
+        then:
+        container.getAttribute(a) == "other-a"
+        container.getAttribute(b) == "other-b"
+    }
+
+    def "can overwrite attributes from addAllLater"() {
+        def container = createContainer()
+        def a = Attribute.of("a", String)
+        def b = Attribute.of("b", String)
+
+        def otherContainer = createContainer()
+        otherContainer.attribute(a, "other-a")
+        def bb2 = new DefaultProperty<String>(Mock(PropertyHost), String).convention("other-b")
+        otherContainer.attributeProvider(b, bb2)
+        container.addAllLater(otherContainer)
+
+        when:
+        container.attribute(a, "first-a")
+        def bb = new DefaultProperty<String>(Mock(PropertyHost), String).convention("first-b")
+        container.attributeProvider(b, bb)
+
+        then:
+        container.getAttribute(a) == "first-a"
+        container.getAttribute(b) == "first-b"
+    }
+
+    def "can mutate added container after calling addAllLater"() {
+        def a = Attribute.of("a", String)
+        def b = Attribute.of("b", String)
+
+        def container = createContainer()
+        def otherContainer = createContainer()
+        container.addAllLater(otherContainer)
+
+        when:
+        otherContainer.attribute(a, "other-a")
+        def bb2 = new DefaultProperty<String>(Mock(PropertyHost), String).convention("other-b")
+        otherContainer.attributeProvider(b, bb2)
+
+        then:
+        container.getAttribute(a) == "other-a"
+        container.getAttribute(b) == "other-b"
+    }
 }
