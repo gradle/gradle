@@ -836,6 +836,11 @@
             <pgp value="47eb6836245d2d40e89dfb4136d4e9618f3adab5"/>
          </artifact>
       </component>
+      <component group="io.grpc" name="grpc-api" version="1.73.0">
+         <artifact name="grpc-api-1.73.0.jar">
+            <pgp value="b02335aa54ccf21e52bbf9abd9c565aa72ba2fdd"/>
+         </artifact>
+      </component>
       <component group="io.netty" name="netty-all" version="4.1.63.Final">
          <artifact name="netty-all-4.1.63.Final.jar">
             <pgp value="7e22d50a7ebd9d2cd269b2d4056aca74d46000bf"/>

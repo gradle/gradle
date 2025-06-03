@@ -56,6 +56,7 @@ abstract class ExternalModulesExtension {
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
+    val grpc = "io.grpc:grpc-context"
     val googleApiClient = "com.google.api-client:google-api-client"
     val googleHttpClient = "com.google.http-client:google-http-client"
     val googleHttpClientGson = "com.google.http-client:google-http-client-gson"

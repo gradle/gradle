@@ -66,6 +66,7 @@ dependencies {
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
+        api(libs.grpc)                  { version { strictly("1.73.0"); because("transitive dependency of GCS brings CVES") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.guava)                 { version { strictly("32.1.3-jre"); because("our Google API Client version requires at least 31.1-jre") }}
