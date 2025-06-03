@@ -135,8 +135,9 @@ function postProcessCodeBlocks() {
     // Update all download links for selected language
     document.querySelectorAll("a.download-project-link").forEach(link => {
       const basePath = link.getAttribute("data-base-path");
-      if (basePath) {
-        const fullUrl = "https://download-directory.github.io/?url=" + basePath + languageId;
+      if (basePath && languageId) {
+        const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
+        const fullUrl = "https://download-directory.github.io/?url=" + encodeURIComponent(normalizedBase + languageId);
         link.setAttribute("href", fullUrl);
       }
     });

@@ -106,6 +106,16 @@ The following guidelines help in naming catalog entries effectively:
 
 === Example
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/versionCatalogNaming/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/versionCatalogNaming/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="gradle/libs.versions.toml[]"]
 ====
@@ -144,6 +154,16 @@ NOTE: While https://github.com/gradle/gradle/issues/32443[`dependencyResolutionM
 
 You could set up repositories in individual `build.gradle.kts` files with:
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/settingsRepositories-avoid/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/settingsRepositories-avoid/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/groovy",files="build.gradle[tags=avoid-this]"]
@@ -152,6 +172,16 @@ include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/groovy",f
 ==== Do This Instead
 
 Instead, you should set them up in `settings.gradle.kts` like this:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/settingsRepositories-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/settingsRepositories-do/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/settingsRepositories-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
@@ -178,6 +208,16 @@ NOTE: Setting the `kotlin.stdlib.default.dependency` property to `false` prevent
 
 ==== Don't Do This
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/kotlinStdLib-avoid/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/kotlinStdLib-avoid/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/groovy",files="build.gradle[tags=avoid-this]"]
@@ -186,6 +226,16 @@ include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/groovy",files="bu
 <1> *`stdlib` is explicitly depended upon*: This project contains an implicit dependency on the Kotlin standard library, which is required to compile its source code.
 
 ==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/kotlinStdLib-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/kotlinStdLib-do/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/kotlinStdLib-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -218,6 +268,16 @@ Duplicating dependencies in Gradle build scripts can lead to:
 
 ==== Don't Do This
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDuplicateDependencies-avoid/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDuplicateDependencies-avoid/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-avoid/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-avoid/groovy",files="build.gradle[]"]
@@ -226,6 +286,16 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-avoid/gro
 <1> Redundant dependency in `implementation` scope.
 
 ==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDuplicateDependencies-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDuplicateDependencies-do/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/kotlin",files="build.gradle.kts[]"]

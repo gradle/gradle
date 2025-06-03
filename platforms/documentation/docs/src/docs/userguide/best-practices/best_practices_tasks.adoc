@@ -32,6 +32,16 @@ This can lead to unnecessary task execution and decreased build performance.
 
 Here is a task that writes output to two separate files:
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDependsOn-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDependsOn-do/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/avoidDependsOn-do/kotlin",files="build.gradle.kts[tags=depended-upon-task-setup]"]
 include::sample[dir="snippets/bestPractices/avoidDependsOn-do/groovy",files="build.gradle[tags=depended-upon-task-setup]"]
@@ -44,6 +54,16 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn-do/groovy",files="bui
 
 If you want to translate the greeting in the `message.txt` file using another task, you could do this:
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDependsOn-avoid/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDependsOn-avoid/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/avoidDependsOn-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/avoidDependsOn-avoid/groovy",files="build.gradle[tags=avoid-this]"]
@@ -55,6 +75,16 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn-avoid/groovy",files="
 ==== Do This Instead
 
 Instead, you should explicitly wire task inputs and outputs like this:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDependsOn-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDependsOn-do/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/avoidDependsOn-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -158,6 +188,16 @@ NOTE: Tasks with no group are hidden from the <<command_line_interface.adoc#sec:
 
 Tasks without a group appear under the "other" category in `./gradlew tasks --all` output, making them harder to locate:
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/groupTasks-avoid/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/groupTasks-avoid/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/groupTasks-avoid/kotlin",files="app/build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/groupTasks-avoid/groovy",files="app/build.gradle[tags=avoid-this]"]
@@ -172,6 +212,16 @@ include::{snippetsPath}/bestPractices/groupTasks-avoid/tests/groupTasks.bad.out[
 ==== Do this Instead
 
 When defining custom tasks, always assign a clear `group` and `description`:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/groupTasks-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/groupTasks-do/kotlin">
+    <img src="https://img.shields.io/badge/Download-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/groupTasks-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]
