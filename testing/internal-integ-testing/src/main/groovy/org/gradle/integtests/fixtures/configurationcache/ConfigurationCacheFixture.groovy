@@ -272,7 +272,7 @@ class ConfigurationCacheFixture {
     }
 
     private void assertHasProblems(HasProblems problemDetails) {
-        if (spec.failed) {
+        if (spec.failed && !problemDetails.reportedInRegularOutputDespiteFailure) {
             problems.assertFailureHasProblems(spec.failure) {
                 applyProblemsTo(problemDetails, delegate)
             }
@@ -412,6 +412,7 @@ class ConfigurationCacheFixture {
 
     trait HasProblems extends HasIncompatibleTasks {
         final List<ProblemDetails> problems = []
+        boolean reportedInRegularOutputDespiteFailure = false
 
         void problem(String message, int count = 1, boolean hasStackTrace = true) {
             problems.add(new ProblemDetails(message, count, hasStackTrace))
