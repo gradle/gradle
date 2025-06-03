@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.provider.Provider;
 
 import java.util.Map;
 
@@ -37,4 +38,9 @@ public interface AttributeContainerInternal extends AttributeContainer {
      * @return a copy of this container, as a map.
      */
     Map<Attribute<?>, ?> asMap();
+
+    /**
+     * Get all entries in this attribute container as a provider.
+     */
+    Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries();
 }

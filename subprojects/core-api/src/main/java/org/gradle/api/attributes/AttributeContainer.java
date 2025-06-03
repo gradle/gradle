@@ -16,6 +16,7 @@
 
 package org.gradle.api.attributes;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -41,6 +42,7 @@ import java.util.Set;
 @HasInternalProtocol
 @UsedByScanPlugin
 public interface AttributeContainer extends HasAttributes {
+
     /**
      * Returns the set of attribute keys of this container.
      * @return the set of attribute keys.
@@ -75,6 +77,20 @@ public interface AttributeContainer extends HasAttributes {
     <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider);
 
     /**
+     * Lazily add all attributes from {@code other} to this container. If the given attribute
+     * container contains attribute keys that already exist in this container, the values in this
+     * container will be overwritten. Subsequent calls to {@link #attribute(Attribute, Object)} and
+     * {@link #attributeProvider(Attribute, Provider)} will overwrite attributes added from
+     * this call.
+     *
+     * @return this container
+     *
+     * @since 9.1.0
+     */
+    @Incubating
+    AttributeContainer addAllLater(AttributeContainer other);
+
+    /**
      * Returns the value of an attribute found in this container with the type specified
      * by the given {@code key}, or {@code null} if this container doesn't have it.
      * <p>
@@ -99,4 +115,5 @@ public interface AttributeContainer extends HasAttributes {
      * @return true if this attribute is found in this container.
      */
     boolean contains(Attribute<?> key);
+
 }
