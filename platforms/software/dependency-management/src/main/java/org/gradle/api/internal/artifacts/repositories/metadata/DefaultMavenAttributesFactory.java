@@ -23,6 +23,7 @@ import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeEntry;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,8 +87,8 @@ public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
     }
 
     @Override
-    public ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes) {
-        return delegate.fromMap(attributes);
+    public ImmutableAttributes fromEntries(Collection<AttributeEntry<?>> entries) {
+        return delegate.fromEntries(entries);
     }
 
     @Override
