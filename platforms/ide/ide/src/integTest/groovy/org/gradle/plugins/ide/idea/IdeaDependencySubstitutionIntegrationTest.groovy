@@ -38,7 +38,7 @@ allprojects {
 
 project(":project2") {
     dependencies {
-        implementation group: "junit", name: "junit", version: "4.7"
+        implementation("junit:junit:4.7")
     }
 
     configurations.all {

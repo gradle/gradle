@@ -98,12 +98,11 @@ configurations {
 }
 
 dependencies {
-    myPlusConfig group: 'myGroup', name: 'missing-extra-artifact', version: '1.0'
-    myPlusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
-    myMinusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
-    runtimeOnly  group: 'myGroup', name: 'missing-artifact', version: '1.0'
-    implementation  group: 'myGroup', name: 'existing-artifact', version: '1.0'
-
+    myPlusConfig("myGroup:missing-extra-artifact:1.0")
+    myPlusConfig("myGroup:filtered-artifact:1.0")
+    myMinusConfig("myGroup:filtered-artifact:1.0")
+    runtimeOnly("myGroup:missing-artifact:1.0")
+    implementation("myGroup:existing-artifact:1.0")
     eclipse {
         classpath {
             plusConfigurations += [ configurations.myPlusConfig ]

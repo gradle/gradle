@@ -550,7 +550,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 
             dependencies {
-                subConf(group: "org.utils", name: "api", version: "1.5")
+                subConf("org.utils:api:1.5")
             }
 
             configurations.runtimeClasspath.resolutionStrategy.dependencySubstitution {

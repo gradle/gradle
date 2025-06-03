@@ -59,7 +59,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         buildFile << '''
             buildscript {
                 repositories { flatDir { dirs 'repo' }}
-                dependencies { classpath name: 'test', version: '1.3-BUILD-SNAPSHOT' }
+                dependencies { classpath ':test:1.3-BUILD-SNAPSHOT' }
             }
 
             task hello {
@@ -105,7 +105,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     def "build script classloader copies only non-cached jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
-            classpath name: 'test', version: '1.3-BUILD-SNAPSHOT'
+            classpath(":test:1.3-BUILD-SNAPSHOT")
             classpath 'commons-io:commons-io:1.4@jar'
         """)
         ArtifactBuilder builder = artifactBuilder()
@@ -185,7 +185,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         buildFile << '''
             buildscript {
                 repositories { flatDir { dirs 'repo' }}
-                dependencies { classpath name: 'test', version: '1.3-BUILD-SNAPSHOT' }
+                dependencies { classpath ':test:1.3-BUILD-SNAPSHOT' }
             }
 
             task hello {
@@ -240,7 +240,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
         when:
         createBuildFileThatPrintsClasspathURLs("""
-            classpath name: 'a', version: '1'
+            classpath(":a:1")
         """)
         succeeds("showBuildscript")
 
@@ -263,7 +263,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
         when:
         createBuildFileThatPrintsClasspathURLs("""
-            classpath name: 'a', version: '1'
+            classpath(":a:1")
         """)
         succeeds("showBuildscript")
 
