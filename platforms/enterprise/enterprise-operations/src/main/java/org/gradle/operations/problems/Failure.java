@@ -32,11 +32,11 @@ import java.util.Map;
 public interface Failure {
 
     /**
-     * The class name of the throwable.
+     * The class name of the original throwable.
      *
      * @since 9.0
      */
-    String getClassName();
+    String getExceptionType();
 
     /**
      * The message of the failure.

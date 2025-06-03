@@ -153,7 +153,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         }
 
         @Override
-        public String getClassName() {
+        public String getExceptionType() {
             return failure.getExceptionType().getName();
         }
 
