@@ -158,6 +158,32 @@ Configuration caching disabled because degradation was requested by:
 - task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
     }
 
+    def "a buildSrc task that requires degradation does not impact CC"() {
+        def configurationCache = newConfigurationCacheFixture()
+        file("buildSrc/src/main/java/MyClass.java") << "class MyClass {}"
+        buildFile("buildSrc/build.gradle", """
+            ${generateDegradationController()}
+            tasks.named("compileJava") { task ->
+                degradation.requireConfigurationCacheDegradation(task, provider { "Project access" })
+                doLast {
+                    println "Executing \${task}"
+                }
+            }
+        """)
+        buildFile("build.gradle", """
+        task foo
+        """)
+
+        when:
+        configurationCacheRun ":foo"
+
+        then:
+        result.assertTaskExecuted(":buildSrc:compileJava")
+        result.assertTaskExecuted(":foo")
+        configurationCache.assertStateStored()
+        outputContains("Executing task ':buildSrc:compileJava'")
+    }
+
     def "depending on a CC degrading task from included build introduces CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("buildLogic/build.gradle", """
