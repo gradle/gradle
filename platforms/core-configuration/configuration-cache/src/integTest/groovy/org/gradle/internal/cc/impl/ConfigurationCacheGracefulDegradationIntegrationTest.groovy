@@ -48,8 +48,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         and:
         outputContains("Project path is :")
         postBuildOutputContains("""
-Configuration caching disabled because degradation was requested by:
-- task `:a` of type `org.gradle.api.DefaultTask`""")
+Configuration caching disabled because degradation was requested.
+- Incompatible tasks:
+\t- task `:a` of type `org.gradle.api.DefaultTask`""")
     }
 
     def "a task can require CC degradation for multiple reasons"() {
@@ -154,8 +155,9 @@ Configuration caching disabled because degradation was requested by:
         and:
         outputContains("Hello from included build :")
         postBuildOutputContains("""
-Configuration caching disabled because degradation was requested by:
-- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
+Configuration caching disabled because degradation was requested.
+- Incompatible tasks:
+\t- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
     }
 
     def "a buildSrc task that requires degradation does not impact CC"() {
@@ -222,8 +224,9 @@ Configuration caching disabled because degradation was requested by:
         outputContains("Hello from included build :")
         outputContains("Hello from root build")
         postBuildOutputContains("""
-Configuration caching disabled because degradation was requested by:
-- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
+Configuration caching disabled because degradation was requested.
+- Incompatible tasks:
+\t- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
     }
 
     def "no CC degradation if incompatible task is not presented in the task graph"() {
