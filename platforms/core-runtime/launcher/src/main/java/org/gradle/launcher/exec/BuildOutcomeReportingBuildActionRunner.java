@@ -48,12 +48,12 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
     public BuildOutcomeReportingBuildActionRunner(
         StyledTextOutputFactory styledTextOutputFactory,
         ListenerManager listenerManager,
-        BuildActionRunner delegate,
         BuildStartedTime buildStartedTime,
         BuildRequestMetaData buildRequestMetaData,
         BuildLoggerFactory buildLoggerFactory,
         FailureFactory failureFactory,
-        ExceptionProblemRegistry registry
+        ExceptionProblemRegistry registry,
+        BuildActionRunner delegate
     ) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.listenerManager = listenerManager;

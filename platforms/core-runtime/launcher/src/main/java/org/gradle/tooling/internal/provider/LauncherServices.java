@@ -229,6 +229,10 @@ public class LauncherServices extends AbstractGradleModuleServices {
         ) {
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(
+                    eventEmitter,
+                    startParameter,
+                    problemsService,
+                    problemStream,
                     new RootBuildLifecycleBuildActionExecutor(
                         buildStateRegistry,
                         new BuildCompletionNotifyingBuildActionRunner(
@@ -242,27 +246,26 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                 fileHasherStatisticsCollector,
                                 directorySnapshotterStatisticsCollector,
                                 buildOperationRunner,
+                                options,
                                 new BuildOutcomeReportingBuildActionRunner(
                                     styledTextOutputFactory,
                                     listenerManager,
-                                    new ProblemReportingBuildActionRunner(
-                                        new ChainingBuildActionRunner(buildActionRunners),
-                                        exceptionAnalyser,
-                                        buildLayout,
-                                        problemReporters
-                                    ),
                                     buildStartedTime,
                                     buildRequestMetaData,
                                     buildLoggerFactory,
                                     failureFactory,
-                                    registry
-                                ),
-                                options)
-                        )),
-                    eventEmitter,
-                    startParameter,
-                    problemsService,
-                    problemStream),
+                                    registry,
+                                    new ProblemReportingBuildActionRunner(
+                                        exceptionAnalyser,
+                                        buildLayout,
+                                        problemReporters,
+                                        new ChainingBuildActionRunner(buildActionRunners)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
                 problemsService);
         }
 
