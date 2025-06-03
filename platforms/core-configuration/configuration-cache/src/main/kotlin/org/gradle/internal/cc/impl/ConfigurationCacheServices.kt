@@ -31,6 +31,7 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
+import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
@@ -64,6 +65,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(BuildModelControllerServices::class.java, DefaultBuildModelControllerServices::class.java)
             add(BuildToolingModelControllerFactory::class.java, DefaultBuildToolingModelControllerFactory::class.java)
             add(DefaultConfigurationCacheDegradationController::class.java)
+            add(DefaultDeferredRootBuildGradle::class.java)
             add(DeprecatedFeaturesListener::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
