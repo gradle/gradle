@@ -16,35 +16,45 @@
 
 package org.gradle.api.tasks.wrapper
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonParseException
-import com.google.gson.reflect.TypeToken
-import org.gradle.api.GradleException
-import org.gradle.api.Project
-import org.gradle.api.resources.TextResourceFactory
+
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.gradle.test.fixtures.server.http.BlockingHttpsServer
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.DistributionLocator
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
-
-import java.lang.reflect.Type
+import org.junit.Rule
 
 class WrapperTest extends AbstractTaskTest {
+
     private static final String TARGET_WRAPPER_FINAL = "gradle/wrapper"
+
+    private static final String DEFAULT_USER = "jdoe"
+    private static final String DEFAULT_PASSWORD = "changeit"
+
+    @Rule
+    BlockingHttpsServer server = new BlockingHttpsServer()
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
+    TestKeyStore keyStore
+
     private Wrapper wrapper
     private TestFile expectedTargetWrapperJar
     private File expectedTargetWrapperProperties
 
     def setup() {
+        keyStore = TestKeyStore.init(resources.dir)
+        server.configure(keyStore)
+        server.withBasicAuthentication(DEFAULT_USER, DEFAULT_PASSWORD)
+        server.start()
+        System.setProperty("org.gradle.internal.services.base.url", getBaseUrl())
+        keyStore.getTrustStoreSettings().forEach { key, value -> System.setProperty(key, value)}
+
         wrapper = createTask(Wrapper.class)
 
         wrapper.setGradleVersion("8.0")
@@ -55,6 +65,10 @@ class WrapperTest extends AbstractTaskTest {
         new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
         wrapper.setDistributionPath("somepath")
         wrapper.setDistributionSha256Sum("somehash")
+    }
+
+    def cleanup() {
+        server.stop()
     }
 
     Wrapper getTask() {
@@ -102,22 +116,26 @@ class WrapperTest extends AbstractTaskTest {
     }
 
     def "downloads for '#version' from repository "() {
+        given:
+        if (request != null) {
+            server.expect(server.get(request).send(reply))
+        }
+
         when:
         wrapper.setGradleVersion(version)
 
         then:
-        def downloadUrl = new VersionResolver(project).resolveDownloadUrl(version, urlSuffix)
-        downloadUrl == null || downloadUrl == wrapper.getDistributionUrl()
+        wrapper.getDistributionUrl() == getBaseUrl() + downloadUrlSuffix
 
         where:
-        version                     | urlSuffix
-        "8.14.1"                    | "8"
-        "7.6-milestone-1"           | "7"
-        "latest"                    | "current"
-        "release-candidate"         | "release-candidate"
-        "release-milestone"         | "milestone"
-        "nightly"                   | "nightly"
-        "release-nightly"           | "release-nightly"
+        version                     | request                       | reply                                                 | downloadUrlSuffix
+        "8.13"                      | null                          | null                                                  | "/distributions/gradle-8.13-bin.zip"
+        "7.6-milestone-1"           | null                          | null                                                  | "/distributions/gradle-7.6-milestone-1-bin.zip"
+        "latest"                    | "/versions/current"           | """{ "version" : "8.14.1" }"""                        | "/distributions/gradle-8.14.1-bin.zip"
+        "release-candidate"         | "/versions/release-candidate" | """{ "version" : "9.0-RC-1"}"""                       | "/distributions/gradle-9.0-RC-1-bin.zip"
+        "release-milestone"         | "/versions/milestone"         | """{ "version" : "9.0.0-milestone-9" }"""             | "/distributions/gradle-9.0.0-milestone-9-bin.zip"
+        "nightly"                   | "/versions/nightly"           | """{ "version" : "9.0.0-20250603003140+0000" }"""     | "/distributions-snapshots/gradle-9.0.0-20250603003140+0000-bin.zip"
+        "release-nightly"           | "/versions/release-nightly"   | """{ "version" : "8.14.1-20250522010941+0000" }"""    | "/distributions-snapshots/gradle-8.14.1-20250522010941+0000-bin.zip"
     }
 
     def "uses explicitly defined distribution url"() {
@@ -153,15 +171,18 @@ class WrapperTest extends AbstractTaskTest {
         !wrapper.getValidateDistributionUrl().get()
     }
 
-    def "execute with non extant wrapper jar parent directory"() {
+    def "execute with non-existent wrapper jar parent directory"() {
+        given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
         when:
-        def unjarDir = temporaryFolder.createDir("unjar")
+        def decompressDir = temporaryFolder.createDir("decompress")
         execute(wrapper)
-        expectedTargetWrapperJar.unzipToWithoutCheckingParentDirs(unjarDir)
+        expectedTargetWrapperJar.unzipToWithoutCheckingParentDirs(decompressDir)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
-        unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
+        decompressDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().toString()
@@ -172,6 +193,7 @@ class WrapperTest extends AbstractTaskTest {
 
     def "execute with networkTimeout set"() {
         given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
         wrapper.setNetworkTimeout(6000)
 
         when:
@@ -203,6 +225,8 @@ class WrapperTest extends AbstractTaskTest {
 
     def "execute with extant wrapper jar parent directory and extant wrapper jar"() {
         given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
         def jarDir = new File(getProject().getProjectDir(), "lib")
         jarDir.mkdirs()
         def parentFile = expectedTargetWrapperJar.getParentFile()
@@ -229,6 +253,8 @@ class WrapperTest extends AbstractTaskTest {
 
     def "distributionUrl should not contain small dotless I letter when locale has small dotless I letter"() {
         given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
         Locale originalLocale = Locale.getDefault()
         Locale.setDefault(new Locale("tr","TR"))
 
@@ -243,69 +269,7 @@ class WrapperTest extends AbstractTaskTest {
         Locale.setDefault(originalLocale)
     }
 
-    private static class VersionResolver {
-
-        private final TextResourceFactory textResourceFactory
-
-        VersionResolver(Project project) {
-            this.textResourceFactory = project.getResources().getText()
-        }
-
-        def resolveDownloadUrl(String version, String urlSuffix) {
-            String versionUrl = DistributionLocator.getBaseUrl() + "/versions/" + urlSuffix
-            String json = textResourceFactory.fromUri(versionUrl).asString()
-
-            Map<String, String> versionInfo = versionInfoFromJson(json, version)
-            if (versionInfo.isEmpty()) {
-                return null
-            }
-            return downloadUrlFromVersionInfo(versionInfo, version)
-        }
-
-        private static String downloadUrlFromVersionInfo(Map<String, String> versionInfo, String version) {
-            def downloadUrl = versionInfo.get("downloadUrl")
-            if (downloadUrl == null) {
-                throw new GradleException("There is currently no version information available for version: " + version + ".")
-            }
-            return downloadUrl
-        }
-
-        private static Map<String, String> versionInfoFromJson(String json, String version) {
-            Gson gson = new GsonBuilder()
-                .registerTypeAdapter(new TypeToken<List<Map<String, String>>>() {}.getType(), new MapListDeserializer())
-                .create()
-
-            List<Map<String, String>> list = gson.fromJson(json, new TypeToken<List<Map<String, String>>>() {}.getType())
-
-            Map<String, String> versionInfo
-            if (list.size() == 1) {
-                versionInfo = list[0]
-            } else {
-                versionInfo = list.stream()
-                    .filter { it.get("version") == version }
-                    .findFirst()
-                    .orElseThrow { new GradleException("Can't find version: " + version) }
-            }
-            versionInfo
-        }
-
-        static class MapListDeserializer implements JsonDeserializer<List<Map<String, String>>> {
-            @Override
-            List<Map<String, String>> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                List<Map<String, String>> list = new ArrayList<>()
-
-                if (json.isJsonArray()) {
-                    for (JsonElement element : json.getAsJsonArray()) {
-                        Map<String, String> map = context.deserialize(element, new TypeToken<Map<String, String>>(){}.getType())
-                        list.add(map)
-                    }
-                } else if (json.isJsonObject()) {
-                    Map<String, String> map = context.deserialize(json, new TypeToken<Map<String, String>>(){}.getType())
-                    list.add(map)
-                }
-
-                return list
-            }
-        }
+    private String getBaseUrl() {
+        "https://$DEFAULT_USER:$DEFAULT_PASSWORD@localhost:${server.port}"
     }
 }
