@@ -65,7 +65,7 @@ public interface ResolvedDependency {
 
     /**
      * Returns the module artifacts belonging to this ResolvedDependency. A module artifact is an artifact that belongs
-     * to a ResolvedDependency independent of a particular parent. Returns never null. 
+     * to a ResolvedDependency independent of a particular parent. Returns never null.
      */
     Set<ResolvedArtifact> getModuleArtifacts();
 
@@ -81,7 +81,10 @@ public interface ResolvedDependency {
      *
      * @param parent A parent of the ResolvedDependency. Must not be null.
      * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     *
+     * @deprecated This method will be removed in Gradle 10.0.0
      */
+    @Deprecated
     Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent);
 
     /**
@@ -89,7 +92,10 @@ public interface ResolvedDependency {
      *
      * @param parent A parent of the ResolvedDependency. Must not be null.
      * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     *
+     * @deprecated This method will be removed in Gradle 10.0.0
      */
+    @Deprecated
     Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent);
 
     /**
@@ -97,6 +103,9 @@ public interface ResolvedDependency {
      *
      * @param parent A parent of the ResolvedDependency. Must not be null.
      * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     *
+     * @deprecated This method will be removed in Gradle 10.0.0
      */
+    @Deprecated
     Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent);
 }

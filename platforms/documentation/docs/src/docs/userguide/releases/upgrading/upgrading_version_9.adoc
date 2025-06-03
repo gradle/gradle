@@ -41,4 +41,21 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+==== Deprecated parent-specific artifact method on ResolvedDependency
+
+The following methods on link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html[`ResolvedDependency`] will be removed in Gradle 10.0.0 without replacement:
+
+- getParentArtifacts(ResolvedDependency)
+- getArtifacts(ResolvedDependency)
+- getAllArtifacts(ResolvedDependency)
+
+These methods return artifacts of a dependency which are only provided from a specific parent.
+In order to reduce complexity, Gradle will stop tracking the extra data needed to provide this information.
+Since in most cases all parents resolve the same artifacts from child nodes, the deprecated methods can likely be replaced by:
+
+- getModuleArtifacts()
+- getAllModuleArtifacts()
+
+NOTE: The `ResolvedDependency` API is in maintenance mode. Prefer <<artifact_views.adoc#artifact-views,Artifact View>> for rich artifact querying and processing.
+
 === Potential breaking changes
