@@ -185,7 +185,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val guice = "com.google.inject:guice"
     val httpmime = "org.apache.httpcomponents:httpmime"
     val jacksonKotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
-    val javaParser = "com.github.javaparser:javaparser-core"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
     val jettyServer = "org.eclipse.jetty:jetty-server"
