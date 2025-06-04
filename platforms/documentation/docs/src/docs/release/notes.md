@@ -10,9 +10,13 @@
 <meta name="twitter:description" content="Gradle @version@ adds support for Java 24, Native Image toolchains, improved skipped test reporting, lazy dependency configuration for better performance, richer diagnostics via the Problems API, and a new integrity check mode for the configuration cache.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-Gradle @version@ is the first patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the second patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
 
 It fixes the following issues:
+
+* TODO
+
+Issues fixed in the first patch release:
 
 * [#33288](https://github.com/gradle/gradle/issues/33288) Groovydoc task suppresses stdout for tasks executing concurrently
 * [#33389](https://github.com/gradle/gradle/issues/33389) Gradle 8.14 breaks Android Gradle Plugin code coverage support
