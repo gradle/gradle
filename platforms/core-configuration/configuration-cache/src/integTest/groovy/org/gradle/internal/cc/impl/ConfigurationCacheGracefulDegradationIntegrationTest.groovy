@@ -47,10 +47,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         outputContains("Project path is :")
-        postBuildOutputContains("""
-Configuration caching disabled because degradation was requested.
-- Incompatible tasks:
-\t- task `:a` of type `org.gradle.api.DefaultTask`""")
+        assertConfigurationCacheDegradation("task `:a` of type `org.gradle.api.DefaultTask`")
     }
 
     def "a task can require CC degradation for multiple reasons"() {
@@ -128,7 +125,7 @@ Configuration caching disabled because degradation was requested.
 
     def "a task in included build can require CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
-        buildFile("buildLogic/build.gradle", """
+        buildFile("included/build.gradle", """
             ${generateDegradationController()}
             tasks.register("foo") { task ->
                 degradation.requireConfigurationCacheDegradation(task, provider { "Project access" })
@@ -138,26 +135,23 @@ Configuration caching disabled because degradation was requested.
             }
         """)
         settingsFile """
-            includeBuild("buildLogic")
+            includeBuild("included")
         """
 
         when:
-        configurationCacheRun ":buildLogic:foo"
+        configurationCacheRun ":included:foo"
 
         then:
         configurationCache.assertNoConfigurationCache()
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
-            withProblem("Build file 'buildLogic/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
-            withIncompatibleTask(":buildLogic:foo", "Project access.")
+            withProblem("Build file 'included/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":included:foo", "Project access.")
         }
 
         and:
         outputContains("Hello from included build :")
-        postBuildOutputContains("""
-Configuration caching disabled because degradation was requested.
-- Incompatible tasks:
-\t- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
+        assertConfigurationCacheDegradation("task `:included:foo` of type `org.gradle.api.DefaultTask`")
     }
 
     def "a buildSrc task that requires degradation does not impact CC"() {
@@ -172,23 +166,25 @@ Configuration caching disabled because degradation was requested.
                 }
             }
         """)
-        buildFile("build.gradle", """
-        task foo
-        """)
+        buildFile """
+            tasks.register("foo")
+        """
 
         when:
         configurationCacheRun ":foo"
 
         then:
+        configurationCache.assertStateStored()
+
+        and:
         result.assertTaskExecuted(":buildSrc:compileJava")
         result.assertTaskExecuted(":foo")
-        configurationCache.assertStateStored()
         outputContains("Executing task ':buildSrc:compileJava'")
     }
 
     def "depending on a CC degrading task from included build introduces CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
-        buildFile("buildLogic/build.gradle", """
+        buildFile("included/build.gradle", """
             ${generateDegradationController()}
             tasks.register("foo") { task ->
                 degradation.requireConfigurationCacheDegradation(task, provider { "Project access" })
@@ -198,11 +194,11 @@ Configuration caching disabled because degradation was requested.
             }
         """)
         settingsFile """
-            includeBuild("buildLogic")
+            includeBuild("included")
         """
         buildFile """
             tasks.register("bar") {
-                dependsOn gradle.includedBuild("buildLogic").task(":foo")
+                dependsOn gradle.includedBuild("included").task(":foo")
                 doLast {
                     println "Hello from root build"
                 }
@@ -216,17 +212,14 @@ Configuration caching disabled because degradation was requested.
         configurationCache.assertNoConfigurationCache()
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
-            withProblem("Build file 'buildLogic/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
-            withIncompatibleTask(":buildLogic:foo", "Project access.")
+            withProblem("Build file 'included/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":included:foo", "Project access.")
         }
 
         and:
         outputContains("Hello from included build :")
         outputContains("Hello from root build")
-        postBuildOutputContains("""
-Configuration caching disabled because degradation was requested.
-- Incompatible tasks:
-\t- task `:buildLogic:foo` of type `org.gradle.api.DefaultTask`""")
+        assertConfigurationCacheDegradation("task `:included:foo` of type `org.gradle.api.DefaultTask`")
     }
 
     def "no CC degradation if incompatible task is not presented in the task graph"() {
@@ -269,5 +262,12 @@ Configuration caching disabled because degradation was requested.
             }
             def degradation = objects.newInstance(DegradationService).controller
         """
+    }
+
+    private assertConfigurationCacheDegradation(String... tasks) {
+        postBuildOutputContains("Configuration caching disabled because degradation was requested.")
+        tasks.each { task ->
+            postBuildOutputContains("\t- $task")
+        }
     }
 }
