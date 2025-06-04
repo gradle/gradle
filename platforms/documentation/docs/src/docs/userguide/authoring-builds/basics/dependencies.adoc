@@ -132,4 +132,4 @@ Gradle will fail the build if both `foo-impl` and `bar-impl` are present and cla
 Consult the <<getting_started_dep_man.adoc#dependency-management-in-gradle,Dependency Management>> chapter to learn more.
 
 [.text-right]
-**Next Step:** <<dependencies.adoc#dependencies_intro,Learn about Creating and Registering Tasks>> >>
+**Next Step:** <<writing_tasks.adoc#writing_tasks,Learn about Creating and Registering Tasks>> >>

@@ -223,7 +223,7 @@ Project paths usually reflect the filesystem layout, but there are exceptions.
 Most notably for <<composite_builds#defining_composite_builds,composite builds>>.
 
 [[sec:identifying_project_structure]]
-== Identifying project structure
+== Identifying the project structure
 
 You can use the `gradle projects` command to identify the project structure.
 
