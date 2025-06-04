@@ -150,7 +150,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         then:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle 9.0. bar.")
+        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle 10.0. bar.")
     }
 
     def "reports suppressed deprecation messages with --warning-mode summary"() {
