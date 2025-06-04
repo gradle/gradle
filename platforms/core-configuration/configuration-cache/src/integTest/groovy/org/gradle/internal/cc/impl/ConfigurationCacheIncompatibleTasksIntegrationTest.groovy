@@ -181,6 +181,40 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         }
     }
 
+    def "execution-time problems in tasks that are not marked incompatible are treated as interrupting failures when incompatible tasks are also scheduled"() {
+        given:
+        buildFile """
+            def capturedProject = project
+            tasks.register("broken") {
+                doLast {
+                    println("use task.project: " + (project != null)) // execution-time problem
+                }
+            }
+            tasks.register("markedIncompatible") {
+                notCompatibleWithConfigurationCache("for some reason")
+                doLast {
+                    println("use captured project: " + (capturedProject != null)) // suppressed serialization problem
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails("markedIncompatible", "broken")
+
+        then:
+        failureDescriptionStartsWith("Execution failed for task ':broken'.")
+        failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported.")
+
+        result.assertTasksExecuted(":markedIncompatible", ":broken")
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            loadsAfterStore = false
+            reportedInRegularOutputDespiteFailure = true
+            serializationProblem "Task `:markedIncompatible` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache."
+            problem "Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported."
+        }
+    }
+
     def "discards cache entry when incompatible task scheduled but no problems generated"() {
         addIncompatibleTaskWithoutProblems()
 
