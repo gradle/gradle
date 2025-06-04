@@ -9,6 +9,22 @@ description = """This project contains most of the dependency management logic o
     |
     |DSL facing APIs are to be found in 'core-api'""".trimMargin()
 
+jvmCompile.targetJvmVersion = 11
+
+// Override the target JVM version, this is just a hack to test it.
+configurations {
+    for (conf in listOf(
+        apiElements,
+        runtimeElements
+    )) {
+        conf.configure {
+            attributes {
+                attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+            }
+        }
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "AmbiguousMethodReference", // 1 occurrences
@@ -82,7 +98,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
-    
+
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
