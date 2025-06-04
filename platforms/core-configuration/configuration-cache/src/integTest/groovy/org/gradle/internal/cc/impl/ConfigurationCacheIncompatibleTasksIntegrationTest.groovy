@@ -141,23 +141,44 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         }
     }
 
-    def "problems in tasks that are not marked incompatible are treated as failures when incompatible tasks are also scheduled"() {
+    def "serialization problems in tasks that are not marked incompatible are treated as failures when incompatible tasks are also scheduled"() {
         given:
-        addIncompatibleTasksWithProblems()
+        buildFile """
+            def capturedProject = project
+            tasks.register("broken") {
+                doLast {
+                    println("use captured project: " + (capturedProject != null)) // serialization problem
+                }
+            }
+            tasks.register("markedIncompatible") {
+                notCompatibleWithConfigurationCache("for some reason")
+                doLast {
+                    println("use captured project: " + (capturedProject != null)) // suppressed serialization problem
+                }
+            }
+        """
 
         when:
-        configurationCacheFails("declared", "notDeclared")
+        configurationCacheFails("markedIncompatible", "broken")
 
         then:
-        result.assertTasksExecuted(":declared", ":notDeclared")
-        assertStateStoredAndDiscardedForDeclaredAndNotDeclaredTasks()
+        result.assertTasksExecuted(":markedIncompatible", ":broken")
+        fixture.assertStateStoredAndDiscarded {
+            loadsAfterStore = false
+            serializationProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            serializationProblem("Task `:markedIncompatible` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+        }
 
         when:
-        configurationCacheFails("declared", "notDeclared")
+        configurationCacheFails("markedIncompatible", "broken")
 
         then:
-        result.assertTasksExecuted(":declared", ":notDeclared")
-        assertStateStoredAndDiscardedForDeclaredAndNotDeclaredTasks()
+        result.assertTasksExecuted(":markedIncompatible", ":broken")
+        fixture.assertStateStoredAndDiscarded {
+            loadsAfterStore = false
+            serializationProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            serializationProblem("Task `:markedIncompatible` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+        }
     }
 
     def "discards cache entry when incompatible task scheduled but no problems generated"() {
@@ -443,14 +464,6 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         }
     }
 
-    private void assertStateStoredAndDiscardedForDeclaredAndNotDeclaredTasks() {
-        fixture.assertStateStoredAndDiscarded {
-            loadsAfterStore = false
-            problem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.", 2)
-            serializationProblem("Task `:notDeclared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
-            serializationProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
-        }
-    }
 
     private addIncompatibleTaskWithoutProblems() {
         buildFile """
