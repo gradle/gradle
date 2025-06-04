@@ -322,7 +322,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         problems.assertResultHasProblems(failure)
     }
 
-    def "state serialization errors always halts the build and earlier problems reported"() {
+    def "state serialization errors always halts the build and earlier problems are reported in separate build failure"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
 
