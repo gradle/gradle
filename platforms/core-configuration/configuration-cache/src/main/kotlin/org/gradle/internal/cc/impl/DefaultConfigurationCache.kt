@@ -241,6 +241,7 @@ class DefaultConfigurationCache internal constructor(
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
                 degradeGracefullyOr { saveWorkGraph() }
+                crossConfigurationTimeBarrier()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -271,7 +272,8 @@ class DefaultConfigurationCache internal constructor(
 
         return runWorkThatContributesToCacheEntry {
             val model = creator()
-            saveModel(model)
+            degradationController.modelBuilding()
+            degradeGracefullyOr { saveModel(model) }
             model
         }
     }
@@ -592,7 +594,6 @@ class DefaultConfigurationCache internal constructor(
         if (!degradationController.shouldDegradeGracefully()) {
             action()
         }
-        crossConfigurationTimeBarrier()
     }
 
     private

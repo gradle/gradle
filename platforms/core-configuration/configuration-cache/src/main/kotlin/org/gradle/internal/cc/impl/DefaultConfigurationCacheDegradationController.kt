@@ -37,6 +37,8 @@ internal class DefaultConfigurationCacheDegradationController(
     stateTransitionControllerFactory: StateTransitionControllerFactory
 ) : ConfigurationCacheDegradationController {
 
+    private var modelBuilding = false
+
     private val stateTransitionController = stateTransitionControllerFactory.newController(
         Describables.of("state of CC degradation"),
         State.CollectingDegradationRequests
@@ -49,6 +51,10 @@ internal class DefaultConfigurationCacheDegradationController(
 
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
     val degradationReasons by lazy(::collectDegradationReasons)
+
+    fun modelBuilding() {
+        this.modelBuilding = true
+    }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         stateTransitionController.inState(State.CollectingDegradationRequests) {
@@ -67,14 +73,20 @@ internal class DefaultConfigurationCacheDegradationController(
                 result.add(DegradationReason.BuildLogic("Source dependencies are used"))
             }
             if (tasksDegradationRequests.isNotEmpty()) {
-                deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
-                    scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
-                        val taskDegradationReasons = tasksDegradationRequests[task]
-                            ?.mapNotNull { it.orNull }
-                            ?.sorted()
+                if (modelBuilding) {
+                    tasksDegradationRequests.forEach { (task, reasons) ->
+                        result.add(DegradationReason.Task(task, reasons.mapNotNull { it.orNull }.sorted()))
+                    }
+                } else {
+                    deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
+                        scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
+                            val taskDegradationReasons = tasksDegradationRequests[task]
+                                ?.mapNotNull { it.orNull }
+                                ?.sorted()
 
-                        if (!taskDegradationReasons.isNullOrEmpty()) {
-                            result.add(DegradationReason.Task(task, taskDegradationReasons))
+                            if (!taskDegradationReasons.isNullOrEmpty()) {
+                                result.add(DegradationReason.Task(task, taskDegradationReasons))
+                            }
                         }
                     }
                 }

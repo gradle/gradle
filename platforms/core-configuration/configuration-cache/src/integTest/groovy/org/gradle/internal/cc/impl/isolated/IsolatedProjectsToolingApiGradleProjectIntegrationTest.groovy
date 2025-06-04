@@ -16,8 +16,11 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal
 import org.gradle.tooling.model.GradleProject
+
+import javax.inject.Inject
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
 
@@ -60,6 +63,51 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then:
         fixture.assertModelLoaded()
+    }
+
+    def "can fetch GradleProject model when task requires graceful degradation"() {
+        settingsFile << """
+            rootProject.name = 'root'
+        """
+        buildFile """
+            interface DegradationService {
+                @${Inject.name}
+                ${ConfigurationCacheDegradationController.name} getController()
+            }
+            def degradation = objects.newInstance(DegradationService).controller
+            tasks.register("degraded") { task ->
+               degradation.requireConfigurationCacheDegradation(task, provider {
+                  println "Evaluating reason provider"
+                  "Project access"
+               })
+               doLast {
+                   println("Project path is \${project.path}")
+               }
+            }
+        """
+
+        when:
+        withIsolatedProjects()
+        def firstProjectModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+        postBuildOutputContains("Configuration caching disabled because degradation was requested.")
+
+        with(firstProjectModel) {
+            it.name == "root"
+            it.tasks.find {it.path == ":degraded" }
+        }
+
+        when:
+        withIsolatedProjects()
+        def secondProjectModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+        postBuildOutputContains("Configuration caching disabled because degradation was requested.")
+
+        checkGradleProject(secondProjectModel, firstProjectModel)
     }
 
     def "can fetch GradleProject model without tasks"() {
