@@ -100,6 +100,16 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
+### Promoted features in Core API
+
+The following methods in `ConfigurationContainer` are now considered stable:
+* `NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name)`
+* `NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action)`
+* `NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name)`
+* `NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action)`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name)`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action)`
+
 ### Promoted features in the Kotlin DSL
 
 The following operator functions in `DependenciesExtensions` are now considered stable:
@@ -144,6 +154,12 @@ The following top-level functions in `KotlinDependencyExtensions` are now consid
 * `PluginDependenciesSpec.embeddedKotlin(module: String): PluginDependencySpec`
 
 The following functions are now considered stable:
+* `ConfigurationContainerScope.resolvable(name: String): NamedDomainObjectProvider<ResolvableConfiguration>`
+* `ConfigurationContainerScope.resolvable(name: String, action: Action<in ResolvableConfiguration>): NamedDomainObjectProvider<ResolvableConfiguration>`
+* `ConfigurationContainerScope.consumable(name: String): NamedDomainObjectProvider<ConsumableConfiguration>`
+* `ConfigurationContainerScope.consumable(name: String, action: Action<in ConsumableConfiguration>): NamedDomainObjectProvider<ConsumableConfiguration>`
+* `ConfigurationContainerScope.dependencyScope(name: String): NamedDomainObjectProvider<DependencyScopeConfiguration>`
+* `ConfigurationContainerScope.dependencyScope(name: String, action: Action<in DependencyScopeConfiguration>): NamedDomainObjectProvider<DependencyScopeConfiguration>`
 * `GroovyBuilderScope.hasProperty(name: String): Boolean`
 
 <!--

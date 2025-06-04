@@ -18,7 +18,6 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -145,7 +144,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @since 8.4
      */
-    @Incubating
     NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name);
 
     /**
@@ -164,7 +162,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @since 8.4
      */
-    @Incubating
     NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action);
 
     /**
@@ -182,7 +179,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @since 8.4
      */
-    @Incubating
     NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name);
 
     /**
@@ -201,7 +197,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @since 8.4
      */
-    @Incubating
     NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action);
 
     /**
@@ -220,7 +215,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @since 8.4
      */
-    @Incubating
     NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name);
 
     /**
@@ -239,7 +233,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @since 8.4
      */
-    @Incubating
     NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action);
 
 }
