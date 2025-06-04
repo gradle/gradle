@@ -61,8 +61,13 @@ class ConfigurationCacheProblemsSummary(
     private
     var suppressedProblemCount: Int = 0
 
+    /**
+     * Unique problem causes observed among all reported problems.
+     *
+     * We also track severity per cause to provide useful ordering of problems when reporting the summary.
+     */
     private
-    val uniqueProblems = HashMap<UniquePropertyProblem, ProblemSeverity>()
+    val problemCauses = HashMap<ProblemCause, ProblemSeverity>()
 
     /**
      * As some problems come with original exceptions attached,
@@ -81,7 +86,7 @@ class ConfigurationCacheProblemsSummary(
         Summary(
             totalProblemCount,
             deferredProblemCount,
-            ImmutableMap.copyOf(uniqueProblems),
+            ImmutableMap.copyOf(problemCauses),
             ImmutableList.copyOf(originalProblemExceptions),
             overflowed,
             maxCollectedProblems
@@ -106,8 +111,8 @@ class ConfigurationCacheProblemsSummary(
                 overflowed = true
                 return false
             }
-            val isNew = trackUniqueProblems(problem, severity)
-            if (isNew) {
+            val isNewCause = recordProblemCause(problem, severity)
+            if (isNewCause) {
                 collectOriginalException(problem)
             }
             return true
@@ -124,13 +129,13 @@ class ConfigurationCacheProblemsSummary(
     }
 
     /**
-     * Return true if no similar problem has been seen before.
+     * Returns true if problems with the same cause have not been seen before.
      */
     private
-    fun trackUniqueProblems(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
-        val reducedProblem = UniquePropertyProblem.of(problem)
-        val isNew = !uniqueProblems.containsKey(reducedProblem)
-        uniqueProblems.merge(reducedProblem, severity) { old, new ->
+    fun recordProblemCause(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
+        val cause = ProblemCause.of(problem)
+        val isNew = !problemCauses.containsKey(cause)
+        problemCauses.merge(cause, severity) { old, new ->
             if (severityComparator.compare(old, new) < 0) old else new
         }
         return isNew
@@ -151,7 +156,7 @@ class Summary(
     val deferredProblemCount: Int,
 
     private
-    val uniqueProblems: Map<UniquePropertyProblem, ProblemSeverity>,
+    val problemCauses: Map<ProblemCause, ProblemSeverity>,
 
     val originalProblemExceptions: List<Throwable>,
 
@@ -161,8 +166,8 @@ class Summary(
     private
     val maxCollectedProblems: Int
 ) {
-    val uniqueProblemCount: Int
-        get() = uniqueProblems.size
+    val problemCauseCount: Int
+        get() = problemCauses.size
 
     fun textForConsole(cacheActionText: String, htmlReportFile: File? = null): String {
         val documentationRegistry = DocumentationRegistry()
@@ -179,8 +184,8 @@ class Summary(
                     appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", it)}")
                 }
             }
-            if (uniqueProblemCount > MAX_CONSOLE_PROBLEMS) {
-                appendLine("plus ${uniqueProblemCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
+            if (problemCauseCount > MAX_CONSOLE_PROBLEMS) {
+                appendLine("plus ${problemCauseCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
             }
             htmlReportFile?.let {
                 appendLine()
@@ -190,9 +195,9 @@ class Summary(
     }
 
     private
-    fun topProblemsForConsole(): Sequence<UniquePropertyProblem> =
-        uniqueProblems.entries.stream()
-            .collect(Comparators.least(MAX_CONSOLE_PROBLEMS, consoleComparatorForProblemWithSeverity()))
+    fun topProblemsForConsole(): Sequence<ProblemCause> =
+        problemCauses.entries.stream()
+            .collect(Comparators.least(MAX_CONSOLE_PROBLEMS, consoleComparatorForProblemCauseWithSeverity()))
             .asSequence()
             .map { it.key }
 
@@ -210,11 +215,11 @@ class Summary(
             append(maxCollectedProblems)
             append(" were considered")
         }
-        if (totalProblemCount != uniqueProblemCount) {
+        if (totalProblemCount != problemCauseCount) {
             append(", ")
-            append(uniqueProblemCount)
+            append(problemCauseCount)
             append(" of which ")
-            append(if (uniqueProblemCount == 1) "seems unique" else "seem unique")
+            append(if (problemCauseCount == 1) "seems unique" else "seem unique")
         }
         append(".")
     }
@@ -230,15 +235,15 @@ class Summary(
 
 
 private
-fun consoleComparatorForProblemWithSeverity(): Comparator<Map.Entry<UniquePropertyProblem, ProblemSeverity>> =
-    comparing<Map.Entry<UniquePropertyProblem, ProblemSeverity>, ProblemSeverity>({ it.value }, consoleComparatorForSeverity())
-        .thenComparing({ it.key }, consoleComparatorForProblem())
+fun consoleComparatorForProblemCauseWithSeverity(): Comparator<Map.Entry<ProblemCause, ProblemSeverity>> =
+    comparing<Map.Entry<ProblemCause, ProblemSeverity>, ProblemSeverity>({ it.value }, consoleComparatorForSeverity())
+        .thenComparing({ it.key }, consoleComparatorForProblemCause())
 
 
 private
-fun consoleComparatorForProblem(): Comparator<UniquePropertyProblem> =
-    comparing { p: UniquePropertyProblem -> p.userCodeLocation }
-        .thenComparing { p: UniquePropertyProblem -> p.message }
+fun consoleComparatorForProblemCause(): Comparator<ProblemCause> =
+    comparing { p: ProblemCause -> p.userCodeLocation }
+        .thenComparing { p: ProblemCause -> p.message }
 
 
 /**
@@ -259,15 +264,20 @@ fun consoleComparatorForSeverity(): Comparator<ProblemSeverity> =
     }
 
 
+/**
+ * A subset of [PropertyProblem] information used for summarization of all observed problems.
+ *
+ * For instance, we omit the stacktrace.
+ */
 internal
-data class UniquePropertyProblem(
+data class ProblemCause(
     val userCodeLocation: String,
     val message: String,
     val documentationSection: String?
 ) {
     companion object {
         fun of(problem: PropertyProblem) = problem.run {
-            UniquePropertyProblem(
+            ProblemCause(
                 trace.containingUserCode,
                 message.render(),
                 documentationSection?.anchor
