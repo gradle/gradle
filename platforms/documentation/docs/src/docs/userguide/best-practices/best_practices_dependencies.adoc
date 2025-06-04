@@ -241,12 +241,15 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/do
 [[single-gav-string]]
 == Prefer the single GAV (`group:artifact:version`) String Syntax
 
-When declaring dependencies without a version catalog, prefer using the single GAV string form `implementation("org.example:library:1.0")`.
-Avoid using the multi-parameter map form unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
+When declaring dependencies without a <<version_catalogs.adoc#version-catalog,version catalog>>, prefer using the single GAV string form `implementation("org.example:library:1.0")`.
+Avoid using the multi-parameter form unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
+
+TIP: The multi-parameter format may be deprecated in the future.
 
 === Explanation
 
-All of these formats are functionally equivalent in Gradle, but the single-string form is more concise, easier to read, and is widely adopted in the broader JVM ecosystem.
+All of these declarations will be treated equivalently when Gradle resolves dependencies.
+However, the single-string form is more concise, easier to read, and is widely adopted in the broader JVM ecosystem.
 
 This format is also recommended by link:https://central.sonatype.com/artifact/com.google.guava/guava[Maven Central] in its documentation and usage examples, making it the most familiar and consistent style for developers across tools.
 
