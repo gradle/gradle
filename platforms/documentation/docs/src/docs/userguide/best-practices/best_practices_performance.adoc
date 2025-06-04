@@ -1,0 +1,44 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_for_performance]]
+= Best Practices for Performance
+
+[[use_utf8_encoding]]
+== Use UTF-8 File Encoding
+
+Set `UTF-8` as the default file encoding to ensure consistent behavior across platforms.
+
+=== Explanation
+
+Use `UTF-8` as the default file encoding to ensure consistent behavior across environments and avoid caching issues caused by platform-dependent default encodings.
+
+This is especially important when working with build caching, since differences in file encoding between environments can cause unexpected cache misses.
+
+To enforce `UTF-8` encoding, add the following to your `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.jvmargs=-Dfile.encoding=UTF-8
+----
+
+NOTE: Do not rely on the default encoding of the underlying JVM or operating system, as this may differ between environments and lead to inconsistent behavior.
+
+=== References
+
+- <<common_caching_problems.adoc#system_file_encoding,File encoding and Caching>>.
+
+=== Tags
+
+`<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`

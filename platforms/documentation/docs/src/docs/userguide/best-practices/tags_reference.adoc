@@ -46,3 +46,6 @@ Here you can find a brief explanation of all the tags used in the best practices
 
 [[tag:version-catalog]]
 `#version-catalog` :: Items that explain how to use <<version_catalogs.adoc#version-catalog,version catalogs>> to centralize dependency declarations.
+
+[[tag:properties]]
+`#properties` :: Items that are related to defining and using <<build_environment.adoc#build_environment,build properties>>, such as those in `gradle.properties`, environment variables, or passed via the command line.
