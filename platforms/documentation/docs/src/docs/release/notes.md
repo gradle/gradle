@@ -57,7 +57,16 @@ For example, in the `gradle/gradle` project, non-ABI changes to build logic now 
 
 ### Kotlin 2 TO DO
 
-### Groovy 4 TO DO
+### Groovy 4
+Gradle embeds the latest stable release of Groovy 4.0. This is a major version jump from Gradle 7 and 8 that used Groovy 3.0.
+
+This brings a range of new features and improvements.
+See the [Groovy 4.0 release notes](https://groovy-lang.org/releasenotes/groovy-4.0.html) for full details.
+
+Gradle uses Groovy for Groovy DSL build scripts (`.gradle`) and Ant integration.
+
+Be aware that some behavior between Groovy 3.0 and 4.0 has changed in build scripts.
+See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#groovy-4) for details.
 
 ### SemVer TO DO
 
