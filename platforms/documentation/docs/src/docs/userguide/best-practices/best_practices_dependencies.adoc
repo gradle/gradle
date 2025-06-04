@@ -294,7 +294,7 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/groovy
 When declaring dependencies without a <<version_catalogs.adoc#version-catalog,version catalog>>, prefer using the single GAV string notation `implementation("org.example:library:1.0")`.
 Avoid using the named argument notation unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
 
-TIP: The named argument notation may be deprecated in the future.
+TIP: The named argument and map notations may be deprecated in the future.
 
 === Explanation
 
@@ -323,7 +323,7 @@ include::sample[dir="snippets/bestPractices/useGAVString-avoid/kotlin",files="bu
 include::sample[dir="snippets/bestPractices/useGAVString-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 <1> Avoid the named argument notation when declaring dependencies
-<2> Modifiers do not apply and can use named argument notation if needed
+<2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
 
 ==== Do This Instead
 
@@ -342,7 +342,7 @@ include::sample[dir="snippets/bestPractices/useGAVString-do/kotlin",files="build
 include::sample[dir="snippets/bestPractices/useGAVString-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 <1> Use the string notation instead when declaring dependencies
-<2> Modifiers do not apply and can use named argument notation if needed
+<2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
 
 === References
 
