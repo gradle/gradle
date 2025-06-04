@@ -39,6 +39,7 @@ The directory structure should look as follows:
 
 [source,text]
 ----
+.
 ├── .gradle
 │   └── ⋮
 ├── gradle
@@ -46,16 +47,39 @@ The directory structure should look as follows:
 │   └── wrapper
 ├── gradlew
 ├── gradlew.bat
-├── settings.gradle.kts // <1>
+├── settings.gradle(.kts)   // <1>
 ├── sub-project-1
-│   └── build.gradle.kts    // <2>
+│   └── build.gradle(.kts)      // <2>
 ├── sub-project-2
-│   └── build.gradle.kts    // <2>
+│   └── build.gradle(.kts)      // <2>
 └── sub-project-3
-    └── build.gradle.kts    // <2>
+    └── build.gradle(.kts)      // <2>
 ----
-<1> The `settings.gradle.kts` file should include all subprojects.
-<2> Each subproject should have its own `build.gradle.kts` file.
+<1> The `settings.gradle(.kts)` file should include all subprojects.
+<2> Each subproject should have its own `build.gradle(.kts)` file.
+
+In this example, the root settings file will look as follows:
+
+====
+[.multi-language-sample]
+=====
+.settings.gradle.kts
+[source,kotlin]
+----
+include("sub-project-1", "sub-project-2", "sub-project-3")
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source,groovy]
+----
+include('sub-project-1', 'sub-project-2', 'sub-project-3')
+----
+=====
+====
+
+NOTE: The order in which the subprojects (modules) are included does not matter.
 
 [[sec:project_standard]]
 == Multi-Project standards
@@ -71,33 +95,79 @@ image::multi-project-standards.png[]
 
 Multi-project builds allow you to organize projects with many modules, wire dependencies between those modules, and easily share common build logic amongst them.
 
-For example, a build that has many modules called `mobile-app`, `web-app`, `api`, `lib`, and `documentation` could be structured as follows:
+For example, if the project above had common build logic between `sub-project-1`, `sub-project-2` and `sub-project-3`, it could be structured as follows:
 
 [source,text]
 ----
 .
+├── .gradle
+│   └── ⋮
 ├── gradle
+│   ├── libs.versions.toml
+│   └── wrapper
 ├── gradlew
-├── settings.gradle.kts
-├── buildSrc
+├── gradlew.bat
+├── settings.gradle(.kts)
+├── buildSrc        // <1>
 │   ├── build.gradle.kts
-│   └── src/main/kotlin/shared-build-conventions.gradle.kts
-├── mobile-app
-│   └── build.gradle.kts
-├── web-app
-│   └── build.gradle.kts
-├── api
-│   └── build.gradle.kts
-├── lib
-│   └── build.gradle.kts
-└── documentation
-    └── build.gradle.kts
+│   └── src/main/*/shared-build-conventions.gradle(.kts)    // <2>
+├── sub-project-1
+│   └── build.gradle(.kts)              // <3>
+├── sub-project-2
+│   └── build.gradle(.kts)              // <3>
+└── sub-project-3
+    └── build.gradle(.kts)              // <3>
 ----
+<1> Gradle recognized buildSrc folder
+<2> Contains common build logic from `sub-project-1`, `sub-project-2` and `sub-project-3`
+<3> Applies `shared-build-conventions.gradle(.kts)`
 
-The modules will have dependencies between them such as `web-app` and `mobile-app` depending on `lib`.
-This means that in order for Gradle to build `web-app` or `mobile-app`, it must build `lib` first.
+The `buildSrc` directory is automatically recognized by Gradle.
+It is a good place to define and maintain shared configuration or imperative build logic, such as custom tasks or plugins.
 
-In this example, the root settings file will look as follows:
+`buildSrc` is automatically included in your build as a special subproject if a `build.gradle(.kts)` file is found under `buildSrc`.
+
+Consult the <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logic using `buildSrc`>> chapter to learn more.
+
+=== 2. Composite Builds
+
+Composite Builds, also referred to as _included builds_, are best for sharing logic between builds (_not subprojects_) or isolating access to shared build logic.
+
+Let's take the previous example.
+The logic in `buildSrc` has been turned into a project that contains plugins and can be published and worked on independently of the root project build.
+
+The plugin is moved to its own build called `build-logic` with its own build script and settings file:
+
+[source,text]
+----
+.
+├── .gradle
+│   └── ⋮
+├── gradle
+│   ├── libs.versions.toml
+│   └── wrapper
+├── gradlew
+├── gradlew.bat
+├── settings.gradle(.kts)
+├── build-logic         // <1>
+│   ├── settings.gradle.kts
+│   └── conventions
+│       ├── build.gradle.kts
+│       └── src/main/kotlin/shared-build-conventions.gradle.kts // <2>
+├── sub-project-1
+│   └── build.gradle(.kts)              // <3>
+├── sub-project-2
+│   └── build.gradle(.kts)              // <3>
+└── sub-project-3
+    └── build.gradle(.kts)              // <3>
+----
+<1> Separate Gradle build called `build-logic`
+<2> Contains common build logic from `sub-project-1`, `sub-project-2` and `sub-project-3`
+<3> Applies `shared-build-conventions.gradle(.kts)`
+
+NOTE: The fact that `build-logic` is located in a subdirectory of the root project is irrelevant. The folder could be located outside the root project if desired.
+
+The root settings file includes the entire `build-logic` *build*:
 
 ====
 [.multi-language-sample]
@@ -105,7 +175,8 @@ In this example, the root settings file will look as follows:
 .settings.gradle.kts
 [source,kotlin]
 ----
-include("mobile-app", "web-app", "api", "lib", "documentation")
+include("sub-project-1", "sub-project-2", "sub-project-3")
+includeBuild("build-logic")
 ----
 =====
 [.multi-language-sample]
@@ -113,68 +184,13 @@ include("mobile-app", "web-app", "api", "lib", "documentation")
 .settings.gradle
 [source,groovy]
 ----
-include("mobile-app", "web-app", "api", "lib", "documentation")
+include('sub-project-1', 'sub-project-2', 'sub-project-3')
+includeBuild('build-logic')
 ----
 =====
 ====
 
-NOTE: The order in which the subprojects (modules) are included does not matter.
-
-The `buildSrc` directory is automatically recognized by Gradle.
-It is a good place to define and maintain shared configuration or imperative build logic, such as custom tasks or plugins.
-
-`buildSrc` is automatically included in your build as a special subproject if a `build.gradle(.kts)` file is found under `buildSrc`.
-
-If the `java` plugin is applied to the `buildSrc` project, the compiled code from `buildSrc/src/main/java` is put in the classpath of the root build script, making it available to any subproject (`web-app`, `mobile-app`, `lib`, etc...) in the build.
-
-Consult how to declare <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc, dependencies between subprojects>> to learn more.
-
-=== 2. Composite Builds
-
-Composite Builds, also referred to as _included builds_, are best for sharing logic between builds (_not subprojects_) or isolating access to shared build logic (i.e., convention plugins).
-
-Let's take the previous example.
-The logic in `buildSrc` has been turned into a project that contains plugins and can be published and worked on independently of the root project build.
-
-The plugin is moved to its own build called `build-logic` with a build script and settings file:
-
-[source,text]
-----
-.
-├── gradle
-├── gradlew
-├── settings.gradle.kts
-├── build-logic
-│   ├── settings.gradle.kts
-│   └── conventions
-│       ├── build.gradle.kts
-│       └── src/main/kotlin/shared-build-conventions.gradle.kts
-├── mobile-app
-│   └── build.gradle.kts
-├── web-app
-│   └── build.gradle.kts
-├── api
-│   └── build.gradle.kts
-├── lib
-│   └── build.gradle.kts
-└── documentation
-    └── build.gradle.kts
-----
-
-NOTE: The fact that `build-logic` is located in a subdirectory of the root project is irrelevant. The folder could be located outside the root project if desired.
-
-The root settings file includes the entire `build-logic` *build*:
-
-.settings.gradle.kts
-[source,kotlin]
-----
-pluginManagement {
-    includeBuild("build-logic")
-}
-include("mobile-app", "web-app", "api", "lib", "documentation")
-----
-
-Consult how to <<composite_builds#defining_composite_builds,create composite builds>> with `includeBuild` to learn more.
+Consult the <<composite_builds.adoc#composite_builds,Composite Builds>> chapter to learn more.
 
 [[sec:project_path]]
 == Multi-Project path
@@ -272,7 +288,7 @@ include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuild.o
 
 If you have just gotten the latest version of the source from your version control system, which included changes in other projects that `:api` depends on, you might want to build all the projects you depend on AND test them too.
 
-The `buildNeeded` task builds AND tests all the projects from the project dependencies of the `testRuntime` configuration:
+The `buildNeeded` task builds *and* tests all the projects from the project dependencies of the `testRuntime` configuration:
 
 [source,text]
 ----
@@ -284,7 +300,7 @@ You may want to refactor some part of the `:api` project used in other projects.
 If you make these changes, testing only the `:api` project is insufficient.
 You must test all projects that depend on the `:api` project.
 
-The `buildDependents` task tests ALL the projects that have a project dependency (in the testRuntime configuration) on the specified project:
+The `buildDependents` task tests *all* the projects that have a project dependency (in the testRuntime configuration) on the specified project:
 
 [source, text]
 ----
@@ -297,7 +313,7 @@ Any task you run in the root project folder will cause that same-named task to b
 
 You can run `gradle build` to build and test ALL projects.
 
-Consult the <<multi_project_builds.adoc#multi_project_builds,Structuring Builds chapter>> to learn more.
+Consult the <<multi_project_builds.adoc#multi_project_builds,Structuring Builds>> chapter to learn more.
 
 [.text-right]
 **Next Step:** <<build_lifecycle.adoc#build_lifecycle,Learn about the Gradle Build Lifecycle>> >>

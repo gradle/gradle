@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[using_plugins]]
-= Using Plugins
+= Working with Plugins
 
 Much of Gradle's functionality is delivered via plugins, including core plugins distributed with Gradle, third-party plugins, and script plugins defined within builds.
 

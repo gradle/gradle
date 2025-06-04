@@ -1,0 +1,135 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependencies_intro]]
+= Declaring and Managing Dependencies
+
+Gradle provides a rich model for managing dependencies, resolving conflicts, and enforcing consistency.
+
+== Dependencies Block
+
+The dependencies block in Gradle is where you declare the external libraries, internal modules, and files your project needs to compile, run, or test.
+It’s one of the most central parts of any Gradle build script:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin/app",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
+====
+
+Dependencies are associated with configurations, which define the context in which the dependency is used.
+For example, `implementation` is used for main source code at compile and runtime, while `debugImplementation` is specific to debug builds in Android.
+
+However, Gradle's dependency management ecosystem offers much more than just declaring dependencies.
+
+== Version Catalogs (`libs.versions.toml`)
+
+Version catalogs are the recommended way to centralize dependency declarations.
+
+Create a `gradle/libs.versions.toml` file:
+
+```toml
+[versions]
+guava = "32.1.2-jre"
+
+[libraries]
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+```
+
+In your build script:
+
+```kotlin
+dependencies {
+    implementation(libs.guava)
+}
+```
+
+Benefits:
+
+* One source of truth for versions
+* Easily share across projects
+* IDE-friendly with auto-complete
+
+== Declare Constraints and Enforce Versions
+
+Gradle lets you **constrain versions** to avoid unwanted upgrades or resolve conflicts deterministically.
+
+```kotlin
+dependencies {
+    implementation("org.slf4j:slf4j-api") {
+        version {
+            strictly("1.7.36")
+        }
+    }
+}
+```
+
+You can also constrain a module globally:
+
+```kotlin
+dependencies {
+    constraints {
+        implementation("org.slf4j:slf4j-api:1.7.36") {
+            because("We only support SLF4J 1.7")
+        }
+    }
+}
+```
+
+Types of constraints:
+
+* `strictly("1.0")` – fail if a different version is selected
+* `prefer("1.0")` – soft preference, allows override
+* `require("1.0")` – override all others
+
+== Declare Capabilities to Resolve Conflicts
+
+Some modules provide **the same functionality** but under different coordinates (e.g., shaded libraries or alternatives). Gradle lets you resolve these using **capabilities**.
+
+Let's conside a scnario where two libraries provide the same API:
+
+* `org.foo:foo-impl`
+* `org.bar:bar-impl`
+
+Declare capabilities:
+
+```kotlin
+dependencies {
+    implementation("org.foo:foo-impl") {
+        capabilities {
+            requireCapability("com.example:logging-impl")
+        }
+    }
+}
+```
+
+Declare what a module provides:
+
+```kotlin
+components {
+    withModule("org.foo:foo-impl") {
+        allVariants {
+            withCapabilities {
+                addCapability("com.example", "logging-impl", "1.0")
+            }
+        }
+    }
+}
+```
+
+Gradle will fail the build if both `foo-impl` and `bar-impl` are present and claim the same capability—forcing you to choose one.
+
+Consult the <<getting_started_dep_man.adoc#dependency-management-in-gradle,Dependency Management>> chapter to learn more.
+
+[.text-right]
+**Next Step:** <<dependencies.adoc#dependencies_intro,Learn about Creating and Registering Tasks>> >>
