@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl.barrier
 
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
+import org.gradle.internal.cc.impl.ConfigurationCacheInputsListener
+import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -28,16 +30,19 @@ import org.gradle.internal.service.scopes.ServiceScope
  */
 @ServiceScope(Scope.BuildTree::class)
 internal class VintageConfigurationTimeActionRunner(
-    configurationTimeBarrier: ConfigurationTimeBarrier
+    configurationTimeBarrier: ConfigurationTimeBarrier,
+    private val inputsListener: ConfigurationCacheInputsListener
 ) {
     private val configurationTimeBarrier = configurationTimeBarrier as DefaultConfigurationTimeBarrier
 
     fun <T> runConfigurationTimeAction(action: () -> T): T {
         configurationTimeBarrier.prepare()
+        InstrumentedInputs.setListener(inputsListener)
         try {
             return action()
         } finally {
             configurationTimeBarrier.cross()
+            InstrumentedInputs.discardListener()
         }
     }
 }
