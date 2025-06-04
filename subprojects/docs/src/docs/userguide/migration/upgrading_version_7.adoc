@@ -128,9 +128,9 @@ Guava has been updated from 31.1 to https://github.com/google/guava/releases/tag
 
 Jackson has been updated from 2.14.1 to https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.15[2.15.3].
 
-==== Upgrade to Ivy 2.5.2
+==== Upgrade to Ivy 2.5.3
 
-Ivy has been updated from 2.3.0 to https://ant.apache.org/ivy/history/2.5.2/release-notes.html[2.5.2].
+Ivy has been updated from 2.3.0 to https://ant.apache.org/ivy/history/2.5.3/release-notes.html[2.5.3].
 
 ==== Upgrade to Maven 3.9.6
 
@@ -140,9 +140,33 @@ Maven has been updated from 3.6.3 to https://maven.apache.org/docs/3.9.6/release
 
 Plexus Cipher and related utils were upgraded from 1.x to https://github.com/codehaus-plexus/plexus-cipher/releases/tag/plexus-cipher-2.0[2.0].
 
-==== Upgrade to ASM 9.6
+==== Upgrade to ASM 9.8
 
-ASM was upgraded from 9.4 to https://asm.ow2.io/versions.html[9.6] for better support of multi-release jars.
+ASM was upgraded from 9.4 to https://asm.ow2.io/versions.html[9.8] for better support of multi-release jars.
+
+==== Upgrade to Eclipse JGit 5.13.3
+
+Eclipse JGit has been updated from 5.7.0 to https://projects.eclipse.org/projects/technology.jgit/releases/5.13.3[5.13.3].
+
+This includes reworking the way that Gradle configures JGit for SSH operations by moving from JSch to Apache SSHD.
+
+==== Upgrade to Apache SSHD 2.10.0
+
+Apache SSHD has been updated from 2.0.0 to https://mina.apache.org/sshd-project/download_2.15.0.html[2.15.0].
+
+==== Upgrade to Apache Commons Compress 1.27.1
+
+Apache Commons Compress has been updated from 1.21 to https://commons.apache.org/proper/commons-compress/changes-report.html#a1.27.1[1.27.1].
+This change may affect the checksums of the produced jars, zips, and other archive types because the metadata of the produced artifacts may differ.
+Related Apache Commons libraries have also been updated.
+
+=== Upgrade to Bouncy Castle 1.80
+
+Bouncy Castle has been updated from 1.68 to https://www.bouncycastle.org/download/bouncy-castle-java/?filter=java%3Drelease-1-80[1.80].
+
+==== Upgrade to Zinc 1.9.6
+
+Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.9.6[1.9.6].
 
 ==== Configuring a non-existing executable now fails
 
