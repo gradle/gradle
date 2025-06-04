@@ -140,6 +140,9 @@ The following operator functions in `DependencyConstraintHandlerScope` are now c
 The following top-level functions in `DependencyHandlerExtensions` are now considered stable:
 * `DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
 
+The following functions are now considered stable:
+* `GroovyBuilderScope.hasProperty(name: String): Boolean`
+
 <!--
 ### Example promoted
 -->
