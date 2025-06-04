@@ -195,7 +195,6 @@ dependencies {
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("5.1.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
-        api(libs.javaParser)            { version { strictly("3.17.0") }}
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
         api(libs.jettyServer)           { version { strictly(jettyVersion) }}
