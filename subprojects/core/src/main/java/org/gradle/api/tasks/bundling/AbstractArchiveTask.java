@@ -42,8 +42,6 @@ import org.jspecify.annotations.Nullable;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
-    private static final String PRESERVE_PERMISSIONS_PROPERTY = "org.gradle.archives.preserve-file-system-permissions";
-
     // All of these field names are really long to prevent collisions with the groovy setters.
     // Groovy will try to set the private fields if given the opportunity.
     // This makes it much more difficult for this to happen accidentally.
@@ -86,18 +84,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(false);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(true);
-        configureDefaultPermissions();
-    }
-
-    private void configureDefaultPermissions() {
-        boolean preserveFileSystemPermissions = getProject().getProviders()
-            .gradleProperty(PRESERVE_PERMISSIONS_PROPERTY).getOrElse("false").trim().equalsIgnoreCase("true");
-        getInputs().property(PRESERVE_PERMISSIONS_PROPERTY, preserveFileSystemPermissions);
-        if (!preserveFileSystemPermissions) {
-            // We `set` value instead use a `convention`, since we want that calling unset() value means: "use file system permissions"
-            dirPermissions(permissions -> permissions.unix(FileSystem.DEFAULT_DIR_MODE));
-            filePermissions(permissions -> permissions.unix(FileSystem.DEFAULT_FILE_MODE));
-        }
     }
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
