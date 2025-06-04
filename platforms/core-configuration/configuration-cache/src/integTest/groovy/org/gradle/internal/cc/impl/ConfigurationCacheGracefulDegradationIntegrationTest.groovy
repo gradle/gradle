@@ -254,6 +254,38 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         outputContains("Hello from B")
     }
 
+    def "cannot require CC degradation at execution time"() {
+        buildFile """
+            interface DegradationService {
+                @${Inject.name}
+                ${ConfigurationCacheDegradationController.name} getController()
+            }
+
+            abstract class FooTask extends DefaultTask {
+                @Input
+                abstract Property<String> getReason()
+
+                @${Inject.name}
+                protected abstract ObjectFactory getObjectFactory();
+
+                @TaskAction
+                def foo() {
+                   getObjectFactory().newInstance(DegradationService).controller.requireConfigurationCacheDegradation(this, getReason())
+                }
+            }
+
+            tasks.register("foo", FooTask) {
+                reason.set(provider { "Misconfiguration!" })
+            }
+        """
+
+        when:
+        configurationCacheFails ":foo"
+
+        then:
+        failureCauseContains("Expected state of CC degradation to be in state CollectingDegradationRequests but is in state DegradationDecisionMade.")
+    }
+
     private static String generateDegradationController() {
         return """
             interface DegradationService {

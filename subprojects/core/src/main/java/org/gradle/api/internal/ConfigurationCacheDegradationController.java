@@ -31,7 +31,6 @@ public interface ConfigurationCacheDegradationController {
      * be suppressed and Configuration Cache will be disabled, switching the build to the vintage execution mode.
      * <p>
      * The reasons are evaluated immediately before the serialization of the task graph and effectively prevent serialization if they are present.
-     * As a result, errors in the serialization of task states WILL NOT be suppressed by this mechanism and will cause the build to fail.
      * <p>
      * Adding a degradation is thread-safe.
      */

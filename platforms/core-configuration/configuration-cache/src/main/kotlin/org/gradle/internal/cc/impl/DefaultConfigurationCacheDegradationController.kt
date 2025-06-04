@@ -20,65 +20,67 @@ import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.Describables
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
+import org.gradle.internal.model.StateTransitionController
+import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.vcs.internal.VcsMappingsStore
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Supplier
 
 @ServiceScope(BuildTree::class)
 internal class DefaultConfigurationCacheDegradationController(
     private val vcsMappingsStore: VcsMappingsStore,
-    private val deferredRootBuildGradle: DeferredRootBuildGradle
+    private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    stateTransitionControllerFactory: StateTransitionControllerFactory
 ) : ConfigurationCacheDegradationController {
-    private var committed = false
+
+    private val stateTransitionController = stateTransitionControllerFactory.newController(
+        Describables.of("state of CC degradation"),
+        State.CollectingDegradationRequests
+    )
+
+    private enum class State : StateTransitionController.State {
+        CollectingDegradationRequests,
+        DegradationDecisionMade
+    }
 
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
     val degradationReasons by lazy(::collectDegradationReasons)
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
-        ensureNotCommitted()
-        tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
-    }
-
-    private fun ensureNotCommitted() {
-        assert(!committed) { "Degradation requests already committed" }
-    }
-
-    private fun ensureCommittedOrNoRequests() {
-        assert(tasksDegradationRequests.isEmpty() || committed) { "Degradation requests not committed yet" }
-    }
-
-    fun commit() {
-        ensureNotCommitted()
-        committed = true
+        stateTransitionController.inState(State.CollectingDegradationRequests) {
+            tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
+        }
     }
 
     fun shouldDegradeGracefully(): Boolean {
         return degradationReasons.isNotEmpty()
     }
 
-    private fun collectDegradationReasons(): List<DegradationReason> {
-        val result = mutableListOf<DegradationReason>()
-        if (isSourceDependenciesUsed()) {
-            result.add(DegradationReason.BuildLogic("Source dependencies are used"))
-        }
-        ensureCommittedOrNoRequests()
-        if (tasksDegradationRequests.isNotEmpty()) {
-            deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
-                scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
-                    val taskDegradationReasons = tasksDegradationRequests[task]
-                        ?.mapNotNull { it.orNull }
-                        ?.sorted()
+    private fun collectDegradationReasons(): List<DegradationReason> =
+        stateTransitionController.transition(State.CollectingDegradationRequests, State.DegradationDecisionMade, Supplier {
+            val result = mutableListOf<DegradationReason>()
+            if (isSourceDependenciesUsed()) {
+                result.add(DegradationReason.BuildLogic("Source dependencies are used"))
+            }
+            if (tasksDegradationRequests.isNotEmpty()) {
+                deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
+                    scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
+                        val taskDegradationReasons = tasksDegradationRequests[task]
+                            ?.mapNotNull { it.orNull }
+                            ?.sorted()
 
-                    if (!taskDegradationReasons.isNullOrEmpty()) {
-                        result.add(DegradationReason.Task(task, taskDegradationReasons))
+                        if (!taskDegradationReasons.isNullOrEmpty()) {
+                            result.add(DegradationReason.Task(task, taskDegradationReasons))
+                        }
                     }
                 }
             }
-        }
-        return result
-    }
+            result
+        })
 
     private fun isSourceDependenciesUsed(): Boolean = vcsMappingsStore.asResolver().hasRules()
 }

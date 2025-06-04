@@ -589,7 +589,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun degradeGracefullyOr(action: () -> Unit) {
-        degradationController.commit()
         if (!degradationController.shouldDegradeGracefully()) {
             action()
         }
