@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.serialize.Codecs
@@ -23,6 +24,9 @@ import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
@@ -59,6 +63,10 @@ abstract class AbstractUserTypeCodecTest {
                 object : AbstractProblemsListener() {
                     override fun onProblem(problem: PropertyProblem) {
                         problems += problem
+                    }
+
+                    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                        onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
                     }
                 }
             )
@@ -150,6 +158,10 @@ abstract class AbstractUserTypeCodecTest {
     private fun loggingProblemsListener() = object : AbstractProblemsListener() {
         override fun onProblem(problem: PropertyProblem) {
             println(problem)
+        }
+
+        override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+            throw ConfigurationCacheError(StructuredMessage.build(message).render(), error)
         }
     }
 

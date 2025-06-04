@@ -18,20 +18,21 @@ package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure
-import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
-import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
-import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -150,6 +151,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
             additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
         }
+
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                additionalData.asMap['trace'] == 'task `:forceResolution` of type `Build_gradle$ForceResolution`'
+            }
+        }
     }
 
     def "demonstrate no matching graph variants selection failure for project"() {
@@ -212,6 +221,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['requestTarget'] == "com.squareup.okhttp3:okhttp:4.4.0"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
             additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
+        }
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                additionalData.asMap['trace'] == 'task `:forceResolution` of type `Build_gradle$ForceResolution`'
+            }
         }
     }
 
@@ -475,7 +491,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         given:
         ignoreCleanupAssertions = true // We just care that there are problems in this test, we don't need to verify their contents
 
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
             val shape = Attribute.of("shape", String::class.java)
             val matter = Attribute.of("state", String::class.java)
@@ -705,7 +721,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupAmbiguousArtifactTransformFailureForProject() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
             val shape = Attribute.of("shape", String::class.java)
             val matter = Attribute.of("state", String::class.java)
@@ -810,7 +826,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
             val shape = Attribute.of("shape", String::class.java)
 
@@ -884,7 +900,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupAmbiguousGraphVariantFailureForExternalDep() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             configurations {
@@ -936,7 +952,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupNoMatchingGraphVariantsFailureForExternalDep() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             configurations {
@@ -990,7 +1006,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupConfigurationNotCompatibleFailureForProject() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             plugins {
                 id("base")
             }
@@ -1019,7 +1035,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupIncompatibleMultipleNodesValidationFailureForProject() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             group = "org.example"
             version = "1.0"
 
@@ -1088,7 +1104,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupDependencyInsightFailure() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             plugins {
                 `java-library`
                 `java-test-fixtures`
