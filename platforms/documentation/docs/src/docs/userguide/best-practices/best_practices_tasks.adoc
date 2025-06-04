@@ -99,8 +99,8 @@ Remember that only tasks that produce reproducible and relocatable output should
 If you want to reuse the output of a task, you shouldn't do this:
 
 ====
-include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> *Define a Task*: The `BadCalculatorTask` type is deterministic and produces relocatable output, but is not annotated.
@@ -112,8 +112,8 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), you should mark the _task type itself_ as cacheable like this:
 
 ====
-include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> *Annotate the Task Type*: Applying the `@CacheableTask` to a task type informs Gradle that instances of this task should _always_ be cached.

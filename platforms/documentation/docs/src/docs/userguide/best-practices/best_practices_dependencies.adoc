@@ -38,8 +38,8 @@ To influence resolved versions, check out <<platforms.adoc#platforms,platforms>>
 Avoid declaring versions in `project.ext`, constants, or local variables:
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 Avoid misusing version catalogs for unrelated concerns:
@@ -52,12 +52,12 @@ Avoid misusing version catalogs for unrelated concerns:
 Use a centralized `libs.versions.toml` file in your `gradle/` directory:
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/kotlin",files="gradle/libs.versions.toml[]"]
 ====
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/do-this",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 === References
@@ -107,12 +107,12 @@ The following guidelines help in naming catalog entries effectively:
 === Example
 
 ====
-include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/kotlin",files="gradle/libs.versions.toml[]"]
 ====
 
 ====
-include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/versionCatalogNaming/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 === References
