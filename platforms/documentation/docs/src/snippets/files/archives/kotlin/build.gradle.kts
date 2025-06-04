@@ -47,7 +47,7 @@ tasks.register<Tar>("tar") {
 
 // TODO why can't we use properties instead of setters here?
 // when using them, we get "Cannot access 'preserveFileTimestamps': it is private in 'AbstractArchiveTask'"
-// tag::reproducible[]
+// tag::revert-reproducible[]
 tasks.withType<AbstractArchiveTask>().configureEach {
     // Use file timestamps from the file system
     isPreserveFileTimestamps = true
@@ -58,5 +58,5 @@ tasks.withType<AbstractArchiveTask>().configureEach {
     // Use file permissions from the file system
     filePermissions.unset()
 }
-// end::reproducible[]
+// end::revert-reproducible[]
 

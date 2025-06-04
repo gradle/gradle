@@ -596,7 +596,7 @@ It will now fail with an error, suggesting a review of the relevant documentatio
 
 === Behavior Changes in Tasks
 
-=== Archive tasks (Jar, Ear, War, Zip, AbstractArchiveTask) now produce reproducible archives by default
+==== Archive tasks (Jar, Ear, War, Zip, AbstractArchiveTask) now produce reproducible archives by default
 
 In Gradle 9.0, the default behavior of archive tasks (such as `Jar`, `Ear`, `War`, `Zip`, and `AbstractArchiveTask`) has changed to produce reproducible archives by default.
 That means that:
