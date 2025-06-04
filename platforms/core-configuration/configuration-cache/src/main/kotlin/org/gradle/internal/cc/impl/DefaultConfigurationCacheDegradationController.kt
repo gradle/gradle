@@ -20,49 +20,48 @@ import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.Describables
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
+import org.gradle.internal.model.StateTransitionController
+import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.vcs.internal.VcsMappingsStore
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Supplier
 
 @ServiceScope(BuildTree::class)
 internal class DefaultConfigurationCacheDegradationController(
     private val vcsMappingsStore: VcsMappingsStore,
     private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    stateTransitionControllerFactory: StateTransitionControllerFactory
 ) : ConfigurationCacheDegradationController {
 
-    private var state: State = Building()
+    private val stateTransitionController = stateTransitionControllerFactory.newController(
+        Describables.of("state of CC degradation"),
+        State.CollectingDegradationRequests
+    )
+
+    private enum class State : StateTransitionController.State {
+        CollectingDegradationRequests,
+        DegradationDecisionMade
+    }
+
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
-    val degradationReasons by lazy(LazyThreadSafetyMode.SYNCHRONIZED, ::collectDegradationReasons)
+    val degradationReasons by lazy(::collectDegradationReasons)
 
-    sealed interface State {
-        fun requestDegradation(task: Task, reason: Provider<String>) {
-            error("Degradation may only be requested during configuration")
-        }
-
-        fun collectDegradationReasons(): List<DegradationReason> =
-            error("Degradation reasons are only available after configuration phase")
-
-        val nextState: State
-    }
-
-    object Invalid: State {
-        override val nextState: State = this
-    }
-
-    inner class Building: State {
-        override val nextState = Built()
-
-        override fun requestDegradation(task: Task, reason: Provider<String>) {
+    override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
+        stateTransitionController.inState(State.CollectingDegradationRequests) {
             tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
         }
     }
 
-    inner class Built: State {
-        override val nextState: State = Invalid
+    fun shouldDegradeGracefully(): Boolean {
+        return degradationReasons.isNotEmpty()
+    }
 
-        override fun collectDegradationReasons(): List<DegradationReason> {
+    private fun collectDegradationReasons(): List<DegradationReason> =
+        stateTransitionController.transition(State.CollectingDegradationRequests, State.DegradationDecisionMade, Supplier {
             val result = mutableListOf<DegradationReason>()
             if (isSourceDependenciesUsed()) {
                 result.add(DegradationReason.BuildLogic("Source dependencies are used"))
@@ -80,22 +79,8 @@ internal class DefaultConfigurationCacheDegradationController(
                     }
                 }
             }
-            return result
-        }
-    }
-
-    override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
-        state.requestDegradation(task, reason)
-    }
-
-    fun shouldDegradeGracefully(): Boolean {
-        return degradationReasons.isNotEmpty()
-    }
-
-    private fun collectDegradationReasons() : List<DegradationReason> {
-        state = state.nextState
-        return state.collectDegradationReasons()
-    }
+            result
+        })
 
     private fun isSourceDependenciesUsed(): Boolean = vcsMappingsStore.asResolver().hasRules()
 }

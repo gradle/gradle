@@ -283,7 +283,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCacheFails ":foo"
 
         then:
-        failureCauseContains("Degradation may only be requested during configuration")
+        failureCauseContains("Expected state of CC degradation to be in state CollectingDegradationRequests but is in state DegradationDecisionMade.")
     }
 
     private static String generateDegradationController() {
