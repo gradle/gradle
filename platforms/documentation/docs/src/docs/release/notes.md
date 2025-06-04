@@ -102,6 +102,11 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Promoted features in the Kotlin DSL
 
+The following operator functions in `DependenciesExtensions` are now considered stable:
+* `DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>)`
+* `DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>): Provider<out MinimalExternalModuleDependency>`
+* `DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>, configuration: Action<in ExternalModuleDependency>)`
+
 The following operator functions in `DependencyHandlerScope` are now considered stable:
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency?`
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
