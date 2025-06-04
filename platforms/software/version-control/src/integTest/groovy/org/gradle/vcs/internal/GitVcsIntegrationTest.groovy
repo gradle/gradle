@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -63,7 +62,6 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can define and use source repository'() {
         given:
         def commit = repo.commit('initial commit')
@@ -83,7 +81,6 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         gitCheckout.file('.git').assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can define and use source repositories using VCS mapping'() {
         given:
         repo.commit('initial commit')
@@ -105,7 +102,6 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         result.assertTaskExecuted(":compileJava")
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can define and use source repositories with submodules'() {
         given:
         // Populate submodule origin
@@ -181,7 +177,6 @@ The following types/formats are supported:
     }
 
     @Issue('gradle/gradle-native#206')
-    @ToBeFixedForConfigurationCache
     def 'can define and use source repositories with initscript resolution present'() {
         given:
         def commit = repo.commit('initial commit')
@@ -214,7 +209,6 @@ The following types/formats are supported:
     }
 
     @Issue('gradle/gradle-native#207')
-    @ToBeFixedForConfigurationCache
     def 'can use repositories even when clean is run'() {
         given:
         def commit = repo.commit('initial commit')
@@ -243,7 +237,6 @@ The following types/formats are supported:
         gitCheckout.file('.git').assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can handle conflicting versions'() {
         given:
         settingsFile << """
@@ -285,7 +278,6 @@ The following types/formats are supported:
         gitCheckout2.file('.git').assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def 'uses root project cache directory'() {
         given:
         settingsFile << """
@@ -341,7 +333,6 @@ The following types/formats are supported:
         deeperCheckout.file('.git').assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can resolve the same version for latest.integration within the same build session'() {
         given:
         BlockingHttpServer server = new BlockingHttpServer()
@@ -411,7 +402,6 @@ The following types/formats are supported:
         server.stop()
     }
 
-    @ToBeFixedForConfigurationCache
     def "external modifications to source dependency directories are reset"() {
         given:
         repo.file('foo').text = "bar"
@@ -445,7 +435,6 @@ The following types/formats are supported:
         gitCheckout.file('foo').text == "bar"
     }
 
-    @ToBeFixedForConfigurationCache
     def "external modifications to source dependency submodule directories are reset"() {
         given:
         // Populate submodule origin
@@ -488,7 +477,6 @@ The following types/formats are supported:
         gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
     }
 
-    @ToBeFixedForConfigurationCache
     def "do not consider source dependencies with plugin injection undefined builds"() {
         given:
         depProject.settingsFile.delete()

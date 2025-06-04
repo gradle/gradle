@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.promo
 
+import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
@@ -59,4 +60,5 @@ class ConfigurationCachePromoHandler(
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
+    override fun forTask(task: Task): ProblemsListener = this
 }

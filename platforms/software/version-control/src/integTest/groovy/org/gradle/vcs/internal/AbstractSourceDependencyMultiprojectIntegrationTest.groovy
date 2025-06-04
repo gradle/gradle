@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
@@ -76,7 +75,6 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve subproject of multi-project source dependency"() {
         mappingFor(repo, "org.test:foo")
         buildFile << """
@@ -93,7 +91,6 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         assertResolvesTo("foo-1.0.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve root of multi-project source dependency"() {
         mappingFor(repo, "org.test:B")
         buildFile << """
@@ -110,7 +107,6 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         assertResolvesTo("B-1.0.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve multiple projects of multi-project source dependency"() {
         mappingFor(repo, "org.test:foo")
         mappingFor(repo, "org.test:bar")
@@ -129,7 +125,6 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "only resolves a single project of multi-project source dependency"() {
         mavenRepo.module("org.test", "bar", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         mappingFor(repo, "org.test:foo")
@@ -149,7 +144,6 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         assertResolvesTo("foo-1.0.jar", "bar-1.0-SNAPSHOT.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses included build subproject of multi-project source dependency"() {
         mavenRepo.module("org.test", "bar", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         buildB.buildFile << """
@@ -176,7 +170,6 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses root mapping for duplicate subproject of multi-project source dependency"() {
         buildB.buildFile << """
             project(":foo") {

@@ -53,7 +53,6 @@ import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
-import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.configuration.problems.ProblemFactory
@@ -263,7 +262,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheFingerprintController::class.java)
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
-            registration.add(DefaultDeferredRootBuildGradle::class.java)
         } else {
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(BuildTreeLifecycleControllerFactory::class.java, VintageBuildTreeLifecycleControllerFactory::class.java)

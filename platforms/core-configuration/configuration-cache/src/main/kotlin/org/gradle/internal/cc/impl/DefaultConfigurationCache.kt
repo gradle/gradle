@@ -80,6 +80,7 @@ class DefaultConfigurationCache internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
+    private val degradationController: DefaultConfigurationCacheDegradationController,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheRepository: ConfigurationCacheRepository,
     private val instrumentedInputAccessListener: InstrumentedInputAccessListener,
@@ -97,7 +98,7 @@ class DefaultConfigurationCache internal constructor(
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
-    private val deferredRootBuildGradle: DeferredRootBuildGradle
+    private val deferredRootBuildGradle: DeferredRootBuildGradle,
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -239,7 +240,7 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                saveWorkGraph()
+                degradeGracefullyOr { saveWorkGraph() }
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -587,6 +588,14 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
+    fun degradeGracefullyOr(action: () -> Unit) {
+        if (!degradationController.shouldDegradeGracefully()) {
+            action()
+        }
+        crossConfigurationTimeBarrier()
+    }
+
+    private
     fun saveWorkGraph() {
         cacheEntryRequiresCommit = true
 
@@ -600,8 +609,6 @@ class DefaultConfigurationCache internal constructor(
             }
             WorkGraphStoreResult(stateStoreResult.accessedFiles, stateStoreResult.value)
         }
-
-        crossConfigurationTimeBarrier()
     }
 
     private
