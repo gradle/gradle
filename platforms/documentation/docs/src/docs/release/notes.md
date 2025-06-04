@@ -103,7 +103,6 @@ The following are the features that have been promoted in this Gradle release.
 ### Promoted features in the Kotlin DSL
 
 The following operator functions in `DependencyHandlerScope` are now considered stable:
-
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency?`
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
 * `NamedDomainObjectProvider<Configuration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?): ExternalModuleDependency`
@@ -132,6 +131,9 @@ The following operator functions in `DependencyConstraintHandlerScope` are now c
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
 * `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
 * `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
+
+The following top-level functions in `DependencyHandlerExtensions` are now considered stable:
+* `DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
 
 <!--
 ### Example promoted
