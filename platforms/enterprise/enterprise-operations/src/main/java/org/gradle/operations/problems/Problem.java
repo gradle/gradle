@@ -23,20 +23,20 @@ import java.util.List;
 /**
  * A problem from the problems API.
  *
- * @since 8.14
+ * @since 9.0
  */
 public interface Problem {
     /**
      * The problem definition, i.e. the data that is independent of the usage.
      *
-     * @since 8.14
+     * @since 9.0
      */
     ProblemDefinition getDefinition();
 
     /**
      * The severity of the problem.
      *
-     * @since 8.14
+     * @since 9.0
      */
     ProblemSeverity getSeverity();
 
@@ -44,7 +44,7 @@ public interface Problem {
      * Declares a short, but usage-dependent message for this problem.
      *
      * @return the contextual label, or {@code null} if not specified. Then the display name from the definition should be used.
-     * @since 8.14
+     * @since 9.0
      */
     @Nullable
     String getContextualLabel();
@@ -52,7 +52,7 @@ public interface Problem {
     /**
      * Returns solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
      *
-     * @since 8.14
+     * @since 9.0
      */
     List<String> getSolutions();
 
@@ -64,7 +64,7 @@ public interface Problem {
      * <p>
      * {@code null} if no details have been specified.
      *
-     * @since 8.14
+     * @since 9.0
      */
     @Nullable
     String getDetails();
@@ -74,7 +74,7 @@ public interface Problem {
      * <p>
      * Might be empty if the origin is not known.
      *
-     * @since 8.14
+     * @since 9.0
      */
     List<ProblemLocation> getOriginLocations();
 
@@ -85,7 +85,7 @@ public interface Problem {
      * <p>
      * Might be empty if there is no meaningful contextual information.
      *
-     * @since 8.14
+     * @since 9.0
      */
     List<ProblemLocation> getContextualLocations();
 }
