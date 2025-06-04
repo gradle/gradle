@@ -127,6 +127,12 @@ The following operator functions in `DependencyHandlerScope` are now considered 
 * `<T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T`
 * `<T : ModuleDependency> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T`
 
+The following operator functions in `DependencyConstraintHandlerScope` are now considered stable:
+* `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
+* `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
+
 <!--
 ### Example promoted
 -->
