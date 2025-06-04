@@ -289,12 +289,12 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/groovy
 `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
 
 [[single-gav-string]]
-== Prefer the single GAV (`group:artifact:version`) String Syntax
+== Declare Dependencies using a single GAV (`group:artifact:version`) String
 
-When declaring dependencies without a <<version_catalogs.adoc#version-catalog,version catalog>>, prefer using the single GAV string form `implementation("org.example:library:1.0")`.
-Avoid using the multi-parameter form unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
+When declaring dependencies without a <<version_catalogs.adoc#version-catalog,version catalog>>, prefer using the single GAV string notation `implementation("org.example:library:1.0")`.
+Avoid using the named argument notation unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
 
-TIP: The multi-parameter format may be deprecated in the future.
+TIP: The named argument notation may be deprecated in the future.
 
 === Explanation
 
@@ -303,7 +303,16 @@ However, the single-string form is more concise, easier to read, and is widely a
 
 This format is also recommended by link:https://central.sonatype.com/artifact/com.google.guava/guava[Maven Central] in its documentation and usage examples, making it the most familiar and consistent style for developers across tools.
 
-Use the map-style declaration only when you need to customize the dependency (for example, to <<resolution_rules.adoc#sec:exclude-trans-deps,exclude transitive dependencies>>).
+A valid reason to use named arguments format is when resolving a dependency from an Ivy repository that requires selecting a specific configuration by name.
+This syntax is only applicable for Ivy dependencies and should not be used with standard Maven modules:
+
+[source,kotlin]
+----
+// Use this syntax only for Ivy modules when a specific configuration must be selected
+dependencies {
+    implementation(group = "org.someOrg", name = "someModule", version = "1.0", configuration = "someConf")
+}
+----
 
 === Example
 
@@ -313,7 +322,8 @@ Use the map-style declaration only when you need to customize the dependency (fo
 include::sample[dir="snippets/bestPractices/useGAVString-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/useGAVString-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
-<1> Avoid the map notation
+<1> Avoid the named argument notation when declaring dependencies
+<2> Modifiers do not apply and can use named argument notation if needed
 
 ==== Do This Instead
 
@@ -331,7 +341,8 @@ include::sample[dir="snippets/bestPractices/useGAVString-avoid/groovy",files="bu
 include::sample[dir="snippets/bestPractices/useGAVString-do/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/useGAVString-do/groovy",files="build.gradle[tags=do-this]"]
 ====
-<1> Use the string notation
+<1> Use the string notation instead when declaring dependencies
+<2> Modifiers do not apply and can use named argument notation if needed
 
 === References
 
