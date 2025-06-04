@@ -16,28 +16,39 @@
 
 package org.gradle.internal.serialize;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * A {@code PlaceholderException} is used when an exception cannot be serialized or deserialized.
  */
 @UsedByScanPlugin
-public class PlaceholderException extends RuntimeException implements PlaceholderExceptionSupport {
+public class PlaceholderException extends RuntimeException implements PlaceholderExceptionSupport, ResolutionProvider {
     private final String exceptionClassName;
     private final Throwable getMessageException;
     private final String toString;
     private final Throwable toStringRuntimeEx;
+    private final List<String> resolutions;
 
     @UsedByScanPlugin("test-distribution")
     public PlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
                                 @Nullable Throwable toStringException, @Nullable Throwable cause) {
+        this(exceptionClassName, message, getMessageException, toString, toStringException, cause, null);
+    }
+
+    public PlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
+                                @Nullable Throwable toStringException, @Nullable Throwable cause, @Nullable List<String> resolutions) {
         super(message, cause);
         this.exceptionClassName = exceptionClassName;
         this.getMessageException = getMessageException;
         this.toString = toString;
         this.toStringRuntimeEx = toStringException;
+        this.resolutions = resolutions != null ? ImmutableList.copyOf(resolutions) : ImmutableList.of();
     }
 
     @Override
@@ -59,5 +70,10 @@ public class PlaceholderException extends RuntimeException implements Placeholde
             throw UncheckedException.throwAsUncheckedException(toStringRuntimeEx);
         }
         return toString;
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
     }
 }
