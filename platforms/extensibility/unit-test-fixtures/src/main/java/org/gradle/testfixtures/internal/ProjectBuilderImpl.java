@@ -304,11 +304,6 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public Path calculateIdentityPathForProject(Path projectPath) {
-            return projectPath;
-        }
-
-        @Override
         public StartParameterInternal getStartParameter() {
             throw new UnsupportedOperationException();
         }
