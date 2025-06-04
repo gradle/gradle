@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * An {@link BuildActionRunner} that notifies the GE plugin manager that the build has completed.
@@ -63,6 +64,9 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     private void notifyEnterprisePluginManager(Result result) {
+        if (result.getBuildFailure() != null) {
+            Objects.requireNonNull(result.getRichBuildFailure(), "Rich build failure must not be null when build failure is present");
+        }
         List<Failure> unwrappedBuildFailure = unwrapBuildFailure(result.getRichBuildFailure());
         gradleEnterprisePluginManager.buildFinished(result.getBuildFailure(), unwrappedBuildFailure);
     }
