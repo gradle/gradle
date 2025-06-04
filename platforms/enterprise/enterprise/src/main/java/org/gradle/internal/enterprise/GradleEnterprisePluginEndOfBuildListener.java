@@ -52,6 +52,11 @@ public interface GradleEnterprisePluginEndOfBuildListener {
         BuildFailure getBuildFailure();
     }
 
+    /**
+     * Information about the build failure.
+     *
+     * @since 9.0
+     */
     interface BuildFailure {
         /**
          * The non-empty list of failures.
