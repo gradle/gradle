@@ -37,7 +37,7 @@ dependencies {
     implementation(projects.declarativeDslProvider)
     implementation(projects.declarativeDslCore)
 
-    implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
+    implementation(libs.kotlinScriptingCompilerImplEmbeddable) {
         isTransitive = false
     }
     implementation(libs.kotlinCompilerEmbeddable)
