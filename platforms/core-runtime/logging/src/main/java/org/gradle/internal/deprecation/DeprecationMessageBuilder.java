@@ -152,6 +152,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         this.problemIdDisplayName = problemIdDisplayName;
     }
 
+    void setDeprecationTimeline(DeprecationTimeline deprecationTimeline) {
+        this.deprecationTimeline = deprecationTimeline;
+    }
+
     DeprecationMessage build() {
         if (problemIdDisplayName == null) {
             setProblemIdDisplayName(createDefaultDeprecationIdDisplayName());
@@ -290,6 +294,30 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(property);
             this.propertyClass = propertyClass;
             this.property = property;
+        }
+
+        @Override
+        public WithDeprecationTimeline willBeRemovedInGradle10() {
+            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE10));
+            return new WithDeprecationTimeline(this);
+        }
+
+        public class WithDeprecationTimeline extends DeprecationMessageBuilder.WithDeprecationTimeline {
+            private final DeprecateProperty builder;
+
+            public WithDeprecationTimeline(DeprecateProperty builder) {
+                super(builder);
+                this.builder = builder;
+            }
+
+            /**
+             * Output: See DSL_REFERENCE_URL for more details.
+             */
+            @CheckReturnValue
+            public WithDocumentation withDslReference() {
+                setDocumentation(Documentation.dslReference(propertyClass, property));
+                return new WithDocumentation(builder);
+            }
         }
 
         @Override
