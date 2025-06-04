@@ -1028,8 +1028,8 @@ Alternatively to preserve file system permissions globally for you build you can
 Add the following configuration to change one or more properties on a task level:
 
 ====
-include::sample[dir="snippets/files/archives/kotlin",files="build.gradle.kts[tags=reproducible]"]
-include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=reproducible]"]
+include::sample[dir="snippets/files/archives/kotlin",files="build.gradle.kts[tags=revert-reproducible]"]
+include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=revert-reproducible]"]
 ====
 
 Often you will want to publish an archive, so that it is usable from another project.

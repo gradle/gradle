@@ -45,7 +45,7 @@ tasks.register('tar', Tar) {
 }
 // end::tar[]
 
-// tag::reproducible[]
+// tag::revert-reproducible[]
 tasks.withType(AbstractArchiveTask).configureEach {
     // Use file timestamps from the file system
     preserveFileTimestamps = true
@@ -56,5 +56,5 @@ tasks.withType(AbstractArchiveTask).configureEach {
     // Use file permissions from the file system
     filePermissions.unset()
 }
-// end::reproducible[]
+// end::revert-reproducible[]
 

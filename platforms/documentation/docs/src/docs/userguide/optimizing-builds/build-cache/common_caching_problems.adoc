@@ -234,7 +234,7 @@ As described in the <<build_cache_concepts.adoc#stable_task_inputs,stable task i
 You already learned about the possibilities with <<build_cache_concepts.adoc#filter_runtime_classpath,configurable input normalization>>.
 
 Gradle includes some support for creating repeatable output for archive tasks.
-For tar and zip files Gradle is configured to create <<working_with_files.adoc#sec:reproducible_archives,reproducible archives>> by default.
+For tar and zip files Gradle produces <<working_with_files.adoc#sec:reproducible_archives,reproducible archives>> by default.
 This is done by configuring e.g. the `Zip` task via the following snippet.
 
 ====
