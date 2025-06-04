@@ -76,6 +76,21 @@ dependencies {
 
     testImplementation(project(":plugins"))
     testImplementation(project(":testing-base"))
+    // Libraries that are not used in this project but required in the distribution
+    runtimeOnly(libs.groovyAstbuilder)
+    runtimeOnly(libs.groovyConsole)
+    runtimeOnly(libs.groovyDateUtil)
+    runtimeOnly(libs.groovyDatetime)
+    runtimeOnly(libs.groovyDoc)
+    runtimeOnly(libs.groovyNio)
+    runtimeOnly(libs.groovySql)
+    runtimeOnly(libs.groovyTest)
+
+    // The bump to SSHD 2.10.0 causes a global exclusion for `groovy-ant` -> `ant-junit`, so forcing it back in here
+    // TODO investigate why we depend on SSHD as a platform for internal-integ-testing
+    runtimeOnly(libs.antJunit)
+
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":platform-native"))
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)

@@ -122,7 +122,8 @@ Required by:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
-            .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
+            .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
+            .assertHasCause("Auth fail for methods 'password,keyboard-interactive,publickey'")
     }
 
     @ToBeFixedForConfigurationCache
@@ -155,7 +156,8 @@ Required by:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
-            .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
+            .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
+            .assertHasCause("Auth fail for methods 'keyboard-interactive,publickey'")
     }
 
     @ToBeFixedForConfigurationCache

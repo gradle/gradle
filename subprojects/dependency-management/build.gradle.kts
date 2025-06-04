@@ -93,6 +93,7 @@ dependencies {
         because("Groovy compiler reflects on private field on TextUtil")
     }
     testFixturesImplementation(libs.bouncycastlePgp)
+    testFixturesImplementation(libs.bouncycastleUtil)
     testFixturesApi(libs.testcontainersSpock) {
         because("API because of Groovy compiler bug leaking internals")
     }

@@ -12,8 +12,9 @@ dependencies {
     integTestImplementation(project(":core"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
-    integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
-
+    integTestImplementation(libs.mockwebserver) {
+        exclude(group = "org.bouncycastle").because("MockWebServer uses a different version of BouncyCastle")
+    }
     integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
         because("Tests require 'future-plugin-versions.properties' on the test classpath")
     }

@@ -20,20 +20,20 @@ import org.apache.commons.io.FileUtils
 import org.apache.sshd.common.NamedFactory
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
-import org.apache.sshd.common.subsystem.sftp.SftpConstants
+import org.apache.sshd.common.session.SessionContext
+import org.apache.sshd.server.channel.ChannelSession
+import org.apache.sshd.sftp.common.SftpConstants
 import org.apache.sshd.common.util.buffer.Buffer
 import org.apache.sshd.common.util.buffer.ByteArrayBuffer
 import org.apache.sshd.server.SshServer
 import org.apache.sshd.server.auth.password.PasswordAuthenticator
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator
 import org.apache.sshd.server.command.Command
-import org.apache.sshd.server.scp.ScpCommandFactory
+import org.apache.sshd.scp.server.ScpCommandFactory
 import org.apache.sshd.server.session.ServerSession
-import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler
-import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystem
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory
-import org.apache.sshd.server.subsystem.sftp.UnsupportedAttributePolicy
+import org.apache.sshd.sftp.server.SftpSubsystem
+import org.apache.sshd.sftp.server.SftpSubsystemConfigurator
+import org.apache.sshd.sftp.server.SftpSubsystemFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
@@ -44,6 +44,7 @@ import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.security.GeneralSecurityException
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.PublicKey
@@ -135,8 +136,8 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         sshServer.setPort(sshPort)
         sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory())
         sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystemFactory() {
-            Command create() {
-                new TestSftpSubsystem()
+            Command createSubsystem(ChannelSession channel) {
+                new TestSftpSubsystem(channel, this)
             }
         }))
         sshServer.setCommandFactory(new ScpCommandFactory())
@@ -289,8 +290,8 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
     class TestSftpSubsystem extends SftpSubsystem {
 
-        TestSftpSubsystem() {
-            super(null, true, UnsupportedAttributePolicy.ThrowException, SftpFileSystemAccessor.DEFAULT, SftpErrorStatusDataHandler.DEFAULT)
+        TestSftpSubsystem(ChannelSession channel, SftpSubsystemConfigurator configurator) {
+            super(channel, configurator)
         }
 
         @Override
@@ -299,7 +300,6 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
             int pos = buffer.rpos()
             def command = commandMessage(buffer, type)
-            println ("Handling $command")
             buffer.rpos(pos)
 
             def matched = expectations.find { it.matches(buffer, type, id) }
@@ -328,6 +328,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         }
 
         private String commandMessage(Buffer buffer, int type) {
+            System.err.println("SSH command type: $type")
             switch (type) {
                 case SftpConstants.SSH_FXP_INIT:
                     return "INIT"
@@ -511,7 +512,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         }
 
         @Override
-        Iterable<KeyPair> loadKeys() {
+        Iterable<KeyPair> loadKeys(SessionContext sessionContext) throws IOException, GeneralSecurityException {
             [keyPair]
         }
     }

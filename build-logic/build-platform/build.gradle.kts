@@ -9,7 +9,7 @@ description = "Provides a platform that constrains versions of external dependen
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
 val groovyVersion = GroovySystem.getVersion()
-val asmVersion = "9.2"
+val asmVersion = "9.8"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
@@ -31,6 +31,9 @@ dependencies {
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
+        api("com.squareup.okio:okio:3.4.0") { // later versions require higher versions of Kotlin
+            because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
+        }
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
@@ -56,16 +59,19 @@ dependencies {
         api("org.spockframework:spock-junit4:2.1-groovy-3.0")
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
+        api("com.fasterxml.woodstox:woodstox-core:6.4.0") {
+            because("CVE-2022-40152 on lower versions")
+        }
         api("com.beust:jcommander:1.78")
         api("org.codehaus.groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
         api("org.codenarc:CodeNarc:3.0.1")
-        api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
+        api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
         api("org.javassist:javassist:3.27.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0")
         api("org.jsoup:jsoup:1.15.3")
-        api("org.junit.jupiter:junit-jupiter:5.8.2")
-        api("org.junit.vintage:junit-vintage-engine:5.8.2")
+        api("org.junit.jupiter:junit-jupiter:5.10.3")
+        api("org.junit.vintage:junit-vintage-engine:5.10.3")
         api("org.openmbee.junit:junit-xml-parser:1.0.0")
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")

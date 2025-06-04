@@ -15,20 +15,20 @@ description = "Provides a platform dependency to align all distribution versions
 
 val antVersion = "1.10.13"
 val archunitVersion = "1.0.0-rc1"
-val asmVersion = "9.6"
-val awsS3Version = "1.12.365"
-val bouncycastleVersion = "1.68"
-val jacksonVersion = "2.15.3"
+val asmVersion = "9.8"
+val awsS3Version = "1.12.783"
+val bouncycastleVersion = "1.80"
+val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
-val jettyVersion = "9.4.36.v20210114"
-val junit5Version = "5.8.2"
+val junit5Version = "5.10.3"
 val mavenVersion = "3.9.6"
 val nativePlatformVersion = "0.22-milestone-25"
 val slf4jVersion = "1.7.30"
-val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 val tomljVersion = "1.0.0"
 
 val bytebuddyVersion = "1.10.20"
+val jettyVersion = "9.4.57.v20241219"
+val sshdVersion = "2.15.0"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -40,6 +40,7 @@ dependencies {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
+        api(libs.antJunit)           { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}
         api(libs.asmAnalysis)           { version { strictly(asmVersion) }}
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
@@ -53,17 +54,19 @@ dependencies {
         api(libs.bouncycastlePgp)       { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastlePkix)      { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
+        api(libs.bouncycastleUtil)      { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}
         api(libs.capsule)               { version { strictly("0.6.3") }}
-        api(libs.commonsCodec)          { version { strictly("1.15") }}
-        api(libs.commonsCompress)       { version { strictly("1.21") }}
-        api(libs.commonsHttpclient)     { version { strictly("4.5.13") }}
-        api(libs.commonsIo)             { version { strictly("2.11.0") }}
+        api(libs.commonsCodec)          { version { strictly("1.18.0") } }
+        api(libs.commonsCompress)       { version { strictly("1.27.1") } }
+        api(libs.commonsHttpclient)     { version { strictly("4.5.14") } }
+        api(libs.commonsIo)             { version { strictly("2.19.0") }}
         api(libs.commonsLang)           { version { strictly("2.6") }}
-        api(libs.commonsLang3)          { version { strictly("3.12.0") }}
+        api(libs.commonsLang3)          { version { strictly("3.17.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
+        api(libs.grpc)                  { version { strictly("1.73.0"); because("transitive dependency of GCS brings CVES") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.guava)                 { version { strictly("32.1.3-jre"); because("our Google API Client version requires at least 31.1-jre") }}
@@ -90,7 +93,7 @@ dependencies {
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
-        api(libs.ivy)                   { version { strictly("2.5.1") }}
+        api(libs.ivy)                   { version { strictly("2.5.3") }}
         api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}
@@ -105,10 +108,11 @@ dependencies {
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
         api(libs.jetbrainsAnnotations)  { version { strictly("20.1.0") }}
-        api(libs.jgit)                  { version { strictly("5.7.0.202003110725-r"); because("Upgrade has breaking API changes") }}
+        api(libs.jgit)                  { version { strictly("5.13.3.202401111512-r"); because("6.x requires Java 11") }}
+        api(libs.jgitSsh)               { version { strictly("5.13.3.202401111512-r") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
-        api(libs.jsch)                  { version { strictly("0.1.55") }}
+        api(libs.jsch)                  { version { strictly("0.2.16") }}
         api(libs.jsoup)                 { version { strictly("1.15.3") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
@@ -148,6 +152,7 @@ dependencies {
         // compile only
         api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
         api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
+        api(libs.zinc)                  { version { strictly("1.9.6") }}
 
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}
@@ -172,6 +177,7 @@ dependencies {
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
+        api(libs.mockwebserver)         { version { strictly("4.11.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
@@ -179,6 +185,7 @@ dependencies {
         api(libs.spock)                 { version { strictly("2.2-M2-groovy-3.0") }}
         api(libs.spockJUnit4)           { version { strictly("2.2-M2-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
+        api(libs.sshdOsgi)              { version { rejectAll(); because("It contains sshd-core and sshd-common classes") }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}

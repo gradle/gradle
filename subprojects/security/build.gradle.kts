@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.guava)
 
     api(libs.bouncycastlePgp)
+    implementation(libs.bouncycastleUtil)
 
     implementation(libs.groovy) {
         because("Project.exec() depends on Groovy")

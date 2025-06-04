@@ -29,6 +29,7 @@ abstract class ExternalModulesExtension {
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
     val antLauncher = "org.apache.ant:ant-launcher"
+    val antJunit = "org.apache.ant:ant-junit"
     val asm = "org.ow2.asm:asm"
     val asmAnalysis = "org.ow2.asm:asm-analysis"
     val asmCommons = "org.ow2.asm:asm-commons"
@@ -39,9 +40,10 @@ abstract class ExternalModulesExtension {
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
     val awsS3Sts = "com.amazonaws:aws-java-sdk-sts"
-    val bouncycastlePgp = "org.bouncycastle:bcpg-jdk15on"
-    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk15on"
-    val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
+    val bouncycastlePgp = "org.bouncycastle:bcpg-jdk18on"
+    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
+    val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
+    val bouncycastleUtil = "org.bouncycastle:bcutil-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
@@ -54,6 +56,7 @@ abstract class ExternalModulesExtension {
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
+    val grpc = "io.grpc:grpc-context"
     val googleApiClient = "com.google.api-client:google-api-client"
     val googleHttpClient = "com.google.http-client:google-http-client"
     val googleHttpClientGson = "com.google.http-client:google-http-client-gson"
@@ -94,8 +97,9 @@ abstract class ExternalModulesExtension {
     val jcommander = "com.beust:jcommander"
     val jetbrainsAnnotations = "org.jetbrains:annotations"
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
+    val jgitSsh = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache"
     val joda = "joda-time:joda-time"
-    val jsch = "com.jcraft:jsch"
+    val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
@@ -134,6 +138,7 @@ abstract class ExternalModulesExtension {
     // Compile only dependencies (dynamically downloaded if needed)
     val maven3Compat = "org.apache.maven:maven-compat"
     val maven3PluginApi = "org.apache.maven:maven-plugin-api"
+    val zinc = "org.scala-sbt:zinc_2.13"
 
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
@@ -162,6 +167,7 @@ abstract class ExternalModulesExtension {
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
+    val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "mysql:mysql-connector-java"
     val samplesCheck = "org.gradle.exemplar:samples-check"
     val snappy = "org.iq80.snappy:snappy"
@@ -170,6 +176,7 @@ abstract class ExternalModulesExtension {
     val spock = "org.spockframework:spock-core"
     val spockJUnit4 = "org.spockframework:spock-junit4"
     val sshdCore = "org.apache.sshd:sshd-core"
+    val sshdOsgi = "org.apache.sshd:sshd-osgi"
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
@@ -192,7 +199,9 @@ abstract class ExternalModulesExtension {
         awsS3S3 to License.Apache2,
         awsS3Sts to License.Apache2,
         bouncycastlePgp to License.MIT,
+        bouncycastlePkix to License.MIT,
         bouncycastleProvider to License.MIT,
+        bouncycastleUtil to License.MIT,
         bsh to License.Apache2,
         capsule to License.BSDStyle,
         commonsCodec to License.Apache2,
@@ -266,6 +275,7 @@ abstract class ExternalModulesExtension {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xmlApis to License.Apache2
+        xmlApis to License.Apache2,
+        zinc to License.Apache2
     )
 }
