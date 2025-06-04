@@ -187,8 +187,8 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
 
         then:
         configurationCache.assertNoConfigurationCache()
-        output.contains("Configuration caching disabled because degradation was requested by:")
-        output.contains("- task `:publishMavenPublicationToTestMavenRepoRepository` of type `org.gradle.api.publish.maven.tasks.PublishToMavenRepository`")
+        output.contains("Configuration caching disabled because degradation was requested.")
+        output.contains("\t- task `:publishMavenPublicationToTestMavenRepoRepository` of type `org.gradle.api.publish.maven.tasks.PublishToMavenRepository`")
     }
 
     /*
@@ -214,8 +214,8 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
 
         then:
         configurationCache.assertNoConfigurationCache()
-        output.contains("Configuration caching disabled because degradation was requested by:")
-        output.contains("- task `:publishMavenPublicationToRepo-with-invalid-identity-nameRepository` of type `org.gradle.api.publish.maven.tasks.PublishToMavenRepository`")
+        output.contains("Configuration caching disabled because degradation was requested.")
+        output.contains("\t- task `:publishMavenPublicationToRepo-with-invalid-identity-nameRepository` of type `org.gradle.api.publish.maven.tasks.PublishToMavenRepository`")
     }
 
     def "can publish maven publication metadata to local repository"() {
