@@ -49,6 +49,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
         """
 
         addMyTestForJunit5()
+        executer.withStackTraceChecksDisabled()
 
         when:
         fails('test')
