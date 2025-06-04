@@ -277,11 +277,11 @@ class ConfigurationCacheProblems(
         val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
         return when {
             failDueToProblems -> {
-                ConfigurationCacheProblemsException(summary.causes, summaryText)
+                ConfigurationCacheProblemsException(summary.originalProblemExceptions, summaryText)
             }
 
             hasTooManyProblems -> {
-                TooManyConfigurationCacheProblemsException(summary.causes, summaryText)
+                TooManyConfigurationCacheProblemsException(summary.originalProblemExceptions, summaryText)
             }
 
             else -> null

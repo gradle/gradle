@@ -34,7 +34,7 @@ const val MAX_CONSOLE_PROBLEMS = 15
 
 
 private
-const val MAX_CAUSES = 5
+const val MAX_PROBLEM_EXCEPTIONS = 5
 
 /**
  * This class is thread-safe.
@@ -64,8 +64,12 @@ class ConfigurationCacheProblemsSummary(
     private
     val uniqueProblems = HashMap<UniquePropertyProblem, ProblemSeverity>()
 
+    /**
+     * As some problems come with original exceptions attached,
+     * we collect a small number of them to include as part of the build failure
+     */
     private
-    var causes = ArrayList<Throwable>(MAX_CAUSES)
+    val originalProblemExceptions = ArrayList<Throwable>(MAX_PROBLEM_EXCEPTIONS)
 
     private
     val severityComparator = consoleComparatorForSeverity()
@@ -78,7 +82,7 @@ class ConfigurationCacheProblemsSummary(
             totalProblemCount,
             deferredProblemCount,
             ImmutableMap.copyOf(uniqueProblems),
-            ImmutableList.copyOf(causes),
+            ImmutableList.copyOf(originalProblemExceptions),
             overflowed,
             maxCollectedProblems
         )
@@ -103,12 +107,19 @@ class ConfigurationCacheProblemsSummary(
                 return false
             }
             val isNew = trackUniqueProblems(problem, severity)
-            if (isNew && causes.size < MAX_CAUSES) {
-                problem.exception?.let {
-                    causes.add(it)
-                }
+            if (isNew) {
+                collectOriginalException(problem)
             }
             return true
+        }
+    }
+
+    private
+    fun collectOriginalException(problem: PropertyProblem) {
+        if (originalProblemExceptions.size < MAX_PROBLEM_EXCEPTIONS) {
+            problem.exception?.let {
+                originalProblemExceptions.add(it)
+            }
         }
     }
 
@@ -142,7 +153,7 @@ class Summary(
     private
     val uniqueProblems: Map<UniquePropertyProblem, ProblemSeverity>,
 
-    val causes: List<Throwable>,
+    val originalProblemExceptions: List<Throwable>,
 
     private
     val overflowed: Boolean,
