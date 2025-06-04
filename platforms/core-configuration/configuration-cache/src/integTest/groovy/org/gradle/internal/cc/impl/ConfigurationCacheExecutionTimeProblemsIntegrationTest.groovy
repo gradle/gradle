@@ -134,4 +134,45 @@ class ConfigurationCacheExecutionTimeProblemsIntegrationTest extends AbstractCon
             problem("Build file 'build.gradle': line 6: invocation of 'Task.project' at execution time is unsupported.")
         }
     }
+
+    def "with execution-time problems, serialization problems are reported as a separate build failure"() {
+        buildFile """
+            def capturedProject = project
+            tasks.register("broken") {
+                doLast {
+                    println("use captured project: " + (capturedProject != null)) // serialization problem
+                    println("use task.project: " + project) // execution-time problem
+                    throw new RuntimeException("UNREACHABLE")
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails "broken"
+
+        then:
+        outputContains("use captured project: true")
+        failure.assertHasFailures(2)
+
+        and:
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(6)
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        // TODO: it should mention configuration cache
+        failure.assertHasCause("Invocation of 'Task.project' by task ':broken' at execution time is unsupported.")
+
+        and:
+        // TODO:configuration-cache provide a better (less misleading) location for the end-of-build CC build failure
+        // Currently, the end-of-build build failure will to the same location as the task failure,
+        // if there are no deferred problems with location displayable by the build failure
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(6)
+        failure.assertHasDescription("Configuration cache problems found in this build.")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            loadsAfterStore = false // because of store-time problems
+            problem "Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache."
+            serializationProblem "Build file 'build.gradle': line 6: invocation of 'Task.project' at execution time is unsupported."
+        }
+    }
 }
