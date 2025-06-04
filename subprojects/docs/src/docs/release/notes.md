@@ -1,19 +1,19 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This is the fourth patch release for Gradle 7.6.
+This is the fifth patch release for Gradle 7.6.
 
-This release addresses security vulnerabilities:
+Issues fixed in this release:
+* [#33594](https://github.com/gradle/gradle/issues/33594) Suboptimal logic when resolving selectors with dynamic ones and upgrades to Gradle distribution bundled dependencies.
+* [#33646](https://github.com/gradle/gradle/issues/33646) Backport dependency updates
 
-* [Apache Ant insecure temporary file vulnerability](https://github.com/gradle/gradle/security/advisories/GHSA-j45w-qrgf-25vm)
-* [Guava insecure temporary directory](https://github.com/gradle/gradle/issues/25945)
-* [Ivy Improper Restriction of XML External Entity Reference](https://nvd.nist.gov/vuln/detail/CVE-2022-46751) and related Gradle issue [#24795](https://github.com/gradle/gradle/issues/24795)
+Issues fixed in the fourth patch release:
 
-It also fixes the following issues related to multi-release JARs:
-
+* Security vulnerability: [Apache Ant insecure temporary file vulnerability](https://github.com/gradle/gradle/security/advisories/GHSA-j45w-qrgf-25vm)
+* Security vulnerability: [Guava insecure temporary directory](https://github.com/gradle/gradle/issues/25945)
+* Security vulnerability: [Ivy Improper Restriction of XML External Entity Reference](https://nvd.nist.gov/vuln/detail/CVE-2022-46751) and related Gradle issue [#24795](https://github.com/gradle/gradle/issues/24795)
 * [#27156](https://github.com/gradle/gradle/issues/27156) Gradle 7.6.3 fails with plugins that use multi-release JAR files
 * [#27856](https://github.com/gradle/gradle/issues/27856) Gradle 7.6.3 fails to incrementally compile when the classpath contains a multi-release jar with a Java 21 class
-
-and contains version updates for Jackson and Maven dependencies.
+* [#27638](https://github.com/gradle/gradle/issues/27638) Backport dependency upgrades.
 
 Issues fixed in the third patch release:
 
