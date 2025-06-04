@@ -110,6 +110,13 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class NotAlpine implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return System.getenv("RUNNING_ON_ALPINE") == null
+        }
+    }
+
     static final class NotWindowsJavaBefore11 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
