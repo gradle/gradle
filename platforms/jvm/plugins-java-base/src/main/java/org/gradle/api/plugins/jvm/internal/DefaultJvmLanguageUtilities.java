@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.MergeProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.plugins.JavaPluginExtension;
@@ -68,10 +69,16 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
         compileTasks.add(compileTask);
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-        configurationInternal.getAttributes().attributeProvider(
-            TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-            getDefaultTargetPlatform(configuration, java, compileTasks)
-        );
+
+        Provider<Integer> targetJvmVersion = ((JavaPluginExtensionInternal) java).getAutoTargetJvm().flatMap(autoTargetJvm -> {
+            if (!autoTargetJvm && !configuration.isCanBeConsumed()) {
+                return Providers.of(Integer.MAX_VALUE);
+            }
+
+            return getMaxTargetJvmVersion(compileTasks);
+        });
+
+        configurationInternal.getAttributes().attributeProvider(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, targetJvmVersion);
     }
 
     @Override
@@ -84,11 +91,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
         builder.build();
     }
 
-    private static <COMPILE extends AbstractCompile & HasCompileOptions> Provider<Integer> getDefaultTargetPlatform(
-        Configuration configuration,
-        JavaPluginExtension java,
-        Set<TaskProvider<COMPILE>> compileTasks
-    ) {
+    private static <COMPILE extends AbstractCompile & HasCompileOptions> ProviderInternal<Integer> getMaxTargetJvmVersion(Set<TaskProvider<COMPILE>> compileTasks) {
         assert !compileTasks.isEmpty();
 
         List<Provider<Integer>> allTargetJdkVersions = compileTasks.stream().map(taskProvider -> taskProvider.flatMap(compileTask -> {
@@ -107,13 +110,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
             }
         })).collect(Collectors.toList());
 
-        return ((JavaPluginExtensionInternal) java).getAutoTargetJvm().flatMap(autoTargetJvm -> {
-            if (!autoTargetJvm && !configuration.isCanBeConsumed()) {
-                return Providers.of(Integer.MAX_VALUE);
-            }
-
-            return new MergeProvider<>(allTargetJdkVersions).map(Collections::max);
-        });
+        return new MergeProvider<>(allTargetJdkVersions).map(Collections::max);
     }
 
 }
