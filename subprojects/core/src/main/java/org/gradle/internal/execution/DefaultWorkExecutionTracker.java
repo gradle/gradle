@@ -75,18 +75,6 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
     }
 
     @Override
-    public boolean isExecutingTransformAction() {
-        Set<OperationIdentifier> runningTransformActions = operationListener.runningTransformActions;
-        if (runningTransformActions.isEmpty()) {
-            return false;
-        }
-        return buildOperationAncestryTracker.findClosestMatchingAncestor(
-            currentBuildOperationRef.getId(),
-            runningTransformActions::contains
-        ).isPresent();
-    }
-
-    @Override
     public boolean isExecutingTaskOrTransformAction() {
         if (!operationListener.hasRunningWork()) {
             return false;
@@ -148,7 +136,8 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
         }
 
         public boolean hasRunningWork() {
-            return !runningTasks.isEmpty() || !runningTransformActions.isEmpty();
+            return !runningTasks.isEmpty()
+                || !runningTransformActions.isEmpty();
         }
 
         private static boolean isTransformAction(BuildOperationDescriptor buildOperation) {
