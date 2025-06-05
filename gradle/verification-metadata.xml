@@ -201,10 +201,7 @@
             <trusting group="com.gradle" name="gradle-enterprise-gradle-plugin"/>
             <trusting group="org.gradle"/>
          </trusted-key>
-         <trusted-key id="7C669810892CBD3148FA92995B05CCDE140C2876">
-            <trusting group="org.eclipse.jgit" name="org.eclipse.jgit"/>
-            <trusting group="org.eclipse.jgit" name="org.eclipse.jgit.ssh.apache"/>
-         </trusted-key>
+         <trusted-key id="7C669810892CBD3148FA92995B05CCDE140C2876" group="org.eclipse.jgit"/>
          <trusted-key id="7FAA0F2206DE228F0DB01AD741321490758AAD6F" group="org.codehaus.groovy"/>
          <trusted-key id="829D279BA9A3C503EB98A0E53C48F45A0E97AF7E" group="org.gebish"/>
          <trusted-key id="8446B9E902A3F3DDEE711FDB8E26FF248BC7AEAD">
@@ -998,11 +995,6 @@
             <pgp value="8446B9E902A3F3DDEE711FDB8E26FF248BC7AEAD"/>
          </artifact>
       </component>
-      <component group="net.i2p.crypto" name="eddsa" version="0.3.0">
-         <artifact name="eddsa-0.3.0.jar">
-            <pgp value="43C79B4BBD131821E17D2CA77B2F0491728B8E02"/>
-         </artifact>
-      </component>
       <component group="net.jcip" name="jcip-annotations" version="1.0">
          <artifact name="jcip-annotations-1.0.jar">
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Verified" reason="Artifact is not signed"/>
@@ -1307,21 +1299,6 @@
       <component group="org.eclipse.jetty" name="jetty-websocket" version="8.1.14.v20131031">
          <artifact name="jetty-websocket-8.1.14.v20131031.jar">
             <pgp value="5DE533CB43DAF8BC3E372283E7AE839CD7C58886"/>
-         </artifact>
-      </component>
-      <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.5.0.201909110433-r">
-         <artifact name="org.eclipse.jgit-5.5.0.201909110433-r.jar">
-            <pgp value="7C669810892CBD3148FA92995B05CCDE140C2876"/>
-         </artifact>
-      </component>
-      <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.7.0.202003110725-r">
-         <artifact name="org.eclipse.jgit-5.7.0.202003110725-r.jar">
-            <pgp value="7C669810892CBD3148FA92995B05CCDE140C2876"/>
-         </artifact>
-      </component>
-      <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.8.0.202006091008-r">
-         <artifact name="org.eclipse.jgit-5.8.0.202006091008-r.jar">
-            <pgp value="7C669810892CBD3148FA92995B05CCDE140C2876"/>
          </artifact>
       </component>
       <component group="org.freemarker" name="freemarker" version="2.3.32">

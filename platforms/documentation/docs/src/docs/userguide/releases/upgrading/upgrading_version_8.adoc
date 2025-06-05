@@ -119,6 +119,10 @@ If they are used to reference a top-level symbol that happens to have the same n
 
 Read the link:#jspecify[JSpecify section] below to learn about potential breaking changes in Kotlin build logic code related to nullability.
 
+==== Upgrade to Eclipse JGit 7.2.1
+
+Eclipse JGit has been updated from 5.13.3 to link:https://projects.eclipse.org/projects/technology.jgit/releases/7.2.1[7.2.1].
+
 === Plugin Changes
 
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11
