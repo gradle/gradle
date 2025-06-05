@@ -324,7 +324,7 @@ When set to `true`, individual input property hashes and the build cache key for
 _Default is `false`._
 
 `org.gradle.configuration-cache=(true,false)`::
-Enables <<configuration_cache_enabling.adoc#config_cache:usage:enable, configuration caching>>. Gradle will try to reuse the build configuration from previous builds.
+Enables <<configuration_cache.adoc#config_cache:usage:enable, configuration caching>>. Gradle will try to reuse the build configuration from previous builds.
 +
 _Default is `false`._
 
