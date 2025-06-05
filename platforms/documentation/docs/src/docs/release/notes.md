@@ -43,21 +43,10 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Kotlin build script compilation avoidance
-
-With this release, the mechanism for detecting ABI (Application Binary Interface) changes in [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts has been significantly improved. 
-Gradle now relies on the Kotlin distribution’s own ABI fingerprinting instead of its previous internal mechanism.
-
-The biggest advantage of the new mechanism is the ability to work in the presence of inline functions, something that Gradle wasn't handling efficiently until now.
-This results in substantial performance gains depending on your build and the changes made to the build logic.
-
-For example, in the `gradle/gradle` project, non-ABI changes to build logic now result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
-
-![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
-
 ### Kotlin 2 TO DO
 
 ### Groovy 4
+
 Gradle embeds the latest stable release of Groovy 4.0. This is a major version jump from Gradle 7 and 8 that used Groovy 3.0.
 
 This brings a range of new features and improvements.
@@ -84,6 +73,18 @@ Check out the link:https://blog.gradle.org/road-to-configuration-cache[blog post
 ### Build authoring improvements
 
 Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
+
+### Kotlin build script compilation avoidance
+
+With this release, the mechanism for detecting ABI (Application Binary Interface) changes in [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts has been significantly improved.
+Gradle now relies on the Kotlin distribution’s own ABI fingerprinting instead of its previous internal mechanism.
+
+The biggest advantage of the new mechanism is the ability to work in the presence of inline functions, something that Gradle wasn't handling efficiently until now.
+This results in substantial performance gains depending on your build and the changes made to the build logic.
+
+For example, in the `gradle/gradle` project, non-ABI changes to build logic now result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
+
+![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
 
 #### Gradle API now uses JSpecify Nullability Annotations
 
