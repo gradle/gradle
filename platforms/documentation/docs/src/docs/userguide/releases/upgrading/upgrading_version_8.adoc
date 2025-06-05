@@ -39,7 +39,7 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.0]]
 == Upgrading from 8.14 and earlier
 
-=== Toolchain, Language, and Compatibility Changes
+=== Language and DSL Changes
 
 ==== Upgrade to Kotlin 2.1.21
 
@@ -52,6 +52,62 @@ This upgrade includes several important changes:
 
 For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21[Kotlin release notes].
 
+==== Upgrade to Groovy 4.0.26
+
+Groovy has been upgraded from version 3.0.24 to https://groovy-lang.org/changelogs/changelog-4.0.26.html[4.0.26].
+For a complete overview of changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
+
+===== `is`-prefixed `Boolean` properties no longer recognized by Groovy
+
+Groovy 4 no longer treats getters with an `is` prefix and a `Boolean` return type as properties.
+Gradle still recognizes these as properties for now, but this behavior will change in Gradle 10.0 to align with Groovy 4.
+See <<#groovy_boolean_properties,the deprecation notice>> for more details.
+
+===== Non-abstract managed properties may no longer be attached
+
+**TODO, waiting on https://github.com/gradle/gradle/issues/33215 resolution**
+
+===== `DELEGATE_FIRST` closures may now prefer the delegate in some cases
+
+Groovy 4.0.26 has changed the behavior of closures using the `DELEGATE_FIRST` strategy.
+Dynamic lookups for properties and methods will now prefer the delegate over the owner.
+This can result in different behavior when using closures in Gradle scripts, such as certain methods not being found
+or (e.g. with `.with { }`) some dynamic properties taking precedence over outer properties or methods.
+Generally, this should not affect Gradle scripts, as Gradle does not use `DELEGATE_FIRST` closures with dynamic properties in its API.
+
+Workarounds include using `@CompileStatic` to avoid dynamic lookups, or explicitly qualifying calls with `owner.`, `this.`, or `super.` as needed.
+
+For full clarity, in Groovy 3, the lookup order was:
+
+1. Delegate's `invokeMethod`, which chooses known methods and does no dynamic lookup.
+2. Owner's `invokeMethod`, which chooses known methods and does no dynamic lookup.
+3. Delegate's `invokeMissingMethod`, which does dynamic lookup including via properties.
+4. Owner's `invokeMissingMethod`, which does dynamic lookup including via properties.
+
+In Groovy 4, the lookup order is:
+
+1. Delegate's `invokeMethod`, which chooses known methods and does no dynamic lookup.
+2. Delegate's `invokeMissingMethod`, which does dynamic lookup including via properties.
+3. Owner's `invokeMethod`, which chooses known methods and does no dynamic lookup.
+4. Owner's `invokeMissingMethod`, which does dynamic lookup including via properties.
+
+===== Private properties and methods may be inaccessible in closures
+
+Closures defined in a parent class that reference its private properties or methods may no longer have access to them in subclasses.
+This is due to a https://issues.apache.org/jira/browse/GROOVY-11568[Groovy bug] that will not be resolved until Groovy 5.
+This applies to both buildscripts and plugins written in Groovy.
+
+As a workaround, apply `@CompileStatic` to the class to remove the dynamic lookup.
+
+This is tracked by https://github.com/gradle/gradle/issues/32476.
+
+===== Super methods may be inaccessible from Groovy 3.x code
+
+Groovy 4 changed how `super` method calls are resolved at runtime.
+As a result, code compiled with Groovy 3.x may be unable to access `super` methods,
+as the code does not contain the appropriate runtime code to locate them.
+This only applies to plugins written in Groovy 3.x, from Gradle 8.x and earlier.
+
 ==== Kotlin DSL now uses the Kotlin language version 2.1
 
 In Gradle 9.0, the Kotlin DSL has been upgraded to use Kotlin language version 2.1, whereas Gradle 8.x used version 1.8.
@@ -62,6 +118,106 @@ If they are used to reference the DSL script target object, then use `project`, 
 If they are used to reference a top-level symbol that happens to have the same name as a nested symbol, then use a different name, possibly by adding an intermediary variable.
 
 Read the link:#jspecify[JSpecify section] below to learn about potential breaking changes in Kotlin build logic code related to nullability.
+
+=== Plugin Changes
+
+==== Plugins written with the Kotlin DSL require Gradle >= 8.11
+
+When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins will only be usable on Gradle 8.11 or newer.
+This is because Gradle 8.11 is the first release that embeds Kotlin 2.0 or higher, which is required to interpret Kotlin metadata version 2.
+
+If you want your plugin to remain compatible with older Gradle versions, you must explicitly compile it against an earlier Kotlin version (1.x).
+
+For example, to support Gradle 6.8 and newer, configure your plugin to target Kotlin 1.7 like this:
+
+.build.gradle.kts
+[source,kotlin]
+----
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    `kotlin-dsl`
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        languageVersion = KotlinVersion.KOTLIN_1_7
+        apiVersion = KotlinVersion.KOTLIN_1_7
+    }
+}
+----
+
+Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for details on which Kotlin version is embedded in each Gradle release.
+
+NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 6.8 and newer.
+
+==== Plugins written with the Groovy DSL require Gradle <= 7.0
+
+Plugins authored using the Groovy DSL and built with Gradle 9.x require Gradle 7.0 or newer to run.
+This is because Gradle 7.0 introduced Groovy 3.0 support, and Gradle 9.0 embeds Groovy 4.0.
+
+Since Gradle 9.0 uses Groovy 4.0 internally, plugins built with it may not behave as expected when run on older Gradle versions.
+For best compatibility, such plugins should be used with Gradle 9.0 or later.
+
+NOTE: Plugins written with the Groovy DSL and published using Gradle 7.x or 8.x remain compatible with Gradle 5.0 and above.
+
+==== Lowest supported Kotlin Gradle Plugin version change
+
+Starting with Gradle 9.0, the minimum supported Kotlin Gradle Plugin version is 2.0.0.
+Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
+
+For Gradle 8.x, the minimum supported version was 1.6.10.
+
+==== Lowest supported Android Gradle Plugin version change
+
+Starting with Gradle 9.0, the minimum supported Android Gradle Plugin version is 8.4.0.
+Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
+
+For Gradle 8.x, the minimum supported version was 7.3.0.
+
+==== Lowest supported Gradle Enterprise Plugin version change
+
+Starting with Gradle 9.0, the minimum supported Gradle Enterprise Plugin version is 3.13.1.
+Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
+
+Consider upgrading to the latest version of the Gradle Enterprise Plugin,
+or better yet, upgrade to the latest version of the link:https://docs.gradle.com/develocity/gradle-plugin[Develocity Plugin].
+
+For Gradle 8.x, the minimum supported version was 3.0.
+
+==== C++ and Swift plugins no longer depend on software model based plugins
+
+<<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
+
+As a result, `toolChains` should now be configured directly at the top-level of your build script instead of within a `model { }` block.
+
+==== Scala plugins no longer create unresolvable configurations
+
+Previously, the Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information between projects.
+However, these configurations were unresolvable and could lead to errors in the `dependencies` report.
+
+As of Gradle 9.0, these configurations are no longer created or used by the Scala plugins.
+
+=== Updated Defaults and APIs
+
+==== Upgraded default versions of code quality tools
+
+The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.24.0[10.24.0].
+
+The default version of CodeNarc is link:https://github.com/CodeNarc/CodeNarc/blob/v3.6.0/CHANGELOG.md#version-360--feb-2025[3.6.0].
+
+The default version of Pmd is link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.13.0[7.13.0]
+
+==== Upgraded default versions of testing frameworks
+
+When using test suites, the version of several testing frameworks has changed.
+
+The default version of JUnit Jupiter is link:https://junit.org/junit5/docs/5.12.2/release-notes/index.html#release-notes-5.12.2[5.12.2].
+
+The default version of TestNG is link:https://github.com/testng-team/testng/releases/tag/7.11.0[7.11.0].
+
+The default version of Spock is link:https://spockframework.org/spock/docs/2.3/release_notes.html[2.3].
 
 [[jspecify]]
 ==== Gradle API now uses JSpecify nullability annotations
@@ -94,191 +250,17 @@ Another example is using a function from the Gradle API that takes a `Map<String
 
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9.0 as they did before.
 
-==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
+==== Methods on public API types made final
 
-When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins will only be usable on Gradle 8.11 or newer.
-This is because Gradle 8.11 is the first release that embeds Kotlin 2.0 or higher, which is required to interpret Kotlin metadata version 2.
+The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(java.lang.Object)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] have been declared `final` to support the use of the `@SafeVarargs` annotation.
 
-If you want your plugin to remain compatible with older Gradle versions, you must explicitly compile it against an earlier Kotlin version (1.x).
+These types were not intended to be subclassed.
+However, if your build logic or a plugin attempts to override these methods, it will now result in a runtime failure.
 
-For example, to support Gradle 6.8 and newer, configure your plugin to target Kotlin 1.7 like this:
-
-.build.gradle.kts
-[source,kotlin]
-----
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-plugins {
-    `kotlin-dsl`
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        languageVersion = KotlinVersion.KOTLIN_1_7
-        apiVersion = KotlinVersion.KOTLIN_1_7
-    }
-}
-----
-
-Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for details on which Kotlin version is embedded in each Gradle release.
-
-NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 6.8 and newer.
-
-==== Upgrade to Groovy 4.0.26
-
-Groovy has been upgraded from version 3.0.24 to https://groovy-lang.org/changelogs/changelog-4.0.26.html[4.0.26].
-For a complete overview of changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
-
-===== `is`-prefixed `Boolean` properties no longer recognized by Groovy
-Groovy 4 no longer treats getters with an `is` prefix and a `Boolean` return type as properties.
-Gradle still recognizes these as properties for now, but this behavior will change in Gradle 10.0 to align with Groovy 4.
-See <<#groovy_boolean_properties,the deprecation notice>> for more details.
-
-===== Non-abstract managed properties may no longer be attached
-**TODO, waiting on https://github.com/gradle/gradle/issues/33215 resolution**
-
-===== `DELEGATE_FIRST` closures may now prefer the delegate in some cases
-Groovy 4.0.26 has changed the behavior of closures using the `DELEGATE_FIRST` strategy.
-Dynamic lookups for properties and methods will now prefer the delegate over the owner.
-This can result in different behavior when using closures in Gradle scripts, such as certain methods not being found
-or (e.g. with `.with { }`) some dynamic properties taking precedence over outer properties or methods.
-Generally, this should not affect Gradle scripts, as Gradle does not use `DELEGATE_FIRST` closures with dynamic properties in its API.
-
-Workarounds include using `@CompileStatic` to avoid dynamic lookups, or explicitly qualifying calls with `owner.`, `this.`, or `super.` as needed.
-
-For full clarity, in Groovy 3, the lookup order was:
-
-1. Delegate's `invokeMethod`, which chooses known methods and does no dynamic lookup.
-2. Owner's `invokeMethod`, which chooses known methods and does no dynamic lookup.
-3. Delegate's `invokeMissingMethod`, which does dynamic lookup including via properties.
-4. Owner's `invokeMissingMethod`, which does dynamic lookup including via properties.
-
-In Groovy 4, the lookup order is:
-
-1. Delegate's `invokeMethod`, which chooses known methods and does no dynamic lookup.
-2. Delegate's `invokeMissingMethod`, which does dynamic lookup including via properties.
-3. Owner's `invokeMethod`, which chooses known methods and does no dynamic lookup.
-4. Owner's `invokeMissingMethod`, which does dynamic lookup including via properties.
-
-===== Private properties and methods may be inaccessible in closures
-Closures defined in a parent class that reference its private properties or methods may no longer have access to them in subclasses.
-This is due to a https://issues.apache.org/jira/browse/GROOVY-11568[Groovy bug] that will not be resolved until Groovy 5.
-This applies to both buildscripts and plugins written in Groovy.
-
-As a workaround, apply `@CompileStatic` to the class to remove the dynamic lookup.
-
-This is tracked by https://github.com/gradle/gradle/issues/32476.
-
-===== Super methods may be inaccessible from Groovy 3.x code
-Groovy 4 changed how `super` method calls are resolved at runtime.
-As a result, code compiled with Groovy 3.x may be unable to access `super` methods,
-as the code does not contain the appropriate runtime code to locate them.
-This only applies to plugins written in Groovy 3.x, from Gradle 8.x and earlier.
-
-==== Plugins written with the Groovy DSL support only Gradle 7.0 and above
-
-Plugins built and published using the Groovy DSL on Gradle 9.x are only supported on Gradle 7.0 or above.
-Gradle 7.0 is the first release that embeds Groovy 3.0 and can run Groovy 4.0 code.
-
-Since Gradle 9.0 uses Groovy 4.0, some code may behave unexpectedly. For full compatibility, it's recommended to run these plugins on Gradle 9.0 or later.
-
-NOTE: Plugins written using the Groovy DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 5.0 and newer.
-
-[[validate_plugins_without_java_toolchain_90]]
-==== `ValidatePlugins` task now requires Java Toolchains
-
-In Gradle 9.0, using the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] task without applying the <<toolchains.adoc#toolchains,Java Toolchains>> plugin will result in an error.
-
-To fix this, explicitly apply the `jvm-toolchains` plugin:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("jvm-toolchains")
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id 'jvm-toolchains'
-}
-----
-=====
-====
-
-TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
-If you are already applying one of those, no further action is needed.
-
-==== Removal of deprecated `JvmVendorSpec.IBM_SEMERU`
-
-The deprecated `JvmVendorSpec.IBM_SEMERU` constant has been removed.
-Its usage should be replaced by link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html#IBM[`JvmVendorSpec.IBM`].
-
-==== C++ and Swift plugins no longer depend on software model based plugins
-
-<<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
-
-As a result, `toolChains` should now be configured directly at the top-level of your build script instead of within a `model { }` block.
-
-=== Updated Minimum Supported Versions
-
-==== Lowest supported Kotlin Gradle Plugin version change
-
-Starting with Gradle 9.0, the minimum supported Kotlin Gradle Plugin version is 2.0.0.
-Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
-
-For Gradle 8.x, the minimum supported version was 1.6.10.
-
-==== Lowest supported Android Gradle Plugin version change
-
-Starting with Gradle 9.0, the minimum supported Android Gradle Plugin version is 8.4.0.
-Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
-
-For Gradle 8.x, the minimum supported version was 7.3.0.
-
-==== Lowest supported Gradle Enterprise Plugin version change
-
-Starting with Gradle 9.0, the minimum supported Gradle Enterprise Plugin version is 3.13.1.
-Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
-
-Consider upgrading to the latest version of the Gradle Enterprise Plugin,
-or better yet, upgrade to the latest version of the link:https://docs.gradle.com/develocity/gradle-plugin[Develocity Plugin].
-
-For Gradle 8.x, the minimum supported version was 3.0.
-
-==== All Gradle-provided classes now have `abstract` getter injection methods
+==== Injection getters are now `abstract`
 
 All Gradle-provided classes that have `@Inject` annotated getters now have those getters declared as `abstract`.
 This will require all classes that extend Gradle-provided classes to be `abstract`.
-
-=== Updated Defaults and APIs
-
-==== Upgraded default versions of code quality tools
-
-The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.24.0[10.24.0].
-
-The default version of CodeNarc is link:https://github.com/CodeNarc/CodeNarc/blob/v3.6.0/CHANGELOG.md#version-360--feb-2025[3.6.0].
-
-The default version of Pmd is link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.13.0[7.13.0]
-
-==== Upgraded default versions of testing frameworks
-
-When using test suites, the version of several testing frameworks has changed.
-
-The default version of JUnit Jupiter is link:https://junit.org/junit5/docs/5.12.2/release-notes/index.html#release-notes-5.12.2[5.12.2].
-
-The default version of TestNG is link:https://github.com/testng-team/testng/releases/tag/7.11.0[7.11.0].
-
-The default version of Spock is link:https://spockframework.org/spock/docs/2.3/release_notes.html[2.3].
 
 ==== `ConfigurationVariant.getDescription` is now a `Property<String>`
 
@@ -287,19 +269,12 @@ This property was not configurable by public APIs.
 
 By making the description a `Property<String>`, secondary variants have a user configurable description that appears in the <<variant_aware_resolution.adoc#outgoing_variants_report,`outgoingVariants` report>>.
 
-==== Methods on public API types made final
-
-The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(java.lang.Object)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] have been declared `final` to support the use of the `@SafeVarargs` annotation.
-
-These types were not intended to be subclassed.
-However, if your build logic or a plugin attempts to override these methods, it will now result in a runtime failure.
-
 === Removed Features and Deprecated APIs
 
-==== Injection getters are now `abstract`
+==== Removal of deprecated `JvmVendorSpec.IBM_SEMERU`
 
-All injection getters (getters annoted with `@Inject`) in types provided by Gradle are now marked as `abstract`. Some classes
-were also made `abstract` to allow this to happen. If you extended one of these types, you will need to make your class `abstract` as well.
+The deprecated `JvmVendorSpec.IBM_SEMERU` constant has been removed.
+Its usage should be replaced by link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html#IBM[`JvmVendorSpec.IBM`].
 
 ==== Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
 
@@ -675,7 +650,40 @@ This behavior previously caused a warning: `Gradle Module Metadata is modified a
 
 It will now fail with an error, suggesting a review of the relevant documentation.
 
-=== Behavior Changes in Tasks
+=== Task Changes
+
+[[validate_plugins_without_java_toolchain_90]]
+==== `ValidatePlugins` task now requires Java Toolchains
+
+In Gradle 9.0, using the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] task without applying the <<toolchains.adoc#toolchains,Java Toolchains>> plugin will result in an error.
+
+To fix this, explicitly apply the `jvm-toolchains` plugin:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("jvm-toolchains")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'jvm-toolchains'
+}
+----
+=====
+====
+
+TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
+If you are already applying one of those, no further action is needed.
 
 ==== `test` task fails when no tests are discovered
 
@@ -707,13 +715,6 @@ tasks.withType(AbstractTestTask).configureEach {
 ----
 =====
 ====
-
-==== Scala plugins no longer create unresolvable configurations
-
-Previously, the Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information between projects.
-However, these configurations were unresolvable and could lead to errors in the `dependencies` report.
-
-As of Gradle 9.0, these configurations are no longer created or used by the Scala plugins.
 
 ==== Stale outputs outside the build directory are no longer deleted
 

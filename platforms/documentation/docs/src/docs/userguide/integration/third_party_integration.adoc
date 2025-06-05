@@ -51,7 +51,7 @@ JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-start
 
 == Continuous integration
 
-We have link:https://community.gradle.org/cookbook/ci/[dedicated guides] showing you how to integrate a Gradle project with several CI platforms.
+We have link:https://cookbook.gradle.org/ci/[dedicated guides] showing you how to integrate a Gradle project with several CI platforms.
 
 == How to integrate with Gradle
 
