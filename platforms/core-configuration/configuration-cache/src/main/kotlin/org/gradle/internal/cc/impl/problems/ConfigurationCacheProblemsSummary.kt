@@ -103,7 +103,7 @@ class ConfigurationCacheProblemsSummary(
             when (severity) {
                 ProblemSeverity.Deferred -> deferredProblemCount += 1
                 ProblemSeverity.Suppressed -> suppressedProblemCount += 1
-                ProblemSeverity.Interrupting -> {}
+                ProblemSeverity.Interrupting, ProblemSeverity.DegradationRequested -> {}
             }
             if (overflowed) {
                 return false
@@ -200,6 +200,8 @@ class Summary(
         problemCauses.entries.stream()
             .collect(Comparators.least(MAX_CONSOLE_PROBLEMS, consoleComparatorForProblemCauseWithSeverity()))
             .asSequence()
+            // we don't print degradation problems in the console
+            .filter { it.value != ProblemSeverity.DegradationRequested }
             .map { it.key }
 
     private
@@ -259,8 +261,9 @@ fun consoleComparatorForSeverity(): Comparator<ProblemSeverity> =
     Comparator.comparingInt { it: ProblemSeverity ->
         when (it) {
             ProblemSeverity.Deferred -> 1
-            ProblemSeverity.Suppressed -> 2
-            ProblemSeverity.Interrupting -> 3
+            ProblemSeverity.DegradationRequested -> 2
+            ProblemSeverity.Suppressed -> 3
+            ProblemSeverity.Interrupting -> 4
         }
     }
 

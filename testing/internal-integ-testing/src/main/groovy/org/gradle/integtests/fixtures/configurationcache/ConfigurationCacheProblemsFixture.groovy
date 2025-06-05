@@ -181,6 +181,44 @@ final class ConfigurationCacheProblemsFixture {
         assertIncompatibleTasks(result.output, rootDir, spec)
     }
 
+    void assertFailureHtmlReportHasProblems(
+        ExecutionFailure failure,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertFailureHtmlReportHasProblems(failure, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertFailureHtmlReportHasProblems(
+        ExecutionFailure failure,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHtmlReportHasProblems(failure.error, newProblemsSpec(specAction))
+    }
+
+    void assertResultHtmlReportHasProblems(
+        ExecutionResult result,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertResultHtmlReportHasProblems(result, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertResultHtmlReportHasProblems(
+        ExecutionResult result,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHtmlReportHasProblems(result.output, newProblemsSpec(specAction))
+    }
+
+    private void assertHtmlReportHasProblems(
+        String output,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        assertProblemsHtmlReport(output, rootDir, spec)
+        assertInputs(output, rootDir, spec)
+        assertIncompatibleTasks(output, rootDir, spec)
+    }
+
+
     HasConfigurationCacheProblemsSpec newProblemsSpec(
         @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
