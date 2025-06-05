@@ -70,11 +70,6 @@ public interface Failure {
     List<Failure> getCauses();
 
     /**
-     * The problems associated with the failure.
-     */
-    List<InternalProblem> getProblems();
-
-    /**
      * Returns the index of the first matching frame in the stack trace, or {@code -1} if not found.
      */
     int indexOfStackFrame(int start, StackFramePredicate predicate);
@@ -84,5 +79,16 @@ public interface Failure {
      */
     Throwable getOriginal();
 
+    /**
+     * The problems associated with the failure.
+     */
+    List<InternalProblem> getProblems();
+
+    /**
+     * Creates a new copy of this failure without problems.
+     * <p>
+     * We currently need this for console logging. As soon as we report problems consistently in the console,
+     * we can remove this method.
+     */
     Failure withoutProblems();
 }
