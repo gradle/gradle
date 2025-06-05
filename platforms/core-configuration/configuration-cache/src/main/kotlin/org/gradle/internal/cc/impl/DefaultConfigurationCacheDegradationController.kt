@@ -75,7 +75,10 @@ internal class DefaultConfigurationCacheDegradationController(
             if (tasksDegradationRequests.isNotEmpty()) {
                 if (modelBuilding) {
                     tasksDegradationRequests.forEach { (task, reasons) ->
-                        result.add(DegradationReason.Task(task, reasons.mapNotNull { it.orNull }.sorted()))
+                        val reasonsInEffect = reasons.mapNotNull { it.orNull }
+                        if (reasonsInEffect.isNotEmpty()) {
+                            result.add(DegradationReason.Task(task, reasonsInEffect.sorted()))
+                        }
                     }
                 } else {
                     deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
