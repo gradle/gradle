@@ -122,10 +122,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
     }
 
     def "report is written to root project's buildDir"() {
-        file("build.gradle") << """
+        buildFile """
             buildDir = 'out'
+            def capturedProject = project
             tasks.register('broken') {
-                doFirst { println(project.name) }
+                doFirst { println(capturedProject) }
             }
         """
 
@@ -749,21 +750,24 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         given:
         def configurationCache = newConfigurationCacheFixture()
 
-        buildFile << """
+        buildFile """
             class BrokenTask extends DefaultTask {
                 @Internal
                 final broken = project
 
                 @TaskAction
                 def go() {
-                    println("project = " + project)
+                    println("project = " + broken)
                 }
             }
 
-            task problems(type: BrokenTask)
-            task moreProblems(type: BrokenTask)
+            def capturedConfigurations = project.configurations
+            tasks.register("problems", BrokenTask)
+            tasks.register("moreProblems", BrokenTask) {
+                doLast { capturedConfigurations } // serialization problem
+            }
 
-            task all {
+            tasks.register("all") {
                 dependsOn('problems', 'moreProblems')
             }
         """
@@ -774,13 +778,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         executed(':problems', ':moreProblems', ':all')
         configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded with 4 problems.")
+        outputContains("Configuration cache entry discarded with 3 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            totalProblemsCount = 4
-            problemsWithStackTraceCount = 2
+            problemsWithStackTraceCount = 0
         }
 
         when:
@@ -789,13 +792,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         executed(':problems', ':moreProblems', ':all')
         configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded with 4 problems.")
+        outputContains("Configuration cache entry discarded with 3 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            totalProblemsCount = 4
-            problemsWithStackTraceCount = 2
+            problemsWithStackTraceCount = 0
         }
 
         when:
@@ -812,13 +814,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         executed(':problems', ':moreProblems', ':all')
         configurationCache.assertStateLoaded()
-        outputContains("Configuration cache entry reused with 4 problems.")
+        outputContains("Configuration cache entry reused with 3 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            totalProblemsCount = 4
-            problemsWithStackTraceCount = 2
+            problemsWithStackTraceCount = 0
         }
     }
 
@@ -1159,15 +1160,15 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
     }
 
     def "reports problems in project build scripts"() {
-        settingsFile << """
+        settingsFile """
             include 'a'
         """
-        file("a/build.gradle") << """
+        buildFile "a/build.gradle", """
             gradle.buildFinished { }
-            task broken {
-                doFirst {
-                    println project.name
-                }
+
+            def capturedProject = project
+            tasks.register("broken") {
+                doLast { capturedProject } // serialization problem
             }
         """
 
@@ -1178,20 +1179,21 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle')}': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
-            withProblem("Build file '${relativePath('a/build.gradle')}': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:a:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 1
         }
     }
 
     def "reports problems in project Kotlin build scripts"() {
-        settingsFile << """
+        settingsFile """
             include 'a'
         """
         file("a/build.gradle.kts") << """
             gradle.buildFinished { }
+
+            val capturedProject = project
             tasks.register("broken") {
-                doFirst {
-                    println(project.name)
-                }
+                doLast { capturedProject } // serialization problem
             }
         """
 
@@ -1207,16 +1209,17 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
     }
 
     def "reports problems in buildSrc plugin"() {
-        file("buildSrc/src/main/java/SneakyPlugin.java") << """
+        javaFile "buildSrc/src/main/java/SneakyPlugin.java", """
             import ${Project.name};
             import ${Plugin.name};
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     project.getGradle().buildFinished(r -> {});
+                    Project capturedProject = project;
                     project.getTasks().register("broken", t -> {
                         t.doLast(t2 -> {
-                            System.out.println(t2.getProject().getName());
+                            System.out.println(capturedProject.getName());
                         });
                     });
                 }
@@ -1234,7 +1237,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Plugin 'sneaky': registration of listener on 'Gradle.buildFinished' is unsupported")
-            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 1
         }
     }
 
