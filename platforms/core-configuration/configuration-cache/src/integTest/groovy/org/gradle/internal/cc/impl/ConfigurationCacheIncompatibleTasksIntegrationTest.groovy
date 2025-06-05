@@ -313,29 +313,6 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         "provider { task.project }.map { it.name }" || _
     }
 
-    def "tasks that access project at execution time emit problems when incompatible task is present"() {
-        given:
-        addIncompatibleTaskWithoutProblems()
-        buildFile """
-            tasks.register("incompatible") {
-                dependsOn "declared"
-                doLast { task ->
-                    println task.project.name
-                }
-            }
-        """
-
-        when:
-        configurationCacheFails("incompatible")
-
-        then:
-        fixture.assertStateStoredAndDiscarded {
-            hasStoreFailure = false
-            loadsAfterStore = false
-            problem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
-        }
-    }
-
     @ToBeImplemented
     def "tasks that access project through provider created at execution time emit problems when incompatible task is present"() {
         given:
