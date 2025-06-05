@@ -29,7 +29,9 @@ import org.gradle.util.internal.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
 import org.junit.Rule
+import spock.util.environment.RestoreSystemProperties
 
+@RestoreSystemProperties
 class WrapperTest extends AbstractTaskTest {
 
     private static final String TARGET_WRAPPER_FINAL = "gradle/wrapper"

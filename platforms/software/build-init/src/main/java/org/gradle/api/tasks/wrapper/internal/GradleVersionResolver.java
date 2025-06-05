@@ -19,7 +19,6 @@ package org.gradle.api.tasks.wrapper.internal;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.gradle.api.GradleException;
-import org.gradle.api.resources.TextResource;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.util.GradleVersion;
@@ -35,32 +34,14 @@ import java.util.stream.Collectors;
 
 public class GradleVersionResolver {
 
-    public static final String LATEST = "latest";
-    public static final String NIGHTLY = "nightly";
-    public static final String RELEASE_NIGHTLY = "release-nightly";
-    public static final String RELEASE_CANDIDATE = "release-candidate";
-    public static final String RELEASE_MILESTONE = "release-milestone";
-
-    public static final List<String> PLACE_HOLDERS = Arrays.asList(LATEST, RELEASE_CANDIDATE, RELEASE_MILESTONE, RELEASE_NIGHTLY, NIGHTLY); // order these from most-to-least stable
-
-    private final TextResource latest;
-    private final TextResource releaseCandidate;
-    private final TextResource releaseMilestone;
-    private final TextResource nightly;
-    private final TextResource releaseNightly;
-
+    private final TextResourceFactory textFactory;
     @Nullable
     private GradleVersion gradleVersion;
     private String gradleVersionString = GradleVersion.current().getVersion();
 
 
     public GradleVersionResolver(TextResourceFactory textFactory) {
-        String versionUrl = DistributionLocator.getBaseUrl() + "/versions";
-        this.latest = textFactory.fromUri(versionUrl + "/current");
-        this.releaseCandidate = textFactory.fromUri(versionUrl + "/release-candidate");
-        this.releaseMilestone = textFactory.fromUri(versionUrl + "/milestone");
-        this.nightly = textFactory.fromUri(versionUrl + "/nightly");
-        this.releaseNightly = textFactory.fromUri(versionUrl + "/release-nightly");
+        this.textFactory = textFactory;
     }
 
     public GradleVersion getGradleVersion() {
@@ -71,12 +52,8 @@ public class GradleVersionResolver {
     }
 
     public void setGradleVersionString(String gradleVersionString) {
-        if (!isPlaceHolder(gradleVersionString)) {
-            try {
-                this.gradleVersion = GradleVersion.version(gradleVersionString);
-            } catch (Exception e) {
-                throw new WrapperVersionException("Invalid version specified for argument '--gradle-version'", e);
-            }
+        if (DynamicVersion.findMatch(gradleVersionString) == null) {
+            this.gradleVersion = parseVersionString(gradleVersionString);
         }
 
         if (!this.gradleVersionString.equals(gradleVersionString)) {
@@ -89,20 +66,11 @@ public class GradleVersionResolver {
         if (version == null) {
             return GradleVersion.current().getVersion();
         }
-        switch (version) {
-            case LATEST:
-                return getVersion(latest.asString(), version);
-            case NIGHTLY:
-                return getVersion(nightly.asString(), version);
-            case RELEASE_NIGHTLY:
-                return getVersion(releaseNightly.asString(), version);
-            case RELEASE_CANDIDATE:
-                return getVersion(releaseCandidate.asString(), version);
-            case RELEASE_MILESTONE:
-                return getVersion(releaseMilestone.asString(), version);
-            default:
-                return version;
+        DynamicVersion dynamicVersion = DynamicVersion.findMatch(version);
+        if (dynamicVersion != null) {
+            return getVersion(dynamicVersion.readJson(textFactory), version);
         }
+        return version;
     }
 
     private static String getVersion(String json, String placeHolder) {
@@ -115,8 +83,12 @@ public class GradleVersionResolver {
         return version;
     }
 
-    private static boolean isPlaceHolder(String version) {
-        return PLACE_HOLDERS.contains(version);
+    private static GradleVersion parseVersionString(String gradleVersionString) {
+        try {
+            return GradleVersion.version(gradleVersionString);
+        } catch (Exception e) {
+            throw new WrapperVersionException("Invalid version specified for argument '--gradle-version'", e);
+        }
     }
 
     /**
@@ -138,10 +110,38 @@ public class GradleVersionResolver {
         }
 
         private static String suggestDynamicVersions() {
-            String validStrings = PLACE_HOLDERS.stream()
+            String validStrings = Arrays.stream(DynamicVersion.values())
+                .map(dv -> dv.name)
                 .map(s -> String.format("'%s'", s))
                 .collect(Collectors.joining(", "));
             return String.format("Use one of the following dynamic version specifications: %s.", validStrings);
+        }
+    }
+
+    private enum DynamicVersion {
+        LATEST("latest", "/current"),
+        RELEASE_CANDIDATE("release-candidate", "/release-candidate"),
+        RELEASE_MILESTONE("release-milestone", "/milestone"),
+        RELEASE_NIGHTLY("release-nightly", "/release-nightly"),
+        NIGHTLY("nightly", "/nightly");
+
+        private final String name;
+
+        private final String urlSuffix;
+
+        DynamicVersion(String name, String urlSuffix) {
+            this.name = name;
+            this.urlSuffix = urlSuffix;
+        }
+
+        public String readJson(TextResourceFactory textFactory) {
+            String versionUrl = DistributionLocator.getBaseUrl() + "/versions";
+            return textFactory.fromUri(versionUrl + urlSuffix).asString();
+        }
+
+        @Nullable
+        public static DynamicVersion findMatch(String version) {
+            return Arrays.stream(values()).filter(dv -> dv.name.equals(version)).findFirst().orElse(null);
         }
     }
 }

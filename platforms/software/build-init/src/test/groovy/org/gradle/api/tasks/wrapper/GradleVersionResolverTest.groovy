@@ -37,4 +37,17 @@ class GradleVersionResolverTest extends Specification {
         def e = thrown(GradleException)
         e.message == "There is currently no version information available for 'latest'."
     }
+
+    def "right alternatives are suggested for bad version"() {
+        when:
+        GradleVersionResolver.parseVersionString("invalid")
+
+        then:
+        def e = thrown(GradleVersionResolver.WrapperVersionException)
+        e.message == "Invalid version specified for argument '--gradle-version'"
+        e.getResolutions() == [
+            "Specify a valid Gradle release listed on https://gradle.org/releases/.",
+            "Use one of the following dynamic version specifications: 'latest', 'release-candidate', 'release-milestone', 'release-nightly', 'nightly'."
+        ]
+    }
 }
