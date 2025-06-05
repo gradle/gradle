@@ -124,8 +124,8 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         private final List<org.gradle.internal.problems.failure.Failure> buildFailures;
 
         public DefaultDevelocityPluginResult(@Nullable Throwable buildFailure, @Nullable List<org.gradle.internal.problems.failure.Failure> buildFailures) {
-            // We make sure the legacy buildFailure and the buildFailures are consistent
-            // Fail early instead of waiting for the Develocity plugin to consume the failures
+            // Validate the invariant, but avoid failing in production to allow Develocity to receive _a_ result
+            // to provide a better user experience in the face of a bug on the Gradle side
             assert (buildFailure == null && buildFailures == null) ||
                 (buildFailure != null && buildFailures != null && !buildFailures.isEmpty());
             this.buildFailure = buildFailure;
