@@ -28,107 +28,104 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/g
 ====
 
 Dependencies are associated with configurations, which define the context in which the dependency is used.
-For example, `implementation` is used for main source code at compile and runtime, while `debugImplementation` is specific to debug builds in Android.
+For example, `implementation` is used for main source code at compile and runtime, while `debugImplementation` is specific to debugging builds in Android.
 
 However, Gradle's dependency management ecosystem offers much more than just declaring dependencies.
 
 == Version Catalogs (`libs.versions.toml`)
 
-Version catalogs are the recommended way to centralize dependency declarations.
+Gradle provides version catalogs which are the recommended way to *centralize dependency versions*.
+They can act as the single source of truth across all of your dependency declarations and are easily shared across projects.
 
-Create a `gradle/libs.versions.toml` file:
+With the following `gradle/libs.versions.toml` version catalog:
 
-```toml
-[versions]
-guava = "32.1.2-jre"
+====
+include::sample[dir="snippets/init/generated/groovy",files="gradle/libs.versions.toml[]"]
+====
 
-[libraries]
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
-```
+Dependencies are accessed in your build script as follows:
 
-In your build script:
-
-```kotlin
-dependencies {
-    implementation(libs.guava)
-}
-```
-
-Benefits:
-
-* One source of truth for versions
-* Easily share across projects
-* IDE-friendly with auto-complete
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
+====
 
 == Declare Constraints and Enforce Versions
 
 Gradle lets you **constrain versions** to avoid unwanted upgrades or resolve conflicts deterministically.
 
-```kotlin
-dependencies {
-    implementation("org.slf4j:slf4j-api") {
-        version {
-            strictly("1.7.36")
-        }
-    }
-}
-```
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
+include::sample[dir="snippets/how-to/downgrade-transitives/groovy",files="build.gradle[tags=dependency-full]"]
+====
 
 You can also constrain a module globally:
 
-```kotlin
-dependencies {
-    constraints {
-        implementation("org.slf4j:slf4j-api:1.7.36") {
-            because("We only support SLF4J 1.7")
-        }
-    }
-}
-```
-
-Types of constraints:
-
-* `strictly("1.0")` – fail if a different version is selected
-* `prefer("1.0")` – soft preference, allows override
-* `require("1.0")` – override all others
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-constraints]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
+====
 
 == Declare Capabilities to Resolve Conflicts
 
-Some modules provide **the same functionality** but under different coordinates (e.g., shaded libraries or alternatives). Gradle lets you resolve these using **capabilities**.
+Some modules provide **the same functionality** but under different coordinates (e.g., shaded libraries or alternatives).
+Gradle lets you resolve these using **capabilities**.
 
-Let's conside a scnario where two libraries provide the same API:
+Consider a case where two libraries, `jaxen` and `jdom2`, both claim to provide XPath support:
 
-* `org.foo:foo-impl`
-* `org.bar:bar-impl`
-
-Declare capabilities:
-
-```kotlin
+[source,kotlin]
+----
 dependencies {
-    implementation("org.foo:foo-impl") {
+    implementation("jaxen:jaxen:1.1.6")     // Transitive dependency that brings XPath functionality
+    implementation("org.jdom:jdom2:2.0.6")  // Also offers XPath functionality
+}
+
+----
+
+This might lead to duplicate or conflicting classes on the classpath.
+
+To prevent this, you can declare a common capability and explicitly require only one implementation:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("jaxen:jaxen:1.1.6") {
         capabilities {
-            requireCapability("com.example:logging-impl")
+            requireCapability("xml:xpath-support")
         }
     }
+    implementation("org.jdom:jdom2:2.0.6")
 }
-```
+----
 
-Declare what a module provides:
+In the same build file, use component metadata rules to assign a common capability to both libraries:
 
-```kotlin
+[source,kotlin]
+----
 components {
-    withModule("org.foo:foo-impl") {
+    withModule("jaxen:jaxen") {
         allVariants {
             withCapabilities {
-                addCapability("com.example", "logging-impl", "1.0")
+                addCapability("xml", "xpath-support", "1.0")
+            }
+        }
+    }
+    withModule("org.jdom:jdom2") {
+        allVariants {
+            withCapabilities {
+                addCapability("xml", "xpath-support", "1.0")
             }
         }
     }
 }
-```
+----
 
-Gradle will fail the build if both `foo-impl` and `bar-impl` are present and claim the same capability—forcing you to choose one.
+Gradle now understands that both modules provide `xml:xpath-support:1.0` and will select only one.
+Since you used `requireCapability` on `jaxen`, it will include that and exclude `jdom2`, avoiding conflict.
 
+If both were declared without disambiguation, Gradle would fail the build, asking you to choose between the conflicting capabilities.
+
+There are many more ways to influence dependency resolution in Gradle.
 Consult the <<getting_started_dep_man.adoc#dependency-management-in-gradle,Dependency Management>> chapter to learn more.
 
 [.text-right]

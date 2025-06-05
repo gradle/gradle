@@ -310,7 +310,7 @@ The following table lists a few commonly used methods:
 It's a good idea to check out the Javadocs for link:{javadocPath}/org/gradle/api/Project.html[`Project`] if you haven't done so already to familiarize yourself with an important Gradle API.
 
 [[script-default-imports]]
-== Script Defaults & Imports
+== Script Defaults and Imports
 
 To make build scripts more concise, Gradle automatically adds a set of import statements to scripts.
 

@@ -22,70 +22,6 @@ This might be compiling some classes, creating a JAR, generating Javadoc, or pub
 
 When a user runs `./gradlew build` in the command line, Gradle will execute the `build` task along with any other tasks it depends on.
 
-== List available tasks
-
-Gradle provides several default tasks for a project, which are listed by running `./gradlew tasks`:
-
-[source,text]
-----
-> Task :tasks
-
-------------------------------------------------------------
-Tasks runnable from root project 'myTutorial'
-------------------------------------------------------------
-
-Build Setup tasks
------------------
-init - Initializes a new Gradle build.
-wrapper - Generates Gradle wrapper files.
-
-Help tasks
-----------
-buildEnvironment - Displays all buildscript dependencies declared in root project 'myTutorial'.
-...
-----
-
-Tasks either come from *build scripts* or *plugins*.
-
-Once we apply a plugin to our project, such as the `application` plugin, additional tasks become available:
-
-====
-include::sample[dir="snippets/tasks/taskTutorial/kotlin", files="build.gradle.kts[tags=app]"]
-include::sample[dir="snippets/tasks/taskTutorial/groovy", files="build.gradle[tags=app]"]
-====
-
-[source,text]
-----
-$ ./gradlew tasks
-
-> Task :tasks
-
-------------------------------------------------------------
-Tasks runnable from project ':app'
-------------------------------------------------------------
-
-Application tasks
------------------
-run - Runs this project as a JVM application
-
-Build tasks
------------
-assemble - Assembles the outputs of this project.
-build - Assembles and tests this project.
-
-Documentation tasks
--------------------
-javadoc - Generates Javadoc API documentation for the main source code.
-
-Other tasks
------------
-compileJava - Compiles main Java source.
-
-...
-----
-
-Many of these tasks, such as `assemble`, `build`, and `run`, should be familiar to a developer.
-
 == Task classification
 
 There are two classes of tasks that can be executed:
@@ -140,54 +76,6 @@ include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 When Gradle executes the `hello` task, it executes the *action* provided.
 In this case, the action is simply a block containing some code: `println("Hello world!")`.
 
-== Task group and description
-
-The `hello` task from the previous section can be detailed with a *description* and assigned to a *group* with the following update:
-
-====
-include::sample[dir="snippets/tasks/taskTutorial/kotlin", files="build.gradle.kts[tags=task]"]
-include::sample[dir="snippets/tasks/taskTutorial/groovy", files="build.gradle[tags=task]"]
-====
-
-Once the task is assigned to a group, it will be listed by `./gradlew tasks`:
-
-[source,text]
-----
-$ ./gradlew tasks
-
-> Task :tasks
-
-Custom tasks
-------------------
-hello - A lovely greeting task.
-----
-
-To view information about a task, use the `help --task <task-name>` command:
-
-[source,text]
-----
-$./gradlew help --task hello
-
-> Task :help
-Detailed task information for hello
-
-Path
-:app:hello
-
-Type
-Task (org.gradle.api.Task)
-
-Options
---rerun     Causes the task to be re-run even if up-to-date.
-
-Description
-A lovely greeting task.
-
-Group
-Custom
-----
-
-As we can see, the `hello` task belongs to the `custom` group.
 
 [[sec:task_dependencies]]
 == Task dependencies
@@ -284,6 +172,7 @@ include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.grad
 ====
 
 == Task types
+
 Gradle tasks are a subclass of link:{javadocPath}/org/gradle/api/Task.html[`Task`].
 
 In the build script, the `HelloTask` class is created by extending link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`]:
@@ -333,6 +222,7 @@ Custom tasks
 ----
 
 == Built-in task types
+
 Gradle provides many built-in task types with common and popular functionality, such as copying or deleting files.
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task:
@@ -382,18 +272,6 @@ A task is *registered* in the build script using the link:{javadocPath}/org/grad
 include::sample[dir="snippets/tasks/tutorialTask/kotlin", files="build.gradle.kts[tags=register]"]
 include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[tags=register]"]
 ====
-
-[[task_group_and_description]]
-== Task group and description
-
-Setting the *group* and *description* properties on your tasks can help users understand how to use your task:
-
-====
-include::sample[dir="snippets/tasks/tutorialTask/kotlin", files="build.gradle.kts[tags=registers]"]
-include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[tags=registers]"]
-====
-
-Once a task is added to a group, it is visible when listing tasks.
 
 [[task_inputs_and_outputs]]
 == Task input and outputs
