@@ -77,9 +77,6 @@ dependencies {
     docsTestImplementation(project(":base-services"))
     docsTestImplementation(project(":logging"))
     docsTestImplementation(libs.junit)
-    docsTestImplementation(libs.commonsIo)
-    docsTestImplementation(libs.samplesCheck)
-    docsTestImplementation(libs.samplesDiscovery)
     docsTestRuntimeOnly(libs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
