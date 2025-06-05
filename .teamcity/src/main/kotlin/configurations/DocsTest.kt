@@ -6,6 +6,7 @@ import common.applyDefaultSettings
 import common.buildScanTagParam
 import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.Project
+import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
 import model.CIBuildModel
 import model.Stage
 
@@ -27,7 +28,7 @@ class DocsTestProject(
     val docsTests: List<BaseGradleBuildType>
 
     init {
-        docsTests = testTypes.map { DocsTest(model, stage, os, testJava, it) }
+        docsTests = testTypes.map { DocsTest(model, stage, os, testJava, it, parallelism = 3) }
         docsTests.forEach(this::buildType)
     }
 }
@@ -62,9 +63,18 @@ class DocsTest(
     os: Os,
     testJava: JvmCategory,
     docsTestType: DocsTestType,
+    parallelism: Int = 1,
 ) : OsAwareBaseGradleBuildType(os = os, stage = stage, init = {
         id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}")
         name = "${docsTestType.docsTestDesc} - ${testJava.version.toCapitalized()} ${os.asName()}"
+
+        if (parallelism != 1) {
+            features {
+                parallelTests {
+                    this.numberOfBatches = parallelism
+                }
+            }
+        }
 
         applyTestDefaults(
             model,
