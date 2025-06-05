@@ -451,6 +451,6 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Providers passed to attributeProvider(Attribute, Provider) must always be present."
+        e.message == "Providers passed to attributeProvider(Attribute, Provider) must always be present when queried."
     }
 }

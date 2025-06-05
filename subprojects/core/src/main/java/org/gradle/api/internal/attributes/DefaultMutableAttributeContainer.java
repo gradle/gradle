@@ -92,7 +92,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         @SuppressWarnings("unchecked")
         ProviderInternal<T> presentProvider = new DelegatingProviderWithValue<>(
             (ProviderInternal<T>) provider,
-            "Providers passed to attributeProvider(Attribute, Provider) must always be present."
+            "Providers passed to attributeProvider(Attribute, Provider) must always be present when queried."
         );
 
         Provider<Isolatable<T>> isolated;

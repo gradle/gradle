@@ -663,9 +663,13 @@ Artifacts
                 throw new RuntimeException("compileJava should not have been realized")
             }
 
+            // Calling keySet() does not realize the compileJava task
             [configurations.compileClasspath, configurations.runtimeClasspath].each { Configuration configuration ->
                 configuration.attributes.keySet()
+            }
 
+            // Getting the value of the TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE does realize the compileJava task
+            [configurations.compileClasspath, configurations.runtimeClasspath].each { Configuration configuration ->
                 try {
                     configuration.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
                     assert false : "This should have failed"

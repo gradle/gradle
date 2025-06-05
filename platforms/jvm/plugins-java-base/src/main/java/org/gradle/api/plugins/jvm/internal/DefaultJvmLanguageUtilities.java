@@ -90,7 +90,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
     ) {
         assert !compileTasks.isEmpty();
 
-        List<Provider<Integer>> collect = compileTasks.stream().map(taskProvider -> taskProvider.flatMap(compileTask -> {
+        List<Provider<Integer>> allTargetJdkVersions = compileTasks.stream().map(taskProvider -> taskProvider.flatMap(compileTask -> {
             if (compileTask.getOptions().getRelease().isPresent()) {
                 return compileTask.getOptions().getRelease();
             }
@@ -111,7 +111,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
                 return Providers.of(Integer.MAX_VALUE);
             }
 
-            return new MergeProvider<>(collect).map(Collections::max);
+            return new MergeProvider<>(allTargetJdkVersions).map(Collections::max);
         });
     }
 

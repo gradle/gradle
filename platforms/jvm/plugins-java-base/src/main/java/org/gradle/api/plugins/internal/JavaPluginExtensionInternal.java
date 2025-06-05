@@ -18,16 +18,20 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Internal counterpart to {@link JavaPluginExtension}.
  */
+@NullMarked
 public interface JavaPluginExtensionInternal extends JavaPluginExtension {
 
     /**
      * Provider API counterpart for {@link #disableAutoTargetJvm()} and {@link #getAutoTargetJvmDisabled()}.
      * <p>
      * This should eventually become public.
+     *
+     * @return True if auto-target JVM feature is enabled. False if it is disabled.
      */
     Property<Boolean> getAutoTargetJvm();
 

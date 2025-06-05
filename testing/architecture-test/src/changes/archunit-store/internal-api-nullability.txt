@@ -909,7 +909,6 @@ Class <org.gradle.api.plugins.internal.HelpBuiltInCommand> is not annotated (dir
 Class <org.gradle.api.plugins.internal.HelpTasksAutoApplyAction> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (HelpTasksAutoApplyAction.java:0)
 Class <org.gradle.api.plugins.internal.JavaConfigurationVariantMapping$UnpublishableArtifactTypeSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JavaConfigurationVariantMapping.java:0)
 Class <org.gradle.api.plugins.internal.JavaConfigurationVariantMapping> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JavaConfigurationVariantMapping.java:0)
-Class <org.gradle.api.plugins.internal.JavaPluginExtensionInternal> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JavaPluginExtensionInternal.java:0)
 Class <org.gradle.api.plugins.internal.JavaPluginHelper> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JavaPluginHelper.java:0)
 Class <org.gradle.api.plugins.internal.JvmLanguageUtilsServices> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JvmLanguageUtilsServices.java:0)
 Class <org.gradle.api.plugins.internal.JvmPluginsHelper> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JvmPluginsHelper.java:0)
