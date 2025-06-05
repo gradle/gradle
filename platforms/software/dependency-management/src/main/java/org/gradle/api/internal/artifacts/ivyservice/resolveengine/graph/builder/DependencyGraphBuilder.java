@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -65,6 +63,7 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +76,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -664,18 +664,60 @@ public class DependencyGraphBuilder {
         visitor.finish(resolveState.getRoot());
     }
 
-    // TODO: There are ways to avoid allocating a new NodeInfo for each node, if we
-    // determine that to be a performance bottleneck. Some options are using a second
-    // stack to store the iterator. Or, storing the iterator in the NodeState itself.
-    // For now, we use a separate class here for simplicity.
-    private static class NodeInfo {
+    private static class NodeInfo implements Iterator<NodeState> {
+
         final NodeState node;
-        final Iterator<EdgeState> edgeIterator;
+
+        private int edgeIndex;
+        private int nodeIndex;
+        private @Nullable NodeState next;
 
         public NodeInfo(NodeState node) {
             this.node = node;
-            this.edgeIterator = Iterables.filter(Lists.reverse(node.getOutgoingEdges()), x -> !x.isConstraint()).iterator();
+
+            this.edgeIndex = node.getOutgoingEdges().size() - 1;
+            calculateNodeIndex();
+            this.next = findNext();
         }
+
+        @Nullable
+        private NodeState findNext() {
+            while (edgeIndex >= 0) {
+                EdgeState edge = node.getOutgoingEdges().get(edgeIndex);
+                if (!edge.isConstraint() && edge.getFailure() == null) {
+                    if (nodeIndex >= 0) {
+                        return edge.getTargetNodes().get(nodeIndex--);
+                    }
+                }
+                edgeIndex--;
+                calculateNodeIndex();
+            }
+            return null;
+        }
+
+        void calculateNodeIndex() {
+            if (edgeIndex >= 0) {
+                nodeIndex = node.getOutgoingEdges().get(edgeIndex).getTargetNodes().size() - 1;
+            } else {
+                nodeIndex = -1; // No more edges to process
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public NodeState next() {
+            if (next == null) {
+                throw new NoSuchElementException();
+            }
+            NodeState result = next;
+            next = findNext();
+            return result;
+        }
+
     }
 
     /**
@@ -690,22 +732,16 @@ public class DependencyGraphBuilder {
         stack.push(new NodeInfo(root));
 
         while (!stack.isEmpty()) {
-            NodeInfo currentFrame = stack.peek();
-            Iterator<EdgeState> currentEdgeIterator = currentFrame.edgeIterator;
+            NodeInfo current = stack.peek();
 
-            if (currentEdgeIterator.hasNext()) {
-                NodeState child = currentEdgeIterator.next().getSelectedNode();
-                if (child != null) {
-                    // Child may be null in two cases:
-                    // 1. The edge has a failure attached.
-                    // 2. There is a bug in the graph builder.
-                    if (seen.add(child)) {
-                        stack.push(new NodeInfo(child));
-                    }
+            if (current.hasNext()) {
+                NodeState nextNode = current.next();
+                if (seen.add(nextNode)) {
+                    stack.push(new NodeInfo(nextNode));
                 }
             } else {
-                NodeInfo processedFrame = stack.pop();
-                visitor.accept(processedFrame.node);
+                NodeInfo processed = stack.pop();
+                visitor.accept(processed.node);
             }
         }
     }
