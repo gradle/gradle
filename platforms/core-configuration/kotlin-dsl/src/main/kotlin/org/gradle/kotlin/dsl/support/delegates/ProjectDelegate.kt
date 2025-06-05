@@ -72,7 +72,7 @@ abstract class ProjectDelegate : Project {
         @Suppress("DEPRECATION")
         DeprecationLogger.deprecateType(ProjectDelegate::class.java)
             .willBeRemovedInGradle10()
-            .undocumented()
+            .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
             .nagUser()
     }
 

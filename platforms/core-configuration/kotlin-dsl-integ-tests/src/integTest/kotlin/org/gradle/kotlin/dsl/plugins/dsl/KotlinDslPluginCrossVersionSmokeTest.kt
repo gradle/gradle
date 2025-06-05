@@ -112,7 +112,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withBuildScript("""plugins { id("some") }""")
 
         expectConfigurationCacheRequestedDeprecation()
-        executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
+        executer.expectExternalDeprecatedMessage("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
 
         build("help").apply {
             assertThat(output, containsString("some!"))

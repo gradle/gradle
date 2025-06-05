@@ -426,8 +426,7 @@ public abstract class AvailableJavaHomes {
 
         System.out.println("Found the following JVMs:");
         for (JvmInstallationMetadata jvm : jvms) {
-            String name = jvm.getDisplayName() + " " + jvm.getJavaVersion() + " ";
-            System.out.println("    " + name + " - " + jvm.getJavaHome());
+            System.out.println("    " + jvm.getDisplayName() + " - " + jvm.getJavaHome());
         }
         return jvms;
     }

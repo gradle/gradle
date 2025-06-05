@@ -38,7 +38,6 @@ import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionRes
  * TODO: This class could probably use a better name, maybe something like GradleDeprecationVerifier
  */
 public class ResultAssertion implements Action<ExecutionResult> {
-    private int expectedGenericDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings;
     private final boolean expectStackTraces;
@@ -54,7 +53,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
     private ExpectedDeprecationWarning lastMatchedDeprecationWarning = null;
 
     public ResultAssertion(
-        int expectedGenericDeprecationWarnings,
         List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings,
         boolean expectStackTraces,
@@ -63,7 +61,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
     ) {
         assert checkDeprecations || expectedDeprecationWarnings.isEmpty() : "Should not expect deprecations when deprecations are not checked";
 
-        this.expectedGenericDeprecationWarnings = expectedGenericDeprecationWarnings;
         this.expectedDeprecationWarnings = new ArrayList<>(expectedDeprecationWarnings);
         this.maybeExpectedDeprecationWarnings = new ArrayList<>(maybeExpectedDeprecationWarnings);
         this.expectStackTraces = expectStackTraces;
@@ -95,9 +92,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 expectedDeprecationWarnings.stream()
                     .map(warning -> " - " + warning)
                     .collect(joining("\n"))));
-        }
-        if (expectedGenericDeprecationWarnings > 0) {
-            throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedGenericDeprecationWarnings));
         }
     }
 
@@ -178,7 +172,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 }
                 i++;
             } else if (line.matches(".*\\s+deprecated.*")) {
-                if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
+                if (checkDeprecations) {
                     StringBuilder message = new StringBuilder(String.format("%s line %d contains an unexpected deprecation warning:%n - %s", displayName, i + 1, line));
                     if (expectedDeprecationWarnings.isEmpty() && maybeExpectedDeprecationWarnings.isEmpty()) {
                         message.append(String.format("%nNo deprecation warnings were expected at this point."));
@@ -190,7 +184,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
                     message.append(String.format("%n=====%n%s%n=====%n", output));
                     throw new AssertionError(message.toString());
                 }
-                expectedGenericDeprecationWarnings--;
                 // skip over stack trace
                 i++;
                 i = skipStackTrace(lines, i);
