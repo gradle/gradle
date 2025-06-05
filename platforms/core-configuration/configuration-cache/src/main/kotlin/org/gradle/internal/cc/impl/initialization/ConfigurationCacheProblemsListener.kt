@@ -192,5 +192,5 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
+    fun isExecutingWork() = workExecutionTracker.isExecutingTaskOrTransformAction
 }
