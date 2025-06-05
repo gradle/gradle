@@ -259,7 +259,7 @@ This requirement ensures that tasks remain isolated and correctly cacheable.
 As a result, it is unsupported to write tasks that configure other tasks at execution time.
 
 [[config_cache:requirements:shared_objects]]
-== Sharing mutable objects
+== Sharing Mutable Objects
 
 When storing a task in the Configuration Cache, all objects referenced through the task’s fields are serialized.
 

@@ -17,7 +17,7 @@
 
 [WARNING]
 ====
-This feature is _not enabled by default_ and is currently incubating.
+This feature is _not enabled by default_.
 ====
 
 [[config_cache:plugins]]
