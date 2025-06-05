@@ -22,11 +22,13 @@ import org.junit.platform.engine.ExecutionRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClassSelector;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.descriptor.EngineDescriptor;
 import org.junit.platform.engine.support.hierarchical.EngineExecutionContext;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 import org.junit.runners.model.InitializationError;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,14 +56,15 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
     public static class SamplesEngineExecutionContext implements EngineExecutionContext {
     }
 
-    private final static String SAMPLES_TEST_ENGINE_ID = "samples-test-engine";
+    public final static String SAMPLES_TEST_ENGINE_ID = "samples-test-engine";
+    public final static UniqueId SAMPLES_TEST_ENGINE_UID = UniqueId.forEngine(SAMPLES_TEST_ENGINE_ID);
     private final IntegrationTestSamplesRunner samplesRunner;
 
     public SamplesTestEngine() throws InitializationError {
         this.samplesRunner = new IntegrationTestSamplesRunner(Buckets.class);
     }
 
-    private static String getBucketClassName(String sampleId) {
+    public static String getBucketClassName(String sampleId) {
         int bucketNumber = Math.abs(sampleId.hashCode()) % Buckets.BUCKET_NUMBER + 1;
         return String.format("org.gradle.docs.samples.bucket.Bucket%s", bucketNumber);
     }
@@ -71,28 +74,48 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
         return SAMPLES_TEST_ENGINE_ID;
     }
 
+    private boolean selectedByClass(Sample sample, Set<String> classNames) {
+        return classNames.contains(getBucketClassName(sample.getId()));
+    }
+
+    private boolean selectedByUniqueId(Sample sample, Set<UniqueId> uids) {
+        String className = getBucketClassName(sample.getId());
+        UniqueId classUid = BucketClassTestDescriptor.getClassUid(className);
+        UniqueId sampleUid = SampleTestDescriptor.getSampleUid(sample.getId());
+        return uids.contains(classUid) || uids.contains(sampleUid);
+    }
+
+    private List<Sample> determineSamplesToBeRun(EngineDiscoveryRequest discoveryRequest) {
+        Set<String> classNames = discoveryRequest.getSelectorsByType(ClassSelector.class).stream()
+            .map(ClassSelector::getClassName).collect(Collectors.toSet());
+        Set<UniqueId> uniqueIds = discoveryRequest.getSelectorsByType(UniqueIdSelector.class).stream()
+            .map(UniqueIdSelector::getUniqueId)
+            .collect(Collectors.toSet());
+        List<Sample> allSamples = samplesRunner.getAllSamples();
+
+        List<Sample> result = new ArrayList<>();
+        for (Sample sample : allSamples) {
+            if (selectedByClass(sample, classNames) || selectedByUniqueId(sample, uniqueIds)) {
+                result.add(sample);
+            }
+        }
+        return result;
+    }
+
     @Override
     public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
         try {
-            // Because of parallel execution, a test worker might be only receiving partial of all "BucketX" classes
-            Set<String> classNames = discoveryRequest.getSelectorsByType(ClassSelector.class).stream()
-                .map(ClassSelector::getClassName).collect(Collectors.toSet());
-
-            List<Sample> allSamples = samplesRunner.getAllSamples();
-
-            List<Sample> samplesToBeRun = allSamples.stream()
-                .filter(sample -> classNames.contains(getBucketClassName(sample.getId())))
-                .collect(Collectors.toList());
+            List<Sample> samplesToBeRun = determineSamplesToBeRun(discoveryRequest);
 
             Set<String> sampleBucketClassesToBeRun = samplesToBeRun.stream()
                 .map(sample -> getBucketClassName(sample.getId()))
                 .collect(Collectors.toSet());
 
-            TestDescriptor engineDescriptor = new EngineDescriptor(UniqueId.forEngine(SAMPLES_TEST_ENGINE_ID), SAMPLES_TEST_ENGINE_ID);
+            TestDescriptor engineDescriptor = new EngineDescriptor(SAMPLES_TEST_ENGINE_UID, SAMPLES_TEST_ENGINE_ID);
 
             Map<String, TestDescriptor> classNameToEngineDescriptor = new HashMap<>();
             for (String className : sampleBucketClassesToBeRun) {
-                TestDescriptor classDescriptor = new BucketClassTestDescriptor(engineDescriptor, Class.forName(className));
+                TestDescriptor classDescriptor = new BucketClassTestDescriptor(Class.forName(className));
                 classNameToEngineDescriptor.put(className, classDescriptor);
                 engineDescriptor.addChild(classDescriptor);
                 classDescriptor.setParent(engineDescriptor);
@@ -101,7 +124,7 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
             for (Sample sample : samplesToBeRun) {
                 String className = getBucketClassName(sample.getId());
                 TestDescriptor classDescriptor = classNameToEngineDescriptor.get(className);
-                TestDescriptor sampleDescriptor = new SampleTestDescriptor(classDescriptor, sample, samplesRunner);
+                TestDescriptor sampleDescriptor = new SampleTestDescriptor(sample, samplesRunner);
                 classDescriptor.addChild(sampleDescriptor);
                 sampleDescriptor.setParent(classDescriptor);
             }

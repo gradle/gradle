@@ -16,13 +16,21 @@
 
 package org.gradle.docs.samples;
 
-import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.AbstractTestDescriptor;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 
+import static org.gradle.docs.samples.SamplesTestEngine.SAMPLES_TEST_ENGINE_UID;
+
 public class BucketClassTestDescriptor extends AbstractTestDescriptor {
-    protected BucketClassTestDescriptor(TestDescriptor root, Class<?> testClass) {
-        super(root.getUniqueId().append("class", testClass.getName()), testClass.getName(), ClassSource.from(testClass));
+    public static final String BUCKET_CLASS_SEGMENT = "class";
+
+    public static UniqueId getClassUid(String className) {
+        return SAMPLES_TEST_ENGINE_UID.append(BUCKET_CLASS_SEGMENT, className);
+    }
+
+    protected BucketClassTestDescriptor(Class<?> testClass) {
+        super(getClassUid(testClass.getName()), testClass.getName(), ClassSource.from(testClass));
     }
 
     @Override
