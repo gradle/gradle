@@ -103,13 +103,15 @@ class ConfigurationCacheBuildSrcProblemReportingIntegrationTest extends Abstract
         configurationCacheFails("buildSrc:broken")
 
         then:
+        failure.assertHasFailures(2)
+        failureDescriptionStartsWith("Execution failed for task ':buildSrc:broken'.")
+        failureHasCause("Invocation of 'Task.project' by task ':buildSrc:broken' at execution time is unsupported.")
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'buildSrc/build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.".replace('/', File.separator))
             withProblem("Task `:buildSrc:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("Build file 'buildSrc/build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.".replace('/', File.separator))
             problemsWithStackTraceCount = 1
         }
-        failure.assertHasFailures(1)
 
         when:
         configurationCacheRunLenient("buildSrc:broken")
