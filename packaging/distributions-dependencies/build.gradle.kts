@@ -43,7 +43,7 @@ val spockVersion = when (bundleGroovyMajor) {
 val tomljVersion = "1.0.0"
 val jnaVersion = "5.17.0"
 val sshdVersion = "2.15.0"
-val jGitVersion = "7.2.1.202505142326-r"
+val jGitVersion = "7.3.0.202506031305-r"
 
 // test only
 val archunitVersion = "1.2.0"
