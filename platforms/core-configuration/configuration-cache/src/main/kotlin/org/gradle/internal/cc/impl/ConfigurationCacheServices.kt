@@ -66,6 +66,8 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(DeprecatedFeaturesListener::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
+            add(InstrumentedInputAccessListener::class.java)
+            add(DefaultConfigurationCacheDegradationController::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)

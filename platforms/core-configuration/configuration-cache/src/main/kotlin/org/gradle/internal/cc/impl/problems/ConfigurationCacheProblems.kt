@@ -17,6 +17,9 @@
 package org.gradle.internal.cc.impl.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.Task
+import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
@@ -33,6 +36,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
+import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
@@ -84,7 +88,10 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider
+    val buildNameProvider: BuildNameProvider,
+
+    private
+    val degradationController: DefaultConfigurationCacheDegradationController
 ) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
@@ -120,6 +127,9 @@ class ConfigurationCacheProblems(
                 return false
             }
             if (seenSerializationErrorOnStore) {
+                return true
+            }
+            if (shouldDegradeGracefully()) {
                 return true
             }
             val summary = summarizer.get()
@@ -171,31 +181,40 @@ class ConfigurationCacheProblems(
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
+        onIncompatibleTask(trace, reason)
+        return object : ErrorsAreProblemsProblemsListener(failureFactory) {
+            override fun onProblem(problem: PropertyProblem) {
+                onProblem(problem, ProblemSeverity.Suppressed)
+            }
+        }
+    }
+
+    override fun forTask(task: Task): ProblemsListener {
+        val degradationReasons = degradationController.degradationReasons[task]
+        return if (!degradationReasons.isNullOrEmpty()) {
+            onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
+            object : ErrorsAreProblemsProblemsListener(failureFactory) {
+                override fun onProblem(problem: PropertyProblem) {
+                    onProblem(problem, ProblemSeverity.Suppressed)
+                }
+            }
+        } else this
+    }
+
+    fun shouldDegradeGracefully(): Boolean = degradationController.degradationReasons.isNotEmpty()
+
+    private
+    fun onIncompatibleTask(trace: PropertyTrace, reason: String) {
         val notSeenBefore = incompatibleTasks.add(trace)
         if (notSeenBefore) {
             // this method is invoked whenever a problem listener is needed in the context of an incompatible task,
             // report the incompatible task itself the first time only
             reportIncompatibleTask(trace, reason)
         }
-        return object : AbstractProblemsListener() {
-            override fun onProblem(problem: PropertyProblem) {
-                onProblem(problem, ProblemSeverity.Suppressed)
-            }
-
-            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-                val failure = failureFactory.create(error)
-                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
-            }
-
-            override fun onExecutionTimeProblem(problem: PropertyProblem) {
-                onProblem(problem)
-            }
-        }
     }
 
     private
     fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
-
         val problem = problemFactory
             .problem {
                 message(trace.containingUserCodeMessage)
@@ -205,7 +224,7 @@ class ConfigurationCacheProblems(
                 trace
             }
             .documentationSection(DocumentationSection.TaskOptOut).build()
-        onIncompatibleTask(problem)
+        report.onIncompatibleTask(problem)
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -270,10 +289,6 @@ class ConfigurationCacheProblems(
         this == ProblemSeverity.Suppressed -> Severity.ADVICE
         isWarningMode -> Severity.WARNING
         else -> Severity.ERROR
-    }
-
-    private fun onIncompatibleTask(problem: PropertyProblem) {
-        report.onIncompatibleTask(problem)
     }
 
     override fun getId(): String {
@@ -404,11 +419,26 @@ class ConfigurationCacheProblems(
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
 
     private
+    fun locationForTask(task: Task) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
+
+    private
     fun Int.counter(singular: String, plural: String = "${singular}s"): String {
         return when (this) {
             0 -> "no $plural"
             1 -> "1 $singular"
             else -> "$this $plural"
+        }
+    }
+
+    private abstract class ErrorsAreProblemsProblemsListener(
+        private val failureFactory: FailureFactory
+    ) : AbstractProblemsListener() {
+        override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+            val failure = failureFactory.create(error)
+            onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+        }
+        override fun onExecutionTimeProblem(problem: PropertyProblem) {
+            onProblem(problem)
         }
     }
 }
