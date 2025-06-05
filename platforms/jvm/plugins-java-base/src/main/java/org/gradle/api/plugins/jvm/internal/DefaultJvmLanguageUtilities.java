@@ -35,18 +35,19 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
 
     private final ProjectInternal project;
     private final InstanceGenerator instanceGenerator;
-    private final Map<ConfigurationInternal, List<TaskProvider<?>>> configurationToCompileTasks; // ? is really AbstractCompile & HasCompileOptions
+    private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // The generic wildcard (`?`) == AbstractCompile & HasCompileOptions
 
     @Inject
     public DefaultJvmLanguageUtilities(
@@ -62,8 +63,8 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
     public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask) {
         ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
 
-        List<TaskProvider<?>> object = configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> new ArrayList<>());
-        List<TaskProvider<COMPILE>> compileTasks = Cast.uncheckedCast(object);
+        Set<TaskProvider<?>> untypedTasks = configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> new HashSet<>());
+        Set<TaskProvider<COMPILE>> compileTasks = Cast.uncheckedCast(untypedTasks);
         compileTasks.add(compileTask);
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -86,7 +87,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
     private static <COMPILE extends AbstractCompile & HasCompileOptions> Provider<Integer> getDefaultTargetPlatform(
         Configuration configuration,
         JavaPluginExtension java,
-        List<TaskProvider<COMPILE>> compileTasks
+        Set<TaskProvider<COMPILE>> compileTasks
     ) {
         assert !compileTasks.isEmpty();
 
