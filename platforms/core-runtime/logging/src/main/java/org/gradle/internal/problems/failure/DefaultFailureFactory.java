@@ -19,9 +19,12 @@ package org.gradle.internal.problems.failure;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,15 +49,22 @@ public class DefaultFailureFactory implements FailureFactory {
 
     @Override
     public Failure create(Throwable failure) {
-        return new Job(stackTraceClassifier)
+        return new Job(stackTraceClassifier, ProblemLocator.EMPTY_LOCATOR)
+            .convert(failure);
+    }
+
+    @Override
+    public Failure create(Throwable failure, ProblemLocator problemLocator) {
+        return new Job(stackTraceClassifier, problemLocator)
             .convert(failure);
     }
 
     private static final class Job {
 
         private final StackTraceClassifier stackTraceClassifier;
+        private final ProblemLocator problemLocator;
 
-        private final Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+        private final Set<Throwable> seen;
 
         private final InternalTransformer<Failure, Throwable> recursiveConverter = new InternalTransformer<Failure, Throwable>() {
             @Override
@@ -63,8 +73,17 @@ public class DefaultFailureFactory implements FailureFactory {
             }
         };
 
-        private Job(StackTraceClassifier stackTraceClassifier) {
+        private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator) {
+            this(stackTraceClassifier, problemLocator, null);
+        }
+
+        private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator, @Nullable Set<Throwable> parentSeen) {
             this.stackTraceClassifier = stackTraceClassifier;
+            this.problemLocator = problemLocator;
+            this.seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+            if (parentSeen != null) {
+                this.seen.addAll(parentSeen);
+            }
         }
 
         public Failure convert(Throwable failure) {
@@ -80,30 +99,11 @@ public class DefaultFailureFactory implements FailureFactory {
 
             ImmutableList<StackTraceElement> stackTrace = ImmutableList.copyOf(failure.getStackTrace());
             List<StackTraceRelevance> relevances = classify(stackTrace, stackTraceClassifier);
-            List<Failure> suppressed = convertSuppressed(failure);
-            List<Failure> causes = convertCauses(failure);
-            return new DefaultFailure(failure, stackTrace, relevances, suppressed, causes);
-        }
-
-        @SuppressWarnings("Since15")
-        private List<Failure> convertSuppressed(Throwable parent) {
-            // Short-circuit if suppressed exceptions are not supported by the current JVM
-            if (!JavaVersion.current().isJava7Compatible()) {
-                return ImmutableList.of();
-            }
-
-            return CollectionUtils.collect(parent.getSuppressed(), recursiveConverter);
-        }
-
-        private List<Failure> convertCauses(Throwable parent) {
-            ImmutableList.Builder<Throwable> causes = new ImmutableList.Builder<Throwable>();
-            if (parent instanceof MultiCauseException) {
-                causes.addAll(((MultiCauseException) parent).getCauses());
-            } else if (parent.getCause() != null) {
-                causes.add(parent.getCause());
-            }
-
-            return CollectionUtils.collect(causes.build(), recursiveConverter);
+            SuppressedAndCauses suppressedAndCauses = getSuppressedAndCauses(failure);
+            List<Failure> suppressed = convertSuppressed(suppressedAndCauses);
+            List<Failure> causes = convertCauses(suppressedAndCauses);
+            List<InternalProblem> problems = ImmutableList.copyOf(problemLocator.findAll(failure));
+            return new DefaultFailure(failure, stackTrace, relevances, suppressed, causes, problems);
         }
 
         private static List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace, StackTraceClassifier classifier) {
@@ -117,6 +117,93 @@ public class DefaultFailureFactory implements FailureFactory {
             }
 
             return relevance;
+        }
+
+        private static SuppressedAndCauses getSuppressedAndCauses(Throwable failure) {
+            Throwable[] suppressed = getSuppressed(failure);
+            List<Throwable> causes = getCauses(failure);
+            return new SuppressedAndCauses(suppressed, causes);
+        }
+
+        @Nullable
+        @SuppressWarnings("Since15")
+        private static Throwable[] getSuppressed(Throwable parent) {
+            // Short-circuit if suppressed exceptions are not supported by the current JVM
+            if (!JavaVersion.current().isJava7Compatible()) {
+                return null;
+            }
+
+            return parent.getSuppressed();
+        }
+
+        private static List<Throwable> getCauses(Throwable parent) {
+            ImmutableList.Builder<Throwable> causes = new ImmutableList.Builder<Throwable>();
+            if (parent instanceof MultiCauseException) {
+                causes.addAll(((MultiCauseException) parent).getCauses());
+            } else if (parent.getCause() != null) {
+                causes.add(parent.getCause());
+            }
+
+            return causes.build();
+        }
+
+        private List<Failure> convertSuppressed(SuppressedAndCauses suppressedAndCauses) {
+            Throwable[] suppressed = suppressedAndCauses.suppressed;
+            if (suppressed == null) {
+                return Collections.emptyList();
+            }
+
+            return CollectionUtils.collect(
+                suppressed,
+                determineRecursiveConverter(suppressedAndCauses.childCount())
+            );
+
+        }
+
+        private List<Failure> convertCauses(SuppressedAndCauses suppressedAndCauses) {
+            List<Throwable> causes = suppressedAndCauses.causes;
+            if (causes.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return CollectionUtils.collect(
+                causes,
+                determineRecursiveConverter(suppressedAndCauses.childCount())
+            );
+        }
+
+        private InternalTransformer<Failure, Throwable> determineRecursiveConverter(int size) {
+            if (size <= 1) {
+                return recursiveConverter;
+            } else {
+                // when we branch, we need to have separate seen sets on each branch, since we there cannot be cycles between branches
+                return multiChildTransformer();
+            }
+        }
+
+        private InternalTransformer<Failure, Throwable> multiChildTransformer() {
+            return new InternalTransformer<Failure, Throwable>() {
+                @Override
+                public Failure transform(Throwable throwable) {
+                    return new Job(stackTraceClassifier, problemLocator, seen).convert(throwable);
+                }
+            };
+        }
+
+        private static class SuppressedAndCauses {
+            private final Throwable[] suppressed;
+            private final List<Throwable> causes;
+
+            public SuppressedAndCauses(
+                @Nullable Throwable[] suppressed,
+                List<Throwable> causes
+            ) {
+                this.causes = causes;
+                this.suppressed = suppressed;
+            }
+
+            public int childCount() {
+                return causes.size() + (suppressed != null ? suppressed.length : 0);
+            }
         }
     }
 }

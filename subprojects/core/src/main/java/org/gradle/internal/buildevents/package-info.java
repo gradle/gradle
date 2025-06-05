@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems.failure;
+@NullMarked
+package org.gradle.internal.buildevents;
 
-import org.gradle.api.problems.internal.ProblemLocator;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-/**
- * Converts exceptions to their content-based {@link Failure} representation.
- *
- * @see Failure
- */
-@ServiceScope(Scope.Global.class)
-public interface FailureFactory {
-
-    Failure create(Throwable failure);
-
-    Failure create(Throwable failure, ProblemLocator problemLocator);
-
-}
+import org.jspecify.annotations.NullMarked;
