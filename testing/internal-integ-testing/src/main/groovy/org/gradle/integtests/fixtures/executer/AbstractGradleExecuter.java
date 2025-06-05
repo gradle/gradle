@@ -1383,7 +1383,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter expectDeprecatedMessage(String warning) {
+    public GradleExecuter expectExternalDeprecatedMessage(String warning) {
         return expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(warning));
     }
 
@@ -1395,7 +1395,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecatedMessage(normalizeDocumentationLink(warning));
+        return expectExternalDeprecatedMessage(normalizeDocumentationLink(warning));
     }
 
     private String normalizeDocumentationLink(String warning) {

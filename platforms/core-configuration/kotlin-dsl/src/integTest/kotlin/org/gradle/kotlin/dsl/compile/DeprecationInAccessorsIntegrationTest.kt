@@ -209,10 +209,10 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         val extDeprecationLine = "'fun Project.myExtension(configure: Action<My_plugin_gradle.DeprecatedExt>): Unit' is deprecated. Just don't."
         val taskDeprecationLine = "'val TaskContainer.myTask: TaskProvider<My_plugin_gradle.DeprecatedTask>' is deprecated. Just don't."
 
-        executer.expectDeprecatedMessage("e: ${clickableUrlFor(file("build.gradle.kts"))}:6:9: $extDeprecationLine")
-        executer.expectDeprecatedMessage("e: ${clickableUrlFor(file("build.gradle.kts"))}:8:13: $taskDeprecationLine")
-        executer.expectDeprecatedMessage("                  ^ $extDeprecationLine") // compiler error details
-        executer.expectDeprecatedMessage("                      ^ $taskDeprecationLine") // compiler error details
+        executer.expectExternalDeprecatedMessage("e: ${clickableUrlFor(file("build.gradle.kts"))}:6:9: $extDeprecationLine")
+        executer.expectExternalDeprecatedMessage("e: ${clickableUrlFor(file("build.gradle.kts"))}:8:13: $taskDeprecationLine")
+        executer.expectExternalDeprecatedMessage("                  ^ $extDeprecationLine") // compiler error details
+        executer.expectExternalDeprecatedMessage("                      ^ $taskDeprecationLine") // compiler error details
 
         buildAndFail("help").apply {
             assertThatDescription(containsString("Script compilation error"))
@@ -233,7 +233,7 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         """)
 
         repeat(2) {
-            executer.expectDeprecatedMessage("     * - `My_plugin_gradle.DeprecatedExt` is deprecated as hidden")
+            executer.expectExternalDeprecatedMessage("     * - `My_plugin_gradle.DeprecatedExt` is deprecated as hidden")
         }
 
         build(":kotlinDslAccessorsReport").apply {

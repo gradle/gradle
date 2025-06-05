@@ -377,7 +377,7 @@ public interface GradleExecuter extends Stoppable {
      *
      * This method is used to document builds that emit deprecation messages from external tools like javac or the Kotlin compiler.
      */
-    GradleExecuter expectDeprecatedMessage(String warning);
+    GradleExecuter expectExternalDeprecatedMessage(String warning);
 
     /**
      * Disable automatic Java version deprecation warning filtering.
