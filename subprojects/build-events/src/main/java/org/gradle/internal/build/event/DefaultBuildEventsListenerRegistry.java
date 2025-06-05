@@ -31,6 +31,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -50,6 +52,7 @@ import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
 import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.util.Collection;
@@ -64,7 +67,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry, BuildEventListenerRegistryInternal {
+    private final UserCodeApplicationContext applicationContext;
     private final BuildEventListenerFactory factory;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
@@ -73,11 +79,13 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     private final ExecutorFactory executorFactory;
 
     public DefaultBuildEventsListenerRegistry(
+        UserCodeApplicationContext applicationContext,
         BuildEventListenerFactory factory,
         ListenerManager listenerManager,
         BuildOperationListenerManager buildOperationListenerManager,
         ExecutorFactory executorFactory
     ) {
+        this.applicationContext = applicationContext;
         this.factory = factory;
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
@@ -86,9 +94,11 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     @Override
-    public List<Provider<?>> getSubscriptions() {
+    public List<Subscription> getSubscriptions() {
         synchronized (subscriptions) {
-            return ImmutableList.copyOf(subscriptions.keySet());
+            return subscriptions.entrySet().stream()
+                .map(entry -> new Subscription(entry.getValue().getRegistrationPoint(), entry.getKey()))
+                .collect(toImmutableList());
         }
     }
 
@@ -108,7 +118,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private ForwardingBuildOperationListener makeBuildOperationSubscription(Provider<? extends BuildOperationListener> listenerProvider) {
-        ForwardingBuildOperationListener subscription = new ForwardingBuildOperationListener(listenerProvider, executorFactory);
+        ForwardingBuildOperationListener subscription = new ForwardingBuildOperationListener(getCurrentContext(), listenerProvider, executorFactory);
         processIfBuildService(listenerProvider);
         buildOperationListenerManager.addListener(subscription);
         return subscription;
@@ -120,7 +130,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private ForwardingBuildEventConsumer makeTaskCompletionSubscription(Provider<? extends OperationCompletionListener> listenerProvider) {
-        ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(listenerProvider, executorFactory);
+        ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(getCurrentContext(), listenerProvider, executorFactory);
         processIfBuildService(listenerProvider);
 
         for (Object listener : subscription.getListeners()) {
@@ -178,15 +188,29 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
     }
 
+    @Nullable
+    private UserCodeSource getCurrentContext() {
+        UserCodeApplicationContext.Application current = applicationContext.current();
+        return current != null ? current.getSource() : null;
+    }
+
     private static abstract class AbstractListener<T> implements Closeable {
         private static final Object END = new Object();
+        @Nullable
+        private final UserCodeSource registrationPoint;
         private final ManagedExecutor executor;
         private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
         private final AtomicReference<Exception> failure = new AtomicReference<>();
 
-        public AbstractListener(ExecutorFactory executorFactory) {
+        public AbstractListener(@Nullable UserCodeSource registrationPoint, ExecutorFactory executorFactory) {
+            this.registrationPoint = registrationPoint;
             this.executor = executorFactory.create("build event listener");
             Future<?> ignored = executor.submit(this::run);
+        }
+
+        @Nullable
+        public UserCodeSource getRegistrationPoint() {
+            return registrationPoint;
         }
 
         private void run() {
@@ -237,8 +261,12 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     private static class ForwardingBuildOperationListener extends AbstractListener<Pair<BuildOperationDescriptor, OperationFinishEvent>> implements BuildOperationListener {
         private final Provider<? extends BuildOperationListener> listenerProvider;
 
-        public ForwardingBuildOperationListener(Provider<? extends BuildOperationListener> listenerProvider, ExecutorFactory executorFactory) {
-            super(executorFactory);
+        public ForwardingBuildOperationListener(
+            @Nullable UserCodeSource registrationPoint,
+            Provider<? extends BuildOperationListener> listenerProvider,
+            ExecutorFactory executorFactory
+        ) {
+            super(registrationPoint, executorFactory);
             this.listenerProvider = listenerProvider;
         }
 
@@ -270,8 +298,12 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         private final Provider<? extends OperationCompletionListener> listenerProvider;
         private final ImmutableList<Object> listeners;
 
-        public ForwardingBuildEventConsumer(Provider<? extends OperationCompletionListener> listenerProvider, ExecutorFactory executorFactory) {
-            super(executorFactory);
+        public ForwardingBuildEventConsumer(
+            @Nullable UserCodeSource registrationPoint,
+            Provider<? extends OperationCompletionListener> listenerProvider,
+            ExecutorFactory executorFactory
+        ) {
+            super(registrationPoint, executorFactory);
             this.listenerProvider = listenerProvider;
             BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
             // TODO - share these listeners here and with the tooling api client, where possible

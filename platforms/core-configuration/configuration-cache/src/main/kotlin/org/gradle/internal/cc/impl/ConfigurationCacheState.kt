@@ -51,6 +51,7 @@ import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.build.event.BuildEventListenerRegistryInternal.Subscription
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.serialize.IsolateOwners
@@ -895,22 +896,22 @@ class ConfigurationCacheState(
         val subscriptions = gradle.serviceOf<BuildEventListenerRegistryInternal>().subscriptions
 
         val validProviders = mutableListOf<RegisteredBuildServiceProvider<*, *>>()
-        val invalidProviders = mutableListOf<Provider<*>>()
+        val invalidProviders = mutableListOf<Subscription>()
 
         subscriptions.forEach { subscription ->
-            if (subscription is RegisteredBuildServiceProvider<*, *>) {
-                if (isRelevantBuildEventListener(subscription)) {
-                    validProviders.add(subscription)
+            val listener = subscription.listener
+            if (listener is RegisteredBuildServiceProvider<*, *>) {
+                if (isRelevantBuildEventListener(listener)) {
+                    validProviders.add(listener)
                 }
             } else {
                 invalidProviders.add(subscription)
             }
         }
-        invalidProviders.forEach { _ ->
+        invalidProviders.forEach { subscription ->
             onProblem(
                 PropertyProblem(
-                    // TODO(mlopatkin): figure out how to trace the listener back to its registration point
-                    PropertyTrace.Unknown,
+                    subscription.location(),
                     StructuredMessage.build {
                         text("Unsupported provider is registered as a task completion listener in ")
                         reference(BuildEventsListenerRegistry::class)
@@ -924,6 +925,9 @@ class ConfigurationCacheState(
         }
         return validProviders
     }
+
+    private
+    fun Subscription.location(): PropertyTrace = registrationPoint?.let { PropertyTrace.BuildLogic(it) } ?: PropertyTrace.Unknown
 
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =

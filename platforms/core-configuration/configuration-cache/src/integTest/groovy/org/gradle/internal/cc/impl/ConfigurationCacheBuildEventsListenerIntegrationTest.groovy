@@ -27,7 +27,6 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
     def configurationCache = new ConfigurationCacheFixture(this)
 
     def "can use build service provider as build events listener"() {
-
         given:
         buildFile """
             ${taskListenerService()}
@@ -175,7 +174,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         """
     }
 
-    private void assertUnsupportedListenerReported(String location = "Unknown location") {
+    private void assertUnsupportedListenerReported(String location = "Plugin class 'MyPlugin'") {
         problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 1
             problemsWithStackTraceCount = 0
