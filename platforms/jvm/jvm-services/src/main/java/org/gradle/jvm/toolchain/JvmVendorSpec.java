@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
@@ -61,7 +60,6 @@ public abstract class JvmVendorSpec {
      *
      * @since 8.4
      */
-    @Incubating
     public static final JvmVendorSpec JETBRAINS = matching(KnownJvmVendor.JETBRAINS);
 
     /**
@@ -80,7 +78,6 @@ public abstract class JvmVendorSpec {
      *
      * @since 8.6
      */
-    @Incubating
     public static final JvmVendorSpec TENCENT = matching(KnownJvmVendor.TENCENT);
 
     /**
@@ -90,7 +87,6 @@ public abstract class JvmVendorSpec {
      *
      * @since 7.6
      */
-    @Incubating
     public abstract boolean matches(String vendor);
 
     /**
@@ -118,7 +114,6 @@ public abstract class JvmVendorSpec {
      *
      * @since 8.13
      */
-    @Incubating
     public static JvmVendorSpec of(String vendor) {
         KnownJvmVendor knownVendor = JvmVendor.fromString(vendor).getKnownVendor();
         if (knownVendor != KnownJvmVendor.UNKNOWN) {
