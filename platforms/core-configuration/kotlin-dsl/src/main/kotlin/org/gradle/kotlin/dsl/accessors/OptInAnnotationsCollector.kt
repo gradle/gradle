@@ -81,6 +81,7 @@ internal class OptInAnnotationsCollector(
             val type = useType(annotation.annotationClass.java)
             val values = annotation.annotationClass.java.declaredMethods
                 .filter { it.parameterCount == 0 && it.defaultValue != it.invoke(annotation) }
+                .sortedBy { it.name }
                 .associateTo(mutableMapOf()) { method -> method.name to annotationValueRepresentationFrom(method.invoke(annotation)) }
             return AnnotationRepresentation(type, values)
         }
