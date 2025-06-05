@@ -296,6 +296,15 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.property = property;
         }
 
+        /**
+         * DO NOT CALL THIS METHOD
+         */
+        @Deprecated
+        public WithDeprecationTimeline willBeRemovedInGradle9() {
+            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE10));
+            return new WithDeprecationTimeline(this);
+        }
+
         @Override
         public WithDeprecationTimeline willBeRemovedInGradle10() {
             setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE10));
