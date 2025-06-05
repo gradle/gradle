@@ -656,6 +656,16 @@ This behavior previously caused a warning: `Gradle Module Metadata is modified a
 
 It will now fail with an error, suggesting a review of the relevant documentation.
 
+==== New subtypes of ComponentIdentifier introduced
+
+Gradle 9.0 introduces link:{javadocPath}/org/gradle/api/artifacts/component/RootComponentIdentifier.html)[RootComponentIdentifier], a new subtype of link:{javadocPath}/org/gradle/api/artifacts/component/ComponentIdentifier.html)[ComponentIdentifier].
+
+APIs which return instances of `ComponentIdentifier` may now return identifier instances of this new type.
+For example, the link:{javadocPath}/org/gradle/api/artifacts/result/ComponentResult.html)[ComponentResult], link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html)[ResolvedVariantResult], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.ViewConfiguration.html)[ArtifactView], APIs, among others, are affected.
+
+In future Gradle versions, new subtypes of `ComponentIdentifier` may continue to be added.
+Build logic should remain resilient to unknown subtypes of `ComponentIdentifier` being returned by Gradle APIs.
+
 === Task Changes
 
 [[validate_plugins_without_java_toolchain_90]]

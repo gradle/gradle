@@ -93,6 +93,18 @@ Starting with Gradle 9.0, the Gradle API is annotated using JSpecify instead.
 
 For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_version_8.html).
 
+#### Introduced `RootComponentIdentifier`
+
+A new subtype of `ComponentIdentifier` has been introduced which identifies the root component of a dependency graph. 
+When a configuration is resolved, it is transformed into a synthetic variant that serves as the root of a dependency graph.
+The root component exists solely to own the root variant.
+
+Dependency graphs resolved from `buildscript` Configurations and detached Configurations will have a component identified by a `RootComponentIdentifier` at the root of their graph.
+Resolved project configurations will continue to have their root component live within the project's component, identified with a `ProjectComponentIdentifier`.
+In future versions of Gradle, Configurations within a Project will also live within a synthetic root component identified by a `RootComponentIdentifier`.
+
+As a consequence of this change, detached configurations within a project are now able to resolve dependencies on the project they live in. 
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
