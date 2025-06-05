@@ -36,6 +36,7 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
@@ -417,7 +418,14 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to get full insights."));
+        String message;
+        if (OperatingSystem.current().isWindows()) {
+            // The default windows code page do not support the registered trademark symbol, so we use the text version.
+            message = " to generate a Build Scan (Powered by Develocity). Build Scan and Develocity are registered trademarks of Gradle, Inc.";
+        } else {
+            message = " to generate a Build Scan® (Powered by Develocity®).";
+        }
+        context.appendResolution(output -> runWithOption(output, LONG_OPTION, message));
     }
 
     private boolean isGradleEnterprisePluginApplied() {

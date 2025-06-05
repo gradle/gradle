@@ -36,6 +36,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.FailureFactory
+import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
 import java.lang.reflect.Field
@@ -49,15 +50,15 @@ class BuildExceptionReporterTest extends Specification {
     final FailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier()
     final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData, gradleEnterprisePluginManager, failureFactory)
 
-
     static final String MESSAGE = "<message>"
     static final String FAILURE = '<failure>'
     static final String LOCATION = "<location>"
     static final String STACKTRACE = "{info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace."
     static final String INFO_OR_DEBUG = "{info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output."
-    static final String TRY_SCAN = "{info}> {normal}Run with {userinput}--scan{normal} to get full insights."
+    static final String TRY_SCAN = OperatingSystem.current().isWindows()
+        ? "{info}> {normal}Run with {userinput}--scan{normal} to generate a Build Scan (Powered by Develocity). Build Scan and Develocity are registered trademarks of Gradle, Inc."
+        : "{info}> {normal}Run with {userinput}--scan{normal} to generate a Build Scan® (Powered by Develocity®)."
     static final String GET_HELP = "{info}> {normal}Get more help at {userinput}https://help.gradle.org{normal}."
-
 
     def setup() {
         factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
