@@ -185,14 +185,92 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
             tasks.register("greet") {}
         """
-
-        executer.noDeprecationChecks()
-
         when:
         run("greet")
 
         then:
         postBuildOutputDoesNotContain(PROMO_PREFIX)
+
+        where:
+        execMethod << ["execWithExecOperations", "execWithGroovyApi"]
+    }
+
+    def "shows promo message if external process used at execution time with #execMethod"() {
+        given:
+        def script = ShellScript.builder().printText("Hello").writeTo(testDirectory, "script")
+
+        buildFile """
+            interface Ops {
+                @Inject ExecOperations getExecOps()
+            }
+
+            tasks.register("greet") {
+                def ops = objects.newInstance(Ops)
+                def holder = new Object() {
+                    def execWithExecOperations() {
+                        ops.execOps.exec { commandLine(${ShellScript.cmdToVarargLiterals(script.commandLine)}) }
+                    }
+
+                    def execWithGroovyApi(def unused) {
+                        [${ShellScript.cmdToVarargLiterals(script.commandLine)}].execute().waitForProcessOutput(System.out, System.err)
+                    }
+                }
+                doLast {
+                    holder.$execMethod()
+                }
+            }
+        """
+
+        when:
+        run("greet")
+
+        then:
+        postBuildOutputContains(PROMO_PREFIX)
+
+        where:
+        execMethod << ["execWithExecOperations", "execWithGroovyApi"]
+    }
+
+    def "shows promo message if external process used by build logic build with #execMethod"() {
+        given:
+        def script = ShellScript.builder().printText("Hello").writeTo(testDirectory, "script")
+
+        buildFile("buildSrc/build.gradle", """
+            interface Ops {
+                @Inject ExecOperations getExecOps()
+            }
+
+            tasks.register("greet") {
+                def ops = objects.newInstance(Ops)
+                def holder = new Object() {
+                    def execWithExecOperations() {
+                        ops.execOps.exec { commandLine(${ShellScript.cmdToVarargLiterals(script.commandLine)}) }
+                    }
+
+                    def execWithGroovyApi(def unused) {
+                        [${ShellScript.cmdToVarargLiterals(script.commandLine)}].execute().waitForProcessOutput(System.out, System.err)
+                    }
+                }
+                doLast {
+                    holder.$execMethod()
+                }
+            }
+
+            tasks.named("jar") {
+                dependsOn("greet")
+            }
+        """)
+
+        buildFile """
+            tasks.register("run") {}
+        """
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello")
+        postBuildOutputContains(PROMO_PREFIX)
 
         where:
         execMethod << ["execWithExecOperations", "execWithGroovyApi"]
