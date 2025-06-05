@@ -21,6 +21,9 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.Failure
+import org.hamcrest.BaseMatcher
+import org.hamcrest.Description
+import org.hamcrest.Matcher
 import spock.lang.Specification
 
 class ContextAwareExceptionHandlerTest extends Specification {
@@ -35,7 +38,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         visit(e, visitor)
 
         then:
-        1 * visitor.visitCause(asFailure(cause))
+        1 * visitor.visitCause(isFailureFor(cause))
         1 * visitor.endVisiting()
         0 * visitor._
 
@@ -52,12 +55,12 @@ class ContextAwareExceptionHandlerTest extends Specification {
         visit(e, visitor)
 
         then:
-        1 * visitor.visitCause(asFailure(cause))
+        1 * visitor.visitCause(isFailureFor(cause))
         1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(asFailure(childCause))
+        1 * visitor.node(isFailureFor(childCause))
 
         and:
         1 * visitor.endChildren()
@@ -76,12 +79,12 @@ class ContextAwareExceptionHandlerTest extends Specification {
         visit(e, visitor)
 
         then:
-        1 * visitor.visitCause(asFailure(cause))
+        1 * visitor.visitCause(isFailureFor(cause))
         1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(asFailure(childCause))
+        1 * visitor.node(isFailureFor(childCause))
 
         and:
         1 * visitor.endChildren()
@@ -105,12 +108,12 @@ class ContextAwareExceptionHandlerTest extends Specification {
         visit(e, visitor)
 
         then:
-        1 * visitor.visitCause(asFailure(cause))
+        1 * visitor.visitCause(isFailureFor(cause))
         1 * visitor.endVisiting()
 
-        1 * visitor.node(asFailure(contextual))
-        1 * visitor.node(asFailure(lastContextual))
-        1 * visitor.node(asFailure(reportedCause))
+        1 * visitor.node(isFailureFor(contextual))
+        1 * visitor.node(isFailureFor(lastContextual))
+        1 * visitor.node(isFailureFor(reportedCause))
 
         and:
         _ * visitor.startChildren()
@@ -131,16 +134,16 @@ class ContextAwareExceptionHandlerTest extends Specification {
         visit(e, visitor)
 
         then:
-        1 * visitor.visitCause(asFailure(cause))
+        1 * visitor.visitCause(isFailureFor(cause))
         1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(asFailure(childCause1))
+        1 * visitor.node(isFailureFor(childCause1))
 
         and:
-        1 * visitor.node(asFailure(childCause2))
+        1 * visitor.node(isFailureFor(childCause2))
 
         and:
         1 * visitor.endChildren()
@@ -163,28 +166,28 @@ class ContextAwareExceptionHandlerTest extends Specification {
         visit(e, visitor)
 
         then:
-        1 * visitor.visitCause(asFailure(intermediate2))
+        1 * visitor.visitCause(isFailureFor(intermediate2))
         1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(asFailure(cause))
+        1 * visitor.node(isFailureFor(cause))
 
         and:
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(asFailure(childCause1))
+        1 * visitor.node(isFailureFor(childCause1))
 
         and:
-        1 * visitor.node(asFailure(childCause2))
+        1 * visitor.node(isFailureFor(childCause2))
 
         and:
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(asFailure(detail))
+        1 * visitor.node(isFailureFor(detail))
 
         and:
         3 * visitor.endChildren()
@@ -207,14 +210,14 @@ class ContextAwareExceptionHandlerTest extends Specification {
         visit(e, visitor)
 
         then:
-        1 * visitor.visitCause(asFailure(cause))
+        1 * visitor.visitCause(isFailureFor(cause))
         1 * visitor.endVisiting()
 
         3 * visitor.startChildren()
-        1 * visitor.node(asFailure(childCause1))
-        1 * visitor.node(asFailure(childCause4))
-        1 * visitor.node(asFailure(childCause3))
-        1 * visitor.node(asFailure(childCause2))
+        1 * visitor.node(isFailureFor(childCause1))
+        1 * visitor.node(isFailureFor(childCause4))
+        1 * visitor.node(isFailureFor(childCause3))
+        1 * visitor.node(isFailureFor(childCause2))
         3 * visitor.endChildren()
         0 * visitor._
 
@@ -231,7 +234,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         visit(e, visitor)
 
         then:
-        1 * visitor.visitCause(asFailure(cause))
+        1 * visitor.visitCause(isFailureFor(cause))
         1 * visitor.endVisiting()
         1 * visitor.visitLocation("Location line: 42")
         0 * visitor._
@@ -249,6 +252,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
 
     private void visit(ContextAwareException e, ExceptionContextVisitor visitor) {
         def failure = failureFactory.create(e)
+
         ContextAwareExceptionHandler.visit(failure, visitor)
     }
 
@@ -256,7 +260,22 @@ class ContextAwareExceptionHandlerTest extends Specification {
         return ContextAwareExceptionHandler.getReportableCauses(failureFactory.create(e)).collect { it.original }
     }
 
-    private Failure asFailure(Throwable e) {
-        failureFactory.create(e)
+    private static Matcher<Failure> isFailureFor(Throwable e) {
+        new BaseMatcher<Failure>() {
+            @Override
+            boolean matches(Object actual) {
+                return ((Failure) actual).original == e
+            }
+
+            @Override
+            void describeTo(Description description) {
+                description.appendValue(e)
+            }
+
+            @Override
+            void describeMismatch(Object item, Description description) {
+                description.appendText("was ").appendValue(((Failure) item).original)
+            }
+        }
     }
 }
