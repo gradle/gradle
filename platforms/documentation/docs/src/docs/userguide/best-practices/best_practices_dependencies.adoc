@@ -319,8 +319,8 @@ dependencies {
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/useGAVString-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/useGAVString-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useGavString-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useGavString-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 <1> Avoid the named argument notation when declaring dependencies
 <2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
@@ -330,16 +330,16 @@ include::sample[dir="snippets/bestPractices/useGAVString-avoid/groovy",files="bu
 ++++
 <div style="text-align: right;">
   <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useGAVString-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useGAVString-do/kotlin">
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useGavString-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useGavString-do/kotlin">
     <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
   </a>
 </div>
 ++++
 
 ====
-include::sample[dir="snippets/bestPractices/useGAVString-do/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useGAVString-do/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useGavString-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useGavString-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 <1> Use the string notation instead when declaring dependencies
 <2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
