@@ -17,11 +17,15 @@
 package org.gradle.kotlin.dsl.compile
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import kotlin.test.Test
 
+@Requires(UnitTestPreconditions.Jdk23OrEarlier::class) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
 class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
+
     @Test
     fun `copies simple opt-in annotations from plugins to accessors`() {
         withBuildSrcDependingOnAnotherPlugin(
@@ -359,9 +363,21 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         withFile(
             "buildSrc/plugin/build.gradle.kts",
             """
+            import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
             plugins {
                 `java-gradle-plugin`
                 kotlin("jvm")
+            }
+
+            kotlin {
+                compilerOptions {
+                    jvmTarget = JvmTarget.JVM_1_8
+                }
+            }
+
+            tasks.compileJava {
+                targetCompatibility = "1.8"
             }
 
             repositories {
