@@ -41,6 +41,7 @@ val spockVersion = when (bundleGroovyMajor) {
     else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
 }
 val tomljVersion = "1.0.0"
+val jnaVersion = "5.17.0"
 val sshdVersion = "2.15.0"
 val jGitVersion = "7.2.1.202505142326-r"
 
@@ -172,7 +173,9 @@ dependencies {
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
         api(libs.trove4j)               { version { strictly("1.0.20200330") }}
-        api(libs.jna)                   { version { strictly("5.12.1") }}
+        api(libs.jna)                   { version { strictly(jnaVersion) }}
+        api(libs.jnaPlatform)           { version { strictly(jnaVersion) }}
+
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
         api(libs.xbeanReflect)          { version { strictly("3.18") }}
