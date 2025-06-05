@@ -22,7 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 
 /**
  * Windows consoles do not support registered trademark symbols, so we output a different message for the --scan recommendation on Windows.
- * We use this normalizer so out samples tests don't need to care about this.
+ * We use this normalizer so our samples tests don't need to care about this.
  */
 class BuildScanRecommendationOutputNormalizer implements OutputNormalizer {
     @Override
