@@ -28,7 +28,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * An {@link BuildActionRunner} that notifies the GE plugin manager that the build has completed.
@@ -64,9 +63,10 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     private void notifyEnterprisePluginManager(Result result) {
-        if (result.getBuildFailure() != null) {
-            Objects.requireNonNull(result.getRichBuildFailure(), "Rich build failure must not be null when build failure is present");
-        }
+        // Validate the invariant, but avoid failing in production to allow Develocity to receive _a_ result
+        // to provide a better user experience in the face of a bug on the Gradle side
+        assert result.getBuildFailure() == null || result.getRichBuildFailure() != null
+            : "Rich build failure must not be null when build failure is present. Build failure: " + result.getBuildFailure();
         List<Failure> unwrappedBuildFailure = unwrapBuildFailure(result.getRichBuildFailure());
         gradleEnterprisePluginManager.buildFinished(result.getBuildFailure(), unwrappedBuildFailure);
     }
