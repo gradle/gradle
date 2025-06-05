@@ -1112,10 +1112,10 @@ This method can still be used during configuration time.
 The deprecation is only issued if the configuration cache is **not** enabled.
 When the configuration cache is enabled, calls to link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] are reported as configuration cache problems instead.
 
-This deprecation was originally introduced in <<upgrading_version_7.adoc#task_project, Gradle 7.4>> but was only issued when the <<configuration_cache#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled. That feature flag no longer controls this deprecation.
+This deprecation was originally introduced in <<upgrading_version_7.adoc#task_project, Gradle 7.4>> but was only issued when the <<configuration_cache_enabling.adoc#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled. That feature flag no longer controls this deprecation.
 This is another step towards moving users away from idioms that are incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release.
 
-Please refer to the <<configuration_cache#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives to invoking `Task.getProject()` at execution time that are compatible with the configuration cache.
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives to invoking `Task.getProject()` at execution time that are compatible with the configuration cache.
 
 [[groovy_space_assignment_syntax]]
 ==== Groovy "space assignment" syntax
@@ -1393,7 +1393,7 @@ At configuration time, only special Provider-based APIs must be used to run exte
 You can use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] and
 link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] to obtain the output of the process.
 A custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation can be used for more sophisticated scenarios.
-The <<configuration_cache.adoc#config_cache:requirements:external_processes, configuration cache guide>> has a more elaborate example of using these APIs.
+The <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, configuration cache guide>> has a more elaborate example of using these APIs.
 
 [[detached_configurations_cannot_extend]]
 ==== Detached Configurations should not use `extendsFrom`
@@ -1410,7 +1410,7 @@ To create extension relationships between configurations, you should change to u
 The link:{javadocPath}/org/gradle/api/invocation/Gradle.html#useLogger(java.lang.Object)[Gradle#useLogger(Object)] method has been deprecated and will be removed in Gradle 9.0.
 
 This method was originally intended to customize logs printed by Gradle.
-However, it only allows intercepting a subset of the logs and cannot work with the <<configuration_cache#config_cache:requirements:build_listeners,configuration cache>>.
+However, it only allows intercepting a subset of the logs and cannot work with the <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners,configuration cache>>.
 We do not plan to introduce a replacement for this feature.
 
 [[deprecated_nested_properties_setters]]
@@ -3714,9 +3714,9 @@ This is a non-exhaustive list of API additions in 8.1 that may cause name collis
 
 ==== Using unsupported API to start external processes at configuration time is no longer allowed with the configuration cache enabled
 
-Since Gradle 7.5, using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at configuration time has been considered an error only if the <<configuration_cache.adoc#config_cache:stable,feature preview `STABLE_CONFIGURATION_CACHE`>> was enabled.
+Since Gradle 7.5, using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at configuration time has been considered an error only if the <<configuration_cache_enabling.adoc#config_cache:stable,feature preview `STABLE_CONFIGURATION_CACHE`>> was enabled.
 With the configuration cache promotion to a stable feature in Gradle 8.1, this error is detected regardless of the feature preview status.
-The <<configuration_cache#config_cache:requirements:external_processes,configuration cache chapter>> has more details to help with the migration to the new provider-based APIs to execute external processes at configuration time.
+The <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes,configuration cache chapter>> has more details to help with the migration to the new provider-based APIs to execute external processes at configuration time.
 
 Builds that do not use the configuration cache, or only start external processes at execution time are not affected by this change.
 
@@ -4023,7 +4023,7 @@ This is done to reduce confusion about what such relative paths should resolve a
 
 Calling `Task.getConvention()`, link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
 
-See the <<configuration_cache#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
+See the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
 [[test_task_fail_on_no_test_executed]]
 ==== Deprecated running test task successfully when no test executed
