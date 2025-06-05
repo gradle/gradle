@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
-import org.gradle.util.internal.ToBeImplemented
 
 class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def configurationCache = new ConfigurationCacheFixture(this)
@@ -58,7 +57,6 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         outputContains("Completed: :run")
     }
 
-    @ToBeImplemented("should emit a problem")
     def "cannot use mapped build service provider as build events listener"() {
         given:
         buildFile """
@@ -75,21 +73,12 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheRun("run") // Must fail
+        configurationCacheFails("run")
 
         then:
-        configurationCache.assertStateStored()
-        outputContains("Completed: :run")
-
-        when:
-        configurationCacheRun("run")
-
-        then:
-        configurationCache.assertStateLoaded()
-        outputDoesNotContain("Completed: :run")
+        assertUnsupportedListenerReported()
     }
 
-    @ToBeImplemented("should emit a problem")
     def "cannot use custom listener objects as build events listener"() {
         buildFile """
             ${nonServiceTaskListener()}
@@ -105,21 +94,12 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheRun("run") // Must fail
+        configurationCacheFails("run")
 
         then:
-        configurationCache.assertStateStored()
-        outputContains("Completed: :run")
-
-        when:
-        configurationCacheRun("run")
-
-        then:
-        configurationCache.assertStateLoaded()
-        outputDoesNotContain("Completed: :run")
+        assertUnsupportedListenerReported()
     }
 
-    @ToBeImplemented("should emit a problem")
     def "cannot use #object as build events listener in builds without work"() {
         buildFile("included/build.gradle", """
             ${nonServiceTaskListener()}
@@ -144,18 +124,10 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         buildFile """ tasks.register("run") { doLast {} } """
 
         when:
-        configurationCacheRun("run") // Must fail
+        configurationCacheFails("run")
 
         then:
-        configurationCache.assertStateStored()
-        outputContains("Completed: :run")
-
-        when:
-        configurationCacheRun("run")
-
-        then:
-        configurationCache.assertStateLoaded()
-        outputDoesNotContain("Completed: :run")
+        assertUnsupportedListenerReported()
 
         where:
         object                          | variable
@@ -201,5 +173,14 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
 
             pluginManager.apply(MyPlugin)
         """
+    }
+
+    private void assertUnsupportedListenerReported(String location = "Unknown location") {
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 1
+            problemsWithStackTraceCount = 0
+            withProblem("$location: Unsupported provider is registered as a task completion listener in 'org.gradle.build.event.BuildEventsListenerRegistry'. " +
+                "Configuration Cache only supports providers returned from 'org.gradle.api.services.BuildServiceRegistry' as task completion listeners.")
+        }
     }
 }
