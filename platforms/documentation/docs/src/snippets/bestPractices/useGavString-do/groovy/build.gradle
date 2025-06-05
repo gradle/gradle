@@ -1,5 +1,5 @@
 plugins {
-    id("java-library./g")
+    id("java-library")
 }
 
 repositories {
