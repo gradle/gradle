@@ -23,6 +23,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Ignore
 import spock.lang.Issue
+import java.util.concurrent.ConcurrentHashMap
 
 import static org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer.JANSI_LIBRARY_PATH_SYS_PROP
 
