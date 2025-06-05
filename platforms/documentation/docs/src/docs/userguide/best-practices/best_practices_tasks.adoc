@@ -33,8 +33,8 @@ This can lead to unnecessary task execution and decreased build performance.
 Here is a task that writes output to two separate files:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=depended-upon-task-setup]"]
-include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=depended-upon-task-setup]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-do/kotlin",files="build.gradle.kts[tags=depended-upon-task-setup]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-do/groovy",files="build.gradle[tags=depended-upon-task-setup]"]
 ====
 
 <1> *Task With Multiple Outputs*: `helloWorld` task prints "Hello" to its `messageFile` and "World" to its `audienceFile`.
@@ -45,8 +45,8 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.
 If you want to translate the greeting in the `message.txt` file using another task, you could do this:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> *Translation Task Setup*: `translateBad` requires `helloWorld` to run first to produce the message file otherwise it will fail with an error as the file does not exist.
@@ -56,9 +56,19 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.
 
 Instead, you should explicitly wire task inputs and outputs like this:
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDependsOn-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDependsOn-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
-include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> *Register Implicit Task Dependency*: `translateGood` requires only one of the files that is produced by `helloWorld`.
@@ -99,8 +109,8 @@ Remember that only tasks that produce reproducible and relocatable output should
 If you want to reuse the output of a task, you shouldn't do this:
 
 ====
-include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> *Define a Task*: The `BadCalculatorTask` type is deterministic and produces relocatable output, but is not annotated.
@@ -111,9 +121,19 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 
 As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), you should mark the _task type itself_ as cacheable like this:
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useCacheabilityAnnotations-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useCacheabilityAnnotations-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
-include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> *Annotate the Task Type*: Applying the `@CacheableTask` to a task type informs Gradle that instances of this task should _always_ be cached.
@@ -172,6 +192,16 @@ include::{snippetsPath}/bestPractices/groupTasks-avoid/tests/groupTasks.bad.out[
 ==== Do this Instead
 
 When defining custom tasks, always assign a clear `group` and `description`:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/groupTasks-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/groupTasks-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/groupTasks-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]

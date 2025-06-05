@@ -116,6 +116,16 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-avoid/groovy",files=
 
 ==== Do This Instead
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/usePluginsBlock-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/usePluginsBlock-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/usePluginsBlock-do/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="build.gradle[tags=do-this]"]
@@ -151,17 +161,27 @@ As a temporary workaround consider copying the necessary code into your own code
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> Casting to `AttributeContainerInternal` and using `toMap()` should be avoided as it relies on an internal API.
 
 ==== Do This Instead
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidInternal-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidInternal-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
-include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> Implementing your own version of `toMap()` that only uses public APIs is a lot more robust.
