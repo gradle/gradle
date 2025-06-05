@@ -21,7 +21,7 @@ val antVersion = "1.10.15"
 // when upgrading ASM.
 val asmVersion = "9.7.1"
 val awsS3Version = "1.12.780"
-val bouncycastleVersion = "1.78.1"
+val bouncycastleVersion = "1.81"
 val hamcrestVersion = "3.0"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
@@ -71,6 +71,7 @@ dependencies {
         api(libs.bouncycastlePgp)       { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastlePkix)      { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
+        api(libs.bouncycastleUtil)      { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}
         api(libs.commonsCodec)          { version { strictly("1.16.1") } }
         api(libs.commonsCompress)       { version { strictly("1.26.1") } }
