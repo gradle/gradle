@@ -173,7 +173,7 @@ include::sample[dir="snippets/buildCache/configure-task/kotlin",files="build.gra
 include::sample[dir="snippets/buildCache/configure-task/groovy",files="build.gradle[tags=configureTask]"]
 ====
 
-WARNING: Note that configuring a task from other task is not supported when using the <<configuration_cache_requirements.adoc#config_cache:requirements:task_access,configuration cache>>.
+WARNING: Note that configuring a task from other task is not supported when using the <<configuration_cache.adoc#config_cache:requirements:task_access,configuration cache>>.
 
 [[logic_based_on_task_outcome]]
 === Build logic based on the outcome of a task
