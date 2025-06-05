@@ -35,6 +35,11 @@ public interface Failure {
     Class<? extends Throwable> getExceptionType();
 
     /**
+     * The original exception.
+     */
+    Throwable getOriginal();
+
+    /**
      * A failure summary usually containing the type of the original exception and its message.
      *
      * @see Throwable#toString()
@@ -73,11 +78,6 @@ public interface Failure {
      * Returns the index of the first matching frame in the stack trace, or {@code -1} if not found.
      */
     int indexOfStackFrame(int start, StackFramePredicate predicate);
-
-    /**
-     * The original exception.
-     */
-    Throwable getOriginal();
 
     /**
      * The problems associated with the failure.
