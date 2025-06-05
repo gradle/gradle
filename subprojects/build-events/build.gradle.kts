@@ -5,6 +5,7 @@ plugins {
 description = "Implementation of build event services and build event types (work item, tasks, tests, configuration, etc)"
 
 dependencies {
+    api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)
     api(projects.core)
