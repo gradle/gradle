@@ -134,6 +134,7 @@ dependencies {
         api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
         api(libs.jgit)                  { version { strictly(jGitVersion) }}
         api(libs.jgitSsh)               { version { strictly(jGitVersion) }}
+        api(libs.jgitSshAgent)          { version { strictly(jGitVersion) }}
         api(libs.joda)                  { version { strictly("2.14.0"); because("Only pulled in by AWS SDK") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.2.16") }}

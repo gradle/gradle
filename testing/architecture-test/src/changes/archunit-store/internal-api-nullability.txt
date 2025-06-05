@@ -4783,6 +4783,7 @@ Class <org.gradle.util.internal.VersionNumber> is not annotated (directly or via
 Class <org.gradle.util.internal.WrapUtil> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (WrapUtil.java:0)
 Class <org.gradle.util.internal.WrapperDistributionUrlConverter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (WrapperDistributionUrlConverter.java:0)
 Class <org.gradle.vcs.git.internal.DefaultGitVersionControlSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultGitVersionControlSpec.java:0)
+Class <org.gradle.vcs.git.internal.GitVersionControlSystem$DefaultTransportConfigCallback$GradleSshdSessionFactory> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GitVersionControlSystem.java:0)
 Class <org.gradle.vcs.git.internal.GitVersionControlSystem$DefaultTransportConfigCallback> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GitVersionControlSystem.java:0)
 Class <org.gradle.vcs.git.internal.GitVersionControlSystem> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GitVersionControlSystem.java:0)
 Class <org.gradle.vcs.git.internal.GitVersionRef> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GitVersionRef.java:0)

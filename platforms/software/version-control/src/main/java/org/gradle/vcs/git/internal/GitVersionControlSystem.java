@@ -31,6 +31,7 @@ import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
+import org.eclipse.jgit.transport.sshd.agent.ConnectorFactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -46,6 +47,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 /**
@@ -200,7 +202,24 @@ public class GitVersionControlSystem implements VersionControlSystem {
         public void configure(Transport transport) {
             if (transport instanceof SshTransport) {
                 SshTransport sshTransport = (SshTransport) transport;
-                sshTransport.setSshSessionFactory(new SshdSessionFactory());
+                sshTransport.setSshSessionFactory(new GradleSshdSessionFactory());
+            }
+        }
+
+        private static class GradleSshdSessionFactory extends SshdSessionFactory {
+            @Override
+            protected ConnectorFactory getConnectorFactory() {
+                ConnectorFactory cf = super.getConnectorFactory();
+                if (cf == null) {
+                    ServiceLoader<ConnectorFactory> loader = ServiceLoader.load(ConnectorFactory.class, ConnectorFactory.class.getClassLoader());
+                    for (ConnectorFactory candidate : loader) {
+                        if (candidate.isSupported()) {
+                            cf = candidate;
+                            break;
+                        }
+                    }
+                }
+                return cf;
             }
         }
     }

@@ -30,6 +30,8 @@ dependencies {
     implementation(libs.jgitSsh)
     implementation(libs.jsr305)
 
+    runtimeOnly(libs.jgitSshAgent)
+
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
     testImplementation(projects.processServices)
