@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -67,15 +69,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scope.Project.class)
@@ -651,62 +655,59 @@ public class DependencyGraphBuilder {
             }
         }
 
-        // Collect the components to sort in consumer-first order
-        LinkedList<ComponentState> queue = new LinkedList<>();
-        for (ModuleResolveState module : resolveState.getModules()) {
-            if (module.getSelected() != null && !module.isVirtualPlatform()) {
-                queue.add(module.getSelected());
+        visitDfs(resolveState.getRoot(), node -> {
+            if (!node.getComponent().getModule().isVirtualPlatform()) {
+                visitor.visitEdges(node);
             }
-        }
-
-        // Visit the edges after sorting the components in consumer-first order
-        while (!queue.isEmpty()) {
-            ComponentState component = queue.peekFirst();
-            if (component.getVisitState() == VisitState.NotSeen) {
-                component.setVisitState(VisitState.Visiting);
-                int pos = 0;
-                for (NodeState node : component.getNodes()) {
-                    if (!node.isSelected()) {
-                        continue;
-                    }
-                    for (EdgeState edge : node.getIncomingEdges()) {
-                        ComponentState owner = edge.getFrom().getOwner();
-                        if (owner.getVisitState() == VisitState.NotSeen && !owner.getModule().isVirtualPlatform()) {
-                            queue.add(pos, owner);
-                            pos++;
-                        } // else, already visited or currently visiting (which means a cycle), skip
-                    }
-                }
-                if (pos == 0) {
-                    // have visited all consumers, so visit this node
-                    component.setVisitState(VisitState.Visited);
-                    queue.removeFirst();
-                    for (NodeState node : component.getNodes()) {
-                        if (node.isSelected()) {
-                            visitor.visitEdges(node);
-                        }
-                    }
-                }
-            } else if (component.getVisitState() == VisitState.Visiting) {
-                // have visited all consumers, so visit this node
-                component.setVisitState(VisitState.Visited);
-                queue.removeFirst();
-                for (NodeState node : component.getNodes()) {
-                    if (node.isSelected()) {
-                        visitor.visitEdges(node);
-                    }
-                }
-            } else {
-                // else, already visited previously, skip
-                queue.removeFirst();
-            }
-        }
+        });
 
         visitor.finish(resolveState.getRoot());
     }
 
-    enum VisitState {
-        NotSeen, Visiting, Visited
+    // TODO: There are ways to avoid allocating a new NodeInfo for each node, if we
+    // determine that to be a performance bottleneck. Some options are using a second
+    // stack to store the iterator. Or, storing the iterator in the NodeState itself.
+    // For now, we use a separate class here for simplicity.
+    private static class NodeInfo {
+        final NodeState node;
+        final Iterator<EdgeState> edgeIterator;
+
+        public NodeInfo(NodeState node) {
+            this.node = node;
+            this.edgeIterator = Iterables.filter(Lists.reverse(node.getOutgoingEdges()), x -> !x.isConstraint()).iterator();
+        }
+    }
+
+    /**
+     * Performs a depth-first search (DFS) traversal of the dependency graph starting from the given root node.
+     * Nodes are traversed post-order, meaning that a node is visited after all its children have been visited.
+     */
+    public static void visitDfs(NodeState root, Consumer<NodeState> visitor) {
+        Deque<NodeInfo> stack = new ArrayDeque<>();
+        Set<NodeState> seen = new HashSet<>();
+
+        seen.add(root);
+        stack.push(new NodeInfo(root));
+
+        while (!stack.isEmpty()) {
+            NodeInfo currentFrame = stack.peek();
+            Iterator<EdgeState> currentEdgeIterator = currentFrame.edgeIterator;
+
+            if (currentEdgeIterator.hasNext()) {
+                NodeState child = currentEdgeIterator.next().getSelectedNode();
+                if (child != null) {
+                    // Child may be null in two cases:
+                    // 1. The edge has a failure attached.
+                    // 2. There is a bug in the graph builder.
+                    if (seen.add(child)) {
+                        stack.push(new NodeInfo(child));
+                    }
+                }
+            } else {
+                NodeInfo processedFrame = stack.pop();
+                visitor.accept(processedFrame.node);
+            }
+        }
     }
 
 }

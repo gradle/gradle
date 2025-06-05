@@ -21,6 +21,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -31,7 +32,7 @@ public interface DependencyGraphNode extends ResolvedGraphVariant {
 
     DependencyGraphComponent getOwner();
 
-    Collection<? extends DependencyGraphEdge> getIncomingEdges();
+    List<? extends DependencyGraphEdge> getIncomingEdges();
 
     Collection<? extends DependencyGraphEdge> getOutgoingEdges();
 
