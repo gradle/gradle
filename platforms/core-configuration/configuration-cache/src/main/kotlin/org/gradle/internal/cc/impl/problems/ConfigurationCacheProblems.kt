@@ -190,7 +190,7 @@ class ConfigurationCacheProblems(
             onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
             object : ErrorsAreProblemsProblemsListener(failureFactory) {
                 override fun onProblem(problem: PropertyProblem) {
-                    onProblem(problem, ProblemSeverity.Suppressed)
+                    onProblem(problem, ProblemSeverity.DegradationRequested)
                 }
             }
         } else this
@@ -281,7 +281,9 @@ class ConfigurationCacheProblems(
 
     private
     fun ProblemSeverity.toProblemSeverity() = when {
-        this == ProblemSeverity.Suppressed -> Severity.ADVICE
+        this == ProblemSeverity.Suppressed ||
+            this == ProblemSeverity.DegradationRequested -> Severity.ADVICE
+
         isWarningMode -> Severity.WARNING
         else -> Severity.ERROR
     }
@@ -375,6 +377,7 @@ class ConfigurationCacheProblems(
             when {
                 seenSerializationErrorOnStore && deferredProblemCount == 0 -> log("Configuration cache entry discarded due to serialization error.")
                 seenSerializationErrorOnStore -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == Store && shouldDegradeGracefully() -> log("Configuration caching disabled${degradationSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -389,6 +392,23 @@ class ConfigurationCacheProblems(
                 // else not storing or loading and no problems to report
             }
         }
+    }
+
+    private
+    fun degradationSummary(): String {
+        val tasks = degradationController.degradationReasons.keys.map { locationForTask(it) }
+
+        return StringBuilder().apply {
+            append(" because degradation was requested.")
+            if (tasks.isNotEmpty()) {
+                appendLine()
+                append("- Incompatible tasks:")
+                tasks.forEach {
+                    appendLine()
+                    append("\t- ${it.render()}")
+                }
+            }
+        }.toString()
     }
 
     private

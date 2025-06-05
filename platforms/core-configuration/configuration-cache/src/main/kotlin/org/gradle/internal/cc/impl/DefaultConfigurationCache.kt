@@ -610,7 +610,6 @@ class DefaultConfigurationCache internal constructor(
             }
             WorkGraphStoreResult(stateStoreResult.accessedFiles, stateStoreResult.value)
         }
-
     }
 
     private
