@@ -61,6 +61,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
 import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyAttributes
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
+import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Type
 
@@ -79,7 +80,7 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
 private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragments = accessor.run {
     val className = "${accessor.spec.softwareTypeName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
     val functionName = spec.softwareTypeName.original
-    val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>()))
+    val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>(), emptyList()))
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
     val deprecation = accessor.spec.modelType.deprecation()
 
@@ -842,6 +843,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinExtensionType, jvmExtensionType) = accessibleTypesFor(extensionType)
     val deprecation = accessorSpec.type.deprecation()
+    val optInRequirement = accessorSpec.type.requiredOptIns()
 
     return className to sequenceOf(
 
@@ -857,6 +859,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                         withLowPriorityInOverloadResolution()
                     }
                     maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optInRequirement)
                     ALOAD(0)
                     LDC(name.original)
                     invokeRuntime(
@@ -873,6 +876,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     propertyAttributes = maybePropertyHasAnnotations {
                         readOnlyPropertyAttributes()
                         hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optInRequirement)
                     },
                     name = propertyName,
                     receiverType = receiverType,
@@ -894,6 +898,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                         withLowPriorityInOverloadResolution()
                     }
                     maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optInRequirement)
                     ALOAD(0)
                     CHECKCAST(GradleTypeName.extensionAware)
                     INVOKEINTERFACE(
@@ -916,6 +921,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     functionAttributes = maybeFunctionHasAnnotations {
                         publicFunctionAttributes()
                         hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optInRequirement)
                     },
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
@@ -948,6 +954,24 @@ private fun KmPropertyAccessorAttributes.hasAnnotationsIfDeprecated(deprecation:
     }
 }
 
+private fun KmFunction.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
+    if (optInRequirements != null) {
+        hasAnnotations = true
+    }
+}
+
+private fun KmProperty.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
+    if (optInRequirements != null) {
+        hasAnnotations = true
+    }
+}
+
+private fun KmPropertyAccessorAttributes.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
+    if (optInRequirements != null) {
+        hasAnnotations = true
+    }
+}
+
 
 private
 fun MethodVisitor.withLowPriorityInOverloadResolution() {
@@ -964,6 +988,52 @@ private fun MethodVisitor.maybeWithDeprecation(deprecated: Deprecated?) {
     }
 }
 
+private object AnnotationUtils {
+    private fun handleAnnotation(
+        annotation: AnnotationRepresentation,
+        visitAnnotation: (typeDescriptor: String) -> AnnotationVisitor
+    ) {
+        val annotationClass = annotation.type.value.concreteClass
+        visitAnnotation(Type.getDescriptor(annotationClass)).run {
+            for ((name, valueRepresentation) in annotation.values) {
+                visitValue(name, valueRepresentation)
+            }
+            visitEnd()
+        }
+    }
+
+    fun MethodVisitor.writeAnnotation(annotation: AnnotationRepresentation) {
+        handleAnnotation(annotation) { visitAnnotation(it, true) }
+    }
+
+    fun AnnotationVisitor.writeAnnotation(name: String?, annotation: AnnotationRepresentation) {
+        handleAnnotation(annotation) { visitAnnotation(name, it) }
+    }
+
+    private fun AnnotationVisitor.visitValue(name: String?, value: AnnotationValueRepresentation) {
+        when (value) {
+            is AnnotationValueRepresentation.AnnotationValue -> writeAnnotation(name, value.representation)
+            is AnnotationValueRepresentation.ClassValue -> visit(name, Type.getType(value.type.value.concreteClass))
+            is AnnotationValueRepresentation.EnumValue -> visit(name, arrayOf<String>(Type.getDescriptor(value.type.value.concreteClass), value.entryName))
+            is AnnotationValueRepresentation.PrimitiveValue -> visit(name, value.value)
+            is AnnotationValueRepresentation.ValueArray -> visitArray(name).run {
+                value.elements.forEach { element ->
+                    visitValue(null, element)
+                }
+                visitEnd()
+            }
+        }
+    }
+
+}
+
+private fun MethodVisitor.maybeWithOptInRequirement(optInRequirements: List<AnnotationRepresentation>?) {
+    optInRequirements?.forEach { annotation ->
+        with(AnnotationUtils) {
+            writeAnnotation(annotation)
+        }
+    }
+}
 
 private
 fun fragmentsForModelDefault(
@@ -1037,6 +1107,7 @@ private
 fun TypeAccessibility.Accessible.internalName() =
     type.value.concreteClass.internalName
 
+@Suppress("ERROR_SUPPRESSION")
 internal fun TypeAccessibility.deprecation(): Deprecated? =
     when (this) {
         is TypeAccessibility.Accessible -> type.value.concreteClass.run {
@@ -1044,6 +1115,13 @@ internal fun TypeAccessibility.deprecation(): Deprecated? =
                 ?: (annotations.find { it is java.lang.Deprecated } as java.lang.Deprecated?)?.let { Deprecated("Deprecated in Java") }
         }
 
+        else -> null
+    }
+
+@Suppress("ERROR_SUPPRESSION")
+internal fun TypeAccessibility.requiredOptIns(): List<AnnotationRepresentation>? =
+    when (this) {
+        is TypeAccessibility.Accessible -> this.optInRequirements.takeIf { it.isNotEmpty() }
         else -> null
     }
 

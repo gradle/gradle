@@ -62,7 +62,13 @@ data class AccessorScope(
 internal
 fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString, type.deprecation())
+        is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(
+            receiver.type.kotlinString,
+            name,
+            type.type.kotlinString,
+            type.deprecation(),
+            receiver.optInRequirements + type.optInRequirements
+        )
         is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(receiver.type.kotlinString, name, type)
     }
 }
@@ -88,22 +94,76 @@ internal fun maybeDeprecationAnnotations(deprecation: Deprecated?): String {
     }
 }
 
+private fun maybeOptInAnnotationSource(optInAnnotations: List<AnnotationRepresentation>): String {
+    val annotationSources = object {
+        private fun annotationValueSource(annotationValueRepresentation: AnnotationValueRepresentation): String = when (annotationValueRepresentation) {
+            is AnnotationValueRepresentation.AnnotationValue -> annotationSource(annotationValueRepresentation.representation, asValue = true)
+            is AnnotationValueRepresentation.ClassValue -> annotationValueRepresentation.type.kotlinString + "::class"
+            is AnnotationValueRepresentation.EnumValue -> annotationValueRepresentation.type.kotlinString + "." + annotationValueRepresentation.entryName
+            is AnnotationValueRepresentation.PrimitiveValue -> annotationValueRepresentation.value.let { if (it is String) "\"$it\"" else it.toString() }
+            is AnnotationValueRepresentation.ValueArray -> annotationValueRepresentation.elements.joinToString(", ", "[", "]") { annotationValueSource(it) }
+        }
+
+        fun annotationSource(annotationRepresentation: AnnotationRepresentation, asValue: Boolean = false): String = buildString {
+            if (!asValue) {
+                append("@")
+            }
+            append(annotationRepresentation.type.kotlinString)
+            if (annotationRepresentation.values.isNotEmpty() || asValue) {
+                append("(")
+                annotationRepresentation.values.entries.forEachIndexed { index, (name, value) ->
+                    if (name != "value" || annotationRepresentation.values.size > 1) {
+                        append(name)
+                        append(" = ")
+                    }
+                    append(annotationValueSource(value))
+                    if (index != annotationRepresentation.values.size - 1) append(", ")
+                }
+                append(")")
+            }
+        }
+    }
+
+
+    return optInAnnotations.map { annotationSources.annotationSource(it) }.let {
+        if (it.isNotEmpty()) {
+            buildString {
+                append(it.first())
+                if (it.size > 1) {
+                    appendLine()
+                    it.subList(1, it.size).forEach { appendLine("        $it") }
+                    append("        ")
+                } else {
+                    append("\n        ")
+                }
+            }
+        } else ""
+    }
+}
+
 
 private
-fun accessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, type: String, deprecation: Deprecated?): String = name.run {
+fun accessibleExtensionAccessorFor(
+    targetType: String,
+    name: AccessorNameSpec,
+    type: String,
+    deprecation: Deprecated?,
+    optInAnnotations: List<AnnotationRepresentation>
+): String = name.run {
     val maybeDeprecation = maybeDeprecationAnnotations(deprecation)
+    val maybeOptInAnnotations = maybeOptInAnnotationSource(optInAnnotations)
 
     """
         /**
          * Retrieves the [$original][$type] extension.
          */
-        ${maybeDeprecation}val $targetType.`$kotlinIdentifier`: $type get() =
+        ${maybeDeprecation}${maybeOptInAnnotations}val $targetType.`$kotlinIdentifier`: $type get() =
             $thisExtensions.getByName("$stringLiteral") as $type
 
         /**
          * Configures the [$original][$type] extension.
          */
-        ${maybeDeprecation}fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+        ${maybeDeprecation}${maybeOptInAnnotations}fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
             $thisExtensions.configure("$stringLiteral", configure)
 
     """.trimMargin()
