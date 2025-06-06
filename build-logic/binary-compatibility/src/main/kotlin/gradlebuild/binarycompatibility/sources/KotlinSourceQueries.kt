@@ -31,7 +31,6 @@ import javassist.CtField
 import javassist.CtMember
 import javassist.CtMethod
 import javassist.Modifier
-import org.jetbrains.kotlin.kdoc.psi.api.KDoc
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
@@ -54,32 +53,32 @@ object KotlinSourceQueries {
         }
     }
 
-    fun isSince(version: String, member: JApiCompatibility): (KtFile) -> Boolean = { ktFile ->
+    fun getSince(member: JApiCompatibility): (KtFile) -> SinceTagStatus = { ktFile ->
         val ctMember = member.newCtMember
         val ctDeclaringClass = ctMember.declaringClass
+        val declaringClassSince = ktFile.ktClassOf(ctDeclaringClass)?.getSince()
         when {
-            ctMember is CtMethod && ctMember.isSynthetic -> true // synthetic members cannot have kdoc
-            ctMember is CtClass -> ktFile.ktClassOf(ctMember)?.isDocumentedAsSince(version) == true
-            ktFile.ktClassOf(ctDeclaringClass)?.isDocumentedAsSince(version) == true -> true
+            ctMember is CtMethod && ctMember.isSynthetic -> SinceTagStatus.NotNeeded // synthetic members cannot have kdoc
+            ctMember is CtClass -> ktFile.ktClassOf(ctMember).getSinceStatus()
             else -> when (ctMember) {
-                is CtField -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
-                is CtConstructor -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
-                is CtMethod -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
+                is CtField -> ktFile.getSince(ctDeclaringClass, ctMember, fallback = declaringClassSince)
+                is CtConstructor -> ktFile.getSince(ctDeclaringClass, ctMember, fallback = declaringClassSince)
+                is CtMethod -> ktFile.getSince(ctDeclaringClass, ctMember, fallback = declaringClassSince)
                 else -> error("Unsupported japicmp member type '${member::class}'")
             }
         }
     }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, declaringClass: CtClass, field: CtField): Boolean =
+    fun KtFile.getSince(declaringClass: CtClass, field: CtField, fallback: String?): SinceTagStatus =
         "${declaringClass.baseQualifiedKotlinName}.${field.name}".let { fqn ->
             collectDescendantsOfType<KtProperty>()
                 .firstOrNull { it.fqName?.asString() == fqn }
-                ?.isDocumentedAsSince(version) == true
+                .getSinceStatus(fallback)
         }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, declaringClass: CtClass, constructor: CtConstructor): Boolean {
+    fun KtFile.getSince(declaringClass: CtClass, constructor: CtConstructor, fallback: String?): SinceTagStatus {
         val classFqName = declaringClass.name
         val ctorParamTypes = constructor.parameterTypes.map { it.name }
         return collectDescendantsOfType<KtConstructor<*>>()
@@ -89,14 +88,43 @@ object KotlinSourceQueries {
                 val sameParamTypes = sameParamCount && ctorParamTypes.mapIndexed { idx, paramType -> paramType.endsWith(ktCtor.valueParameters[idx].typeReference!!.text) }.all { it }
                 sameName && sameParamCount && sameParamTypes
             }
-            ?.isDocumentedAsSince(version) == true
+            .getSinceStatus(fallback)
     }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, declaringClass: CtClass, method: CtMethod): Boolean =
-        kotlinDeclarationSatisfies(declaringClass, method) { declaration ->
-            declaration.isDocumentedAsSince(version)
+    fun KtFile.getSince(declaringClass: CtClass, method: CtMethod, fallback: String?): SinceTagStatus {
+        val qualifiedBaseName = declaringClass.baseQualifiedKotlinName
+
+        val functions = collectKtFunctionsFor(qualifiedBaseName, method)
+        if (functions.isNotEmpty()) {
+            return getSinceStatus(functions, fallback)
         }
+
+        val properties = collectKtPropertiesFor(qualifiedBaseName, method)
+        return getSinceStatus(properties, fallback)
+    }
+
+    private
+    fun getSinceStatus(declarations: List<KtDeclaration>, fallback: String?): SinceTagStatus {
+        val sinceTags = declarations.map { it.getSince() }
+        return when {
+            sinceTags.isEmpty() -> {
+                fallback?.let { SinceTagStatus.Present(it) } ?: SinceTagStatus.Missing
+            }
+
+            sinceTags.all { it == sinceTags.first() } -> {
+                (sinceTags.first() ?: fallback)?.let { SinceTagStatus.Present(it) } ?: SinceTagStatus.Missing
+            }
+
+            else -> {
+                SinceTagStatus.Inconsistent(sinceTags)
+            }
+        }
+    }
+
+    private
+    fun KtDeclaration?.getSinceStatus(fallback: String? = null): SinceTagStatus =
+        (this?.getSince() ?: fallback)?.let { SinceTagStatus.Present(it) } ?: SinceTagStatus.Missing
 }
 
 
@@ -285,13 +313,11 @@ fun KtFile.ktClassOf(member: CtClass) =
 
 
 private
-fun KtDeclaration.isDocumentedAsSince(version: String) =
-    docComment?.isSince(version) == true
+val SINCE_REGEX = Regex("""@since ([^\s]+)""")
 
 
-private
-fun KDoc.isSince(version: String) =
-    text.contains("@since $version")
+fun KtDeclaration.getSince(): String? =
+    docComment?.let { SINCE_REGEX.find(it.text)?.groupValues?.get(1) }
 
 
 private

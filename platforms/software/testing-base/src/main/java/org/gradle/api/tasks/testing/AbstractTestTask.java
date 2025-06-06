@@ -714,7 +714,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * Whether the task should fail if test sources are present, but no tests are discovered during test execution.  Defaults to true.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     @Input
     abstract public Property<Boolean> getFailOnNoDiscoveredTests();

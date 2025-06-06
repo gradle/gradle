@@ -426,6 +426,12 @@ abstract class AbstractBinaryCompatibilityTest {
                 "$thing ${describe(thing, desc)}: Is not annotated with @since 2.0."
             )
 
+        fun addedWithInvalidSince(thing: String, desc: String): List<String> =
+            listOf(
+                "$thing ${describe(thing, desc)}: Is not annotated with @Incubating.",
+                "$thing ${describe(thing, desc)}: Has invalid @since: it should be 2.0, but currently is 1.0."
+            )
+
         fun removed(thing: String, desc: String): Pair<String, List<String>> =
             "$thing ${describe(thing, desc)}: Is not binary compatible." to listOf("$thing has been removed")
 
