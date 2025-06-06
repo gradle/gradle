@@ -16,12 +16,13 @@
 
 package org.gradle.jvm.toolchain
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -30,22 +31,14 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolv
 
 @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
-    static final JavaVersion JAVA_VERSION = AvailableJavaHomes.differentVersion.javaVersion
-
-    static final String TOOLCHAIN_WITH_VERSION = """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${JAVA_VERSION.majorVersion})
-                }
-            }
-        """
+    static final Jvm EXPECTED_JVM = AvailableJavaHomes.differentVersion
 
     static JdkRepository jdkRepository
 
     static URI uri
 
     def setupSpec() {
-        jdkRepository = new JdkRepository(JAVA_VERSION)
+        jdkRepository = new JdkRepository(EXPECTED_JVM.javaVersion)
         uri = jdkRepository.start()
     }
 
@@ -65,7 +58,11 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
                 id "java"
             }
 
-            $TOOLCHAIN_WITH_VERSION
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${EXPECTED_JVM.javaVersion.majorVersion})
+                }
+            }
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -120,7 +117,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         settingsFile.text = ''
 
         then: "build runs again, uses previously auto-provisioned toolchain and warns about toolchain repositories not being configured"
-        executer.expectDocumentedDeprecationWarning("Using toolchain 'Eclipse Temurin JDK 24 (24+36)' installed via auto-provisioning without toolchain repositories. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Builds may fail when this toolchain is not available in other environments. Add toolchain repositories to this build. For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories in the Gradle documentation.")
+        def toolchainName = AvailableJavaHomes.getJvmInstallationMetadata(EXPECTED_JVM).displayName
+        executer.expectDocumentedDeprecationWarning("Using toolchain '${toolchainName}' installed via auto-provisioning without toolchain repositories. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Builds may fail when this toolchain is not available in other environments. Add toolchain repositories to this build. For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories in the Gradle documentation.")
         succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
     }
 
@@ -134,29 +132,27 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         assertJdkWasDownloaded()
 
         when:
-        def differentJdk = AvailableJavaHomes.getDifferentVersion { (it.languageVersion != JAVA_VERSION) }
+        def differentJdk = AvailableJavaHomes.getDifferentVersion(EXPECTED_JVM.javaVersion)
         def jdkRepository2 = new JdkRepository(differentJdk.javaVersion)
         def uri2 = jdkRepository2.start()
         jdkRepository2.reset()
 
         and:
         settingsFile.text = settingsFile.text.replace(uri.toString(), uri2.toString())
-        buildFile.text = buildFile.text.replace(TOOLCHAIN_WITH_VERSION,
-            """
+        buildFile << """
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${differentJdk.javaVersion.majorVersion})
                 }
             }
-            """
-        )
+        """
 
         and:
         executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality").withToolchainDownloadEnabled()
         succeeds("compileJava")
 
         then: "another suitable JDK gets auto-provisioned"
-        assertJdkWasDownloaded(differentJdk.javaVersion)
+        assertJdkWasDownloaded(differentJdk)
 
         cleanup:
         jdkRepository2.stop()
@@ -199,9 +195,9 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         assertJdkWasDownloaded()
     }
 
-    private void assertJdkWasDownloaded(JavaVersion javaVersion = JAVA_VERSION, String implementation = null) {
+    private void assertJdkWasDownloaded(Jvm jvm = EXPECTED_JVM) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-${javaVersion.majorVersion}-") && (implementation == null || file.name.contains(implementation))
+            file.name.contains("-${jvm.javaVersion.majorVersion}-")
         } as FileFilter)
     }
 
