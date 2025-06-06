@@ -61,11 +61,11 @@ In contrast to <<#sub:terminology_resolution_rule, resolution rules>>, component
 Component metadata rules are defined as part of the build logic and can be shared through plugins.
 For more information, see the section on <<component_metadata_rules.adoc#component-metadata-rules,fixing metadata with component metadata rules>>.
 
-[[sub:terminology_configuration]]
+[[terminology_configuration]]
 Configuration::
-A configuration is a named set of <<#sub:terminology_dependency, dependencies>> grouped together for a specific goal.
-Configurations provide access to the underlying, resolved <<#sub:terminology_module, modules>> and their artifacts.
-For more information, see the sections on <<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency configurations>> as well as <<declaring_configurations.adoc#sec:resolvable-consumable-configs,resolvable and consumable configurations>>.
+A configuration is a named set of <<terminology_dependency, dependencies>> grouped together for a specific goal.
+Configurations provide access to the underlying, resolved <<terminology_module, modules>> and their artifacts.
+For more information, see the sections on <<dependency_configurations.adoc#what-are-dependency-configurations, dependency configurations>> as well as <<declaring_configurations.adoc#resolvable-consumable-configs, resolvable and consumable configurations>>.
 +
 NOTE: The word "configuration" is an overloaded term that has a different meaning outside of dependency management.
 
