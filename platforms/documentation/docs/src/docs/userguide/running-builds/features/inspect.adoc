@@ -49,7 +49,7 @@ $ gradle build --scan
 ----
 
 For older Gradle versions, the
-https://docs.gradle.com/build-scan-plugin/#getting_set_up[Build Scan Plugin User Manual] explains how to enable a Build Scan.
+https://docs.gradle.com/develocity/gradle-plugin/current/#getting_set_up[Develocity Plugin User Manual] explains how to enable a Build Scan.
 
 At the end of your build, Gradle displays a URL where you can find your Build Scan:
 
