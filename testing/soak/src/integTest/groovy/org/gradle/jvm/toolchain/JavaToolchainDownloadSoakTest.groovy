@@ -30,11 +30,9 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolv
 
 @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
+    static final JavaVersion JAVA_VERSION = AvailableJavaHomes.differentVersion.javaVersion
 
-    public static final JavaVersion JAVA_VERSION = AvailableJavaHomes.differentVersion.javaVersion
-
-
-    public static final String TOOLCHAIN_WITH_VERSION = """
+    static final String TOOLCHAIN_WITH_VERSION = """
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${JAVA_VERSION.majorVersion})
@@ -82,10 +80,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def "can download missing jdk automatically"() {
         when:
-        result = executer
-                .withTasks("compileJava")
-                .run()
-
+        succeeds("compileJava")
         then:
         javaClassFile("Foo.class").assertExists()
         assertJdkWasDownloaded()
@@ -93,9 +88,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def "clean destination folder when downloading toolchain"() {
         when: "build runs and doesn't have a local JDK to use for compilation"
-        result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .run()
+        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
@@ -109,9 +102,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         and: "build runs again"
         jdkRepository.expectHead()
-        executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
-                .run()
+        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
 
         then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
         markerFile.exists()
@@ -119,9 +110,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def "issue warning on using auto-provisioned toolchain with no configured repositories"() {
         when: "build runs and doesn't have a local JDK to use for compilation"
-        result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .run()
+        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
@@ -131,22 +120,15 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         settingsFile.text = ''
 
         then: "build runs again, uses previously auto-provisioned toolchain and warns about toolchain repositories not being configured"
-        executer
-                .expectDocumentedDeprecationWarning("Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured. " +
-                        "This behavior is deprecated. Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
-                        "see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
-                .run()
+        executer.expectDocumentedDeprecationWarning("Using toolchain 'Eclipse Temurin JDK 24 (24+36)' installed via auto-provisioning without toolchain repositories. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Builds may fail when this toolchain is not available in other environments. Add toolchain repositories to this build. For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories in the Gradle documentation.")
+        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
     }
 
     @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
     def "toolchain download can handle different jvms with the same archive name"() {
         when:
-        result = executer
-            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
-            .withToolchainDownloadEnabled()
-            .withTasks("compileJava")
-            .run()
+        executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality").withToolchainDownloadEnabled()
+        succeeds("compileJava")
 
         then: "suitable JDK gets auto-provisioned"
         assertJdkWasDownloaded()
@@ -170,11 +152,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         )
 
         and:
-        result = executer
-            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
-            .withToolchainDownloadEnabled()
-            .withTasks("compileJava")
-            .run()
+        executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality").withToolchainDownloadEnabled()
+        succeeds("compileJava")
 
         then: "another suitable JDK gets auto-provisioned"
         assertJdkWasDownloaded(differentJdk.javaVersion)
@@ -186,11 +165,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
     def "toolchain download can handle corrupted archive"() {
         when:
-        result = executer
-            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
-            .withToolchainDownloadEnabled()
-            .withTasks("compileJava")
-            .run()
+        executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality").withToolchainDownloadEnabled()
+        succeeds("compileJava")
 
         then: "suitable JDK gets auto-provisioned"
         assertJdkWasDownloaded()
@@ -211,12 +187,11 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         file("src/main/java/Bar.java") << "public class Bar {}"
 
         and:
-        result = executer
+        executer
             .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
             .withToolchainDownloadEnabled()
-            .withTasks("compileJava", "--info")
-            .withStackTraceChecksDisabled()
-            .run()
+        executer.withStackTraceChecksDisabled()
+        succeeds("compileJava", "--info")
 
         then:
         output.matches("(?s).*Re-downloading toolchain from URI .* because unpacking the existing archive .* failed with an exception.*")
