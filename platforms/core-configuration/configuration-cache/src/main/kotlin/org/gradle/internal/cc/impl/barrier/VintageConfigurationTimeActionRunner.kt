@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.barrier
 
+import org.gradle.api.configuration.BuildFeatures
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.internal.cc.impl.ConfigurationCacheInputsListener
@@ -30,11 +31,16 @@ import org.gradle.internal.service.scopes.ServiceScope
  */
 @ServiceScope(Scope.BuildTree::class)
 internal class VintageConfigurationTimeActionRunner(
+    buildFeatures: BuildFeatures,
     configurationTimeBarrier: ConfigurationTimeBarrier,
     private val inputsListener: ConfigurationCacheInputsListener
 ) {
     private val configurationTimeBarrier = configurationTimeBarrier as DefaultConfigurationTimeBarrier
-
+    init {
+        require(!buildFeatures.configurationCache.active.get()) {
+            "This class should not be used with the configuration cache enabled."
+        }
+    }
     fun <T> runConfigurationTimeAction(action: () -> T): T {
         configurationTimeBarrier.prepare()
         InstrumentedInputs.setListener(inputsListener)
