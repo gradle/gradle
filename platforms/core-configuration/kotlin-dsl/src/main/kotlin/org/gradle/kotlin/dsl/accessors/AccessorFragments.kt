@@ -1017,7 +1017,7 @@ private object AnnotationUtils {
         when (value) {
             is AnnotationValueRepresentation.AnnotationValue -> writeAnnotation(name, value.representation)
             is AnnotationValueRepresentation.ClassValue -> visit(name, Type.getType(value.type.value.concreteClass))
-            is AnnotationValueRepresentation.EnumValue -> visit(name, arrayOf<String>(Type.getDescriptor(value.type.value.concreteClass), value.entryName))
+            is AnnotationValueRepresentation.EnumValue -> visitEnum(name, Type.getDescriptor(value.type.value.concreteClass), value.entryName)
             is AnnotationValueRepresentation.PrimitiveValue -> visit(name, value.value)
             is AnnotationValueRepresentation.ValueArray -> visitArray(name).run {
                 value.elements.forEach { element ->

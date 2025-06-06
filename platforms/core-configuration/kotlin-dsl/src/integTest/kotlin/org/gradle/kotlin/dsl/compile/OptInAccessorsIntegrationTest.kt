@@ -32,8 +32,10 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
             annotation class Foo
 
+            enum class Bar { FOO, BAR }
+
             @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
-            annotation class SomeExperimentalApi(val foo: Foo, val i: Int, val s: String, vararg val a: Foo)
+            annotation class SomeExperimentalApi(val foo: Foo, val bar: Bar, val i: Int, val s: String, vararg val a: Foo)
         """.trimIndent())
 
         withFile(
@@ -41,7 +43,7 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             """
                 import com.example.*
 
-                @SomeExperimentalApi(Foo(), 42, "some-string", a = [Foo(), Foo()])
+                @SomeExperimentalApi(Foo(), Bar.BAR, 42, "some-string", a = [Foo(), Foo()])
                 abstract class SomeExtension
 
                 @OptIn(SomeExperimentalApi::class)
@@ -116,10 +118,12 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         withBuildSrcDependingOnAnotherPlugin(
             pluginCode = pluginAddingAnExtensionWithOptInAnnotations(
                 """
+                    enum class Foo { FOO, BAR }
+
                     @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
-                    annotation class SomeExperimentalApi(val someString: String, val someInt: Int)
+                    annotation class SomeExperimentalApi(val someString: String, val someInt: Int, val foo: Foo)
                 """.trimIndent(), """
-                    @SomeExperimentalApi("some-string", 42)
+                    @SomeExperimentalApi("some-string", 42, Foo.FOO)
                 """.trimIndent(), """
                     @OptIn(SomeExperimentalApi::class)
                 """.trimIndent()
@@ -131,7 +135,7 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 /**
                  * Retrieves the [ext][org.gradle.api.plugins.ExtraPropertiesExtension] extension.
                  */
-                @com.example.SomeExperimentalApi(someInt = 42, someString = "some-string")
+                @com.example.SomeExperimentalApi(foo = com.example.Foo.FOO, someInt = 42, someString = "some-string")
                 internal
                 val com.example.SomeExtension.`ext`: org.gradle.api.plugins.ExtraPropertiesExtension get() =
                     (this as org.gradle.api.plugins.ExtensionAware).extensions.getByName("ext") as org.gradle.api.plugins.ExtraPropertiesExtension
@@ -139,7 +143,7 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 /**
                  * Configures the [ext][org.gradle.api.plugins.ExtraPropertiesExtension] extension.
                  */
-                @com.example.SomeExperimentalApi(someInt = 42, someString = "some-string")
+                @com.example.SomeExperimentalApi(foo = com.example.Foo.FOO, someInt = 42, someString = "some-string")
                 internal
                 fun com.example.SomeExtension.`ext`(configure: Action<org.gradle.api.plugins.ExtraPropertiesExtension>): Unit =
                     (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("ext", configure)
