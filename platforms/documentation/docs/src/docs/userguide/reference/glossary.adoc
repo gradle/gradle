@@ -77,7 +77,7 @@ The configuration phase happens first and is single-threaded.
 
 [[sub:terminology_convention_plugin]]
 Convention Plugin::
-A <<sub:terminology_plugin>> built on top of an <<sub:terminology_ecosystem_plugin,ecosystem plugin>>, which applies common _conventions_ to the build script that uses the plugin.
+A link:https://docs.gradle.org/current/userguide/custom_plugins.html#sec:convention_plugins[Convention plugins] built on top of an <<sub:terminology_ecosystem_plugin,ecosystem plugin>>, which applies common _conventions_ to the build script that uses the plugin.
 
 [[sub:terminology_cross_configuration]]
 Cross-Configuration::
