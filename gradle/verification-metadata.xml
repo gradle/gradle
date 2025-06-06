@@ -546,22 +546,6 @@
             <sha256 value="a0752e3164203444f77f08662e34267320f9435e76de41864a3e8a8e4781043f" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="com.beust" name="jcommander" version="1.35">
-         <artifact name="jcommander-1.35.jar">
-            <pgp value="F60DB6893AB3825459528EADCC54B93C018511A4"/>
-         </artifact>
-      </component>
-      <component group="com.beust" name="jcommander" version="1.72">
-         <artifact name="jcommander-1.72.jar">
-            <pgp value="67497E9D680CE8E95BD6B8F85AD66315FC018797"/>
-         </artifact>
-      </component>
-      <component group="com.beust" name="jcommander" version="1.78">
-         <artifact name="jcommander-1.78.jar">
-            <pgp value="C70B844F002F21F6D2B9C87522E44AC0622B91C3"/>
-            <pgp value="DCBA03381EF6C89096ACD985AC5EC74981F9CDA6"/>
-         </artifact>
-      </component>
       <component group="com.burgstaller" name="okhttp-digest" version="1.10">
          <artifact name="okhttp-digest-1.10.jar">
             <sha256 value="be46341a814e786c14c5d0e6cf5d470e55fff468b99509437c4014d8b2a20ce4" reason="Artifact is not signed"/>
@@ -1353,11 +1337,6 @@
       <component group="org.javassist" name="javassist" version="3.30.2-GA">
          <artifact name="javassist-3.30.2-GA.jar">
             <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" origin="Verified" reason="A key couldn't be downloaded"/>
-         </artifact>
-      </component>
-      <component group="org.jcommander" name="jcommander" version="1.85">
-         <artifact name="jcommander-1.85.jar">
-            <pgp value="1D85469D8559C2E1DF5F925131D2D79DF7E85DD3"/>
          </artifact>
       </component>
       <component group="org.jdom" name="jdom2" version="2.0.6.1">
