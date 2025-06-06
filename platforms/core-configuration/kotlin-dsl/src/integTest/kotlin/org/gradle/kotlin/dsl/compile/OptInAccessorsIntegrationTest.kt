@@ -24,6 +24,57 @@ import kotlin.test.Test
 class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
+    fun `when put in buildSrc directly, accessors to plugin code are valid`() {
+        withBuildSrcDependingOnAnotherPlugin(pluginCode = noopPlugin) // instead, we put the plugin source to buildSrc
+
+        withFile("buildSrc/src/main/kotlin/SomeExperimentalApi.kt", """
+            package com.example
+
+            annotation class Foo
+
+            @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
+            annotation class SomeExperimentalApi(val foo: Foo, val i: Int, val s: String, vararg val a: Foo)
+        """.trimIndent())
+
+        withFile(
+            "buildSrc/src/main/kotlin/myPlugin.gradle.kts",
+            """
+                import com.example.*
+
+                @SomeExperimentalApi(Foo(), 42, "some-string", a = [Foo(), Foo()])
+                abstract class SomeExtension
+
+                @OptIn(SomeExperimentalApi::class)
+                extensions.create("someExtension", SomeExtension::class.java)
+            """.trimIndent()
+        )
+
+        withBuildScript(
+            """
+                import com.example.SomeExperimentalApi
+
+                plugins {
+                    myPlugin
+                }
+
+                // opt-in needed here
+                someExtension {
+                    println(this)
+                }
+            """.trimIndent()
+        )
+
+        buildAndFail().assertHasErrorOutput("Some Experimental API")
+
+        file("build.gradle.kts").run {
+            text = text.replace("// opt-in needed here", "@OptIn(SomeExperimentalApi::class)")
+        }
+
+        build()
+    }
+
+
+    @Test
     fun `copies simple opt-in annotations from plugins to accessors`() {
         withBuildSrcDependingOnAnotherPlugin(
             pluginCode = pluginAddingAnExtensionWithOptInAnnotations(
@@ -525,4 +576,15 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         """.trimIndent()
         )
     }
+
+    private val noopPlugin = """
+        package com.example
+
+        import org.gradle.api.Plugin
+        import org.gradle.api.Project
+
+        class SomePlugin : Plugin<Project> {
+            override fun apply(project: Project) = Unit
+        }
+    """.trimIndent()
 }
