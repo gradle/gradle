@@ -96,9 +96,21 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     private fun withEcosystemAndPluginBuildInBuildLogic() {
         withFile(
             "build-logic/build.gradle.kts", """
+                import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
                 plugins {
                     id("java-gradle-plugin")
                     `kotlin-dsl`
+                }
+
+                kotlin {
+                    compilerOptions {
+                        jvmTarget = JvmTarget.JVM_1_8
+                    }
+                }
+
+                tasks.compileJava {
+                    targetCompatibility = "1.8"
                 }
 
                 repositories {
