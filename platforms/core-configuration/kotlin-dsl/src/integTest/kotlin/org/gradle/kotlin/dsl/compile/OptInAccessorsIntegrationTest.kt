@@ -17,13 +17,10 @@
 package org.gradle.kotlin.dsl.compile
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import kotlin.test.Test
 
-@Requires(UnitTestPreconditions.Jdk23OrEarlier::class) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
 class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
@@ -44,7 +41,27 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         build()
 
         println(allAccessorSourcesForBuildSrc())
-        // FIXME assertions
+
+        hasAccessorSource(
+            """
+                /**
+                 * Retrieves the [someExtension][com.example.SomeExtension] extension.
+                 */
+                @com.example.SomeExperimentalApi
+                internal
+                val org.gradle.api.Project.`someExtension`: com.example.SomeExtension get() =
+                    (this as org.gradle.api.plugins.ExtensionAware).extensions.getByName("someExtension") as com.example.SomeExtension
+
+                /**
+                 * Configures the [someExtension][com.example.SomeExtension] extension.
+                 */
+                @com.example.SomeExperimentalApi
+                internal
+                fun org.gradle.api.Project.`someExtension`(configure: Action<com.example.SomeExtension>): Unit =
+                    (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("someExtension", configure)
+            """.trimIndent()
+        )
+
     }
 
     @Test
@@ -64,8 +81,25 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
         build()
 
-        println(allAccessorSourcesForBuildSrc())
-        // FIXME assertions
+        hasAccessorSource(
+            """
+                /**
+                 * Retrieves the [ext][org.gradle.api.plugins.ExtraPropertiesExtension] extension.
+                 */
+                @com.example.SomeExperimentalApi(someInt = 42, someString = "some-string")
+                internal
+                val com.example.SomeExtension.`ext`: org.gradle.api.plugins.ExtraPropertiesExtension get() =
+                    (this as org.gradle.api.plugins.ExtensionAware).extensions.getByName("ext") as org.gradle.api.plugins.ExtraPropertiesExtension
+
+                /**
+                 * Configures the [ext][org.gradle.api.plugins.ExtraPropertiesExtension] extension.
+                 */
+                @com.example.SomeExperimentalApi(someInt = 42, someString = "some-string")
+                internal
+                fun com.example.SomeExtension.`ext`(configure: Action<org.gradle.api.plugins.ExtraPropertiesExtension>): Unit =
+                    (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("ext", configure)
+            """.trimIndent()
+        )
     }
 
 
@@ -97,9 +131,8 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
         build()
 
-        assertThat(
-            allAccessorSourcesForBuildSrc(),
-            containsString("""
+        hasAccessorSource(
+            ("""
                 /**
                  * Retrieves the [someExtension][com.example.SomeExtension] extension.
                  */
@@ -129,13 +162,14 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             pluginCode = pluginAddingAnExtensionWithOptInAnnotations(
                 """
                     annotation class OtherArg(val id: Int)
+                    annotation class ElementArg(val id: Int)
 
-                    annotation class Arg(val argValue: String, val otherArg: OtherArg)
+                    annotation class Arg(val argValue: String, val otherArg: OtherArg, vararg val elementArgs: ElementArg)
 
                     @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
-                    annotation class SomeExperimentalApi(val someString: String, val arg: Arg)
+                    annotation class SomeExperimentalApi(val someString: String, val arg: Arg, vararg val elementArg: ElementArg)
                 """.trimIndent(), """
-                    @SomeExperimentalApi("some-string", Arg("arg-value", OtherArg(42)))
+                    @SomeExperimentalApi("some-string", Arg("arg-value", OtherArg(42), ElementArg(1), ElementArg(2)), elementArg = [ElementArg(3), ElementArg(4)])
                 """.trimIndent(), """
                     @OptIn(SomeExperimentalApi::class)
                 """.trimIndent()
@@ -144,8 +178,27 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
         build()
 
-        println(allAccessorSourcesForBuildSrc())
-        // FIXME assertions
+        hasAccessorSource(
+            (
+                """
+                    /**
+                     * Retrieves the [someExtension][com.example.SomeExtension] extension.
+                     */
+                    @com.example.SomeExperimentalApi(arg = com.example.Arg(argValue = "arg-value", elementArgs = [com.example.ElementArg(id = 1), com.example.ElementArg(id = 2)], otherArg = com.example.OtherArg(id = 42)), elementArg = [com.example.ElementArg(id = 3), com.example.ElementArg(id = 4)], someString = "some-string")
+                    internal
+                    val org.gradle.api.Project.`someExtension`: com.example.SomeExtension get() =
+                        (this as org.gradle.api.plugins.ExtensionAware).extensions.getByName("someExtension") as com.example.SomeExtension
+
+                    /**
+                     * Configures the [someExtension][com.example.SomeExtension] extension.
+                     */
+                    @com.example.SomeExperimentalApi(arg = com.example.Arg(argValue = "arg-value", elementArgs = [com.example.ElementArg(id = 1), com.example.ElementArg(id = 2)], otherArg = com.example.OtherArg(id = 42)), elementArg = [com.example.ElementArg(id = 3), com.example.ElementArg(id = 4)], someString = "some-string")
+                    internal
+                    fun org.gradle.api.Project.`someExtension`(configure: Action<com.example.SomeExtension>): Unit =
+                        (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("someExtension", configure)
+                """.trimIndent()
+                )
+        )
     }
 
 
@@ -174,8 +227,27 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
         build()
 
-        println(allAccessorSourcesForBuildSrc())
-        // FIXME assertions
+        hasAccessorSource(
+            """
+                /**
+                 * Retrieves the [someExtension][com.example.SomeExtension] extension.
+                 */
+                @com.example.MoreExperimentalApi
+                @com.example.SomeExperimentalApi(arg = com.example.Arg(argValue = "arg-value"), someString = "some-string")
+                internal
+                val org.gradle.api.Project.`someExtension`: com.example.SomeExtension get() =
+                    (this as org.gradle.api.plugins.ExtensionAware).extensions.getByName("someExtension") as com.example.SomeExtension
+
+                /**
+                 * Configures the [someExtension][com.example.SomeExtension] extension.
+                 */
+                @com.example.MoreExperimentalApi
+                @com.example.SomeExperimentalApi(arg = com.example.Arg(argValue = "arg-value"), someString = "some-string")
+                internal
+                fun org.gradle.api.Project.`someExtension`(configure: Action<com.example.SomeExtension>): Unit =
+                    (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("someExtension", configure)
+            """.trimIndent()
+        )
     }
 
     @Test
@@ -197,9 +269,8 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
         build()
 
-        assertThat(
-            allAccessorSourcesForBuildSrc(),
-            containsString("""
+        hasAccessorSource(
+            """
                 /**
                  * Retrieves the `someExtension` extension.
                  *
@@ -219,9 +290,8 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 internal
                 fun org.gradle.api.Project.`someExtension`(configure: Action<Any>): Unit =
                     (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("someExtension", configure)
-            """.trimIndent())
+            """.trimIndent()
         )
-        println(allAccessorSourcesForBuildSrc())
     }
 
     @Test
@@ -249,9 +319,8 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
         build()
 
-        assertThat(
-            allAccessorSourcesForBuildSrc(),
-            containsString("""
+        hasAccessorSource(
+            """
                 /**
                  * Retrieves the `someExtension` extension.
                  *
@@ -271,7 +340,7 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 internal
                 fun org.gradle.api.Project.`someExtension`(configure: Action<Any>): Unit =
                     (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("someExtension", configure)
-            """.trimIndent())
+            """.trimIndent()
         )
     }
 
@@ -303,9 +372,8 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
         build()
 
-        assertThat(
-            allAccessorSourcesForBuildSrc(),
-            containsString("""
+        hasAccessorSource(
+            """
                 /**
                  * Retrieves the [ext][org.gradle.api.plugins.ExtraPropertiesExtension] extension.
                  */
@@ -321,10 +389,11 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 internal
                 fun com.example.SomePlugin.SomeExtension.`ext`(configure: Action<org.gradle.api.plugins.ExtraPropertiesExtension>): Unit =
                     (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("ext", configure)
-            """.trimIndent())
+            """.trimIndent()
         )
-
     }
+
+    private fun hasAccessorSource(source: String) = assertThat(allAccessorSourcesForBuildSrc(), containsString(source))
 
     private fun allAccessorSourcesForBuildSrc() =
         projectRoot.resolve("buildSrc/build/generated-sources/kotlin-dsl-accessors").walkTopDown().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }
