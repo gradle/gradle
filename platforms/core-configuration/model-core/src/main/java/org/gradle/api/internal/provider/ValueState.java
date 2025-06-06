@@ -73,9 +73,13 @@ public abstract class ValueState<S> {
 
     public abstract void disallowChanges();
 
+    public abstract boolean isDisallowChanges();
+
     public abstract void finalizeOnNextGet();
 
     public abstract void disallowUnsafeRead();
+
+    public abstract boolean isDisallowUnsafeRead();
 
     /**
      * Marks this value state as being explicitly assigned. Does not remember the given value in any way.
@@ -246,6 +250,11 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public boolean isDisallowChanges() {
+            return disallowChanges;
+        }
+
+        @Override
         public void finalizeOnNextGet() {
             finalizeOnNextGet = true;
         }
@@ -254,6 +263,11 @@ public abstract class ValueState<S> {
         public void disallowUnsafeRead() {
             disallowUnsafeRead = true;
             finalizeOnNextGet = true;
+        }
+
+        @Override
+        public boolean isDisallowUnsafeRead() {
+            return disallowUnsafeRead;
         }
 
         @Override
@@ -376,6 +390,11 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public boolean isDisallowChanges() {
+            return true;
+        }
+
+        @Override
         public void finalizeOnNextGet() {
             // Finalized already
         }
@@ -383,6 +402,11 @@ public abstract class ValueState<S> {
         @Override
         public void disallowUnsafeRead() {
             // Finalized already so read is safe
+        }
+
+        @Override
+        public boolean isDisallowUnsafeRead() {
+            return false;
         }
 
         @Override
