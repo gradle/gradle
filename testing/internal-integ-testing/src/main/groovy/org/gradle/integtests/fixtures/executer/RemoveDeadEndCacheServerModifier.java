@@ -30,7 +30,7 @@ import java.util.List;
  * We use "https://example.com:8123/cache/" as "example remote build cache url",
  * which will cause the sample hang minutes for "Requesting from remote build cache".
  *
- * This modifier clears the init or setting script if they includes "https://example.com:8123/cache/"
+ * This modifier clears the init or setting script if they include "https://example.com:8123/cache/"
  */
 public class RemoveDeadEndCacheServerModifier implements SampleModifier {
     private static final List<String> MANAGED_FILES = Arrays.asList("settings.gradle", "settings.gradle.kts", "init.gradle", "init.gradle.kts");
