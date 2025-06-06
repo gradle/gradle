@@ -19,11 +19,14 @@ package org.gradle.smoketests
 import groovy.transform.SelfType
 import groovy.transform.TupleConstructor
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 import java.util.function.Consumer
 
 @SelfType(BaseDeprecations)
 trait WithAndroidDeprecations {
+
+    private static final VersionNumber AGP_8_12 = VersionNumber.parse("8.12")
 
     @TupleConstructor
     private static class IsPropertyInfo {
@@ -50,15 +53,21 @@ trait WithAndroidDeprecations {
         }
     }
 
-    void expectIsPropertyDeprecationWarnings() {
+    void expectIsPropertyDeprecationWarnings(String agpVersion) {
         expectIsPropertyDeprecationWarningsUsing { message ->
-            runner.expectDeprecationWarning(message, "https://issuetracker.google.com/issues/370546370")
+            runner.expectLegacyDeprecationWarningIf(
+                VersionNumber.parse(agpVersion).baseVersion < AGP_8_12,
+                message
+            )
         }
     }
 
-    void maybeExpectIsPropertyDeprecationWarnings() {
+    void maybeExpectIsPropertyDeprecationWarnings(String agpVersion) {
         expectIsPropertyDeprecationWarningsUsing { message ->
-            runner.maybeExpectLegacyDeprecationWarning(message)
+            runner.maybeExpectLegacyDeprecationWarningIf(
+                VersionNumber.parse(agpVersion).baseVersion < AGP_8_12,
+                message
+            )
         }
     }
 
