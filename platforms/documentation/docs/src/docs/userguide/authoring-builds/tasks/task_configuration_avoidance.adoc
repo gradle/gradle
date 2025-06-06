@@ -105,7 +105,7 @@ We've also provided some recommended <<#sec:task_configuration_avoidance_migrati
 === Migration guidelines
 1. [[task_configuration_avoidance_guideline_use_help_task]] **Use `help` task as a benchmark during the migration.** +
 The `help` task is the perfect candidate to benchmark your migration process.
-In a build that uses only the configuration avoidance API, a link:https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd[build scan] shows no tasks created during configuration, and only the tasks executed are created.
+In a build that uses only the configuration avoidance API, a link:https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd[Build Scan] shows no tasks created during configuration, and only the tasks executed are created.
 
 2. [[task_configuration_avoidance_guideline_only_mutate_task_object]] **Only mutate the current task inside a configuration action.** +
 Because the task configuration action can now run immediately, later, or never, mutating anything other than the current task can cause indeterminate behavior in your build.
