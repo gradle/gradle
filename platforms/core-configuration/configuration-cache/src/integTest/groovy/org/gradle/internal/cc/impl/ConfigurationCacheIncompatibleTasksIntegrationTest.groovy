@@ -36,7 +36,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
-            problem "Build file 'build.gradle': line 16: invocation of 'Task.project' at execution time is unsupported."
+            problem "Build file 'build.gradle': line 16: invocation of 'Task.project' at execution time is unsupported with the configuration cache."
             problem "Task `:declared` of type `Broken`: error writing value of type 'BrokenSerializable'"
             incompatibleTask ":declared", "retains configuration container."
         }
@@ -49,7 +49,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
-            problem "Build file 'build.gradle': line 16: invocation of 'Task.project' at execution time is unsupported."
+            problem "Build file 'build.gradle': line 16: invocation of 'Task.project' at execution time is unsupported with the configuration cache."
             problem "Task `:declared` of type `Broken`: error writing value of type 'BrokenSerializable'"
             incompatibleTask ":declared", "retains configuration container."
         }
@@ -130,7 +130,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
 
         then:
         fixture.problems.assertFailureHasTooManyProblems(failure) {
-            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
             withProblem("Task `:notDeclared` of type `Broken`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
             withProblem("Task `:notDeclared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
             withProblem("Task `:declared` of type `Broken`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
@@ -203,7 +203,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
 
         then:
         failureDescriptionStartsWith("Execution failed for task ':broken'.")
-        failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported.")
+        failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         result.assertTasksExecuted(":markedIncompatible", ":broken")
         fixture.assertStateStoredAndDiscarded {
@@ -211,7 +211,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
             loadsAfterStore = false
             reportedOutsideBuildFailure = true
             serializationProblem "Task `:markedIncompatible` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache."
-            problem "Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported."
+            problem "Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported with the configuration cache."
         }
     }
 
@@ -248,7 +248,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         result.assertTasksExecuted(":declared")
         fixture.assertStateStoredWithProblems {
-            problem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            problem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
             serializationProblem("Task `:declared` of type `Broken`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
             serializationProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
             incompatibleTask(":declared", "retains configuration container.")
@@ -260,7 +260,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         result.assertTasksExecuted(":declared")
         fixture.assertStateLoadedWithProblems {
-            problem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            problem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
             serializationProblem("Task `:declared` of type `Broken`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
         }
     }
@@ -470,7 +470,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
-            problem "Build file 'build.gradle': line $line: invocation of 'Task.project' at execution time is unsupported."
+            problem "Build file 'build.gradle': line $line: invocation of 'Task.project' at execution time is unsupported with the configuration cache."
             serializationProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
         }
     }

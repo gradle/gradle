@@ -47,13 +47,13 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
 
         then:
         failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
-        failureCauseContains("Invocation of 'Task.project' by task ':compileJava' at execution time is unsupported.")
+        failureCauseContains("Invocation of 'Task.project' by task ':compileJava' at execution time is unsupported with the configuration cache.")
 
         and:
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             reportedOutsideBuildFailure = true
-            problem "Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported."
+            problem "Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported with the configuration cache."
         }
 
         when: "running again"
@@ -62,13 +62,13 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
 
         then: "the task is still executed and fails"
         failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
-        failureCauseContains("Invocation of 'Task.project' by task ':compileJava' at execution time is unsupported.")
+        failureCauseContains("Invocation of 'Task.project' by task ':compileJava' at execution time is unsupported with the configuration cache.")
 
         and: "configuration cache is not reused"
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             reportedOutsideBuildFailure = true
-            problem "Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported."
+            problem "Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported with the configuration cache."
         }
     }
 
@@ -97,7 +97,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
 
         and:
         configurationCache.assertStateStoredWithProblems {
-            problem("Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported.")
+            problem("Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
         }
 
         when: "running again"

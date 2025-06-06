@@ -616,7 +616,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with too many problems (6 problems).")
         problems.assertFailureHasTooManyProblems(failure) {
-            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -633,7 +633,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         outputContains("Configuration cache entry discarded with too many problems (6 problems).")
         problems.assertFailureHasTooManyProblems(failure) {
-            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -651,7 +651,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         postBuildOutputContains("Configuration cache entry stored with 6 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -668,7 +668,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 4 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             totalProblemsCount = 4
