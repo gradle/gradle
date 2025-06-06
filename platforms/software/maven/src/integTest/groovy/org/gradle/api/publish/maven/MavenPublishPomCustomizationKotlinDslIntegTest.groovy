@@ -123,6 +123,11 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
                                     version.set("42")
                                     message.set("the answer to life, the universe and everything")
                                 }
+                                repository {
+                                    id = "internalMaven"
+                                    name = "Our internal maven repo"
+                                    url = "https://internal.maven.repo.com"
+                                }
                             }
                             mailingLists {
                                 mailingList {
@@ -222,6 +227,11 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
         parsedPom.distributionManagement.relocation[0].artifactId.text() == "new-artifact-id"
         parsedPom.distributionManagement.relocation[0].version.text() == "42"
         parsedPom.distributionManagement.relocation[0].message.text() == "the answer to life, the universe and everything"
+
+        and:
+        parsedPom.distributionManagement.repository.id.text() == "internalMaven"
+        parsedPom.distributionManagement.repository.name.text() == "Our internal maven repo"
+        parsedPom.distributionManagement.repository.url.text() == "https://internal.maven.repo.com"
 
         and:
         parsedPom.mailingLists.size() == 2
