@@ -312,7 +312,7 @@ However, these changes did not invalidate the cache.
 +
 Starting in Gradle 8.4, these undeclared inputs are correctly tracked and now cause cache invalidation.
 +
-To temporarily revert to the previous behavior, set the the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
+To temporarily revert to the previous behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
 
 With the evolution of the Configuration Cache, Gradle may also impose additional restrictions on the build logic. In order to make adoption smoother, it is possible to
 _temporarily_ opt out of these restriction in the following cases:
