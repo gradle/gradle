@@ -61,14 +61,14 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     SpringBootWebAppTestOutputNormalizer.class,
     EmptyLineTrimmerOutputNormalizer.class,
     RepositoryMirrorOutputNormalizer.class,
+    BuildScanRecommendationOutputNormalizer.class,
     EmptyLineRemovalOutputNormalizer.class,
-    BuildScanRecommendationOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
     MoreMemorySampleModifier.class,
     DependencyReplacingSampleModifier.class,
-    RemoveDeadEndCacheServerModifier.class
+    RemoveDeadEndCacheServerModifier.class,
 })
 public class Buckets {
     public static final int BUCKET_NUMBER = 50;
