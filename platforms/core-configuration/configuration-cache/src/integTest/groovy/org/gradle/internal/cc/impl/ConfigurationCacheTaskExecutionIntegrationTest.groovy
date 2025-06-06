@@ -200,31 +200,11 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         "provider { task.project }.map { it.name }" || _
     }
 
-    def "tasks that access project at execution time emit problems"() {
+    def "fails tasks that access project through provider created at execution time"() {
         given:
         buildFile """
-            tasks.register("incompatible") {
-                doLast { task ->
-                    println task.project.name
-                }
-            }
-        """
-
-        when:
-        configurationCacheFails("incompatible")
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withProblemsWithStackTraceCount(1)
-            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
-        }
-    }
-
-    def "tasks that access project through provider created at execution time emit problems"() {
-        given:
-        buildFile """
-            tasks.register("bypassesSafeguards") {
-                 def providerFactory = providers
+            tasks.register("broken") {
+                def providerFactory = providers
                 doLast { task ->
                     def projectProvider = providerFactory.provider { task.project.name }
                     println projectProvider.get()
@@ -233,19 +213,23 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         """
 
         when:
-        configurationCacheFails("bypassesSafeguards")
+        configurationCacheFails "broken"
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblemsWithStackTraceCount(1)
-            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported.")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedInRegularOutputDespiteFailure = true
+            problem "Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported."
         }
     }
 
-    def "tasks that access project through indirect provider created at execution time emit problems"() {
+    def "fails tasks that access project through indirect provider created at execution time"() {
         given:
         buildFile """
-            tasks.register("bypassesSafeguards") {
+            tasks.register("broken") {
                 def valueProvider = providers.provider { "value" }
                 doLast { task ->
                     println valueProvider.map { it + task.project.name }.get()
@@ -254,19 +238,23 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         """
 
         when:
-        configurationCacheFails("bypassesSafeguards")
+        configurationCacheFails "broken"
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblemsWithStackTraceCount(1)
-            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported.")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedInRegularOutputDespiteFailure = true
+            problem "Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported."
         }
     }
 
-    def "tasks that access project through mapped changing provider emit problems"() {
+    def "fails tasks that access project through mapped changing provider"() {
         given:
         buildFile """
-            tasks.register("bypassesSafeguards") { task ->
+            tasks.register("broken") { task ->
                 def projectProvider = providers.systemProperty("some.property").map { it + task.project.name }
                 doLast {
                     println projectProvider.get()
@@ -275,16 +263,20 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         """
 
         when:
-        configurationCacheFails("bypassesSafeguards", "-Dsome.property=value")
+        configurationCacheFails "broken", "-Dsome.property=value"
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblemsWithStackTraceCount(1)
-            withProblem("Build file 'build.gradle': line 3: invocation of 'Task.project' at execution time is unsupported.")
+        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported.")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedInRegularOutputDespiteFailure = true
+            problem "Build file 'build.gradle': line 3: invocation of 'Task.project' at execution time is unsupported."
         }
     }
 
-    def "tasks that access project through mapped changing value source provider emit problems"() {
+    def "fails tasks that access project through mapped changing value source provider"() {
         given:
         buildFile """
             import org.gradle.api.provider.*
@@ -296,7 +288,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
                 }
             }
 
-            tasks.register("bypassesSafeguards") { task ->
+            tasks.register("broken") { task ->
                 def projectProvider = providers.of(ChangingSource) {}.map { it + task.project.name }
                 doLast {
                     println projectProvider.get()
@@ -305,12 +297,16 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         """
 
         when:
-        configurationCacheFails("bypassesSafeguards")
+        configurationCacheFails "broken"
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblemsWithStackTraceCount(1)
-            withProblem("Build file 'build.gradle': line 12: invocation of 'Task.project' at execution time is unsupported.")
+        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported.")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedInRegularOutputDespiteFailure = true
+            problem "Build file 'build.gradle': line 12: invocation of 'Task.project' at execution time is unsupported."
         }
     }
 
