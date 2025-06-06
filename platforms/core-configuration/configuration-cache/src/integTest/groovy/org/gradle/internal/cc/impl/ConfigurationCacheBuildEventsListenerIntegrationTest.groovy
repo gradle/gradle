@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.tooling.events.FinishEvent
@@ -132,6 +133,37 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         object                          | variable
         "custom listener object"        | "listenerProvider"
         "mapped build service provider" | "mappedServiceProvider"
+    }
+
+    def "can ignore unsupported build events listener"() {
+        buildFile """
+            ${nonServiceTaskListener()}
+
+            ${
+            withBuildEventsListenerRegistryPlugin("""
+                    def listener = new TaskListener()
+                    def listenerProvider = provider { listener }
+                    listenerRegistry.onTaskCompletion(listenerProvider)
+                """)
+            }
+
+            tasks.register("run") { doLast {} }
+        """
+
+        when:
+        configurationCacheRun("run", "-D${StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME}=true")
+
+        then:
+        configurationCache.assertStateStored()
+        // TODO(mlopatkin) Should we purge the non-service listeners to make cache-hit build close to load-after-store build?
+        outputContains("Completed: :run")
+
+        when:
+        configurationCacheRun("run", "-D${StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME}=true")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain("Completed: :run")
     }
 
     def taskListenerService() {

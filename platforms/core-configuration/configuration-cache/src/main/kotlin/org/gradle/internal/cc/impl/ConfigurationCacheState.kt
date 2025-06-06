@@ -908,20 +908,22 @@ class ConfigurationCacheState(
                 invalidProviders.add(subscription)
             }
         }
-        invalidProviders.forEach { subscription ->
-            onProblem(
-                PropertyProblem(
-                    subscription.location(),
-                    StructuredMessage.build {
-                        text("Unsupported provider is registered as a task completion listener in ")
-                        reference(BuildEventsListenerRegistry::class)
-                        text(". Configuration Cache only supports providers returned from ")
-                        reference(BuildServiceRegistry::class)
-                        text(" as task completion listeners.")
-                    },
-                    documentationSection = DocumentationSection.NotYetImplementedBuildEventListeners
+        if (!gradle.startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners) {
+            invalidProviders.forEach { subscription ->
+                onProblem(
+                    PropertyProblem(
+                        subscription.location(),
+                        StructuredMessage.build {
+                            text("Unsupported provider is registered as a task completion listener in ")
+                            reference(BuildEventsListenerRegistry::class)
+                            text(". Configuration Cache only supports providers returned from ")
+                            reference(BuildServiceRegistry::class)
+                            text(" as task completion listeners.")
+                        },
+                        documentationSection = DocumentationSection.NotYetImplementedBuildEventListeners
+                    )
                 )
-            )
+            }
         }
         return validProviders
     }
