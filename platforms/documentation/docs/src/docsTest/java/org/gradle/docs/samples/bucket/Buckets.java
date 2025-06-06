@@ -28,6 +28,7 @@ import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.EmptyLineRemovalOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmptyLineTrimmerOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
@@ -57,7 +58,8 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     PlatformInOutputNormalizer.class,
     SpringBootWebAppTestOutputNormalizer.class,
     EmptyLineTrimmerOutputNormalizer.class,
-    RepositoryMirrorOutputNormalizer.class
+    RepositoryMirrorOutputNormalizer.class,
+    EmptyLineRemovalOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,

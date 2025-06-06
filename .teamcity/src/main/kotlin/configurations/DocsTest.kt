@@ -28,7 +28,7 @@ class DocsTestProject(
     val docsTests: List<BaseGradleBuildType>
 
     init {
-        docsTests = testTypes.map { DocsTest(model, stage, os, testJava, it, parallelism = 3) }
+        docsTests = testTypes.map { DocsTest(model, stage, os, testJava, it, parallelism = 4) }
         docsTests.forEach(this::buildType)
     }
 }
