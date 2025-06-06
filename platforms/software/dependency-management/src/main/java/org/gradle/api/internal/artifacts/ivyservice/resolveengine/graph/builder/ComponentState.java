@@ -69,7 +69,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
     private ModuleVersionResolveException metadataResolveFailure;
     private ModuleSelectors<SelectorState> selectors;
-    private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
 
     private boolean rejected;
     private boolean root;
@@ -118,14 +117,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Nullable
     public ModuleVersionResolveException getMetadataResolveFailure() {
         return metadataResolveFailure;
-    }
-
-    public DependencyGraphBuilder.VisitState getVisitState() {
-        return visitState;
-    }
-
-    public void setVisitState(DependencyGraphBuilder.VisitState visitState) {
-        this.visitState = visitState;
     }
 
     public List<NodeState> getNodes() {
