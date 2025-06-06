@@ -14,7 +14,7 @@ dependencies {
 // end::dynamic[]
 
 // tag::dynamic-version-cache-control[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
 }
 // end::dynamic-version-cache-control[]
