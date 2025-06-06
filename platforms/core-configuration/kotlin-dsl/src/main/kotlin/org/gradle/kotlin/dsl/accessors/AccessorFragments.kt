@@ -83,6 +83,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
     val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>(), emptyList()))
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
     val deprecation = accessor.spec.modelType.deprecation()
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.modelType)}"
 
     className to sequenceOf(
         AccessorFragment(
@@ -91,7 +92,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
             |         * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
             |         */
             |        @Incubating
-            |        ${maybeDeprecationAnnotations(deprecation)}fun Project.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
+            |        ${annotations}fun Project.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
             |            applySoftwareType(this, "$functionName", configure)
             |        }
             """.trimMargin(),
@@ -134,6 +135,8 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
     val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessor.spec.receiverType)
     val elementTypeKotlinString = accessor.spec.elementType.type.kotlinString
     val deprecation = accessor.spec.elementType.deprecation()
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.elementType)}"
+
 
     className to sequenceOf(
         AccessorFragment(
@@ -143,7 +146,7 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
                 |         * Registers or configures a new "$elementFactoryName" element in a named domain object container of [$elementTypeKotlinString].
                 |         */
                 |        @${Incubating::class.simpleName}
-                |        ${maybeDeprecationAnnotations(deprecation)}fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
+                |        ${annotations}fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
                 |            name: String,
                 |            configure: Action<in $elementTypeKotlinString>
                 |        ) {
