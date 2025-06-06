@@ -241,7 +241,7 @@ class ConfigurationCacheProblems(
     private
     fun ProblemSpec.documentOfProblem(problem: PropertyProblem) {
         problem.documentationSection?.let {
-            documentedAt(Documentation.userManual("configuration_cache", it.anchor).url)
+            documentedAt(Documentation.userManual(it.page, it.anchor).url)
         }
     }
 
