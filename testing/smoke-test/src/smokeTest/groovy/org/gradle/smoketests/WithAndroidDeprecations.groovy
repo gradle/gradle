@@ -26,7 +26,7 @@ import java.util.function.Consumer
 @SelfType(BaseDeprecations)
 trait WithAndroidDeprecations {
 
-    private static final VersionNumber AGP_8_12 = VersionNumber.parse("8.12")
+    private static final VersionNumber AGP_8_11 = VersionNumber.parse("8.11")
 
     @TupleConstructor
     private static class IsPropertyInfo {
@@ -56,7 +56,7 @@ trait WithAndroidDeprecations {
     void expectIsPropertyDeprecationWarnings(String agpVersion) {
         expectIsPropertyDeprecationWarningsUsing { message ->
             runner.expectLegacyDeprecationWarningIf(
-                VersionNumber.parse(agpVersion).baseVersion < AGP_8_12,
+                VersionNumber.parse(agpVersion).baseVersion < AGP_8_11,
                 message
             )
         }
@@ -65,7 +65,7 @@ trait WithAndroidDeprecations {
     void maybeExpectIsPropertyDeprecationWarnings(String agpVersion) {
         expectIsPropertyDeprecationWarningsUsing { message ->
             runner.maybeExpectLegacyDeprecationWarningIf(
-                VersionNumber.parse(agpVersion).baseVersion < AGP_8_12,
+                VersionNumber.parse(agpVersion).baseVersion < AGP_8_11,
                 message
             )
         }
