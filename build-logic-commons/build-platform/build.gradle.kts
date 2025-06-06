@@ -36,7 +36,7 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.4")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:2.17.0")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:2.18.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
