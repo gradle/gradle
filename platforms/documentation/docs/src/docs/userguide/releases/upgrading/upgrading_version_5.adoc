@@ -68,7 +68,7 @@ Use '--warning-mode all' to show the individual deprecation warnings.
 See https://docs.gradle.org/6.0/userguide/command_line_interface.html#sec:command_line_warnings
 ```
 
-The deprecation warnings show up in https://scans.gradle.com/s/txrptciitl2ha/deprecations[Build Scans] for every build, regardless of the command-line switches used.
+The deprecation warnings show up in a https://scans.gradle.com/s/txrptciitl2ha/deprecations[Build Scan] for every build, regardless of the command-line switches used.
 
 When the build is executed with `--warning-mode all`, the individual warnings will be shown:
 
@@ -437,7 +437,7 @@ There are a number of community-provided plugins for sending out notifications a
 ==== The Compare Gradle Builds plugin has been removed
 
 The deprecated Compare Gradle Builds plugin has been removed.
-Please use https://scans.gradle.com/[Build Scans] for build analysis and comparison.
+Please use a https://scans.gradle.com/[Build Scan] for build analysis and comparison.
 
 ==== The Play plugins have been removed
 
@@ -624,7 +624,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
-link:https://gradle.com/develocity/product/build-scan[Build Scans] show much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
+A link:https://gradle.com/develocity/product/build-scan[Build Scan] shows much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
 
 === Potential breaking changes
 

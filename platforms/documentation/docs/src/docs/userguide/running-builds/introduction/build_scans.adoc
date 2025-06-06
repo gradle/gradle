@@ -13,13 +13,13 @@
 // limitations under the License.
 
 [[build_scans]]
-= Build Scans
+= Build Scan
 
 ++++
 <div class="badge-wrapper">
     <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/b5069222-cfd0-4393-b645-7a2c713853d5/" target="_blank">
         <span class="badge-type button--blue">LEARN</span>
-        <span class="badge-text">How to Use Build Scans&nbsp;&nbsp;&nbsp;&gt;</span>
+        <span class="badge-text">How to Use a Build Scan&nbsp;&nbsp;&nbsp;&gt;</span>
     </a>
 </div>
 ++++
@@ -28,32 +28,32 @@ A Build Scan is a *representation of metadata captured* as you run your build.
 
 image::gradle-basic-1.png[]
 
-== About Build Scans
+== About Build Scan
 
 Gradle <<#sec:captured-information,captures your build metadata>> and sends it to the link:https://scans.gradle.com/[Build Scan Service].
 The service then transforms the metadata into information you can analyze and share with others.
 
 image::build-scan-1.png[]
 
-The information that scans collect can be an invaluable resource when troubleshooting, collaborating on, or optimizing the performance of your builds.
+The information that Build Scans collect can be an invaluable resource when troubleshooting, collaborating on, or optimizing the performance of your builds.
 
 For example, with a Build Scan, it’s no longer necessary to copy and paste error messages or include all the details about your environment each time you want to ask a question on Stack Overflow, Slack, or the Gradle Forum.
 Instead, copy the link to your latest Build Scan.
 
 image::build-scan-2.png[]
 
-== Enable Build Scans
+== Enable a Build Scan
 
-To enable Build Scans on a gradle command, add `--scan` to the command line option:
+To enable a Build Scan on a Gradle command, add `--scan` to the command line option:
 
 [source,text]
 ----
  ./gradlew build --scan
 ----
 
-You may be prompted to agree to the terms to use Build Scans.
+You may be prompted to agree to the terms to use a Build Scan.
 
-Visit the link:https://scans.gradle.com/[Build Scans page] to learn more.
+Visit the link:https://scans.gradle.com/[Build Scan page] to learn more.
 
 [[sec:captured-information]]
 == Captured Information

@@ -356,7 +356,7 @@ Running the `projects` task gives you a list of the subprojects of the selected 
 $ gradle projects
 ----
 
-You also get a project report within https://scans.gradle.com/[Build Scans].
+You also get a project report within a https://scans.gradle.com/[Build Scan].
 
 [[sec:listing_tasks]]
 === Listing tasks
@@ -428,7 +428,7 @@ You can get detailed information about the task class types using the `--types` 
 
 === Reporting dependencies
 
-https://scans.gradle.com/[Build Scans] give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
+A https://scans.gradle.com/[Build Scan] gives a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
 They can be invoked using the `--scan` options:
 
 [source,bash]
