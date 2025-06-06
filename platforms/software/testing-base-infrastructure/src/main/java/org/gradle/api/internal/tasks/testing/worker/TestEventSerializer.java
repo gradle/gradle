@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
+import org.gradle.api.internal.tasks.testing.TestFrameworkFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
@@ -200,6 +201,7 @@ public class TestEventSerializer {
 
             // assumption failure
             boolean isAssumptionFailure = decoder.readBoolean();
+            boolean isFrameworkFailure = decoder.readBoolean();
 
             // assertion failure
             boolean isAssertionFailure = decoder.readBoolean();
@@ -228,19 +230,19 @@ public class TestEventSerializer {
             }
 
             // Order is important here because a file comparison is _also_ an assertion failure
+            final TestFailureDetails details;
             if (isFileComparisonFailure) {
-                TestFailureDetails details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
             } else if (isAssertionFailure) {
-                TestFailureDetails details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
             } else if (isAssumptionFailure) {
-                TestFailureDetails details = new AssumptionFailureDetails(message, className, stacktrace);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new AssumptionFailureDetails(message, className, stacktrace);
+            } else if (isFrameworkFailure) {
+                details = new TestFrameworkFailureDetails(message, className, stacktrace);
             } else {
-                TestFailureDetails details = new DefaultTestFailureDetails(message, className, stacktrace);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new DefaultTestFailureDetails(message, className, stacktrace);
             }
+            return new DefaultTestFailure(rawFailure, details, causes);
         }
 
         /**
@@ -280,6 +282,9 @@ public class TestEventSerializer {
 
             // assumption failure
             encoder.writeBoolean(details.isAssumptionFailure());
+
+            // startup failure
+            encoder.writeBoolean(details.isStartupFailure());
 
             // assertion failure
             encoder.writeBoolean(details.isAssertionFailure());
