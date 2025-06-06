@@ -16,10 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
-import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultFailure;
@@ -35,6 +33,7 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.launcher.exec.RunBuildBuildOperationType;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.InternalFailure;
@@ -105,8 +104,9 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
         // RunBuildBuildOperationType.Details is the type of the details object associated with the root build operation
         if (rootRequested && buildOperation.getDetails() instanceof RunBuildBuildOperationType.Details) {
-            ProblemLocator problemLocator = ((RunBuildBuildOperationType.Details) buildOperation.getDetails()).getProblemLookup();
-            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), createRootOperationDescriptor(buildOperation), toOperationResult(result, problemLocator)));
+            RunBuildBuildOperationType.Result operationResult = (RunBuildBuildOperationType.Result) result.getResult();
+            Failure failure = operationResult == null ? null : operationResult.getFailure();
+            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), createRootOperationDescriptor(buildOperation), toOperationResult(result, failure)));
         } else if (genericRequested) {
             eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), toOperationResult(result)));
         }
@@ -128,16 +128,16 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     }
 
     static AbstractOperationResult toOperationResult(OperationFinishEvent result) {
-        return toOperationResult(result, t -> ImmutableList.of());
+        return toOperationResult(result, null);
     }
 
-    static AbstractOperationResult toOperationResult(OperationFinishEvent result, @Nullable ProblemLocator problemLocator) {
+    static AbstractOperationResult toOperationResult(OperationFinishEvent result, @Nullable Failure buildFailure) {
         Throwable failure = result.getFailure();
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();
         if (failure != null) {
-            if (problemLocator != null) {
-                InternalFailure rootFailure = DefaultFailure.fromThrowable(failure, problemLocator, ProblemsProgressEventUtils::createDefaultProblemDetails);
+            if (buildFailure != null) {
+                InternalFailure rootFailure = DefaultFailure.fromFailure(buildFailure, ProblemsProgressEventUtils::createDefaultProblemDetails);
                 return new DefaultFailureResult(startTime, endTime, Collections.singletonList(rootFailure));
             } else {
                 return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));

@@ -21,12 +21,15 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 @ServiceScope(Scope.BuildTree.class)
 public class GradleEnterprisePluginManager {
@@ -70,9 +73,9 @@ public class GradleEnterprisePluginManager {
         return adapter != null;
     }
 
-    public void buildFinished(@Nullable Throwable buildFailure) {
+    public void buildFinished(@Nullable Throwable buildFailure, @Nullable List<Failure> richBuildFailures) {
         if (adapter != null) {
-            adapter.buildFinished(buildFailure);
+            adapter.buildFinished(buildFailure, richBuildFailures);
         }
     }
 

@@ -499,7 +499,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             }
         """
 
-        executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage")
+        executer.expectExternalDeprecatedMessage("$fileWithDeprecation:5: warning: $deprecationMessage")
 
         when:
         withInstallations(jdk).run(":compileJava", "--info")

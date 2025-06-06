@@ -71,7 +71,7 @@ public abstract class AmbiguousVariantSelectionException extends ArtifactSelecti
         DeprecationLogger.deprecateType(AmbiguousVariantSelectionException.class)
             .withAdvice("The " + AmbiguousVariantSelectionException.class.getName() + " type is temporarily available for migration only.")
             .willBeRemovedInGradle10()
-            .undocumented()
+            .withUserManual("feature_lifecycle", "sec:internal")
             .nagUser();
     }
 }

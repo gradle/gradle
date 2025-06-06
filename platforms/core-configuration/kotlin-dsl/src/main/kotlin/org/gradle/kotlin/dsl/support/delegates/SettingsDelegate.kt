@@ -52,7 +52,7 @@ abstract class SettingsDelegate : Settings {
         if (!org.gradle.kotlin.dsl.SettingsScriptApi::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(SettingsDelegate::class.java)
                 .willBeRemovedInGradle10()
-                .undocumented()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }

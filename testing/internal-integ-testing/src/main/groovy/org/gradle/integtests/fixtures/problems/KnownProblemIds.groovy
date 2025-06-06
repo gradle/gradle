@@ -107,6 +107,7 @@ class KnownProblemIds {
         'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl': ['Properties should be assigned using the \'propName = value\' syntax. Setting a property via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL has been deprecated.'],
         'deprecation:repository-jcenter' : ['The RepositoryHandler.jcenter\\(\\) method has been deprecated.'],
         'task-selection:no-matches': ['No matches', 'cannot locate task'],
+        'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection': ['error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''],
         'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported': ['registration of listener on \'Gradle.buildFinished\' is unsupported'],
         'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported': ['invocation of \'Task.project\' at execution time is unsupported.'],
         'plugin-application:target-type-mismatch': ['Unexpected plugin type'],

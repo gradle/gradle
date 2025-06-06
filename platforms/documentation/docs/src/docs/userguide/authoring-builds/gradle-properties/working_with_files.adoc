@@ -542,8 +542,8 @@ Keep an eye on the number of arguments to distinguish between them.
 [[sec:project_copy_method]]
 === Copying files in your own tasks
 
-WARNING: Using the `Project.copy` method at execution time, as described here, is not compatible with the <<configuration_cache.adoc#config_cache:requirements:use_project_during_execution,configuration cache>>.
-A possible solution is to implement the task as a proper class and use link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy-org.gradle.api.Action-[FileSystemOperations.copy] method instead, as described in the <<configuration_cache.adoc#config_cache:troubleshooting,configuration cache chapter>>.
+WARNING: Using the `Project.copy` method at execution time, as described here, is not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution,configuration cache>>.
+A possible solution is to implement the task as a proper class and use link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy-org.gradle.api.Action-[FileSystemOperations.copy] method instead, as described in the <<configuration_cache_debugging.adoc#config_cache:troubleshooting,configuration cache chapter>>.
 
 Occasionally, you want to copy files or directories as _part_ of a task.
 For example, a custom archiving task based on an unsupported archive format might want to copy files to a temporary directory before they are archived.

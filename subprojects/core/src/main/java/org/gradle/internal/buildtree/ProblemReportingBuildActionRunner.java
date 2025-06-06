@@ -36,7 +36,12 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     private final BuildLayout buildLayout;
     private final List<? extends ProblemReporter> reporters;
 
-    public ProblemReportingBuildActionRunner(BuildActionRunner delegate, ExceptionAnalyser exceptionAnalyser, BuildLayout buildLayout, List<? extends ProblemReporter> reporters) {
+    public ProblemReportingBuildActionRunner(
+        ExceptionAnalyser exceptionAnalyser,
+        BuildLayout buildLayout,
+        List<? extends ProblemReporter> reporters,
+        BuildActionRunner delegate
+    ) {
         this.delegate = delegate;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildLayout = buildLayout;

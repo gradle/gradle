@@ -33,11 +33,11 @@ public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExec
     private final ProblemStream problemsStream;
 
     public InitDeprecationLoggingActionExecutor(
-        BuildTreeActionExecutor delegate,
         BuildOperationProgressEventEmitter eventEmitter,
         StartParameter startParameter,
         Problems problemsService,
-        ProblemStream problemsStream
+        ProblemStream problemsStream,
+        BuildTreeActionExecutor delegate
     ) {
         this.delegate = delegate;
         this.eventEmitter = eventEmitter;

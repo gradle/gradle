@@ -51,9 +51,6 @@ dependencies {
     integTestImplementation(testFixtures(projects.scala))
     integTestImplementation(testFixtures(projects.platformNative))
     integTestImplementation(libs.jgit)
-    integTestImplementation(libs.javaParser) {
-        because("The Groovy compiler inspects the dependencies at compile time")
-    }
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)

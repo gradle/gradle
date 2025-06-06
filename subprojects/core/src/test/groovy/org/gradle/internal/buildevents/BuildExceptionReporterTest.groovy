@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildevents
 
-import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
@@ -35,6 +34,9 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.internal.problems.failure.DefaultFailureFactory
+import org.gradle.internal.problems.failure.FailureFactory
+import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
 import java.lang.reflect.Field
@@ -45,17 +47,18 @@ class BuildExceptionReporterTest extends Specification {
     final BuildClientMetaData clientMetaData = Mock()
     final GradleEnterprisePluginManager gradleEnterprisePluginManager = Mock()
     final LoggingConfiguration configuration = new DefaultLoggingConfiguration()
-    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData, gradleEnterprisePluginManager)
-
+    final FailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier()
+    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData, gradleEnterprisePluginManager, failureFactory)
 
     static final String MESSAGE = "<message>"
     static final String FAILURE = '<failure>'
     static final String LOCATION = "<location>"
     static final String STACKTRACE = "{info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace."
     static final String INFO_OR_DEBUG = "{info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output."
-    static final String TRY_SCAN = "{info}> {normal}Run with {userinput}--scan{normal} to get full insights."
+    static final String TRY_SCAN = OperatingSystem.current().isWindows()
+        ? "{info}> {normal}Run with {userinput}--scan{normal} to generate a Build Scan (Powered by Develocity). Build Scan and Develocity are registered trademarks of Gradle, Inc."
+        : "{info}> {normal}Run with {userinput}--scan{normal} to generate a Build Scan® (Powered by Develocity®)."
     static final String GET_HELP = "{info}> {normal}Get more help at {userinput}https://help.gradle.org{normal}."
-
 
     def setup() {
         factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
@@ -64,7 +67,7 @@ class BuildExceptionReporterTest extends Specification {
 
     def doesNothingWhenBuildIsSuccessful() {
         expect:
-        reporter.buildFinished(result(null))
+        reporter.buildFinished(null)
         output.value == ''
     }
 
@@ -72,7 +75,7 @@ class BuildExceptionReporterTest extends Specification {
         GradleException exception = new GradleException(MESSAGE);
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -90,7 +93,7 @@ $GET_HELP
     def "does not suggest to use --scan if option was on command line"() {
         GradleException exception = new GradleException(MESSAGE);
 
-        def result = result(exception)
+        def result = failure(exception)
         result.gradle >> Mock(Gradle) {
             getStartParameter() >> Mock(StartParameter) {
                 isBuildScan() >> true
@@ -117,7 +120,7 @@ $GET_HELP
     def "does not suggest to use --scan if --no-scan is on command line"() {
         GradleException exception = new GradleException(MESSAGE);
 
-        def result = result(exception)
+        def result = failure(exception)
         result.gradle >> Mock(Gradle) {
             getStartParameter() >> Mock(StartParameter) {
                 isBuildScan() >> false
@@ -145,7 +148,7 @@ $GET_HELP
         GradleException exception = new GradleException();
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -164,7 +167,7 @@ $GET_HELP
         Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE, new RuntimeException("<cause>")), LOCATION, 42)
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -187,7 +190,7 @@ $GET_HELP
         Throwable exception = new LocationAwareException(new RuntimeException(new IOException()), LOCATION, 42)
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -210,7 +213,7 @@ $GET_HELP
         Throwable exception = new LocationAwareException(new DefaultMultiCauseException(MESSAGE, new RuntimeException("<cause1>"), new RuntimeException("<cause2>")), LOCATION, 42)
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -236,7 +239,7 @@ $GET_HELP
         Throwable exception = new LocationAwareException(new DefaultMultiCauseException(MESSAGE, cause1, cause2), LOCATION, 42)
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -263,7 +266,7 @@ $GET_HELP
         Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE, new RuntimeException()), LOCATION, 42)
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -288,7 +291,7 @@ $GET_HELP
         Throwable exception = new LocationAwareException(new GradleException(MESSAGE, new GradleException(FAILURE)), LOCATION, 42)
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -319,7 +322,7 @@ Caused by: org.gradle.api.GradleException: $FAILURE
         Throwable exception = new MultipleBuildFailures([failure1, failure2, failure3])
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: Build completed with 3 failures.{normal}
 
@@ -369,7 +372,7 @@ $GET_HELP
         GradleException exception = new GradleException(MESSAGE)
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -393,7 +396,7 @@ org.gradle.api.GradleException: $MESSAGE
         GradleException exception = new GradleException(MESSAGE)
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -421,7 +424,7 @@ org.gradle.api.GradleException: $MESSAGE
         }
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -448,7 +451,7 @@ $GET_HELP
         }
 
         expect:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         output.value == """
 {failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
 
@@ -471,7 +474,7 @@ $GET_HELP
         Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
 
         when:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         print(output.value)
 
         then:
@@ -501,7 +504,7 @@ $GET_HELP
         Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3]))
 
         when:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         print(output.value)
 
         then:
@@ -533,7 +536,7 @@ $GET_HELP
         Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
 
         when:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         print(output.value)
 
         then:
@@ -570,7 +573,7 @@ $GET_HELP
         Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3, branch4, branch5, branch6]))
 
         when:
-        reporter.buildFinished(result(exception))
+        reporter.buildFinished(failure(exception))
         print(output.value)
 
         then:
@@ -593,10 +596,8 @@ $GET_HELP
 """
     }
     // endregion Duplicate Exception Branch Filtering
-    def result(Throwable failure) {
-        BuildResult result = Mock()
-        result.failure >> failure
-        result
+    def failure(Throwable failure) {
+        failureFactory.create(failure)
     }
 
     abstract class TestException extends GradleException implements FailureResolutionAware {

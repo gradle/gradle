@@ -35,18 +35,18 @@ class ConfigurationCacheProblemsSummaryTest {
         val subject = ConfigurationCacheProblemsSummary(maxCollectedProblems = 2)
         assertTrue(
             "1st problem",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
         )
         assertTrue(
             "2nd problem (same message as 1st but different location)",
-            subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Deferred)
         )
         assertFalse(
             "overflow",
-            subject.onProblem(buildLogicProblem("build.gradle", "another failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "another failure"), ProblemSeverity.Deferred)
         )
         assertThat(
-            subject.get().uniqueProblemCount,
+            subject.get().problemCauseCount,
             equalTo(2)
         )
     }
@@ -56,21 +56,21 @@ class ConfigurationCacheProblemsSummaryTest {
         val subject = ConfigurationCacheProblemsSummary(maxCollectedProblems = 2)
         assertTrue(
             "1st problem",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
         )
         assertTrue(
             "2nd problem",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
         )
         assertFalse(
             "overflow",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Failure)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
         )
 
         val summary = subject.get()
         assertThat(
             "Keeps track of total problem count regardless of maxCollectedProblems",
-            summary.problemCount,
+            summary.totalProblemCount,
             equalTo(3)
         )
     }

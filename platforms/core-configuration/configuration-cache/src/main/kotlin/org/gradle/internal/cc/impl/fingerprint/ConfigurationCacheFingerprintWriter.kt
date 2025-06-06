@@ -264,7 +264,7 @@ class ConfigurationCacheFingerprintWriter(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
+    fun isExecutingWork() = workExecutionTracker.isExecutingTaskOrTransformAction
 
     override fun fileObserved(file: File) {
         fileObserved(file, null)

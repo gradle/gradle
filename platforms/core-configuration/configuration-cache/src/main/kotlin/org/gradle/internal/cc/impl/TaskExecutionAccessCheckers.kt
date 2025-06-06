@@ -18,9 +18,9 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
-import org.gradle.internal.evaluation.EvaluationContext
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.internal.evaluation.EvaluationContext
 import org.gradle.internal.execution.WorkExecutionTracker
 
 
@@ -74,7 +74,7 @@ abstract class AbstractTaskProjectAccessChecker(
      * Either way, errors here are false positives: the failing tasks are CC-compatible when CC actually stores them.
      */
     private
-    fun currentEvaluationShouldBeReducedByStore() : Boolean {
+    fun currentEvaluationShouldBeReducedByStore(): Boolean {
         // If we've loaded from the cache, then all stores already happened. Everything not reduced by this point should be reported.
         if (graphLoadingState.isLoadedFromCache()) {
             return false

@@ -175,7 +175,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
+        executer.expectDocumentedDeprecationWarning("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated. Starting with Gradle 11.0, changing property value of task ':thing' property 'prop' at execution time will become an error.")
         succeeds("thing")
         outputContains("value: value 3")
     }

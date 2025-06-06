@@ -1,0 +1,210 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+:gradle-issues: https://github.com/gradle/gradle/issues/
+
+[[config_cache]]
+= Configuration Cache
+:keywords: configuration-cache, no-configuration-cache, org.gradle.configuration-cache, org.gradle.configuration-cache.problems, org.gradle.configuration-cache.max-problems, org.gradle.configuration-cache.parallel, STABLE_CONFIGURATION_CACHE,
+
+// Run tests for snippets included in this chapter with:
+// ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"
+// ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-value-providers-*"
+
+The Configuration Cache improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
+
+image::configuration-cache-4.png[]
+
+[[config_cache:intro]]
+== Configuration Cache Basics
+
+The <<build_lifecycle.adoc#build_lifecycle, Gradle Build Lifecycle>> consists of three phases: **initialization**, **configuration**, and **execution**.
+
+1. The **initialization** phase determines the structure of the build.
+2. The **configuration** phase evaluates what work needs to be done.
+3. The **execution** phase performs that work.
+
+Gradle’s **Build Cache** has long optimized the execution phase by reusing previously built outputs and parallelizing as much work as possible.
+
+The **Configuration Cache** builds on this idea of _work avoidance_ and _parallelization_.
+When enabled, the Configuration Cache allows Gradle to skip the configuration phase entirely if nothing that affects the build configuration (such as build scripts) has changed.
+Additionally, Gradle applies performance optimizations to task execution.
+
+To do this, Gradle does the following:
+
+[cols="~,~,~,~"]
+|===
+| Phase | Cache | Work Avoidance | Parallelism and Performance
+
+| *Execution* | Build Cache | Uses task inputs and outputs | Runs independent tasks in parallel with `--parallel`
+| *Configuration* | Configuration Cache | Uses build logic and environment | Runs tasks in parallel (within the same project), optimizes memory, and more
+|===
+
+The Configuration Cache is similar to the <<build_cache#build_cache,Build Cache>>, but they store different types of data:
+
+- *Build Cache*: Stores outputs and intermediate files of the build (e.g., task outputs, artifact transform outputs).
+- *Configuration Cache*: Stores the build configuration for a particular set of tasks, capturing the output of the configuration phase.
+
+image::configuration-cache-2.png[]
+
+[IMPORTANT]
+====
+This feature is _not enabled by default_ and has the following limitations:
+
+- It does not yet support all <<configuration_cache_status.adoc#config_cache:plugins:core, Core Gradle Plugins>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented, features>>. Full support is in progress.
+- Your build and its plugins may require modifications to meet the <<configuration_cache_requirements.adoc#config_cache:requirements, Configuration Cache requirements>>.
+- <<config_cache:ide,IDE imports and syncs>> do not yet use the Configuration Cache.
+- Continuous Integration (CI) support is actively evolving.
+
+Since Gradle 9.0 the Configuration Cache is the link:https://blog.gradle.org/road-to-configuration-cache#preferred-mode-of-execution[preferred mode of execution].
+====
+
+[[config_cache:intro:how_does_it_work]]
+== Work Avoidance
+
+When the Configuration Cache is enabled and you run Gradle for a specific set of tasks, such as `./gradlew check`, Gradle looks for a *Configuration Cache entry*.
+If a matching entry is found, Gradle reuses it and skips the configuration phase entirely.
+A cache hit is essential for avoiding configuration work.
+
+=== Configuration Cache Entries
+
+A cache entry contains:
+
+- The set of tasks to run
+- Their configuration details
+- Dependency information
+
+=== First-Time Execution
+
+image::configuration-cache-1.png[]
+
+The first time you run a set of tasks, there is no cache entry.
+Gradle performs the configuration phase as usual:
+
+1. Run init scripts.
+2. Run the settings script, applying any requested settings plugins.
+3. Configure and build the `buildSrc` project, if present.
+4. Run build scripts, applying any requested project plugins. If plugins come from included builds, Gradle builds them first.
+5. Calculate the task graph, executing deferred configuration actions.
+
+Gradle then stores a snapshot of the task graph in the Configuration Cache for future use.
+After this, Gradle loads the task graph from the cache and proceeds with task execution.
+
+=== Subsequent Runs
+
+image::configuration-cache-3.png[]
+
+On subsequent executions of the same tasks (e.g., `./gradlew check` again), Gradle:
+
+- Skips the configuration phase entirely.
+- Loads the task graph from the Configuration Cache instead.
+
+Before using the cache, Gradle verifies that no build configuration inputs have changed.
+If any input has changed, Gradle reruns the configuration phase and updates the cache.
+
+=== Build Configuration Inputs
+
+The following elements determine whether a Configuration Cache entry is valid:
+
+1. Gradle environment
+** `GRADLE_USER_HOME`
+** Gradle Daemon JVM
+2. Init scripts
+3. `buildSrc` and included build logic build contents (build scripts, sources, and intermediate build outputs)
+4. Build and Settings scripts, including included scripts (`apply from: foo.gradle`)
+5. Gradle configuration files (Version Catalogs, dependency verification files, dependency lock files, `gradle.properties` files)
+6. Contents of files read at configuration time
+7. File system state checked at configuration time (file presence, directory contents, etc.)
+8. Custom `ValueSource` values obtained at configuration time (this also includes built-in providers, like `providers.exec` and `providers.fileContents`).
+9. System properties used during the configuration phase
+10. Environment variables used during the configuration phase
+
+=== Serialization
+
+Gradle uses an optimized serialization mechanism to store Configuration Cache entries.
+It automatically serializes object graphs containing simple state or supported types.
+
+While Configuration Cache serialization doesn't rely on Java Serialization, it understands <<configuration_cache_status.adoc#config_cache:not_yet_implemented:java_serialization, some of its features>>.
+This can be used to customize serialization behavior, but incurs performance penalty and should be avoided.
+
+[[config_cache:intro:performance_improvements]]
+== Performance Improvements
+
+Beyond skipping the configuration phase, the Configuration Cache enhances performance in the following ways:
+
+- *Parallel Task Execution*: All tasks run in parallel by default, subject to dependency constraints.
+- *Cached Dependency Resolution*: Dependency resolution results are stored and reused.
+- *Optimized Memory Usage*: After writing the task graph to the cache, Gradle discards configuration and dependency resolution state from memory, lowering peak heap usage.
+
+[[config_cache:in_action]]
+image::configuration-cache/running-help.gif[]
+
+[[config_cache:ide]]
+== IDE Support
+
+If you enable and configure the Configuration Cache in your `gradle.properties` file, it will be automatically enabled when your IDE delegates builds to Gradle.
+No additional setup is required.
+
+Because `gradle.properties` is typically checked into source control, enabling the Configuration Cache this way will apply to your entire team.
+If you prefer to enable it only for your local environment, you can configure it directly in your IDE instead.
+
+NOTE: Syncing a project in an IDE does not benefit from the Configuration Cache. Only running tasks through the IDE will leverage the cache.
+
+[[config_cache:ide:intellij]]
+=== IntelliJ based IDEs
+
+In IntelliJ IDEA or Android Studio this can be done in two ways, either globally or per run configuration.
+
+To enable it for the whole build, go to `Run > Edit configurations...`.
+This will open the IntelliJ IDEA or Android Studio dialog to configure Run/Debug configurations.
+Select `Templates > Gradle` and add the necessary system properties to the `VM options` field.
+
+For example to enable the Configuration Cache, turning problems into warnings, add the following:
+
+[source,text]
+----
+-Dorg.gradle.configuration-cache=true -Dorg.gradle.configuration-cache.problems=warn
+----
+
+You can also choose to only enable it for a given run configuration.
+In this case, leave the `Templates > Gradle` configuration untouched and edit each run configuration as you see fit.
+
+Using these methods together, you can enable the Configuration Cache globally while disabling it for certain run configurations, or vice versa.
+
+[TIP]
+====
+You can use the link:https://github.com/JetBrains/gradle-idea-ext-plugin[gradle-idea-ext-plugin] to configure IntelliJ run configurations from your build.
+
+This is a good way to enable the Configuration Cache only for the IDE.
+====
+
+[[config_cache:ide:eclipse]]
+=== Eclipse based IDEs
+
+In Eclipse-based IDEs, you can enable the Configuration Cache through Buildship, either globally or per run configuration.
+
+To enable it globally:
+
+1. Go to `Preferences > Gradle`.
+2. Add the following JVM arguments:
+** `-Dorg.gradle.configuration-cache=true`
+** `-Dorg.gradle.configuration-cache.problems=warn`
+
+To enable it for a specific run configuration:
+
+1. Open `Run Configurations....`
+2. Select the desired configuration.
+3. Navigate to `Project Settings`, check `Override project settings`, and add the same system properties as `JVM arguments`.
+
+Using these methods together, you can enable the Configuration Cache globally while disabling it for certain run configurations, or vice versa.

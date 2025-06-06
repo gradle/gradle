@@ -17,11 +17,29 @@
 package org.gradle.internal.cc.impl.problems
 
 enum class ProblemSeverity {
-    Info,
-    Failure,
-    Warning,
+
     /**
-     * A problem produced by a task marked as [notCompatibleWithConfigurationCache][Task.notCompatibleWithConfigurationCache].
+     * Problems that are reported to the user sometime after they are discovered,
+     * but which will fail the build, unless [warning-mode][org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.WARN]
+     * is active.
+     *
+     * Collecting deferred problems is useful to provide the user with the overview
+     * of potentially many things that make the build not compatible with Configuration Cache,
+     * instead of failing the build on the first encounter. Many serialization problems
+     * fall into this category.
      */
-    Suppressed
+    Deferred,
+
+    /**
+     * Problems that interrupt the current operation immediately after being discovered and recorded.
+     *
+     * The exception is normally turned into a dedicated build failure.
+     * These problems are still present in the report and can appear in the console summary.
+     */
+    Interrupting,
+
+    /**
+     * A problem produced by a task marked as [notCompatibleWithConfigurationCache][org.gradle.api.Task.notCompatibleWithConfigurationCache].
+     */
+    Suppressed,
 }

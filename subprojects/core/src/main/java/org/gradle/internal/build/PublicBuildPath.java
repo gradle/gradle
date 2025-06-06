@@ -16,15 +16,14 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 /**
  * A reference to public path for a build, available via the service registry.
- *
- * Usages of {@link GradleInternal#getIdentityPath()} should be migrated to this type, to avoid unnecessary penetration of GradleInternal.
+ * <p>
+ * Prefer {@link BuildState#getIdentityPath()}.
  */
 @ServiceScope(Scope.Build.class)
 public interface PublicBuildPath {

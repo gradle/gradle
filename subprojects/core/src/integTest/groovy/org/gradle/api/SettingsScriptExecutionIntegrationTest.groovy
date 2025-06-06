@@ -20,15 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
-@Issue("https://github.com/gradle/gradle-private/issues/3247")
-@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
-    @Requires(IntegTestPreconditions.AnyActiveFeature)
     def "emits deprecation warnings when enabling inactive #feature feature"() {
         given:
         settingsFile << """
@@ -36,9 +30,9 @@ class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("enableFeaturePreview('$feature') has been deprecated. This is scheduled to be removed in Gradle 8.0. " +
+        executer.expectDocumentedDeprecationWarning("enableFeaturePreview('$feature') has been deprecated. This is scheduled to be removed in Gradle 10.0. " +
                 "The feature flag is no longer relevant, please remove it from your settings file. " +
-                "See https://docs.gradle.org/current/userguide/feature_lifecycle.html#feature_preview for more details.")
+                "For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#feature_preview in the Gradle documentation.")
 
         then:
         succeeds()

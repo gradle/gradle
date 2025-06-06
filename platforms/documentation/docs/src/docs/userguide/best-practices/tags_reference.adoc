@@ -20,8 +20,14 @@ Here you can find a brief explanation of all the tags used in the best practices
 [[tag:caching]]
 `#caching` :: Items that are related to using Gradle's various caching mechanisms, such as <<build_cache.adoc#sec:task_output_caching,caching tasks>>.
 
+[[tag:composite-builds]]
+`#composite-builds` :: Items that are related to using Gradle's <<composite_builds.adoc#defining_composite_builds,composite builds>> feature.
+
 [[tag:dependencies]]
 `#dependencies` :: Items that are related to <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution>> in Gradle, including declaring dependencies, dependency management, and dependency resolution.
+
+[[tag:kotlin-dsl]]
+`#kotlin-dsl` :: Items that explain the benefits of using the <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL>> and how to adopt it effectively.
 
 [[tag:inputs-and-outputs]]
 `#inputs-and-outputs`:: Items that are related to Gradle <<writing_tasks.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
@@ -32,14 +38,11 @@ Here you can find a brief explanation of all the tags used in the best practices
 [[tag:properties]]
 `#properties` :: Items that explain the proper way to use <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>, and the appropriate usage of using particular properties.
 
+[[tag:structuring-builds]]
+`#structuring-builds` :: Items that explain how to organize build logic across different files and directories, and how to use multiple projects within a build.
+
 [[tag:tasks]]
 `#tasks` :: Items that explain the proper way to <<writing_tasks.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.
-
-[[tag:structuring-builds]]
-`#structuring-builds` :: Items that explain the proper way to <<multi_project_builds.adoc#multi_project_builds,structure maintainable builds>> in Gradle.
-
-[[tag:kotlin-dsl]]
-`#kotlin-dsl` :: Items that explain the benefits of using the <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL>> and how to adopt it effectively.
 
 [[tag:up-to-date-checking]]
 `#up-to-date-checking` :: Items that are related to Gradle's <<incremental_build.adoc#sec:how_does_it_work,up-to-date checking>> mechanism, and how to ensure work avoidance behaves properly in your build.
@@ -49,6 +52,3 @@ Here you can find a brief explanation of all the tags used in the best practices
 
 [[tag:version-catalog]]
 `#version-catalog` :: Items that explain how to use <<version_catalogs.adoc#version-catalog,version catalogs>> to centralize dependency declarations.
-
-[[tag:properties]]
-`#properties` :: Items that are related to defining and using <<build_environment.adoc#build_environment,build properties>>, such as those in `gradle.properties`, environment variables, or passed via the command line.

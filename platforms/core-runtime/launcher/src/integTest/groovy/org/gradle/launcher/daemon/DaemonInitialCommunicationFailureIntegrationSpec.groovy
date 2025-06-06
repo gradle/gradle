@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
@@ -34,7 +34,7 @@ import java.nio.channels.SocketChannel
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-@Requires(IntegTestPreconditions.CanKillProcess)
+@Requires([IntegTestPreconditions.CanKillProcess, UnitTestPreconditions.NotAlpine])
 @LocalOnly
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 

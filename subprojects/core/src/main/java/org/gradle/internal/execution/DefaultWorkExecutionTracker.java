@@ -29,6 +29,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -57,26 +58,30 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
 
     @Override
     public Optional<TaskInternal> getCurrentTask() {
-        return buildOperationAncestryTracker
-            .findClosestExistingAncestor(
-                currentBuildOperationRef.getId(),
-                operationListener.runningTasks::get
-            );
+        return getCurrentTask(currentBuildOperationRef.getId());
     }
 
     @Override
-    public Optional<TaskInternal> getCurrentTask(OperationIdentifier id) {
+    public Optional<TaskInternal> getCurrentTask(@Nullable OperationIdentifier id) {
+        Map<OperationIdentifier, TaskInternal> runningTasks = operationListener.runningTasks;
+        if (runningTasks.isEmpty()) {
+            return Optional.empty();
+        }
         return buildOperationAncestryTracker
             .findClosestExistingAncestor(
                 id,
-                operationListener.runningTasks::get
+                runningTasks::get
             );
     }
 
     @Override
-    public boolean isExecutingTransformAction() {
+    public boolean isExecutingTaskOrTransformAction() {
+        if (!operationListener.hasRunningWork()) {
+            return false;
+        }
         return buildOperationAncestryTracker.findClosestMatchingAncestor(
-            currentBuildOperationRef.getId(), operationListener.runningTransformActions::contains
+            currentBuildOperationRef.getId(),
+            operationListener::containsWork
         ).isPresent();
     }
 
@@ -131,11 +136,17 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
         }
 
         public boolean hasRunningWork() {
-            return !runningTasks.isEmpty() || !runningTransformActions.isEmpty();
+            return !runningTasks.isEmpty()
+                || !runningTransformActions.isEmpty();
         }
 
         private static boolean isTransformAction(BuildOperationDescriptor buildOperation) {
             return UncategorizedBuildOperations.TRANSFORM_ACTION.equals(buildOperation.getMetadata());
+        }
+
+        public boolean containsWork(OperationIdentifier o) {
+            return runningTasks.containsKey(o)
+                || runningTransformActions.contains(o);
         }
     }
 }
