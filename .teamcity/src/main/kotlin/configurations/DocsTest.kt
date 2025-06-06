@@ -68,7 +68,7 @@ class DocsTest(
         id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}")
         name = "${docsTestType.docsTestDesc} - ${testJava.version.toCapitalized()} ${os.asName()}"
 
-        if (parallelism != 1) {
+        if (parallelism > 1) {
             features {
                 parallelTests {
                     this.numberOfBatches = parallelism
