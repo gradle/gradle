@@ -23,6 +23,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
@@ -107,6 +108,7 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
      */
     public void close() {
         git.close();
+        RepositoryCache.clear(); // https://github.com/eclipse-jgit/jgit/issues/155#issuecomment-2765437816
     }
 
     public RevCommit addSubmodule(GitFileRepository submoduleRepo) throws GitAPIException {
@@ -227,7 +229,7 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
     /**
      * Configuration reader for JGit that ignores local configuration files.
      */
-    private static class IsolatedSystemReader extends SystemReader {
+    private static class IsolatedSystemReader extends SystemReader.Delegate {
         private static FileBasedConfig emptyConfig(Config parent, FS fs) {
             return new FileBasedConfig(parent, null, fs) {
                 @Override
@@ -247,25 +249,8 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
             };
         }
 
-        private final SystemReader defaultSystemReader;
-
         public IsolatedSystemReader(SystemReader defaultSystemReader) {
-            this.defaultSystemReader = defaultSystemReader;
-        }
-
-        @Override
-        public String getHostname() {
-            return defaultSystemReader.getHostname();
-        }
-
-        @Override
-        public String getenv(String variable) {
-            return defaultSystemReader.getenv(variable);
-        }
-
-        @Override
-        public String getProperty(String key) {
-            return defaultSystemReader.getProperty(key);
+            super(defaultSystemReader);
         }
 
         @Override
@@ -283,16 +268,6 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
         @Override
         public FileBasedConfig openJGitConfig(Config parent, FS fs) {
             return emptyConfig(parent, fs);
-        }
-
-        @Override
-        public long getCurrentTime() {
-            return defaultSystemReader.getCurrentTime();
-        }
-
-        @Override
-        public int getTimezone(long when) {
-            return defaultSystemReader.getTimezone(when);
         }
     }
 }

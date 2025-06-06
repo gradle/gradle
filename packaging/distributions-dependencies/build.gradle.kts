@@ -41,12 +41,14 @@ val spockVersion = when (bundleGroovyMajor) {
     else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
 }
 val tomljVersion = "1.0.0"
+val jnaVersion = "5.17.0"
+val sshdVersion = "2.15.0"
+val jGitVersion = "7.2.1.202505142326-r"
 
 // test only
 val archunitVersion = "1.2.0"
 val bytebuddyVersion = "1.17.5"
 val jettyVersion = "9.4.36.v20210114"
-val sshdVersion = "2.12.1"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -73,7 +75,7 @@ dependencies {
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleUtil)      { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}
-        api(libs.commonsCodec)          { version { strictly("1.16.1") } }
+        api(libs.commonsCodec)          { version { strictly("1.18.0") } }
         api(libs.commonsCompress)       { version { strictly("1.26.1") } }
         api(libs.commonsHttpclient)     { version { strictly("4.5.14") } }
         api(libs.commonsIo)             { version { strictly("2.15.1") }}
@@ -130,8 +132,9 @@ dependencies {
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
         api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
-        api(libs.jgit)                  { version { strictly("5.13.3.202401111512-r"); because("6.x requires Java 11") }}
-        api(libs.jgitSsh)               { version { strictly("5.13.3.202401111512-r") }}
+        api(libs.jgit)                  { version { strictly(jGitVersion) }}
+        api(libs.jgitSsh)               { version { strictly(jGitVersion) }}
+        api(libs.jgitSshAgent)          { version { strictly(jGitVersion) }}
         api(libs.joda)                  { version { strictly("2.14.0"); because("Only pulled in by AWS SDK") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.2.16") }}
@@ -171,7 +174,9 @@ dependencies {
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
         api(libs.trove4j)               { version { strictly("1.0.20200330") }}
-        api(libs.jna)                   { version { strictly("5.12.1") }}
+        api(libs.jna)                   { version { strictly(jnaVersion) }}
+        api(libs.jnaPlatform)           { version { strictly(jnaVersion) }}
+
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
         api(libs.xbeanReflect)          { version { strictly("3.18") }}
@@ -230,7 +235,7 @@ dependencies {
         api(libs.spock)                 { version { strictly(spockVersion) }}
         api(libs.spockJUnit4)           { version { strictly(spockVersion) }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
-        api(libs.sshdOsgi)              { version { rejectAll(); because("It contains sshd-core and sshd-common classes") }}
+        api(libs.sshdOsgi)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainers)        { version { strictly("1.20.4") }}

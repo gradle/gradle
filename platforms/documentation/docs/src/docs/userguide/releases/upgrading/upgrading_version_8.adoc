@@ -119,6 +119,12 @@ If they are used to reference a top-level symbol that happens to have the same n
 
 Read the link:#jspecify[JSpecify section] below to learn about potential breaking changes in Kotlin build logic code related to nullability.
 
+==== Upgrade to Eclipse JGit 7.2.1
+
+Eclipse JGit has been updated from 5.13.3 to link:https://projects.eclipse.org/projects/technology.jgit/releases/7.2.1[7.2.1].
+
+This update reworks how Gradle configures JGit for SSH operations and introduces support for using the SSH Agent, leveraging the new capabilities available in link:https://github.com/eclipse-jgit/jgit/blob/v7.2.1.202505142326-r/org.eclipse.jgit.ssh.apache.agent/README.md[JGit’s] SSH agent integration.
+
 === Plugin Changes
 
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11
@@ -510,7 +516,7 @@ The following helper methods for launching external processes were <<#deprecated
 
 ==== Artifact Signing now matches OpenPGP Key Version
 
-Starting with Gradle 9.0, the `signing` plugin produces OpenPGP signatures that match the version of the key used. This change ensures compliance with link:https://www.rfc-editor.org/rfc/rfc9580.html)[RFC 9580] and introduces support for OpenPGP version 6 keys.
+Starting with Gradle 9.0, the `signing` plugin produces OpenPGP signatures that match the version of the key used. This change ensures compliance with link:https://www.rfc-editor.org/rfc/rfc9580.html[RFC 9580] and introduces support for OpenPGP version 6 keys.
 Previously, Gradle always generated OpenPGP version 4 signatures, regardless of the key version.
 
 ==== Ear and War plugins build all artifacts with `assemble`

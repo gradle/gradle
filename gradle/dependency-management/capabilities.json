@@ -18,6 +18,13 @@
         "selected": "org.hamcrest:hamcrest"
     },
     {
+        "name": "jna-platform",
+        "providedBy": [
+            "net.java.dev.jna:platform"
+        ],
+        "selected": "net.java.dev.jna:jna-platform"
+    },
+    {
         "name": "guava",
         "providedBy": [
             "com.google.collections:google-collections"

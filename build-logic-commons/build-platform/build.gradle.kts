@@ -72,7 +72,7 @@ dependencies {
         api("com.beust:jcommander:1.78")
         api("$groovyGroup:groovy:$groovyVersion")
         api("org.codenarc:CodeNarc:$codenarcVersion")
-        api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
+        api("org.eclipse.jgit:org.eclipse.jgit:7.2.1.202505142326-r")
         api("org.javassist:javassist:3.30.2-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
         api("org.jsoup:jsoup:1.15.3")
