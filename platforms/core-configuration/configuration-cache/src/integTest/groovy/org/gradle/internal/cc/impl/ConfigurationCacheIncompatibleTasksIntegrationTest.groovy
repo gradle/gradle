@@ -209,7 +209,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             serializationProblem "Task `:markedIncompatible` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache."
             problem "Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported."
         }

@@ -272,7 +272,7 @@ class ConfigurationCacheFixture {
     }
 
     private void assertHasProblems(HasProblems problemDetails) {
-        if (spec.failed && !problemDetails.reportedInRegularOutputDespiteFailure) {
+        if (spec.failed && !problemDetails.reportedOutsideBuildFailure) {
             problems.assertFailureHasProblems(spec.failure) {
                 applyProblemsTo(problemDetails, delegate)
             }
@@ -412,7 +412,13 @@ class ConfigurationCacheFixture {
 
     trait HasProblems extends HasIncompatibleTasks {
         final List<ProblemDetails> problems = []
-        boolean reportedInRegularOutputDespiteFailure = false
+
+        /**
+         * Normally, CC problem summary is part of the end-of-build CC build failure.
+         * In the presence of another build failure, the summary can be still included but as part of regular output.
+         * It happens when there is no end-of-build CC build failure, for instance there are only interrupting or suppressed CC problems.
+         */
+        boolean reportedOutsideBuildFailure = false
 
         void problem(String message, int count = 1, boolean hasStackTrace = true) {
             problems.add(new ProblemDetails(message, count, hasStackTrace))

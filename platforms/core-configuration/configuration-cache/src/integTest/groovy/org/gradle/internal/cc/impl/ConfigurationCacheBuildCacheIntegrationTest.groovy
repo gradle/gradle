@@ -52,7 +52,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
         and:
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             problem "Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported."
         }
 
@@ -67,7 +67,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
         and: "configuration cache is not reused"
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             problem "Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported."
         }
     }

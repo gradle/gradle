@@ -47,7 +47,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         and:
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             problem "Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported."
         }
 
@@ -83,7 +83,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         and:
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             problem "Build file 'build.gradle': line 4: invocation of 'Task.$invocation' at execution time is unsupported."
         }
 
@@ -221,7 +221,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             problem "Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported."
         }
     }
@@ -246,7 +246,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             problem "Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported."
         }
     }
@@ -271,7 +271,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             problem "Build file 'build.gradle': line 3: invocation of 'Task.project' at execution time is unsupported."
         }
     }
@@ -305,7 +305,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
-            reportedInRegularOutputDespiteFailure = true
+            reportedOutsideBuildFailure = true
             problem "Build file 'build.gradle': line 12: invocation of 'Task.project' at execution time is unsupported."
         }
     }
