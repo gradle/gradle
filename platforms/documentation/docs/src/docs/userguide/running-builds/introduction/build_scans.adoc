@@ -24,7 +24,7 @@
 </div>
 ++++
 
-A build scan is a *representation of metadata captured* as you run your build.
+A Build Scan is a *representation of metadata captured* as you run your build.
 
 image::gradle-basic-1.png[]
 
@@ -37,14 +37,14 @@ image::build-scan-1.png[]
 
 The information that scans collect can be an invaluable resource when troubleshooting, collaborating on, or optimizing the performance of your builds.
 
-For example, with a build scan, it’s no longer necessary to copy and paste error messages or include all the details about your environment each time you want to ask a question on Stack Overflow, Slack, or the Gradle Forum.
-Instead, copy the link to your latest build scan.
+For example, with a Build Scan, it’s no longer necessary to copy and paste error messages or include all the details about your environment each time you want to ask a question on Stack Overflow, Slack, or the Gradle Forum.
+Instead, copy the link to your latest Build Scan.
 
 image::build-scan-2.png[]
 
 == Enable Build Scans
 
-To enable build scans on a gradle command, add `--scan` to the command line option:
+To enable Build Scans on a gradle command, add `--scan` to the command line option:
 
 [source,text]
 ----
