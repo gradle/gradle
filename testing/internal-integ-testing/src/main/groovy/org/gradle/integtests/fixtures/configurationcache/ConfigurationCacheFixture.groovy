@@ -369,7 +369,7 @@ class ConfigurationCacheFixture {
 
     private void assertNothingConfigured() {
         def configuredProjects = buildOperations.all(ConfigureProjectBuildOperationType)
-        // A synthetic "project configured" operation is fired for each root project for a build scan
+        // A synthetic "project configured" operation is fired for each root project for a Build Scan
         assert configuredProjects.every { it.details.projectPath == ':' }
 
         def scripts = buildOperations.all(ApplyScriptPluginBuildOperationType)

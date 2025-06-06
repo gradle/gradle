@@ -227,7 +227,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Error resolving plugin [id: 'com.gradle.build-scan', version: '$PLUGIN_AUTO_APPLY_VERSION']")
         failure.assertHasCause(
-            "The build scan plugin is not compatible with this version of Gradle.\n" +
+            "The Develocity plugin is not compatible with this version of Gradle.\n" +
                 "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
         )
     }

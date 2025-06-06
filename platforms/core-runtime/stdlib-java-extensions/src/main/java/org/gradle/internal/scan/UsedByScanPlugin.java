@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Documents that the type or method is referenced by the build scan plugin,
+ * Documents that the type or method is referenced by the Develocity plugin,
  * and therefore changes need to be carefully managed. Other plugins like the
  * test-retry or the test-distribution plugin clarify their usage in the {@link #value}.
  * property.

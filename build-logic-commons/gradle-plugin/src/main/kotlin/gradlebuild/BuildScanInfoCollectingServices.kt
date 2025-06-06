@@ -26,14 +26,14 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 /**
  * In build-logic and main build, register a BuildService instance separately,
- * which collects necessary information for build scan.
+ * which collects necessary information for Build Scan.
  */
 fun <T : AbstractBuildScanInfoCollectingService> Project.registerBuildScanInfoCollectingService(
     /* the implementation class to collect information from task execution result */
     klass: Class<T>,
     /* which tasks we need to monitor? For example, cache-miss-monitor monitors `AbstractCompile` tasks */
     taskFilter: (Task) -> Boolean,
-    /* pass the collected information in build-logic and main build to build scan */
+    /* pass the collected information in build-logic and main build to Build Scan */
     buildScanAction: (gradleRootProject: Project, infoCollectedInBuildLogic: Any, infoCollectedInMainBuild: Any) -> Unit
 ) {
     val gradleRootProject = when {
