@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Used to determine when the build was started.
  *
- * This is effectively a build scan specific view of {@link BuildStartedTime}.
+ * This is effectively a Build Scan specific view of {@link BuildStartedTime}.
  * @since 4.2
  */
 @ServiceScope(Scope.BuildTree.class)

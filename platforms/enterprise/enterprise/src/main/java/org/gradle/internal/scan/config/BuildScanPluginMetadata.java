@@ -17,7 +17,7 @@
 package org.gradle.internal.scan.config;
 
 /**
- * Information about the build scan plugin in use.
+ * Information about the Develocity plugin in use.
  *
  * Implemented by the Enterprise plugin.
  *
@@ -26,7 +26,7 @@ package org.gradle.internal.scan.config;
 public interface BuildScanPluginMetadata {
 
     /**
-     * The full version string of the build scan plugin.
+     * The full version string of the Develocity plugin.
      */
     String getVersion();
 

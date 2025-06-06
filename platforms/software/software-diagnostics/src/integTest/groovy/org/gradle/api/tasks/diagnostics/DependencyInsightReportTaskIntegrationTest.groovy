@@ -2498,7 +2498,7 @@ org.test:leaf:1.0
 """
     }
 
-    def "mentions web-based dependency insight report available using a build scan"() {
+    def "mentions web-based dependency insight report available using a Build Scan"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
