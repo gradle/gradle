@@ -16,9 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
-import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -69,7 +68,7 @@ class InstrumentedInputAccessListener(
     configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val ignoredConfigurationInputs: IgnoredConfigurationInputs
-) : InstrumentedInputsListener {
+) : ConfigurationCacheInputsListener {
 
     private
     val undeclaredInputBroadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
