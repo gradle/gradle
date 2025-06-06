@@ -919,7 +919,7 @@ class ConfigurationCacheState(
                         reference(BuildServiceRegistry::class)
                         text(" as task completion listeners.")
                     },
-                    documentationSection = DocumentationSection.NotYetImplemented
+                    documentationSection = DocumentationSection.NotYetImplementedBuildEventListeners
                 )
             )
         }

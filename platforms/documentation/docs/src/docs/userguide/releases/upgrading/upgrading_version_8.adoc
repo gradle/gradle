@@ -746,6 +746,24 @@ The `model` and `component` tasks report on the structure of legacy software mod
 Previously, these tasks were automatically added to the project for every build.
 These tasks are now only added to a project when a rule-based plugin is applied (such as those provided by Gradle's support for building native software).
 
+
+=== Configuration Cache changes
+==== Unsupported build events listeners are now configuration cache problems
+
+The build event listener registration method
+link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`]
+accepts arbitrary providers of any
+link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[`OperationCompletionListener`]
+implementations.
+However, only providers returned from
+link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`]
+or
+link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`]
+are currently supported when the Configuration Cache is enabled.
+
+Previously, unsupported providers were silently discarded and never received events when the configuration cache was used.
+Starting with Gradle 9.0, registering such providers becomes a configuration cache problem and fails the build.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
