@@ -23,6 +23,7 @@ import org.gradle.exemplar.test.runner.SampleModifiers;
 import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 import org.gradle.integtests.fixtures.executer.DependencyReplacingSampleModifier;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
+import org.gradle.integtests.fixtures.executer.RemoveDeadEndCacheServerModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.BuildScanRecommendationOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
@@ -66,7 +67,8 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
     MoreMemorySampleModifier.class,
-    DependencyReplacingSampleModifier.class
+    DependencyReplacingSampleModifier.class,
+    RemoveDeadEndCacheServerModifier.class
 })
 public class Buckets {
     public static final int BUCKET_NUMBER = 50;
