@@ -16,7 +16,6 @@
 
 package org.gradle.process;
 
-import org.gradle.process.internal.ExecException;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -26,7 +25,7 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 @SuppressWarnings("deprecation")
-public class ProcessExecutionException extends ExecException {
+public class ProcessExecutionException extends org.gradle.process.internal.ExecException {
 
     /**
      * Creates a new instance of {@code ExecException} with the specified message.
