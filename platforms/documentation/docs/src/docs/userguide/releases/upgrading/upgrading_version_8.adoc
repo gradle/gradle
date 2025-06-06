@@ -52,9 +52,9 @@ This upgrade includes several important changes:
 
 For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21[Kotlin release notes].
 
-==== Upgrade to Groovy 4.0.26
+==== Upgrade to Groovy 4.0.27
 
-Groovy has been upgraded from version 3.0.24 to https://groovy-lang.org/changelogs/changelog-4.0.26.html[4.0.26].
+Groovy has been upgraded from version 3.0.24 to https://groovy-lang.org/changelogs/changelog-4.0.27.html[4.0.27].
 For a complete overview of changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
 
 ===== `is`-prefixed `Boolean` properties no longer recognized by Groovy
@@ -69,7 +69,7 @@ See <<#groovy_boolean_properties,the deprecation notice>> for more details.
 
 ===== `DELEGATE_FIRST` closures may now prefer the delegate in some cases
 
-Groovy 4.0.26 has changed the behavior of closures using the `DELEGATE_FIRST` strategy.
+Groovy 4 has changed the behavior of closures using the `DELEGATE_FIRST` strategy.
 Dynamic lookups for properties and methods will now prefer the delegate over the owner.
 This can result in different behavior when using closures in Gradle scripts, such as certain methods not being found
 or (e.g. with `.with { }`) some dynamic properties taking precedence over outer properties or methods.
