@@ -18,28 +18,33 @@ package org.gradle.integtests.samples.java
 
 import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 
-class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
+class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest implements JavaToolchainFixture {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(IntegTestPreconditions.Java17HomeAvailable)
     @UsesSample("java/basic")
     def "can execute simple Java tests with #dsl dsl"() {
         given:
-        configureExecuterForToolchains('17')
+        Jvm jdk = AvailableJavaHomes.getJdk17()
+
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
 
         when:
+        withInstallations(jdk)
         def result = succeeds("test")
 
         then:
@@ -309,15 +314,17 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(IntegTestPreconditions.Java17HomeAvailable)
     @UsesSample("java/basic")
     def "can run simple Java integration tests with #dsl dsl"() {
         given:
-        configureExecuterForToolchains('17')
+        Jvm jdk = AvailableJavaHomes.getJdk17()
+
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
 
         when:
+        withInstallations(jdk)
         def result = succeeds("test", "integrationTest")
 
         then:
@@ -335,15 +342,17 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(IntegTestPreconditions.Java17HomeAvailable)
     @UsesSample("java/basic")
     def "can skip the tests with an `onlyIf` condition with #dsl dsl"() {
         given:
-        configureExecuterForToolchains('17')
+        Jvm jdk = AvailableJavaHomes.getJdk17()
+
         TestFile dslDir = sample.dir.file(dsl)
 
         when: "run first time to populate configuration cache if it is enabled"
         executer.inDirectory(dslDir).withArgument("-PmySkipTests")
+        withInstallations(jdk)
         def result = succeeds("build")
 
         then:
@@ -351,6 +360,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
         when: "run second time to restore from configuration cache if it is enabled"
         executer.inDirectory(dslDir).withArgument("-PmySkipTests")
+        withInstallations(jdk)
         def secondResult = succeeds("build")
 
         then:

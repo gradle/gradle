@@ -17,9 +17,9 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.ExecException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
         try {
             final Reader output = executeJavaHome();
             return parse(output);
-        } catch (ExecException e) {
+        } catch (ProcessExecutionException e) {
             String errorMessage = "Java Toolchain auto-detection failed to find local MacOS system JVMs";
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(errorMessage, e);

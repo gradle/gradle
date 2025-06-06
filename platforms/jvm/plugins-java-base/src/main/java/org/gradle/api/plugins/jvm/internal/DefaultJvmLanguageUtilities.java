@@ -22,9 +22,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.DefaultProviderWithValue;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -40,17 +40,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
-    private final ProviderFactory providerFactory;
     private final ProjectInternal project;
     private final InstanceGenerator instanceGenerator;
     private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // ? is really AbstractCompile & HasCompileOptions
 
     @Inject
     public DefaultJvmLanguageUtilities(
-            ProviderFactory providerFactory,
-            InstanceGenerator instanceGenerator,
-            ProjectInternal project) {
-        this.providerFactory = providerFactory;
+        InstanceGenerator instanceGenerator,
+        ProjectInternal project
+    ) {
         this.instanceGenerator = instanceGenerator;
         this.project = project;
         configurationToCompileTasks = new HashMap<>(5);
@@ -65,7 +63,9 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         configurationInternal.getAttributes().attributeProvider(
             TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-            providerFactory.provider(() -> getDefaultTargetPlatform(configuration, java, compileTasks))
+            // TODO: We should not use DefaultProviderWithValue after `getDefaultTargetPlatform`
+            //       no longer causes toolchains to be downloaded.
+            new DefaultProviderWithValue<>(Integer.class, () -> getDefaultTargetPlatform(configuration, java, compileTasks))
         );
     }
 

@@ -30,7 +30,7 @@ import java.io.File
  *
  * @since 8.2
  */
-fun <T> Property<T>.assign(value: T?) {
+fun <T : Any> Property<T>.assign(value: T?) {
     this.set(value)
 }
 
@@ -40,7 +40,7 @@ fun <T> Property<T>.assign(value: T?) {
  *
  * @since 8.2
  */
-fun <T> Property<T>.assign(value: Provider<out T?>) {
+fun <T : Any> Property<T>.assign(value: Provider<out T>) {
     this.set(value)
 }
 
@@ -60,7 +60,7 @@ fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File?) {
  *
  * @since 8.2
  */
-fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(provider: Provider<File?>) {
+fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(provider: Provider<File>) {
     this.fileProvider(provider)
 }
 
@@ -70,7 +70,7 @@ fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(provider: Prov
  *
  * @since 8.2
  */
-fun <T> HasMultipleValues<T>.assign(elements: Iterable<T?>?) {
+fun <T : Any> HasMultipleValues<T>.assign(elements: Iterable<T>?) {
     this.set(elements)
 }
 
@@ -80,7 +80,7 @@ fun <T> HasMultipleValues<T>.assign(elements: Iterable<T?>?) {
  *
  * @since 8.2
  */
-fun <T> HasMultipleValues<T>.assign(provider: Provider<out Iterable<T?>?>) {
+fun <T : Any> HasMultipleValues<T>.assign(provider: Provider<out Iterable<T>>) {
     this.set(provider)
 }
 
@@ -90,7 +90,7 @@ fun <T> HasMultipleValues<T>.assign(provider: Provider<out Iterable<T?>?>) {
  *
  * @since 8.2
  */
-fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
+fun <K : Any, V : Any> MapProperty<K, V>.assign(entries: Map<out K, V>?) {
     this.set(entries)
 }
 
@@ -100,6 +100,6 @@ fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
  *
  * @since 8.2
  */
-fun <K, V> MapProperty<K, V>.assign(provider: Provider<out Map<out K?, V?>?>) {
+fun <K : Any, V : Any> MapProperty<K, V>.assign(provider: Provider<out Map<out K, V>>) {
     this.set(provider)
 }

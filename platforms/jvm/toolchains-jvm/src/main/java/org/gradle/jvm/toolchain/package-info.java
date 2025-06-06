@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 /**
  * Defines tools that can build things that run on the JVM.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.jvm.toolchain;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

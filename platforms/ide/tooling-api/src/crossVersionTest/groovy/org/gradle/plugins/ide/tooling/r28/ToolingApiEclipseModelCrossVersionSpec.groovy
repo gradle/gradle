@@ -16,14 +16,13 @@
 
 package org.gradle.plugins.ide.tooling.r28
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
-    @TargetGradleVersion(">=3.0")
     def "makes sure module names are unique in gradle"() {
         given:
         file('build.gradle').text = """
@@ -43,10 +42,10 @@ project(':contrib:impl') {
     }
 }
 """
-        createDirs("api", "impl", "contrib", "contrib/api", "contrib/impl")
-        file('settings.gradle').text = """
+        settingsFile << """
         rootProject.name = "root"
-        include 'api', 'impl', 'contrib:api', 'contrib:impl'"""
+        """
+        includeProjects("api", "impl", "contrib", "contrib:api", "contrib:impl")
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)

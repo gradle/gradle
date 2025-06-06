@@ -19,7 +19,7 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 /**

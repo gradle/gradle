@@ -57,8 +57,8 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -105,7 +105,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     @Override
-    public ArtifactResolutionQuery forModule(@Nonnull String group, @Nonnull String name, @Nonnull String version) {
+    public ArtifactResolutionQuery forModule(@NonNull String group, @NonNull String name, @NonNull String version) {
         componentIds.add(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version));
         return this;
     }

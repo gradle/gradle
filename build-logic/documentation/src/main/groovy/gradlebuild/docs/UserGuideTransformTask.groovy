@@ -71,17 +71,15 @@ abstract class UserGuideTransformTask extends DefaultTask {
     def transform() {
         XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
         provider.parse(sourceFile.get().asFile)
-        transformImpl(provider.document)
-        provider.write(destFile.get().asFile)
-    }
 
-    private def transformImpl(Document doc) {
         use(BuildableDOMCategory) {
-            addVersionInfo(doc)
-            transformApiLinks(doc)
-            transformWebsiteLinks(doc)
-            fixProgramListings(doc)
+            addVersionInfo(provider.document)
+            transformApiLinks(provider.document)
+            transformWebsiteLinks(provider.document)
+            fixProgramListings(provider.document)
         }
+
+        provider.write(destFile.get().asFile)
     }
 
     def addVersionInfo(Document doc) {

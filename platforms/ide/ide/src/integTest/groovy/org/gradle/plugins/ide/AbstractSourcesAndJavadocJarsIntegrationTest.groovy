@@ -380,15 +380,12 @@ dependencies {
         ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-ant-${groovyVersion}.jar", ["groovy-ant-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-astbuilder-${groovyVersion}.jar", ["groovy-astbuilder-${groovyVersion}-sources.jar"], [])
-        ideFileContainsEntry("groovy-console-${groovyVersion}.jar", ["groovy-console-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-datetime-${groovyVersion}.jar", ["groovy-datetime-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-dateutil-${groovyVersion}.jar", ["groovy-dateutil-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-groovydoc-${groovyVersion}.jar", ["groovy-groovydoc-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-json-${groovyVersion}.jar", ["groovy-json-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-nio-${groovyVersion}.jar", ["groovy-nio-${groovyVersion}-sources.jar"], [])
-        ideFileContainsEntry("groovy-sql-${groovyVersion}.jar", ["groovy-sql-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-templates-${groovyVersion}.jar", ["groovy-templates-${groovyVersion}-sources.jar"], [])
-        ideFileContainsEntry("groovy-test-${groovyVersion}.jar", ["groovy-test-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-xml-${groovyVersion}.jar", ["groovy-xml-${groovyVersion}-sources.jar"], [])
     }
 
@@ -541,7 +538,6 @@ dependencies {
         publishGroovyModuleWithSources(repo, "groovy-sql")
         publishGroovyModuleWithSources(repo, "groovy-swing")
         publishGroovyModuleWithSources(repo, "groovy-templates")
-        publishGroovyModuleWithSources(repo, "groovy-test")
         publishGroovyModuleWithSources(repo, "groovy-xml")
         return repo
     }

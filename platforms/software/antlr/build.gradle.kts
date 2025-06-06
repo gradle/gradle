@@ -21,14 +21,16 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.languageJava)
     implementation(projects.platformJvm)
+    implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJavaLibrary)
 
     implementation(libs.guava)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     compileOnly("antlr:antlr:2.7.7") {

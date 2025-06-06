@@ -74,7 +74,6 @@ class PerformanceTestBuildTypeTest {
         )
         val linuxPaths =
             listOf(
-                "%linux.java7.oracle.64bit%",
                 "%linux.java8.oracle.64bit%",
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",

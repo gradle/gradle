@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 
 /**
@@ -51,11 +50,6 @@ public class ProjectBackedModule implements Module {
     @Override
     public String getStatus() {
         return project.getStatus().toString();
-    }
-
-    @Override
-    public ProjectComponentIdentifier getComponentId() {
-        return project.getOwner().getComponentIdentifier();
     }
 
     @Override

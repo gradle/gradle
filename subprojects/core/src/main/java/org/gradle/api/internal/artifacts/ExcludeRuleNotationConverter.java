@@ -23,8 +23,7 @@ import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRule> {
 

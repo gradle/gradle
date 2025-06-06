@@ -26,6 +26,8 @@ import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.SupportedJavaVersions;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.VersionNumber;
 
 public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExecutor {
 
@@ -40,13 +42,13 @@ public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExe
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
-
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
-        if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION) {
-            DeprecationLogger.deprecateAction("Executing Gradle on JVM versions 16 and lower")
-                .withContext("Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "minimum_daemon_jvm_version")
+        if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {
+            int currentMajorGradleVersion = VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
+            DeprecationLogger.deprecateAction(String.format("Executing Gradle on JVM versions %d and lower", SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1))
+                .withContext(String.format("Use JVM %d or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.", SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION))
+                .willBecomeAnErrorInNextMajorGradleVersion()
+                .withUpgradeGuideSection(currentMajorGradleVersion, "minimum_daemon_jvm_version")
                 .nagUser();
         }
 

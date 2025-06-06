@@ -16,16 +16,16 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.FileReader;
@@ -81,7 +81,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
                     "POM file is invalid. Check any modifications you have made to the POM file.",
                     parseException);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 

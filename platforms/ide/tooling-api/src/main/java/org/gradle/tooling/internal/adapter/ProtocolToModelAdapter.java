@@ -27,8 +27,8 @@ import org.gradle.tooling.ToolingModelContract;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;

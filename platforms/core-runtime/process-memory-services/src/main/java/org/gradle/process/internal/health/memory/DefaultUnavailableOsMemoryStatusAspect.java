@@ -16,9 +16,9 @@
 
 package org.gradle.process.internal.health.memory;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class DefaultUnavailableOsMemoryStatusAspect implements OsMemoryStatusAspect.Unavailable {
     private final String name;
 

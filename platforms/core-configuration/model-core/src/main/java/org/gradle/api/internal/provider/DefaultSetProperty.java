@@ -22,8 +22,8 @@ import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 

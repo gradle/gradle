@@ -19,12 +19,15 @@ package org.gradle.api.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
+
+import java.util.concurrent.Callable;
 
 /**
  * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
@@ -49,37 +52,22 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
+        project.getTasks().withType(Test.class).configureEach(test -> {
+            test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
+        });
 
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         testing.getSuites().registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
-        project.getTasks().withType(Test.class).configureEach(test -> {
-            // The test task may have already been created but the test sourceSet may not exist yet.
-            // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
-            // See https://github.com/gradle/gradle/issues/18622
-            test.getConventionMapping().map("testClassesDirs", () -> {
-                DeprecationLogger.deprecate("Relying on the convention for Test.testClassesDirs in custom Test tasks")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "test_task_default_classpath")
-                    .nagUser();
-
-                return ((JvmTestSuite) testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)).getSources().getOutput().getClassesDirs();
-            });
-            test.getConventionMapping().map("classpath", () -> {
-                DeprecationLogger.deprecate("Relying on the convention for Test.classpath in custom Test tasks")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "test_task_default_classpath")
-                    .nagUser();
-                return ((JvmTestSuite) testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)).getSources().getRuntimeClasspath();
-            });
-            test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
-        });
-
         testing.getSuites().withType(JvmTestSuite.class).all(testSuite -> {
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
-                    test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
-                    test.getConventionMapping().map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
+                    ((ConfigurableFileCollection)test.getTestClassesDirs()).convention((Callable<FileCollection>) () ->
+                        testSuite.getSources().getOutput().getClassesDirs()
+                    );
+                    ((ConfigurableFileCollection)test.getClasspath()).convention((Callable<FileCollection>) () ->
+                        testSuite.getSources().getRuntimeClasspath()
+                    );
                 });
                 target.getBinaryResultsDirectory().convention(target.getTestTask().flatMap(Test::getBinaryResultsDirectory));
             });

@@ -18,6 +18,7 @@ package org.gradle.caching.local.internal
 
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -34,6 +35,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 @UsesNativeServices
 @CleanupTestDirectory
@@ -53,6 +56,9 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
+    def cacheResourceConfiguration = Mock(CacheResourceConfigurationInternal)
+    def entryRetentionTimestampSupplier = Mock(Supplier<Long>)
+    def entryRetention = Mock(CacheResourceConfigurationInternal.EntryRetention)
 
     def "can create service with default directory"() {
         def cacheDir = temporaryFolder.file("build-cache-1")
@@ -62,12 +68,18 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> null
-        1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * globalScopedCache.baseDirForCrossVersionCache("build-cache-1") >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cacheConfigurations.getCleanup() >> cacheCleanup
         1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)
         1 * cacheCleanupStrategyFactory.create(_, _) >> Mock(CacheCleanupStrategy)
+        1 * cacheConfigurations.getBuildCache() >> cacheResourceConfiguration
+        1 * cacheResourceConfiguration.getEntryRetentionTimestampSupplier() >> entryRetentionTimestampSupplier
+        1 * cacheResourceConfiguration.getEntryRetention() >> Mock(Property) {
+            get() >> entryRetention
+        }
+        1 * entryRetention.getTimeInMillis() >> 10L
+        1 * entryRetention.isRelative() >> true
         0 * _
     }
 
@@ -79,12 +91,18 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> cacheDir
-        1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cacheConfigurations.getCleanup() >> cacheCleanup
         1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)
         1 * cacheCleanupStrategyFactory.create(_, _) >> Mock(CacheCleanupStrategy)
+        1 * cacheConfigurations.getBuildCache() >> cacheResourceConfiguration
+        1 * cacheResourceConfiguration.getEntryRetentionTimestampSupplier() >> entryRetentionTimestampSupplier
+        1 * cacheResourceConfiguration.getEntryRetention() >> Mock(Property) {
+            get() >> entryRetention
+        }
+        1 * entryRetention.getTimeInMillis() >> 10L
+        1 * entryRetention.isRelative() >> true
         0 * _
     }
 

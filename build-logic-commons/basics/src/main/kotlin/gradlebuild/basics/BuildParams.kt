@@ -29,7 +29,7 @@ import gradlebuild.basics.BuildParams.BUILD_RC_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
-import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_4
+import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_MAJOR
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import gradlebuild.basics.BuildParams.DEBUG_DAEMON
 import gradlebuild.basics.BuildParams.DEBUG_LAUNCHER
@@ -136,7 +136,7 @@ object BuildParams {
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
-    const val BUNDLE_GROOVY_4 = "bundleGroovy4"
+    const val BUNDLE_GROOVY_MAJOR = "bundleGroovyMajor"
     const val DEBUG_DAEMON = "debugDaemon"
     const val DEBUG_LAUNCHER = "debugLauncher"
 
@@ -180,7 +180,7 @@ fun Project.selectStringProperties(vararg propertyNames: String): Map<String, St
  * @see Provider.isPresent
  */
 private
-fun <T> Provider<T>.presence(): Provider<Boolean> =
+fun <T : Any> Provider<T>.presence(): Provider<Boolean> =
     map { true }.orElse(false)
 
 
@@ -430,10 +430,10 @@ val Project.isPromotionBuild: Boolean
 
 
 /**
- * If `-DbundleGroovy4=true` is specified, create a distribution using Groovy 4 libs.  Otherwise use Groovy 3 classic libs.
+ * Override the version of Groovy bundled by Gradle. Must be greater than or equal to the major version of Groovy used by Gradle.
  */
-val Project.isBundleGroovy4: Boolean
-    get() = systemProperty(BUNDLE_GROOVY_4).orNull.toBoolean()
+val Project.bundleGroovyMajor: Int
+    get() = systemProperty(BUNDLE_GROOVY_MAJOR).orNull?.toInt() ?: 4
 
 val Project.daemonDebuggingIsEnabled: Boolean
     get() = propertyFromAnySource(DEBUG_DAEMON).isPresent

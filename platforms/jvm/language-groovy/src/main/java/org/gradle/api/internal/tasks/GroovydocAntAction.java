@@ -24,8 +24,8 @@ import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.api.plugins.internal.ant.AntWorkAction;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;

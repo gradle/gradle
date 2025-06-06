@@ -17,11 +17,13 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
+import org.gradle.util.Matchers
 import spock.lang.Issue
 
-@Issue("https://github.com/gradle/gradle/issues/17812")
+@Issue(["https://github.com/gradle/gradle/issues/17812", "https://github.com/gradle/gradle/issues/22090"])
 class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
-    def "deprecation warning when configuring tasks which do dependency resolution from non-project context in constructor"() {
+    def "fails when configuring tasks which do dependency resolution from non-project context in constructor"() {
         buildFile << """
             abstract class BadTask extends DefaultTask {
                 @OutputFile
@@ -82,9 +84,12 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
         testDirectory.file("b").mkdirs()
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :a:myconf was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :b:myconf was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        fails("a:foo", "b:foo", "--parallel")
 
-        succeeds("a:foo", "b:foo", "--parallel")
+        // We don't know which task will fail first and stop the built, but they will fail in the same way and is acceptable
+        failure.assertThatDescription(Matchers.matchesRegexp("Could not create task ':(a|b):bar'\\."))
+        failure.assertHasCause("Could not create task of type 'BadTask'.")
+        failure.assertThatCause(Matchers.matchesRegexp("Resolution of the configuration ':(a|b):myconf' was attempted without an exclusive lock\\. This is unsafe and not allowed\\."))
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 }

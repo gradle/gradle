@@ -76,7 +76,7 @@ abstract class AbstractSmokeTest extends Specification {
         static shadow = "8.3.6"
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
-        static asciidoctor = Versions.of("3.3.2", "4.0.4")
+        static asciidoctor = "4.0.4"
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "6.1.7"
@@ -103,7 +103,6 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.1.4", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8, javaMaxVersion: JavaVersion.VERSION_20],
             [version: "4.1.6", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
@@ -114,7 +113,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleVersions = "0.52.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.13" // Can't upgrade to 0.14 as it breaks CC compat - see https://github.com/gradle/playframework/issues/184
+        static playframework = "0.16.0"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "4.1.0"
@@ -129,7 +128,7 @@ abstract class AbstractSmokeTest extends Specification {
         static testRetryPlugin = "1.6.2"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "8.12"
+        static aspectj = "8.13.1"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
         static undercouchDownload = Versions.of("5.6.0")
@@ -190,7 +189,8 @@ abstract class AbstractSmokeTest extends Specification {
         static palantirConsistentVersions = "2.32.0"
 
         // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
-        static teamCityGradlePluginRef = "v0.35"
+        // Update this when v0.36 is out
+        static teamCityGradlePluginRef = "8a1cd30651c58994c4e6e5cf9dd0bd35fdad8337"
 
         // https://github.com/jenkinsci/gradle-plugin/releases
         static jenkinsGradlePluginRef = "gradle-2.14.1"

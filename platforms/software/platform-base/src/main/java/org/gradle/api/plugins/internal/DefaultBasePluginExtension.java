@@ -20,20 +20,14 @@ import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.BasePluginExtension;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.util.internal.RelativePathUtil;
-
-import java.io.File;
 
 public class DefaultBasePluginExtension implements BasePluginExtension {
 
-    private final Project project;
     private final DirectoryProperty distsDirectory;
     private final DirectoryProperty libsDirectory;
     private final Property<String> archivesName;
 
     public DefaultBasePluginExtension(Project project) {
-        this.project = project;
         this.distsDirectory = project.getObjects().directoryProperty();
         this.libsDirectory = project.getObjects().directoryProperty();
         this.archivesName = project.getObjects().property(String.class);
@@ -52,59 +46,5 @@ public class DefaultBasePluginExtension implements BasePluginExtension {
     @Override
     public Property<String> getArchivesName() {
         return archivesName;
-    }
-
-    @Override
-    @Deprecated
-    public String getDistsDirName() {
-        logPropertyDeprecation("distsDirName", "distsDirectory");
-        File buildDir = project.getLayout().getBuildDirectory().get().getAsFile();
-        File distsDir = getDistsDirectory().get().getAsFile();
-        return RelativePathUtil.relativePath(buildDir, distsDir);
-    }
-
-    @Override
-    @Deprecated
-    public void setDistsDirName(String distsDirName) {
-        logPropertyDeprecation("distsDirName", "distsDirectory");
-        getDistsDirectory().set(project.getLayout().getBuildDirectory().dir(distsDirName));
-    }
-
-    @Override
-    @Deprecated
-    public String getLibsDirName() {
-        logPropertyDeprecation("libsDirName", "libsDirectory");
-        File buildDir = project.getLayout().getBuildDirectory().get().getAsFile();
-        File libsDir = getLibsDirectory().get().getAsFile();
-        return RelativePathUtil.relativePath(buildDir, libsDir);
-    }
-
-    @Override
-    @Deprecated
-    public void setLibsDirName(String libsDirName) {
-        logPropertyDeprecation("libsDirName", "libsDirectory");
-        getLibsDirectory().set(project.getLayout().getBuildDirectory().dir(libsDirName));
-    }
-
-    @Override
-    @Deprecated
-    public String getArchivesBaseName() {
-        logPropertyDeprecation("archivesBaseName", "archivesName");
-        return getArchivesName().get();
-    }
-
-    @Override
-    @Deprecated
-    public void setArchivesBaseName(String archivesBaseName) {
-        logPropertyDeprecation("archivesBaseName", "archivesName");
-        getArchivesName().set(archivesBaseName);
-    }
-
-    private static void logPropertyDeprecation(String propertyName, String replacementPropertyName) {
-        DeprecationLogger.deprecateProperty(BasePluginExtension.class, propertyName)
-            .replaceWith(replacementPropertyName)
-            .willBeRemovedInGradle9()
-            .withDslReference(BasePluginExtension.class, replacementPropertyName)
-            .nagUser();
     }
 }

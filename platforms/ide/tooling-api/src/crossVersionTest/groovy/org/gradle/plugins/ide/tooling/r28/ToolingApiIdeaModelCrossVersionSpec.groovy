@@ -43,9 +43,10 @@ project(':contrib:impl') {
     }
 }
 """
-        file('settings.gradle').text = """
+        includeProjects("api", "impl", "contrib:api", "contrib:impl")
+        settingsFile << """
         rootProject.name = "root"
-        include 'api', 'impl', 'contrib:api', 'contrib:impl'"""
+        """
 
         when:
 

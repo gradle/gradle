@@ -1,3 +1,4 @@
+import com.google.gson.Gson
 import org.gradle.api.internal.FeaturePreviews
 import java.io.PrintWriter
 import java.io.Serializable
@@ -14,24 +15,23 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        maven {
-            name = "Gradle public repository"
-            url = uri("https://repo.gradle.org/gradle/public")
-            content {
-                includeModule("org.openmbee.junit", "junit-xml-parser")
-            }
-        }
         gradlePluginPortal()
     }
     includeBuild("build-logic-settings")
 }
 
+buildscript {
+    dependencies {
+        classpath("com.google.code.gson:gson:2.13.1") // keep in sync with build-logic-commons/build-platform/build.gradle.kts
+    }
+}
+
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("3.19.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("4.0.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("0.10.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
 includeBuild("build-logic-commons")
@@ -40,6 +40,7 @@ includeBuild("build-logic")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
+val projectBaseDirs = mutableListOf<File>()
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
@@ -132,9 +133,11 @@ val core = platform("core") {
         subproject("file-collections")
         subproject("file-operations")
         subproject("flow-services")
+        subproject("graph-isolation")
         subproject("graph-serialization")
         subproject("guava-serialization-codecs")
         subproject("input-tracking")
+        subproject("isolated-action-services")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
         subproject("kotlin-dsl-tooling-builders")
@@ -164,6 +167,7 @@ val core = platform("core") {
         subproject("hashing")
         subproject("persistent-cache")
         subproject("request-handler-worker")
+        subproject("scoped-persistent-cache")
         subproject("snapshots")
         subproject("worker-main")
         subproject("workers")
@@ -311,7 +315,7 @@ testing {
 
 rootProject.name = "gradle"
 
-FeaturePreviews.Feature.values().forEach { feature ->
+FeaturePreviews.Feature.entries.forEach { feature ->
     if (feature.isActive) {
         enableFeaturePreview(feature.name)
     }
@@ -339,6 +343,84 @@ gradle.rootProject {
         outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
     }
+    tasks.register("platformsData", GeneratePlatformsDataTask::class) {
+        description = "Generates the platforms data"
+        outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
+        platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
+    }
+    tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
+        description = "Map packages to the list of package-info.java files that apply to them"
+        outputFile = layout.projectDirectory.file("build/architecture/package-info.json")
+        packageInfoFiles = provider { GeneratePackageInfoDataTask.findPackageInfoFiles(projectBaseDirs) }
+    }
+}
+
+
+@CacheableTask
+abstract class GeneratePackageInfoDataTask : DefaultTask() {
+
+    companion object {
+        val packageLineRegex = Regex("""package\s*([^;\s]+)\s*;""")
+
+        fun findPackageInfoFiles(projectBaseDirs: List<File>): List<File> =
+            listOf("src/main/java", "src/main/groovy").let { sourceRootPaths ->
+                projectBaseDirs.flatMap { projectBaseDir ->
+                    sourceRootPaths.asSequence().mapNotNull { sourceRootPath ->
+                        projectBaseDir.resolve(sourceRootPath).takeIf { it.exists() }
+                    }.flatMap { sourceRoot ->
+                        sourceRoot.walkTopDown().filter { it.isFile && it.name == "package-info.java" }
+                    }
+                }
+            }
+    }
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val packageInfoFiles: ListProperty<File>
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    private val baseDir = project.layout.settingsDirectory.asFile
+
+    @TaskAction
+    fun action() {
+        val results = mutableListOf<Pair<String, String>>()
+
+        for (packageInfoFile in packageInfoFiles.get()) {
+            val packageLine = packageInfoFile.useLines { lines -> lines.first { it.startsWith("package") } }
+            val packageName = packageLineRegex.find(packageLine)!!.groupValues[1]
+            results.add(packageName to packageInfoFile.relativeTo(baseDir).path)
+        }
+
+        val outputData = results.groupBy(keySelector = { it.first }, valueTransform = { it.second })
+        outputFile.get().asFile.writeText(Gson().toJson(outputData))
+    }
+
+}
+
+abstract class GeneratePlatformsDataTask : DefaultTask() {
+
+    data class PlatformData(val name: String, val dirs: List<String>, val uses: List<String>)
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @get:Input
+    abstract val platforms: ListProperty<Platform>
+
+    @TaskAction
+    fun action() {
+        val allPlatforms = platforms.get()
+        val data = allPlatforms.map { platform ->
+            PlatformData(
+                name = platform.name,
+                dirs = platform.children.takeIf { it.isNotEmpty() }?.map { it.name } ?: listOf(platform.name),
+                uses = platform.uses.map { use -> allPlatforms.single { it.id == use }.name },
+            )
+        }
+        outputFile.get().asFile.writeText(Gson().toJson(data))
+    }
 }
 
 abstract class GeneratorTask : DefaultTask() {
@@ -358,13 +440,9 @@ abstract class GeneratorTask : DefaultTask() {
         val head = if (markdownFile.exists()) {
             val content = markdownFile.readText().lines()
             val markerPos = content.indexOfFirst { it.contains(markerComment) }
-            if (markerPos < 0) {
-                throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
-            }
+            require(markerPos >= 0) { "Could not locate the generated diagram in $markdownFile" }
             val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
-            if (endPos < 0) {
-                throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
-            }
+            require(endPos >= 0) { "Could not locate the end of the generated diagram in $markdownFile" }
             content.subList(0, markerPos)
         } else {
             emptyList()
@@ -479,7 +557,9 @@ class ProjectScope(
 ) {
     fun subproject(projectName: String) {
         include(projectName)
-        project(":$projectName").projectDir = file("$basePath/$projectName")
+        val projectDir = file("$basePath/$projectName")
+        projectBaseDirs.add(projectDir)
+        project(":$projectName").projectDir = projectDir
     }
 }
 
@@ -508,9 +588,8 @@ sealed class ArchitectureElementBuilder(
 
 class ArchitectureModuleBuilder(
     name: String,
-    private val projectScope: ProjectScope
+    private val projectScope: ProjectScope = ProjectScope("platforms/$name"),
 ) : ArchitectureElementBuilder(name) {
-    constructor(name: String) : this(name, ProjectScope("platforms/$name"))
 
     fun subproject(projectName: String) {
         projectScope.subproject(projectName)
@@ -523,12 +602,10 @@ class ArchitectureModuleBuilder(
 
 class PlatformBuilder(
     name: String,
-    private val projectScope: ProjectScope
+    private val projectScope: ProjectScope = ProjectScope("platforms/$name"),
 ) : ArchitectureElementBuilder(name) {
     private val modules = mutableListOf<ArchitectureModuleBuilder>()
     private val uses = mutableListOf<PlatformBuilder>()
-
-    constructor(name: String) : this(name, ProjectScope("platforms/$name"))
 
     fun subproject(projectName: String) {
         projectScope.subproject(projectName)

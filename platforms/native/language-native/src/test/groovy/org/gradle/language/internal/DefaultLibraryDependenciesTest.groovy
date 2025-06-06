@@ -33,15 +33,10 @@ class DefaultLibraryDependenciesTest extends Specification {
     DefaultLibraryDependencies dependencies
 
     def setup() {
-        configurations.dependencyScopeUnlocked("api") >> apiDeps
+        configurations.dependencyScopeLocked("api") >> apiDeps
         apiDeps.dependencies >> deps
 
-        dependencies = new DefaultLibraryDependencies(configurations, "impl", "api") {
-            @Override
-            protected DependencyHandler getDependencyHandler() {
-                return dependencyFactory
-            }
-        }
+        dependencies = new DefaultLibraryDependencies(configurations, "impl", "api", dependencyFactory)
     }
 
     def "can add api dependency"() {

@@ -42,6 +42,7 @@ data class DefaultAnalysisSchema(
     override val genericSignaturesByFqName: Map<FqName, DataType.ParameterizedTypeSignature>,
     override val genericInstantiationsByFqName: Map<FqName, Map<List<TypeArgument>, DataType.ClassDataType>>,
     override val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
+    override val infixFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
     override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>, override val defaultImports: Set<FqName>,
     override val assignmentAugmentationsByTypeName: Map<FqName, List<AssignmentAugmentation>>,
 ) : AnalysisSchema

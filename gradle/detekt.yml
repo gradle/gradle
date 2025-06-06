@@ -56,4 +56,6 @@ exceptions:
 naming:
   MemberNameEqualsClassName:
     active: false
+  FunctionNaming:
+    functionPattern: '[a-z][a-zA-Z0-9]*|`[^`]*`'
 

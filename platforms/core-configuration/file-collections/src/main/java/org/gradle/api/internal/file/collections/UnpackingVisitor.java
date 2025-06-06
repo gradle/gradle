@@ -32,8 +32,8 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.DeferredUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Set;

@@ -21,7 +21,15 @@ plugins {
 
 description = "Tools to serialize data"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
+
+jvmCompile {
+    usesFutureStdlib = true
+}
 
 dependencies {
     api(projects.classloaders)
@@ -29,12 +37,13 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.io)
 
     implementation(libs.commonsIo)
     implementation(libs.fastutil)
+    implementation(libs.jsr305)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 

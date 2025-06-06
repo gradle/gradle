@@ -31,6 +31,8 @@ dependencies {
     testImplementation("org.spockframework:spock-core")
     testImplementation("net.bytebuddy:byte-buddy")
     testImplementation("org.objenesis:objenesis")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<GroovyCompile>().configureEach {

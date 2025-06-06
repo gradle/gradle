@@ -15,9 +15,11 @@
  */
 
 /**
- * Types to extend build cache functionality.
+ * Classes for build caches and for types to extend build cache functionality.
+ *
+ * @since 3.3
  */
-@NonNullApi
+@NullMarked
 package org.gradle.caching;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

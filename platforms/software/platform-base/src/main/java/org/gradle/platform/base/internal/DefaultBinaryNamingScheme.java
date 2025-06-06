@@ -18,8 +18,8 @@ package org.gradle.platform.base.internal;
 
 import org.gradle.api.Named;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;

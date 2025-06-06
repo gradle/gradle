@@ -59,7 +59,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
@@ -80,7 +80,6 @@ dependencies {
 
     testImplementation(libs.mockitoKotlin)
     testImplementation(libs.kotlinReflect)
-    testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.mockitoCore)
 
     integTestImplementation(projects.internalTesting)

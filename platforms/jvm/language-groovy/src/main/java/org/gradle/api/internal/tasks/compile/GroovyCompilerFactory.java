@@ -86,7 +86,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     public Compiler<GroovyJavaJointCompileSpec> newCompiler(GroovyJavaJointCompileSpec spec) {
         MinimalGroovyCompileOptions groovyOptions = spec.getGroovyCompileOptions();
         CompilerWorkerExecutor compilerWorkerExecutor = newExecutor(groovyOptions);
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), DaemonSideCompiler.class, classPathRegistry, compilerWorkerExecutor, classLoaderRegistry, forkOptionsFactory, jvmVersionDetector, problems.getInternalReporter());
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), classPathRegistry, compilerWorkerExecutor, classLoaderRegistry, forkOptionsFactory, jvmVersionDetector, problems.getInternalReporter());
         return new AnnotationProcessorDiscoveringCompiler<>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
     }
 

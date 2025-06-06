@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.jvm;
 
-import org.gradle.api.NonNullApi;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Shared code between {@link org.gradle.api.JavaVersion} and other code for parsing a full
- * Java version string.
+ * Parses the major version, as an integer, from the string returned by the {@code java.version} system property.
  */
-@NonNullApi
 public class JavaVersionParser {
+
+    public static int parseCurrentMajorVersion()  {
+        return parseMajorVersion(System.getProperty("java.version"));
+    }
 
     public static int parseMajorVersion(String fullVersion) {
         int firstNonVersionCharIndex = findFirstNonVersionCharIndex(fullVersion);

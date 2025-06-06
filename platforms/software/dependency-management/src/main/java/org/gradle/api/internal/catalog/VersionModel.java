@@ -16,8 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class VersionModel extends AbstractContextAwareModel {
     private final ImmutableVersionConstraint version;

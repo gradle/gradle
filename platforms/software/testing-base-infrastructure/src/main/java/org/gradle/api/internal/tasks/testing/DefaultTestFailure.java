@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;

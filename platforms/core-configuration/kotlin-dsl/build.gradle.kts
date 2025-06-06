@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin.Companion.shadowRuntimeElements
 import gradlebuild.basics.PublicKotlinDslApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
@@ -6,6 +7,7 @@ plugins {
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
+    id("com.gradleup.shadow").version("9.0.0-beta11")
 }
 
 description = "Kotlin DSL Provider"
@@ -21,13 +23,13 @@ dependencies {
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
+    api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.groovy)
     api(libs.guava)
     api(libs.kotlinStdlib)
-    api(libs.jsr305)
     api(libs.inject)
     api(libs.slf4jApi)
 
@@ -50,9 +52,9 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)
-    implementation(projects.normalizationJava)
-    implementation(projects.persistentCache)
     implementation(projects.resources)
+    implementation(projects.scopedPersistentCache)
+    implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
@@ -62,6 +64,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.groovyJson)
+    implementation(libs.jspecify)
     implementation(libs.kotlinReflect)
 
     implementation(libs.kotlinCompilerEmbeddable)
@@ -88,7 +91,11 @@ dependencies {
     implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
+    shadow("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0") {
+        isTransitive = false
+    }
+
+    runtimeOnly(libs.kotlinBuildToolsImpl) {
         isTransitive = false
     }
 
@@ -143,6 +150,55 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
+
+// Relocate kotlinx-metadata-jvm
+configurations.compileOnly {
+    extendsFrom(configurations.shadow.get())
+}
+configurations.testImplementation {
+    extendsFrom(configurations.shadow.get())
+}
+tasks.shadowJar {
+    archiveClassifier = ""
+    configurations = setOf(project.configurations.shadow.get())
+    relocate("kotlin.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata")
+    relocate("kotlinx.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlinx.metadata")
+    mergeServiceFiles()
+    exclude("META-INF/kotlin-metadata-jvm.kotlin_module")
+    exclude("META-INF/kotlin-metadata.kotlin_module")
+    exclude("META-INF/metadata.jvm.kotlin_module")
+    exclude("META-INF/metadata.kotlin_module")
+}
+val beforeShadowClassifier = "before-shadow"
+tasks.jar {
+    archiveClassifier = beforeShadowClassifier
+}
+tasks.assemble {
+    dependsOn(tasks.shadowJar)
+}
+// Replace the standard jar with the one built by 'shadowJar' in both api and runtime variants
+configurations.apiElements {
+    outgoing.artifacts.removeIf { it.classifier == beforeShadowClassifier && it.extension == "jar" }
+    outgoing.artifact(tasks.shadowJar) {
+        builtBy(tasks.shadowJar)
+    }
+}
+configurations.runtimeElements {
+    outgoing.artifacts.removeIf { it.classifier == beforeShadowClassifier && it.extension == "jar" }
+    outgoing.artifact(tasks.shadowJar) {
+        builtBy(tasks.shadowJar)
+    }
+}
+// Restore Kotlin's friendPath so tests and fixtures can access internals
+tasks.compileTestKotlin {
+    friendPaths.from(tasks.shadowJar)
+}
+tasks.compileTestFixturesKotlin {
+    friendPaths.from(tasks.shadowJar)
+}
+// Remove spurious configuration from shadow plugin to resolve ambiguity building the distribution
+// It seems to win over runtimeElements where it should not
+configurations.remove(configurations.shadowRuntimeElements.get())
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/**")

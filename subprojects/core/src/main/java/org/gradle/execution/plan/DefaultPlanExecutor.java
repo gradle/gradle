@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
@@ -36,8 +35,9 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -58,7 +58,7 @@ import java.util.function.ToLongFunction;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
-@NonNullApi
+@NullMarked
 public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     public static final InternalFlag STATS = new InternalFlag("org.gradle.internal.executor.stats");
     private static final Logger LOGGER = Logging.getLogger(DefaultPlanExecutor.class);
@@ -524,7 +524,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private static class ExecutorState implements ExecutorStats {
-        private final AtomicReference<List<WorkerState>> allWorkers = new AtomicReference<>();
+        private final AtomicReference<List<ExecutorState.WorkerState>> allWorkers = new AtomicReference<>();
 
         public void maybeStartWorkers(Runnable startAction) {
             if (allWorkers.get() != null) {
@@ -537,7 +537,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
         @Override
         public WorkerStats startWorker() {
-            WorkerState state = new WorkerState();
+            ExecutorState.WorkerState state = new ExecutorState.WorkerState();
             allWorkers.get().add(state);
             return state;
         }
@@ -556,7 +556,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                 return null;
             }
 
-            List<WorkerState> workers = allWorkers.get();
+            List<ExecutorState.WorkerState> workers = allWorkers.get();
             if (workers == null || workers.isEmpty()) {
                 // Workers have not been started yet, assume this is going to happen and that everything is healthy
                 return null;
@@ -564,7 +564,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
             int waitingWorkers = 0;
             int stoppedWorkers = 0;
-            for (WorkerState worker : workers) {
+            for (ExecutorState.WorkerState worker : workers) {
                 ExecutionState currentState = worker.state.get();
                 if (currentState == ExecutionState.Running) {
                     return null;
@@ -685,10 +685,8 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private static class CollectingWorkerStats implements WorkerStats {
-        final long startTime;
         private final CollectingExecutorStats owner;
         private final WorkerState delegate;
-        long finishTime;
         long startCurrentOperation;
         long totalSelectTime;
         long totalExecuteTime;
@@ -697,12 +695,10 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         public CollectingWorkerStats(CollectingExecutorStats owner, WorkerState delegate) {
             this.owner = owner;
             this.delegate = delegate;
-            startTime = System.nanoTime();
         }
 
         @Override
         public void finish() {
-            finishTime = System.nanoTime();
             owner.workerFinished(this);
         }
 

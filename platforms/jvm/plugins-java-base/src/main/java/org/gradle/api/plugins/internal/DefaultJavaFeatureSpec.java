@@ -85,12 +85,12 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
         if (SourceSet.isMain(sourceSet)) {
             DeprecationLogger.deprecateBehaviour(String.format("The '%s' feature was created using the main source set.", name))
                 .withAdvice("The main source set is reserved for production code and should not be used for features. Use another source set instead.")
-                .willBecomeAnErrorInGradle9()
+                .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(8, "deprecate_register_feature_main_source_set")
                 .nagUser();
         }
 
-        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, true, SourceSet.isMain(sourceSet));
+        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, SourceSet.isMain(sourceSet));
         feature.withApi();
 
         if (withJavadocJar) {

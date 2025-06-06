@@ -149,7 +149,7 @@ Joe!""")
 
         when:
         executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
-                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 10.0. " +
                 "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
                 "Configure an absolute path to a Java executable instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
@@ -613,59 +613,21 @@ Joe!""")
         file("build/docs/javadoc/pkg/internal/IFoo.html").assertDoesNotExist()
     }
 
-    def "isVerbose is deprecated"() {
-        buildFile << """
+    def "can set nullable properties to null in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
             plugins {
-                id 'java'
+                id("java")
             }
-            javadoc {
-                print("Javadoc is verbose: " + isVerbose())
+            tasks.javadoc {
+                destinationDir = null
+                title = null
+                maxMemory = null
+                executable = null
             }
         """
-        writeSourceFile()
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The Javadoc.isVerbose() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().isVerbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
-
-        then:
-        succeeds("javadoc")
-        outputContains("Javadoc is verbose: false")
-    }
-
-    def "setVerbose(true) is deprecated"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-            javadoc {
-                setVerbose(true)
-            }
-        """
-        writeSourceFile()
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(true) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().verbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
-
-        then:
-        succeeds("javadoc")
-    }
-
-    def "setVerbose(false) is deprecated with additional details"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-            javadoc {
-                setVerbose(false)
-            }
-        """
-        writeSourceFile()
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(false) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Passing false to this method does nothing. You may want to call getOptions().quiet(). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
-
-        then:
-        succeeds("javadoc")
+        expect:
+        succeeds "help"
     }
 
     private TestFile writeSourceFile() {

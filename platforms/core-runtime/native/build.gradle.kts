@@ -5,13 +5,10 @@ plugins {
 
 description = "This project contains various native operating system integration utilities"
 
-gradlebuildJava.usedInWorkers()
-
-/**
- * Use Java 8 compatibility for JMH benchmarks
- */
-tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
-    options.release = 8
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {
@@ -24,7 +21,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.nativePlatform)
 
     implementation(libs.gradleFileEvents)

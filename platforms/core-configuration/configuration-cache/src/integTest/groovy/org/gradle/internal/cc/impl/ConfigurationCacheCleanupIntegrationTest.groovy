@@ -65,7 +65,7 @@ class ConfigurationCacheCleanupIntegrationTest
         expect: 'Gradle to preserve the recent entry and to delete the outdated one'
         def cc = newConfigurationCacheFixture()
         configurationCacheRunNoDaemon 'recent'
-        cc.reused
+        cc.assertStateLoaded()
         !outdated.any { it.exists() }
 
         and:

@@ -30,8 +30,8 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashSet;
@@ -145,12 +145,8 @@ public abstract class ConventionReportTask extends ConventionTask {
     }
 
     @Inject
-    protected BuildClientMetaData getClientMetaData() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildClientMetaData getClientMetaData();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 }

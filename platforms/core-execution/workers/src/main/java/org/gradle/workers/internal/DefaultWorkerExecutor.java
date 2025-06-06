@@ -52,6 +52,7 @@ import org.gradle.workers.WorkerSpec;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -145,6 +146,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
     }
+
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction, WorkerSpec workerSpec, WorkerFactory workerFactory) {
         Class<T> parameterType = isolationScheme.parameterTypeFor(workActionClass);
         T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
@@ -157,7 +159,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         IsolatedParametersActionExecutionSpec<?> spec;
         try {
             // Isolate parameters in this thread prior to starting work in a separate thread
-            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, workerRequirement, false);
+            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, workerRequirement, Collections.emptySet());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }

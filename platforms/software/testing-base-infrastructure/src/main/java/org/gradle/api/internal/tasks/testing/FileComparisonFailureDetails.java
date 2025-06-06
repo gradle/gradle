@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import javax.annotation.Nullable;
-
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 public class FileComparisonFailureDetails extends AssertionFailureDetails {
     private final byte[] expectedContent;
     private final byte[] actualContent;
@@ -34,13 +32,11 @@ public class FileComparisonFailureDetails extends AssertionFailureDetails {
         return true;
     }
 
-    @Nullable
     @Override
     public byte[] getExpectedContent() {
         return expectedContent;
     }
 
-    @Nullable
     @Override
     public byte[] getActualContent() {
         return actualContent;

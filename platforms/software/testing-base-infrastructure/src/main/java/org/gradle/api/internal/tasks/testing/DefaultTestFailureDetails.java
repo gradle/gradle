@@ -17,8 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestFailureDetails;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultTestFailureDetails implements TestFailureDetails {
 
@@ -72,15 +71,13 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
         return null;
     }
 
-    @Nullable
     @Override
-    public byte[] getExpectedContent() {
+    public byte @Nullable [] getExpectedContent() {
         return null;
     }
 
-    @Nullable
     @Override
-    public byte[] getActualContent() {
+    public byte @Nullable [] getActualContent() {
         return null;
     }
 

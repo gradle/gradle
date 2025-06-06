@@ -30,6 +30,7 @@ import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.IntegerBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
+import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.watch.registry.WatchMode;
@@ -469,7 +470,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(Value.value(value));
+            settings.setConfigurationCache(Option.Value.value(value));
         }
     }
 
@@ -482,7 +483,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setIsolatedProjects(Value.value(value));
+            settings.setIsolatedProjects(Option.Value.value(value));
         }
     }
 

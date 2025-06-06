@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

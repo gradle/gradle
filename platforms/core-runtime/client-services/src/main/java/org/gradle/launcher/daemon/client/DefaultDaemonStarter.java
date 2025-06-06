@@ -16,13 +16,13 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -32,6 +32,7 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.lazy.Lazy;
@@ -62,8 +63,8 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.IncubationLogger;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,17 +82,15 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final DaemonParameters daemonParameters;
     private final DaemonRequestContext daemonRequestContext;
     private final DaemonGreeter daemonGreeter;
-    private final JvmVersionValidator versionValidator;
     private final JvmVersionDetector jvmVersionDetector;
     private final Lazy<JavaToolchainQueryService> javaToolchainQueryService;
     private final PropertyFactory propertyFactory;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, JvmVersionDetector jvmVersionDetector, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionDetector jvmVersionDetector, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonRequestContext = daemonRequestContext;
         this.daemonGreeter = daemonGreeter;
-        this.versionValidator = versionValidator;
         this.jvmVersionDetector = jvmVersionDetector;
         this.javaToolchainQueryService = javaToolchainQueryService;
         this.propertyFactory = propertyFactory;
@@ -145,7 +144,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
 
-        versionValidator.validate(majorJavaVersion);
+        UnsupportedJavaRuntimeException.assertIsSupportedDaemonJvmVersion(majorJavaVersion);
 
         List<String> daemonArgs = new ArrayList<>();
         daemonArgs.addAll(getPriorityArgs(daemonRequestContext.getPriority()));
@@ -198,7 +197,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             }
             encoder.flush();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         InputStream stdInput = buffer.getInputStream();
 
@@ -210,7 +209,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         );
     }
 
-    @Nonnull
+    @NonNull
     private DefaultToolchainSpec getDaemonJvmToolchainSpec(DaemonJvmCriteria.Spec daemonJvmCriteria) {
         DefaultToolchainSpec toolchainSpec = new DefaultToolchainSpec(propertyFactory);
         toolchainSpec.getLanguageVersion().value(JavaLanguageVersion.of(daemonJvmCriteria.getJavaVersion().asInt()));

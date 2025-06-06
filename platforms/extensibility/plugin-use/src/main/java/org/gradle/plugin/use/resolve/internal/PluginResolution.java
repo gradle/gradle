@@ -18,8 +18,7 @@ package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.plugin.use.PluginId;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The result of attempting to resolve a plugin to a classpath.

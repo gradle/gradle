@@ -16,7 +16,9 @@
 
 package org.gradle.internal.io;
 
-import javax.annotation.Nullable;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.function.Function;
@@ -39,7 +41,7 @@ public interface IoFunction<T, R> {
             try {
                 return function.apply(t);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }

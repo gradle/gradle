@@ -19,8 +19,8 @@ package org.gradle.api.internal.initialization;
 import com.google.common.base.Joiner;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeId;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Objects;

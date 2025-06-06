@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.Interner;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.HashCode;
@@ -35,7 +36,6 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -118,7 +118,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                     writeEntryType(encoder, EntryType.DIR_OPEN);
                     writePath(encoder, isRoot, directorySnapshot);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
 
@@ -136,7 +136,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                             encoder.writeSmallLong(metadata.getLastModified());
                             encoder.writeSmallLong(metadata.getLength());
                         } catch (IOException e) {
-                            throw new UncheckedIOException(e);
+                            throw UncheckedException.throwAsUncheckedException(e);
                         }
                     }
 
@@ -147,7 +147,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                             writePath(encoder, isRoot, missingSnapshot);
                             writeAccessType(encoder, missingSnapshot.getAccessType());
                         } catch (IOException e) {
-                            throw new UncheckedIOException(e);
+                            throw UncheckedException.throwAsUncheckedException(e);
                         }
                     }
                 });
@@ -161,7 +161,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                     writeAccessType(encoder, directorySnapshot.getAccessType());
                     writeHashCode(encoder, directorySnapshot.getHash());
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });

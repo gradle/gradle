@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -91,6 +91,11 @@ public class BuildableBackedProvider<B extends Buildable & TaskDependencyContain
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        return Value.ofNullable(valueFactory.create());
+        T value = valueFactory.create();
+        if (value == null) {
+            // AbstractProviderWithValue expects the factory to always return a non-null value
+            throw new NullPointerException("Value factory must not return null");
+        }
+        return Value.of(value);
     }
 }

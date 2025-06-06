@@ -41,8 +41,8 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.OutputStreamWriter;
@@ -155,11 +155,9 @@ public abstract class Ear extends Jar {
         }
     }
 
-    @Inject
     @Override
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Configures the deployment descriptor for this EAR archive.

@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -490,6 +492,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                    GET_HELP)
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "logs informative warning message if some repositories fail to resolve the toolchain spec #logLevel"(String logLevel, Closure<ExecutionResult> test) {
         given:
         Assume.assumeFalse(JavaVersion.current() == JavaVersion.VERSION_11)

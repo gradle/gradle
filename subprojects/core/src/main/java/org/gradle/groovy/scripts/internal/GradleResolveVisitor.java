@@ -82,6 +82,7 @@ import java.util.Set;
  */
 public class GradleResolveVisitor extends ResolveVisitor {
     // note: BigInteger and BigDecimal are also imported by default
+    // TODO: sync with the documentation in writing_build_scripts.adoc
     private static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util.", "java.time."};
     private static final String SCRIPTS_PACKAGE = "org.gradle.groovy.scripts";
 
@@ -844,8 +845,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         if (currentClass.getModule().hasPackageName() && name.indexOf('.') == -1) {
             return false;
         }
-        ClassNodeResolver.LookupResult lr = null;
-        lr = classNodeResolver.resolveName(name, compilationUnit);
+        ClassNodeResolver.LookupResult lr = classNodeResolver.resolveName(name, compilationUnit);
         if (lr != null) {
             if (lr.isSourceUnit()) {
                 SourceUnit su = lr.getSourceUnit();

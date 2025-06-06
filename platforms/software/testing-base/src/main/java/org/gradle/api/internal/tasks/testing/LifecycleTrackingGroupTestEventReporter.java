@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.HashSet;
 import java.util.Set;
 
-@NonNullApi
+@NullMarked
 class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter<GroupTestEventReporter> implements GroupTestEventReporter {
     private final Set<LifecycleTrackingTestEventReporter<?>> children = new HashSet<>();
 

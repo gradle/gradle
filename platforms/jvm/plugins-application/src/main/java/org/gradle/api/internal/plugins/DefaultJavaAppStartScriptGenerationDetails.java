@@ -17,8 +17,8 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 

@@ -997,7 +997,7 @@ parentFirst
         fails "resolve"
 
         then:
-        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("root project : > org:d:1.0")
+        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("root project 'test' > org:d:1.0")
     }
 
     def "chooses highest version that is included in both ranges"() {

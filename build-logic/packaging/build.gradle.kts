@@ -20,6 +20,7 @@ dependencies {
     implementation(kotlin("gradle-plugin"))
 
     implementation("com.google.code.gson:gson")
+    implementation("org.ow2.asm:asm")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

@@ -26,8 +26,12 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import java.util.Collections;
 
 /**
- * This type is {@code deprecated} and will be removed in Gradle 9.0.
- *
+ * This type is {@code deprecated} and will be removed in Gradle 10.0.
+ * <p>
+ * This is used by the oss-licenses plugin that is used by Now In Android.  To remove this class, we must first
+ * address that with a new version of oss-licenses, or the removal of it from NiA.
+ * See <a href="https://github.com/google/play-services-plugins/pull/305">this PR</a>.
+ * <p>
  * This is temporarily available for migration only.
  * This exception class is internal and has been replaced by {@link ArtifactSelectionException}, which is also internal.
  * If possible, catch a {@link RuntimeException} instead to avoid depending on Gradle internal classes.
@@ -66,8 +70,8 @@ public abstract class AmbiguousVariantSelectionException extends ArtifactSelecti
 
         DeprecationLogger.deprecateType(AmbiguousVariantSelectionException.class)
             .withAdvice("The " + AmbiguousVariantSelectionException.class.getName() + " type is temporarily available for migration only.")
-            .willBeRemovedInGradle9()
-            .undocumented()
+            .willBeRemovedInGradle10()
+            .withUserManual("feature_lifecycle", "sec:internal")
             .nagUser();
     }
 }

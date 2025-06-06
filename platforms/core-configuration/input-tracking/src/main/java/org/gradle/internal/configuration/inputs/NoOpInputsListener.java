@@ -16,7 +16,8 @@
 
 package org.gradle.internal.configuration.inputs;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 
 class NoOpInputsListener implements InstrumentedInputsListener {

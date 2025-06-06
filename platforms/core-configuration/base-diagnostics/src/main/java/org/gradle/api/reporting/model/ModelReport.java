@@ -79,14 +79,10 @@ public abstract class ModelReport extends DefaultTask {
     }
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected ModelRegistry getModelRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ModelRegistry getModelRegistry();
 
     @TaskAction
     public void report() {

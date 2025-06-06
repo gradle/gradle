@@ -16,7 +16,7 @@
 
 package org.gradle.internal.problems.failure;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Classifies various calls to JDK, Groovy and Gradle runtime as {@link StackTraceRelevance#INTERNAL}.

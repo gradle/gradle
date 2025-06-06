@@ -27,17 +27,15 @@ class KotlinDslTemplatesDeprecationsIntegrationTest : AbstractKotlinIntegrationT
     fun `InitScriptApi deprecation`() {
         withBuildScript("""
             import org.gradle.api.internal.file.FileOperations
-            import org.gradle.api.internal.ProcessOperations
             import org.gradle.kotlin.dsl.support.serviceOf
 
             class DeprecationTrigger(gradle: Gradle) : ${org.gradle.kotlin.dsl.InitScriptApi::class.qualifiedName}(gradle) {
                 override val fileOperations: FileOperations = gradle.serviceOf()
-                override val processOperations: ProcessOperations = gradle.serviceOf()
             }
 
             DeprecationTrigger(gradle)
         """)
-        executer.expectDeprecationWarning("The org.gradle.kotlin.dsl.InitScriptApi type has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.kotlin.dsl.InitScriptApi type has been deprecated. This is scheduled to be removed in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#kotlin_dsl_precompiled_gradle_lt_6")
         build("help")
     }
 
@@ -47,17 +45,15 @@ class KotlinDslTemplatesDeprecationsIntegrationTest : AbstractKotlinIntegrationT
     fun `SettingsScriptApi deprecation`() {
         withSettings("""
             import org.gradle.api.internal.file.FileOperations
-            import org.gradle.api.internal.ProcessOperations
             import org.gradle.kotlin.dsl.support.serviceOf
 
             class DeprecationTrigger(settings: Settings) : ${org.gradle.kotlin.dsl.SettingsScriptApi::class.qualifiedName}(settings) {
                 override val fileOperations: FileOperations = settings.serviceOf()
-                override val processOperations: ProcessOperations = settings.serviceOf()
             }
 
             DeprecationTrigger(settings)
         """)
-        executer.expectDeprecationWarning("The org.gradle.kotlin.dsl.SettingsScriptApi type has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.kotlin.dsl.SettingsScriptApi type has been deprecated. This is scheduled to be removed in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#kotlin_dsl_precompiled_gradle_lt_6")
         build("help")
     }
 }

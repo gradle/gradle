@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
-@org.gradle.api.NonNullApi
+@NullMarked
 public class AssertionFailureDetails extends DefaultTestFailureDetails {
     private final String expected;
     private final String actual;

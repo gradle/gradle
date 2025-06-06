@@ -17,14 +17,14 @@
 package org.gradle.internal.jvm.inspection;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Set;
 
 /**
  * Represents something needed in a Java installation.
  */
-@NonNullApi
+@NullMarked
 public enum JavaInstallationCapability {
     /**
      * The installation has a Java compiler. This is not present for JREs.

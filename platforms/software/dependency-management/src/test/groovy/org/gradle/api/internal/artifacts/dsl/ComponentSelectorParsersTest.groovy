@@ -128,8 +128,9 @@ class ComponentSelectorParsersTest extends Specification {
         then:
         v.size() == 1
         v[0] instanceof ProjectComponentSelector
-        v[0].projectPath == ":bar"
-        v[0].buildName == "build"
+        def selector = v[0] as ProjectComponentSelector
+        selector.projectPath == ":bar"
+        selector.buildPath == ":build"
     }
 
     def "fails for unknown types"() {

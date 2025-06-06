@@ -35,8 +35,8 @@ import org.gradle.internal.Transformers;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -82,9 +82,7 @@ public abstract class War extends Jar {
 
     @Inject
     @Override
-    public ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ObjectFactory getObjectFactory();
 
     @Internal
     @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")

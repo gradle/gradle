@@ -18,8 +18,8 @@ package org.gradle.internal.scripts;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.scripts.ScriptingLanguage;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 

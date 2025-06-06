@@ -16,7 +16,8 @@
 
 package org.gradle.internal.util;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.List;

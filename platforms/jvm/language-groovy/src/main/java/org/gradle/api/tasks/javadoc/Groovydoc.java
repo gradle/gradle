@@ -17,19 +17,15 @@
 package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -37,13 +33,12 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.workers.WorkerExecutor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -64,15 +59,12 @@ import java.util.Set;
  * that is used, is the one from the Groovy dependency defined in the build script.
  */
 @CacheableTask
-@SuppressWarnings("deprecation")
 public abstract class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
 
     private FileCollection classpath;
 
     private File destinationDir;
-
-    private org.gradle.api.internal.tasks.AntGroovydoc antGroovydoc;
 
     private boolean use;
 
@@ -110,7 +102,7 @@ public abstract class Groovydoc extends SourceTask {
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
         FileSystemOperations fsOperations = getServices().get(FileSystemOperations.class);
 
@@ -218,34 +210,6 @@ public abstract class Groovydoc extends SourceTask {
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
-    }
-
-    /**
-     * This is an internal API that will be removed.
-     * @deprecated Do not use this method.
-     */
-    @Internal
-    @Deprecated
-    @NotToBeReplacedByLazyProperty(because="it's going to be removed")
-    public org.gradle.api.internal.tasks.AntGroovydoc getAntGroovydoc() {
-        DeprecationLogger.deprecateMethod(Groovydoc.class, "getAntGroovydoc()").willBeRemovedInGradle9().withUpgradeGuideSection(8, "antgroovydoc").nagUser();
-
-        if (antGroovydoc == null) {
-            IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
-            TemporaryFileProvider temporaryFileProvider = getServices().get(TemporaryFileProvider.class);
-            antGroovydoc = new org.gradle.api.internal.tasks.AntGroovydoc(antBuilder, temporaryFileProvider);
-        }
-        return antGroovydoc;
-    }
-
-    /**
-     * This is an internal API that will be removed.
-     * @deprecated Do not use this method.
-     */
-    @Deprecated
-    public void setAntGroovydoc(org.gradle.api.internal.tasks.AntGroovydoc antGroovydoc) {
-        DeprecationLogger.deprecateMethod(getClass(), "setAntGroovydoc(AntGroovydoc)").willBeRemovedInGradle9().withUpgradeGuideSection(8, "antgroovydoc").nagUser();
-        this.antGroovydoc = antGroovydoc;
     }
 
     /**
@@ -544,7 +508,5 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 }

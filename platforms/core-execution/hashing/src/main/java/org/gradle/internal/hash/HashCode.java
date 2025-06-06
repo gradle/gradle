@@ -17,9 +17,9 @@
 package org.gradle.internal.hash;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.math.BigInteger;
 
@@ -310,7 +310,7 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         }
 
         @Override
-        public int compareTo(@Nonnull HashCode o) {
+        public int compareTo(@NonNull HashCode o) {
             return compareBytes(bytes, o.bytes());
         }
     }

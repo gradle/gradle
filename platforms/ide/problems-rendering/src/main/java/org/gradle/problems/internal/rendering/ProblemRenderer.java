@@ -17,13 +17,13 @@
 package org.gradle.problems.internal.rendering;
 
 import com.google.common.base.Strings;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collections;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@NonNullApi
+@NullMarked
 public class ProblemRenderer {
 
     private final PrintWriter output;

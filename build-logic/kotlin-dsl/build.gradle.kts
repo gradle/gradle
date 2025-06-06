@@ -17,5 +17,5 @@ dependencies {
     implementation("com.thoughtworks.qdox:qdox")
 
     testImplementation("junit:junit")
-    testImplementation("com.nhaarman:mockito-kotlin")
+    testImplementation("org.mockito.kotlin:mockito-kotlin")
 }

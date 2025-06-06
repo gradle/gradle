@@ -16,9 +16,10 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
+    implementation(projects.logging)
     implementation(projects.modelCore)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(libs.errorProneAnnotations)
     implementation(libs.guava)

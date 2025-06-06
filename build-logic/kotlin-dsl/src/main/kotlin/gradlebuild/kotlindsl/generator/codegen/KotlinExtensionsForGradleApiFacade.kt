@@ -77,7 +77,6 @@ class KotlinExtensionsForGradleApiFacade(classPath: ClassPath) : AutoCloseable {
         classPath: List<File>,
         classPathDependencies: List<File>,
         apiSpec: java.util.function.Function<String, Boolean>,
-        parameterNamesSupplier: java.util.function.Function<String, List<String>?>,
         functionSinceSupplier: java.util.function.Function<String, String?>,
     ) {
         invokeFacadeGenerateFunction(
@@ -93,7 +92,6 @@ class KotlinExtensionsForGradleApiFacade(classPath: ClassPath) : AutoCloseable {
                 "classPath" to classPath,
                 "classPathDependencies" to classPathDependencies,
                 "apiSpec" to apiSpec,
-                "parameterNamesSupplier" to parameterNamesSupplier,
                 "functionSinceSupplier" to functionSinceSupplier,
             )
         )

@@ -22,8 +22,8 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class ProjectDependencyFactory {
@@ -52,7 +52,7 @@ public class ProjectDependencyFactory {
             @MapKey("path") String path,
             @MapKey("configuration") @Nullable String configuration
         ) {
-            ProjectDependency defaultProjectDependency = factory.create(projectFinder.getProject(path));
+            ProjectDependency defaultProjectDependency = factory.create(projectFinder.getProject(path).getOwner());
             if (configuration != null) {
                 defaultProjectDependency.setTargetConfiguration(configuration);
             }

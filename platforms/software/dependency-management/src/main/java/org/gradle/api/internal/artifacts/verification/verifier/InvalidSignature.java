@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 
-@NonNullApi
+@NullMarked
 public class InvalidSignature extends AbstractVerificationFailure {
     private final File signatureFile;
 

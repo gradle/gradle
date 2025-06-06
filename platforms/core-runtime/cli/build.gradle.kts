@@ -4,5 +4,8 @@ plugins {
 
 description = "Utilities for parsing command line arguments"
 
-gradlebuildJava.usedInWorkers()
-
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+    }
+}

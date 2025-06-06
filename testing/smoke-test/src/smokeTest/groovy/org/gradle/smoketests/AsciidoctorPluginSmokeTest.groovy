@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.internal.VersionNumber
 
@@ -51,37 +51,21 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         file('build/docs/asciidoc').isDirectory()
 
         where:
-        version << TestedVersions.asciidoctor
+        version << [TestedVersions.asciidoctor]
     }
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
-        TestedVersions.asciidoctor.collectEntries([:]) { version ->
-            def base = [
-                "org.asciidoctor.editorconfig",
-                "org.asciidoctor.js.convert",
-                "org.asciidoctor.jvm.convert",
-                "org.asciidoctor.jvm.epub",
-                // Plugin broken after JCenter dependency disappeared
-//                "org.asciidoctor.jvm.gems",
-                "org.asciidoctor.jvm.pdf",
-            ].collectEntries { plugin ->
-                [(plugin): Versions.of(version)]
-            }
-            if (version.startsWith("3")) {
-                base + [
-                    "org.asciidoctor.decktape",
-                    "org.asciidoctor.jvm.leanpub",
-                    "org.asciidoctor.jvm.leanpub.dropbox-copy",
-                    // Plugin broken after JCenter dependency disappeared
-//                    "org.asciidoctor.jvm.revealjs",
-                ].collectEntries { plugin ->
-                    [(plugin): Versions.of(version)]
-                }
-            } else {
-                base
-            }
-        }
+        def versions = Versions.of(TestedVersions.asciidoctor)
+        [
+            "org.asciidoctor.editorconfig": versions,
+            // "org.asciidoctor.js.convert" : versions, //  Broken after 9.0. See https://github.com/asciidoctor/asciidoctor-gradle-plugin/pull/749
+            "org.asciidoctor.jvm.convert": versions,
+            "org.asciidoctor.jvm.epub": versions,
+            // Plugin broken after JCenter dependency disappeared
+            // "org.asciidoctor.jvm.gems" : versions, // Plugin broken after JCenter dependency disappeared
+            "org.asciidoctor.jvm.pdf": versions,
+        ]
     }
 
     @Override
@@ -98,39 +82,8 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         void expectAsciiDocDeprecationWarnings(String asciidoctorVersion) {
             def versionNumber = VersionNumber.parse(asciidoctorVersion)
-            runner.expectLegacyDeprecationWarningIf(
-                versionNumber.major < 4,
-                "The org.gradle.util.CollectionUtils type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations"
-            )
-
-            runner.expectLegacyDeprecationWarningIf(
-                versionNumber.major < 4,
-                "The JavaExecSpec.main property has been deprecated." +
-                    " This is scheduled to be removed in Gradle 9.0." +
-                    " Property was automatically upgraded to the lazy version." +
-                    " Please use the mainClass property instead." +
-                    " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}"
-            )
-
-            runner.expectLegacyDeprecationWarningIf(
-                versionNumber.major < 4,
-                "The Project.javaexec(Closure) method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
-                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_project_exec"
-            )
-
-            runner.expectLegacyDeprecationWarningIf(
-                versionNumber.major < 4,
-                "Invocation of Task.project at execution time has been deprecated. " +
-                    "This will fail with an error in Gradle 10.0. " +
-                    "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_7.html#task_project"
-            )
-
             runner.expectDeprecationWarningIf(
+                // Once the plugin is fixed, we should include the fixed version in the smoke-tested set and flip the condition to be less-than (<)
                 versionNumber.major >= 4,
                 "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
                     "This is scheduled to be removed in Gradle 10.0. " +

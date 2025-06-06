@@ -28,8 +28,8 @@ import org.gradle.process.internal.DefaultExecSpec;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
@@ -56,14 +56,10 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ExecActionFactory getExecActionFactory();
 
     @TaskAction
     protected void exec() {

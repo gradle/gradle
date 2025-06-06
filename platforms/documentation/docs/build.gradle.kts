@@ -47,6 +47,12 @@ configurations.docsTestImplementation {
     exclude("org.slf4j", "slf4j-simple")
 }
 
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(sourceSets.docsTest.name)
+    }
+}
+
 dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))
@@ -62,7 +68,6 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation("org.gebish:geb-spock:2.2")
     testImplementation("org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2")
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.httpmime)
@@ -73,6 +78,7 @@ dependencies {
     docsTestImplementation(project(":logging"))
     docsTestImplementation(libs.junit5Vintage)
     docsTestImplementation(libs.junit)
+    docsTestRuntimeOnly(libs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
@@ -632,10 +638,6 @@ tasks.named<Test>("docsTest") {
         if (!OperatingSystem.current().isMacOsX) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-swift-*.sample")
         }
-        // We don't maintain Java 7 on Windows and Mac
-        if (OperatingSystem.current().isWindows || OperatingSystem.current().isMacOsX) {
-            excludeTestsMatching("*java7CrossCompilation.sample")
-        }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
         if (javaVersion.isJava9Compatible) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*.sample")
@@ -650,19 +652,25 @@ tasks.named<Test>("docsTest") {
         }
 
         if (!javaVersion.isJava11Compatible) {
-            // Android requires Java 11+
-            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
-            // Umbrella build project contains also Android projects so it requires Java 11+
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample")
             // This test sets source and target compatibility to 11
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample")
         }
 
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            // Spring Boot requires Java 17+
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
+        }
+
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample")
+        }
+
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            // Android requires Java 17+
+            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
+            // Umbrella build project also contains Android projects
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample")
         }
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
@@ -697,16 +705,6 @@ tasks.named<Test>("docsTest") {
             // We don't have Android SDK installed on Mac M1 now
             excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
             excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
-        }
-
-        // filter tests which won't run on Groovy 4 without updating the Spock version
-        if (System.getProperty("bundleGroovy4", "false") == "true") {
-            excludeTestsMatching("org.gradle.docs.samples.*.convention-plugins*check.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.convention-plugins*sanityCheck.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*publish.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.publishing-convention-plugins*publish.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-configuration-cache-test-kit*configurationCacheTestKit.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-developing-plugins-testing-plugins*testPlugin.sample")
         }
     }
 

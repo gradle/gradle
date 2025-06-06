@@ -18,7 +18,7 @@ package org.gradle.performance.mutator
 
 import org.apache.commons.io.file.PathUtils
 import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.AbstractScheduledMutator
 
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitor
@@ -42,7 +42,7 @@ import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INST
  * This mutator could be also moved to the gradle-profiler.
  * TODO Refactor gradle-profiler `AbstractCacheCleanupMutator` so that it can clean up files in `caches/<gradle-version>/<cache-dir>`
  */
-class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends AbstractCleanupMutator {
+class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends AbstractScheduledMutator {
 
     /**
      * This marker was used in Gradle 8.7 and earlier.
@@ -51,13 +51,13 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends Abstract
 
     private final File gradleUserHome;
 
-    ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File gradleUserHome, CleanupSchedule schedule) {
+    ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File gradleUserHome, Schedule schedule) {
         super(schedule);
         this.gradleUserHome = gradleUserHome
     }
 
     @Override
-    protected void cleanup() {
+    protected void executeOnSchedule() {
         System.out.println("> Cleaning '<gradle-home>/caches/transforms-*/' and '<gradle-home>/caches/<gradle-version>/transforms/*' caches in " + gradleUserHome)
         File caches = new File(gradleUserHome, "caches")
 
@@ -116,7 +116,7 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends Abstract
         })
     }
 
-    static BuildMutator create(File gradleUserHome, CleanupSchedule schedule) {
+    static BuildMutator create(File gradleUserHome, Schedule schedule) {
         return new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(gradleUserHome, schedule)
     }
 }

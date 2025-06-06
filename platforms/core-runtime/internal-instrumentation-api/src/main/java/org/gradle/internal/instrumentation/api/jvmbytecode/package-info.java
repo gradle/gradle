@@ -17,7 +17,7 @@
 /**
  * Entry points to perform actual bytecode instrumentation.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.internal.instrumentation.api.jvmbytecode;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

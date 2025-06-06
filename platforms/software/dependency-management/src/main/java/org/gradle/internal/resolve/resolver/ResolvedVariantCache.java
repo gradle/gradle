@@ -21,8 +21,8 @@ import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTy
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;

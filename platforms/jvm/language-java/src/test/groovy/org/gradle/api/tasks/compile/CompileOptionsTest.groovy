@@ -23,12 +23,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNull
-import static org.junit.Assert.assertTrue
-
 class CompileOptionsTest extends Specification {
-    static final TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
 
     CompileOptions compileOptions
 
@@ -55,41 +50,6 @@ class CompileOptionsTest extends Specification {
 
         compileOptions.forkOptions != null
         compileOptions.debugOptions != null
-    }
-
-    def testFork() {
-        compileOptions.fork = false
-        assertNull(compileOptions.forkOptions.memoryMaximumSize)
-
-        expect:
-        compileOptions.fork([memoryMaximumSize: '1g'])
-        assertTrue(compileOptions.fork)
-        assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
-    }
-
-    def "debug"() {
-        compileOptions.debug = false
-        boolean debugUseCalled = false
-
-        compileOptions.debugOptions = [define: {Map args ->
-            debugUseCalled = true
-            args == TEST_DEBUG_OPTION_MAP
-        }] as DebugOptions
-
-        expect:
-        assert compileOptions.debug(TEST_DEBUG_OPTION_MAP).is(compileOptions)
-        compileOptions.debug
-        debugUseCalled
-    }
-
-    def "define"() {
-        compileOptions.debug = false
-        compileOptions.fork = false
-        compileOptions.define(debug: true)
-
-        expect:
-        compileOptions.debug
-        !compileOptions.fork
     }
 
     def "converts GStrings to Strings when getting all compiler arguments"() {
@@ -132,4 +92,5 @@ class CompileOptionsTest extends Specification {
         compileOptions.allCompilerArgs.size() == 1
         compileOptions.allCompilerArgs[0] instanceof String
     }
+
 }

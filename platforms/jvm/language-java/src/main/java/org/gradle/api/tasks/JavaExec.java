@@ -45,8 +45,8 @@ import org.gradle.process.internal.DefaultJavaExecSpec;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
@@ -256,7 +256,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return javaExecSpec.getSystemProperties();
     }
 
@@ -264,7 +264,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaExecSpec.setSystemProperties(properties);
     }
 
@@ -272,7 +272,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec systemProperties(Map<String, ?> properties) {
+    public JavaExec systemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaExecSpec.systemProperties(properties);
         return this;
     }
@@ -281,7 +281,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec systemProperty(String name, Object value) {
+    public JavaExec systemProperty(String name, @Nullable Object value) {
         javaExecSpec.systemProperty(name, value);
         return this;
     }
@@ -803,29 +803,19 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ExecActionFactory getExecActionFactory();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 
     private Iterable<String> jvmArgsConventionValue() {
         Iterable<String> jvmArgs = getConventionMapping().getConventionValue(null, "jvmArgs", false);

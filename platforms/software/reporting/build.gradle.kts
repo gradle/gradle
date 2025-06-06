@@ -29,10 +29,9 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.fileCollections)
-    implementation(projects.logging)
 
     implementation(libs.guava)
     implementation(libs.jatl)

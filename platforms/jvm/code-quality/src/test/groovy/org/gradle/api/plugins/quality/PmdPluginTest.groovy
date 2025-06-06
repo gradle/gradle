@@ -108,8 +108,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
     def "configures pmd targetjdk based on sourcecompatibilityLevel"() {
         project.pluginManager.apply(JavaBasePlugin)
         when:
-        project.setSourceCompatibility(sourceCompatibility)
-        project.sourceSets {
+        project.java.setSourceCompatibility(sourceCompatibility)
+        project.java.sourceSets {
             main
         }
         then:

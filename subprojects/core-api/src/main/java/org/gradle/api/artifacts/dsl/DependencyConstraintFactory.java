@@ -24,8 +24,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Factory class for creating {@link DependencyConstraint} instances, with strong typing.

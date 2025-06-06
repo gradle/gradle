@@ -272,8 +272,8 @@ The build scan above reveals that `:task1` and `:task3` could be improved and ma
 ====
 This feature has the following limitations:
 
-* Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>> are supported. Full support is still in progress.
-* Your build and its plugins may need adjustments to meet the <<configuration_cache#config_cache:requirements, requirements>>.
+* Not all <<configuration_cache_status.adoc#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented, features>> are supported. Full support is still in progress.
+* Your build and its plugins may need adjustments to meet the <<configuration_cache_requirements.adoc#config_cache:requirements, requirements>>.
 * IDE imports and syncs do not use the configuration cache.
 ====
 
@@ -771,7 +771,7 @@ include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="b
 include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-every]"]
 ====
 
-WARNING: Forking a VVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
+WARNING: Forking a JVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
 
 ==== C. Disable test reports
 

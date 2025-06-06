@@ -74,4 +74,18 @@ public interface FileCollectionStructureVisitor {
      * Visits a file tree whose content is generated from the contents of a file.
      */
     void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree);
+
+    FileCollectionStructureVisitor NO_OP = new FileCollectionStructureVisitor() {
+        @Override
+        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+        }
+
+        @Override
+        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+        }
+
+        @Override
+        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+        }
+    };
 }

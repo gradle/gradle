@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Represents a closure that can participate in dynamic calls instrumentation.
@@ -28,7 +28,7 @@ import org.gradle.api.NonNullApi;
  *
  * @see CallInterceptionClosureInstrumentingClassVisitor
  */
-@NonNullApi
+@NullMarked
 public interface InstrumentableClosure {
     void makeEffectivelyInstrumented();
 }

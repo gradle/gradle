@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 @UsedByScanPlugin("instanceof check")
 public class DecoratingTestDescriptor implements TestDescriptorInternal {
     private final TestDescriptorInternal descriptor;

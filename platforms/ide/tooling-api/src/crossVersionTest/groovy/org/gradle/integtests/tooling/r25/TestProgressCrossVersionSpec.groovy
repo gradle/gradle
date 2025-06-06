@@ -362,10 +362,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     @Requires(UnitTestPreconditions.NotWindows)
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
-        projectDir.createFile('settings.gradle') << """
-            include ':sub1'
-            include ':sub2'
-        """
+        includeProjects("sub1", "sub2")
         projectDir.createFile('build.gradle')
 
         [projectDir.createDir('sub1'), projectDir.createDir('sub2')].eachWithIndex { TestFile it, def index ->
@@ -429,7 +426,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.tests.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 4       // 2 test processes for each task
     }
 
-    @ToolingApiVersion("<8.12")
+    @ToolingApiVersion(">=8.0 <8.12")
     def "top-level test operation has test task as parent if task listener is attached (Tooling API client <8.12)"() {
         given:
         goodCode()

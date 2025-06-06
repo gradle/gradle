@@ -255,7 +255,7 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
         configurationCacheRun 'consumer'
 
         then:
-        configurationCache.assertStateStored(true)
+        configurationCache.assertStateStored()
 
         and:
         file('build/consumer-output.txt').text == '42'

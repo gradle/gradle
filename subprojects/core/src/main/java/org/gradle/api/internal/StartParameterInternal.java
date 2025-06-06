@@ -23,8 +23,8 @@ import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 
@@ -127,14 +127,6 @@ public class StartParameterInternal extends StartParameter {
 
     public void setVfsVerboseLogging(boolean vfsVerboseLogging) {
         this.vfsVerboseLogging = vfsVerboseLogging;
-    }
-
-    /**
-     * Used by the Kotlin plugin, via reflection.
-     */
-    @Deprecated
-    public boolean isConfigurationCache() {
-        return getConfigurationCache().get();
     }
 
     /**

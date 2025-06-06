@@ -13,7 +13,7 @@ errorprone {
 dependencies {
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     api(projects.baseServices)
     api(projects.coreApi)
@@ -29,7 +29,6 @@ dependencies {
     implementation(projects.execution)
     implementation(projects.fileCollections)
     implementation(projects.languageJava)
-    implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)

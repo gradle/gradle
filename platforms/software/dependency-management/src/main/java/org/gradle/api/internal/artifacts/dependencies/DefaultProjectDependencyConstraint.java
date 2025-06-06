@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 
 /**

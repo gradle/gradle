@@ -18,10 +18,13 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.concurrent.ThreadSafe;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.time.Clock;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
@@ -39,16 +42,23 @@ import java.util.List;
 
 public class JUnitTestClassExecutor implements Action<String> {
     private final ClassLoader applicationClassLoader;
-    private final RunListener listener;
     private final JUnitSpec spec;
     private final TestClassExecutionListener executionListener;
+    private final RunListener listener;
 
-    public JUnitTestClassExecutor(ClassLoader applicationClassLoader, JUnitSpec spec, RunListener listener, TestClassExecutionListener executionListener) {
+    public JUnitTestClassExecutor(
+        ClassLoader applicationClassLoader,
+        JUnitSpec spec,
+        Clock clock,
+        IdGenerator<?> idGenerator,
+        TestClassExecutionListener executionListener,
+        TestResultProcessor threadSafeResultProcessor
+    ) {
         assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
-        this.listener = listener;
         this.spec = spec;
         this.executionListener = executionListener;
+        this.listener = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
     }
 
     @Override

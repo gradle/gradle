@@ -17,12 +17,12 @@
 package gradlebuild.integrationtests
 
 import gradlebuild.basics.capitalize
+import gradlebuild.basics.daemonDebuggingIsEnabled
+import gradlebuild.basics.launcherDebuggingIsEnabled
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.testSplitExcludeTestClasses
 import gradlebuild.basics.testSplitIncludeTestClasses
 import gradlebuild.basics.testSplitOnlyTestGradleVersion
-import gradlebuild.basics.daemonDebuggingIsEnabled
-import gradlebuild.basics.launcherDebuggingIsEnabled
 import gradlebuild.basics.testing.TestType
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
@@ -91,6 +91,8 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
             "${prefix}TestImplementation"(project)
+            "${prefix}TestImplementation"(project.the<ExternalModulesExtension>().junitJupiter)
+            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junitPlatform)
             "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))

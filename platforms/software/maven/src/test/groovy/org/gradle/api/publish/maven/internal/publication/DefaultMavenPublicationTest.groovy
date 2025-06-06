@@ -25,10 +25,10 @@ import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -39,9 +39,9 @@ import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectIdentity
@@ -424,7 +424,7 @@ class DefaultMavenPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def buildTreePath = Mock(Path)
-        def projectIdentity = new ProjectIdentity(Mock(BuildIdentifier), buildTreePath, buildTreePath, "foo")
+        def projectIdentity = new ProjectIdentity(DefaultBuildIdentifier.ROOT, buildTreePath, buildTreePath, "foo")
         def projectDependency = Mock(ProjectDependencyInternal) {
             getTargetProjectIdentity() >> projectIdentity
         }
@@ -457,7 +457,7 @@ class DefaultMavenPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def buildTreePath = Mock(Path)
-        def projectIdentity = new ProjectIdentity(Mock(BuildIdentifier), buildTreePath, buildTreePath, "foo")
+        def projectIdentity = new ProjectIdentity(DefaultBuildIdentifier.ROOT, buildTreePath, buildTreePath, "foo")
         def projectDependency = Mock(ProjectDependencyInternal) {
             getTargetProjectIdentity() >> projectIdentity
         }

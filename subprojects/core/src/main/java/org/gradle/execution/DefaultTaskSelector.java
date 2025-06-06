@@ -28,35 +28,34 @@ import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class DefaultTaskSelector implements TaskSelector {
+public abstract class DefaultTaskSelector implements TaskSelector {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskSelector.class);
 
     private final TaskNameResolver taskNameResolver;
-    private final ProjectConfigurer configurer;
 
     @Inject
-    public DefaultTaskSelector(TaskNameResolver taskNameResolver, ProjectConfigurer configurer) {
+    public DefaultTaskSelector(TaskNameResolver taskNameResolver) {
         this.taskNameResolver = taskNameResolver;
-        this.configurer = configurer;
     }
 
     @Inject
-    protected InternalProblems getProblemsService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectConfigurer getConfigurer();
+
+    @Inject
+    protected abstract InternalProblems getProblemsService();
 
     @Override
     public Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean includeSubprojects) {
         if (includeSubprojects) {
             // Try to delay configuring all the subprojects
-            configurer.configure(project.getMutableModel());
+            getConfigurer().configure(project.getMutableModel());
             if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project.getMutableModel())) {
                 // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects at this point
                 return new TaskPathSpec(project.getMutableModel(), taskName);
@@ -70,9 +69,9 @@ public class DefaultTaskSelector implements TaskSelector {
     @Override
     public TaskSelection getSelection(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
         if (!includeSubprojects) {
-            configurer.configure(targetProject.getMutableModel());
+            getConfigurer().configure(targetProject.getMutableModel());
         } else {
-            configurer.configureHierarchy(targetProject.getMutableModel());
+            getConfigurer().configureHierarchy(targetProject.getMutableModel());
         }
 
         TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject.getMutableModel(), includeSubprojects);
@@ -98,7 +97,7 @@ public class DefaultTaskSelector implements TaskSelector {
         if (context.getOriginalPath().getPath().equals(taskName)) {
             String message = matcher.formatErrorMessage("Task", searchContext);
             throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), matcher.problemId(), spec -> {
-                configureProblem(spec, matcher, context);
+                configureProblem(spec, context);
                 spec.contextualLabel(message);
             });
         }
@@ -106,18 +105,18 @@ public class DefaultTaskSelector implements TaskSelector {
             matcher.formatErrorMessage("task", searchContext));
 
         throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(), spec ->
-            configureProblem(spec, matcher, context)
-              .contextualLabel(message)
+            configureProblem(spec, context)
+                .contextualLabel(message)
         );
     }
 
-    private static ProblemSpec configureProblem(ProblemSpec spec, NameMatcher matcher, SelectionContext context) {
+    private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
         ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
         spec.severity(Severity.ERROR);
         return spec;
     }
 
-    @Nonnull
+    @NonNull
     private static String getSearchContext(ProjectState targetProject, boolean includeSubprojects) {
         if (includeSubprojects && !targetProject.getChildProjects().isEmpty()) {
             return targetProject.getDisplayName() + " and its subprojects";

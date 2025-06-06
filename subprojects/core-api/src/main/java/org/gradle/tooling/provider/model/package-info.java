@@ -17,5 +17,5 @@
 /**
  * Interfaces and classes that allow tooling models to be made available to the tooling API client.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.tooling.provider.model;

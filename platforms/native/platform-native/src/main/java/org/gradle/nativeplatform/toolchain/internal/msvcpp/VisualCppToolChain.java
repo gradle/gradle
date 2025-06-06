@@ -39,12 +39,12 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements org.gradle.nativeplatform.toolchain.VisualCpp {
 
     private final String name;
-    private final OperatingSystem operatingSystem;
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
 
@@ -67,11 +67,11 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private WindowsSdkInstall windowsSdk;
     private ToolChainAvailability availability;
 
+    @Inject
     public VisualCppToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, UcrtLocator ucrtLocator, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver);
         this.name = name;
-        this.operatingSystem = operatingSystem;
         this.execActionFactory = execActionFactory;
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.visualStudioLocator = visualStudioLocator;

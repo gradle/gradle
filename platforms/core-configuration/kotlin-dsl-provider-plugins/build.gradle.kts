@@ -30,7 +30,6 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
-    implementation(projects.snapshots)
     implementation(projects.toolingApi)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
@@ -42,12 +41,13 @@ dependencies {
         isTransitive = false
     }
     implementation(libs.kotlinCompilerEmbeddable)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.kotlinReflect)
 
     testImplementation(testFixtures(projects.kotlinDsl))
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
 }
 
 packageCycles {

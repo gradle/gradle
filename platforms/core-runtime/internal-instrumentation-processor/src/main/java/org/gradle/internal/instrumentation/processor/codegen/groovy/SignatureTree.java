@@ -21,9 +21,9 @@ import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -78,7 +78,7 @@ class SignatureTree {
         current.leaf = request;
     }
 
-    @Nonnull
+    @NonNull
     private static List<ParameterMatchEntry> parameterMatchEntries(CallableInfo callable) {
         Optional<ParameterInfo> varargParameter = callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.VARARG_METHOD_PARAMETER).findAny();
         CallableKindInfo kind = callable.getKind();

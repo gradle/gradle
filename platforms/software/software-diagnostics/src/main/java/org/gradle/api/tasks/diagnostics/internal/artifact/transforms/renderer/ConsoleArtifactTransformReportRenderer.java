@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.renderer;
 
 import com.google.common.collect.Streams;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ArtifactTransformReportModel;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ReportArtifactTransform;

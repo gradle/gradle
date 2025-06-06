@@ -16,7 +16,7 @@
 
 package org.gradle.operations.problems;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A basic location pointing to a specific part of a file using line number, column, and length for coordinates.

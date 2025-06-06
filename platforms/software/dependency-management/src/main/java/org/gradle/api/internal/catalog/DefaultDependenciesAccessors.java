@@ -17,7 +17,7 @@ package org.gradle.api.internal.catalog;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.artifacts.VersionCatalogsExtension;
@@ -67,10 +67,10 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.internal.IncubationLogger;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.StringWriter;
@@ -104,6 +104,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final InputFingerprinter inputFingerprinter;
     private final AttributesFactory attributesFactory;
     private final CapabilityNotationParser capabilityNotationParser;
+    private final Problems problemsService;
     private final List<DefaultVersionCatalog> models = new ArrayList<>();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = new HashMap<>();
 
@@ -122,7 +123,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         AttributesFactory attributesFactory,
-        CapabilityNotationParser capabilityNotationParser
+        CapabilityNotationParser capabilityNotationParser,
+        Problems problemsService
     ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
@@ -133,11 +135,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         this.inputFingerprinter = inputFingerprinter;
         this.attributesFactory = attributesFactory;
         this.capabilityNotationParser = capabilityNotationParser;
-    }
-
-    @Inject
-    protected Problems getProblemsService() {
-        throw new UnsupportedOperationException("not implemented");
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -422,8 +420,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         protected List<ClassSource> getClassSources() {
             return Arrays.asList(
-                new DependenciesAccessorClassSource(model.getName(), model, getProblemsService()),
-                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, getProblemsService())
+                new DependenciesAccessorClassSource(model.getName(), model, problemsService),
+                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, problemsService)
             );
         }
 

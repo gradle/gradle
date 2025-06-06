@@ -13,6 +13,12 @@ val smokeTestSourceSet = sourceSets.create("smokeTest") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(smokeTestSourceSet.name)
+    }
+}
+
 addDependenciesAndConfigurations("smoke")
 
 val smokeTestImplementation: Configuration by configurations
@@ -30,7 +36,6 @@ dependencies {
     smokeTestImplementation(projects.buildOption)
     smokeTestImplementation(projects.processServices)
     smokeTestImplementation(libs.commonsIo)
-    smokeTestImplementation(libs.groovyAnt)
     smokeTestImplementation(libs.groovyJson)
     smokeTestImplementation(libs.commonsHttpclient)
     smokeTestImplementation(libs.jgit)
@@ -38,10 +43,11 @@ dependencies {
     smokeTestImplementation(libs.junitPlatform)
     smokeTestImplementation(libs.jacksonDatabind)
 
+    smokeTestImplementation(testFixtures(projects.buildProcessServices))
     smokeTestImplementation(testFixtures(projects.core))
+    smokeTestImplementation(testFixtures(projects.modelReflect))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
     smokeTestImplementation(testFixtures(projects.versionControl))
-    smokeTestImplementation(testFixtures(projects.modelReflect))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
 }
@@ -176,7 +182,7 @@ plugins.withType<IdeaPlugin>().configureEach {
     val smokeTestCompileClasspath: Configuration by configurations
     val smokeTestRuntimeClasspath: Configuration by configurations
     model.module {
-        testSources.from(smokeTestSourceSet.groovy.srcDirs)
+        testSources.from(smokeTestSourceSet.java.srcDirs, smokeTestSourceSet.groovy.srcDirs)
         testResources.from(smokeTestSourceSet.resources.srcDirs)
         scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
         scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)

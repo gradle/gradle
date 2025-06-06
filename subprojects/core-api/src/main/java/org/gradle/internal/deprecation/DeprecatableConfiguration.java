@@ -73,7 +73,7 @@ public interface DeprecatableConfiguration extends Configuration {
         if (isDeprecatedForConsumption()) {
             DeprecationLogger.deprecateConfiguration(getName())
                 .forConsumption()
-                .willBecomeAnErrorInGradle9()
+                .willBecomeAnErrorInNextMajorGradleVersion()
                 .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
@@ -87,7 +87,7 @@ public interface DeprecatableConfiguration extends Configuration {
             DeprecationLogger.deprecateConfiguration(getName())
                 .forDependencyDeclaration()
                 .replaceWith(getDeclarationAlternatives())
-                .willBecomeAnErrorInGradle9()
+                .willBecomeAnErrorInNextMajorGradleVersion()
                 .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
@@ -101,7 +101,7 @@ public interface DeprecatableConfiguration extends Configuration {
             DeprecationLogger.deprecateConfiguration(getName())
                 .forResolution()
                 .replaceWith(getResolutionAlternatives())
-                .willBecomeAnErrorInGradle9()
+                .willBecomeAnErrorInNextMajorGradleVersion()
                 .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }

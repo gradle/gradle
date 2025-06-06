@@ -27,10 +27,10 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.Arrays;

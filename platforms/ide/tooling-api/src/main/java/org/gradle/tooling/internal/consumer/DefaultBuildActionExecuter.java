@@ -28,8 +28,8 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 
 class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<DefaultBuildActionExecuter<T>> implements BuildActionExecuter<T> {
@@ -95,10 +95,8 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
     }
 
     static class Builder implements BuildActionExecuter.Builder {
-        @Nullable
-        private PhasedBuildAction.BuildActionWrapper<?> projectsLoadedAction = null;
-        @Nullable
-        private PhasedBuildAction.BuildActionWrapper<?> buildFinishedAction = null;
+        private PhasedBuildAction.@Nullable BuildActionWrapper<?> projectsLoadedAction = null;
+        private PhasedBuildAction.@Nullable BuildActionWrapper<?> buildFinishedAction = null;
 
         private final AsyncConsumerActionExecutor connection;
         private final ConnectionParameters parameters;

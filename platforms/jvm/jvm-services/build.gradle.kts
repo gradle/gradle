@@ -39,7 +39,7 @@ dependencies {
     api(projects.persistentCache)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.nativePlatform)
 
     implementation(projects.functional)

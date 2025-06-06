@@ -18,28 +18,52 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
-import org.objectweb.asm.signature.SignatureReader;
-import org.objectweb.asm.signature.SignatureVisitor;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ConstantDynamic;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.TypePath;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 
 import java.lang.annotation.RetentionPolicy;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
 public class ClassDependenciesVisitor extends ClassVisitor {
 
-    private final static int API = AsmConstants.ASM_LEVEL;
+    private static final int API = AsmConstants.ASM_LEVEL;
+    /**
+     * Handle describing {@link java.lang.invoke.ConstantBootstraps#invoke(MethodHandles.Lookup, String, Class, MethodHandle, Object...)}.
+     */
+    private static final Handle CONSTANT_BOOTSTRAPS_INVOKE = new Handle(
+        Opcodes.H_INVOKESTATIC,
+        "java/lang/invoke/ConstantBootstraps",
+        "invoke",
+        "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/invoke/MethodHandle;[Ljava/lang/Object;)Ljava/lang/Object;",
+        false
+    );
+    /**
+     * Handle describing {@link java.lang.constant.ClassDesc#of(String)}.
+     */
+    private static final Handle CLASS_DESC_OF = new Handle(
+        Opcodes.H_INVOKESTATIC,
+        "java/lang/constant/ClassDesc",
+        "of",
+        "(Ljava/lang/String;)Ljava/lang/constant/ClassDesc;",
+        true
+    );
 
     private final IntSet constants;
     private final Set<String> privateTypes;
@@ -165,12 +189,16 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
         maybeAddClassTypesFromSignature(signature, types);
+        addTypesFromMethodDescriptor(types, desc);
+        return new MethodVisitor(types);
+    }
+
+    private void addTypesFromMethodDescriptor(Set<String> types, String desc) {
         Type methodType = Type.getMethodType(desc);
         maybeAddDependentType(types, methodType.getReturnType());
         for (Type argType : methodType.getArgumentTypes()) {
             maybeAddDependentType(types, argType);
         }
-        return new MethodVisitor(types);
     }
 
     @Override
@@ -251,6 +279,76 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
             maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
+        }
+
+        @Override
+        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+            if (tryHandleSpecialBootstrapMethod(BootstrapMethod.fromIndy(bootstrapMethodHandle, bootstrapMethodArguments))) {
+                return;
+            }
+            addTypesFromMethodDescriptor(privateTypes, descriptor);
+            maybeAddDependentType(privateTypes, Type.getObjectType(bootstrapMethodHandle.getOwner()));
+
+            for (Object arg : bootstrapMethodArguments) {
+                addDependentTypeFromBootstrapMethodArgument(arg);
+            }
+        }
+
+        @Override
+        public void visitLdcInsn(Object value) {
+            if (value instanceof ConstantDynamic) {
+                addDependentTypesFromConstantDynamic((ConstantDynamic) value);
+            }
+        }
+
+        private void addDependentTypesFromConstantDynamic(ConstantDynamic arg) {
+            if (tryHandleSpecialBootstrapMethod(BootstrapMethod.fromConstantDynamic(arg))) {
+                return;
+            }
+            maybeAddDependentType(privateTypes, Type.getObjectType(arg.getBootstrapMethod().getOwner()));
+
+            for (int i = 0; i < arg.getBootstrapMethodArgumentCount(); i++) {
+                addDependentTypeFromBootstrapMethodArgument(arg.getBootstrapMethodArgument(i));
+            }
+        }
+
+        private void addDependentTypeFromBootstrapMethodArgument(Object arg) {
+            if (arg instanceof Type) {
+                maybeAddDependentType(privateTypes, (Type) arg);
+            } else if (arg instanceof Handle) {
+                maybeAddDependentType(privateTypes, Type.getObjectType(((Handle) arg).getOwner()));
+            } else if (arg instanceof ConstantDynamic) {
+                addDependentTypesFromConstantDynamic((ConstantDynamic) arg);
+            }
+        }
+
+        /**
+         * Some bootstrap methods describe a dependency on a class, despite not containing a class reference in their
+         * arguments. One way this can happen is with qualified enums in a switch expression, where they will bootstrap
+         * a class constant using {@link java.lang.constant.ClassDesc#of(String)}. The string represents a class name
+         * which must be a dependency of the class being analyzed.
+         *
+         * @param bootstrapMethod the bootstrap method to check
+         * @return if the bootstrap method was handled and its types added to the dependency set
+         */
+        private boolean tryHandleSpecialBootstrapMethod(BootstrapMethod bootstrapMethod) {
+            // Currently this method only handles the ClassDesc#of case, but there may be others in the future.
+            // If so, this code should be refactored out to its own method.
+            if (!bootstrapMethod.getHandle().equals(CONSTANT_BOOTSTRAPS_INVOKE)) {
+                return false;
+            }
+            if (bootstrapMethod.getArguments().size() != 2) {
+                return false;
+            }
+            if (!CLASS_DESC_OF.equals(bootstrapMethod.getArguments().get(0))) {
+                return false;
+            }
+            Object className = bootstrapMethod.getArguments().get(1);
+            if (!(className instanceof String)) {
+                return false;
+            }
+            maybeAddDependentType(privateTypes, Type.getObjectType(((String) className).replace('.', '/')));
+            return true;
         }
     }
 

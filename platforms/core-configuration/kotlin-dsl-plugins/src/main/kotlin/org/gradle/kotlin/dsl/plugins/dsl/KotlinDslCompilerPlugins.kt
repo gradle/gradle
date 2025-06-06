@@ -20,13 +20,10 @@ import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.SupportsKotlinAssignmentOverloading
-import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
 import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentExtension
 import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentSubplugin
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -52,32 +49,15 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
             assignment.annotation(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
         }
 
-        kotlinDslPluginOptions {
-            tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
-                kotlinCompile.compilerOptions {
-                    DeprecationLogger.whileDisabled {
-                        @Suppress("DEPRECATION")
-                        if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
-                            jvmTarget.set(this@kotlinDslPluginOptions.jvmTarget.map { JvmTarget.fromTarget(it) })
-                        }
-                    }
-                    apiVersion.set(KotlinVersion.KOTLIN_1_8)
-                    languageVersion.set(KotlinVersion.KOTLIN_1_8)
-                    freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
-                }
-                kotlinCompile.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
-                    "-XXLanguage:+DisableCompatibilityModeForNewInference",
-                    "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-                )))
-                // Set this back to a warning for now, as this plugin is frequently used without toolchains specifying a JVM target, and it causes errors when using newer JDKs.
-                // This can be removed when https://youtrack.jetbrains.com/issue/KT-66919 is fixed.
-                kotlinCompile.jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
+        tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
+            kotlinCompile.compilerOptions {
+                apiVersion.set(KotlinVersion.KOTLIN_2_1)
+                languageVersion.set(KotlinVersion.KOTLIN_2_1)
+                freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
             }
+            // Set this back to a warning for now, as this plugin is frequently used without toolchains specifying a JVM target, and it causes errors when using newer JDKs.
+            // This can be removed when https://youtrack.jetbrains.com/issue/KT-66919 is fixed.
+            kotlinCompile.jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
         }
-    }
-
-    private
-    fun KotlinCompile.setWarningRewriter(rewriter: ContextAwareTaskLogger.MessageRewriter) {
-        (logger as ContextAwareTaskLogger).setMessageRewriter(rewriter)
     }
 }

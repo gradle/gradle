@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -25,8 +24,8 @@ import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 public class RelativePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter, FileSystemLocationSnapshotHasher normalizedContentHasher) {
-        super(new RelativePathFingerprintingStrategy(stringInterner, directorySensitivity, normalizedContentHasher), fileCollectionSnapshotter);
+    public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+        super(new RelativePathFingerprintingStrategy(stringInterner, directorySensitivity, normalizedContentHasher));
     }
 
     @Override

@@ -16,8 +16,7 @@
 package org.gradle.tooling.events;
 
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Describes an operation for which an event has occurred.

@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;

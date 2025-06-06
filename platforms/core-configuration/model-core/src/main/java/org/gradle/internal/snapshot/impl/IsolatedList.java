@@ -19,8 +19,8 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

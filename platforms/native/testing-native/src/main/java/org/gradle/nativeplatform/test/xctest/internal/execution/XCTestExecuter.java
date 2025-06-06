@@ -31,10 +31,10 @@ import org.gradle.internal.io.TextStream;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 
 import javax.inject.Inject;
@@ -58,30 +58,22 @@ import java.util.List;
  * - Smarter/fancier test filtering
  * - Test probing (so we know which tests exist without executing them)
  */
-public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
+public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     @Inject
-    public ClientExecHandleBuilderFactory getExecHandleFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ClientExecHandleBuilderFactory getExecHandleFactory();
 
     @Inject
-    public WorkerLeaseService getWorkerLeaseService() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract WorkerLeaseService getWorkerLeaseService();
 
     public IdGenerator<?> getIdGenerator() {
         return new LongIdGenerator();
     }
 
     @Inject
-    public Clock getClock() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract Clock getClock();
 
     @Inject
-    public Clock getTimeProvider() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract Clock getTimeProvider();
 
     @Override
     public void execute(XCTestTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
@@ -160,7 +152,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
                 if (result.getExitValue() != 0 && result.getExitValue() != 1) {
                     result.rethrowFailure().assertNormalExitValue();
                 }
-            } catch (ExecException e) {
+            } catch (ProcessExecutionException e) {
                 stdOut.endOfStream(e);
                 stdErr.endOfStream(null);
             } finally {

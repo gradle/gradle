@@ -16,12 +16,11 @@
 
 package org.gradle.internal.reflect.validation;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public interface TypeAwareProblemBuilder extends InternalProblemSpec {
     TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached);
 

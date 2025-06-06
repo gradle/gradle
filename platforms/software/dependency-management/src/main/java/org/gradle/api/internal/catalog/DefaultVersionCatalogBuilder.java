@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -47,17 +47,17 @@ import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -225,7 +225,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
     }
 
-    @Nonnull
+    @NonNull
     private String getProblemInVersionCatalog() {
         return DefaultCatalogProblemBuilder.getProblemInVersionCatalog(name) + ", ";
     }
@@ -271,13 +271,14 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         // The zero at the end of the configuration comes from the previous implementation;
         // Multiple files could be imported, and all members of the list were given their own configuration, postfixed by the index in the array.
         // After moving this into a single-file import, we didn't want to break the lock files generated for the configuration, so we simply kept the zero.
-        Configuration cnf = ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableDependencyScopeUnlocked("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
-        cnf.getResolutionStrategy().activateDependencyLocking();
-        cnf.attributes(attrs -> {
-            attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
-            attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
+        String confName = "incomingCatalogFor" + StringUtils.capitalize(name) + "0";
+        return ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableDependencyScopeLocked(confName, conf -> {
+            conf.getResolutionStrategy().activateDependencyLocking();
+            conf.attributes(attrs -> {
+                attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
+                attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
+            });
         });
-        return cnf;
     }
 
     @Override
@@ -310,7 +311,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         try {
             TomlCatalogFileParser.parse(modelFile.toPath(), this, this::getProblemsService);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -408,7 +409,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
     }
 
-    @Nonnull
+    @NonNull
     private RuntimeException throwAliasCatalogException(String alias, Collection<String> reservedNames) {
         throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
             configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
@@ -416,7 +417,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                 .solution("Use a different alias which doesn't contain " + getExcludedNames(reservedNames) + ".")));
     }
 
-    @Nonnull
+    @NonNull
     public static String getExcludedNames(Collection<String> reservedNames) {
         String namesOrName = quotedOxfordListOf(reservedNames, "or");
         if (reservedNames.size() == 1) {

@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.publish;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 import java.util.Objects;

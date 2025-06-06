@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Converts or adapts objects to views over the objects.

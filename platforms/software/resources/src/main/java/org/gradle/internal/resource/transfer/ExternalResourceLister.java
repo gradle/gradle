@@ -19,8 +19,8 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

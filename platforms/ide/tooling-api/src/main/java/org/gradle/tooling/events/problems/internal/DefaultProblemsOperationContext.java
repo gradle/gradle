@@ -16,18 +16,18 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.Solution;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultProblemsOperationContext implements ProblemContext {
     private final Details details;
     private final List<Location> originLocations;

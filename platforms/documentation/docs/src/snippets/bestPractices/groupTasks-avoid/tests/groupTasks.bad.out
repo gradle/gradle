@@ -9,8 +9,6 @@ Other tasks
 -----------
 compileJava - Compiles main Java source.
 compileTestJava - Compiles test Java source.
-components - Displays the components produced by project ':app'. [deprecated]
-dependentComponents - Displays the dependent components of components in project ':app'. [deprecated]
 generateDocs
 processResources - Processes main resources.
 processTestResources - Processes test resources.

@@ -18,8 +18,8 @@ package org.gradle.swiftpm.internal;
 
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.swiftpm.Package;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;

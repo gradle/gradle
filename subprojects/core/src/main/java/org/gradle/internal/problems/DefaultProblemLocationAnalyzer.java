@@ -29,8 +29,8 @@ import org.gradle.internal.problems.failure.StackFramePredicate;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
@@ -65,7 +65,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @javax.annotation.Nullable ClassLoaderScopeOrigin origin) {
+    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
         if (origin instanceof ClassLoaderScopeOrigin.Script) {
             ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
             lock.lock();
@@ -78,7 +78,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @javax.annotation.Nullable HashCode implementationHash) {
+    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @org.jspecify.annotations.Nullable HashCode implementationHash) {
     }
 
     @Override

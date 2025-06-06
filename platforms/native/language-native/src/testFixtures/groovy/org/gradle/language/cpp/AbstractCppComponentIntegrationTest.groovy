@@ -199,12 +199,10 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
     protected String configureToolChainSupport(String architecture) {
         return """
-            model {
-                toolChains {
-                    toolChainFor${architecture.capitalize()}Architecture(Gcc) {
-                        path "/not/found"
-                        target("host:${architecture}")
-                    }
+            toolChains {
+                toolChainFor${architecture.capitalize()}Architecture(Gcc) {
+                    path "/not/found"
+                    target("host:${architecture}")
                 }
             }
         """

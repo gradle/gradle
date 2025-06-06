@@ -30,32 +30,6 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
     Set<String> calculateDefaultDependencyNotation() {
         return PmdPlugin.calculateDefaultDependencyNotation(versionNumber.toString())
     }
-    /**
-     * Checks if the current PMD version supports the current Java version, if not we set the sourceCompatibility to the max Java version supported by the current PMD version.
-     */
-    String requiredSourceCompatibility() {
-        if (versionNumber < VersionNumber.parse('6.0.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk9OrLater)) {
-            "java.sourceCompatibility = 1.8"
-        } else if (versionNumber < VersionNumber.parse('6.4.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk10OrLater)) {
-            "java.sourceCompatibility = 9"
-        } else if (versionNumber < VersionNumber.parse('6.6.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk11OrLater)) {
-            "java.sourceCompatibility = 10"
-        } else if (versionNumber < VersionNumber.parse('6.13.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk12OrLater)) {
-            "java.sourceCompatibility = 11"
-        } else if (versionNumber < VersionNumber.parse('6.18.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk13OrLater)) {
-            "java.sourceCompatibility = 12"
-        } else if (versionNumber < VersionNumber.parse('6.22.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk14OrLater)) {
-            "java.sourceCompatibility = 13"
-        } else if (versionNumber < VersionNumber.parse('6.48.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk19OrLater)) {
-            "java.sourceCompatibility = 18"
-        } else if (versionNumber < VersionNumber.parse('7.0.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk21OrLater)) {
-            "java.sourceCompatibility = 20"
-        } else if (TestPrecondition.satisfied(UnitTestPreconditions.Jdk23OrLater)) { // PMD doesn't support Java 23 yet
-            "java.sourceCompatibility = 22"
-        } else {
-            "" // do not set a source compatibility for the DEFAULT_PMD_VERSION running on latest Java, this way we will catch if it breaks with a new Java version
-        }
-    }
 
     static boolean fileLockingIssuesSolved() {
         return TestPrecondition.satisfied(UnitTestPreconditions.Windows) || VersionNumber.parse("5.5.1") <= versionNumber

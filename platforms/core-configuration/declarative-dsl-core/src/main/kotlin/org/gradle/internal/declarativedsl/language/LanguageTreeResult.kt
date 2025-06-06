@@ -120,4 +120,5 @@ sealed interface UnsupportedLanguageFeature {
     data object UnsupportedAssignmentLeftHandSide : UnsupportedLanguageFeature
     data object InvalidImportValue : UnsupportedLanguageFeature
     data object InfixFunctionCall : UnsupportedLanguageFeature
+    data object InfixFunctionCallChain : UnsupportedLanguageFeature
 }

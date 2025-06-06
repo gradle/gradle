@@ -25,11 +25,11 @@ import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +64,7 @@ public class UpgradedProperties {
                 .distinct()
                 .collect(ImmutableList.toImmutableList());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -15,14 +15,14 @@
  */
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Collections;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssertionFailure implements InternalFileComparisonTestAssertionFailure {
 
     private final byte[] expectedContent;

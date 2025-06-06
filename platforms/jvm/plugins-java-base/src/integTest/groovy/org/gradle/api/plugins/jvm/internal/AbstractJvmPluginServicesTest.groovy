@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -56,9 +55,6 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
             getBuildDirectory() >> projectDirProperty.fileValue(new File(testRootDir, "build"))
             getProjectDirectory() >> projectDirProperty.fileValue(testRootDir).get()
         }
-        getConvention() >> Stub(Convention) {
-            findPlugin(_) >> null
-        }
         getExtensions() >> Stub(ExtensionContainerInternal) {
             getByType(JavaPluginExtension) >> Mock(JavaPluginExtension)
         }
@@ -75,7 +71,6 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
     )
 
     DefaultJvmLanguageUtilities jvmLanguageUtilities = new DefaultJvmLanguageUtilities(
-        TestUtil.providerFactory(),
         instanceGenerator,
         project
     )

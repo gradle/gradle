@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
-
+import org.gradle.test.fixtures.Flaky
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
@@ -50,9 +50,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 // clear the classpath to avoid file locking issues on PMD version < 5.5.1
                 classpath = files()
             }"""}
-
-            ${requiredSourceCompatibility()}
-        """.stripIndent()
+        """
     }
 
     def "analyze good code"() {
@@ -91,6 +89,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4688")
     void "can set max failures"() {
         badCode()
         buildFile << """

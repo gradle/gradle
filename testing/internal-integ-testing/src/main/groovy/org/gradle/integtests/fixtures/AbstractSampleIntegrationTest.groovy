@@ -16,18 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
-import org.junit.Assume
-
 abstract class AbstractSampleIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.withRepositoryMirrors()
-    }
-
-    def configureExecuterForToolchains(String... versions) {
-        def jdks = AvailableJavaHomes.getJdks(versions)
-        Assume.assumeTrue(versions.length == jdks.size())
-        executer.beforeExecute {
-            withArgument("-Porg.gradle.java.installations.paths=" + jdks.collect { it.javaHome.absolutePath }.join(","))
-        }
     }
 }

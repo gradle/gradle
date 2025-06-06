@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import java.util.ArrayList;
+import com.google.common.collect.ImmutableList;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,12 +29,16 @@ public enum Compression {
     BZIP2("tbz2", "bz2");
 
     private final String defaultExtension;
-    private final List<String> supportedExtensions = new ArrayList<String>(2);
+    private final ImmutableList<String> supportedExtensions;
 
     private Compression(String defaultExtension, String... additionalSupportedExtensions) {
         this.defaultExtension = defaultExtension;
-        this.supportedExtensions.addAll(Arrays.asList(additionalSupportedExtensions));
-        this.supportedExtensions.add(defaultExtension);
+
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        builder.addAll(Arrays.asList(additionalSupportedExtensions));
+        builder.add(defaultExtension);
+
+        this.supportedExtensions = builder.build();
     }
 
     public String getDefaultExtension(){

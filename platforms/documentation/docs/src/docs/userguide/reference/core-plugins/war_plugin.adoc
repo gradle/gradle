@@ -86,23 +86,6 @@ If you don't want this transitive behavior, simply declare your `provided` depen
 `components.web`::
 A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_setup.adoc#publishing_overview,publishing>> the production WAR created by the `war` task.
 
-[[sec:war_convention_properties]]
-== Convention properties (deprecated)
-
-`webAppDirName` — `String`::
-_Default value_: `src/main/webapp`
-+
-The name of the web application source directory, relative to the project directory.
-
-`webAppDir` — (read-only) `File`::
-_Default value_: `$webAppDirName`, e.g. _src/main/webapp_
-+
-The path to the web application source directory.
-
-These properties are provided by a link:{groovyDslPath}/org.gradle.api.plugins.WarPluginConvention.html[WarPluginConvention] object.
-
-Configuring war tasks via convention properties is **deprecated**. If you need to set default values the `war` task then configure the task directly. If you want to configure all tasks of type `War` in the project then use link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)].
-
 [[sec:war_default_settings]]
 == War
 

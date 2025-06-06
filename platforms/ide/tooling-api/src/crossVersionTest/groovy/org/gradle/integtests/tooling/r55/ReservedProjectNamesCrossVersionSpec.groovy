@@ -40,8 +40,8 @@ class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
         """
         settingsFile << """
         rootProject.name = 'root'
-        include ':a', ':b'
         """
+        includeProjects("a", "b")
     }
 
     def "externally used project names can be supplied and are deduplicated"() {

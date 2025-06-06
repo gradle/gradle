@@ -21,6 +21,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -93,49 +94,55 @@ import spock.lang.Specification
     def "can't contain 2 identically named attributes with different types from the same classloader"() {
         when:
         def container = createContainer([(Attribute.of("test", String)): "a", (Attribute.of("test", Integer)): 1])
+        container.keySet() // Realize elements of the container
 
         then:
         def exception = thrown(Exception)
         if (container instanceof ImmutableAttributes) {
-            exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Integer'"
-        } else {
             exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'java.lang.Integer' and you are trying to store another one of type 'java.lang.String'"
+        } else {
+            exception.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'test' of type 'java.lang.String' and another attribute of type 'java.lang.Integer'"
         }
     }
 
     def "can't contain 2 identically named attributes with the same type loaded from different classloaders"() {
         given: "a second classloader, that has no parent, and can load the Named class"
-        def pathToClass = Thread.currentThread().getContextClassLoader().getResource(Named.name.replace(".", "/") + ".class").toString()
-        def pathToJar = pathToClass.substring("jar:".length(), pathToClass.indexOf('!'))
-        def urls = new URL[] { new URL(pathToJar) }
+
+        URL[] urls = [Named.class, MyNamed.class].collect {
+            ClasspathUtil.getClasspathForClass(it).toURI().toURL()
+        }.toArray(new URL[0])
+
         ClassLoader loader2 = new URLClassLoader(urls, (ClassLoader) null) // Loader 2 only has the URL of the jar containing Named
 
         when: "that alternate classloader is used to load the Named class"
         Class<?> named2 = loader2.loadClass(Named.name)
+        Class<?> myNamed2 = loader2.loadClass(MyNamed.name)
+
+        def namedInstance = new MyNamed("name1")
+        def named2Instance = myNamed2.getDeclaredConstructor(String).newInstance("name2")
 
         then: "2 copies of the class Named exist, loaded from the default classloader and the alternate classloader"
         Named.name == named2.name
         Named.classLoader != named2.classLoader
         Named != named2
 
+        MyNamed.name == myNamed2.name
+        MyNamed.classLoader != myNamed2.classLoader
+        MyNamed != myNamed2
+
+        namedInstance.class != named2Instance.class
+
         when:
-        createContainer([(Attribute.of("test", Named)): new MyNamed("name1"), (Attribute.of("test", named2)): new MyNamed("name2")])
+        def container = createContainer([(Attribute.of("test", Named)): namedInstance, (Attribute.of("test", named2)): named2Instance])
+        container.keySet() // Realize elements of the container
 
         then:
         def exception = thrown(Exception)
-        exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'org.gradle.api.Named' and you are trying to store another one of type 'org.gradle.api.Named'"
-    }
-
-    private static final class MyNamed implements Named, Serializable {
-        private final String name
-
-        MyNamed(String name) {
-            this.name = name
-        }
-
-        @Override
-        String getName() {
-            return null
+        if (container instanceof ImmutableAttributes) {
+            exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'org.gradle.api.Named' and you are trying to store another one of type 'org.gradle.api.Named'"
+        } else {
+            exception.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'test' of type 'org.gradle.api.Named' and another attribute of type 'org.gradle.api.Named'"
         }
     }
+
 }

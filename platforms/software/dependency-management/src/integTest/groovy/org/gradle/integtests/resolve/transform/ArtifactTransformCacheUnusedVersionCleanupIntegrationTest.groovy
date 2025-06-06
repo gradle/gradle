@@ -82,13 +82,12 @@ class ArtifactTransformCacheUnusedVersionCleanupIntegrationTest extends Abstract
         currentModulesDir.assertExists()
     }
 
-    def "does not cleans up old unused versions of transforms-X when cleanup disabled"(CleanupMethod method) {
+    def "does not cleans up old unused versions of transforms-X when cleanup disabled"() {
         given:
         modulesGcFile.lastModified = daysAgo(2)
-        disableCacheCleanup(method)
+        disableCacheCleanupViaDsl()
 
         when:
-        method.maybeExpectDeprecationWarning(executer)
         succeeds("help")
 
         then:
@@ -96,9 +95,6 @@ class ArtifactTransformCacheUnusedVersionCleanupIntegrationTest extends Abstract
         transforms4Dir.assertExists()
         currentTransformsDir.assertExists()
         currentModulesDir.assertExists()
-
-        where:
-        method << CleanupMethod.values()
     }
 
     TestFile getModulesGcFile() {

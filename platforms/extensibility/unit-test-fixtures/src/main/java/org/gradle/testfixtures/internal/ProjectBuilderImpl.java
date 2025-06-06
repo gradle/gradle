@@ -60,6 +60,7 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.jvm.SupportedJavaVersions;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
@@ -77,9 +78,11 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
+import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
@@ -113,16 +116,23 @@ public class ProjectBuilderImpl {
     }
 
     public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir) {
+        // ProjectBuilder uses daemon classes, so it has the same JVM compatibility.
+        UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
 
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
-        if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION) {
+        if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {
+            int currentMajorGradleVersion = VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
+
             // We do not use a DeprecationLogger here since the logger is not initialized when using the ProjectBuilder.
-            LOGGER.warn("Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-                "This will fail with an error in Gradle 9.0. " +
-                "Use JVM 17 or greater to execute Gradle. " +
+            LOGGER.warn("Executing Gradle on JVM versions {} and lower has been deprecated. " +
+                "This will fail with an error in Gradle {}.0. " +
+                "Use JVM {} or greater to execute Gradle. " +
                 "Projects can continue to use older JVM versions via toolchains. " +
                 "Consult the upgrading guide for further information: {}",
-                new DocumentationRegistry().getDocumentationFor("upgrading_version_8", "minimum_daemon_jvm_version")
+                SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1,
+                currentMajorGradleVersion + 1,
+                SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION,
+                new DocumentationRegistry().getDocumentationFor("upgrading_version_" + currentMajorGradleVersion, "minimum_daemon_jvm_version")
             );
         }
 
@@ -294,11 +304,6 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public Path calculateIdentityPathForProject(Path projectPath) {
-            return projectPath;
-        }
-
-        @Override
         public StartParameterInternal getStartParameter() {
             throw new UnsupportedOperationException();
         }
@@ -315,11 +320,6 @@ public class ProjectBuilderImpl {
 
         @Override
         public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
             throw new UnsupportedOperationException();
         }
 

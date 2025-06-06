@@ -16,13 +16,13 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.ProblemGroup;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
-@NonNullApi
+@NullMarked
 public class DefaultProblemGroup implements ProblemGroup {
 
     private final String name;

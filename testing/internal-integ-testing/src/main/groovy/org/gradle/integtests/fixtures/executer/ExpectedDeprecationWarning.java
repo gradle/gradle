@@ -55,30 +55,6 @@ public abstract class ExpectedDeprecationWarning {
         };
     }
 
-    public static ExpectedDeprecationWarning withSingleLinePattern(String pattern) {
-        Preconditions.checkArgument(pattern != null && !pattern.isEmpty(), "pattern must not be null or empty");
-        return withPattern(Pattern.compile(pattern), 1);
-    }
-
-    public static ExpectedDeprecationWarning withMultiLinePattern(String pattern, int numLines) {
-        Preconditions.checkArgument(pattern != null && !pattern.isEmpty(), "pattern must not be null or empty");
-        return withPattern(Pattern.compile("(?m)" + pattern), numLines);
-    }
-
-    private static ExpectedDeprecationWarning withPattern(Pattern pattern, int numLines) {
-        return new ExpectedDeprecationWarning(numLines) {
-            @Override
-            protected boolean matchesNextLines(String nextLines) {
-                return pattern.matcher(nextLines).matches();
-            }
-
-            @Override
-            public String toString() {
-                return pattern.toString();
-            }
-        };
-    }
-
     /**
      * Get the number of lines that the expected message spans.
      *

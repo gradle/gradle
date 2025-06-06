@@ -24,7 +24,10 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 
 class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(IntegTestPreconditions.BestJreAvailable)
+    @Requires(value = [
+        IntegTestPreconditions.BestJreAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with a JRE")
     def "java compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre

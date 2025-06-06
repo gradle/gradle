@@ -11,17 +11,14 @@ errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 6 occurrences
         "GetClassOnEnum", // 1 occurrences
-        "HidingField", // 2 occurrences
         "ImmutableEnumChecker", // 2 occurrences
-        "InconsistentCapitalization", // 1 occurrences
         "ReferenceEquality", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
     )
 }
 
 dependencies {
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.maven3Settings)
 
     api(projects.baseServices)

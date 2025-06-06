@@ -20,8 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Responsible for taking a dependency declaration and locating the matching component. The component can be returned either the resolution state for the component, if this state is cheaply available

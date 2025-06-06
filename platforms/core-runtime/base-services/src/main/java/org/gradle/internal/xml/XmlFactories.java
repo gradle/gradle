@@ -16,7 +16,7 @@
 
 package org.gradle.internal.xml;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 
@@ -32,7 +32,7 @@ import javax.xml.xpath.XPathFactoryConfigurationException;
 /**
  * Factories for javax.xml.
  */
-@NonNullApi
+@NullMarked
 public final class XmlFactories {
 
     public static DocumentBuilderFactory newDocumentBuilderFactory() {

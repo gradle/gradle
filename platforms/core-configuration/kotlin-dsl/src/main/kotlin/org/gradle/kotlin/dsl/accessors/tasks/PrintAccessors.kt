@@ -23,10 +23,13 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.serialization.Cached
 
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.accessors.SchemaType
+import org.gradle.kotlin.dsl.accessors.TypeAccessibility
+import org.gradle.kotlin.dsl.accessors.TypeAccessibilityProvider
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
-import org.gradle.kotlin.dsl.accessors.accessible
 import org.gradle.kotlin.dsl.accessors.accessorsFor
 import org.gradle.kotlin.dsl.accessors.fragmentsFor
+import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 
 import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
@@ -37,7 +40,7 @@ abstract class PrintAccessors : DefaultTask() {
 
     init {
         group = "help"
-        description = "Prints the Kotlin code for accessing the currently available project extensions and conventions."
+        description = "Prints the Kotlin code for accessing the currently available project extensions."
     }
 
     @get:Inject
@@ -45,13 +48,22 @@ abstract class PrintAccessors : DefaultTask() {
     abstract val projectSchemaProvider: ProjectSchemaProvider
 
     private
-    val schema = Cached.of { schemaOf(project) }
+    val accessorsSource = Cached.of {
+        val classpath = classPathProvider.compilationClassPathOf((project as ProjectInternal).classLoaderScope)
+        TypeAccessibilityProvider(classpath).use { accessibilityProvider ->
+            accessorsSourceFor(schemaOf(project)!!, accessibilityProvider::accessibilityForType)
+        }
+    }
+
+    @get:Inject
+    protected
+    abstract val classPathProvider: KotlinScriptClassPathProvider
 
     @Suppress("unused")
     @TaskAction
     internal
     fun printExtensions() {
-        printAccessorsFor(schema.get()!!)
+        println(accessorsSource.get())
     }
 
     private
@@ -61,20 +73,25 @@ abstract class PrintAccessors : DefaultTask() {
 
 
 internal
-fun printAccessorsFor(schema: TypedProjectSchema) {
-    for (sourceFragment in accessorSourceFragmentsFor(schema)) {
-        println()
-        println(sourceFragment.replaceIndent("    "))
-        println()
+fun accessorsSourceFor(
+    schema: TypedProjectSchema,
+    typeAccessibilityMapper: (SchemaType) -> TypeAccessibility
+): String = buildString {
+    for (sourceFragment in accessorSourceFragmentsFor(schema, typeAccessibilityMapper)) {
+        appendLine()
+        appendLine(sourceFragment.replaceIndent("    "))
+        appendLine()
     }
 }
 
 
 private
-fun accessorSourceFragmentsFor(schema: TypedProjectSchema): Sequence<String> =
-    accessorsFor(schema.map(::accessible)).flatMap { accessor ->
-        val (_, fragments) = fragmentsFor(accessor)
-        fragments
-            .map { it.source }
-            .filter { it.isNotBlank() }
-    }
+fun accessorSourceFragmentsFor(
+    schema: TypedProjectSchema,
+    typeAccessibilityMapper: (SchemaType) -> TypeAccessibility
+): Sequence<String> = accessorsFor(schema.map(typeAccessibilityMapper)).flatMap { accessor ->
+    val (_, fragments) = fragmentsFor(accessor)
+    fragments
+        .map { it.source }
+        .filter { it.isNotBlank() }
+}

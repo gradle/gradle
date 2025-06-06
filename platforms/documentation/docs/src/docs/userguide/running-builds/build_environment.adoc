@@ -129,7 +129,7 @@ spring-boot.version = 2.2.1.RELEASE
 
 You can place the `gradle.properties` file in the root directory of your project, the Gradle user home directory (`GRADLE_USER_HOME`), or the directory where Gradle is optionally installed (`GRADLE_HOME`).
 
-When resolving properties, Gradle first looks in the project-level `gradle.properties` file, then in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with project-level properties taking precedence over user-level and installation-level properties.
+When resolving properties, Gradle first looks in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, then in the project-level `gradle.properties` file, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with user-level properties taking precedence over project-level and installation-level properties.
 
 [[sec:project_properties]]
 == Project properties
@@ -324,7 +324,7 @@ When set to `true`, individual input property hashes and the build cache key for
 _Default is `false`._
 
 `org.gradle.configuration-cache=(true,false)`::
-Enables <<configuration_cache.adoc#config_cache:usage:enable, configuration caching>>. Gradle will try to reuse the build configuration from previous builds.
+Enables <<configuration_cache_enabling.adoc#config_cache:usage:enable, configuration caching>>. Gradle will try to reuse the build configuration from previous builds.
 +
 _Default is `false`._
 

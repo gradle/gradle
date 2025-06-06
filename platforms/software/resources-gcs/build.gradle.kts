@@ -10,7 +10,7 @@ dependencies {
     api(projects.resources)
 
     api(libs.gcs)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.hashing)
@@ -36,7 +36,6 @@ dependencies {
 
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
-    integTestImplementation(libs.joda)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

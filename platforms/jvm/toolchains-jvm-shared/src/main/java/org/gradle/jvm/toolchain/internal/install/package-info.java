@@ -17,7 +17,7 @@
 /**
  * Types for installing JVM toolchains.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.jvm.toolchain.internal.install;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

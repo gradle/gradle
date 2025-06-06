@@ -20,14 +20,12 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialization.Cached;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -216,8 +214,7 @@ public interface JvmInstallationMetadata {
         @Override
         public String getDisplayName() {
             final String vendor = determineVendorName();
-            String installationType = determineInstallationType(vendor);
-            return MessageFormat.format("{0}{1}", vendor, installationType);
+            return vendor + " " + determineInstallationType() + " " + getJavaMajorVersion() + " (" + getRuntimeVersion() + ")";
         }
 
         private String determineVendorName() {
@@ -230,14 +227,12 @@ public interface JvmInstallationMetadata {
             return getVendor().getDisplayName();
         }
 
-        private String determineInstallationType(String vendor) {
-            if (getCapabilities().contains(JavaInstallationCapability.JAVA_COMPILER)) {
-                if (!vendor.toLowerCase(Locale.ROOT).contains("jdk")) {
-                    return " JDK";
-                }
-                return "";
+        private String determineInstallationType() {
+            if (getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES)) {
+                return "JDK";
+            } else {
+                return "JRE";
             }
-            return " JRE";
         }
 
         @Override

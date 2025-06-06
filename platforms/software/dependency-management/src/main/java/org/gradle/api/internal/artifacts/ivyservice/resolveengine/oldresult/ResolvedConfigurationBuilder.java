@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 
 //builds old model of resolved dependency graph based on the result events
 public interface ResolvedConfigurationBuilder {
 
-    void addFirstLevelDependency(Dependency moduleDependency, DependencyGraphNode dependency);
+    void addFirstLevelDependency(DependencyGraphNode dependency);
 
     void addChild(DependencyGraphNode parent, DependencyGraphNode child, int artifactsId);
 
@@ -31,5 +30,4 @@ public interface ResolvedConfigurationBuilder {
 
     void done(DependencyGraphNode root);
 
-    ResolvedGraphResults complete();
 }

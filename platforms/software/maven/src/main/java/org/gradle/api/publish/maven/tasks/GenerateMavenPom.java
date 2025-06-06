@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
@@ -27,7 +27,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -52,54 +51,16 @@ public abstract class GenerateMavenPom extends DefaultTask {
     );
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     /**
      * Get the version range mapper.
      *
      * @deprecated This method will be removed in Gradle 9.0
      */
+    @Deprecated
     @Inject
-    @Deprecated
-    protected VersionRangeMapper getVersionRangeMapper() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * The values set by this method are ignored.
-     *
-     * @deprecated This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public GenerateMavenPom withCompileScopeAttributes(ImmutableAttributes compileScopeAttributes) {
-
-        DeprecationLogger.deprecateMethod(GenerateMavenPom.class, "withCompileScopeAttributes(ImmutableAttributes)")
-            .withContext("This method was never intended for public use.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "generate_maven_pom_method_deprecations")
-            .nagUser();
-
-        return this;
-    }
-
-    /**
-     * The values set by this method are ignored.
-     *
-     * @deprecated This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public GenerateMavenPom withRuntimeScopeAttributes(ImmutableAttributes runtimeScopeAttributes) {
-
-        DeprecationLogger.deprecateMethod(GenerateMavenPom.class, "runtimeScopeAttributes(ImmutableAttributes)")
-            .withContext("This method was never intended for public use.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "generate_maven_pom_method_deprecations")
-            .nagUser();
-
-        return this;
-    }
+    protected abstract VersionRangeMapper getVersionRangeMapper();
 
     /**
      * The Maven POM.
@@ -140,7 +101,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
     /**
      * Sets the destination the descriptor will be written to.
      *
-     * The value is resolved with {@link org.gradle.api.Project#file(Object)}
+     * The value is resolved with {@link Project#file(Object)}
      *
      * @param destination The file the descriptor will be written to.
      */

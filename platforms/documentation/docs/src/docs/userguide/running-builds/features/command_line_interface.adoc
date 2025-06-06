@@ -790,12 +790,6 @@ Exports the public keys used for dependency verification.
 
 You can <<build_environment.adoc#build_environment,customize>> many aspects of build scripts, settings, caches, and so on through the options below.
 
-`-b`, `--build-file` (deprecated)::
-Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle`, then `build.gradle.kts`.
-
-`-c`, `--settings-file` (deprecated)::
-Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
-
 `-g`, `--gradle-user-home`::
 Specifies the Gradle User Home directory. The default is the `.gradle` directory in the user's home directory.
 
