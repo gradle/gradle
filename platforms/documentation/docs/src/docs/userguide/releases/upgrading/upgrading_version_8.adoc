@@ -275,6 +275,16 @@ This property was not configurable by public APIs.
 
 By making the description a `Property<String>`, secondary variants have a user configurable description that appears in the <<variant_aware_resolution.adoc#outgoing_variants_report,`outgoingVariants` report>>.
 
+==== New subtypes of `ComponentIdentifier` introduced
+
+Gradle 9.0 introduces link:{javadocPath}/org/gradle/api/artifacts/component/RootComponentIdentifier.html)[`RootComponentIdentifier`], a new subtype of link:{javadocPath}/org/gradle/api/artifacts/component/ComponentIdentifier.html)[`ComponentIdentifier`].
+
+APIs which return instances of `ComponentIdentifier` may now return identifier instances of this new type.
+For example, the link:{javadocPath}/org/gradle/api/artifacts/result/ComponentResult.html)[`ComponentResult`], link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html)[`ResolvedVariantResult`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.ViewConfiguration.html)[`ArtifactView`] APIs, among others, are affected.
+
+In future Gradle versions, additional subtypes of `ComponentIdentifier` may be introduced.
+Build logic should remain resilient to unknown `ComponentIdentifier` subtypes returned by Gradle APIs.
+
 === Removed Features and Deprecated APIs
 
 ==== Removal of deprecated `JvmVendorSpec.IBM_SEMERU`
@@ -655,16 +665,6 @@ configurations {
 This behavior previously caused a warning: `Gradle Module Metadata is modified after an eagerly populated publication.`
 
 It will now fail with an error, suggesting a review of the relevant documentation.
-
-==== New subtypes of `ComponentIdentifier` introduced
-
-Gradle 9.0 introduces link:{javadocPath}/org/gradle/api/artifacts/component/RootComponentIdentifier.html)[`RootComponentIdentifier`], a new subtype of link:{javadocPath}/org/gradle/api/artifacts/component/ComponentIdentifier.html)[`ComponentIdentifier`].
-
-APIs which return instances of `ComponentIdentifier` may now return identifier instances of this new type.
-For example, the link:{javadocPath}/org/gradle/api/artifacts/result/ComponentResult.html)[`ComponentResult`], link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html)[`ResolvedVariantResult`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.ViewConfiguration.html)[`ArtifactView`] APIs, among others, are affected.
-
-In future Gradle versions, additional subtypes of `ComponentIdentifier` may be introduced.
-Build logic should remain resilient to unknown `ComponentIdentifier` subtypes returned by Gradle APIs.
 
 === Task Changes
 
