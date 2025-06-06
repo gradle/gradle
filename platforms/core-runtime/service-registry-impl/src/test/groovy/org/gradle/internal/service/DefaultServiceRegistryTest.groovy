@@ -19,6 +19,7 @@ package org.gradle.internal.service
 import com.google.common.reflect.TypeToken
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.lazy.Lazy
 import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -27,6 +28,7 @@ import javax.annotation.Nullable
 import java.lang.annotation.Annotation
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
+import java.util.function.Supplier
 
 class DefaultServiceRegistryTest extends Specification {
     TestRegistry registry = new TestRegistry()
@@ -162,13 +164,8 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            Integer createInteger(Factory<String> factory) {
-                return factory.create().length()
-            }
-
-            @Provides
-            Factory<String> createString(Callable<String> action) {
-                return { action.call() } as Factory
+            Integer createInteger(Callable<String> action) {
+                return action.call().length()
             }
 
             @Provides
@@ -244,17 +241,12 @@ class DefaultServiceRegistryTest extends Specification {
             Callable<String> createStringCallable() {
                 return { "hello" }
             }
-
-            @Provides
-            Factory<String> createStringFactory() {
-                return { "world" } as Factory
-            }
         }
         def registry = new DefaultServiceRegistry(parent)
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            String createString(Callable<String> callable, Factory<String> factory) {
-                return callable.call() + ' ' + factory.create()
+            String createString(Callable<String> callable) {
+                return callable.call() + " world"
             }
         })
 
@@ -881,8 +873,8 @@ class DefaultServiceRegistryTest extends Specification {
             }
 
             @Provides
-            Factory<String> createFactory() {
-                return {} as Factory
+            Callable<String> createSomeGeneric() {
+                return {} as Callable
             }
 
             @Provides
@@ -892,7 +884,7 @@ class DefaultServiceRegistryTest extends Specification {
         })
 
         expect:
-        registry.getAll(Factory).size() == 1
+        registry.getAll(Callable).size() == 1
         registry.getAll(CharSequence).size() == 2
     }
 
@@ -1511,34 +1503,29 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in TestRegistry."
     }
 
+    def "cannot register lazy service wrappers of #name type"() {
+        def type = lazyType
+        def instanceStub = Stub(type)
+        when:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            void configure(ServiceRegistration registration) {
+                registration.add(type, instanceStub)
+            }
+        })
+
+        then:
+        def lookup = thrown(ServiceLookupException)
+        def e = lookup.cause as IllegalArgumentException
+        e.message == "Cannot define a service of type '${type.name}' because lazy service wrapping is unsupported. Use an explicit type instead."
+
+        where:
+        lazyType << [Factory.class, Supplier.class, Lazy.class]
+        name = lazyType.simpleName
+    }
+
     def MockServiceRegistry registry(ParentServices parentServices) {
         return new MockServiceRegistry(parentServices)
-    }
-
-    private Factory<Number> numberFactory
-    private Factory<String> stringFactory
-    private Factory<? super BigDecimal> superBigDecimalFactory
-    private Factory<? extends BigDecimal> extendsBigDecimalFactory
-    private Factory<? extends Number> extendsNumberFactory
-
-    private Type getNumberFactoryType() {
-        return getClass().getDeclaredField("numberFactory").getGenericType()
-    }
-
-    private Type getStringFactoryType() {
-        return getClass().getDeclaredField("stringFactory").getGenericType()
-    }
-
-    private Type getSuperBigDecimalFactoryType() {
-        return getClass().getDeclaredField("superBigDecimalFactory").getGenericType()
-    }
-
-    private Type getExtendsBigDecimalFactoryType() {
-        return getClass().getDeclaredField("extendsBigDecimalFactory").getGenericType()
-    }
-
-    private Type getExtendsNumberFactoryType() {
-        return getClass().getDeclaredField("extendsNumberFactory").getGenericType()
     }
 
     /**
@@ -1548,8 +1535,6 @@ class DefaultServiceRegistryTest extends Specification {
         Object get(Class<?> type)
 
         List<Object> getAll(Class<?> type)
-
-        Factory<?> getFactory(Class<?> type)
     }
 
     @GroovyNullMarked
@@ -1718,11 +1703,6 @@ class DefaultServiceRegistryTest extends Specification {
         protected Integer createInt() {
             return 12
         }
-
-        @Provides
-        protected Factory<BigDecimal> createTestFactory() {
-            return new TestFactory()
-        }
     }
 
     private static class TestProvider implements ServiceRegistrationProvider {
@@ -1734,11 +1714,6 @@ class DefaultServiceRegistryTest extends Specification {
         @Provides
         Integer createInt() {
             return 12
-        }
-
-        @Provides
-        Factory<BigDecimal> createTestFactory() {
-            return new TestFactory()
         }
 
         @Provides
@@ -1878,36 +1853,6 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class RegistryWithAmbiguousFactoryMethods extends DefaultServiceRegistry {
-        @Provides
-        Integer createInteger() {
-            return 123
-        }
-
-        @Provides
-        String createString() {
-            return "hello"
-        }
-
-        @Provides
-        Factory<Integer> createIntegerFactory() {
-            return new Factory<Integer>() {
-                Integer create() {
-                    return createInteger()
-                }
-            }
-        }
-
-        @Provides
-        Factory<String> createStringFactory() {
-            return new Factory<String>() {
-                String create() {
-                    return createString()
-                }
-            }
-        }
-    }
-
     private static class RegistryWithDecoratorMethodsWithCreate extends DefaultServiceRegistry {
         RegistryWithDecoratorMethodsWithCreate() {
         }
@@ -1921,14 +1866,6 @@ class DefaultServiceRegistryTest extends Specification {
             return value + 10
         }
 
-        @Provides
-        protected Factory<Long> createLongFactory(final Factory<Long> factory) {
-            return new Factory<Long>() {
-                Long create() {
-                    return factory.create() + 2
-                }
-            }
-        }
 
         @Provides
         protected String createString(String parentValue, Long myValue) {
@@ -1950,37 +1887,8 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Provides
-        protected Factory<Long> decorateLongFactory(final Factory<Long> factory) {
-            return new Factory<Long>() {
-                Long create() {
-                    return factory.create() + 2
-                }
-            }
-        }
-
-        @Provides
         protected String decorateString(String parentValue, Long myValue) {
             return parentValue + myValue
-        }
-    }
-
-    private static class RegistryWithMultipleFactoryMethods extends DefaultServiceRegistry {
-        @Provides
-        Factory<Number> createObjectFactory() {
-            return new Factory<Number>() {
-                Number create() {
-                    return 12
-                }
-            }
-        }
-
-        @Provides
-        Factory<String> createStringFactory() {
-            return new Factory<String>() {
-                String create() {
-                    return "hello"
-                }
-            }
         }
     }
 
