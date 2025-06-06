@@ -53,7 +53,6 @@ dependencies {
         api("org.jspecify:jspecify:1.0.0")
         api("commons-io:commons-io:2.19.0")
         api("org.apache.commons:commons-lang3:3.17.0")
-        api("javax.activation:activation:1.1.1")
         api("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
         api("com.sun.xml.bind:jaxb-impl:4.0.5")
         api("junit:junit:4.13.2")
