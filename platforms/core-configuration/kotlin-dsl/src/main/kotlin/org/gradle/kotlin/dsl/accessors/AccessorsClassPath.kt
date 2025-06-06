@@ -60,7 +60,6 @@ import org.gradle.kotlin.dsl.support.getBooleanKotlinDslOption
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
-import org.jetbrains.kotlin.com.intellij.psi.impl.PsiImplUtil.hasTypeParameters
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
 import org.jetbrains.kotlin.metadata.deserialization.Flags
@@ -284,8 +283,38 @@ internal
 fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
         candidateTypes
-            .filterIsInstance<TypeAccessibility.Accessible>()
-            .map { it.type.kotlinString }
+            .filterIsInstance<TypeAccessibility.Accessible>().let { accessibleTypes ->
+                val annotations = object {
+                    var typeNames: MutableSet<String>? = null
+
+                    fun addTypeName(typeName: String) {
+                        if (typeNames == null) {
+                            typeNames = mutableSetOf()
+                        }
+                        typeNames!!.add(typeName)
+                    }
+
+                    fun visitAnnotationValue(annotationValueRepresentation: AnnotationValueRepresentation) {
+                        when (annotationValueRepresentation) {
+                            is AnnotationValueRepresentation.PrimitiveValue,
+                            is AnnotationValueRepresentation.ValueArray -> Unit
+                            is AnnotationValueRepresentation.AnnotationValue -> visitAnnotation(annotationValueRepresentation.representation)
+                            is AnnotationValueRepresentation.EnumValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+                            is AnnotationValueRepresentation.ClassValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+                        }
+                    }
+
+                    fun visitAnnotation(annotation: AnnotationRepresentation) {
+                        addTypeName(annotation.type.kotlinString)
+                        annotation.values.values.forEach { annotationValue -> visitAnnotationValue(annotationValue) }
+                    }
+                }
+
+                accessibleTypes.forEach { accessibleType -> accessibleType.optInRequirements.forEach { annotations.visitAnnotation(it) } }
+
+                val typeNames = accessibleTypes.map { it.type.kotlinString }
+                if (annotations.typeNames == null) typeNames else typeNames + annotations.typeNames!!.toList()
+            }
     )
 
 
