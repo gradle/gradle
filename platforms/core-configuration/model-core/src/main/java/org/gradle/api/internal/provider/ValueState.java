@@ -176,6 +176,9 @@ public abstract class ValueState<S> {
 
     public abstract void warnOnUpgradedPropertyValueChanges();
 
+    @Nullable
+    public abstract PropertyHost getHost();
+
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
         private final Function<S, S> copier;
@@ -190,6 +193,12 @@ public abstract class ValueState<S> {
         public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
             this.host = host;
             this.copier = copier;
+        }
+
+        @Override
+        @Nullable
+        public PropertyHost getHost() {
+            return host;
         }
 
         @Override
@@ -379,6 +388,12 @@ public abstract class ValueState<S> {
     }
 
     private static class FinalizedValue<S> extends ValueState<S> {
+        @Override
+        @Nullable
+        public PropertyHost getHost() {
+            return null; // Finalized value does not need or have a host, it can always be read safely
+        }
+
         @Override
         public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
             return false;

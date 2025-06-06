@@ -22,11 +22,15 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.internal.state.ModelObject;
 import org.jspecify.annotations.Nullable;
 
-class ProjectBackedPropertyHost implements PropertyHost {
+public class ProjectBackedPropertyHost implements PropertyHost {
     private final ProjectInternal project;
 
     public ProjectBackedPropertyHost(ProjectInternal project) {
         this.project = project;
+    }
+
+    public ProjectInternal getProject() {
+        return project;
     }
 
     @Nullable

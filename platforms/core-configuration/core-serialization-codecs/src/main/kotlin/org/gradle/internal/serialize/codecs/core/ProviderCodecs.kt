@@ -32,6 +32,7 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSupplier
@@ -44,6 +45,8 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.readProjectRef
+import org.gradle.internal.cc.base.serialize.writeProjectRef
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -68,6 +71,7 @@ import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
+import org.gradle.internal.service.scopes.ProjectBackedPropertyHost
 
 
 fun defaultCodecForProviderWithChangingValue(
@@ -382,13 +386,17 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
     override suspend fun WriteContext.encode(value: P) {
         writeBoolean(value.isDisallowUnsafeRead)
         writeBoolean(value.isDisallowChanges)
-        providerCodec.run { encodeProvider(value.provider) }
+        writeHost(value.host)
+        providerCodec.run {
+            encodeProvider(value.provider)
+        }
     }
 
     override suspend fun ReadContext.decode(): P {
         val isDisallowUnsafeRead = readBoolean()
         val isDisallowChanges = readBoolean()
-        return restorePropertyWithValue().apply {
+        val host: PropertyHost? = readHost()
+        return restorePropertyWithValue(host).apply {
             if (isDisallowUnsafeRead) {
                 disallowUnsafeRead()
             }
@@ -403,9 +411,43 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
      * by restoring the serialized value but not affecting any "metadata" fields (like `isDisallowUnsafeRead`)
      * present in the property.
      *
+     * @param host the [PropertyHost] to associate with the property, or [null] if no host was present
      * @return the property with the decoded provider value set
      */
-    abstract suspend fun ReadContext.restorePropertyWithValue(): P
+    abstract suspend fun ReadContext.restorePropertyWithValue(host: PropertyHost?): P
+
+    private suspend fun WriteContext.writeHost(host: PropertyHost?) {
+        when {
+            host == null -> writeByte(0)
+            host == PropertyHost.NO_OP -> {
+                writeByte(1)
+            }
+            host is ProjectBackedPropertyHost -> {
+                writeByte(2)
+                writeProjectRef(host.project)
+            }
+            else -> error("Unsupported host type: ${host::class.java.name}")
+        }
+    }
+
+    private suspend fun ReadContext.readHost(): PropertyHost? {
+        val discriminator = readByte()
+        when (discriminator) {
+            0.toByte() -> {
+                return null
+            }
+            1.toByte() -> {
+                return PropertyHost.NO_OP
+            }
+            2.toByte() -> {
+                val project = readProjectRef()
+                return ProjectBackedPropertyHost(project)
+            }
+            else -> {
+                error("Unsupported host type: $discriminator")
+            }
+        }
+    }
 }
 
 
@@ -413,9 +455,14 @@ class DirectoryPropertyCodec(
     filePropertyFactory: FilePropertyFactory,
     providerCodec: FixedValueReplacingProviderCodec
 ) : AbstractFileVarPropertyCodec<DefaultDirectoryVar>(filePropertyFactory, providerCodec) {
-    override suspend fun ReadContext.restorePropertyWithValue(): DefaultDirectoryVar {
+    override suspend fun ReadContext.restorePropertyWithValue(host: PropertyHost?): DefaultDirectoryVar {
         val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        return filePropertyFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
+        val newProp = if (host != null) {
+            filePropertyFactory.newDirectoryProperty(host)
+        } else {
+            filePropertyFactory.newDirectoryProperty()
+        }
+        return newProp.value(provider) as DefaultDirectoryVar
     }
 }
 
@@ -424,9 +471,14 @@ class RegularFilePropertyCodec(
     filePropertyFactory: FilePropertyFactory,
     providerCodec: FixedValueReplacingProviderCodec
 ) : AbstractFileVarPropertyCodec<DefaultRegularFileVar>(filePropertyFactory, providerCodec) {
-    override suspend fun ReadContext.restorePropertyWithValue(): DefaultRegularFileVar {
+    override suspend fun ReadContext.restorePropertyWithValue(host: PropertyHost?): DefaultRegularFileVar {
         val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        return filePropertyFactory.newFileProperty().value(provider) as DefaultRegularFileVar
+        val newProp = if (host != null) {
+            filePropertyFactory.newFileProperty(host)
+        } else {
+            filePropertyFactory.newFileProperty()
+        }
+        return newProp.value(provider) as DefaultRegularFileVar
     }
 }
 

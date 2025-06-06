@@ -79,6 +79,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return state.isDisallowChanges();
     }
 
+    @Nullable
+    public PropertyHost getHost() {
+        return state.getHost();
+    }
+
     protected boolean isExplicit() {
         return state.isExplicit();
     }
