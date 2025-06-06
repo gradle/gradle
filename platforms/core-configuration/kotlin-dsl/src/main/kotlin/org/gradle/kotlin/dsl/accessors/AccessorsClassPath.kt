@@ -284,39 +284,45 @@ fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
         candidateTypes
             .filterIsInstance<TypeAccessibility.Accessible>().let { accessibleTypes ->
-                val annotations = object {
-                    var typeNames: MutableSet<String>? = null
-
-                    fun addTypeName(typeName: String) {
-                        if (typeNames == null) {
-                            typeNames = mutableSetOf()
-                        }
-                        typeNames!!.add(typeName)
-                    }
-
-                    fun visitAnnotationValue(annotationValueRepresentation: AnnotationValueRepresentation) {
-                        when (annotationValueRepresentation) {
-                            is AnnotationValueRepresentation.PrimitiveValue,
-                            is AnnotationValueRepresentation.ValueArray -> Unit
-                            is AnnotationValueRepresentation.AnnotationValue -> visitAnnotation(annotationValueRepresentation.representation)
-                            is AnnotationValueRepresentation.EnumValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
-                            is AnnotationValueRepresentation.ClassValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
-                        }
-                    }
-
-                    fun visitAnnotation(annotation: AnnotationRepresentation) {
-                        addTypeName(annotation.type.kotlinString)
-                        annotation.values.values.forEach { annotationValue -> visitAnnotationValue(annotationValue) }
-                    }
-                }
-
-                accessibleTypes.forEach { accessibleType -> accessibleType.optInRequirements.forEach { annotations.visitAnnotation(it) } }
-
-                val typeNames = accessibleTypes.map { it.type.kotlinString }
-                if (annotations.typeNames == null) typeNames else typeNames + annotations.typeNames!!.toList()
+                val ownImports = accessibleTypes.map { it.type.kotlinString }
+                val importsRequiredByOptInAnnotations = importsRequiredByOptInAnnotations(accessibleTypes)
+                if (importsRequiredByOptInAnnotations != null) importsRequiredByOptInAnnotations.toList() + ownImports else ownImports
             }
     )
 
+private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessibility.Accessible>): MutableSet<String>? {
+    val annotations = object {
+        var typeNames: MutableSet<String>? = null
+
+        fun addTypeName(typeName: String) {
+            if (typeNames == null) {
+                typeNames = mutableSetOf()
+            }
+            typeNames!!.add(typeName)
+        }
+
+        fun visitAnnotationValue(annotationValueRepresentation: AnnotationValueRepresentation) {
+            when (annotationValueRepresentation) {
+                is AnnotationValueRepresentation.PrimitiveValue,
+                is AnnotationValueRepresentation.ValueArray -> Unit
+                is AnnotationValueRepresentation.AnnotationValue -> visitAnnotation(annotationValueRepresentation.representation)
+                is AnnotationValueRepresentation.EnumValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+                is AnnotationValueRepresentation.ClassValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+            }
+        }
+
+        fun visitAnnotation(annotation: AnnotationRepresentation) {
+            addTypeName(annotation.type.kotlinString)
+            annotation.values.values.forEach { annotationValue -> visitAnnotationValue(annotationValue) }
+        }
+    }
+
+    accessibleTypes.forEach { accessibleType ->
+        accessibleType.optInRequirements.forEach { annotations.visitAnnotation(it) }
+    }
+
+    return annotations.typeNames
+}
 
 internal
 fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =

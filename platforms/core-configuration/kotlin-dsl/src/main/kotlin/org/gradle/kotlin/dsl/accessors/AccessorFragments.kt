@@ -1110,7 +1110,6 @@ private
 fun TypeAccessibility.Accessible.internalName() =
     type.value.concreteClass.internalName
 
-@Suppress("ERROR_SUPPRESSION")
 internal fun TypeAccessibility.deprecation(): Deprecated? =
     when (this) {
         is TypeAccessibility.Accessible -> type.value.concreteClass.run {
@@ -1121,7 +1120,6 @@ internal fun TypeAccessibility.deprecation(): Deprecated? =
         else -> null
     }
 
-@Suppress("ERROR_SUPPRESSION")
 internal fun TypeAccessibility.requiredOptIns(): List<AnnotationRepresentation>? =
     when (this) {
         is TypeAccessibility.Accessible -> this.optInRequirements.takeIf { it.isNotEmpty() }
