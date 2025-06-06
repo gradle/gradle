@@ -516,7 +516,7 @@ The following helper methods for launching external processes were <<#deprecated
 
 ==== Artifact Signing now matches OpenPGP Key Version
 
-Starting with Gradle 9.0, the `signing` plugin produces OpenPGP signatures that match the version of the key used. This change ensures compliance with link:https://www.rfc-editor.org/rfc/rfc9580.html)[RFC 9580] and introduces support for OpenPGP version 6 keys.
+Starting with Gradle 9.0, the `signing` plugin produces OpenPGP signatures that match the version of the key used. This change ensures compliance with link:https://www.rfc-editor.org/rfc/rfc9580.html[RFC 9580] and introduces support for OpenPGP version 6 keys.
 Previously, Gradle always generated OpenPGP version 4 signatures, regardless of the key version.
 
 ==== Ear and War plugins build all artifacts with `assemble`
