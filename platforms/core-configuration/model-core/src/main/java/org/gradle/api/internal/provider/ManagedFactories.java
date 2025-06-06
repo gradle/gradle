@@ -67,7 +67,14 @@ public class ManagedFactories {
             }
             // TODO - should preserve the property type (which may be different to the provider type)
             ProviderInternal<S> provider = Cast.uncheckedNonnullCast(state);
-            return type.cast(propertyOf(provider.getType(), provider));
+            Class<S> providerType = provider.getType();
+            if (providerType == null) {
+                @SuppressWarnings("unchecked")
+                Provider<Object> castProvider = (Provider<Object>) state;
+                return type.cast(propertyOf(Object.class, castProvider));
+            } else {
+                return type.cast(propertyOf(providerType, provider));
+            }
         }
 
         <V> Property<V> propertyOf(Class<V> type, Provider<V> value) {
