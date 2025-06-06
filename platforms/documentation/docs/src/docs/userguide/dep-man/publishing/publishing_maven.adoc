@@ -175,7 +175,7 @@ This includes a wide range of Maven-compatible repositories, such as:
 
 The service commonly known as *Maven Central* and hosted at link:https://central.sonatype.com/[central.sonatype.com] is a widely used repository for distributing Java and Kotlin libraries.
 
-As of **June 30, 2025**, Maven Central no longer supports the legacy deployment protocol used by the link:https://maven.apache.org/plugins/maven-deploy-plugin/[Maven Deploy Plugin].
+As of **June 30, 2025**, link:https://cookbook.gradle.org/integrations/maven-central/publishing/#breaking-changes-in-maven-central-on-june-2025[Maven Central no longer supports the legacy deployment protocol] used by the link:https://maven.apache.org/plugins/maven-deploy-plugin/[Maven Deploy Plugin].
 This change also marks the deprecation of the OSSRH (OSS Repository Hosting) service.
 
 Going forward, publishing to Maven Central **requires a dedicated plugin**.
