@@ -772,6 +772,7 @@ fun fragmentsForContainerElementOf(
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
     val deprecation = returnType.deprecation()
+    val optIns = returnType.requiredOptIns()
 
     return className to sequenceOf(
         AccessorFragment(
@@ -779,6 +780,7 @@ fun fragmentsForContainerElementOf(
             bytecode = {
                 publicStaticMethod(signature) {
                     maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optIns)
                     ALOAD(0)
                     LDC(propertyName)
                     LDC(jvmReturnType)
@@ -795,10 +797,12 @@ fun fragmentsForContainerElementOf(
                     getterAttributes = {
                         inlineGetterAttributes()
                         hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optIns)
                     },
                     propertyAttributes = {
                         readOnlyPropertyAttributes()
                         hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optIns)
                     })
             },
             signature = jvmGetterSignatureFor(
@@ -1050,6 +1054,7 @@ fun fragmentsForModelDefault(
     val receiverType = accessibleReceiverType.type.kmType
     val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
     val deprecation = accessor.spec.type.deprecation()
+    val optIns = accessor.spec.type.requiredOptIns()
 
     return className to sequenceOf(
         AccessorFragment(
@@ -1057,6 +1062,7 @@ fun fragmentsForModelDefault(
             bytecode = {
                 publicStaticMethod(signature) {
                     maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optIns)
                     ALOAD(0)
                     LDC(softwareTypeName)
                     LDC(jvmPublicType)
@@ -1077,6 +1083,7 @@ fun fragmentsForModelDefault(
                     functionAttributes = {
                         publicFunctionAttributes()
                         hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optIns)
                     }
                 )
             },
