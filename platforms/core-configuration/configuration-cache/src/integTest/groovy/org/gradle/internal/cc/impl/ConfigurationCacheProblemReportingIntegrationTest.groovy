@@ -898,6 +898,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         'Task.project'          | 'project.name'
         'Task.dependsOn'        | 'dependsOn'
         'Task.taskDependencies' | 'taskDependencies'
+        'Task.shouldRunAfter'   | 'shouldRunAfter'
+        'Task.mustRunAfter'     | 'mustRunAfter'
+        'Task.finalizedBy'      | 'finalizedBy'
     }
 
     def "reports build listener registration on #registrationPoint"() {
