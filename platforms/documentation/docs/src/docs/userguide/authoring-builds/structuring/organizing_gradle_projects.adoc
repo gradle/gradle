@@ -297,7 +297,7 @@ It compiles and makes this plugin available to all other build scripts in the pr
 ├── settings.gradle.kts
 ├── buildSrc/
 │   ├── build.gradle.kts
-│   └── src/main/kotin/
+│   └── src/main/kotlin/
 │       └── java-library-convention.gradle.kts  // <1>
 ├── app/
 │   ├── build.gradle.kts    // <2>
@@ -357,7 +357,7 @@ We want to:
 ├── settings.gradle.kts
 ├── buildSrc/
 │   ├── build.gradle.kts
-│   └── src/main/kotin/
+│   └── src/main/kotlin/
 │       └── java-library-convention.gradle.kts
 ├── app/
 │   ├── build.gradle.kts
