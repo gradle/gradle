@@ -89,7 +89,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -226,7 +226,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable ConfigurationInternal consistentResolutionSource;
     private @Nullable String consistentResolutionReason;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
     private final DocumentationRegistry documentationRegistry;
 
     /**
@@ -255,7 +255,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
-        InternalProblems problemsService,
+        ProblemsInternal problemsService,
         DocumentationRegistry documentationRegistry,
         boolean lockUsage
     ) {
@@ -1625,7 +1625,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return roleAtCreation;
     }
 
-    public InternalProblems getProblems() {
+    public ProblemsInternal getProblems() {
         return problemsService;
     }
 
@@ -1742,13 +1742,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         private final Path buildTreePath;
         private final DisplayName displayName;
-        private final InternalProblems problems;
+        private final ProblemsInternal problems;
         private final ResolveExceptionMapper exceptionMapper;
 
         public DefaultResolutionHost(
             Path buildTreePath,
             DisplayName displayName,
-            InternalProblems problems,
+            ProblemsInternal problems,
             ResolveExceptionMapper exceptionMapper
         ) {
             this.buildTreePath = buildTreePath;
@@ -1758,7 +1758,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public InternalProblems getProblems() {
+        public ProblemsInternal getProblems() {
             return problems;
         }
 

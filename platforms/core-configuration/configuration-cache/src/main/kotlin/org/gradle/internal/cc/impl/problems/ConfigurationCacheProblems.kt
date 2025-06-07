@@ -22,7 +22,7 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
@@ -75,7 +75,7 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager,
 
     private
-    val problemsService: InternalProblems,
+    val problemsService: ProblemsInternal,
 
     private
     val problemFactory: ProblemFactory,
@@ -220,7 +220,7 @@ class ConfigurationCacheProblems(
     val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
 
     private
-    fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+    fun ProblemsInternal.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.render()
         internalReporter.internalCreate {
             id(

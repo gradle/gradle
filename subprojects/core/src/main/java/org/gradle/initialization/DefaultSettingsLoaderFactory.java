@@ -19,7 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.CacheConfigurationsHandlingSettingsLoader;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.BuildIncluder;
@@ -40,7 +40,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final InitScriptHandler initScriptHandler;
     private final List<BuiltInCommand> builtInCommands;
     private final CacheConfigurationsInternal cacheConfigurations;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
     public DefaultSettingsLoaderFactory(
         SettingsProcessor settingsProcessor,
@@ -52,7 +52,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         InitScriptHandler initScriptHandler,
         List<BuiltInCommand> builtInCommands,
         CacheConfigurationsInternal cacheConfigurations,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
