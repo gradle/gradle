@@ -93,6 +93,7 @@ fun Project.buildTimestamp(): Provider<String> =
             runningOnCi = buildRunningOnCi
             runningInstallTask = provider { isRunningInstallTask() }
             runningDocsTestTask = provider { isRunningDocsTestTask() }
+            enableConfigurationCacheForDocsTests = providers.gradleProperty("enableConfigurationCacheForDocsTests").map { it.toBoolean() }
         }
     }
 
