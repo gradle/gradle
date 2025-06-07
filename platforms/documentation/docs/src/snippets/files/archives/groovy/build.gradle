@@ -45,12 +45,12 @@ tasks.register('tar', Tar) {
 }
 // end::tar[]
 
-// tag::reproducible[]
+// tag::revert-reproducible[]
 tasks.withType(AbstractArchiveTask).configureEach {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
-    dirPermissions { unix("755") }
-    filePermissions { unix("644") }
+    // Use file timestamps from the file system
+    preserveFileTimestamps = true
+    // Make file order based on the file system
+    reproducibleFileOrder = false
 }
-// end::reproducible[]
+// end::revert-reproducible[]
 
