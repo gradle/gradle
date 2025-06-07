@@ -393,7 +393,7 @@
   },
   {
     "name": "distributions-core",
-    "path": "platforms/core-runtime/distributions-core",
+    "path": "testing/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
