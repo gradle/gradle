@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.wrapper
+package org.gradle.api.tasks.wrapper.internal
 
 import org.gradle.api.GradleException
 import spock.lang.Specification
 
-class GradleVersionResolverTest extends Specification {
+class DefaultWrapperVersionsResourcesTest extends Specification {
     def "get version from json"() {
         when:
-        def version = GradleVersionResolver.getVersion("""{ "version" : "7.6" }""", "latest")
+        def version = DefaultWrapperVersionsAPI.getVersion("""{ "version" : "7.6" }""", "latest")
 
         then:
         version == "7.6"
@@ -30,10 +30,18 @@ class GradleVersionResolverTest extends Specification {
 
     def "get version from empty json"() {
         when:
-        def version = GradleVersionResolver.getVersion("{ }", "latest")
+        def version = DefaultWrapperVersionsAPI.getVersion("{ }", "latest")
 
         then:
         def e = thrown(GradleException)
         e.message == "There is currently no version information available for 'latest'."
+    }
+
+    def "get versions from json"() {
+        when:
+        def versions = DefaultWrapperVersionsAPI.getVersions("""[{ "version" : "7.6" }, { "version" : "9.0.3" }]""")
+
+        then:
+        versions == ["7.6", "9.0.3"]
     }
 }

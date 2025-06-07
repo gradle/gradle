@@ -16,90 +16,156 @@
 
 package org.gradle.api.tasks.wrapper;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.gradle.api.GradleException;
-import org.gradle.api.resources.TextResource;
-import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
-import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.WrapperVersionException;
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsAPI;
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsAPI.WrapperVersionException;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import java.lang.reflect.Type;
-import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.LATEST;
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.NIGHTLY;
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_CANDIDATE;
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_NIGHTLY;
-
+// TODO: refactor this class after migration to provider API
+@NullMarked
 class GradleVersionResolver {
-
-    private TextResource latest;
-    private TextResource releaseCandidate;
-    private TextResource nightly;
-    private TextResource releaseNightly;
-
+    @Nullable
     private GradleVersion gradleVersion;
-    private String gradleVersionString = GradleVersion.current().getVersion();
+    private GradleVersionRequest gradleVersionRequest = new GradleVersionRequest(GradleVersion.current());
+    @Nullable
+    private DefaultWrapperVersionsAPI wrapperVersionsResources;
 
-    void setTextResources(TextResource latest, TextResource releaseCandidate, TextResource nightly, TextResource releaseNightly) {
-        this.latest = latest;
-        this.releaseCandidate = releaseCandidate;
-        this.nightly = nightly;
-        this.releaseNightly = releaseNightly;
+    void setWrapperVersionsResources(DefaultWrapperVersionsAPI wrapperVersionsResources) {
+        this.wrapperVersionsResources = wrapperVersionsResources;
     }
 
-    String resolve(String version) {
-        if (version == null) {
-            return GradleVersion.current().getVersion();
-        }
-        switch (version) {
-            case LATEST:
-                return getVersion(latest.asString(), version);
-            case NIGHTLY:
-                return getVersion(nightly.asString(), version);
-            case RELEASE_NIGHTLY:
-                return getVersion(releaseNightly.asString(), version);
-            case RELEASE_CANDIDATE:
-                return getVersion(releaseCandidate.asString(), version);
+    private GradleVersion resolve() {
+        switch (gradleVersionRequest.requestType) {
+            case PLACEHOLDER:
+                String version = wrapperVersionsResources.getSingleVersion(gradleVersionRequest.request);
+                return GradleVersion.version(version);
+            case SEMANTIC_VERSION:
+                return resolveSemanticVersion(gradleVersionRequest.majorVersion, gradleVersionRequest.minorVersion);
+            case VERSION:
+                return GradleVersion.version(gradleVersionRequest.request);
             default:
-                return version;
+                throw new IllegalArgumentException("Unknown request type: " + gradleVersionRequest.requestType);
         }
     }
 
-    static String getVersion(String json, String placeHolder) {
-        Type type = new TypeToken<Map<String, String>>() {}.getType();
-        Map<String, String> map = new Gson().fromJson(json, type);
-        String version = map.get("version");
-        if (version == null) {
-            throw new GradleException("There is currently no version information available for '" + placeHolder + "'.");
+    private GradleVersion resolveSemanticVersion(Integer majorVersion, @Nullable Integer minorVersion) {
+        Stream<GradleVersion> versions = wrapperVersionsResources.getVersionsList(majorVersion.toString())
+            .stream()
+            .map(v -> {
+                try {
+                    return GradleVersion.version(v);
+                } catch (Exception e) {
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .filter(v -> v.isFinal() && v.getMajorVersion() == majorVersion);
+
+        if (minorVersion == null) {
+            return versions.max(GradleVersion::compareTo).orElseThrow(() ->
+                new WrapperVersionException("Invalid version specified for argument '--gradle-version': no final version found for major version " + majorVersion)
+            );
+        } else {
+            return versions
+                .filter(v -> getMinorVersion(v) == minorVersion)
+                .max(GradleVersion::compareTo).orElseThrow(() ->
+                    new WrapperVersionException("Invalid version specified for argument '--gradle-version': no final version found for version " + majorVersion + "." + minorVersion)
+                );
         }
-        return version;
     }
 
-    static boolean isPlaceHolder(String version) {
-        return DefaultWrapperVersionsResources.PLACE_HOLDERS.contains(version);
+    private static int getMinorVersion(GradleVersion version) {
+        String[] versionParts = version.getBaseVersion().getVersion().split("\\.");
+        if (versionParts.length > 1) {
+            return Integer.parseInt(versionParts[1]);
+        } else {
+            return 0;
+        }
     }
 
     GradleVersion getGradleVersion() {
         if (gradleVersion == null) {
-            gradleVersion = GradleVersion.version(resolve(gradleVersionString));
+            gradleVersion = resolve();
         }
         return gradleVersion;
     }
 
-    void setGradleVersionString(String gradleVersionString) {
-        if (!isPlaceHolder(gradleVersionString)) {
+    void setGradleVersionRequest(String request) {
+        GradleVersionRequest gradleVersionRequest = new GradleVersionRequest(request);
+        if (gradleVersionRequest.requestType == RequestType.VERSION) {
             try {
-                this.gradleVersion = GradleVersion.version(gradleVersionString);
+                this.gradleVersion = GradleVersion.version(request);
             } catch (Exception e) {
                 throw new WrapperVersionException("Invalid version specified for argument '--gradle-version'", e);
             }
+        } else if (!Objects.equals(this.gradleVersionRequest, gradleVersionRequest)) {
+            this.gradleVersionRequest = gradleVersionRequest;
+            this.gradleVersion = null;
+        }
+    }
+
+    @NullMarked
+    private enum RequestType {
+        PLACEHOLDER,
+        SEMANTIC_VERSION,
+        VERSION
+    }
+
+    @NullMarked
+    private static class GradleVersionRequest {
+        final String request;
+        final RequestType requestType;
+        @Nullable
+        Integer majorVersion;
+        @Nullable
+        Integer minorVersion;
+        private static final Pattern SEMVER_REQUEST = Pattern.compile("([0-9]+)(\\.([0-9]+))?");
+
+        GradleVersionRequest(String request) {
+            this.request = request;
+            if (DefaultWrapperVersionsAPI.isPlaceHolder(request)) {
+                this.requestType = RequestType.PLACEHOLDER;
+            } else {
+                Matcher matcher = SEMVER_REQUEST.matcher(request);
+                if (matcher.matches()) {
+                    majorVersion = Integer.parseInt(matcher.group(1));
+                    minorVersion = matcher.group(3) != null ? Integer.parseInt(matcher.group(3)) : null;
+                    if (majorVersion >= 9) {
+                        this.requestType = RequestType.SEMANTIC_VERSION;
+                    } else {
+                        this.requestType = RequestType.VERSION;
+                    }
+                } else {
+                    this.requestType = RequestType.VERSION;
+                }
+            }
         }
 
-        if (this.gradleVersionString != gradleVersionString) {
-            this.gradleVersionString = gradleVersionString;
-            this.gradleVersion = null;
+        GradleVersionRequest(GradleVersion gradleVersion) {
+            this.request = gradleVersion.getVersion();
+            this.requestType = RequestType.VERSION;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof GradleVersionRequest)) {
+                return false;
+            }
+            return Objects.equals(request, ((GradleVersionRequest) other).request);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(request);
         }
     }
 }
