@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
-import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -170,7 +169,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.3
      */
-    @Incubating
     operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency? =
         add(name, dependencyNotation)
 
@@ -182,7 +180,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyNotation: Any): Dependency? =
         add(name, dependencyNotation)
@@ -207,7 +204,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.3
      */
-    @Incubating
     inline operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         add(name, dependencyNotation, dependencyConfiguration)
 
@@ -220,7 +216,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     inline operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         add(name, dependencyNotation, dependencyConfiguration)
@@ -262,7 +257,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.3
      */
-    @Incubating
     operator fun NamedDomainObjectProvider<Configuration>.invoke(
         group: String,
         name: String,
@@ -287,7 +281,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(
         group: String,
@@ -341,7 +334,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.3
      */
-    @Incubating
     inline operator fun NamedDomainObjectProvider<Configuration>.invoke(
         group: String,
         name: String,
@@ -370,7 +362,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     inline operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(
         group: String,
@@ -405,7 +396,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.3
      */
-    @Incubating
     inline operator fun <T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
 
@@ -419,7 +409,6 @@ private constructor(
      * @see [DependencyHandler.add]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     inline operator fun <T : ModuleDependency> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
@@ -433,7 +422,6 @@ private constructor(
      * @see [DependencyHandler.addProvider]
      * @since 7.0
      */
-    @Incubating
     operator fun <T : Any> Configuration.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProvider(name, dependency, dependencyConfiguration)
 
@@ -446,7 +434,6 @@ private constructor(
      * @see [DependencyHandler.addProvider]
      * @since 8.3
      */
-    @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProvider(name, dependency, dependencyConfiguration)
 
@@ -459,7 +446,6 @@ private constructor(
      * @see [DependencyHandler.addProvider]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     operator fun <T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProvider(name, dependency, dependencyConfiguration)
@@ -483,7 +469,6 @@ private constructor(
      * @see [DependencyHandler.addProvider]
      * @since 8.3
      */
-    @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>) =
         addProvider(name, dependency)
 
@@ -495,7 +480,6 @@ private constructor(
      * @see [DependencyHandler.addProvider]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     operator fun <T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: Provider<T>) =
         addProvider(name, dependency)
@@ -509,7 +493,6 @@ private constructor(
      * @see [DependencyHandler.addProviderConvertible]
      * @since 7.4
      */
-    @Incubating
     operator fun <T : Any> Configuration.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProviderConvertible(name, dependency, dependencyConfiguration)
 
@@ -522,7 +505,6 @@ private constructor(
      * @see [DependencyHandler.addProviderConvertible]
      * @since 8.3
      */
-    @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProviderConvertible(name, dependency, dependencyConfiguration)
 
@@ -535,7 +517,6 @@ private constructor(
      * @see [DependencyHandler.addProviderConvertible]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     operator fun <T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProviderConvertible(name, dependency, dependencyConfiguration)
@@ -559,7 +540,6 @@ private constructor(
      * @see [DependencyHandler.addProviderConvertible]
      * @since 8.3
      */
-    @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>) =
         addProviderConvertible(name, dependency)
 
@@ -571,7 +551,6 @@ private constructor(
      * @see [DependencyHandler.addProviderConvertible]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
     operator fun <T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: ProviderConvertible<T>) =
         addProviderConvertible(name, dependency)
@@ -585,7 +564,6 @@ private constructor(
      * @see [DependencyHandler.addProvider]
      * @since 7.0
      */
-    @Incubating
     operator fun <T : Any> String.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProvider(this, dependency, dependencyConfiguration)
 
@@ -609,7 +587,6 @@ private constructor(
      * @see [DependencyHandler.addProviderConvertible]
      * @since 7.4
      */
-    @Incubating
     operator fun <T : Any> String.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProviderConvertible(this, dependency, dependencyConfiguration)
 
