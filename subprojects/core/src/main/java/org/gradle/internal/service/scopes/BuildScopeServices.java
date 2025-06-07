@@ -200,6 +200,7 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -277,6 +278,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
         }
+    }
+
+    @Provides
+    ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
+        return new ManagedObjectRegistry(parent);
     }
 
     @Provides
