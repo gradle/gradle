@@ -657,6 +657,8 @@ class DefaultConfigurationCacheIO internal constructor(
             parameterScheme = service(),
             actionScheme = service(),
             attributesFactory = service(),
+            attributeDesugaring = service(),
+            attributeSchemaFactory = service(),
             valueSourceProviderFactory = service(),
             calculatedValueContainerFactory = service(),
             patternSetFactory = service(),
@@ -671,7 +673,6 @@ class DefaultConfigurationCacheIO internal constructor(
             parallelStore = startParameter.isParallelStore,
             parallelLoad = startParameter.isParallelLoad,
             problems = service(),
-            attributeDesugaring = service(),
         )
 
     private
