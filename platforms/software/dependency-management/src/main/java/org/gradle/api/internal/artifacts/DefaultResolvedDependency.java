@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.Comparator;
@@ -44,7 +45,10 @@ import java.util.TreeSet;
 public class DefaultResolvedDependency implements ResolvedDependency {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<>();
+
+    @Deprecated
     private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
+
     private final String variantName;
     private final ModuleVersionIdentifier moduleVersionId;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -103,7 +107,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
     @Override
     public Set<ResolvedArtifact> getModuleArtifacts() {
-        return sort(CompositeResolvedArtifactSet.of(moduleArtifacts));
+        return resolveAndSort(CompositeResolvedArtifactSet.of(moduleArtifacts));
     }
 
     @Override
@@ -119,11 +123,17 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
-        return sort(getArtifactsForIncomingEdge(parent));
+        DeprecationLogger.deprecateMethod(ResolvedDependency.class, "getParentArtifacts(ResolvedDependency)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "resolved_dependency_parent_artifacts")
+            .nagUser();
+
+        return getArtifactsForIncomingEdge(parent);
     }
 
-    private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
+    private Set<ResolvedArtifact> resolveAndSort(ResolvedArtifactSet artifacts) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
         ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
         if (!visitor.getFailures().isEmpty()) {
@@ -132,22 +142,35 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         return visitor.getArtifacts();
     }
 
-    private ResolvedArtifactSet getArtifactsForIncomingEdge(ResolvedDependency parent) {
+    @Deprecated
+    private Set<ResolvedArtifact> getArtifactsForIncomingEdge(ResolvedDependency parent) {
         if (!parents.contains(parent)) {
             throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
         }
-        return CompositeResolvedArtifactSet.of(parentArtifacts.get(parent));
+        return resolveAndSort(CompositeResolvedArtifactSet.of(parentArtifacts.get(parent)));
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
-        return getParentArtifacts(parent);
+        DeprecationLogger.deprecateMethod(ResolvedDependency.class, "getArtifacts(ResolvedDependency)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "resolved_dependency_parent_artifacts")
+            .nagUser();
+
+        return getArtifactsForIncomingEdge(parent);
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
+        DeprecationLogger.deprecateMethod(ResolvedDependency.class, "getAllArtifacts(ResolvedDependency)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "resolved_dependency_parent_artifacts")
+            .nagUser();
+
         if (allArtifactsCache.get(parent) == null) {
-            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getArtifacts(parent));
+            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getArtifactsForIncomingEdge(parent));
             for (ResolvedDependency childResolvedDependency : getChildren()) {
                 for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
                     allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));
@@ -194,7 +217,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
     public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedArtifactSet artifacts) {
         this.parentArtifacts.put(parent, artifacts);
-        moduleArtifacts.add(artifacts);
+        addModuleArtifacts(artifacts);
     }
 
     public void addModuleArtifacts(ResolvedArtifactSet artifacts) {
