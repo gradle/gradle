@@ -38,7 +38,9 @@ configurations.all {
 }
 
 dependencies {
-    compile group: "group", name: "projectA", version: "1.1", changing: true
+    compile("group:projectA:1.1") {
+        changing = true
+    }
 }
 
 task retrieve(type: Copy) {
@@ -97,7 +99,9 @@ configurations { compile }
 configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 
 dependencies {
-    compile group: "group", name: "projectA", version: "1.1", changing: isChanging
+    compile("group:projectA:1.1") {
+        changing = isChanging
+    }
 }
 
 task retrieve(type: Copy) {
@@ -147,7 +151,9 @@ configurations.all {
 }
 
 dependencies {
-    compile group: "group", name: "projectA", version: "1.1", changing: true
+    compile("group:projectA:1.1") {
+        changing = true
+    }
 }
 
 task retrieve(type: Copy) {
@@ -207,7 +213,9 @@ if (providers.gradleProperty('doNotCacheChangingModules').isPresent()) {
 }
 
 dependencies {
-    compile group: "group", name: "projectA", version: "1.1", changing: true
+    compile("group:projectA:1.1") {
+        changing = true
+    }
 }
 
 task retrieve(type: Copy) {
@@ -282,7 +290,9 @@ task retrieve(type: Copy) {
             }
 
             dependencies {
-                compile group: "group", name: "projectA", version: "1.1", changing: true
+                compile("group:projectA:1.1") {
+                    changing = true
+                }
             }
 
             task retrieve(type: Copy) {

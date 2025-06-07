@@ -9,6 +9,6 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'commons-io', name: 'commons-io', version: '1.4'
-    implementation group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
+    implementation("commons-io:commons-io:1.4")
+    implementation("log4j:log4j:1.2.15@jar")
 }

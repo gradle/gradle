@@ -49,7 +49,7 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
+                implementation("log4j:log4j:1.2.15@jar")
             }
 
             gretty {

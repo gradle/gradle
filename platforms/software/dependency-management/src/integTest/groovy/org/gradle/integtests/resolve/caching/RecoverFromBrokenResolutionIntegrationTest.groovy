@@ -214,7 +214,9 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
                   }
 
                   dependencies {
-                      compile group:'group', name:'projectA', version:'1.0', changing:true
+                      compile("group:projectA:1.0") {
+                          changing = true
+                      }
                   }
 
                   task retrieve(type: Sync) {
@@ -267,7 +269,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
                       resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
                   }
                   dependencies {
-                      compile group:'group', name:'projectA', version:'1.+'
+                      compile("group:projectA:1.+")
                   }
 
                   task retrieve(type: Sync) {

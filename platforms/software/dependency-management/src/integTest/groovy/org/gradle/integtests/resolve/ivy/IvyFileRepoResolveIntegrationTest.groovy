@@ -77,9 +77,11 @@ configurations {
 }
 
 dependencies {
-    compile group: "group", name: "projectA", version: "1.+"
-    compile group: "group", name: "projectB", version: "latest.integration"
-    compile group: "group", name: "projectC", version: "1.0", changing: true
+    compile("group:projectA:1.+")
+    compile("group:projectB:latest.integration")
+    compile("group:projectC:1.0") {
+        changing = true
+    }
 }
 
 task retrieve(type: Sync) {
