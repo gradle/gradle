@@ -164,7 +164,7 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
         """
     }
 
-    def "transitively applied build scan plugin disables auto-application"() {
+    def "transitively applied Develocity plugin disables auto-application"() {
         when:
         succeeds "cacheableTask", "--scan"
 

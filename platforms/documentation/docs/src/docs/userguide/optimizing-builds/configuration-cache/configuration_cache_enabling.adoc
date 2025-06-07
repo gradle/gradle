@@ -258,7 +258,7 @@ When you are ready to focus on hit rates:
 
 - Consider reducing or removing build logic inputs.
 - Track hit rates with Develocity's link:https://gradle.com/develocity/product/reporting-and-visualization/[Reporting & Visualization Kit].
-- Fix issues with link:https://gradle.com/develocity/product/build-scan/[Build Scans].
+- Fix issues with a link:https://gradle.com/develocity/product/build-scan/[Build Scan].
 
 [[config_cache:adoption:reacting]]
 === Reacting to the Configuration Cache in the Build

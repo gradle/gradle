@@ -17,7 +17,7 @@
 import com.autonomousapps.DependencyAnalysisExtension
 
 plugins {
-    id("gradlebuild.buildscan") // Reporting: Add more data through custom tags to build scans
+    id("gradlebuild.buildscan") // Reporting: Add more data through custom tags to a Build Scan
     id("gradlebuild.ide") // Local development: Tweak IDEA import
     id("gradlebuild.warmup-ec2") // Warm up EC2 AMI
 

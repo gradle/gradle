@@ -200,7 +200,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             .map(CachingState.CacheKeyCalculatedState::getKey);
     }
 
-    @UsedByScanPlugin("The value names are used as part of build scan data and cannot be changed - new values can be added")
+    @UsedByScanPlugin("The value names are used as part of Build Scan data and cannot be changed - new values can be added")
     enum FilePropertyAttribute {
 
         // When adding new values, be sure to comment which Gradle version started emitting the attribute.

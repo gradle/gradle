@@ -19,7 +19,7 @@ package org.gradle.internal.scan.config;
 import org.gradle.StartParameter;
 
 /**
- * Represents the aspects of build scan configuration that Gradle contributes.
+ * Represents the aspects of Build Scan configuration that Gradle contributes.
  * Does not include configuration aspects that the scan plugin manages (e.g. server address).
  * Currently, this is effectively the --scan and --no-scan invocation options.
  *
@@ -42,14 +42,14 @@ public interface BuildScanConfig {
     boolean isDisabled();
 
     /**
-     * Indicates whether the build scan plugin should not apply itself because its known to be incompatible.
+     * Indicates whether the Develocity plugin should not apply itself because its known to be incompatible.
      *
      * @since 4.4
      */
     String getUnsupportedMessage();
 
     /**
-     * Attributes about the build environment that the build scan plugin needs to know about.
+     * Attributes about the build environment that the Develocity plugin needs to know about.
      *
      * This is effectively an insulation layer between the plugin and internal API.
      *

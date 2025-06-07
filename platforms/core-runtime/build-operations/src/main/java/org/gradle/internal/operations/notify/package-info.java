@@ -15,7 +15,7 @@
  */
 
 /**
- * This package forms the basic contract between the build scan plugin
+ * This package forms the basic contract between the Develocity plugin
  * and Gradle with regard to observing build operations.
  *
  * It has no dependencies to types outside of this package other than JDK types.
@@ -25,7 +25,7 @@
  *
  * It can be assumed that only Gradle implements these interfaces,
  * except for {@link org.gradle.internal.operations.notify.BuildOperationNotificationListener}
- * which is implemented by the build scan plugin.
+ * which is implemented by the Develocity plugin.
  */
 @NullMarked
 package org.gradle.internal.operations.notify;

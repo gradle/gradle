@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * A means to expose Daemon information _specifically_ for the purpose of build scans. The associated plugin obtains this via the service registry and queries all values when it is applied.
+ * A means to expose Daemon information _specifically_ for the purpose of a Build Scan. The associated plugin obtains this via the service registry and queries all values when it is applied.
  *
  * This API is a contract with the plugin. Any binary incompatible changes will require changes to the plugin.
  */

@@ -20,7 +20,7 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Not used by build scan plugin.
+ * Not used by Develocity plugin.
  */
 public interface QueryToolingModelBuildOperationType extends BuildOperationType<QueryToolingModelBuildOperationType.Details, QueryToolingModelBuildOperationType.Result> {
     interface Details {

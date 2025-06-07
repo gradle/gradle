@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "can publish build scan with composite build"() {
+    def "can publish Build Scan with composite build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         withLibBuild()

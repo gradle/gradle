@@ -20,7 +20,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * A view of the Gradle runtime's clock used by build scans.
+ * A view of the Gradle runtime's clock used by a Build Scan.
  *
  * The provider is _required_ to provide monotonic timestamps.
  *
