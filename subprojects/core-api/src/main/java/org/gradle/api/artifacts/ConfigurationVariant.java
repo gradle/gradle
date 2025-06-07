@@ -33,7 +33,7 @@ public interface ConfigurationVariant extends Named, HasConfigurableAttributes<C
     /**
      * Returns an optional note describing this variant.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     @Incubating
     Property<String> getDescription();

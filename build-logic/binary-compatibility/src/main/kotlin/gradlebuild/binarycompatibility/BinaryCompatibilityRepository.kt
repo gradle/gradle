@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting
 import gradlebuild.binarycompatibility.sources.ApiSourceFile
 import gradlebuild.binarycompatibility.sources.JavaSourceQueries
 import gradlebuild.binarycompatibility.sources.KotlinSourceQueries
+import gradlebuild.binarycompatibility.sources.SinceTagStatus
 import gradlebuild.binarycompatibility.sources.SourcesRepository
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
@@ -62,11 +63,11 @@ class BinaryCompatibilityRepository internal constructor(
             }
         }
 
-    fun isSince(version: String, member: JApiCompatibility): Boolean =
+    fun getSince(member: JApiCompatibility): SinceTagStatus =
         apiSourceFileFor(member).let { apiSourceFile ->
             when (apiSourceFile) {
-                is ApiSourceFile.Java -> sources.executeQuery(apiSourceFile, JavaSourceQueries.isSince(version, member))
-                is ApiSourceFile.Kotlin -> sources.executeQuery(apiSourceFile, KotlinSourceQueries.isSince(version, member))
+                is ApiSourceFile.Java -> sources.executeQuery(apiSourceFile, JavaSourceQueries.getSince(member))
+                is ApiSourceFile.Kotlin -> sources.executeQuery(apiSourceFile, KotlinSourceQueries.getSince(member))
             }
         }
 

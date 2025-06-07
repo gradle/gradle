@@ -21,11 +21,11 @@ import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 import java.util.Map;
 
-public class SinceAnnotationMissingRuleCurrentGradleVersionSetup implements SetupRule {
+public class SinceAnnotationRuleCurrentGradleVersionSetup implements SetupRule {
 
     private final String currentVersion;
 
-    public SinceAnnotationMissingRuleCurrentGradleVersionSetup(Map<String, String> currentVersion) {
+    public SinceAnnotationRuleCurrentGradleVersionSetup(Map<String, String> currentVersion) {
         this.currentVersion = currentVersion.get("currentVersion");
     }
 

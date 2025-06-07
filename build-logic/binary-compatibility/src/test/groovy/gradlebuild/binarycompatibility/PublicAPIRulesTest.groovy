@@ -19,7 +19,7 @@ package gradlebuild.binarycompatibility
 import gradlebuild.binarycompatibility.rules.BinaryBreakingChangesRule
 import gradlebuild.binarycompatibility.rules.IncubatingMissingRule
 import gradlebuild.binarycompatibility.rules.NewIncubatingAPIRule
-import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule
+import gradlebuild.binarycompatibility.rules.SinceAnnotationRule
 import japicmp.model.JApiAnnotation
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
@@ -128,7 +128,7 @@ class PublicAPIRulesTest extends Specification {
     def "each new #apiElement requires a @since annotation"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
-        def rule = withContext(new SinceAnnotationMissingRule([:]))
+        def rule = withContext(new SinceAnnotationRule([:]))
 
         when:
         sourceFile.text = apiElement.startsWith('enum') ? """
@@ -295,7 +295,7 @@ class PublicAPIRulesTest extends Specification {
                 }
             """
 
-        def rule = withContext(new SinceAnnotationMissingRule([:]))
+        def rule = withContext(new SinceAnnotationRule([:]))
 
         then:
         def violation = rule.maybeViolation(jApiType)
@@ -316,7 +316,7 @@ class PublicAPIRulesTest extends Specification {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
         def incubatingMissingRule = withContext(new IncubatingMissingRule([:]))
-        def sinceMissingRule = withContext(new SinceAnnotationMissingRule([:]))
+        def sinceMissingRule = withContext(new SinceAnnotationRule([:]))
 
         when:
         jApiType.annotations >> [deprecatedAnnotation]
@@ -345,7 +345,7 @@ class PublicAPIRulesTest extends Specification {
         given:
         JApiCompatibility jApiType = jApiMethod
         def incubatingMissingRule = withContext(new IncubatingMissingRule([:]))
-        def sinceMissingRule = withContext(new SinceAnnotationMissingRule([:]))
+        def sinceMissingRule = withContext(new SinceAnnotationRule([:]))
 
         when:
         sourceFile.text = """
@@ -397,13 +397,13 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiConstructor) == null
 
         where:
-        ruleElem << [new BinaryBreakingChangesRule([:]), new SinceAnnotationMissingRule([:]), new IncubatingMissingRule([:])]
+        ruleElem << [new BinaryBreakingChangesRule([:]), new SinceAnnotationRule([:]), new IncubatingMissingRule([:])]
         error << ['Is not binary compatible.', 'Is not annotated with @since', 'Is not annotated with @Incubating']
     }
 
     def "the @since annotation on inner classes is recognised"() {
         given:
-        def rule = withContext(new SinceAnnotationMissingRule([:]))
+        def rule = withContext(new SinceAnnotationRule([:]))
         def jApiInnerClass = Stub(JApiClass)
         jApiInnerClass.fullyQualifiedName >> "$TEST_INTERFACE_NAME\$Inner"
 
@@ -427,7 +427,7 @@ class PublicAPIRulesTest extends Specification {
 
     def "the @since annotation on implicit enum method '#implicitMethod#paramTypes' is not required"() {
         given:
-        def rule = withContext(new SinceAnnotationMissingRule([:]))
+        def rule = withContext(new SinceAnnotationRule([:]))
         def jApiMethod = Stub(JApiMethod)
         jApiMethod.name >> implicitMethod
         jApiMethod.jApiClass >> jApiClassifier
@@ -450,7 +450,7 @@ class PublicAPIRulesTest extends Specification {
 
     def "the @since annotation on implicit enum method '#implicitMethod' overload is required"() {
         given:
-        def rule = withContext(new SinceAnnotationMissingRule([:]))
+        def rule = withContext(new SinceAnnotationRule([:]))
         def jApiMethod = Stub(JApiMethod)
         jApiMethod.name >> implicitMethod
         jApiMethod.jApiClass >> jApiClassifier

@@ -27,21 +27,21 @@ import java.util.Map;
  * The main reason to have this type is so we can query failures
  * for metadata and associated problems.
  *
- * @since 9.0
+ * @since 9.0.0
  */
 public interface Failure {
 
     /**
      * The class name of the original throwable.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     String getExceptionType();
 
     /**
      * The message of the failure.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     @Nullable
     String getMessage();
@@ -49,35 +49,35 @@ public interface Failure {
     /**
      * The metadata of the failure.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     Map<String, String> getMetadata();
 
     /**
      * The stack trace of the failure.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     List<StackTraceElement> getStackTrace();
 
     /**
      * The class level annotations of the underlying exception class.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     List<String> getClassLevelAnnotations();
 
     /**
      * The causes of this failure.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     List<Failure> getCauses();
 
     /**
      * Problems associated with this failure.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     List<Problem> getProblems();
 }

@@ -46,7 +46,7 @@ public interface GradleEnterprisePluginEndOfBuildListener {
          * <p>
          * {@code null} if the build did not fail.
          *
-         * @since 9.0
+         * @since 9.0.0
          */
         @Nullable
         BuildFailure getBuildFailure();
@@ -55,13 +55,13 @@ public interface GradleEnterprisePluginEndOfBuildListener {
     /**
      * Information about the build failure.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     interface BuildFailure {
         /**
          * The non-empty list of failures.
          *
-         * @since 9.0
+         * @since 9.0.0
          */
         List<Failure> getFailures();
     }
