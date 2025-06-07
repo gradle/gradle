@@ -36,6 +36,7 @@ import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -67,7 +68,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * multiple components may be created by JVM language plugins in the future.
  */
 @SuppressWarnings("JavadocReference")
-public class DefaultJavaPluginExtension implements JavaPluginExtension {
+public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     private static final Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
     private final SourceSetContainer sourceSets;
 
@@ -80,15 +81,16 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final DirectoryProperty docsDir;
     private final DirectoryProperty testResultsDir;
     private final DirectoryProperty testReportDir;
+    private final Property<Boolean> autoTargetJvm;
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
-    private boolean autoTargetJvm = true;
 
     @Inject
     public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
         this.docsDir = project.getObjects().directoryProperty();
         this.testResultsDir = project.getObjects().directoryProperty();
         this.testReportDir = project.getObjects().directoryProperty(); //TestingBasePlugin.TESTS_DIR_NAME;
+        this.autoTargetJvm = project.getObjects().property(Boolean.class).convention(true);
         this.project = project;
         this.sourceSets = sourceSets;
         this.toolchainSpec = toolchainSpec;
@@ -196,12 +198,17 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void disableAutoTargetJvm() {
-        this.autoTargetJvm = false;
+        this.autoTargetJvm.set(false);
     }
 
     @Override
     public boolean getAutoTargetJvmDisabled() {
-        return !autoTargetJvm;
+        return !autoTargetJvm.get();
+    }
+
+    @Override
+    public Property<Boolean> getAutoTargetJvm() {
+        return autoTargetJvm;
     }
 
     /**
