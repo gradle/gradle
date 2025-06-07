@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.base.problems
 
+import org.gradle.api.Task
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
 
@@ -23,4 +24,6 @@ import org.gradle.internal.configuration.problems.PropertyTrace
 abstract class AbstractProblemsListener : ProblemsListener {
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
+
+    override fun forTask(task: Task): ProblemsListener = this
 }
