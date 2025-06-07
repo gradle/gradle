@@ -28,8 +28,10 @@ import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal.EntryRetention
 import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
+import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.execution.plan.Node
@@ -49,6 +51,7 @@ import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.build.event.BuildEventListenerRegistryInternal.Subscription
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.serialize.IsolateOwners
@@ -57,7 +60,11 @@ import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
@@ -885,11 +892,44 @@ class ConfigurationCacheState(
         get() = codecs.userTypesCodec()
 
     private
-    fun buildEventListenersOf(gradle: GradleInternal) =
-        gradle.serviceOf<BuildEventListenerRegistryInternal>()
-            .subscriptions
-            .filterIsInstance<RegisteredBuildServiceProvider<*, *>>()
-            .filter(::isRelevantBuildEventListener)
+    fun WriteContext.buildEventListenersOf(gradle: GradleInternal): List<RegisteredBuildServiceProvider<*, *>> {
+        val subscriptions = gradle.serviceOf<BuildEventListenerRegistryInternal>().subscriptions
+
+        val validProviders = mutableListOf<RegisteredBuildServiceProvider<*, *>>()
+        val invalidProviders = mutableListOf<Subscription>()
+
+        subscriptions.forEach { subscription ->
+            val listener = subscription.listener
+            if (listener is RegisteredBuildServiceProvider<*, *>) {
+                if (isRelevantBuildEventListener(listener)) {
+                    validProviders.add(listener)
+                }
+            } else {
+                invalidProviders.add(subscription)
+            }
+        }
+        if (!gradle.startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners) {
+            invalidProviders.forEach { subscription ->
+                onProblem(
+                    PropertyProblem(
+                        subscription.location(),
+                        StructuredMessage.build {
+                            text("Unsupported provider is registered as a task completion listener in ")
+                            reference(BuildEventsListenerRegistry::class)
+                            text(". Configuration Cache only supports providers returned from ")
+                            reference(BuildServiceRegistry::class)
+                            text(" as task completion listeners.")
+                        },
+                        documentationSection = DocumentationSection.NotYetImplementedBuildEventListeners
+                    )
+                )
+            }
+        }
+        return validProviders
+    }
+
+    private
+    fun Subscription.location(): PropertyTrace = registrationPoint?.let { PropertyTrace.BuildLogic(it) } ?: PropertyTrace.Unknown
 
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =

@@ -140,6 +140,7 @@ public class BuildActionSerializer {
             valueSerializer.write(encoder, startParameter.getIsolatedProjects());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
             encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsDuringStore());
+            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
             encoder.writeNullableString(startParameter.getConfigurationCacheIgnoredFileSystemCheckInputs());
             encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
@@ -229,6 +230,7 @@ public class BuildActionSerializer {
             startParameter.setIsolatedProjects(valueSerializer.read(decoder));
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheIgnoreInputsDuringStore(decoder.readBoolean());
+            startParameter.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(decoder.readBoolean());
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
             startParameter.setConfigurationCacheIgnoredFileSystemCheckInputs(decoder.readNullableString());
             startParameter.setConfigurationCacheDebug(decoder.readBoolean());

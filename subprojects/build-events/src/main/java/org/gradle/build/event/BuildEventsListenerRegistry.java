@@ -16,7 +16,10 @@
 
 package org.gradle.build.event;
 
+import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildServiceRegistration;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.tooling.events.OperationCompletionListener;
 
 /**
@@ -37,7 +40,11 @@ public interface BuildEventsListenerRegistry {
      *
      * <p>The listener is automatically unsubscribed when the build finishes.</p>
      *
-     * @param listener The listener to receive events. This must be a {@link org.gradle.api.services.BuildService} instance, see {@link org.gradle.api.services.BuildServiceRegistry}.
+     * <p>In order to support Configuration Cache, the {@code listener} must be a provider returned <b>directly</b> from
+     * {@link BuildServiceRegistry#registerIfAbsent(String, Class, Action)} or {@link BuildServiceRegistration#getService()}
+     * </p>
+     *
+     * @param listener The listener to receive events. This must be a {@link org.gradle.api.services.BuildService} instance, see {@link BuildServiceRegistry}.
      */
     void onTaskCompletion(Provider<? extends OperationCompletionListener> listener);
 }
