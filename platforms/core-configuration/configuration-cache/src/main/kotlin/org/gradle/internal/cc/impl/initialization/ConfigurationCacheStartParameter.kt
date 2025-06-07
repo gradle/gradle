@@ -94,6 +94,8 @@ class ConfigurationCacheStartParameter internal constructor(
      */
     val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
 
+    val isOptimizingFiles = options.getInternalFlag("org.gradle.configuration-cache.internal.optimize-files", true)
+
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }

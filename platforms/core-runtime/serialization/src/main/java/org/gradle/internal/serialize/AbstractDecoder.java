@@ -19,6 +19,7 @@ package org.gradle.internal.serialize;
 import org.jspecify.annotations.Nullable;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -88,6 +89,11 @@ public abstract class AbstractDecoder implements Decoder {
         if (remaining > 0) {
             throw new EOFException();
         }
+    }
+
+    @Override
+    public File readFile() throws EOFException, IOException {
+        return new File(readString());
     }
 
     @Override
