@@ -386,7 +386,7 @@
   },
   {
     "name": "distributions-basics",
-    "path": "platforms/core-runtime/distributions-basics",
+    "path": "testing/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
