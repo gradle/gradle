@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -35,7 +35,7 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -74,6 +74,22 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
+
+### Configuration API enhancements
+
+It is now possible to configure a [Configuration](dsl/org.gradle.api.artifacts.Configuration.html) to extend another configuration by supplying a [Provider<Configuration>](dsl/org.gradle.api.provider.Provider.html) as an argument to [extendsFrom](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.provider.Provider)).
+
+This allows for more flexible configuration hierarchy construction, as the extended configuration can be calculated lazily.
+
+```kotlin
+configurations {
+    resolvable("conf1")
+    resolvable("conf2")
+    resolvable("conf3") {
+        extendsFrom(project.provider { if (x == 1) configurations.getByName("conf1") else configurations.getByName("conf2") })
+    }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
