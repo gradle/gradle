@@ -68,6 +68,10 @@ abstract class AbstractUserTypeCodecTest {
                     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
                         onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
                     }
+
+                    override fun onExecutionTimeProblem(problem: PropertyProblem) {
+                        onProblem(problem)
+                    }
                 }
             )
         }
@@ -162,6 +166,10 @@ abstract class AbstractUserTypeCodecTest {
 
         override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
             throw ConfigurationCacheError(StructuredMessage.build(message).render(), error)
+        }
+
+        override fun onExecutionTimeProblem(problem: PropertyProblem) {
+            onProblem(problem)
         }
     }
 

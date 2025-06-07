@@ -66,7 +66,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
             .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
             .build()
-        problems.onProblem(problem)
+        problems.onExecutionTimeProblem(problem)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
@@ -107,25 +107,25 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         // the build to fail when it really shouldn't.
         val contextTask = runningTask ?: task
         val isExecutingOtherTask = contextTask != task
-        problemsListenerFor(contextTask).onProblem(
+        problemsListenerFor(contextTask).onExecutionTimeProblem(
             problemFactory.problem {
                 if (isExecutingOtherTask) {
                     text("execution of task ")
                     reference(contextTask.path)
                     text(" caused invocation of ")
                     reference(invocationDescription)
-                    text(" in other task at execution time which is unsupported.")
+                    text(" in other task at execution time which is unsupported with the configuration cache.")
                 } else {
                     text("invocation of ")
                     reference(invocationDescription)
-                    text(" at execution time is unsupported.")
+                    text(" at execution time is unsupported with the configuration cache.")
                 }
             }
                 .exception(
                     if (isExecutingOtherTask) {
-                        "Execution of $runningTask caused invocation of '$invocationDescription' by $task at execution time which is unsupported."
+                        "Execution of $runningTask caused invocation of '$invocationDescription' by $task at execution time which is unsupported with the configuration cache."
                     } else {
-                        "Invocation of '$invocationDescription' by $task at execution time is unsupported."
+                        "Invocation of '$invocationDescription' by $task at execution time is unsupported with the configuration cache."
                     }
                 )
                 .documentationSection(RequirementsUseProjectDuringExecution)

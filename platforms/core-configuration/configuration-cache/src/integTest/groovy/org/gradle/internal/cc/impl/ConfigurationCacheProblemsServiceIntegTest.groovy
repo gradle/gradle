@@ -112,8 +112,8 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
 
         then:
         verifyAll(receivedProblem) {
-            fqid == 'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported'
-            contextualLabel == "invocation of 'Task.project' at execution time is unsupported."
+            fqid == 'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache'
+            contextualLabel == "invocation of 'Task.project' at execution time is unsupported with the configuration cache."
             definition.severity == Severity.ADVICE
         }
     }
