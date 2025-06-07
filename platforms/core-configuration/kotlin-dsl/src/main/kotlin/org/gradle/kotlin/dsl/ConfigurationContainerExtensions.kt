@@ -18,6 +18,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -61,21 +62,27 @@ private constructor(
     override fun detachedConfiguration(vararg dependencies: Dependency): Configuration =
         delegate.detachedConfiguration(*dependencies)
 
+    @Incubating
     override fun resolvable(name: String): NamedDomainObjectProvider<ResolvableConfiguration> =
         delegate.resolvable(name)
 
+    @Incubating
     override fun resolvable(name: String, action: Action<in ResolvableConfiguration>): NamedDomainObjectProvider<ResolvableConfiguration> =
         delegate.resolvable(name, action)
 
+    @Incubating
     override fun consumable(name: String): NamedDomainObjectProvider<ConsumableConfiguration> =
         delegate.consumable(name)
 
+    @Incubating
     override fun consumable(name: String, action: Action<in ConsumableConfiguration>): NamedDomainObjectProvider<ConsumableConfiguration> =
         delegate.consumable(name, action)
 
+    @Incubating
     override fun dependencyScope(name: String): NamedDomainObjectProvider<DependencyScopeConfiguration> =
         delegate.dependencyScope(name)
 
+    @Incubating
     override fun dependencyScope(name: String, action: Action<in DependencyScopeConfiguration>): NamedDomainObjectProvider<DependencyScopeConfiguration> =
         delegate.dependencyScope(name, action)
 }
