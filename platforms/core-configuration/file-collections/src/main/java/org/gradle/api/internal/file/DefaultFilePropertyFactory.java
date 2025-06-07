@@ -59,8 +59,18 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
     }
 
     @Override
+    public DirectoryProperty newDirectoryProperty(PropertyHost customHost) {
+        return new DefaultDirectoryVar(customHost, fileResolver, fileCollectionFactory);
+    }
+
+    @Override
     public RegularFileProperty newFileProperty() {
         return new DefaultRegularFileVar(host, fileResolver);
+    }
+
+    @Override
+    public RegularFileProperty newFileProperty(PropertyHost customHost) {
+        return new DefaultRegularFileVar(customHost, fileResolver);
     }
 
     @Override
@@ -177,7 +187,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
     }
 
-    static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
+    public static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
 
         public AbstractFileVar(PropertyHost host, Class<T> type) {
             super(host, type);
