@@ -84,7 +84,7 @@ dependencies {
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gradleFileEvents)      { version { strictly("0.2.7") }}
+        api(libs.gradleFileEvents)      { version { strictly("0.2.8") }}
         api(libs.gradleProfiler)        { version { strictly("0.23.0-alpha-1") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
