@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.provider.DelegatingProviderWithValue;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -88,18 +89,22 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         checkInsertionAllowed(key);
         assertAttributeValueIsNotNull(provider);
 
-        ProviderInternal<T> providerInternal = Cast.uncheckedCast(provider);
+        @SuppressWarnings("unchecked")
+        ProviderInternal<T> presentProvider = new DelegatingProviderWithValue<>(
+            (ProviderInternal<T>) provider,
+            "Providers passed to attributeProvider(Attribute, Provider) must always be present when queried."
+        );
 
         Provider<Isolatable<T>> isolated;
-        Class<T> valueType = providerInternal.getType();
+        Class<T> valueType = presentProvider.getType();
         Class<Isolatable<T>> typedIsolatable = Cast.uncheckedCast(Isolatable.class);
         if (valueType != null) {
             // We can only sometimes check the type of the provider ahead of time.
             assertAttributeTypeIsValid(valueType, key);
-            isolated = new MappingProvider<>(typedIsolatable, providerInternal, attributeValueIsolator::isolate);
+            isolated = new MappingProvider<>(typedIsolatable, presentProvider, attributeValueIsolator::isolate);
         } else {
             // Otherwise, check the type when the value is realized.
-            isolated = new MappingProvider<>(typedIsolatable, providerInternal, t -> {
+            isolated = new MappingProvider<>(typedIsolatable, presentProvider, t -> {
                 assertAttributeTypeIsValid(t.getClass(), key);
                 return attributeValueIsolator.isolate(t);
             });

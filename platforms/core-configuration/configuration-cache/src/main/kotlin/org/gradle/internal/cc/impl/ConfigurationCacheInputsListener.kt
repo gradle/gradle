@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.configuration.problems
+package org.gradle.internal.cc.impl
 
-import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
-
-fun DocumentationRegistry.documentationLinkFor(section: DocumentationSection) =
-    getDocumentationFor(section.page, section.anchor)
+@ServiceScope(Scope.BuildTree::class)
+internal interface ConfigurationCacheInputsListener : InstrumentedInputsListener

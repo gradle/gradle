@@ -73,7 +73,10 @@
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="StringLiteralEquality"/>
-        <module name="UnnecessaryParentheses"/>
+        <module name="UnnecessaryParentheses">
+            <!-- defaults are too strict, see https://github.com/checkstyle/checkstyle/issues/10946 -->
+            <property name="tokens" value="EXPR, IDENT, NUM_DOUBLE, NUM_FLOAT, NUM_INT, NUM_LONG, STRING_LITERAL, LITERAL_NULL, LITERAL_FALSE, LITERAL_TRUE, ASSIGN, BAND_ASSIGN, BOR_ASSIGN, BSR_ASSIGN, BXOR_ASSIGN, DIV_ASSIGN, MINUS_ASSIGN, MOD_ASSIGN, PLUS_ASSIGN, SL_ASSIGN, SR_ASSIGN, STAR_ASSIGN, LAMBDA, TEXT_BLOCK_LITERAL_BEGIN, UNARY_MINUS, UNARY_PLUS, INC, DEC, BNOT, POST_INC, POST_DEC" />
+        </module>
 
         <!-- Design -->
         <!--
@@ -86,7 +89,7 @@
         <module name="IllegalImport">
             <!--
                 We shouldn't use jdk.internal types.
-                
+
                 com.beust and org.testng.collections has classes that look like Guava.
 
                 We prefer to import javax.annotation and fully-qualify references to org.jetbrains.annotations.
