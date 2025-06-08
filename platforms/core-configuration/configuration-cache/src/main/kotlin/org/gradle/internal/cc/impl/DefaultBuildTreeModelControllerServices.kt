@@ -41,6 +41,8 @@ import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
+import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
@@ -51,6 +53,7 @@ import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstru
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
+import org.gradle.internal.cc.impl.promo.PromoInputsListener
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
@@ -264,13 +267,16 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
             registration.add(DefaultDeferredRootBuildGradle::class.java)
+            registration.add(ConfigurationCacheInputsListener::class.java, InstrumentedInputAccessListener::class.java)
         } else {
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
-            registration.add(BuildTreeLifecycleControllerFactory::class.java, VintageBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(VintageConfigurationTimeActionRunner::class.java)
             registration.add(EnvironmentChangeTracker::class.java, VintageEnvironmentChangeTracker::class.java)
             registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
             registration.add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
+            registration.add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
         }
         if (modelParameters.isIntermediateModelCache) {
             registration.addProvider(ConfigurationCacheModelProvider())

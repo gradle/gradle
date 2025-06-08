@@ -14,34 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.process;
+package org.gradle.api.plugins.internal;
 
+import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.provider.Property;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * An exception thrown when an error occurs while executing a process.
- *
- * @since 9.0
+ * Internal counterpart to {@link JavaPluginExtension}.
  */
 @NullMarked
-@SuppressWarnings("deprecation")
-public class ProcessExecutionException extends org.gradle.process.internal.ExecException {
+public interface JavaPluginExtensionInternal extends JavaPluginExtension {
 
     /**
-     * Creates a new instance of {@code ExecException} with the specified message.
+     * Provider API counterpart for {@link #disableAutoTargetJvm()} and {@link #getAutoTargetJvmDisabled()}.
+     * <p>
+     * This should eventually become public.
      *
-     * @since 9.0
+     * @return True if auto-target JVM feature is enabled. False if it is disabled.
      */
-    public ProcessExecutionException(String message) {
-        super(message);
-    }
+    Property<Boolean> getAutoTargetJvm();
 
-    /**
-     * Creates a new instance of {@code ExecException} with the specified message and cause.
-     *
-     * @since 9.0
-     */
-    public ProcessExecutionException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

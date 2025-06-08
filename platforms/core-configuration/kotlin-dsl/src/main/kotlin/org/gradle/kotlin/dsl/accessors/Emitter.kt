@@ -255,4 +255,4 @@ private fun typedContainerElementFactory(containerElementFactoryEntry: Container
 
 private
 inline fun <reified T> accessibleType() =
-    TypeAccessibility.Accessible(SchemaType.of<T>())
+    TypeAccessibility.Accessible(SchemaType.of<T>(), emptyList())

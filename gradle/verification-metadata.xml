@@ -80,7 +80,10 @@
             <trusting group="org.apache.sshd"/>
          </trusted-key>
          <trusted-key id="077E8893A6DCC33DD4A4D5B256E73BA9A0B592D0" group="org.apache.logging.log4j"/>
-         <trusted-key id="0785B3EFF60B1B1BEA94E0BB7C25280EAE63EBE5" group="org.apache.httpcomponents"/>
+         <trusted-key id="0785B3EFF60B1B1BEA94E0BB7C25280EAE63EBE5">
+            <trusting group="org.apache.httpcomponents"/>
+            <trusting group="^org[.]apache[.]httpcomponents($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="07DBC3C1AB1F4468471656061C8D5EF0DF2B70D4" group="cglib"/>
          <trusted-key id="07E20F0103D9DFC697C490D0368557390486F2C5" group="org.awaitility"/>
          <trusted-key id="0A123C1ED3F13A6A0140E166C71FB765CD9DE313" group="org.apache.ant"/>
@@ -121,6 +124,7 @@
          </trusted-key>
          <trusted-key id="2DB4F1EF0FA761ECC4EA935C86FDC7E2A11262CB">
             <trusting group="commons-codec"/>
+            <trusting group="commons-beanutils"/>
             <trusting group="commons-io"/>
             <trusting group="org.apache.commons"/>
             <trusting group="xml-apis"/>
@@ -155,6 +159,7 @@
             <trusting group="org.slf4j" name="slf4j-api"/>
          </trusted-key>
          <trusted-key id="4857D1CE04E78FAB2A172E8F39B48E1BADDB933F" group="^com[.]gradleup($|([.].*))" regex="true"/>
+         <trusted-key id="4C5F68D09D42BA7FAC888DF9A929EA2321FDBF8F" group="org.xmlresolver"/>
          <trusted-key id="4DB1A49729B053CAF015CEE9A6ADFC93EF34893E" group="org.hamcrest"/>
          <trusted-key id="4F7E32D440EF90A83011A8FC6425559C47CC79C4">
             <trusting group="com.sun.mail"/>
@@ -259,7 +264,10 @@
          </trusted-key>
          <trusted-key id="B02335AA54CCF21E52BBF9ABD9C565AA72BA2FDD" group="io.grpc" name="grpc-context"/>
          <trusted-key id="B41089A2DA79B0FA5810252872385FF0AF338D52" group="joda-time" name="joda-time"/>
-         <trusted-key id="B6E73D84EA4FCC47166087253FAAD2CD5ECBB314" group="org.apache.commons" name="commons-lang3"/>
+         <trusted-key id="B6E73D84EA4FCC47166087253FAAD2CD5ECBB314">
+            <trusting group="org.apache.commons" name="commons-lang3"/>
+            <trusting group="org.apache.commons" name="commons-text"/>
+         </trusted-key>
          <trusted-key id="B801E2F8EF035068EC1139CC29579F18FA8FD93B" group="com.google.j2objc" name="j2objc-annotations"/>
          <trusted-key id="B8D44699D150AAD887FDCF8BD6131C504DEBCC09" group="com.kohlschutter.junixsocket"/>
          <trusted-key id="BA926F64CA647B6D853A38672E2010F8A7FF4A41">
@@ -340,7 +348,10 @@
          <trusted-key id="F3184BCD55F4D016E30D4C9BF42E87F9665015C9" group="org.jsoup" name="jsoup"/>
          <trusted-key id="F3A90E6B10E809F851AB4FC54CC08E7F47C3EC76" group="com.zaxxer" name="HikariCP"/>
          <trusted-key id="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3" group="net.bytebuddy"/>
-         <trusted-key id="FA77DCFEF2EE6EB2DEBEDD2C012579464D01C06A" group="org.codehaus.plexus"/>
+         <trusted-key id="FA77DCFEF2EE6EB2DEBEDD2C012579464D01C06A">
+            <trusting group="org.apache.maven.doxia"/>
+            <trusting group="org.codehaus.plexus"/>
+         </trusted-key>
          <trusted-key id="FA7929F83AD44C4590F6CC6815C71C0A4E0B8EDD" group="net.java.dev.jna"/>
          <trusted-key id="FB11D4BB7B244678337AAD8BC7BF26D0BB617866">
             <trusting group="org.apache.maven"/>
@@ -1050,9 +1061,9 @@
             <sha256 value="f264dd9f79a1fde10ce5ecc53221eff24be4c9331c830b7d52f2f08a7b633de2" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.sf.saxon" name="Saxon-HE" version="9.8.0-12">
-         <artifact name="Saxon-HE-9.8.0-12.jar">
-            <pgp value="D9AA7402BA75F78720D975211D185615D0A84648"/>
+      <component group="net.sf.saxon" name="Saxon-HE" version="12.5">
+         <artifact name="Saxon-HE-12.5.jar">
+            <pgp value="4C5F68D09D42BA7FAC888DF9A929EA2321FDBF8F"/>
          </artifact>
       </component>
       <component group="net.sf.xslthl" name="xslthl" version="2.0.1">
@@ -1093,6 +1104,11 @@
       <component group="org.abego.treelayout" name="org.abego.treelayout.core" version="1.0.3">
          <artifact name="org.abego.treelayout.core-1.0.3.jar">
             <pgp value="D790F72EA8FD39551012B62DCF9F3090CE4CB752"/>
+         </artifact>
+      </component>
+      <component group="org.antlr" name="antlr4-runtime" version="4.13.2">
+         <artifact name="antlr4-runtime-4.13.2.jar">
+            <pgp value="5719E50EAC5A4B1DD390B72C2A742740E08E7F8D"/>
          </artifact>
       </component>
       <component group="org.antlr" name="antlr4-runtime" version="4.5.2-1">
@@ -1523,6 +1539,11 @@
       <component group="org.pcollections" name="pcollections" version="4.0.1">
          <artifact name="pcollections-4.0.1.jar">
             <pgp value="E0D98C5FD55A8AF232290E58DEE12B9896F97E34"/>
+         </artifact>
+      </component>
+      <component group="org.reflections" name="reflections" version="0.10.2">
+         <artifact name="reflections-0.10.2.jar">
+            <pgp value="3F2A008A91D11A7FAC4A0786F13D3E721D56BD54"/>
          </artifact>
       </component>
       <component group="org.rnorth.visible-assertions" name="visible-assertions" version="2.1.2">
