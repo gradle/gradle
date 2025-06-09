@@ -16,22 +16,21 @@
 
 package org.gradle.process;
 
-import org.gradle.process.internal.ExecException;
 import org.jspecify.annotations.NullMarked;
 
 /**
  * An exception thrown when an error occurs while executing a process.
  *
- * @since 9.0
+ * @since 9.0.0
  */
 @NullMarked
 @SuppressWarnings("deprecation")
-public class ProcessExecutionException extends ExecException {
+public class ProcessExecutionException extends org.gradle.process.internal.ExecException {
 
     /**
      * Creates a new instance of {@code ExecException} with the specified message.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     public ProcessExecutionException(String message) {
         super(message);
@@ -40,7 +39,7 @@ public class ProcessExecutionException extends ExecException {
     /**
      * Creates a new instance of {@code ExecException} with the specified message and cause.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     public ProcessExecutionException(String message, Throwable cause) {
         super(message, cause);

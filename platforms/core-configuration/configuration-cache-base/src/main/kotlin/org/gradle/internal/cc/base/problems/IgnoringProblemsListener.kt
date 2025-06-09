@@ -33,4 +33,6 @@ object IgnoringProblemsListener : ProblemsListener {
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) = Unit
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
+
+    override fun onExecutionTimeProblem(problem: PropertyProblem) = Unit
 }

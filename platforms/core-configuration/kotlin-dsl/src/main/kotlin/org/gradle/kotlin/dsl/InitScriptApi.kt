@@ -54,7 +54,7 @@ abstract class InitScriptApi(
         if (!KotlinInitScript::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(InitScriptApi::class.java)
                 .willBeRemovedInGradle10()
-                .undocumented()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }

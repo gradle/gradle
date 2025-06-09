@@ -17,8 +17,10 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.Flaky
 import org.gradle.vcs.git.GitVersionControlSpec
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4700")
 class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceDependencyMultiprojectIntegrationTest {
     @Override
     void mappingFor(String gitRepo, String coords, String repoDef) {

@@ -59,8 +59,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
     /**
      * The built-in rule sets to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-7.13.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * If not configured explicitly, the returned conventional value is "category/java/errorprone.xml", unless {@link #getRuleSetConfig()} returns.
-     * a non-null value or the return value of {@link #getRuleSetFiles()} is non-empty, in which case the conventional value is an empty list
+     * If not configured explicitly, the returned conventional value is "category/java/errorprone.xml", unless {@link #getRuleSetConfig()} returns
+     * a non-null value or the return value of {@link #getRuleSetFiles()} is non-empty, in which case the conventional value is an empty list.
      *
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
@@ -116,7 +116,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
     /**
      * The maximum number of failures to allow before stopping the build.
      *
-     * If <pre>ignoreFailures</pre> is set, this is ignored and no limit is enforced.
+     * If {@code ignoreFailures} is set, this is ignored and no limit is enforced.
      *
      * @since 6.4
      */
@@ -237,7 +237,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
     /**
      * Controls whether to use incremental analysis or not.
      *
-     * This is only supported for PMD 6.0.0 or better. See <a href="https://docs.pmd-code.org/pmd-doc-7.13.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
+     * This is only supported for PMD 6.0.0 or better. See <a href="https://docs.pmd-code.org/pmd-doc-7.13.0/pmd_userdocs_incremental_analysis.html">official documentation</a> for more details.
      *
      * @since 5.6
      */

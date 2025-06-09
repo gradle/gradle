@@ -1,0 +1,16 @@
+plugins {
+    id("java-library")
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::do-this[]
+dependencies {
+    implementation('com.fasterxml.jackson.core:jackson-databind:2.17.0') // <1>
+    api('com.google.guava:guava:32.1.2-jre') {
+        exclude(group: 'com.google.code.findbugs', module: 'jsr305')    // <2>
+    }
+}
+// end::do-this[]

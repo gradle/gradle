@@ -20,6 +20,7 @@ import com.google.common.collect.Comparators
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.logging.ConsoleRenderer
@@ -181,7 +182,7 @@ class Summary(
                 append(": ")
                 appendLine(problem.message)
                 problem.documentationSection?.let {
-                    appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", it)}")
+                    appendLine("  See ${documentationRegistry.getDocumentationFor(it.page, it.anchor)}")
                 }
             }
             if (problemCauseCount > MAX_CONSOLE_PROBLEMS) {
@@ -273,14 +274,14 @@ internal
 data class ProblemCause(
     val userCodeLocation: String,
     val message: String,
-    val documentationSection: String?
+    val documentationSection: DocumentationSection?
 ) {
     companion object {
         fun of(problem: PropertyProblem) = problem.run {
             ProblemCause(
                 trace.containingUserCode,
                 message.render(),
-                documentationSection?.anchor
+                documentationSection
             )
         }
     }

@@ -21,7 +21,7 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     val groovyVersion = when (bundleGroovyMajor) {
-        4 -> "4.0.26"
+        4 -> "4.0.27"
         // This is expected to contain Groovy 5 soon, once it's released or we need to test it.
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
@@ -49,6 +49,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val bouncycastlePgp = "org.bouncycastle:bcpg-jdk18on"
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
+    val bouncycastleUtil = "org.bouncycastle:bcutil-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
@@ -108,7 +109,9 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val jetbrainsAnnotations = "org.jetbrains:annotations"
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
     val jgitSsh = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache"
+    val jgitSshAgent = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache.agent"
     val jna = "net.java.dev.jna:jna"
+    val jnaPlatform = "net.java.dev.jna:jna-platform"
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
@@ -237,6 +240,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         awsS3Sts to License.Apache2,
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
+        bouncycastleUtil to License.MIT,
         bsh to License.Apache2,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,

@@ -283,10 +283,46 @@ internal
 fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
         candidateTypes
-            .filterIsInstance<TypeAccessibility.Accessible>()
-            .map { it.type.kotlinString }
+            .filterIsInstance<TypeAccessibility.Accessible>().let { accessibleTypes ->
+                val ownImports = accessibleTypes.map { it.type.kotlinString }
+                val importsRequiredByOptInAnnotations = importsRequiredByOptInAnnotations(accessibleTypes)
+                if (importsRequiredByOptInAnnotations != null) importsRequiredByOptInAnnotations.toList() + ownImports else ownImports
+            }
     )
 
+private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessibility.Accessible>): MutableSet<String>? {
+    val annotations = object {
+        var typeNames: MutableSet<String>? = null
+
+        fun addTypeName(typeName: String) {
+            if (typeNames == null) {
+                typeNames = mutableSetOf()
+            }
+            typeNames!!.add(typeName)
+        }
+
+        fun visitAnnotationValue(annotationValueRepresentation: AnnotationValueRepresentation) {
+            when (annotationValueRepresentation) {
+                is AnnotationValueRepresentation.PrimitiveValue,
+                is AnnotationValueRepresentation.ValueArray -> Unit
+                is AnnotationValueRepresentation.AnnotationValue -> visitAnnotation(annotationValueRepresentation.representation)
+                is AnnotationValueRepresentation.EnumValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+                is AnnotationValueRepresentation.ClassValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+            }
+        }
+
+        fun visitAnnotation(annotation: AnnotationRepresentation) {
+            addTypeName(annotation.type.kotlinString)
+            annotation.values.values.forEach { annotationValue -> visitAnnotationValue(annotationValue) }
+        }
+    }
+
+    accessibleTypes.forEach { accessibleType ->
+        accessibleType.optInRequirements.forEach { annotations.visitAnnotation(it) }
+    }
+
+    return annotations.typeNames
+}
 
 internal
 fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =
@@ -306,10 +342,23 @@ fun availableProjectSchemaFor(projectSchema: TypedProjectSchema, classPath: Clas
 sealed class TypeAccessibility {
     abstract val type: SchemaType
 
-    data class Accessible(override val type: SchemaType) : TypeAccessibility()
+    data class Accessible(override val type: SchemaType, val optInRequirements: List<AnnotationRepresentation>) : TypeAccessibility()
     data class Inaccessible(override val type: SchemaType, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
 }
 
+
+data class AnnotationRepresentation(
+    val type: SchemaType,
+    val values: Map<String, AnnotationValueRepresentation>
+)
+
+sealed interface AnnotationValueRepresentation {
+    data class PrimitiveValue(val value: Any?) : AnnotationValueRepresentation
+    data class ClassValue(val type: SchemaType) : AnnotationValueRepresentation
+    data class ValueArray(val elements: List<AnnotationValueRepresentation>) : AnnotationValueRepresentation
+    data class EnumValue(val type: SchemaType, val entryName: String) : AnnotationValueRepresentation
+    data class AnnotationValue(val representation: AnnotationRepresentation) : AnnotationValueRepresentation
+}
 
 sealed class InaccessibilityReason {
 
@@ -318,6 +367,7 @@ sealed class InaccessibilityReason {
     data class Synthetic(val type: String) : InaccessibilityReason()
     data class TypeErasure(val type: String) : InaccessibilityReason()
     data class DeprecatedAsHidden(val type: String) : InaccessibilityReason()
+    data class RequiresUnsatisfiableOptIns(val type: String) : InaccessibilityReason()
 
     val explanation
         get() = when (this) {
@@ -326,6 +376,7 @@ sealed class InaccessibilityReason {
             is Synthetic -> "`$type` is synthetic"
             is TypeErasure -> "`$type` parameter types are missing"
             is DeprecatedAsHidden -> "`$type` is deprecated as hidden"
+            is RequiresUnsatisfiableOptIns -> "`$type` required for the opt-in is inaccessible"
         }
 }
 
@@ -340,27 +391,40 @@ data class TypeAccessibilityInfo(
 internal
 class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
-    private
-    val classBytesRepository = ClassBytesRepository(
+    private val classBytesRepository = ClassBytesRepository(
         ClassLoaderUtils.getPlatformClassLoader(),
         classPath.asFiles
     )
 
-    private
-    val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
+
+    private val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
+
+    private val optInRequirementsPerClass = mutableMapOf<String, OptInRequirements>()
+
+    private val optInCollector = OptInAnnotationsCollector(classBytesRepository, ::inaccessibilityReasonsFor, optInRequirementsPerClass::getOrPut)
 
     fun accessibilityForType(type: SchemaType): TypeAccessibility =
         // TODO:accessors cache per SchemaType
-        inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
+        inaccessibilityReasonsFor(type).let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
-            else accessible(type)
+            else {
+                when (val optIns = optInRequirementsPerClass.getOrPut(type.kotlinString) { optInCollector.collectOptInRequirementAnnotationsForType(type) }) {
+                    is OptInRequirements.Annotations -> accessible(type, optIns.annotations)
+                    is OptInRequirements.Unsatisfiable -> inaccessible(type, optIns.becauseOfTypes.map { InaccessibilityReason.RequiresUnsatisfiableOptIns(it) })
+                    OptInRequirements.None -> accessible(type)
+                }
+
+            }
         }
 
-    private
-    fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
+    private fun inaccessibilityReasonsFor(type: SchemaType): List<InaccessibilityReason> =
+        inaccessibilityReasonsFor(classNamesFromTypeString(type))
+
+    private fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
         classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
             inaccessibilityReasons.ifEmpty { classNames.leaves.filter(::hasTypeParameter).map(::typeErasure) }
         }
+
 
     private
     fun inaccessibilityReasonsFor(className: String): List<InaccessibilityReason> =
@@ -599,8 +663,8 @@ fun typeErasure(type: String): InaccessibilityReason =
 
 
 internal
-fun accessible(type: SchemaType): TypeAccessibility =
-    TypeAccessibility.Accessible(type)
+fun accessible(type: SchemaType, optInRequirements: List<AnnotationRepresentation> = emptyList()): TypeAccessibility =
+    TypeAccessibility.Accessible(type, optInRequirements)
 
 
 internal
@@ -741,3 +805,4 @@ fun Project.warnAboutDiscontinuedJsonProjectSchema() {
         logger.warn(PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING)
     }
 }
+

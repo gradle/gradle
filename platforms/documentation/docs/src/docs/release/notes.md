@@ -43,21 +43,10 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Kotlin build script compilation avoidance
-
-With this release, the mechanism for detecting ABI (Application Binary Interface) changes in [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts has been significantly improved. 
-Gradle now relies on the Kotlin distribution’s own ABI fingerprinting instead of its previous internal mechanism.
-
-The biggest advantage of the new mechanism is the ability to work in the presence of inline functions, something that Gradle wasn't handling efficiently until now.
-This results in substantial performance gains depending on your build and the changes made to the build logic.
-
-For example, in the `gradle/gradle` project, non-ABI changes to build logic now result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
-
-![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
-
 ### Kotlin 2 TO DO
 
 ### Groovy 4
+
 Gradle embeds the latest stable release of Groovy 4.0. This is a major version jump from Gradle 7 and 8 that used Groovy 3.0.
 
 This brings a range of new features and improvements.
@@ -85,12 +74,36 @@ Check out the link:https://blog.gradle.org/road-to-configuration-cache[blog post
 
 Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
+### Kotlin build script compilation avoidance
+
+With this release, the mechanism for detecting ABI (Application Binary Interface) changes in [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts has been significantly improved.
+Gradle now relies on the Kotlin distribution’s own ABI fingerprinting instead of its previous internal mechanism.
+
+The biggest advantage of the new mechanism is the ability to work in the presence of inline functions, something that Gradle wasn't handling efficiently until now.
+This results in substantial performance gains depending on your build and the changes made to the build logic.
+
+For example, in the `gradle/gradle` project, non-ABI changes to build logic now result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
+
+![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
+
 #### Gradle API now uses JSpecify Nullability Annotations
 
 Since Gradle 5.0 we've been using annotations from the dormant and unfinished JSR-305 to make the nullness of type usages explicit for the Gradle API.
 Starting with Gradle 9.0, the Gradle API is annotated using JSpecify instead.
 
 For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_version_8.html).
+
+#### New `RootComponentIdentifier`
+
+Gradle introduces a new subtype of `ComponentIdentifier` called `RootComponentIdentifier`, which represents the root of a resolved dependency graph.
+When a configuration is resolved, it is transformed into a synthetic variant that serves as the root of a dependency graph.
+The root component exists solely to own the root variant.
+
+Dependency graphs resolved from `buildscript` configurations and detached configurations will have a component identified by a `RootComponentIdentifier` at the root of their graph.
+Resolved project configurations will continue to have their root component live within the project's component, identified with a `ProjectComponentIdentifier`.
+With this change, detached configurations can now resolve dependencies on their own project.
+
+In future Gradle versions, all configurations, including those declared inside projects, will also be owned by a synthetic root component identified by a `RootComponentIdentifier`.
 
 ## Promoted features
 

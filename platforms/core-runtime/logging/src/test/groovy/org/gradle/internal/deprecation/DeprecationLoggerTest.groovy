@@ -48,8 +48,8 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
     def "logs deprecation warning once until reset"() {
         when:
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
 
         then:
         def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
@@ -59,7 +59,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         when:
         DeprecationLogger.reset()
         DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
         events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
 
         then:
@@ -80,7 +80,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         and:
         1 * factory.create() >> {
-            DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+            DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
             return "result"
         }
         0 * _
@@ -109,7 +109,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         DeprecationLogger.whileDisabled {
             DeprecationLogger.whileDisabled {
             }
-            DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+            DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
         }
 
         then:
@@ -121,13 +121,13 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         async {
             start {
                 thread.blockUntil.disabled
-                DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+                DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
                 instant.logged
             }
             start {
                 DeprecationLogger.whileDisabled {
                     instant.disabled
-                    DeprecationLogger.deprecate("ignored").willBeRemovedInGradle9().undocumented().nagUser()
+                    DeprecationLogger.deprecate("ignored").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
                     thread.blockUntil.logged
                 }
             }
@@ -143,21 +143,21 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         when:
         DeprecationLogger.deprecate("foo")
             .withAdvice("bar.")
-            .willBeRemovedInGradle9()
-            .undocumented()
+            .willBeRemovedInGradle10()
+            .withUserManual("feature_lifecycle", "sec:deprecated")
             .nagUser();
 
         then:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle 9.0. bar.")
+        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle 10.0. bar.")
     }
 
     def "reports suppressed deprecation messages with --warning-mode summary"() {
         given:
         def documentationReference = new DocumentationRegistry().getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")
         DeprecationLogger.init(WarningMode.Summary, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
 
         when:
         DeprecationLogger.reportSuppressedDeprecations()

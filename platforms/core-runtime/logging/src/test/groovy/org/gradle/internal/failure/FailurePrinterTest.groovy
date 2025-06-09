@@ -100,7 +100,7 @@ class FailurePrinterTest extends Specification {
         def relevances = Collections.nCopies(stack.size(), USER_CODE)
         def causes = getCauses(t).collect { toFailure(it) }
         def suppressed = t.getSuppressed().collect { toFailure(it) }
-        new DefaultFailure(t, stack, relevances, suppressed, causes)
+        new DefaultFailure(t, stack, relevances, suppressed, causes, Collections.emptyList())
     }
 
     private static List<Throwable> getCauses(Throwable t) {

@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal.task;
 
 import com.google.common.base.Strings;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
@@ -43,8 +44,8 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 public abstract class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<JvmToolchainMetadata> TOOLCHAIN_COMPARATOR = Comparator
-        .<JvmToolchainMetadata, String>comparing(t -> t.metadata.getDisplayName())
-        .thenComparing(t -> t.metadata.getLanguageVersion());
+        .<JvmToolchainMetadata, JavaVersion>comparing(t -> t.metadata.getLanguageVersion())
+        .thenComparing(t -> t.metadata.getDisplayName());
 
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
