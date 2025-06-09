@@ -152,8 +152,8 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static void closeGit(@Nullable Git git) {
         if (git != null) {
             git.close();
-            RepositoryCache.clear(); // https://github.com/eclipse-jgit/jgit/issues/155#issuecomment-2765437816
         }
+        RepositoryCache.clear(); // https://github.com/eclipse-jgit/jgit/issues/155#issuecomment-2765437816
     }
 
     private static void updateSubModules(Git git) throws IOException, GitAPIException {
