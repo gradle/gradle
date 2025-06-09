@@ -17,23 +17,30 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.artifacts.configurations.MarkConfigurationObservedListener;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorStringNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyMetadataFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultLocalComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleDependencyMetadataConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyMetadataConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.CacheableTransformTypeAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnnotationHandler;
-import org.gradle.api.internal.artifacts.transform.TransformActionScheme;
-import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
@@ -51,61 +58,107 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.cached.DefaultCachedExternalResourceChecker;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.local.FileResourceConnector;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
-import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
-class DependencyManagementGlobalScopeServices implements ServiceRegistrationProvider {
+class DependencyManagementGlobalScopeServices {
     void configure(ServiceRegistration registration) {
-        registration.add(VersionParser.class);
-        registration.add(IvyContextManager.class, DefaultIvyContextManager.class);
-        registration.add(ImmutableModuleIdentifierFactory.class, DefaultImmutableModuleIdentifierFactory.class);
-        registration.add(ExcludeRuleConverter.class, DefaultExcludeRuleConverter.class);
-        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactAnnotationHandler.class);
-        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactDependenciesAnnotationHandler.class);
+        registration.add(MarkConfigurationObservedListener.class);
+        registration.add(DefaultCachedExternalResourceChecker.class);
     }
 
-    @Provides
-    DependencyMetadataFactory createDependencyMetadataFactory(ExcludeRuleConverter excludeRuleConverter) {
-        return new DefaultDependencyMetadataFactory(
-            new ProjectDependencyMetadataConverter(excludeRuleConverter),
-            new ExternalModuleDependencyMetadataConverter(excludeRuleConverter)
-        );
+    FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {
+        return new FileResourceConnector(fileSystem);
     }
 
-    @Provides
+    ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {
+        return new DefaultImmutableModuleIdentifierFactory();
+    }
+
+    NotationParser<Object, ComponentSelector> createComponentSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return NotationParserBuilder
+            .toType(ComponentSelector.class)
+            .converter(new CrossBuildCachingNotationConverter<>(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory), cacheFactory.newCache()))
+            .toComposite();
+    }
+
+    VersionParser createVersionParser() {
+        return new VersionParser();
+    }
+
+    IvyContextManager createIvyContextManager() {
+        return new DefaultIvyContextManager();
+    }
+
+    ExcludeRuleConverter createExcludeRuleConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return new DefaultExcludeRuleConverter(moduleIdentifierFactory);
+    }
+
+    ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
+        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter);
+    }
+
+    DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
+        return new DefaultDependencyDescriptorFactory(
+            new ProjectIvyDependencyDescriptorFactory(excludeRuleConverter),
+            descriptorFactory);
+    }
+
+    LocalConfigurationMetadataBuilder createLocalConfigurationMetadataBuilder(DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                                              ExcludeRuleConverter excludeRuleConverter) {
+        return new DefaultLocalConfigurationMetadataBuilder(dependencyDescriptorFactory, excludeRuleConverter);
+    }
+
+    LocalComponentMetadataBuilder createLocalComponentMetaDataBuilder(LocalConfigurationMetadataBuilder localConfigurationMetadataBuilder) {
+        return new DefaultLocalComponentMetadataBuilder(localConfigurationMetadataBuilder);
+    }
+
     ResourceConnectorFactory createFileConnectorFactory() {
         return new FileConnectorFactory();
     }
 
-    @Provides
     ProducerGuard<ExternalResourceName> createProducerAccess() {
         return ProducerGuard.adaptive();
     }
 
-    @Provides
     TypeAnnotationHandler createCacheableTransformAnnotationHandler() {
         return new CacheableTransformTypeAnnotationHandler();
     }
 
-    @Provides
+    InputArtifactAnnotationHandler createInputArtifactAnnotationHandler() {
+        return new InputArtifactAnnotationHandler();
+    }
+
+    InputArtifactDependenciesAnnotationHandler createInputArtifactDependenciesAnnotationHandler() {
+        return new InputArtifactDependenciesAnnotationHandler();
+    }
+
+    PreferJavaRuntimeVariant createPreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
+        return new PreferJavaRuntimeVariant(instantiator);
+    }
+
     PlatformSupport createPlatformSupport(NamedObjectInstantiator instantiator) {
         return new PlatformSupport(instantiator);
     }
 
-    @Provides
-    TransformParameterScheme createTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+    ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
             ImmutableSet.of(
@@ -128,14 +181,12 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
                 IgnoreEmptyDirectories.class,
                 NormalizeLineEndings.class
             ),
-            ImmutableSet.of(),
             instantiationScheme
         );
-        return new TransformParameterScheme(instantiationScheme, inspectionScheme);
+        return new ArtifactTransformParameterScheme(instantiationScheme, inspectionScheme);
     }
 
-    @Provides
-    TransformActionScheme createTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+    ArtifactTransformActionScheme createArtifactTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(
             InputArtifact.class,
             InputArtifactDependencies.class
@@ -154,9 +205,8 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
                 IgnoreEmptyDirectories.class,
                 NormalizeLineEndings.class
             ),
-            ImmutableSet.of(),
             instantiationScheme
         );
-        return new TransformActionScheme(instantiationScheme, inspectionScheme);
+        return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme);
     }
 }
