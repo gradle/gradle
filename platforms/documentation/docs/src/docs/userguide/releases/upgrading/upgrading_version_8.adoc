@@ -224,6 +224,11 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 - `org.gradle.api.file.FileTreeElement.getMode()`
 - `org.gradle.api.file.FileCopyDetails.setMode(int)`
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 ==== Removal of custom Source Set interfaces
 
 The following source set interfaces have been removed in Gradle 9.0:
@@ -244,7 +249,11 @@ GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(Gro
 groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
 ----
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> 8dd23c023e2 (Fix typos)
+>>>>>>> Stashed changes
 ==== Removal of select Groovy modules from the Gradle distribution
 
 Gradle 9.0 removes certain Groovy modules from its bundled distribution.
@@ -329,14 +338,26 @@ The `outputFile` property in the `WriteProperties` task has been removed in Grad
 
 This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 ==== Removal of `Project#exec`, `Project#javaexec`, and Script-Level Counterparts
 
 The following helper methods for launching external processes were <<#deprecated_project_exec,deprecated in Gradle 8.11>> and have now been removed in Gradle 9.0:
 
+<<<<<<< Updated upstream
 * `org.gradle.apiProject#exec(Closure)`
 * `org.gradle.apiProject#exec(Action)`
 * `org.gradle.apiProject#javaexec(Closure)`
 * `org.gradle.apiProject#javaexec(Action)`
+=======
+* `org.gradle.api.Project#exec(Closure)`
+* `org.gradle.api.Project#exec(Action)`
+* `org.gradle.api.Project#javaexec(Closure)`
+* `org.gradle.api.Project#javaexec(Action)`
+>>>>>>> Stashed changes
 * `org.gradle.api.Script#exec(Closure)`
 * `org.gradle.api.Script#exec(Action)`
 * `org.gradle.api.Script#javaexec(Closure)`
@@ -347,6 +368,10 @@ The following helper methods for launching external processes were <<#deprecated
 * `org.gradle.kotlin.dsl.KotlinScript#javaexec(Action)`
 * `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
 * `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
+<<<<<<< Updated upstream
+=======
+>>>>>>> 8dd23c023e2 (Fix typos)
+>>>>>>> Stashed changes
 
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
 
