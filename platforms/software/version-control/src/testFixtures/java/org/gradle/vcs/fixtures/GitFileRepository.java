@@ -23,7 +23,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
@@ -33,6 +32,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.vcs.git.internal.GitVersionControlSystem;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -107,8 +107,7 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
      * (called automatically when used as a @Rule)
      */
     public void close() {
-        git.close();
-        RepositoryCache.clear(); // https://github.com/eclipse-jgit/jgit/issues/155#issuecomment-2765437816
+        GitVersionControlSystem.closeGit(git);
     }
 
     public RevCommit addSubmodule(GitFileRepository submoduleRepo) throws GitAPIException {
