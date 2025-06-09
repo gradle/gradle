@@ -4,6 +4,7 @@
     <img alt="Gradle Logo" src="images/gradle-dark-green-primary.png" width="600px">
   </picture>
 </div>
+![image](https://github.com/user-attachments/assets/2b077dea-b625-42e8-b9a7-37bd64fd17b1)
 
 <div align="center">
   <a href="https://ge.gradle.org/scans">
