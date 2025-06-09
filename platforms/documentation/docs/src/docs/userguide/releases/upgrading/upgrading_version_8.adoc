@@ -227,6 +227,11 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 =======
 <<<<<<< HEAD
 =======
@@ -262,7 +267,11 @@ groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> 8dd23c023e2 (Fix typos)
+>>>>>>> Stashed changes
 =======
 >>>>>>> 8dd23c023e2 (Fix typos)
 >>>>>>> Stashed changes
@@ -359,6 +368,11 @@ This property was deprecated in Gradle 8.0 and was replaced with the `destinatio
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 =======
 <<<<<<< HEAD
 =======
@@ -378,11 +392,14 @@ The following helper methods for launching external processes were <<#deprecated
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 * `org.gradle.apiProject#exec(Closure)`
 * `org.gradle.apiProject#exec(Action)`
 * `org.gradle.apiProject#javaexec(Closure)`
 * `org.gradle.apiProject#javaexec(Action)`
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -393,6 +410,9 @@ The following helper methods for launching external processes were <<#deprecated
 * `org.gradle.api.Project#javaexec(Action)`
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -411,6 +431,10 @@ The following helper methods for launching external processes were <<#deprecated
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> 8dd23c023e2 (Fix typos)
+>>>>>>> Stashed changes
 =======
 >>>>>>> 8dd23c023e2 (Fix typos)
 >>>>>>> Stashed changes
