@@ -859,7 +859,7 @@ The output of running the `projects` report on the above build shows that now Gr
 You can also now invoke tasks on the `my-web-module` project using the shorter name `:my-web-module` like `gradle :my-web-module:build`, instead of `gradle :subs:web:my-web-module:build`.
 
 === References
-- <<multi_project_builds.adoc,Multi-Project Builds>>
+- <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>
 
 === Tags
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
