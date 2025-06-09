@@ -19,12 +19,14 @@ package org.gradle.vcs.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Issue
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4700")
 class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
     GitFileRepository repo = new GitFileRepository('dep', temporaryFolder.getTestDirectory())
