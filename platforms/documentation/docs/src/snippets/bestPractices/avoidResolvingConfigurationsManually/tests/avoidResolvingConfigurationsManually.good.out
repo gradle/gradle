@@ -1,5 +1,5 @@
-> Task :library:compileJava
 > Task :library:processResources NO-SOURCE
+> Task :library:compileJava
 > Task :library:classes
 
 > Task :library:jar
