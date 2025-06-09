@@ -14,108 +14,42 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.configurationcache
 
-
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
-import spock.lang.Issue
 
 class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Rule
     HttpServer server = new HttpServer()
 
-    String scriptUrl
-    TestFile scriptFile
-    String scriptName = "remote-script.gradle"
-    def configurationCache
-
-    def setup() {
+    def "invalidates cache after change in remote build script"() {
+        given:
         server.start()
-
-        scriptUrl = "${server.uri}/${scriptName}"
-        scriptFile = file("remote-script.gradle") << """
+        String scriptName = "remote-script.gradle"
+        String scriptUrl = "${server.uri}/${scriptName}"
+        File scriptFile = file("remote-script.gradle") << """
             println 'loaded remote script'
         """
-        server.expectGet "/$scriptName", scriptFile
+        server.allowGetOrHead("/$scriptName", scriptFile)
 
         buildFile << """
             apply from: '$scriptUrl'
             task ok
         """
 
-        configurationCache = newConfigurationCacheFixture()
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/23273")
-    def "invalidates cache if remote script was changed"() {
         when:
         configurationCacheRun 'ok'
 
         then:
-        configurationCache.assertStateStored()
-
-        when:
         scriptFile << """
-            print 'update remote script'
-        """
-        server.expectHead "/$scriptName", scriptFile
-        server.expectGet "/$scriptName", scriptFile
-
-        and:
-        configurationCacheRun 'ok'
-
-        then:
-        output.contains "Calculating task graph as configuration cache cannot be reused because remote script $scriptUrl has changed."
-        configurationCache.assertStateStored()
-    }
-
-    def "reuse cache if remote script is up to date"() {
-        when:
-        configurationCacheRun 'ok'
-
-        then:
-        configurationCache.assertStateStored()
-
-        and:
-        server.expectHead "/$scriptName", scriptFile
-
-        when:
-        configurationCacheRun 'ok'
-
-        then:
-        configurationCache.assertStateLoaded()
-    }
-
-    def "reuse cache for offline build"() {
-        when:
-        configurationCacheRun 'ok'
-
-        then:
-        configurationCache.assertStateStored()
-
-        when:
-        scriptFile << """
-            print 'update remote script'
+            println 'updated remote script'
         """
 
-        and:
-        executer.withArgument("--offline")
         configurationCacheRun 'ok'
 
         then:
-        configurationCache.assertStateStored()
-
-        and:
-        outputDoesNotContain 'update remote script'
-
-        when:
-        executer.withArgument("--offline")
-        configurationCacheRun 'ok'
-
-        then:
-        configurationCache.assertStateLoaded()
+        outputContains "Calculating task graph as configuration cache cannot be reused because cached external resource $scriptUrl has expired."
     }
 }

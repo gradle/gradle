@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
@@ -26,67 +28,78 @@ import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.cached.CachedExternalResourceChecker;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.CachedExternalResourceListener;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
 import org.gradle.internal.resource.transport.file.FileTransport;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scopes.Build.class)
 public class RepositoryTransportFactory {
-    private final List<ResourceConnectorFactory> registeredProtocols = new ArrayList<>();
+    private final List<ResourceConnectorFactory> registeredProtocols = Lists.newArrayList();
 
     private final TemporaryFileProvider temporaryFileProvider;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final BuildCommencedTimeProvider timeProvider;
-    private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
-    private final BuildOperationRunner buildOperationRunner;
+    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileRepository;
     private final ChecksumService checksumService;
+    private final FileResourceListener listener;
+    private final CachedExternalResourceListener cachedExternalResourceListener;
+    private final CachedExternalResourceChecker cachedExternalResourceChecker;
+
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
-                                      BuildOperationRunner buildOperationRunner,
+                                      ArtifactCacheLockingManager artifactCacheLockingManager,
+                                      BuildOperationExecutor buildOperationExecutor,
                                       StartParameterResolutionOverride startParameterResolutionOverride,
                                       ProducerGuard<ExternalResourceName> producerGuard,
                                       FileResourceRepository fileRepository,
-                                      ChecksumService checksumService) {
+                                      ChecksumService checksumService,
+                                      FileResourceListener listener,
+                                      CachedExternalResourceListener cachedExternalResourceListener,
+                                      CachedExternalResourceChecker cachedExternalResourceChecker
+    ) {
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
-        this.artifactCacheLockingManager = cacheAccessCoordinator;
-        this.buildOperationRunner = buildOperationRunner;
+        this.artifactCacheLockingManager = artifactCacheLockingManager;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.producerGuard = producerGuard;
         this.fileRepository = fileRepository;
         this.checksumService = checksumService;
+        this.listener = listener;
+        this.cachedExternalResourceListener = cachedExternalResourceListener;
+        this.cachedExternalResourceChecker = cachedExternalResourceChecker;
 
         registeredProtocols.addAll(resourceConnectorFactory);
     }
 
     public Set<String> getRegisteredProtocols() {
-        Set<String> validSchemes = new LinkedHashSet<>();
+        Set<String> validSchemes = Sets.newLinkedHashSet();
         for (ResourceConnectorFactory registeredProtocol : registeredProtocols) {
             validSchemes.addAll(registeredProtocol.getSupportedProtocols());
         }
@@ -94,7 +107,7 @@ public class RepositoryTransportFactory {
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService);
+        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService, listener, cachedExternalResourceListener, cachedExternalResourceChecker);
     }
 
     public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
@@ -124,7 +137,7 @@ public class RepositoryTransportFactory {
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
         cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
 
-        return new ResourceConnectorRepositoryTransport(name, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationRunner, cachePolicy, producerGuard, fileRepository, checksumService);
+        return new ResourceConnectorRepositoryTransport(name, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService, cachedExternalResourceListener, cachedExternalResourceChecker);
     }
 
     private void validateSchemes(Set<String> schemes) {
@@ -137,7 +150,7 @@ public class RepositoryTransportFactory {
     }
 
     private void validateConnectorFactoryCredentials(Set<String> schemes, ResourceConnectorFactory factory, Collection<Authentication> authentications) {
-        Set<Class<? extends Authentication>> configuredAuthenticationTypes = new HashSet<>();
+        Set<Class<? extends Authentication>> configuredAuthenticationTypes = Sets.newHashSet();
 
         for (Authentication authentication : authentications) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;

@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.fingerprint
+package org.gradle.configurationcache.fingerprint
 
+import com.google.common.collect.Maps.newConcurrentMap
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl.Expiry
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.ProjectDependencyObservedListener
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.internal.file.collections.FileCollectionObservationListener
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
-import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
@@ -44,93 +46,73 @@ import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.configurationcache.CoupledProjectsListener
+import org.gradle.configurationcache.InputTrackingState
+import org.gradle.configurationcache.UndeclaredBuildInputListener
+import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource
+import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.configurationcache.problems.PropertyProblem
+import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
+import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.internal.ScriptSourceListener
-import org.gradle.initialization.buildsrc.BuildSrcDetector
-import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
-import org.gradle.internal.cc.impl.CoupledProjectsListener
-import org.gradle.internal.cc.impl.InputTrackingState
-import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
-import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.InputFile
-import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.InputFileSystemEntry
-import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.ValueSource
-import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.configuration.problems.DocumentationSection
-import org.gradle.internal.configuration.problems.PropertyProblem
-import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
-import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListener
-import org.gradle.internal.extensions.core.fileSystemEntryType
-import org.gradle.internal.extensions.core.uri
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.properties.InputBehavior
+import org.gradle.internal.resource.ExternalResourceName
+import org.gradle.internal.resource.cached.CachedExternalResourceListener
 import org.gradle.internal.resource.local.FileResourceListener
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.internal.scripts.ScriptExecutionListener
-import org.gradle.internal.scripts.ScriptFileResolvedListener
-import org.gradle.internal.serialize.graph.CloseableWriteContext
-import org.gradle.internal.service.scopes.ParallelListener
-import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.util.Path
 import java.io.File
 import java.net.URI
 import java.util.EnumSet
-import java.util.concurrent.ConcurrentHashMap
 
 
-@ParallelListener
 internal
 class ConfigurationCacheFingerprintWriter(
     private val host: Host,
-    buildScopedContext: CloseableWriteContext,
-    projectScopedContext: CloseableWriteContext,
+    buildScopedContext: DefaultWriteContext,
+    projectScopedContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val workExecutionTracker: WorkExecutionTracker,
-    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
+    private val taskExecutionTracker: TaskExecutionTracker,
+    private val environmentChangeTracker: EnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
-    private val buildStateRegistry: BuildStateRegistry,
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener,
     ScriptExecutionListener,
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
+    ProjectDependencyObservedListener,
     CoupledProjectsListener,
-    ToolingModelProjectDependencyListener,
     FileResourceListener,
-    ScriptFileResolvedListener,
     FeatureFlagListener,
-    FileCollectionObservationListener,
-    ScriptSourceListener,
+    CachedExternalResourceListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
-        val isEncrypted: Boolean
-        val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
-        val modelAsProjectDependency: Boolean
-        val ignoreInputsDuringConfigurationCacheStore: Boolean
-        val instrumentationAgentUsed: Boolean
-        val ignoredFileSystemCheckInputs: String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
-        fun hashCodeOf(file: File): HashCode
-        fun hashCodeOfDirectoryChildrenNames(file: File): HashCode
+        fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(file: File): String
-        fun reportProblem(exception: Throwable? = null, documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder)
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
     }
@@ -145,7 +127,7 @@ class ConfigurationCacheFingerprintWriter(
     val projectScopedWriter = ScopedFingerprintWriter<ProjectSpecificFingerprint>(projectScopedContext)
 
     private
-    val sinksForProject = ConcurrentHashMap<Path, ProjectScopedSink>()
+    val sinksForProject = newConcurrentMap<Path, ProjectScopedSink>()
 
     private
     val projectForThread = ThreadLocal<ProjectScopedSink>()
@@ -169,27 +151,19 @@ class ConfigurationCacheFingerprintWriter(
     val reportedFiles = newConcurrentHashSet<File>()
 
     private
-    val reportedDirectories = newConcurrentHashSet<File>()
-
-    private
-    val reportedFileSystemEntries = newConcurrentHashSet<File>()
-
-    private
     val reportedValueSources = newConcurrentHashSet<String>()
 
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
-        buildScopedSink.initScripts(host.allInitScripts)
+        val initScripts = host.allInitScripts
+        buildScopedSink.initScripts(initScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
-                host.startParameterProperties,
-                host.ignoreInputsDuringConfigurationCacheStore,
-                host.instrumentationAgentUsed,
-                host.ignoredFileSystemCheckInputs
+                host.startParameterProperties
             )
         )
     }
@@ -201,7 +175,6 @@ class ConfigurationCacheFingerprintWriter(
      */
     fun close() {
         synchronized(this) {
-            captureBuildSrcPresence()
             closestChangingValue?.let {
                 buildScopedSink.write(it)
             }
@@ -209,33 +182,12 @@ class ConfigurationCacheFingerprintWriter(
         CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
     }
 
-    private
-    fun captureBuildSrcPresence() {
-        buildStateRegistry.visitBuilds { buildState ->
-            val candidateBuildSrc = File(buildState.buildRootDir, SettingsInternal.BUILD_SRC)
-            val valid = BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
-            if (!valid) {
-                buildScopedSink.write(ConfigurationCacheFingerprint.MissingBuildSrcDir(candidateBuildSrc))
-            }
-        }
-    }
-
-    override fun scriptSourceObserved(scriptSource: ScriptSource) {
+    override fun externalResourceObserved(resourceName: ExternalResourceName, metaData: ExternalResourceMetaData) {
         if (isInputTrackingDisabled()) {
             return
         }
-
-        scriptSource.uri?.takeIf { it.isHttp }?.let { uri ->
-            sink().captureRemoteScript(uri)
-        }
+        sink().externalResourceObserved(resourceName, metaData)
     }
-
-    /**
-     * Returns `true` if [scheme][URI.scheme] starts with `http`.
-     */
-    private
-    val URI.isHttp: Boolean
-        get() = scheme.startsWith("http")
 
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
         // Only consider repositories serving at least one version of the requested module.
@@ -264,7 +216,7 @@ class ConfigurationCacheFingerprintWriter(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isExecutingWork() = workExecutionTracker.isExecutingTaskOrTransformAction
+    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
 
     override fun fileObserved(file: File) {
         fileObserved(file, null)
@@ -276,29 +228,6 @@ class ConfigurationCacheFingerprintWriter(
         }
         // Ignore consumer for now, only used by Gradle internals and so shouldn't appear in the report.
         captureFile(file)
-    }
-
-    override fun directoryChildrenObserved(file: File) {
-        if (isInputTrackingDisabled()) {
-            return
-        }
-        sink().captureDirectoryChildren(file)
-    }
-
-    override fun directoryChildrenObserved(directory: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingWork()) {
-            return
-        }
-        sink().captureDirectoryChildren(directory)
-        reportUniqueDirectoryChildrenInput(directory, consumer)
-    }
-
-    override fun fileSystemEntryObserved(file: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingWork()) {
-            return
-        }
-        sink().captureFileSystemEntry(file)
-        reportUniqueFileSystemEntryInput(file, consumer)
     }
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
@@ -316,16 +245,7 @@ class ConfigurationCacheFingerprintWriter(
             // as a fixed value.
             return
         }
-        val propertyValue =
-            if (isSystemPropertyLoaded(key)) {
-                // Loaded values of the system properties are loaded from gradle.properties but never mutated.
-                // Thus, as a configuration input is an old value of property at load moment.
-                environmentChangeTracker.getLoadedPropertyOldValue(key)
-            } else {
-                value
-            }
-
-        sink().systemPropertyRead(key, propertyValue)
+        sink().systemPropertyRead(key, value)
         reportUniqueSystemPropertyInput(key, consumer)
     }
 
@@ -343,23 +263,21 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileOpened(file: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingWork()) {
+        if (isInputTrackingDisabled() || isExecutingTask()) {
             // Ignore files that are read as part of the task actions. These should really be task
-            // inputs. Otherwise, we risk fingerprinting files such as:
-            // - temporary files that will be gone at the end of the build.
-            // - files in the output directory, for incremental tasks or tasks that remove stale outputs
+            // inputs. Otherwise, we risk fingerprinting temporary files that will be gone at the
+            // end of the build.
             return
         }
         captureFile(file)
         reportUniqueFileInput(file, consumer)
     }
 
-    override fun fileCollectionObserved(fileCollection: FileCollectionInternal) {
-        if (isInputTrackingDisabled() || isExecutingWork()) {
-            // See #fileOpened() above
+    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
+        if (isInputTrackingDisabled()) {
             return
         }
-        captureWorkInputs(host.location(null).toString()) { it(fileCollection) }
+        captureWorkInputs(consumer) { it(fileCollection as FileCollectionInternal) }
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -406,18 +324,6 @@ class ConfigurationCacheFingerprintWriter(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>
     ) {
-        obtainedValue.value.failure.ifPresent { exception: Throwable ->
-            host.reportProblem(exception) {
-                text("failed to compute value with custom source ")
-                reference(obtainedValue.valueSourceType)
-                source.displayNameIfAvailable?.let {
-                    text(" ($it)")
-                }
-                text(" with ")
-                text(exception.toString())
-            }
-        }
-
         // TODO(https://github.com/gradle/gradle/issues/22494) ValueSources become part of the fingerprint even if they are only obtained
         //  inside other value sources. This is not really necessary for the correctness and causes excessive cache invalidation.
         when (val parameters = obtainedValue.valueSourceParameters) {
@@ -443,7 +349,7 @@ class ConfigurationCacheFingerprintWriter(
 
             is SystemPropertiesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addSystemPropertiesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
+                addSystemPropertiesPrefixedByToFingerprint(prefix, obtainedValue.value.get().uncheckedCast())
                 reportUniqueSystemPropertiesPrefixedByInput(prefix)
             }
 
@@ -453,7 +359,7 @@ class ConfigurationCacheFingerprintWriter(
 
             is EnvironmentVariablesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addEnvVariablesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
+                addEnvVariablesPrefixedByToFingerprint(prefix, obtainedValue.value.get().uncheckedCast())
                 reportUniqueEnvironmentVariablesPrefixedByInput(prefix)
             }
 
@@ -463,30 +369,16 @@ class ConfigurationCacheFingerprintWriter(
             }
 
             else -> {
-                // Custom ValueSource implementations may fail to serialize here.
-                // Writing with explicit trace helps to avoid attributing these failures to "Gradle runtime".
-                // TODO(mlopatkin): can we do even better and pinpoint the exact stacktrace in case of failure?
-                val trace = locationFor(null)
-                sink().write(ValueSource(obtainedValue.uncheckedCast()), trace)
+                sink().write(ValueSource(obtainedValue.uncheckedCast()))
                 reportUniqueValueSourceInput(
-                    trace,
-                    displayName = source.displayNameIfAvailable,
+                    displayName = when (source) {
+                        is Describable -> source.displayName
+                        else -> null
+                    },
                     typeName = obtainedValue.valueSourceType.simpleName
                 )
             }
         }
-    }
-
-    private
-    val org.gradle.api.provider.ValueSource<*, *>.displayNameIfAvailable: String?
-        get() = when (this) {
-            is Describable -> displayName
-            else -> null
-        }
-
-    private
-    fun isSystemPropertyLoaded(key: String): Boolean {
-        return environmentChangeTracker.isSystemPropertyLoaded(key)
     }
 
     private
@@ -543,9 +435,9 @@ class ConfigurationCacheFingerprintWriter(
         return simplifyingVisitor.simplify()
     }
 
-    fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T {
+    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
         val previous = projectForThread.get()
-        val projectSink = sinksForProject.computeIfAbsent(project.buildTreePath) { ProjectScopedSink(host, project, projectScopedWriter) }
+        val projectSink = sinksForProject.computeIfAbsent(identityPath) { ProjectScopedSink(host, identityPath, projectScopedWriter) }
         projectForThread.set(projectSink)
         try {
             return action()
@@ -554,9 +446,12 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
-        if (consumingProjectPath != null) {
-            onProjectDependency(consumingProjectPath, targetProjectPath)
+    override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
+        if (host.cacheIntermediateModels && consumingProject != null) {
+            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath)
+            if (projectDependencies.add(dependency)) {
+                projectScopedWriter.write(dependency)
+            }
         }
     }
 
@@ -566,22 +461,6 @@ class ConfigurationCacheFingerprintWriter(
 
         if (host.cacheIntermediateModels) {
             val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.identityPath, target.identityPath)
-            if (projectDependencies.add(dependency)) {
-                projectScopedWriter.write(dependency)
-            }
-        }
-    }
-
-    override fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
-        if (host.modelAsProjectDependency) {
-            onProjectDependency(consumer.identityPath, target.identityPath)
-        }
-    }
-
-    private
-    fun onProjectDependency(consumerPath: Path, targetPath: Path) {
-        if (host.cacheIntermediateModels) {
-            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumerPath, targetPath)
             if (projectDependencies.add(dependency)) {
                 projectScopedWriter.write(dependency)
             }
@@ -631,16 +510,16 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportUniqueValueSourceInput(trace: PropertyTrace, displayName: String?, typeName: String) {
+    fun reportUniqueValueSourceInput(displayName: String?, typeName: String) {
         // We assume different types won't ever produce identical display names
         if (reportedValueSources.add(displayName ?: typeName)) {
-            reportValueSourceInput(trace, displayName, typeName)
+            reportValueSourceInput(displayName, typeName)
         }
     }
 
     private
-    fun reportValueSourceInput(trace: PropertyTrace, displayName: String?, typeName: String) {
-        reportInput(trace, documentationSection = null) {
+    fun reportValueSourceInput(displayName: String?, typeName: String) {
+        reportInput(consumer = null, documentationSection = null) {
             text("value from custom source ")
             reference(typeName)
             displayName?.let {
@@ -658,39 +537,9 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportUniqueDirectoryChildrenInput(directory: File, consumer: String?) {
-        if (reportedDirectories.add(directory)) {
-            reportDirectoryContentInput(directory, consumer)
-        }
-    }
-
-    private
-    fun reportUniqueFileSystemEntryInput(file: File, consumer: String?) {
-        if (reportedFileSystemEntries.add(file)) {
-            reportFileSystemEntryInput(file, consumer)
-        }
-    }
-
-    private
     fun reportFileInput(file: File, consumer: String?) {
         reportInput(consumer, null) {
             text("file ")
-            reference(host.displayNameOf(file))
-        }
-    }
-
-    private
-    fun reportDirectoryContentInput(directory: File, consumer: String?) {
-        reportInput(consumer, null) {
-            text("directory content ")
-            reference(host.displayNameOf(directory))
-        }
-    }
-
-    private
-    fun reportFileSystemEntryInput(file: File, consumer: String?) {
-        reportInput(consumer, null) {
-            text("file system entry ")
             reference(host.displayNameOf(file))
         }
     }
@@ -777,19 +626,11 @@ class ConfigurationCacheFingerprintWriter(
         documentationSection: DocumentationSection?,
         messageBuilder: StructuredMessage.Builder.() -> Unit
     ) {
-        reportInput(locationFor(consumer), documentationSection, messageBuilder)
-    }
-
-    private
-    fun reportInput(
-        trace: PropertyTrace,
-        documentationSection: DocumentationSection?,
-        messageBuilder: StructuredMessage.Builder.() -> Unit
-    ) {
         host.reportInput(
             PropertyProblem(
-                trace,
+                locationFor(consumer),
                 StructuredMessage.build(messageBuilder),
+                null,
                 documentationSection = documentationSection
             )
         )
@@ -803,8 +644,6 @@ class ConfigurationCacheFingerprintWriter(
         private val host: Host
     ) {
         val capturedFiles: MutableSet<File> = newConcurrentHashSet()
-        val capturedDirectories: MutableSet<File> = newConcurrentHashSet()
-        val capturedFileSystemEntries: MutableSet<File> = newConcurrentHashSet()
 
         private
         val undeclaredSystemProperties = newConcurrentHashSet<String>()
@@ -813,7 +652,7 @@ class ConfigurationCacheFingerprintWriter(
         val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
 
         private
-        val remoteScriptsUris = newConcurrentHashSet<URI>()
+        val cachedExternalResources = newConcurrentHashSet<URI>()
 
         fun captureFile(file: File) {
             if (!capturedFiles.add(file)) {
@@ -822,24 +661,10 @@ class ConfigurationCacheFingerprintWriter(
             write(inputFile(file))
         }
 
-        fun captureDirectoryChildren(file: File) {
-            if (!capturedDirectories.add(file)) {
-                return
+        fun externalResourceObserved(resourceName: ExternalResourceName, metaData: ExternalResourceMetaData) {
+            if (cachedExternalResources.add(resourceName.uri)) {
+                write(ConfigurationCacheFingerprint.ExternalResource(resourceName.uri, metaData))
             }
-            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryChildrenNames(file)))
-        }
-
-        fun captureRemoteScript(uri: URI) {
-            if (remoteScriptsUris.add(uri)) {
-                write(ConfigurationCacheFingerprint.RemoteScript(uri))
-            }
-        }
-
-        fun captureFileSystemEntry(file: File) {
-            if (!capturedFileSystemEntries.add(file)) {
-                return
-            }
-            write(inputFileSystemEntry(file))
         }
 
         fun systemPropertyRead(key: String, value: Any?) {
@@ -854,16 +679,13 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
 
-        abstract fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace? = null)
+        abstract fun write(value: ConfigurationCacheFingerprint)
 
         fun inputFile(file: File) =
             InputFile(
                 file,
                 host.hashCodeOf(file)
             )
-
-        fun inputFileSystemEntry(file: File) =
-            InputFileSystemEntry(file, fileSystemEntryType(file))
     }
 
     private
@@ -871,8 +693,8 @@ class ConfigurationCacheFingerprintWriter(
         host: Host,
         private val writer: ScopedFingerprintWriter<ConfigurationCacheFingerprint>
     ) : Sink(host) {
-        override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {
-            writer.write(value, trace)
+        override fun write(value: ConfigurationCacheFingerprint) {
+            writer.write(value)
         }
 
         fun initScripts(initScripts: List<File>) {
@@ -888,31 +710,20 @@ class ConfigurationCacheFingerprintWriter(
     private
     class ProjectScopedSink(
         host: Host,
-        project: ProjectIdentity,
+        private val project: Path,
         private val writer: ScopedFingerprintWriter<ProjectSpecificFingerprint>
     ) : Sink(host) {
-        private
-        val projectIdentityPath = project.buildTreePath
-
-        init {
-            writer.write(ProjectSpecificFingerprint.ProjectIdentity(project.buildTreePath, Path.path(project.buildIdentifier.buildPath), project.projectPath))
+        override fun write(value: ConfigurationCacheFingerprint) {
+            writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
         }
-
-        override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {
-            writer.write(ProjectSpecificFingerprint.ProjectFingerprint(projectIdentityPath, value), trace)
-        }
-    }
-
-    override fun onScriptFileResolved(scriptFile: File) {
-        fileObserved(scriptFile)
     }
 }
 
 
 internal
-fun jvmFingerprint() =
-    listOf(
-        System.getProperty("java.vm.name"),
-        System.getProperty("java.vm.vendor"),
-        System.getProperty("java.vm.version")
-    ).joinToString(separator = "|")
+fun jvmFingerprint() = String.format(
+    "%s|%s|%s",
+    System.getProperty("java.vm.name"),
+    System.getProperty("java.vm.vendor"),
+    System.getProperty("java.vm.version")
+)
