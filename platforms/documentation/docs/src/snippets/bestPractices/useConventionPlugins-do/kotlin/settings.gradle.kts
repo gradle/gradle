@@ -4,6 +4,12 @@ pluginManagement {
 }
 // end::do-this[]
 
-include(":project-a", ":project-b")
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
 
 rootProject.name = "useConventionPlugins-do"
+
+include(":project-a", ":project-b")

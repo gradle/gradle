@@ -4,10 +4,6 @@ plugins {
 }
 
 // Duplicated configuration across multiple build files
-repositories {
-    mavenCentral()
-}
-
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17

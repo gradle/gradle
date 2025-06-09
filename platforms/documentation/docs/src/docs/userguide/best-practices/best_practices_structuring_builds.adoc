@@ -597,7 +597,7 @@ You can also now invoke tasks on the `my-web-module` project using the shorter n
 [[use_convention_plugins]]
 == Use Convention Plugins for Common Build Logic
 
-Use convention plugins to encapsulate and reuse shared build logic across multiple projects in your build.
+Use <<implementing_gradle_plugins_precompiled.adoc#implemention_precompiled_plugins,convention plugins>> to encapsulate and reuse shared build logic across multiple projects in your build.
 
 === Explanation
 
@@ -611,7 +611,7 @@ This approach offers several benefits:
 * **Improves IDE support**: IDEs can better understand and validate build logic when it is structured in plugins.
 
 Convention plugins are quicker to create than <<implementing_gradle_plugins_binary.adoc#implemention_binary_plugins,typed binary plugins>> extending the `Plugin` class.
-They are often a better choice for build logic that does not need to be shared outside of a build, and that is simple enough to not require additional type safeness and testability benefits.
+They are often a better choice for build logic that does not need to be shared outside a build, and that is simple enough to not require additional type safeness and testability benefits.
 
 While setting up convention plugins takes some initial effort, it pays off by simplifying maintenance, improving comprehensibility, and making it easier to add new projects as your codebase grows.
 
@@ -651,10 +651,12 @@ include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",file
 <4> Declare common settings for the test task in the convention plugin.
 <5> Declare common dependencies in the convention plugin.
 <6> Apply the convention plugin in Gradle projects.
-<7> Keep unique project dependencies in the related project build scripts.
+<7> Add additional unique project dependencies to only the projects that use them.
 
 === References
 <<custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>>
+<<implementing_gradle_plugins_precompiled.adoc#implemention_precompiled_plugins,Implementing Pre-compiled Script Plugins>>
+<<plugins.adoc#sec:types_of_plugins,Types of Plugins>>
 
 === Tags
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`

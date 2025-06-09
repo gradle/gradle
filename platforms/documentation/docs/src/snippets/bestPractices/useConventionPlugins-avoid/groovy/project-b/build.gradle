@@ -3,10 +3,6 @@ plugins {
     id("java-library")
 }
 
-repositories {
-    mavenCentral()
-}
-
 // Duplicated configuration across multiple build files
 java {
     sourceCompatibility = JavaVersion.VERSION_17
