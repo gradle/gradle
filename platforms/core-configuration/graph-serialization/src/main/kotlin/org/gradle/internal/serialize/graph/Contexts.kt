@@ -133,10 +133,6 @@ class DefaultWriteContext(
 }
 
 
-@JvmInline
-value class ClassLoaderRole(val local: Boolean)
-
-
 interface ClassEncoder {
     fun WriteContext.encodeClass(type: Class<*>)
 

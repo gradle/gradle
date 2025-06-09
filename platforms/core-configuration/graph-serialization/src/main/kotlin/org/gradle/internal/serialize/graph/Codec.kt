@@ -324,7 +324,7 @@ inline fun <T : Any> ReadContext.decodePreservingSharedIdentity(decode: ReadCont
     }
 
 
-inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, decode: ReadContext.(Int) -> T): T {
+inline fun <T, C : Decoder> C.decodePreservingIdentity(identities: ReadIdentities, decode: C.(Int) -> T): T {
     val id = readSmallInt()
     val previousValue = identities.getInstance(id)
     return when {
