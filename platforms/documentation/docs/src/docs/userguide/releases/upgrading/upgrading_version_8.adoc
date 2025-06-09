@@ -225,6 +225,11 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 - `org.gradle.api.file.FileCopyDetails.setMode(int)`
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 =======
 <<<<<<< HEAD
 =======
@@ -250,7 +255,11 @@ groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
 ----
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> 8dd23c023e2 (Fix typos)
+>>>>>>> Stashed changes
 =======
 >>>>>>> 8dd23c023e2 (Fix typos)
 >>>>>>> Stashed changes
@@ -339,6 +348,11 @@ The `outputFile` property in the `WriteProperties` task has been removed in Grad
 This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 =======
 <<<<<<< HEAD
 =======
@@ -348,15 +362,21 @@ This property was deprecated in Gradle 8.0 and was replaced with the `destinatio
 The following helper methods for launching external processes were <<#deprecated_project_exec,deprecated in Gradle 8.11>> and have now been removed in Gradle 9.0:
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 * `org.gradle.apiProject#exec(Closure)`
 * `org.gradle.apiProject#exec(Action)`
 * `org.gradle.apiProject#javaexec(Closure)`
 * `org.gradle.apiProject#javaexec(Action)`
 =======
+=======
+>>>>>>> Stashed changes
 * `org.gradle.api.Project#exec(Closure)`
 * `org.gradle.api.Project#exec(Action)`
 * `org.gradle.api.Project#javaexec(Closure)`
 * `org.gradle.api.Project#javaexec(Action)`
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 * `org.gradle.api.Script#exec(Closure)`
 * `org.gradle.api.Script#exec(Action)`
@@ -369,6 +389,10 @@ The following helper methods for launching external processes were <<#deprecated
 * `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
 * `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> 8dd23c023e2 (Fix typos)
+>>>>>>> Stashed changes
 =======
 >>>>>>> 8dd23c023e2 (Fix typos)
 >>>>>>> Stashed changes
