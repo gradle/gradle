@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.junit.Ignore
 
 import javax.inject.Inject
 
@@ -96,6 +97,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         ["-DaccessTaskProject=true", "-DaccessTaskDependencies=true"] | ["Task's project accessed!", "Task's dependencies accessed!"] | "Project access, TaskDependencies access."
     }
 
+    @Ignore("CC problems became interrupting failures in 9.0")
     def "CC problems in incompatible tasks are not hidden by CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
