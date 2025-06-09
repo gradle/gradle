@@ -592,3 +592,69 @@ You can also now invoke tasks on the `my-web-module` project using the shorter n
 
 === Tags
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+
+[[use_convention_plugins]]
+== Use Convention Plugins for Common Build Logic
+
+Use convention plugins to encapsulate and reuse shared build logic across multiple projects in your build.
+
+=== Explanation
+
+Instead of duplicating configuration across multiple buildscripts, you can easily move common logic into a reusable convention plugin.
+
+This approach offers several benefits:
+
+* **Reduces duplication**: Shared build logic lives in one place, making your build easier to understand.
+* **Centralizes configuration**: Updates to build behavior can be made in one file instead of many.
+* **Keeps build files clean**: Project build files stay focused on project-specific configuration.
+* **Improves IDE support**: IDEs can better understand and validate build logic when it is structured in plugins.
+
+Convention plugins are quicker to create than <<implementing_gradle_plugins_binary.adoc#implemention_binary_plugins,typed binary plugins>> extending the `Plugin` class.
+They are often a better choice for build logic that does not need to be shared outside of a build, and that is simple enough to not require additional type safeness and testability benefits.
+
+While setting up convention plugins takes some initial effort, it pays off by simplifying maintenance, improving comprehensibility, and making it easier to add new projects as your codebase grows.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/useConventionPlugins-avoid/kotlin",files="project-a/build.gradle.kts[tags=avoid-this];project-b/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useConventionPlugins-avoid/groovy",files="project-a/build.gradle[tags=avoid-this];project-b/build.gradle[tags=avoid-this]"]
+====
+
+<1> Common compiler settings repeated across multiple projects.
+<2> Shared test configuration that must be maintained in multiple places.
+<3> Common dependencies that could be managed centrally.
+<4> Unique project dependencies.
+
+==== Do This Instead
+
+Create a convention plugin in `build-logic`:
+
+====
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/kotlin",files="settings.gradle.kts[tags=do-this];build-logic/build.gradle.kts;build-logic/src/main/kotlin/my.java-common-conventions.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",files="settings.gradle[tags=do-this];build-logic/build.gradle;build-logic/src/main/groovy/my.java-common-conventions.gradle[tags=do-this]"]
+====
+
+And apply the plugin in any build file where you want to use the shared logic:
+
+====
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/kotlin",files="project-a/build.gradle.kts[tags=do-this];project-b/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",files="project-a/build.gradle[tags=do-this];project-b/build.gradle[tags=do-this]"]
+====
+
+<1> Include `build-logic` as an included build with convention plugins.
+<2> Enable the Gradle DSL in `build-logic`.
+<3> Declare common compiler settings in the convention plugin.
+<4> Declare common settings for the test task in the convention plugin.
+<5> Declare common dependencies in the convention plugin.
+<6> Apply the convention plugin in Gradle projects.
+<7> Keep unique project dependencies in the related project build scripts.
+
+=== References
+<<custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>>
+
+=== Tags
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`

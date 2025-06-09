@@ -1,0 +1,7 @@
+> Task :build-logic:jar
+:project-a:conventionPluginApplied SKIPPED
+:project-a:compileJava SKIPPED
+:project-b:conventionPluginApplied SKIPPED
+:project-b:compileJava SKIPPED
+
+BUILD SUCCESSFUL in 0s

@@ -1,0 +1,31 @@
+// tag::do-this[]
+plugins {
+    id("java-library")
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.compilerArgs += ["-Xlint:unchecked", "-Xlint:deprecation"] // <3>
+}
+
+test {
+    useJUnitPlatform()
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1 // <4>
+}
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3") // <5>
+}
+// end::do-this[]
+
+def conventionPluginApplied = tasks.register("conventionPluginApplied")
+tasks.compileJava.configure { dependsOn(conventionPluginApplied) }
