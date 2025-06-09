@@ -17,8 +17,10 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
@@ -35,6 +37,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
+
+import javax.inject.Inject;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
@@ -84,7 +88,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(false);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(true);
+
+        getDirPermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE));
+        getFilePermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE));
     }
+
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
         if (GUtil.isTrue(value)) {
@@ -297,6 +307,19 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
         archiveReproducibleFileOrder.set(reproducibleFileOrder);
+    }
+
+    /**
+     * Sets the file and directory permissions for archived files to be read from the file system.
+     *
+     * Note: On Windows, file system permissions are not support and permissions will be set to `0755` for directories and `0644` for files.
+     *
+     * @since 9.0.0
+     */
+    @Incubating
+    public void useFileSystemPermissions() {
+        getFilePermissions().set(getProject().getProviders().provider(() -> null));
+        getDirPermissions().set(getProject().getProviders().provider(() -> null));
     }
 
     @Override
