@@ -25,7 +25,7 @@ import org.jspecify.annotations.NullMarked;
 /**
  * Plugin that adds tasks to report on the deprecated software model components configured for the project.
  *
- * @since 9.0
+ * @since 9.0.0
  */
 @NullMarked
 abstract public class ComponentReportingTasksPlugin implements Plugin<Project> {
