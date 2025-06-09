@@ -269,7 +269,28 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCacheFails ":foo"
 
         then:
-        failureCauseContains("Expected state of CC degradation to be in state CollectingDegradationRequests but is in state DegradationDecisionMade.")
+        failureCauseContains("Configuration cache degradation requests are accepted only at configuration time")
+    }
+
+    def "tasks instantiated during execution have degradation requests ignored"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+            tasks.register("a", DegradingTask) { task ->
+                println("Should be configured")
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Project access" })
+            }
+        """
+
+        when:
+        configurationCacheRun ":tasks"
+
+        then:
+        configurationCache.assertStateStored()
+
+        and:
+        outputContains("Should be configured")
+        result.assertTaskNotExecuted(":a")
     }
 
     private static String taskWithInjectedDegradationController() {

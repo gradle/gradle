@@ -16,59 +16,48 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.TaskNode
-import org.gradle.internal.Describables
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
-import org.gradle.internal.model.StateTransitionController
-import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
-import java.util.function.Supplier
+import java.util.concurrent.ConcurrentHashMap
 
 @ServiceScope(BuildTree::class)
 internal class DefaultConfigurationCacheDegradationController(
     private val deferredRootBuildGradle: DeferredRootBuildGradle,
-    stateTransitionControllerFactory: StateTransitionControllerFactory
+    private val configurationTimeBarrier: ConfigurationTimeBarrier,
 ) : ConfigurationCacheDegradationController {
 
-    private val stateTransitionController = stateTransitionControllerFactory.newController(
-        Describables.of("state of CC degradation"),
-        State.CollectingDegradationRequests
-    )
-
-    private enum class State : StateTransitionController.State {
-        CollectingDegradationRequests,
-        DegradationDecisionMade
-    }
-
-    private val tasksDegradationRequests = HashMap<Task, List<Provider<String>>>()
+    private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
     val degradationReasons by lazy(::collectDegradationReasons)
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
-        stateTransitionController.inState(State.CollectingDegradationRequests) {
-            tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
+        if (!configurationTimeBarrier.isAtConfigurationTime) {
+            throw GradleException("Configuration cache degradation requests are accepted only at configuration time")
         }
+        tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
     }
 
-    private fun collectDegradationReasons(): Map<Task, List<String>> =
-        stateTransitionController.transition(State.CollectingDegradationRequests, State.DegradationDecisionMade, Supplier {
-            val result = mutableMapOf<Task, List<String>>()
-            if (tasksDegradationRequests.isNotEmpty()) {
-                deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
-                    scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
-                        val taskDegradationReasons = tasksDegradationRequests[task]
-                            ?.mapNotNull { it.orNull }
-                            ?.sorted()
+    private fun collectDegradationReasons(): Map<Task, List<String>> {
+        val result = mutableMapOf<Task, List<String>>()
+        if (tasksDegradationRequests.isNotEmpty()) {
+            deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
+                scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
+                    val taskDegradationReasons = tasksDegradationRequests[task]
+                        ?.mapNotNull { it.orNull }
+                        ?.sorted()
 
-                        if (!taskDegradationReasons.isNullOrEmpty()) {
-                            result[task] = taskDegradationReasons
-                        }
+                    if (!taskDegradationReasons.isNullOrEmpty()) {
+                        result[task] = taskDegradationReasons
                     }
                 }
             }
-            result
-        })
+        }
+        return result
+    }
 }
