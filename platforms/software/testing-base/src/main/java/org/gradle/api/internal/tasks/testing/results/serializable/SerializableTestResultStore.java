@@ -20,7 +20,6 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.input.NullReader;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -28,6 +27,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -156,7 +156,7 @@ public final class SerializableTestResultStore {
             try {
                 SerializableTestResult.Serializer.serialize(testNodeBuilder.build(), resultsEncoder);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
             if (testDescriptor.getParent() != null) {
                 resultsEncoder.writeSmallLong(assignedIds.get(testDescriptor.getParent().getId()));
@@ -230,7 +230,7 @@ public final class SerializableTestResultStore {
             try (KryoBackedDecoder decoder = openAndInitializeDecoder()) {
                 return decoder.readSmallLong() != 0;
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         } else {
             return false;

@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
 
@@ -38,20 +38,18 @@ class CrossVersionTestInterceptor extends AbstractCompatibilityTestInterceptor {
         super(target)
     }
 
-    /**
-     * Cross version tests will run against any _supported_ Gradle version: currently >= 1.0
-     */
-    protected List<GradleDistribution> choosePreviousVersionsToTest(ReleasedVersionDistributions previousVersions) {
-        return previousVersions.getSupported()
-    }
-
     @Override
-    protected Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
+    protected Collection<Execution> createExecutionsFor(GradleDistributionTool versionedTool) {
         GradleDistribution distribution = versionedTool.getDistribution()
         return [new PreviousVersionExecution(distribution, isEnabled(distribution))]
     }
 
     protected boolean isEnabled(GradleDistribution previousVersion) {
+        int jvmVersion = Jvm.current().javaVersionMajor
+        if (!previousVersion.daemonWorksWith(jvmVersion) || !previousVersion.clientWorksWith(jvmVersion)) {
+            return false
+        }
+
         Closure ignoreVersions = getAnnotationClosure(target, IgnoreVersions, {})
         if (ignoreVersions(previousVersion)) {
             return false

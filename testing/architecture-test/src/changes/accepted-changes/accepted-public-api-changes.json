@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
     "acceptedApiChanges": [
         {
             "type": "org.gradle.StartParameter",
@@ -4858,3 +4859,7 @@
         }
     ]
 }
+=======
+    "acceptedApiChanges": []
+}
+>>>>>>> master

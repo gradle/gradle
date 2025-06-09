@@ -36,6 +36,8 @@ import gradlebuild.basics.testJavaVersion
 import gradlebuild.basics.testing.excludeSpockAnnotation
 import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
+import gradlebuild.identity.extension.GradleModuleExtension
+import gradlebuild.identity.extension.ModuleTargetRuntimes
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.jvm.JpmsConfiguration
@@ -53,33 +55,27 @@ plugins {
     id("gradlebuild.dependency-modules")
 }
 
+val gradleModule = the<GradleModuleExtension>()
+
 // Create an extension that allows projects to configure the way they are compiled and tested.
 //
-// Particularly, we let them describe the "platform" they are targeting, like a Gradle worker, daemon, etc.
-//
-// Furthermore, we let them describe whether they are using any "workarounds" like:
+// Projects may describe whether they are using any "workarounds" like:
 // - Using JDK internal classes
 // - Using Java standard library APIs that were introduced after the JVM version they are targeting
 // - Using dependencies that target a higher JVM version than the project's target JVM version
 //
 // All of these workarounds should be generally avoided, but, with this data we can configure the
 // compile tasks to permit some of these requirements.
-val gradleModule = extensions.create<UnitTestAndCompileExtension>("gradleModule").apply {
-    // By default, assume a library targets only the daemon
-    // TODO: Eventually, all projects should explicitly declare their target platform(s)
-    usedForStartup = false
-    usedInWrapper = false
-    usedInWorkers = false
-    usedInClient = false
-    usedInDaemon = true
-
+val jvmCompile = extensions.create<UnitTestAndCompileExtension>(UnitTestAndCompileExtension.NAME).apply {
     // And assume it does not use any workarounds
     usesJdkInternals = false
     usesFutureStdlib = false
-    usesIncompatibleDependencies = false
+
+    // By default, use the target runtimes of the module to determine the java version
+    targetJvmVersion = gradleModule.targetRuntimes.computeProductionJvmTargetVersion()
 }
 
-enforceCompatibility(gradleModule)
+enforceCompatibility(jvmCompile)
 
 removeTeamcityTempProperty()
 addDependencies()
@@ -116,37 +112,24 @@ fun configureCompileDefaults() {
  * for Groovy to ensure it compiles against the correct classes.
  */
 private
-fun enforceCompatibility(gradleModule: UnitTestAndCompileExtension) {
+fun enforceCompatibility(jvmCompile: UnitTestAndCompileExtension) {
     // When using the release flag, compiled code cannot access JDK internal classes or standard library
     // APIs defined in future versions of Java. If either of these cases are true, we do not use the
     // release flag, but instead set the source and target compatibility flags.
-    val useRelease = gradleModule.usesJdkInternals.zip(gradleModule.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
+    val useRelease = jvmCompile.usesJdkInternals.zip(jvmCompile.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
 
-    val productionJvmVersion = gradleModule.computeProductionJvmTargetVersion()
-
-    enforceJavaCompatibility(productionJvmVersion, useRelease)
-    enforceGroovyCompatibility(productionJvmVersion)
-    enforceKotlinCompatibility(productionJvmVersion, useRelease)
-
-    project.afterEvaluate {
-        if (gradleModule.usesIncompatibleDependencies.get()) {
-            // Some projects use dependencies that target higher JVM versions
-            // than the projects target. Disable dependency management checks
-            // that verify these dependencies have compatible java versions.
-            java.disableAutoTargetJvm()
-        }
-    }
+    enforceJavaCompatibility(jvmCompile.targetJvmVersion, useRelease)
+    enforceGroovyCompatibility(jvmCompile.targetJvmVersion)
+    enforceKotlinCompatibility(jvmCompile.targetJvmVersion, useRelease)
 }
 
 /**
  * Given the declared target platforms of a given Gradle module, determine
  * the JVM version that the production code should target.
  */
-fun UnitTestAndCompileExtension.computeProductionJvmTargetVersion(): Provider<Int> {
+fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
     // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
     val targetRuntimeJavaVersions = mapOf(
-        usedForStartup to 6,
-        usedInWrapper to 6, // TODO: Should be 8
         usedInWorkers to 8,
         usedInClient to 8,
         usedInDaemon to 8
@@ -158,26 +141,10 @@ fun UnitTestAndCompileExtension.computeProductionJvmTargetVersion(): Provider<In
 }
 
 fun enforceJavaCompatibility(targetVersion: Provider<Int>, useRelease: Provider<Boolean>) {
-    // The build JDK (17) is able to target JVM >= 8
-    val defaultCompiler = javaToolchains.compilerFor(java.toolchain)
-
-    // To compile Java 6 and 7 sources, we need an older compiler.
-    // We choose 11 since it supports both of these versions.
-    val legacyCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
-
     tasks.withType<JavaCompile>().configureEach {
         // Set the release flag is requested.
         // Otherwise, we set the source and target compatibility in the afterEvaluate below.
         options.release = useRelease.zip(targetVersion) { doUseRelease, target -> if (doUseRelease) { target } else { null } }
-
-        javaCompiler = targetVersion.flatMap { version ->
-            when {
-                version >= 8 -> defaultCompiler
-                else -> legacyCompiler
-            }
-        }
     }
 
     // Need to use afterEvaluate since source/target compatibility are not lazy
@@ -198,14 +165,7 @@ fun enforceGroovyCompatibility(targetVersion: Provider<Int>) {
         // JDK we are targeting in order to see the correct standard lib classes
         // during compilation
         javaLauncher = javaToolchains.launcherFor {
-            languageVersion = targetVersion.map {
-                // Use the target version's toolchain if it is 8 or higher.
-                // We do not expect dev machines to have Java 6 or 7 installed,
-                // so when compiling this code, we accept the risk of seeing
-                // higher standard library classes.
-                JavaLanguageVersion.of(maxOf(it, 8))
-            }
-            // TODO: Use a stable vendor. CI currently specifies different vendors for Java 8 depending on the OS
+            languageVersion = targetVersion.map { JavaLanguageVersion.of(it) }
         }
     }
 

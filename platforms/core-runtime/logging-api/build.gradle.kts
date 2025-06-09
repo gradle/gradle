@@ -21,7 +21,9 @@ plugins {
 description = "Logging API"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

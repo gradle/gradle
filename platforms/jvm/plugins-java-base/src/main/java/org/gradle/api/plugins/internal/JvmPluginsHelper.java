@@ -61,18 +61,6 @@ import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 public class JvmPluginsHelper {
 
     /**
-     * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
-     */
-    @Deprecated
-    public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
-        compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
-        compile.setSource(sourceSet.getJava());
-
-        compileAgainstJavaOutputs(compile, sourceSet, target.getObjects());
-        configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
-    }
-
-    /**
      * Configures {@code compileTask} to compile against {@code sourceSet}'s compile classpath
      * in addition to the outputs of the java compilation, as specified by {@link SourceSet#getJava()}
      *
@@ -91,15 +79,6 @@ public class JvmPluginsHelper {
         conventionMapping.map("annotationProcessorPath", sourceSet::getAnnotationProcessorPath);
         String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
-    }
-
-    /**
-     * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
-     */
-    @Deprecated
-    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
-        TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options);
     }
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
@@ -137,36 +116,52 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
+<<<<<<< HEAD
         Configuration variant = project.getConfigurations().consumableLocked(variantName);
         variant.setVisible(false);
         variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
+=======
+        TaskProvider<Jar> jar = maybeRegisterDocumentationJarTask(featureName, docsType, jarTaskName, artifactSource, project.getTasks());
+        return project.getConfigurations().consumableLocked(variantName, variant -> {
+            variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
+>>>>>>> master
 
-        ObjectFactory objectFactory = project.getObjects();
-        AttributeContainer attributes = variant.getAttributes();
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
-        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
-        capabilities.forEach(variant.getOutgoing()::capability);
+            ObjectFactory objectFactory = project.getObjects();
+            AttributeContainer attributes = variant.getAttributes();
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
+            capabilities.forEach(variant.getOutgoing()::capability);
 
-        TaskContainer tasks = project.getTasks();
+            variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));
+        });
+    }
 
-        if (!tasks.getNames().contains(jarTaskName)) {
-            TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
-                jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
-                jar.setGroup(BasePlugin.BUILD_GROUP);
-                jar.from(artifactSource);
-                jar.getArchiveClassifier().set(camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
-            });
-            if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
-                tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
-            }
+    private static TaskProvider<Jar> maybeRegisterDocumentationJarTask(
+        @Nullable String featureName,
+        String docsType,
+        String jarTaskName,
+        Object artifactSource,
+        TaskContainer tasks
+    ) {
+        // TODO: Emit deprecation if this task already exists.
+        if (tasks.getNames().contains(jarTaskName)) {
+            return tasks.named(jarTaskName, Jar.class);
         }
 
-        TaskProvider<Jar> jar = tasks.named(jarTaskName, Jar.class);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));
+        TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
+            jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
+            jar.setGroup(BasePlugin.BUILD_GROUP);
+            jar.from(artifactSource);
+            jar.getArchiveClassifier().set(camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
+        });
 
-        return variant;
+        if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
+            tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
+        }
+
+        return jarTask;
     }
 
     /**

@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal.btree;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -56,7 +56,7 @@ public class FileBackedBlockStore implements BlockStore {
                 runnable.run();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -77,7 +77,7 @@ public class FileBackedBlockStore implements BlockStore {
         try {
             file.close();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -87,7 +87,7 @@ public class FileBackedBlockStore implements BlockStore {
             file.setLength(0);
             currentFileSize = 0;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         nextBlock = 0;
     }
@@ -125,7 +125,7 @@ public class FileBackedBlockStore implements BlockStore {
         } catch (CorruptedCacheException e) {
             throw e;
         } catch (Exception e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -137,7 +137,7 @@ public class FileBackedBlockStore implements BlockStore {
         } catch (CorruptedCacheException e) {
             throw e;
         } catch (Exception e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

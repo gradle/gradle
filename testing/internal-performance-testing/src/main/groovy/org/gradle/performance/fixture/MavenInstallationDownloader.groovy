@@ -19,7 +19,7 @@ package org.gradle.performance.fixture
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
-import org.gradle.api.UncheckedIOException
+import org.gradle.internal.UncheckedException
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
@@ -67,7 +67,7 @@ class MavenInstallationDownloader {
                 }
             }
         }
-        throw new UncheckedIOException("Unable to download Maven binary distribution from any of the repositories")
+        throw UncheckedException.throwAsUncheckedException(new IOException("Unable to download Maven binary distribution from any of the repositories"), true);
     }
 
     private static File downloadMavenBinArchive(String mavenVersion, URL binArchiveUrl) {

@@ -304,11 +304,6 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public Path calculateIdentityPathForProject(Path projectPath) {
-            return projectPath;
-        }
-
-        @Override
         public StartParameterInternal getStartParameter() {
             throw new UnsupportedOperationException();
         }
@@ -325,11 +320,6 @@ public class ProjectBuilderImpl {
 
         @Override
         public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
             throw new UnsupportedOperationException();
         }
 

@@ -55,7 +55,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
             builder.plugin(
                 "Apply the foojay-resolver plugin to allow automatic download of JDKs",
                 "org.gradle.toolchains.foojay-resolver-convention",
-                "0.10.0",
+                "1.0.0",
                 null
             );
         }

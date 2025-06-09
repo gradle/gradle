@@ -24,9 +24,8 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "export classpath entry option is reflected in eclipse model"() {
-        createDirs("a")
-        projectDir.file('settings.gradle').text = '''
-include 'a'
+        includeProjects("a")
+        settingsFile << '''
 rootProject.name = 'root'
 '''
 
@@ -71,9 +70,8 @@ configure(project(':a')){
         mavenRepo.module('someGroup', 'someArtifact', '17.0').publish()
         mavenRepo.module('someGroup', 'someArtifact', '16.0.1').publish()
 
-        createDirs("a", "b", "c")
-        projectDir.file('settings.gradle').text = '''
-include 'a', 'b', 'c'
+        includeProjects("a", "b", "c")
+        settingsFile << '''
 rootProject.name = 'root'
 '''
 

@@ -54,9 +54,6 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(libs.commonsLang)
-    integTestImplementation(libs.javaParser) {
-        because("The Groovy docs inspects the dependencies at compile time")
-    }
     integTestImplementation(libs.nativePlatform) {
         because("Required for SystemInfo")
     }

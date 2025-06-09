@@ -1,11 +1,14 @@
 package org.gradle.kotlin.dsl
 
+<<<<<<< HEAD
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
+=======
+>>>>>>> master
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
@@ -13,6 +16,12 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
 import org.junit.Assert.fail
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 
 class ProjectExtensionsTest {

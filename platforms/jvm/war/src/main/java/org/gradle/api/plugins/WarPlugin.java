@@ -50,14 +50,6 @@ public abstract class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
 
-    /**
-     * Task group for web application related tasks.
-     *
-     * @deprecated This constant scheduled for removal in Gradle 9.0
-     */
-    @Deprecated
-    public static final String WEB_APP_GROUP = "web application";
-
     private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
 
@@ -99,12 +91,14 @@ public abstract class WarPlugin implements Plugin<Project> {
 
     @SuppressWarnings("deprecation")
     private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
-        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
-            setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME, conf -> {
+            conf.setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        });
 
-        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
-            extendsFrom(providedCompileConfiguration).
-            setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME, conf -> {
+            conf.extendsFrom(providedCompileConfiguration);
+            conf.setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        });
 
         mainFeature.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
         mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);

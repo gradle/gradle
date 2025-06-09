@@ -79,7 +79,7 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
         file("plugin/src/main/groovy/CustomJavaExec.groovy") << """
             import org.gradle.api.tasks.JavaExec
 
-            class CustomJavaExec extends CustomBaseJavaExec {
+            abstract class CustomJavaExec extends CustomBaseJavaExec {
 
                 @Override
                 JavaExec setArgs(List<String> args) {
@@ -91,7 +91,7 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
         file("plugin/src/main/groovy/CustomBaseJavaExec.groovy") << """
             import org.gradle.api.tasks.JavaExec
 
-            class CustomBaseJavaExec extends JavaExec {
+            abstract class CustomBaseJavaExec extends JavaExec {
                 // no setArgs overridden here
             }
         """

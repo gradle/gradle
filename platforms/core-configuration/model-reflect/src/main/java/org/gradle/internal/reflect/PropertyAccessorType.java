@@ -105,9 +105,22 @@ public enum PropertyAccessorType {
             if (isGetGetterName(methodName)) {
                 return GET_GETTER;
             }
+<<<<<<< HEAD
             // is method that returns Boolean is not a getter according to JavaBeans, but include it for compatibility with Groovy 3
             if (isIsGetterName(methodName) && (method.getReturnType().equals(Boolean.TYPE) || method.getReturnType().equals(Boolean.class))) {
                 return IS_GETTER;
+=======
+            if (isIsGetterName(methodName)) {
+                if (method.getReturnType().equals(Boolean.TYPE)) {
+                    return IS_GETTER;
+                } else if (method.getReturnType().equals(Boolean.class)) {
+                    // TODO: This should be removed in Gradle 10 along with special handling in
+                    // BeanDynamicObject and AbstractClassGenerator
+                    // is method that returns Boolean is not a getter according to JavaBeans,
+                    // but Gradle includes it for compatibility with previously released plugins
+                    return IS_GETTER;
+                }
+>>>>>>> master
             }
         }
         if (takesSingleParameter(method) && isSetterName(methodName)) {

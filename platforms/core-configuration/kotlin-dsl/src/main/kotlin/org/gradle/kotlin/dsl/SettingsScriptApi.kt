@@ -52,11 +52,10 @@ abstract class SettingsScriptApi(
 
     init {
         @Suppress("DEPRECATION")
-        if (!org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript::class.java.isAssignableFrom(this::class.java) &&
-            !org.gradle.kotlin.dsl.KotlinSettingsScript::class.java.isAssignableFrom(this::class.java)) {
+        if (!KotlinSettingsScript::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(SettingsScriptApi::class.java)
-                .willBeRemovedInGradle9()
-                .undocumented()
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }

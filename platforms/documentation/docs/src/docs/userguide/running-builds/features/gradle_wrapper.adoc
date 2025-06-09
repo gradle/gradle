@@ -14,7 +14,7 @@
 
 [[gradle_wrapper_reference]]
 = Gradle Wrapper Reference
-:keywords: wrapper
+:keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url,
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
 
@@ -215,7 +215,7 @@ $ gradlew.bat build
 include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
-If the Gradle distribution is unavailable on the machine, the Wrapper will download it and store it in the local file system.
+If the Gradle distribution was not provisioned to `GRADLE_USER_HOME` before, the Wrapper will download it and store it in `GRADLE_USER_HOME`.
 Any subsequent build invocation will reuse the existing local distribution as long as the distribution URL in the Gradle properties doesn't change.
 
 NOTE: The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.

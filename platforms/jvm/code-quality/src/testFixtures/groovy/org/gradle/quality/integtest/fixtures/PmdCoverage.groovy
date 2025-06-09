@@ -69,7 +69,11 @@ class PmdCoverage {
         }
     }
 
+<<<<<<< HEAD
     private static boolean supportsJdkVersion(VersionNumber pmdVersion, int jvmVersion) {
+=======
+    static boolean supportsJdkVersion(VersionNumber pmdVersion, int jvmVersion) {
+>>>>>>> master
         def supportedSince = VERSION_COVERAGE[jvmVersion]
 
         if (supportedSince == null) {

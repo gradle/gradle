@@ -31,4 +31,5 @@ dependencies {
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.apache.commons:commons-lang3")
 }

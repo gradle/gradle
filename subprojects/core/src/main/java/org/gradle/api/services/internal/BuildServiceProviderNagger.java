@@ -52,7 +52,7 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
         deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
             .withProblemIdDisplayName("Build Service " + provider.getName()+ " undeclared usage")
             .withAdvice("Declare the association between the task by declaring the consuming property as a '@ServiceReference'.")
-            .willBecomeAnErrorInGradle9()
+            .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(7, "undeclared_build_service_usage")
             .nagUser();
     }

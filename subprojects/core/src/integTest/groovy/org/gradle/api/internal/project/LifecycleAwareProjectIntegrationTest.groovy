@@ -17,18 +17,19 @@
 package org.gradle.api.internal.project
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ProjectDirectoryCreator
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @Requires(IntegTestPreconditions.NotIsolatedProjects)
-class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
+class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec implements ProjectDirectoryCreator {
 
     def 'Different equal instances of LifecycleAwareProject bear the same state'() {
         given:
         settingsFile """
             rootProject.name = 'root'
-            include(":a")
         """
+        includeProjects("a")
         buildFile """
             allprojects {
                 ext.foo = "bar"

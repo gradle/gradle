@@ -17,7 +17,7 @@ package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -34,6 +34,7 @@ import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
@@ -41,7 +42,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
@@ -98,7 +98,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             generator.classNameCounter.clear();
             generator.classNameCache.clear();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -115,7 +115,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             generator.classNameCounter.clear();
             generator.classNameCache.clear();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -37,6 +37,6 @@ class HelpTasksPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "tasks"
 
         where:
-        task << ["help", "projects", "tasks", "properties", "dependencyInsight", "dependencies", "components", "model"]
+        task << ["help", "projects", "tasks", "properties", "dependencyInsight", "dependencies"]
     }
 }

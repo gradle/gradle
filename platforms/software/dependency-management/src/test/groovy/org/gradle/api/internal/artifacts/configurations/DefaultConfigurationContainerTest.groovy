@@ -29,19 +29,21 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
+<<<<<<< HEAD
+=======
+import org.gradle.api.specs.Spec
+>>>>>>> master
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ToBeImplemented
@@ -50,32 +52,30 @@ import spock.lang.Specification
 class DefaultConfigurationContainerTest extends Specification {
 
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
+    private ConfigurationResolver.Factory resolverFactory = Mock(ConfigurationResolver.Factory) {
+        create(_, _, _) >> resolver
+    }
+
     private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
     private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
+        decorateSpec(_) >> { Spec spec -> spec }
         decorate(_ as Action) >> { it[0] }
     }
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    private ObjectFactory objectFactory = TestUtil.objectFactory()
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
-    private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
-        getValidator() >> Mock(MutationValidator)
-    }
-    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_, _, _, _) >> metadataBuilder
-    }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
-        instantiator,
-        resolver,
+        objectFactory,
         listenerManager,
         StandaloneDomainObjectContext.ANONYMOUS,
         TestFiles.fileCollectionFactory(),
         buildOperationRunner,
         new PublishArtifactNotationParserFactory(
-                instantiator,
+                objectFactory,
                 metaDataProvider,
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
@@ -92,16 +92,16 @@ class DefaultConfigurationContainerTest extends Specification {
         TestUtil.problemsService(),
         new DocumentationRegistry()
     )
-    private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-        instantiator,
+
+    private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,
+        TestUtil.instantiatorFactory().decorateLenient(),
         callbackActionDecorator,
-        metaDataProvider,
         StandaloneDomainObjectContext.ANONYMOUS,
-        Mock(AttributesSchemaInternal),
-        rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory),
-        TestUtil.problemsService()
+        TestUtil.problemsService(),
+        resolverFactory,
+        AttributeTestUtil.mutableSchema()
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {
@@ -406,15 +406,13 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
 
-    private verifyUsageChangeFailsProperly(Closure step) {
-        boolean thrown = false
+    private static verifyUsageChangeFailsProperly(Closure step) {
         try {
             step.call()
+            assert false : "Expected exception to be thrown"
         } catch (GradleException e) {
             assert e.message.startsWith("Cannot change the allowed usage of configuration")
-            thrown = true
         }
-        assert thrown
     }
 
     def verifyEagerConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -74,7 +74,7 @@ public class FileNotationConverter implements NotationConverter<Object, File> {
             try {
                 notation = ((URL) notation).toURI();
             } catch (URISyntaxException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         if (notation instanceof URI) {

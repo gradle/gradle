@@ -17,6 +17,7 @@ package org.gradle.language.assembler.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -81,14 +82,10 @@ public abstract class Assemble extends DefaultTask {
     }
 
     @Inject
-    public BuildOperationLoggerFactory getOperationLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildOperationLoggerFactory getOperationLoggerFactory();
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 
     @TaskAction
     public void assemble() {
@@ -125,7 +122,7 @@ public abstract class Assemble extends DefaultTask {
     }
 
     /**
-     * Adds a set of assembler sources files to be translated. The provided sourceFiles object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds a set of assembler sources files to be translated. The provided sourceFiles object is evaluated as per {@link Project#files(Object...)}.
      */
     public void source(Object sourceFiles) {
         source.from(sourceFiles);

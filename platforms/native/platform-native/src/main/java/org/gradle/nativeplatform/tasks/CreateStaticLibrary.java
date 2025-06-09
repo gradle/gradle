@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -82,7 +83,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
     }
 
     /**
-     * Adds a set of object files to be linked. <p> The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds a set of object files to be linked. <p> The provided source object is evaluated as per {@link Project#files(Object...)}.
      */
     @Override
     public void source(Object source) {
@@ -90,9 +91,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
     }
 
     @Inject
-    public BuildOperationLoggerFactory getOperationLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildOperationLoggerFactory getOperationLoggerFactory();
 
     // TODO: Need to track version/implementation of ar tool.
 

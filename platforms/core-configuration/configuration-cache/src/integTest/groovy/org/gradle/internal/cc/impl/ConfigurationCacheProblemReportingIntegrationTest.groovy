@@ -297,7 +297,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertTasksExecuted()
 
         and:
-        configurationCache.assertStateStored()
+        // TODO: why are we not discarding the state here, the same way we would have discarded it for the execution-time problems?
+        configurationCache.assertStateStoredAndFailedOnLoad()
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -352,16 +353,17 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         and:
         configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded with 2 problems.")
-        failure.assertHasFailures(1)
+        outputContains("Configuration cache entry discarded with 3 problems.")
+        failure.assertHasFailures(2)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure) {
-            totalProblemsCount = 2
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 3
             withProblem("Task `:problems` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            problemsWithStackTraceCount = 0
+            withProblem("Task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
+            problemsWithStackTraceCount = 1
         }
 
         when:
@@ -372,16 +374,17 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         and:
         configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded with 2 problems.")
+        outputContains("Configuration cache entry discarded with 3 problems.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
-            totalProblemsCount = 2
+            totalProblemsCount = 3
             withProblem("Task `:problems` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            problemsWithStackTraceCount = 0
+            withProblem("Task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
+            problemsWithStackTraceCount = 1
         }
     }
 
@@ -530,7 +533,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             }
             task anotherBroken {
                 doLast {
-                    println("configurations = " + project.configurations.all)
+                    println("configurations = " + project.configurations)
                 }
             }
 
@@ -1134,9 +1137,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 19 problems")
+        outputContains("Configuration cache entry discarded with 16 problems")
         problems.assertFailureHasProblems(failure) {
-            totalProblemsCount = 19
+            totalProblemsCount = 16
             withInput("Script 'script.gradle': system property 'PROP'")
             withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }

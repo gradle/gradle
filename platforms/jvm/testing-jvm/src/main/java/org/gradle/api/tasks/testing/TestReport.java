@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
-import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
@@ -78,8 +77,7 @@ public abstract class TestReport extends DefaultTask {
             @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
             @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
         },
-        binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
     )
     public abstract DirectoryProperty getDestinationDirectory();
 

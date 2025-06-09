@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import gradlebuild.basics.bundleGroovyMajor
+=======
+>>>>>>> master
 import gradlebuild.basics.tasks.PackageListGenerator
 
 plugins {
@@ -46,7 +49,7 @@ dependencies {
     integTestImplementation(projects.buildOption)
     integTestImplementation(projects.jvmServices)
     integTestImplementation(testFixtures(projects.buildConfiguration))
-    integTestImplementation(testFixtures(projects.buildProcessStartup))
+    integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetbrainsAnnotations)
 
@@ -78,6 +81,7 @@ tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
 
+<<<<<<< HEAD
 tasks {
     withType<Test>().configureEach {
         if (project.bundleGroovyMajor == 4) {
@@ -85,6 +89,8 @@ tasks {
         }
     }
 }
+=======
+>>>>>>> master
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

@@ -5,8 +5,14 @@ plugins {
 description = "Utility code shared between the wrapper and the Gradle distribution"
 
 gradleModule {
+<<<<<<< HEAD
     usedInWrapper = true
     usesIncompatibleDependencies = true // For :files, test dependencies
+=======
+    targetRuntimes {
+        usedInClient = true
+    }
+>>>>>>> master
 }
 
 dependencies {

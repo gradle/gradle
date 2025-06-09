@@ -28,7 +28,7 @@ import org.jspecify.annotations.NonNull;
 import java.util.Collection;
 import java.util.List;
 
-import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutions;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 

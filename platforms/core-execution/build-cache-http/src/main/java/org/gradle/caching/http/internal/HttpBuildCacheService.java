@@ -26,7 +26,6 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.protocol.HTTP;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -169,7 +168,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     private boolean throwHttpStatusCodeException(int statusCode, String message) {
         if (FATAL_HTTP_ERROR_CODES.contains(statusCode)) {
-            throw new UncheckedIOException(message);
+            throw UncheckedException.throwAsUncheckedException(new IOException(message), true);
         } else {
             throw new BuildCacheException(message);
         }

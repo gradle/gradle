@@ -1,6 +1,6 @@
 plugins {
     id("gradlebuild.internal.java")
-    id("gradlebuild.performance-test")
+    id("gradlebuild.performance-testing")
     id("gradlebuild.performance-templates")
 }
 
@@ -15,7 +15,7 @@ dependencies {
 
     performanceTestImplementation(testFixtures(projects.toolingApi))
 
-    performanceTestImplementation(libs.commonsLang3)
+    performanceTestImplementation(libs.commonsLang)
     performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(libs.gradleProfiler)
     performanceTestImplementation(libs.jettyServer)

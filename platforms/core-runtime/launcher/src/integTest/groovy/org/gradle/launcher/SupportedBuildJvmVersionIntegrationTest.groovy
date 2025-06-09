@@ -47,7 +47,11 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         fails("help")
+<<<<<<< HEAD
         failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getIncompatibleJvmErrorMessageFor("Gradle CLI Client", jdk.javaVersionMajor))
+=======
+        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.javaVersionMajor))
+>>>>>>> master
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -66,7 +70,11 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
+<<<<<<< HEAD
         failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getIncompatibleJvmErrorMessageFor("Gradle CLI Client", unsupportedJdk.javaVersionMajor))
+=======
+        failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(unsupportedJdk.javaVersionMajor))
+>>>>>>> master
 
         where:
         noDaemon << [false, true]

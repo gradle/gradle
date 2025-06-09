@@ -80,7 +80,7 @@ class GradleVersionTest extends Specification {
                 '1.0-milestone-5a',
                 '3.2-rc-2',
                 '3.0-snapshot-1',
-                '5.1-commit-2149a1d'
+                '5.1-commit-2149a1d',
         ]
     }
 
@@ -96,7 +96,8 @@ class GradleVersionTest extends Specification {
                 '0.9-20101220110000-0800',
                 '1.2-20120501110000',
                 '1.2-SNAPSHOT',
-                '3.0-snapshot-1'
+                '3.0-snapshot-1',
+                '9.0.0-snapshot-1',
         ]
     }
 
@@ -109,7 +110,8 @@ class GradleVersionTest extends Specification {
                 '0.9-milestone-5',
                 '2.1-rc-1',
                 '1.2',
-                '1.2.1']
+                '1.2.1',
+        ]
     }
 
     void canCompareTwoVersions(String a, String b) {
@@ -124,11 +126,12 @@ class GradleVersionTest extends Specification {
         canCompareTwoVersions(a, b)
 
         where:
-        a      | b
-        '0.9'  | '0.8'
-        '1.0'  | '0.10'
-        '10.0' | '2.1'
-        '2.5'  | '2.4'
+        a       | b
+        '0.9'   | '0.8'
+        '1.0'   | '0.10'
+        '10.0'  | '2.1'
+        '2.5'   | '2.4'
+        '9.0.0' | '8.0'
     }
 
     def canComparePointVersions() {
@@ -232,6 +235,10 @@ class GradleVersionTest extends Specification {
         '3.0-snapshot-1'                      | "3.0"
         '3.0-milestone-3'                     | "3.0"
         '3.0-milestone-3-20121012100000+1000' | "3.0"
+        '9.0.0'                               | "9.0.0"
+        '9.0.0-rc-3'                          | "9.0.0"
+        '9.0.0-milestone-3'                   | "9.0.0"
+        '9.0.0-20251220100000+0400'           | "9.0.0"
     }
 
     def "can get next major version"() {
@@ -244,12 +251,14 @@ class GradleVersionTest extends Specification {
         "1.0-rc-1"                            | "2.0"
         '0.9-20101220100000+1000'             | "1.0"
         '0.9-20101220100000'                  | "1.0"
-        '20.17-20101220100000+1000'           | "21.0"
+        '20.17-20101220100000+1000'           | "21.0.0"
         '0.9-SNAPSHOT'                        | "1.0"
         '3.0-snapshot-1'                      | "4.0"
         '5.1-milestone-1'                     | "6.0"
         '1.0-milestone-3'                     | "2.0"
         '1.0-milestone-3-20121012100000+1000' | "2.0"
         '2.0-milestone-3'                     | "3.0"
+        '8.1'                                 | '9.0.0'
+        '9.1.1'                               | '10.0.0'
     }
 }

@@ -35,7 +35,7 @@ class JavaExecSubclassingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
 
-            class MyJavaExec extends JavaExec {
+            abstract class MyJavaExec extends JavaExec {
 
                 @Override
                 void exec() {

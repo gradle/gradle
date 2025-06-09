@@ -14,6 +14,7 @@
 
 [[properties_and_providers]]
 = Understanding Properties and Providers
+:keywords: properties, providers, regularfileproperty, directoryproperty, listproperty, setproperty, mapproperty, configurablefilecollection, configurablefiletree
 
 Gradle provides properties that are important for <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
 When implementing a custom task or plugin, it's imperative that you use these lazy properties.
@@ -77,19 +78,18 @@ Providers:
 [[managed_properties]]
 == Using Gradle Managed Properties
 
-Gradle's managed properties allow you to declare properties as abstract getters (Java, Groovy) or abstract properties (Kotlin).
+Gradle's managed properties allow you to declare properties as getters (Java, Groovy) or properties (Kotlin).
 
 Gradle then automatically provides the implementation for these properties, managing their state.
 
-A property may be _mutable_, meaning that it has both a `get()` method and `set()` method:
+A property may be _mutable_, meaning that it is of type `Property`, which has both a `get()` and a `set()` method:
 
 ====
 include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=prop-managed]"]
 include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=prop-managed]"]
 ====
 
-Or _read-only_, meaning that it has only a `get()` method.
-The _read-only_ properties are _providers_:
+Or _read-only_, meaning that it is of type `Provider`, which only has a `get()` method:
 
 ====
 include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=prov-managed]"]
@@ -98,7 +98,7 @@ include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tag
 
 === Mutable Managed Properties
 
-A mutable managed property is declared using an abstract getter method of type `Property<T>`, where `T` can be any serializable type or a <<#managed_types,fully managed Gradle type>>.
+A mutable managed property is declared using a getter method of type `Property<T>`, where `T` can be any serializable type or a <<#managed_types,fully managed Gradle type>>.
 The property must not have any setter methods.
 
 Here is an example of a task type with an `uri` property of type `URI`:
@@ -109,7 +109,8 @@ Here is an example of a task type with an `uri` property of type `URI`:
 include::{snippetsPath}/plugins/mutableManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
 
-Note that for a property to be considered a mutable managed property, the property's getter methods must be `abstract` and have `public` or `protected` visibility.
+Note that for a property to be considered a mutable managed property, the property's getter methods must have `public` or `protected` visibility.
+It is recommended to also make the property `abstract`, so Gradle can manage the initialization of the property.
 
 The property type must be one of the following:
 

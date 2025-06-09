@@ -16,8 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.cache.internal.CacheVersion;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
@@ -44,12 +42,13 @@ public interface GradleDistribution {
     GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext);
 
     /**
-     * Returns true if this distribution supports the given JVM.
+     * Returns true if this distribution's client supports the given JVM version.
      */
-    boolean worksWith(Jvm jvm);
+    boolean clientWorksWith(int jvmVersion);
 
     /**
      * Returns true if this distribution's daemon supports the given JVM version.
+<<<<<<< HEAD
      */
     boolean daemonWorksWith(int jvmVersion);
 
@@ -72,6 +71,10 @@ public interface GradleDistribution {
      * Returns true if the tooling API of this distribution correctly handles logging in embedded mode.
      */
     boolean isToolingApiLoggingInEmbeddedModeSupported();
+=======
+     */
+    boolean daemonWorksWith(int jvmVersion);
+>>>>>>> master
 
     /**
      * Returns true if this version handles the client provided standard input stream when running in embedded mode.
@@ -79,36 +82,9 @@ public interface GradleDistribution {
     boolean isToolingApiStdinInEmbeddedModeSupported();
 
     /**
-     * Returns true if the tooling API of this distribution incorrectly locks build action implementation classes.
-     */
-    boolean isToolingApiLocksBuildActionClasses();
-
-    /**
      * Returns the version of the artifact cache layout
      */
     CacheVersion getArtifactCacheLayoutVersion();
-
-    /**
-     * Returns true if the wrapper from this distribution can execute a build using the specified version.
-     */
-    boolean wrapperCanExecute(GradleVersion version);
-
-    /**
-     * Early versions had bugs that prevented any values having spaces in them in GRADLE_OPTS or JAVA_OPTS.
-     *
-     * See https://issues.gradle.org/browse/GRADLE-1730
-     */
-    boolean isSupportsSpacesInGradleAndJavaOpts();
-
-    /**
-     * The 'ivy' repository was introduced in Milestone-3, but early versions didn't work with spaces in the artifact pattern.
-     */
-    boolean isFullySupportsIvyRepository();
-
-    /**
-     * Returns true if the wrapper for this version honours the --gradle-user-home command-line option.
-     */
-    boolean isWrapperSupportsGradleUserHomeCommandLineOption();
 
     /**
      * Returns true if this version always adds a task execution exception around all failures, such as input fingerprinting or property validation failures, rather than only around task action failures.
@@ -156,19 +132,9 @@ public interface GradleDistribution {
     <T> T selectOutputWithFailureLogging(T stdout, T stderr);
 
     /**
-     * Returns true if this version logs different build outcome messages for tooling API requests that run tasks and to requests that do not run tasks (eg fetch a model).
-     */
-    boolean isToolingApiLogsConfigureSummary();
-
-    /**
      * Returns true if this version generates a build operation that wraps the execution phase
      */
     boolean isToolingApiHasExecutionPhaseBuildOperation();
-
-    /**
-     * Returns true if this version loads the work graph from the configuration cache in the same build that the entry is stored.
-     */
-    boolean isLoadsFromConfigurationCacheAfterStore();
 
     /**
      * Returns true if this version runs tests when building `buildSrc`
@@ -179,11 +145,6 @@ public interface GradleDistribution {
      * Returns true if it as a Gradle version that supports Kotlin scripts
      */
     boolean isSupportsKotlinScript();
-
-    /**
-     * Returns true if this version has a method for tests display names
-     */
-    boolean isHasTestDisplayNames();
 
     /**
      * Returns true if this version supports custom toolchain resolvers.

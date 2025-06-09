@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
 import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -29,7 +30,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
@@ -48,7 +48,6 @@ import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
@@ -76,8 +75,6 @@ import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -95,15 +92,11 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-
-    def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
@@ -114,8 +107,6 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
-        _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
-        _ * rootComponentMetadataBuilder.newBuilder(_, _) >> rootComponentMetadataBuilder
     }
 
     void defaultValues() {
@@ -641,13 +632,15 @@ class DefaultConfigurationSpec extends Specification {
         def copy = configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
+        // This is not desired behavior. Ideally the copy method should copy the role of the original.
+        // Instead, the role of copies are currently always set to RESOLVABLE_DEPENDENCY_SCOPE, as
+        // currently copies are detached configurations, and this is the role of all detached configurations.
         copy.canBeDeclared
         copy.canBeResolved
-        copy.canBeConsumed
+        !copy.canBeConsumed
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
-        copy.deprecatedForConsumption
+        !copy.deprecatedForConsumption
         !copy.deprecatedForResolution
         !copy.deprecatedForDeclarationAgainst
 
@@ -763,7 +756,7 @@ This method is only meant to be called on configurations which allow the (non-de
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest(configuration = conf()) {
+    private Configuration prepareConfigurationForCopyTest(configuration = conf()) {
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
@@ -798,9 +791,11 @@ This method is only meant to be called on configurations which allow the (non-de
         original.attributes.keySet().each {
             assert copy.attributes.getAttribute(it) == original.attributes.getAttribute(it)
         }
-        assert copy.canBeResolved == original.canBeResolved
-        assert copy.canBeConsumed == original.canBeConsumed
-        true
+
+        // Copies are now always made as RESOLVABLE_DEPENDENCY_SCOPE, regardless of the usage of the original
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
     }
 
     def "incoming dependencies set has same name and path as owner configuration"() {
@@ -967,19 +962,6 @@ This method is only meant to be called on configurations which allow the (non-de
 
         then:
         out.root == result.rootSource.get()
-    }
-
-    def "resolving configuration marks parent configuration as observed"() {
-        def parent = conf("parent", ":parent")
-        def config = conf("conf")
-        config.extendsFrom parent
-        resolver.resolveGraph(config) >> graphResolved()
-
-        when:
-        config.resolve()
-
-        then:
-        parent.observedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -1174,26 +1156,6 @@ This method is only meant to be called on configurations which allow the (non-de
         dep.configurationName == "conf"
     }
 
-    def "mutations are prohibited after resolution"() {
-        def conf = conf("conf")
-        resolver.resolveGraph(conf) >> graphResolved()
-
-        given:
-        conf.incoming.getResolutionResult().root
-
-        when:
-        conf.dependencies.add(Mock(Dependency))
-        then:
-        def exDependency = thrown(InvalidUserDataException)
-        exDependency.message == "Cannot change dependencies of dependency configuration ':conf' after it has been resolved."
-
-        when:
-        conf.artifacts.add(Mock(PublishArtifact))
-        then:
-        def exArtifact = thrown(InvalidUserDataException)
-        exArtifact.message == "Cannot change artifacts of dependency configuration ':conf' after it has been resolved."
-    }
-
     def "defaultDependencies action does not trigger when config has dependencies"() {
         def conf = conf("conf")
         def defaultDependencyAction = Mock(Action)
@@ -1267,52 +1229,67 @@ This method is only meant to be called on configurations which allow the (non-de
         0 * _
     }
 
-    def propertyChangeWithNonUnresolvedStateShouldThrowEx() {
+    def "observation forbids further mutation of basic state"() {
         def configuration = conf()
-        resolver.resolveGraph(configuration) >> graphResolved()
 
         given:
-        configuration.resolve()
+        configuration.markAsObserved("observed")
 
         when:
         configuration.setTransitive(true)
         then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.setVisible(false)
         then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.exclude([:])
-        then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.extendsFrom(conf("other"))
         then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.dependencies.add(Mock(Dependency))
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.dependencies.remove(Mock(Dependency))
-        then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.artifacts.add(artifact())
         then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.artifacts.remove(artifact())
         then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.exclude([:])
+        configuration.dependencies.add(Mock(Dependency))
+        configuration.dependencies.remove(Mock(Dependency))
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "observation of dependencies forbids further mutation of dependency state"() {
+        def configuration = conf()
+
+        given:
+        configuration.markAsObserved("observed")
+        configuration.markDependenciesObserved()
+
+        when:
+        configuration.exclude([:])
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.dependencies.add(Mock(Dependency))
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.dependencies.remove(Mock(Dependency))
+        then:
+        thrown(InvalidUserCodeException)
     }
 
     def "can define typed attributes"() {
@@ -1551,7 +1528,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
         then:
         GradleException t = thrown()
-        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+        t.message == "Cannot mutate the usage of configuration ':conf' after the configuration was reason. After a configuration has been observed, it should not be modified."
 
         where:
         usageName               | changeUsage
@@ -1645,7 +1622,7 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.ALL) {
-        return confFactory(projectPath, buildPath).create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role)
+        return confFactory(projectPath, buildPath).create(confName, false, resolver, Factories.constant(resolutionStrategy), role)
     }
 
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
@@ -1666,14 +1643,13 @@ This method is only meant to be called on configurations which allow the (non-de
         _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
-            instantiator,
+            TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
         new DefaultConfigurationFactory(
-            DirectInstantiator.INSTANCE,
-            resolver,
+            TestUtil.objectFactory(),
             listenerManager,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),

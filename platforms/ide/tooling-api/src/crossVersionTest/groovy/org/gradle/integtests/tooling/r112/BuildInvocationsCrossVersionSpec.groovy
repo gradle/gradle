@@ -28,11 +28,9 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << '''
-            include 'a'
-            include 'b'
-            include 'b:c'
             rootProject.name = 'test'
         '''
+        includeProjects("a", "b", "b:c")
 
         file("a/build.gradle") << ""
 

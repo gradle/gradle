@@ -44,15 +44,15 @@ import java.io.File
 /**
  * Facilitates the implementation of the [Settings] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10.0")
 abstract class SettingsDelegate : Settings {
 
     init {
         @Suppress("DEPRECATION")
         if (!org.gradle.kotlin.dsl.SettingsScriptApi::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(SettingsDelegate::class.java)
-                .willBeRemovedInGradle9()
-                .undocumented()
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }

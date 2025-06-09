@@ -27,7 +27,6 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.BaseExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.DefaultClientExecHandleBuilder;
-import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -69,20 +68,6 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public void assertCanExecute() throws AssertionError {
-        if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-            Map<String, String> environmentVars = buildInvocation().environmentVars;
-            for (String envVarName : Arrays.asList("JAVA_OPTS", "GRADLE_OPTS")) {
-                String envVarValue = environmentVars.get(envVarName);
-                if (envVarValue == null) {
-                    continue;
-                }
-                for (String arg : JvmOptions.fromString(envVarValue)) {
-                    if (arg.contains(" ")) {
-                        throw new AssertionError(String.format("Env var %s contains arg with space (%s) which is not supported by Gradle %s", envVarName, arg, getDistribution().getVersion().getVersion()));
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -93,24 +78,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             invocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
         }
 
-        if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-            // Mix the implicit launcher JVM args in with the requested JVM args
-            super.transformInvocation(invocation);
-        } else {
-            // Need to move those implicit JVM args that contain a space to the Gradle command-line (if possible)
-            // Note that this isn't strictly correct as some system properties can only be set on JVM start up.
-            // Should change the implementation to deal with these properly
-            for (String jvmArg : invocation.implicitLauncherJvmArgs) {
-                if (!jvmArg.contains(" ")) {
-                    invocation.launcherJvmArgs.add(jvmArg);
-                } else if (jvmArg.startsWith("-D")) {
-                    invocation.args.add(jvmArg);
-                } else {
-                    throw new UnsupportedOperationException(String.format("Cannot handle launcher JVM arg '%s' as it contains whitespace. This is not supported by Gradle %s.",
-                        jvmArg, getDistribution().getVersion().getVersion()));
-                }
-            }
-        }
+        // Mix the implicit launcher JVM args in with the requested JVM args
+        super.transformInvocation(invocation);
+
         invocation.implicitLauncherJvmArgs.clear();
 
         // Inject the launcher JVM args via one of the environment variables
@@ -127,8 +97,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         final String value = toJvmArgsString(invocation.launcherJvmArgs);
         environmentVars.put(jvmOptsEnvVar, value);
 
-        // Always set JAVA_HOME, so the daemon process runs on the configured JVM
-        environmentVars.put("JAVA_HOME", getJavaHome());
+        if (!environmentVars.containsKey("JAVA_HOME")) {
+            environmentVars.put("JAVA_HOME", getJavaHome());
+        }
     }
 
     @Override
@@ -175,11 +146,6 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 args.add("-D" + propName + "=" + propValue);
             }
         }
-    }
-
-    @Override
-    protected boolean supportsWhiteSpaceInEnvVars() {
-        return getJavaVersionFromJavaHome().isJava7Compatible();
     }
 
     @Override

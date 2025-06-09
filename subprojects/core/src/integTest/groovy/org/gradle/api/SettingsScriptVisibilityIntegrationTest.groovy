@@ -19,12 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Issue
 
-@Issue("https://github.com/gradle/gradle-private/issues/3247")
-@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 class SettingsScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
     @org.junit.Rule

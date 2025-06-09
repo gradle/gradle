@@ -145,6 +145,12 @@ All Kotlin DSL build scripts come with implicit imports, including:
 ** `org.gradle.kotlin.dsl`
 ** `org.gradle.kotlin.dsl.plugins.dsl`
 ** `org.gradle.kotlin.dsl.precompile`
+** `java.util.concurrent.Callable`
+** `java.util.concurrent.TimeUnit`
+** `java.math.BigDecimal`
+** `java.math.BigInteger`
+** `java.io.File`
+** `javax.inject.Inject`
 
 === Avoid Using Internal Kotlin DSL APIs
 

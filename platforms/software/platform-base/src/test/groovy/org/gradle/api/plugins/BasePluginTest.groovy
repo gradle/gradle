@@ -174,13 +174,11 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def defaultConfig = project.configurations[Dependency.DEFAULT_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
-        defaultConfig.visible
         defaultConfig.transitive
 
         and:
         def archives = project.configurations[Dependency.ARCHIVES_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
-        archives.visible
         archives.transitive
     }
 }

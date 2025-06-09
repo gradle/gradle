@@ -37,6 +37,7 @@ public class UnsupportedJavaRuntimeException extends RuntimeException {
     public static void assertCurrentProcessSupportsDaemonJavaVersion() throws UnsupportedJavaRuntimeException {
         int currentVersion = JavaVersionParser.parseCurrentMajorVersion();
         if (currentVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
+<<<<<<< HEAD:platforms/core-runtime/build-process-startup/src/main/java/org/gradle/internal/jvm/UnsupportedJavaRuntimeException.java
             String message = getIncompatibleJavaVersionForProcessErrorMessage(
                 "Gradle", SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION, currentVersion
             );
@@ -59,6 +60,15 @@ public class UnsupportedJavaRuntimeException extends RuntimeException {
             minVersion,
             currentVersion
         );
+=======
+            String message = String.format(
+                "Gradle requires JVM %d or later to run. You are currently using JVM %d.",
+                SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
+                currentVersion
+            );
+            throw new UnsupportedJavaRuntimeException(message);
+        }
+>>>>>>> master:platforms/core-runtime/build-process-services/src/main/java/org/gradle/internal/jvm/UnsupportedJavaRuntimeException.java
     }
 
     /**

@@ -21,7 +21,11 @@ import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.invert
+import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.Decoder
@@ -181,5 +185,13 @@ object ThrowingProblemsListener : AbstractProblemsListener() {
     override fun onProblem(problem: PropertyProblem) {
         // TODO: consider throwing more specific exception
         throw ConfigurationCacheError("Failed to isolate 'GradleLifecycle' action: ${problem.message}")
+    }
+
+    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+        // TODO: consider throwing more specific exception
+        throw ConfigurationCacheError(
+            "Failed to isolate 'GradleLifecycle' action: $trace: ${StructuredMessage.build(message).render()}",
+            error.maybeUnwrapInvocationTargetException()
+        )
     }
 }

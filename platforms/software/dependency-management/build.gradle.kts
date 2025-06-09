@@ -82,8 +82,12 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
+<<<<<<< HEAD
 
     implementation(libs.ant)
+=======
+    
+>>>>>>> master
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)

@@ -60,7 +60,10 @@ dependencies {
     implementation(projects.buildConfiguration)
     implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
+<<<<<<< HEAD
     implementation(projects.buildProcessStartup)
+=======
+>>>>>>> master
     implementation(projects.fileOperations)
     implementation(projects.files)
     implementation(projects.hashing)

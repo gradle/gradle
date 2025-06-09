@@ -67,6 +67,10 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
         e.cause.message.contains("Cannot find a Java installation on your machine")
     }
 
+<<<<<<< HEAD
+=======
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+>>>>>>> master
     def "Given defined org.gradle.java.home gradle property When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)

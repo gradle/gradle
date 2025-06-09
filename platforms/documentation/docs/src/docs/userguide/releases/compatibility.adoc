@@ -21,14 +21,13 @@ Versions not listed here may or may not work.
 == Java Runtime
 
 Gradle runs on the Java Virtual Machine (JVM), which is often provided by either a JDK or JRE.
-A JVM version between 8 and 24 is required to execute Gradle.
+A JVM version between 17 and 24 is required to execute Gradle.
 JVM 25 and later versions are not yet supported.
 
-Executing the Gradle daemon with JVM 16 or earlier has been deprecated and will become an error in Gradle 9.0.
 The Gradle wrapper, Gradle client, Tooling API client, and TestKit client will remain compatible with JVM 8.
 
-JDK 6 and 7 can be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>>.
-Testing with JVM 6 and 7 is deprecated and will not be supported in Gradle 9.0.
+JDK 6 above can be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>>.
+JVM 8 and above can be used for executing tests.
 
 Any fully supported version of Java can be used for compilation or testing.
 However, the latest Java version may only be supported for compilation or testing, not for running Gradle.
@@ -67,7 +66,11 @@ We encourage users to try it out and let us know.
 [[kotlin]]
 == Kotlin
 
+<<<<<<< HEAD
 Gradle is tested with Kotlin 2.0.0 through 2.2.0-Beta2.
+=======
+Gradle is tested with Kotlin 2.0.0 through 2.2.0-RC.
+>>>>>>> master
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -106,9 +109,9 @@ Beta and RC versions may or may not work.
 
 == Groovy
 
-Gradle is tested with Groovy 1.5.8 through 4.0.0.
+Gradle is tested with Groovy 1.5.8 through 4.0.26.
 
-Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Gradle and Groovy DSL build scripts.
+Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 
 == Android
 

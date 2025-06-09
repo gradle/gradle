@@ -16,7 +16,6 @@
 
 package org.gradle.docs.samples;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.exemplar.executor.CommandExecutor;
 import org.gradle.integtests.fixtures.AvailableJavaHomes;
@@ -27,6 +26,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
@@ -75,7 +75,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             }
             return expectFailure ? 1 : 0;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

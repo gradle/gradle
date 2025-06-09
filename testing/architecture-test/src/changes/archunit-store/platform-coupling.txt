@@ -16,7 +16,14 @@ Class 'org.gradle.api.plugins.antlr.AntlrPlugin$1$1' from platform 'software' im
 Class 'org.gradle.api.plugins.antlr.AntlrPlugin$1' from platform 'software' imports class 'org.gradle.api.internal.tasks.DefaultSourceSet' from a forbidden platform 'jvm'
 Class 'org.gradle.api.plugins.antlr.AntlrPlugin$1' from platform 'software' imports class 'org.gradle.api.tasks.SourceSet' from a forbidden platform 'jvm'
 Class 'org.gradle.api.plugins.antlr.AntlrPlugin' from platform 'software' imports class 'org.gradle.api.plugins.JavaPluginExtension' from a forbidden platform 'jvm'
+<<<<<<< HEAD
 Class 'org.gradle.api.plugins.antlr.AntlrPlugin' from platform 'software' imports class 'org.gradle.api.tasks.SourceSetContainer' from a forbidden platform 'jvm'
+=======
+Class 'org.gradle.api.plugins.antlr.AntlrPlugin' from platform 'software' imports class 'org.gradle.api.plugins.internal.JavaPluginHelper' from a forbidden platform 'jvm'
+Class 'org.gradle.api.plugins.antlr.AntlrPlugin' from platform 'software' imports class 'org.gradle.api.plugins.jvm.internal.JvmFeatureInternal' from a forbidden platform 'jvm'
+Class 'org.gradle.api.plugins.antlr.AntlrPlugin' from platform 'software' imports class 'org.gradle.api.tasks.SourceSetContainer' from a forbidden platform 'jvm'
+Class 'org.gradle.api.plugins.antlr.AntlrPlugin' from platform 'software' imports class 'org.gradle.jvm.component.internal.JvmSoftwareComponentInternal' from a forbidden platform 'jvm'
+>>>>>>> master
 Class 'org.gradle.api.plugins.catalog.VersionCatalogPlugin' from platform 'software' imports class 'org.gradle.api.plugins.internal.JavaConfigurationVariantMapping' from a forbidden platform 'jvm'
 Class 'org.gradle.api.resources.internal.LocalResourceAdapter' from platform 'core' imports class 'org.gradle.internal.resource.LocalBinaryResource' from a forbidden platform 'software'
 Class 'org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask' from platform 'software' imports class 'org.gradle.internal.jvm.inspection.JvmMetadataDetector' from a forbidden platform 'jvm'
@@ -178,6 +185,7 @@ Class 'org.gradle.internal.serialize.codecs.dm.transform.TransformsKt' from plat
 Class 'org.gradle.internal.serialize.codecs.dm.transform.TransformsKt' from platform 'core' imports class 'org.gradle.api.internal.artifacts.transform.TransformStepNode' from a forbidden platform 'software'
 Class 'org.gradle.internal.serialize.codecs.dm.transform.TransformsKt' from platform 'core' imports class 'org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies' from a forbidden platform 'software'
 Class 'org.gradle.kotlin.dsl.execution.Interpreter$compile$1' from platform 'core' imports class 'org.gradle.internal.resource.TextResource' from a forbidden platform 'software'
+<<<<<<< HEAD
 Class 'org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter' from platform 'core' imports class 'org.gradle.api.internal.changedetection.state.AbiExtractingClasspathResourceHasher' from a forbidden platform 'jvm'
 Class 'org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter' from platform 'core' imports class 'org.gradle.api.internal.changedetection.state.CachingResourceHasher' from a forbidden platform 'jvm'
 Class 'org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter' from platform 'core' imports class 'org.gradle.api.internal.changedetection.state.PropertiesFileFilter' from a forbidden platform 'jvm'
@@ -185,6 +193,8 @@ Class 'org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter' 
 Class 'org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter' from platform 'core' imports class 'org.gradle.api.internal.changedetection.state.ResourceFilter' from a forbidden platform 'jvm'
 Class 'org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter' from platform 'core' imports class 'org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher' from a forbidden platform 'jvm'
 Class 'org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter' from platform 'core' imports class 'org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy' from a forbidden platform 'jvm'
+=======
+>>>>>>> master
 Class 'org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupport' from platform 'core' imports class 'org.gradle.plugin.devel.GradlePluginDevelopmentExtension' from a forbidden platform 'extensibility'
 Class 'org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupportKt$declareScriptPlugins$1$1' from platform 'core' imports class 'org.gradle.plugin.devel.PluginDeclaration' from a forbidden platform 'extensibility'
 Class 'org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupportKt$registerCompilePluginsBlocksTask$2' from platform 'core' imports class 'org.gradle.api.plugins.JavaPluginExtension' from a forbidden platform 'jvm'

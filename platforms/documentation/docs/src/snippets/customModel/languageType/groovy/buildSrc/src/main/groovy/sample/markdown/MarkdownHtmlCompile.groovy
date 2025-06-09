@@ -6,7 +6,7 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.pegdown.PegDownProcessor
 
-class MarkdownHtmlCompile extends SourceTask {
+abstract class MarkdownHtmlCompile extends SourceTask {
     @OutputDirectory
     File destinationDir
 

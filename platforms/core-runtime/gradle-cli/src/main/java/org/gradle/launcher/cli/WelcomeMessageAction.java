@@ -19,7 +19,7 @@ package org.gradle.launcher.cli;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;

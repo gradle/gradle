@@ -325,8 +325,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
+
 
         when:
         withConnection {
@@ -351,8 +352,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
         file("a/build.gradle") << """
             throw new RuntimeException("broken")
 """
@@ -382,8 +383,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
         buildFile << """
             allprojects { apply plugin: 'java' }
         """
@@ -423,8 +424,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
         buildFile << """
             subprojects { apply plugin: 'java' }
         """
@@ -448,8 +449,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
         buildFile << """
             project(':a') { apply plugin: 'java' }
         """
@@ -472,8 +473,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
         buildFile << """
             project(':b', new Action<Project>() { void execute(Project project) { project.apply plugin: 'java' } })
         """
@@ -584,6 +585,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
     }
 
     private buildSrc() {
+        createDirs("buildSrc/a", "buildSrc/b")
         file("buildSrc/settings.gradle") << "include 'a', 'b'"
         file("buildSrc/build.gradle") << """
             allprojects {

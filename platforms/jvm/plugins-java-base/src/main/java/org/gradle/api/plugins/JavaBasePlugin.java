@@ -44,11 +44,13 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
@@ -146,6 +148,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         configureBuildNeeded(project);
         configureBuildDependents(project);
         configureArchiveDefaults(project);
+        configureJavaExecTasks(project);
     }
 
     private DefaultJavaPluginExtension addExtensions(final Project project) {
@@ -266,6 +269,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
+<<<<<<< HEAD
         Configuration implementationConfiguration = configurations.dependencyScopeLocked(implementationConfigurationName);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
@@ -295,6 +299,37 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
         jvmPluginServices.configureAsRuntimeClasspath(runtimeClasspathConfiguration);
+=======
+        Configuration implementationConfiguration = configurations.dependencyScopeLocked(implementationConfigurationName, conf -> {
+            conf.setDescription("Implementation only dependencies for " + sourceSetName + ".");
+        });
+
+        Configuration compileOnlyConfiguration = configurations.dependencyScopeLocked(compileOnlyConfigurationName, conf -> {
+            conf.setDescription("Compile only dependencies for " + sourceSetName + ".");
+        });
+
+        Configuration compileClasspathConfiguration = configurations.resolvableLocked(compileClasspathConfigurationName, conf -> {
+            conf.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
+            conf.setDescription("Compile classpath for " + sourceSetName + ".");
+            jvmPluginServices.configureAsCompileClasspath(conf);
+        });
+
+        @SuppressWarnings("deprecation")
+        Configuration annotationProcessorConfiguration = configurations.resolvableDependencyScopeLocked(annotationProcessorConfigurationName, conf -> {
+            conf.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
+
+        Configuration runtimeOnlyConfiguration = configurations.dependencyScopeLocked(runtimeOnlyConfigurationName, conf -> {
+            conf.setDescription("Runtime only dependencies for " + sourceSetName + ".");
+        });
+
+        Configuration runtimeClasspathConfiguration = configurations.resolvableLocked(runtimeClasspathConfigurationName, conf -> {
+            conf.setDescription("Runtime classpath of " + sourceSetName + ".");
+            conf.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
+>>>>>>> master
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
@@ -371,6 +406,14 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
             TestExecutableUtils.getExecutableToolchainSpec(test, propertyFactory));
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
+    }
+
+    private void configureJavaExecTasks(Project project) {
+        project.getTasks().withType(JavaExec.class).configureEach(javaExec -> {
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
+                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(javaExec, propertyFactory));
+            javaExec.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
+        });
     }
 
     private <T> Provider<T> getToolchainTool(

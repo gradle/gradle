@@ -18,17 +18,17 @@ package org.gradle.performance.results.report;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gradle.internal.UncheckedException;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.PerformanceTestExecution;
-import org.gradle.performance.results.PerformanceReportScenario;
-import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.PerformanceTestExecutionResult;
+import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.util.Git;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -80,7 +80,7 @@ public abstract class PerformanceExecutionDataProvider {
             return new ObjectMapper().readValue(resultsJson, new TypeReference<List<PerformanceTestExecutionResult>>() {
             }).stream();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

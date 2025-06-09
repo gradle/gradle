@@ -14,6 +14,7 @@
 
 [[sec:reporting_problems]]
 = Reporting problems
+:keywords: problems, api, problem
 
 Plugins can report problems through Gradle's problems-reporting APIs.
 The APIs report rich, structured information about problems happening during the build.
@@ -86,7 +87,7 @@ Execution failed for task ':sample-project:myFailingTask'.
 
 * Try:
 > Remove the Problems.throwing() method call from the task action
-> Run with --scan to get full insights.
+> Run with --scan to generate a Build Scan® (Powered by Develocity®).
 
 BUILD FAILED in 0ms
 ----

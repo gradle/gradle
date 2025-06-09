@@ -178,7 +178,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
 
-    private int expectedGenericDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
@@ -260,7 +259,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         commandLineJvmOpts.clear();
         buildJvmOpts.clear();
         useOnlyRequestedJvmOpts = false;
-        expectedGenericDeprecationWarnings = 0;
         expectedDeprecationWarnings.clear();
         stackTraceChecksOn = true;
         jdkWarningChecksOn = false;
@@ -348,7 +346,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         executer.withTasks(tasks);
         executer.withArguments(args);
-        executer.withEnvironmentVars(environmentVars);
+        executer.withEnvironmentVarsIncludingJavaHome(environmentVars);
         executer.usingExecutable(executable);
         if (quiet) {
             executer.withQuietLogging();
@@ -390,9 +388,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         executer.noExtraLogging();
 
-        if (expectedGenericDeprecationWarnings > 0) {
-            executer.expectDeprecationWarnings(expectedGenericDeprecationWarnings);
-        }
         expectedDeprecationWarnings.forEach(executer::expectDeprecationWarning);
         if (!eagerClassLoaderCreationChecksOn) {
             executer.withEagerClassLoaderCreationCheckDisabled();
@@ -782,6 +777,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public final GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
         Preconditions.checkArgument(!environment.containsKey("JAVA_HOME"), "Cannot provide JAVA_HOME to withEnvironmentVars, use withJavaHome instead");
+        return withEnvironmentVarsIncludingJavaHome(environment);
+    }
+
+    @Override
+    public GradleExecuter withEnvironmentVarsIncludingJavaHome(Map<String, ?> environment) {
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
             environmentVars.put(entry.getKey(), entry.getValue().toString());
@@ -1197,9 +1197,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                 tmpDir = getDefaultTmpDir();
             }
             String tmpDirPath = tmpDir.createDir().getAbsolutePath();
-            if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
-                properties.put("java.io.tmpdir", tmpDirPath);
-            }
+            properties.put("java.io.tmpdir", tmpDirPath);
         }
 
         if (!disablePluginRepositoryMirror) {
@@ -1234,10 +1232,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         properties.put("org.gradle.kotlin.dsl.skipMetadataVersionCheck", "false");
 
         return properties;
-    }
-
-    protected boolean supportsWhiteSpaceInEnvVars() {
-        return true;
     }
 
     @Override
@@ -1373,7 +1367,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         return new ResultAssertion(
-            expectedGenericDeprecationWarnings,
             expectedDeprecationWarnings,
             maybeExpectedDeprecationWarnings,
             !stackTraceChecksOn,
@@ -1390,16 +1383,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter expectDeprecationWarning() {
-        return expectDeprecationWarnings(1);
-    }
-
-    @Override
-    public GradleExecuter expectDeprecationWarnings(int count) {
-        Preconditions.checkState(expectedGenericDeprecationWarnings == 0, "expected deprecation count is already set for this execution");
-        Preconditions.checkArgument(count > 0, "expected deprecation count must be positive");
-        expectedGenericDeprecationWarnings = count;
-        return this;
+    public GradleExecuter expectExternalDeprecatedMessage(String warning) {
+        return expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(warning));
     }
 
     @Override
@@ -1410,7 +1395,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+        return expectExternalDeprecatedMessage(normalizeDocumentationLink(warning));
     }
 
     private String normalizeDocumentationLink(String warning) {

@@ -29,10 +29,10 @@ import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -45,10 +45,11 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
 
     private final Map<String, GeneratedCode> generatedCode = [:]
     private final DefaultProjectDependencyFactory projectDependencyFactory = Stub(DefaultProjectDependencyFactory) {
-        create(_) >> Stub(ProjectDependencyInternal)
+        create(_ as Path) >> Stub(ProjectDependencyInternal)
     }
-    private final ProjectFinder projectFinder = Stub(ProjectFinder) {
-        getProject(_) >> Stub(ProjectInternal)
+
+    def projectFinder = Mock(ProjectFinder) {
+        resolveIdentityPath(_ as String) >> { args -> Path.path(args[0]) }
     }
 
     @Rule

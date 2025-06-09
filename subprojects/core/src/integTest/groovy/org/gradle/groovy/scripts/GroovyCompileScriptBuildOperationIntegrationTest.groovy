@@ -16,16 +16,10 @@
 
 package org.gradle.groovy.scripts
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.scripts.CompileScriptBuildOperationType
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Issue
 
-@Issue("https://github.com/gradle/gradle-private/issues/3247")
-@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)

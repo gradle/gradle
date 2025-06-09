@@ -37,6 +37,7 @@ import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.TestBuildOperationRunner;
@@ -129,6 +130,7 @@ public abstract class AvailableJavaHomes {
      */
     public static List<Jvm> getAllJdkVersions() {
         return getJdksInRange(Range.all());
+<<<<<<< HEAD
     }
 
     /**
@@ -150,6 +152,8 @@ public abstract class AvailableJavaHomes {
      */
     public static List<Jvm> getUnsupportedClientJdks() {
         return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION));
+=======
+>>>>>>> master
     }
 
     /**
@@ -177,7 +181,7 @@ public abstract class AvailableJavaHomes {
      * Get a JDK for each major Java version that is not able to run the Gradle daemon, if available.
      */
     public static List<Jvm> getUnsupportedDaemonJdks() {
-        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION));
+        return getJdksInRange(Range.closedOpen(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION, SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION));
     }
 
     /**
@@ -320,7 +324,7 @@ public abstract class AvailableJavaHomes {
     }
 
     private static boolean isSupportedDaemonVersion(JvmInstallationMetadata jvmInstallation) {
-        return DISTRIBUTION.worksWith(jvmFromMetadata(jvmInstallation));
+        return DISTRIBUTION.daemonWorksWith(jvmFromMetadata(jvmInstallation).getJavaVersionMajor());
     }
 
     /**
@@ -428,18 +432,25 @@ public abstract class AvailableJavaHomes {
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
         ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
+
         final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
             .toolchains()
             .stream()
             .map(x -> x.metadata)
             .filter(JvmInstallationMetadata::isValidInstallation)
-            .sorted(Comparator.comparing(JvmInstallationMetadata::getDisplayName).thenComparing(JvmInstallationMetadata::getLanguageVersion))
+            // Sorting using the production comparator ensures two things:
+            // 1. Consistency / Determinism (or at least attempts to)
+            // 2. The current JVM is always selected as the candidate for its own java version.
+            //    This is desirable since Gradle always considers the current JVM as a toolchain
+            //    candidate. Tests which verify toolchain java home locations may otherwise be flaky
+            //    if a different JVM is selected as the candidate, as the Gradle installation under
+            //    test would always select the JVM it is executed with instead of the one selected here.
+            .sorted(new JvmInstallationMetadataComparator(Jvm.current().getJavaHome()))
             .collect(Collectors.toList());
 
         System.out.println("Found the following JVMs:");
         for (JvmInstallationMetadata jvm : jvms) {
-            String name = jvm.getDisplayName() + " " + jvm.getJavaVersion() + " ";
-            System.out.println("    " + name + " - " + jvm.getJavaHome());
+            System.out.println("    " + jvm.getDisplayName() + " - " + jvm.getJavaHome());
         }
         return jvms;
     }

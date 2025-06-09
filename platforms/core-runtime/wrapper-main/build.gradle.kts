@@ -27,9 +27,9 @@ plugins {
 description = "Entry point of the Gradle wrapper command"
 
 gradleModule {
-    usedForStartup = true
-    usesFutureStdlib = true
-    usesIncompatibleDependencies = true // For test dependencies
+    targetRuntimes {
+        usedInClient = true
+    }
 }
 
 dependencies {
@@ -47,12 +47,20 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(libs.jetty)
+<<<<<<< HEAD
     integTestImplementation(testFixtures(projects.buildProcessStartup))
+=======
+    integTestImplementation(testFixtures(projects.buildProcessServices))
+>>>>>>> master
 
     crossVersionTestImplementation(projects.logging)
     crossVersionTestImplementation(projects.persistentCache)
     crossVersionTestImplementation(projects.launcher)
+<<<<<<< HEAD
     crossVersionTestImplementation(testFixtures(projects.buildProcessStartup))
+=======
+    crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
+>>>>>>> master
 
     integTestNormalizedDistribution(projects.distributionsFull)
     crossVersionTestNormalizedDistribution(projects.distributionsFull)

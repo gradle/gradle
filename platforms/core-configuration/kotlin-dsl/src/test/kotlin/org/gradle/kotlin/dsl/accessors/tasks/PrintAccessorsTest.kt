@@ -26,6 +26,7 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
+import org.gradle.kotlin.dsl.accessors.accessible
 import org.gradle.kotlin.dsl.accessors.entry
 import org.gradle.kotlin.dsl.fixtures.standardOutputOf
 import org.hamcrest.CoreMatchers.equalTo
@@ -40,8 +41,8 @@ class PrintAccessorsTest {
 
     @Test
     fun `prints accessors for all schema entries`() {
-
         assertThat(
+<<<<<<< HEAD
             standardOutputOf {
                 printAccessorsFor(
                     TypedProjectSchema(
@@ -66,6 +67,31 @@ class PrintAccessorsTest {
                     )
                 )
             }.withoutTrailingWhitespace(),
+=======
+            accessorsSourceFor(
+                TypedProjectSchema(
+                    extensions = listOf(
+                        entry<Project, ExtraPropertiesExtension>("extra")
+                    ),
+                    tasks = listOf(
+                        entry<TaskContainer, Delete>("delete")
+                    ),
+                    configurations = listOf(
+                        ConfigurationEntry("api"),
+                        ConfigurationEntry("compile", listOf("api", "implementation"))
+                    ),
+                    containerElements = listOf(
+                        entry<SourceSetContainer, SourceSet>("main")
+                    ),
+                    modelDefaults = listOf(
+                        entry<SharedModelDefaults, TestSoftwareType>("softwareType")
+                    ),
+                    softwareTypeEntries = emptyList(),
+                    containerElementFactories = listOf()
+                ),
+                ::accessible
+            ).withoutTrailingWhitespace(),
+>>>>>>> master
             equalTo(
                 textFromResource("PrintAccessors-expected-output.txt")
             )
@@ -76,7 +102,7 @@ class PrintAccessorsTest {
     fun `does not print accessors with invalid Kotlin identifiers`() {
 
         val actualAccessors = standardOutputOf {
-            printAccessorsFor(
+            accessorsSourceFor(
                 TypedProjectSchema(
                     extensions = listOf(),
                     tasks = listOf(
@@ -89,7 +115,8 @@ class PrintAccessorsTest {
                     modelDefaults = listOf(),
                     softwareTypeEntries = emptyList(),
                     containerElementFactories = listOf()
-                )
+                ),
+                ::accessible
             )
         }.withoutTrailingWhitespace()
 

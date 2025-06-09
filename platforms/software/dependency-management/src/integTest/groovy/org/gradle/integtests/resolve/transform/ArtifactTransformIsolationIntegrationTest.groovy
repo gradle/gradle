@@ -51,7 +51,7 @@ class Counter implements Serializable {
     }
 }
 
-class Resolve extends Copy {
+abstract class Resolve extends Copy {
 
     @Internal
     ArtifactCollection artifacts

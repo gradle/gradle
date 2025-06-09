@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
@@ -34,8 +33,7 @@ import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
@@ -45,12 +43,14 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.Collection;
+<<<<<<< HEAD
 import java.util.Set;
+=======
+>>>>>>> master
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -58,42 +58,38 @@ import java.util.regex.Pattern;
 
 // TODO: We should eventually consider making the DefaultConfigurationContainer extend DefaultPolymorphicDomainObjectContainer
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal {
+
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     private static final Pattern RESERVED_NAMES_FOR_DETACHED_CONFS = Pattern.compile(DETACHED_CONFIGURATION_DEFAULT_NAME + "\\d*");
 
-    private final DependencyMetaDataProvider rootComponentIdentity;
     private final DomainObjectContext owner;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final ResolutionStrategyFactory resolutionStrategyFactory;
+    private final InternalProblems problemsService;
+
+    private final ConfigurationResolver resolver;
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
-    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
-    private final InternalProblems problemsService;
 
     @Inject
     public DefaultConfigurationContainer(
         Instantiator instantiator,
         CollectionCallbackActionDecorator callbackDecorator,
-        DependencyMetaDataProvider rootComponentIdentity,
         DomainObjectContext owner,
-        AttributesSchemaInternal schema,
-        DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        ConfigurationResolver.Factory resolverFactory,
+        AttributesSchemaInternal schema
     ) {
         super(Configuration.class, instantiator, Named.Namer.INSTANCE, callbackDecorator);
 
-        this.rootComponentIdentity = rootComponentIdentity;
         this.owner = owner;
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
-
-        this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(owner, this, rootComponentIdentity, schema);
         this.problemsService = problemsService;
 
-        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
-        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
+        this.resolver = resolverFactory.create(this, owner, schema);
     }
 
     @Override
@@ -101,7 +97,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     protected Configuration doCreate(String name) {
         // TODO: Deprecate legacy configurations for consumption
         validateNameIsAllowed(name);
-        return defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.ALL);
+        return defaultConfigurationFactory.create(name, false, resolver, resolutionStrategyFactory, ConfigurationRoles.ALL);
     }
 
     @Override
@@ -117,17 +113,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         doAddLater(provider);
 
         return provider;
-    }
-
-    @Override
-    public boolean isFixedSize() {
-        return false;
-    }
-
-    @Override
-    public Set<? extends ConfigurationInternal> getAll() {
-        Set<? extends ConfigurationInternal> set = Cast.uncheckedCast(this);
-        return ImmutableSet.copyOf(set);
     }
 
     @Override
@@ -200,22 +185,17 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = nextDetachedConfigurationName();
-        DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-
-        DependencyMetaDataProvider componentIdentity = new DetachedDependencyMetadataProvider(rootComponentIdentity);
-        RootComponentMetadataBuilder componentMetadataBuilder = rootComponentMetadataBuilder.newBuilder(componentIdentity, detachedConfigurationsProvider);
 
         @SuppressWarnings("deprecation")
+        ConfigurationRole role = ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE;
         DefaultLegacyConfiguration detachedConfiguration = defaultConfigurationFactory.create(
             name,
-            detachedConfigurationsProvider,
+            true,
+            resolver,
             resolutionStrategyFactory,
-            componentMetadataBuilder,
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
+            role
         );
-
         copyAllTo(detachedConfiguration, dependencies);
-        detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
     }
 
@@ -361,29 +341,30 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
         return registerConfiguration(name, configureAction, ConsumableConfiguration.class, n ->
-            defaultConfigurationFactory.createConsumable(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+            defaultConfigurationFactory.createConsumable(name, resolver, resolutionStrategyFactory)
         );
     }
 
     private NamedDomainObjectProvider<ResolvableConfiguration> registerResolvableConfiguration(String name, Action<? super ResolvableConfiguration> configureAction) {
         return registerConfiguration(name, configureAction, ResolvableConfiguration.class, n ->
-            defaultConfigurationFactory.createResolvable(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+            defaultConfigurationFactory.createResolvable(name, resolver, resolutionStrategyFactory)
         );
     }
 
     private NamedDomainObjectProvider<DependencyScopeConfiguration> registerDependencyScopeConfiguration(String name, Action<? super DependencyScopeConfiguration> configureAction) {
         return registerConfiguration(name, configureAction, DependencyScopeConfiguration.class, n ->
-            defaultConfigurationFactory.createDependencyScope(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+            defaultConfigurationFactory.createDependencyScope(name, resolver, resolutionStrategyFactory)
         );
     }
 
     private ConfigurationInternal createLockedLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
-        ConfigurationInternal configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
+        ConfigurationInternal configuration = defaultConfigurationFactory.create(name, false, resolver, resolutionStrategyFactory, role);
         super.add(configuration);
         configureAction.execute(configuration);
         configuration.preventUsageMutation();
+        configuration.setVisible(false);
         return configuration;
     }
 

@@ -16,7 +16,6 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ProjectDependencySpec;
@@ -25,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
@@ -109,14 +109,14 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
             return false;
         }
         DefaultProjectDependencySpec that = (DefaultProjectDependencySpec) o;
-        return ObjectUtils.equals(projectPath, that.projectPath)
-            && ObjectUtils.equals(libraryName, that.libraryName);
+        return Objects.equals(projectPath, that.projectPath)
+            && Objects.equals(libraryName, that.libraryName);
     }
 
     @Override
     public int hashCode() {
-        int result = ObjectUtils.hashCode(projectPath);
-        result = 31 * result + ObjectUtils.hashCode(libraryName);
+        int result = Objects.hashCode(projectPath);
+        result = 31 * result + Objects.hashCode(libraryName);
         return result;
     }
 }

@@ -14,8 +14,6 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-Gradle 9.0 has many bug fixes and other general improvements. As a major version, this release also has changes to deprecated APIs and behavior. Consult the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html) for guidance on removed APIs and behavior.
-
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -25,13 +23,13 @@ Include only their name, impactful features should be called out separately belo
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
-```
+```text
 ./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
 ```
 
@@ -41,31 +39,47 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Kotlin 2 TO DO
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-### Groovy 4 TO DO
+<!--
 
-<a name="config-cache"></a>
-### Configuration Cache improvements
+================== TEMPLATE ==============================
 
-Gradle's [Configuration Cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase.
-Gradle uses the Configuration Cache to reload a saved configuration when nothing that affects the build configuration has changed.
+<a name="FILL-IN-KEY-AREA"></a>
+### FILL-IN-KEY-AREA improvements
 
-#### CC TO DO
+<<<FILL IN CONTEXT FOR KEY AREA>>>
+Example:
+> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
+> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
+> nothing that affects the build configuration has changed.
 
-Check out the link:https://blog.gradle.org/road-to-configuration-cache[blog post] to learn more.
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves
+> EXPLAIN how the new release addresses that problem or use case
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
+> LINK to the full documentation for more details
 
-<a name="build-authoring"></a>
-### Build authoring improvements
+To embed videos, use the macros below. 
+You can extract the URL from YouTube by clicking the "Share" button. 
+For Wistia, contact Gradle's Video Team.
+@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
+@wistia(Summary,a5izazvgit)@
 
-Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
+================== END TEMPLATE ==========================
 
-#### Gradle API now uses JSpecify Nullability Annotations
 
-Since Gradle 5.0 we've been using annotations from the dormant and unfinished JSR-305 to make the nullness of type usages explicit for the Gradle API.
-Starting with Gradle 9.0, the Gradle API is annotated using JSpecify instead.
+==========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_version_8.html).
+
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
 
 ## Promoted features
 
@@ -73,8 +87,6 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
 
 The following are the features that have been promoted in this Gradle release.
-
-### Problems API TO DO
 
 <!--
 ### Example promoted

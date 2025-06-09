@@ -16,16 +16,17 @@
 
 package org.gradle.kotlin.dsl.compile
 
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Test
 
 
 class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceIntegrationTest() {
 
     @Test
+    @ToBeImplemented("https://youtrack.jetbrains.com/issue/KT-62556/Wrong-ABI-fingerprint-for-public-function-delegating-to-private-function-with-lambda-parameter")
     fun `avoids buildscript recompilation when task is configured in precompiled script plugin`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("foo")
                 tasks.register("foo")
@@ -41,19 +42,20 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 tasks.register("foo") { doLast { println("bar from task") } }
             """
         )
-        configureProject("foo").assertBuildScriptCompilationAvoided().assertOutputContains("bar from task")
+        configureProject("foo").assertBuildScriptCompiled().assertOutputContains("bar from task")
+
+        // configureProject("foo").assertBuildScriptCompilationAvoided().assertOutputContains("bar from task")
+        // TODO: this is what would ideally happen, or would it? see the above linked issue
     }
 
     @Test
     fun `recompiles buildscript when plugins applied from a precompiled plugin change`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 plugins {
                     id("java-library")
@@ -71,7 +73,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 plugins {
                     id("java")
@@ -91,7 +92,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
             }
         """
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 $extensionClass
                 project.extensions.create<TestExtension>("foo")
@@ -110,7 +110,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled()
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 $extensionClass
                 project.extensions.create<TestExtension>("bar")
@@ -123,7 +122,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
     fun `avoids buildscript recompilation on non ABI change in precompiled script plugin`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("foo")
             """
@@ -138,7 +136,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("bar")
             """
@@ -150,7 +147,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
     fun `recompiles buildscript when new task is registered in precompiled script plugin`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("foo")
             """
@@ -165,7 +161,6 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
-            pluginId,
             """
                 println("bar")
                 tasks.register("foo")
@@ -175,7 +170,8 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
     }
 
     private
-    fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
+    fun withPrecompiledScriptPluginInBuildSrc(pluginSource: String) {
+        val pluginId = "my-plugin"
         withKotlinDslPluginInBuildSrc()
         withFile("buildSrc/src/main/kotlin/$pluginId.gradle.kts", pluginSource)
     }

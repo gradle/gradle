@@ -18,7 +18,10 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+<<<<<<< HEAD
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
+=======
+>>>>>>> master
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -29,6 +32,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         wrapperExecuter.requireDaemon() // For non-daemon executors, tests single-use daemon mode
     }
 
+<<<<<<< HEAD
     @Requires(IntegTestPreconditions.UnsupportedWrapperJavaHomeAvailable)
     def "provides reasonable failure message when attempting to run the wrapper under java #jdk.javaVersion"() {
         given:
@@ -43,6 +47,8 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()
     }
 
+=======
+>>>>>>> master
     def "can run the wrapper with java #jdk.javaVersion"() {
         given:
         prepareWrapper()
@@ -64,7 +70,6 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         wrapperResult.assertTaskExecuted(":help")
 
         where:
-        jdk << AvailableJavaHomes.getSupportedWrapperJdks()
+        jdk << AvailableJavaHomes.getSupportedClientJdks()
     }
-
 }

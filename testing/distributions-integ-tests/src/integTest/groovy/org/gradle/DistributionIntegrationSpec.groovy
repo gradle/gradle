@@ -34,7 +34,11 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
+<<<<<<< HEAD
     protected static final THIRD_PARTY_LIB_COUNT = 127
+=======
+    protected static final THIRD_PARTY_LIB_COUNT = 128
+>>>>>>> master
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -57,7 +61,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-operations-trace",
         "build-option",
         "build-process-services",
-        "build-process-startup",
         "build-state",
         "classloaders",
         "cli",
