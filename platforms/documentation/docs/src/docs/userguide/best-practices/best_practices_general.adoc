@@ -761,3 +761,105 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy/build
 
 === Tags
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`, `<<tags_reference.adoc#tag:composite-builds,#composite-builds>>`
+
+[[avoid_empty_projects]]
+== Avoid Unintentionally Creating Empty Projects
+:keywords: structuring-builds
+
+When using a hierarchical directory structure to organize your Gradle projects, make sure to avoid unintentionally creating empty projects in your build.
+
+=== Explanation
+
+When you use the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.Iterable)[Settings.include()] method to include a project in your Grade settings file, you typically include projects by supplying the directory name like `include("featureA")`.
+This usage assumes that `featureA` is located at the root of your build.
+
+You can also include projects located in subdirectories using hierarchical paths with the `:` charactor as a separator.
+This allows you to organize large builds containing many projects to improve comprehensibility, versus having all your projects live at the root of the build.
+For instance, if project `search` was located in a subdirectory named `features`, itself located in a subdirectory named `subs`, you could call `include(":subs:features:search")` to include it.
+
+However, without further configuration, Gradle will create empty projects for every element of the path.
+In the example above, Gradle will create a project named `:subs`, a project named `:subs:features`, and a project named `:subs:features:search`.
+This probably isn't intended, as you likely only want to include the `search` project.
+Additional projects - even if empty - will slow down your build, clutter reporting, and make your build harder to understand.
+
+To avoid this, be sure to explicitly set the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.projectDir] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module"`).
+
+As ab added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── settings.gradle
+├── app/ // <1>
+│   ├── build.gradle
+│   └── src/
+└── subs/ // <2>
+    └── web/ // <3>
+        ├── my-web-module/ // <4>
+            ├── src/
+            └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── settings.gradle
+├── app/ // <1>
+│   ├── build.gradle
+│   └── src/
+└── subs/ // <2>
+    └── web/ // <3>
+        ├── my-web-module/ // <4>
+            ├── src/
+            └── build.gradle.kts
+
+----
+=====
+
+<1> A project named `app` located at the root of the build
+<2> A directory named `subs` that is **not** intended to represent a Gradle project, but is used to organize the build
+<3> Another organizational directory **not** intended to represent a Gradle project
+<4> A Gradle project named `my-web-module` that **should** be included in the build
+
+====
+include::sample[dir="snippets/bestPractices/avoidEmptyProjects-avoid/kotlin",files="settings.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidEmptyProjects-avoid/groovy",files="settings.gradle[tags=avoid-this]"]
+====
+
+<1> Including the `app` project located at the root of the build requires no additional configuration
+<2> Including a project named `:subs:my-web-module` located in a nested subdirectory causes Gradle to create empty projects for each element of the path
+
+====
+include::sample[dir="snippets/bestPractices/avoidEmptyProjects-avoid/tests",files="avoidEmptyProjects-avoid.out"]
+====
+
+The output of running the `projects` report on the above build shows that Gradle created empty projects for `:subs` and `:subs:web`.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/avoidEmptyProjects-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidEmptyProjects-do/groovy",files="settings.gradle[tags=do-this]"]
+====
+
+<1> After including the `:subs:web:my-web-module` project, its `projectDir` property is set to the physical location of the project
+
+====
+include::sample[dir="snippets/bestPractices/avoidEmptyProjects-do/tests",files="avoidEmptyProjects-do.out"]
+====
+
+The output of running the `projects` report on the above build shows that now Gradle only creates the intended projects for this build.
+
+You can also now invoke tasks on the `my-web-module` project using the shorter name `:my-web-module` like `gradle :my-web-module:build`, instead of `gradle :subs:web:my-web-module:build`.
+
+=== References
+- <<multi_project_builds.adoc,Multi-Project Builds>>
+
+=== Tags
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
