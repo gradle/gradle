@@ -56,6 +56,9 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         'Task.project'          | 'project.name'
         'Task.dependsOn'        | 'dependsOn'
         'Task.taskDependencies' | 'taskDependencies'
+        'Task.shouldRunAfter'   | 'shouldRunAfter'
+        'Task.mustRunAfter'     | 'mustRunAfter'
+        'Task.finalizedBy'      | 'finalizedBy'
     }
 
     def "task fails and configuration is not cached due to Task.#invocation access in #method #desc action"() {
