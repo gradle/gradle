@@ -86,10 +86,14 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         }
 
         where:
-        args                                                          | expectedOutputs                                               | expectedProblems                                                                                                | degradationReason
-        ["-DaccessTaskProject=true"]                                  | ["Task's project accessed!"]                                  | ["Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported."]          | "Project access."
-        ["-DaccessTaskProject=true", "-DaccessTaskDependencies=true"] | ["Task's project accessed!", "Task's dependencies accessed!"] | ["Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported.",
-                                                                                                                                         "Build file 'build.gradle': line 14: invocation of 'Task.taskDependencies' at execution time is unsupported."] | "Project access, TaskDependencies access."
+        expectedProblems                                                                                                | _
+        ["Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported."]          | _
+        ["Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported.",
+         "Build file 'build.gradle': line 14: invocation of 'Task.taskDependencies' at execution time is unsupported."] | _
+        __
+        args                                                          | expectedOutputs                                               | degradationReason
+        ["-DaccessTaskProject=true"]                                  | ["Task's project accessed!"]                                  | "Project access."
+        ["-DaccessTaskProject=true", "-DaccessTaskDependencies=true"] | ["Task's project accessed!", "Task's dependencies accessed!"] | "Project access, TaskDependencies access."
     }
 
     def "CC problems in incompatible tasks are not hidden by CC degradation"() {
