@@ -16,8 +16,10 @@
 
 package org.gradle.api.tasks
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -28,7 +30,7 @@ import static org.junit.Assert.assertTrue
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "file and directory permissions are preserved when using #taskName task"() {
+    def "file and directory permissions are not preserved when using #taskName task by default"() {
         given:
         createDir('parent') {
             child {
@@ -43,6 +45,37 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 archiveFileName = "$archName"
                 destinationDirectory = projectDir
                 from 'parent'
+            }
+            """
+        when:
+        run "pack"
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        then:
+        file("build/child").mode == FileSystem.DEFAULT_DIR_MODE
+        file("build/child/reference.txt").mode == FileSystem.DEFAULT_FILE_MODE
+        where:
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "file and directory permissions are preserved when using #taskName task with file system permissions"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        def archName = "test.${taskName.toLowerCase()}"
+        and:
+        buildFile << """
+            task pack(type: $taskName) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+                useFileSystemPermissions()
             }
             """
         when:
@@ -89,11 +122,10 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         taskName | unpackMethod
         "Zip"    | "unzipTo"
         "Tar"    | "untarTo"
-
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "file and directory permissions are preserved for unpacked #taskName archives"() {
+    def "file and directory permissions are preserved for unpacked #taskName archives by default"() {
         given:
         TestFile testDir = createDir('testdir') {
             mode = 0753
@@ -122,7 +154,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(UnitTestPreconditions.Symlinks)
-    def "symlinked file permissions are preserved when using #taskName task"() {
+    def "symlinked file permissions are preserved when using #taskName task with file system permissions"() {
         given:
         createDir('parent') {
             mode = 0777
@@ -136,6 +168,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 archiveFileName = "$archName"
                 destinationDirectory = projectDir
                 from 'parent'
+                useFileSystemPermissions()
             }
             """
         when:
@@ -184,5 +217,97 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         taskName | packMethod | treeMethod
         "Zip"    | "zipTo"    | "zipTree"
         "Tar"    | "tarTo"    | "tarTree"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "exception is thrown when #description are set after calling useFileSystemPermissions for unpacked #taskName archives"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        def archName = "test.${taskName.toLowerCase()}"
+        and:
+        buildFile << """
+            task pack(type: $taskName) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+                useFileSystemPermissions()
+                $permissionConfiguration
+            }
+            """
+        when:
+        runAndFail "pack"
+
+        then:
+        failure.assertHasCause("File or dir permissions were modified after calling `AbstractArchiveTask.useFileSystemPermissions()`. Call `AbstractArchiveTask.useReproduciblePermissions()` first if you want to set explicit permissions after calling `AbstractArchiveTask.useFileSystemPermissions()`.")
+
+        where:
+        taskName | description       | permissionConfiguration
+        "Zip"    | "filePermissions" | "filePermissions { unix('0755') }"
+        "Zip"    | "dirPermissions"  | "dirPermissions { unix('0755') }"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "exception is thrown if #description are not set when not calling useFileSystemPermissions for unpacked #taskName archives"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        def archName = "test.${taskName.toLowerCase()}"
+        and:
+        buildFile << """
+            task pack(type: $taskName) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+                $permissionConfiguration
+            }
+            """
+        when:
+        runAndFail "pack"
+
+        then:
+        failure.assertHasCause("Dir or file permissions are not set. Set file or dir permissions or call `AbstractArchiveTask.useFileSystemPermissions()` if you want to use file system permissions instead.")
+
+        where:
+        taskName | description       | permissionConfiguration
+        "Zip"    | "filePermissions" | "filePermissions = project.provider { null }"
+        "Zip"    | "dirPermissions"  | "dirPermissions = project.provider { null }"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "can call useReproduciblePermissions() after calling useFileSystemPermissions()"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        def archName = "test.zip"
+        and:
+        buildFile << """
+            task pack(type: Zip) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+                useFileSystemPermissions()
+                useReproduciblePermissions()
+            }
+            """
+        when:
+        run "pack"
+        file(archName).usingNativeTools()."unzipTo"(file("build"))
+
+        then:
+        file("build/child").mode == FileSystem.DEFAULT_DIR_MODE
+        file("build/child/reference.txt").mode == FileSystem.DEFAULT_FILE_MODE
     }
 }

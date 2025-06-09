@@ -28,7 +28,7 @@ class TaskFactoryIntegrationTest extends AbstractIntegrationSpec {
             //Only AbstractTask has the @Inject annotation
 
             public interface BinaryFileProviderTask extends Task {}
-            public class AndroidJarTask extends org.gradle.jvm.tasks.Jar implements BinaryFileProviderTask {}
+            public abstract class AndroidJarTask extends org.gradle.jvm.tasks.Jar implements BinaryFileProviderTask {}
 
             task droidTask(type: AndroidJarTask) {}
             """

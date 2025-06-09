@@ -17,8 +17,10 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
@@ -29,12 +31,15 @@ import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
+
+import javax.inject.Inject;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
@@ -55,6 +60,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final Property<String> archiveClassifier;
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
+    private final Property<Boolean> archivePreserveFileSystemPermissions;
 
     public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -84,7 +90,14 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(false);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(true);
+
+        getDirPermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE));
+        getFilePermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE));
+        archivePreserveFileSystemPermissions = objectFactory.property(Boolean.class).convention(false);
     }
+
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
         if (GUtil.isTrue(value)) {
@@ -299,11 +312,66 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveReproducibleFileOrder.set(reproducibleFileOrder);
     }
 
+    /**
+     * Returns whether the file system permissions of the files and directories in the archive will be preserved.
+     *
+     * @since 9.0.0
+     */
+    @Incubating
+    @Internal
+    public Provider<Boolean> getPreserveFileSystemPermissions() {
+        // Mapping it to a "identity" provider to make it read-only, important for Groovy DSL
+        return archivePreserveFileSystemPermissions.map(useFileSystemPermissions -> useFileSystemPermissions);
+    }
+
+    /**
+     * Sets the file and directory permissions for archived files to be read from the file system.
+     * When this is set, any configuration of {@link #getFilePermissions()} and {@link #getDirPermissions()} will result in an error unless {@link #useReproduciblePermissions()} is called first.
+     *
+     * Note: On Windows, file system permissions are not support and permissions will be set to `0755` for directories and `0644` for files.
+     *
+     * @since 9.0.0
+     */
+    @Incubating
+    public void useFileSystemPermissions() {
+        archivePreserveFileSystemPermissions.set(true);
+        getFilePermissions().set(getProject().getProviders().provider(() -> null));
+        getDirPermissions().set(getProject().getProviders().provider(() -> null));
+    }
+
+    /**
+     * Sets the file and directory permissions for archived files to be reproducible.
+     * Defaults to `0755` for directories and `0644` for files, but can be configured after by setting {@link #getFilePermissions()} and {@link #getDirPermissions()}.
+     *
+     * @since 9.0.0
+     */
+    @Incubating
+    public void useReproduciblePermissions() {
+        archivePreserveFileSystemPermissions.set(false);
+        dirPermissions(permissions -> permissions.unix(FileSystem.DEFAULT_DIR_MODE));
+        filePermissions(permissions -> permissions.unix(FileSystem.DEFAULT_FILE_MODE));
+    }
+
+    private void validatePermissions() {
+        if (archivePreserveFileSystemPermissions.get() && (getFilePermissions().isPresent() || getDirPermissions().isPresent())) {
+            throw new IllegalStateException("File or dir permissions were modified after calling `AbstractArchiveTask.useFileSystemPermissions()`. Call `AbstractArchiveTask.useReproduciblePermissions()` first if you want to set explicit permissions after calling `AbstractArchiveTask.useFileSystemPermissions()`.");
+        } else if (!archivePreserveFileSystemPermissions.get() && (!getFilePermissions().isPresent() || !getDirPermissions().isPresent())) {
+            throw new IllegalStateException("Dir or file permissions are not set. Set file or dir permissions or call `AbstractArchiveTask.useFileSystemPermissions()` if you want to use file system permissions instead.");
+        }
+    }
+
     @Override
     protected CopyActionExecuter createCopyActionExecuter() {
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
         return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
+    }
+
+    @Override
+    @TaskAction
+    protected void copy() {
+        validatePermissions();
+        super.copy();
     }
 }
