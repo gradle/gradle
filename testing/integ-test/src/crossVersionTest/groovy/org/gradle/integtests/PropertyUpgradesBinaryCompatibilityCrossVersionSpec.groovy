@@ -77,8 +77,8 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         succeedsWithPluginCompiledWithPreviousVersion() {
             it.expectDocumentedDeprecationWarning(
                 "The usage of CompileOptions.annotationProcessorGeneratedSourcesDirectory has been deprecated. " +
-                    "This will fail with an error in Gradle 10.0. " +
-                    "Property 'annotationProcessorGeneratedSourcesDirectory' was removed and this compatibility shim will be removed in Gradle 10.0. " +
+                    "This will fail with an error in Gradle 10. " +
+                    "Property 'annotationProcessorGeneratedSourcesDirectory' was removed and this compatibility shim will be removed in Gradle 10. " +
                     "Please use 'generatedSourceOutputDirectory' property instead."
             )
         }

@@ -80,7 +80,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
-import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -121,11 +120,11 @@ public class ProjectBuilderImpl {
 
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {
-            int currentMajorGradleVersion = VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
+            int currentMajorGradleVersion = GradleVersion.current().getMajorVersion();
 
             // We do not use a DeprecationLogger here since the logger is not initialized when using the ProjectBuilder.
             LOGGER.warn("Executing Gradle on JVM versions {} and lower has been deprecated. " +
-                "This will fail with an error in Gradle {}.0. " +
+                "This will fail with an error in Gradle {}. " +
                 "Use JVM {} or greater to execute Gradle. " +
                 "Projects can continue to use older JVM versions via toolchains. " +
                 "Consult the upgrading guide for further information: {}",

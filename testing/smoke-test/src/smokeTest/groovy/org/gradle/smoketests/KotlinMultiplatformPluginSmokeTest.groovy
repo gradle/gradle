@@ -76,7 +76,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             )
             .expectLegacyDeprecationWarningIf(
                 GradleContextualExecuter.notConfigCache && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_20,
-                "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10.0. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project"
+                "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project"
             )
             .build()
 

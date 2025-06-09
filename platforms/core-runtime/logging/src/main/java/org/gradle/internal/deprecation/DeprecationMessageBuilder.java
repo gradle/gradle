@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DefaultGradleVersion;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
@@ -29,8 +30,8 @@ import java.util.List;
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
-    private static final GradleVersion GRADLE10 = GradleVersion.version("10.0");
-    private static final GradleVersion GRADLE11 = GradleVersion.version("11.0");
+    private static final GradleVersion GRADLE10 = GradleVersion.version("10.0.0");
+    private static final GradleVersion GRADLE11 = GradleVersion.version("11.0.0");
 
     @Nullable
     protected String summary;
@@ -82,7 +83,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: This is scheduled to be removed in Gradle 10.0.
+     * Output: This is scheduled to be removed in Gradle 10.
      */
     public WithDeprecationTimeline willBeRemovedInGradle10() {
         this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE10);
@@ -90,7 +91,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: This will fail with an error in Gradle 10.0.
+     * Output: This will fail with an error in Gradle 10.
      */
     public WithDeprecationTimeline willBecomeAnErrorInGradle10() {
         this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE10);
@@ -98,7 +99,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: This will fail with an error in Gradle X.0.
+     * Output: This will fail with an error in Gradle X.
      * <p>
      * Where X is the current major Gradle version + 1.
      *
@@ -107,13 +108,13 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * As an example, Gradle will always have a deprecation about using a version of Java older than the future minimum version.
      */
     public WithDeprecationTimeline willBecomeAnErrorInNextMajorGradleVersion() {
-        int nextMajor = GradleVersion.current().getMajorVersion() + 1;
-        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GradleVersion.version(nextMajor + ".0"));
+        GradleVersion nextMajor = DefaultGradleVersion.current().getNextMajorVersion();
+        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(nextMajor);
         return new WithDeprecationTimeline(this);
     }
 
     /**
-     * Output: Starting with Gradle 10.0, ${message}.
+     * Output: Starting with Gradle 10, ${message}.
      */
     public WithDeprecationTimeline startingWithGradle10(String message) {
         this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE10, message);
@@ -121,7 +122,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: Starting with Gradle 11.0, ${message}.
+     * Output: Starting with Gradle 11, ${message}.
      */
     public WithDeprecationTimeline startingWithGradle11(String message) {
         this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE11, message);

@@ -150,7 +150,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         then:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle 10.0. bar.")
+        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle 10. bar.")
     }
 
     def "reports suppressed deprecation messages with --warning-mode summary"() {
@@ -166,7 +166,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == """
-Deprecated Gradle features were used in this build, making it incompatible with ${DefaultGradleVersion.current().nextMajorVersion}.
+Deprecated Gradle features were used in this build, making it incompatible with Gradle ${DefaultGradleVersion.current().nextMajorVersion.majorVersion}.
 
 You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
 

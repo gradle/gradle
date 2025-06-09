@@ -60,7 +60,7 @@ For a complete overview of changes from 3.x to 4.x, see the https://groovy-lang.
 ===== `is`-prefixed `Boolean` properties no longer recognized by Groovy
 
 Groovy 4 no longer treats getters with an `is` prefix and a `Boolean` return type as properties.
-Gradle still recognizes these as properties for now, but this behavior will change in Gradle 10.0 to align with Groovy 4.
+Gradle still recognizes these as properties for now, but this behavior will change in Gradle 10 to align with Groovy 4.
 See <<#groovy_boolean_properties,the deprecation notice>> for more details.
 
 ===== Non-abstract managed properties may no longer be attached
@@ -812,7 +812,7 @@ There should be no need to perform lookups with `null` keys in an `AttributeCont
 
 Groovy supports link:https://groovy-lang.org/semantics.html#_string_to_enum_coercion[string-to-enum coercion].
 Assigning a `String` to a `Property<T>` where `T` is an enum is now deprecated.
-This will become an error in Gradle 10.0.
+This will become an error in Gradle 10.
 
 This deprecation only affects plugins written in Groovy using the Groovy DSL.
 
@@ -851,7 +851,7 @@ These methods were deprecated in Gradle 8.11, but are no longer deprecated, as t
 The `isConfigurationCacheRequested` property in `StartParameter` was marked `@Deprecated` in Gradle 8.5, but no warnings were emitted until now.
 
 Gradle now emits deprecation warnings when this property is used.
-It will be removed in Gradle 10.0.
+It will be removed in Gradle 10.
 
 Since Gradle 8.5, the same information can be obtained via the `BuildFeatures` service using `configurationCache.requested` property.
 
@@ -984,7 +984,7 @@ Groovy 4 more closely follows the Java Bean specification and link:https://issue
 
 Gradle will emit a deprecation warning when it detects that a boolean property is derived from a method with a `Boolean` return type and `is`-prefix.
 In Gradle 9.0, Groovy 4 will no longer recognize this as a property in build scripts and Groovy source files. Gradle's property-based behavior will not change. Gradle will still consider these properties for up-to-date checks.
-In Gradle 10.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to behave differently when a `Boolean` property is used as an input.
+In Gradle 10, these methods will no longer be treated as defining a Gradle property. This may cause tasks to behave differently when a `Boolean` property is used as an input.
 
 There are two options to fix this:
 
@@ -1123,7 +1123,7 @@ For instance, this wil *not* be allowed:
 [[task_project]]
 ==== Calling `Task.getProject()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.0.
+Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.
 This method can still be used during configuration time.
 
 The deprecation is only issued if the configuration cache is **not** enabled.
@@ -1153,7 +1153,7 @@ In regular Groovy, this is just a method call: `propertyName(value)`, and Gradle
 This feature may be a source of confusion (especially for new users) and adds an extra layer of complexity for users and the Gradle codebase without providing any significant value.
 Sometimes, classes declare methods with the same name, and these may even have semantics that are different from a plain assignment.
 
-These generated methods are now deprecated and will be removed in Gradle 10.0, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
+These generated methods are now deprecated and will be removed in Gradle 10, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
 Use explicit assignment `propertyName = value` instead.
 
 For explicit methods, consider using the `propertyName(value)` syntax instead of `propertyName value` for clarity.
@@ -2113,12 +2113,12 @@ A `getDependencies` method has been added to the interface that returns all decl
 [[deprecate_register_feature_main_source_set]]
 ==== Deprecated calling `registerFeature` using the `main` source set
 
-Calling `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature-java.lang.String-org.gradle.api.Action-[registerFeature]` on the `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html[java]` extension using the `main` source set is deprecated and will change behavior in Gradle 10.0.
+Calling `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature-java.lang.String-org.gradle.api.Action-[registerFeature]` on the `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html[java]` extension using the `main` source set is deprecated and will change behavior in Gradle 10.
 
 Currently, features created while calling `link:{javadocPath}/org/gradle/api/plugins/FeatureSpec.html#usingSourceSet-org.gradle.api.tasks.SourceSet-[usingSourceSet]` with the `main` source set are initialized differently than features created while calling `usingSourceSet` with any other source set.
 Previously, when using the `main` source set, new `implementation`, `compileOnly`, `runtimeOnly`, `api`, and `compileOnlyApi` configurations were created, and the compile and runtime classpaths of the `main` source set were configured to extend these configurations.
 
-Starting in Gradle 10.0, the `main` source set will be treated like any other source set.
+Starting in Gradle 10, the `main` source set will be treated like any other source set.
 With the `java-library` plugin applied (or any other plugin that applies the `java` plugin), calling `usingSourceSet` with the `main` source set will throw an exception.
 This is because the `java` plugin already configures a `main` feature.
 Only if the `java` plugin is not applied will the `main` source set be permitted when calling `usingSourceSet`.
@@ -2278,7 +2278,7 @@ The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
 [[dependency_mutate_dependency_collector_after_finalize]]
 ==== Deprecate mutating `DependencyCollector` dependencies after observation
 
-Starting in Gradle 10.0, mutating dependencies sourced from a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyCollector.html[DependencyCollector], after those dependencies have been observed will result in an error.
+Starting in Gradle 10, mutating dependencies sourced from a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyCollector.html[DependencyCollector], after those dependencies have been observed will result in an error.
 The `DependencyCollector` interface is used to declare dependencies within the test suites DSL.
 
 Consider the following example where a test suite's dependency is mutated after it is observed:
