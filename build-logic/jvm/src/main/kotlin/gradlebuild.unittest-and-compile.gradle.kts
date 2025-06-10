@@ -103,7 +103,8 @@ fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
     val targetRuntimeJavaVersions = mapOf(
         usedInWorkers to 8,
         usedInClient to 8,
-        usedInDaemon to 8
+        usedInDaemon to 17
+//        usedInDaemon to 8
     )
 
     return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(provider {
