@@ -23,7 +23,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
-import org.gradle.api.internal.provider.DefaultProviderWithValue
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
@@ -413,12 +412,12 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         e.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'flavor' of type 'java.lang.Boolean' and another attribute of type 'java.lang.String'"
     }
 
-    def "calling keySet does not realize lazy attributes when they are guaranteed to have a value"() {
+    def "calling keySet does not realize lazy attributes"() {
         def container = createContainer()
         def testAttribute = Attribute.of("test", String)
-        container.attributeProvider(testAttribute, new DefaultProviderWithValue<>(String.class, () -> {
+        container.attributeProvider(testAttribute, TestUtil.providerFactory().provider {
             throw new RuntimeException("Foooooooo")
-        }))
+        })
 
         when:
         def keys = container.keySet()
@@ -433,5 +432,25 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         then:
         def e = thrown(RuntimeException)
         e.message == "Foooooooo"
+    }
+
+    def "passing an empty provider throws an exception when values are evaluated"() {
+        def container = createContainer()
+        def testAttribute = Attribute.of("test", String)
+        container.attributeProvider(testAttribute, Providers.notDefined())
+
+        when:
+        def keys = container.keySet()
+
+        then:
+        keys.size() == 1
+        keys.contains(testAttribute)
+
+        when:
+        container.getAttribute(testAttribute)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Providers passed to attributeProvider(Attribute, Provider) must always be present when queried."
     }
 }

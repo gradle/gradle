@@ -20,32 +20,33 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Supplier;
-
 /**
- * Avoids executing the supplier (which may have side effects) when determining whether the
- * provider is present. The value supplier that backs this provider must always return
- * a non-null value.
+ * Enforces that a given delegate provider always provides a present value, throwing an exception if
+ * the value is not present.
+ * <p>
+ * To be used when a provider should always be present, for example when an API documents that
+ * a provider must always be present. In which case, this provider is able to avoid calculating
+ * the provider's value when calling {@link #calculatePresence(ValueConsumer)}, and therefore
+ * avoid eagerly realizing that value before it is actually needed.
  */
-public class DefaultProviderWithValue<T> extends AbstractProviderWithValue<T> {
+public class DelegatingProviderWithValue<T> extends AbstractProviderWithValue<T> {
 
-    private final Class<T> type;
-    private final Supplier<T> supplier;
+    private final ProviderInternal<T> delegate;
+    private final String nonPresentMessage;
 
-    public DefaultProviderWithValue(Class<T> type, Supplier<T> supplier) {
-        this.type = type;
-        this.supplier = supplier;
+    public DelegatingProviderWithValue(ProviderInternal<T> delegate, String nonPresentMessage) {
+        this.delegate = delegate;
+        this.nonPresentMessage = nonPresentMessage;
     }
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         try (EvaluationScopeContext ignored = openScope()) {
-            T value = supplier.get();
-            if (value == null) {
-                // AbstractProviderWithValue expects the factory to always return a non-null value
-                throw new NullPointerException("Value factory must not return null");
+            Value<? extends T> value = delegate.calculateValue(consumer);
+            if (value.isMissing()) {
+                throw new IllegalStateException(nonPresentMessage);
             }
-            return Value.of(value);
+            return value;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -54,7 +55,7 @@ public class DefaultProviderWithValue<T> extends AbstractProviderWithValue<T> {
     @Nullable
     @Override
     public Class<T> getType() {
-        return type;
+        return delegate.getType();
     }
 
 }

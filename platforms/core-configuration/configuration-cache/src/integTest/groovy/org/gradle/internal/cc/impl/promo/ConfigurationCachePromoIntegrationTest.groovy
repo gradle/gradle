@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.promo
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
+import org.gradle.process.ShellScript
 
 import static org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer.PROMO_PREFIX
 
@@ -160,6 +161,119 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
         then:
         postBuildOutputDoesNotContain(PROMO_PREFIX)
+    }
+
+    def "shows no promo message if external process used at configuration time with #execMethod"() {
+        given:
+        def script = ShellScript.builder().printText("Hello").writeTo(testDirectory, "script")
+
+        buildFile """
+            interface Ops {
+                @Inject ExecOperations getExecOps()
+            }
+
+            def execWithExecOperations() {
+                def ops = objects.newInstance(Ops)
+                ops.execOps.exec { commandLine(${ShellScript.cmdToVarargLiterals(script.commandLine)}) }
+            }
+
+            def execWithGroovyApi() {
+                [${ShellScript.cmdToVarargLiterals(script.commandLine)}].execute().waitForProcessOutput(System.out, System.err)
+            }
+
+            $execMethod()
+
+            tasks.register("greet") {}
+        """
+        when:
+        run("greet")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+
+        where:
+        execMethod << ["execWithExecOperations", "execWithGroovyApi"]
+    }
+
+    def "shows promo message if external process used at execution time with #execMethod"() {
+        given:
+        def script = ShellScript.builder().printText("Hello").writeTo(testDirectory, "script")
+
+        buildFile """
+            interface Ops {
+                @Inject ExecOperations getExecOps()
+            }
+
+            tasks.register("greet") {
+                def ops = objects.newInstance(Ops)
+                def holder = new Object() {
+                    def execWithExecOperations() {
+                        ops.execOps.exec { commandLine(${ShellScript.cmdToVarargLiterals(script.commandLine)}) }
+                    }
+
+                    def execWithGroovyApi(def unused) {
+                        [${ShellScript.cmdToVarargLiterals(script.commandLine)}].execute().waitForProcessOutput(System.out, System.err)
+                    }
+                }
+                doLast {
+                    holder.$execMethod()
+                }
+            }
+        """
+
+        when:
+        run("greet")
+
+        then:
+        postBuildOutputContains(PROMO_PREFIX)
+
+        where:
+        execMethod << ["execWithExecOperations", "execWithGroovyApi"]
+    }
+
+    def "shows promo message if external process used by build logic build with #execMethod"() {
+        given:
+        def script = ShellScript.builder().printText("Hello").writeTo(testDirectory, "script")
+
+        buildFile("buildSrc/build.gradle", """
+            interface Ops {
+                @Inject ExecOperations getExecOps()
+            }
+
+            tasks.register("greet") {
+                def ops = objects.newInstance(Ops)
+                def holder = new Object() {
+                    def execWithExecOperations() {
+                        ops.execOps.exec { commandLine(${ShellScript.cmdToVarargLiterals(script.commandLine)}) }
+                    }
+
+                    def execWithGroovyApi(def unused) {
+                        [${ShellScript.cmdToVarargLiterals(script.commandLine)}].execute().waitForProcessOutput(System.out, System.err)
+                    }
+                }
+                doLast {
+                    holder.$execMethod()
+                }
+            }
+
+            tasks.named("jar") {
+                dependsOn("greet")
+            }
+        """)
+
+        buildFile """
+            tasks.register("run") {}
+        """
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello")
+        postBuildOutputContains(PROMO_PREFIX)
+
+        where:
+        execMethod << ["execWithExecOperations", "execWithGroovyApi"]
     }
 
     def "shows promo message if configuration-only calls are used correctly"() {

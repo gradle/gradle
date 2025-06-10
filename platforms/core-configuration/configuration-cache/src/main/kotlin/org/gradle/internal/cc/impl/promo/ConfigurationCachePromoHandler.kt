@@ -59,4 +59,6 @@ class ConfigurationCachePromoHandler(
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
+
+    override fun onExecutionTimeProblem(problem: PropertyProblem) = onProblem(problem)
 }

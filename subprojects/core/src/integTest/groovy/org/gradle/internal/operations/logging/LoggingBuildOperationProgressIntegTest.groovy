@@ -435,9 +435,10 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
     def int getNumberOfExpectedEvents() {
         // when configuration cache is enabled also "Configuration cache entry reused." and "Parallel Configuration Cache is an incubating feature."
-        def configCacheOffset = GradleContextualExecuter.configCache ? 2 : 0
-        // 13 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed"
-        return 15 + configCacheOffset
+        // when CC is not enabled, "Consider enabling configuration cache to speed up this build"
+        def configCacheOffset = GradleContextualExecuter.configCache ? 2 : 1
+        // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "3 actionable tasks: 3 executed"
+        return 14 + configCacheOffset
     }
 
     private void assertNestedTaskOutputTracked(String projectPath = ':nested') {
