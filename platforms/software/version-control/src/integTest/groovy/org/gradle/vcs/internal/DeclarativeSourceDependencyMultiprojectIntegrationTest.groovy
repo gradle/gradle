@@ -16,9 +16,6 @@
 
 package org.gradle.vcs.internal
 
-import org.gradle.test.fixtures.Flaky
-
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/4700")
 class DeclarativeSourceDependencyMultiprojectIntegrationTest extends AbstractSourceDependencyMultiprojectIntegrationTest {
     @Override
     void mappingFor(String gitRepo, String coords, String repoDef) {
