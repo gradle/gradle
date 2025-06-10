@@ -697,7 +697,10 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }
-        cacheFingerprintController.commitFingerprintTo(fileFor(StateType.BuildFingerprint), fileFor(StateType.ProjectFingerprint))
+        cacheFingerprintController.commitFingerprintTo(
+            fileFor(StateType.BuildFingerprint),
+            fileFor(StateType.ProjectFingerprint)
+        )
     }
 
     private
