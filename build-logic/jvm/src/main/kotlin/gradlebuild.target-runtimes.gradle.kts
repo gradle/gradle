@@ -77,8 +77,6 @@ fun enforceCrossProjectCompatibility(gradleModule: GradleModuleExtension) {
 
 fun ModuleTargetRuntimes.asList(): Provider<List<String>> {
     val targetRuntimeValues = mapOf(
-        usedForStartup to listOf(TargetRuntimesAttribute.STARTUP),
-        usedInWrapper to listOf(TargetRuntimesAttribute.WRAPPER),
         usedInWorkers to listOf(TargetRuntimesAttribute.WORKER),
         usedInClient to listOf(TargetRuntimesAttribute.CLIENT),
         usedInDaemon to listOf(TargetRuntimesAttribute.DAEMON)
