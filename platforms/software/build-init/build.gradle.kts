@@ -89,8 +89,9 @@ dependencies {
     testFixturesImplementation(projects.pluginsJvmTestSuite)
 
 
-    testImplementation(projects.cli)
     testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.cli)
+    testImplementation(projects.internalIntegTesting)
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
     testImplementation(projects.processServices)
