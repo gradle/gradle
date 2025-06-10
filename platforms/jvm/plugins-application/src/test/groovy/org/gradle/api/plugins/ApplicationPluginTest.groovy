@@ -158,4 +158,14 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         !project.tasks.getByName("run").modularity.inferModulePath.get()
         !project.tasks.getByName("startScripts").modularity.inferModulePath.get()
     }
+
+    def "JAR's 'Main-Class' attribute is set to the application's 'mainClass' property"() {
+        when:
+        plugin.apply(project)
+        project.application.mainClass = "foo"
+        project.evaluate()
+
+        then:
+        project.tasks.getByName("jar").manifest.attributes["Main-Class"] == "foo"
+    }
 }
