@@ -72,13 +72,13 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
         if (pluginRequest.getId().equals(AutoAppliedDevelocityPlugin.BUILD_SCAN_PLUGIN_ID) &&
             isPresentOnClasspath(AutoAppliedDevelocityPlugin.ID)
         ) {
-            // The JAR that contains the enterprise plugin also contains the build scan plugin.
+            // The JAR that contains the enterprise plugin also contains the Develocity plugin.
             // If the user is in the process of migrating to Gradle 6 and has not yet moved away from the scan plugin,
             // they might hit this scenario when running with --scan as that will have auto applied the new plugin.
             // Instead of a generic failure, we provide more specific feedback to help people upgrade.
             // We use the same message the user would have seen if they didn't use --scan and trigger the auto apply.
             throw new InvalidPluginRequestException(pluginRequest,
-                "The build scan plugin is not compatible with this version of Gradle.\n"
+                "The Develocity plugin is not compatible with this version of Gradle.\n"
                     + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
             );
         }

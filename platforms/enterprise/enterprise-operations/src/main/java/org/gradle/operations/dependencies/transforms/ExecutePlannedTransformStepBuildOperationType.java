@@ -44,7 +44,7 @@ public class ExecutePlannedTransformStepBuildOperationType implements BuildOpera
         /**
          * Returns the display name of the transformer.
          *
-         * Not used by build scans but for TAPI events in {@code TransformOperationMapper}.
+         * Not used by a Build Scan but for TAPI events in {@code TransformOperationMapper}.
          */
         @NotUsedByScanPlugin
         String getTransformerName();
@@ -52,7 +52,7 @@ public class ExecutePlannedTransformStepBuildOperationType implements BuildOpera
         /**
          * Returns the display name of the transform step subject.
          *
-         * Not used by build scans but for TAPI events in {@code TransformOperationMapper}.
+         * Not used by a Build Scan but for TAPI events in {@code TransformOperationMapper}.
          */
         @NotUsedByScanPlugin
         String getSubjectName();
