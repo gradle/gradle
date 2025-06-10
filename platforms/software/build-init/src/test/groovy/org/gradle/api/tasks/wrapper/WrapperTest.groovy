@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.wrapper
 
-
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.integtests.fixtures.TestResources
@@ -33,11 +32,7 @@ import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
 class WrapperTest extends AbstractTaskTest {
-
     private static final String TARGET_WRAPPER_FINAL = "gradle/wrapper"
-
-    private static final String DEFAULT_USER = "jdoe"
-    private static final String DEFAULT_PASSWORD = "changeit"
 
     @Rule
     BlockingHttpsServer server = new BlockingHttpsServer()
@@ -52,13 +47,11 @@ class WrapperTest extends AbstractTaskTest {
     def setup() {
         keyStore = TestKeyStore.init(resources.dir)
         server.configure(keyStore)
-        server.withBasicAuthentication(DEFAULT_USER, DEFAULT_PASSWORD)
         server.start()
         System.setProperty("org.gradle.internal.services.base.url", getBaseUrl())
         keyStore.getTrustStoreSettings().forEach { key, value -> System.setProperty(key, value)}
 
         wrapper = createTask(Wrapper.class)
-
         wrapper.setGradleVersion("8.0")
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
                 TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
@@ -130,14 +123,15 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.getDistributionUrl() == getBaseUrl() + downloadUrlSuffix
 
         where:
-        version                     | request                       | reply                                                 | downloadUrlSuffix
-        "8.13"                      | null                          | null                                                  | "/distributions/gradle-8.13-bin.zip"
-        "7.6-milestone-1"           | null                          | null                                                  | "/distributions/gradle-7.6-milestone-1-bin.zip"
-        "latest"                    | "/versions/current"           | """{ "version" : "8.14.1" }"""                        | "/distributions/gradle-8.14.1-bin.zip"
-        "release-candidate"         | "/versions/release-candidate" | """{ "version" : "9.0-RC-1"}"""                       | "/distributions/gradle-9.0-RC-1-bin.zip"
-        "release-milestone"         | "/versions/milestone"         | """{ "version" : "9.0.0-milestone-9" }"""             | "/distributions/gradle-9.0.0-milestone-9-bin.zip"
-        "nightly"                   | "/versions/nightly"           | """{ "version" : "9.0.0-20250603003140+0000" }"""     | "/distributions-snapshots/gradle-9.0.0-20250603003140+0000-bin.zip"
-        "release-nightly"           | "/versions/release-nightly"   | """{ "version" : "8.14.1-20250522010941+0000" }"""    | "/distributions-snapshots/gradle-8.14.1-20250522010941+0000-bin.zip"
+        version                     | request                       | reply                                              | downloadUrlSuffix
+        "8.13"                      | null                          | null                                               | "/distributions/gradle-8.13-bin.zip"
+        "7.6-milestone-1"           | null                          | null                                               | "/distributions/gradle-7.6-milestone-1-bin.zip"
+        "9.9.1-20101224110000+1100" | null                          | null                                               | "/distributions-snapshots/gradle-9.9.1-20101224110000+1100-bin.zip"
+        "latest"                    | "/versions/current"           | """{ "version" : "8.14.1" }"""                     | "/distributions/gradle-8.14.1-bin.zip"
+        "release-candidate"         | "/versions/release-candidate" | """{ "version" : "9.0-RC-1"}"""                    | "/distributions/gradle-9.0-RC-1-bin.zip"
+        "release-milestone"         | "/versions/milestone"         | """{ "version" : "9.0.0-milestone-9" }"""          | "/distributions/gradle-9.0.0-milestone-9-bin.zip"
+        "release-nightly"           | "/versions/release-nightly"   | """{ "version" : "8.14.1-20250522010941+0000" }""" | "/distributions-snapshots/gradle-8.14.1-20250522010941+0000-bin.zip"
+        "nightly"                   | "/versions/nightly"           | """{ "version" : "9.0.0-20250603003140+0000" }"""  | "/distributions-snapshots/gradle-9.0.0-20250603003140+0000-bin.zip"
     }
 
     def "uses explicitly defined distribution url"() {
@@ -272,6 +266,6 @@ class WrapperTest extends AbstractTaskTest {
     }
 
     private String getBaseUrl() {
-        "https://$DEFAULT_USER:$DEFAULT_PASSWORD@localhost:${server.port}"
+        server.uri.toString()
     }
 }
