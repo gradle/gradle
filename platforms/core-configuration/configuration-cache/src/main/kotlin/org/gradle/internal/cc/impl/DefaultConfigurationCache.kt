@@ -43,6 +43,7 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintStartParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
@@ -702,13 +703,15 @@ class DefaultConfigurationCache internal constructor(
     private
     fun startCollectingCacheFingerprint() {
         cacheFingerprintController.maybeStartCollectingFingerprint(
-            { entryStore.assignSpoolFile(StateType.BuildFingerprint) },
-            { entryStore.assignSpoolFile(StateType.ProjectFingerprint) }
-        ) { stateFile ->
-            cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
-                profileNameFor(stateFile)
+            object : ConfigurationCacheFingerprintStartParameters {
+                override fun assignBuildScopedSpoolFile() = entryStore.assignSpoolFile(StateType.BuildFingerprint)
+                override fun assignProjectScopedSpoolFile() = entryStore.assignSpoolFile(StateType.ProjectFingerprint)
+                override fun writeContextForOutputStream(stateFile: ConfigurationCacheStateStore.StateFile) =
+                    cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
+                        profileNameFor(stateFile)
+                    }
             }
-        }
+        )
     }
 
     private
