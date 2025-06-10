@@ -353,6 +353,26 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         assertConfigurationCacheDegradation()
     }
 
+    def "degradation controller is available in vintage"() {
+        given:
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+                doLast {
+                    println("Hello")
+                }
+            }
+        """
+
+        when:
+        succeeds(":foo")
+
+        then:
+        outputContains("Hello")
+    }
+
     private static String taskWithInjectedDegradationController() {
         """
             abstract class DegradingTask extends DefaultTask {
