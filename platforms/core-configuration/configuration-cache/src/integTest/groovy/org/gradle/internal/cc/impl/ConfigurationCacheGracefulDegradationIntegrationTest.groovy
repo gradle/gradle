@@ -276,7 +276,8 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         outputContains("Hello from B")
     }
 
-    def "cannot require CC degradation at execution time"() {
+    def "ignore CC degradation requests at execution time"() {
+        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -288,10 +289,13 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheFails ":foo"
+        configurationCacheRun ":foo", "-d"
 
         then:
-        failureCauseContains("Configuration cache degradation requests are accepted only at configuration time")
+        configurationCache.assertStateStored()
+
+        and:
+        outputContains("Configuration cache degradation request of task :foo is ignored at execution time")
     }
 
     def "tasks instantiated during execution have degradation requests ignored"() {

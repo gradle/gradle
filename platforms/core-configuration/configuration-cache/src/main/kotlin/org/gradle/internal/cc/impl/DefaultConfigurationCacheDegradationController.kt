@@ -16,10 +16,10 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
+import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
@@ -33,12 +33,16 @@ internal class DefaultConfigurationCacheDegradationController(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
 ) : ConfigurationCacheDegradationController {
 
+    private
+    val logger = Logging.getLogger(DefaultConfigurationCacheDegradationController::class.java)
+
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
     val degradationReasons by lazy(::collectDegradationReasons)
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         if (!configurationTimeBarrier.isAtConfigurationTime) {
-            throw GradleException("Configuration cache degradation requests are accepted only at configuration time")
+            logger.debug("Configuration cache degradation request of task {} is ignored at execution time", task.path)
+            return
         }
         tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
     }
