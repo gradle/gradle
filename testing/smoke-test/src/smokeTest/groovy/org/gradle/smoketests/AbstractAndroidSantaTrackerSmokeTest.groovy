@@ -105,7 +105,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
             )
         }
         runner.deprecations(SantaTrackerDeprecations) {
-            maybeExpectIsPropertyDeprecationWarnings()
+            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
         }
         1.times {
             runner.maybeExpectLegacyDeprecationWarning(

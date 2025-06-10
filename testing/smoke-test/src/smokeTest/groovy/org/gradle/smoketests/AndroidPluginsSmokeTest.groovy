@@ -74,7 +74,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when:
         def result = runner
             .deprecations(AndroidDeprecations) {
-                expectIsPropertyDeprecationWarnings()
+                expectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
 
@@ -107,7 +107,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         def result = runner
             .deprecations(AndroidDeprecations) {
-                expectIsPropertyDeprecationWarnings()
+                expectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
 
@@ -128,7 +128,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner
             .deprecations(AndroidDeprecations) {
-                maybeExpectIsPropertyDeprecationWarnings()
+                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
 
@@ -162,13 +162,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         agpRunner(agpVersion, 'clean')
             .deprecations(AndroidDeprecations) {
-                maybeExpectIsPropertyDeprecationWarnings()
+                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner
             .deprecations(AndroidDeprecations) {
-                maybeExpectIsPropertyDeprecationWarnings()
+                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }.build()
 
         then:

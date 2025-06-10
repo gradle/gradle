@@ -88,7 +88,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
             androidComponents {
                 onVariants {
-                    it.buildConfigFields.put("MyCustomField",
+                    it.buildConfigFields!!.put("MyCustomField",
                         customFieldValueProvider
                             .${provider['mapBegin']}
                             BuildConfigField("String", "\\"{${provider['get']}}\\"", "My custom field")
@@ -132,13 +132,13 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         and:
         def runner = mixedRunner(false, agpVersion, kotlinVersionNumber, taskName)
             .deprecations(AndroidDeprecations) {
-                maybeExpectIsPropertyDeprecationWarnings()
+                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
 
         when: 'running the build for the 1st time'
         beforeAndroidBuild(runner)
         def result = runner.deprecations(AndroidDeprecations) {
-            maybeExpectIsPropertyDeprecationWarnings()
+            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
         }.build()
 
         then:
@@ -151,7 +151,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
         when: 'running the build for the 2nd time'
         result = runner.deprecations(AndroidDeprecations) {
-            maybeExpectIsPropertyDeprecationWarnings()
+            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
         }.build()
 
         then:
