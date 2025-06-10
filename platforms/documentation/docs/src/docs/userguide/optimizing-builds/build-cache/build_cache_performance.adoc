@@ -96,7 +96,7 @@ A rise in the hit rate there probably indicates better usage by developers:
 [.screenshot]
 image::build-cache/cache-admin-hit-rate.png[build cache hit rate]
 
-== Analyzing performance in a Build Scan
+== Analyzing performance in Build Scan
 
 A Build Scan provides a summary of all cache operations for a build via the _"Build cache"_ section of the _"Performance"_ page.
 

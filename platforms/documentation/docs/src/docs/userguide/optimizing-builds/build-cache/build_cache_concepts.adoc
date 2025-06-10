@@ -16,7 +16,7 @@
 
 How much of your build gets loaded from the cache depends on many factors.
 In this section you will see some of the tools that are essential for well-cached builds.
-A https://gradle.com/develocity/product/build-scan[Build Scan] is part of that toolchain and will be used throughout this guide.
+https://gradle.com/develocity/product/build-scan[Build Scan] is part of that toolchain and will be used throughout this guide.
 
 == Build cache key
 

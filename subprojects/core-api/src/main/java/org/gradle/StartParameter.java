@@ -762,7 +762,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns true if Build Scan should be created.
+     * Returns true if a Build Scan should be created.
      *
      * @since 3.4
      */
