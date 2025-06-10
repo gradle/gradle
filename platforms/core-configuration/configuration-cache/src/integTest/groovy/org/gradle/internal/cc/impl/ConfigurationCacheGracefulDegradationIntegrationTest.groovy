@@ -320,6 +320,39 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         result.assertTaskNotExecuted(":a")
     }
 
+    def "an exception during degradation reason evaluation introduces CC degradation"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { throw new IllegalStateException("Reason evaluation failed!") })
+
+                doLast {
+                    println("Project path is \${project.path}")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun ":foo"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Invocation of 'Task.project' by task ':foo' at execution time is unsupported with the configuration cache.")
+            withIncompatibleTask(":foo", "Reason evaluation failed!.")
+        }
+
+        and:
+        result.assertTaskExecuted(":foo")
+        assertConfigurationCacheDegradation()
+    }
+
     private static String taskWithInjectedDegradationController() {
         """
             abstract class DegradingTask extends DefaultTask {

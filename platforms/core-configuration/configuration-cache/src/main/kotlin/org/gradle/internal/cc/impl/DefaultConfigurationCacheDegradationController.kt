@@ -53,7 +53,7 @@ internal class DefaultConfigurationCacheDegradationController(
             deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
                 scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
                     val taskDegradationReasons = tasksDegradationRequests[task]
-                        ?.mapNotNull { it.orNull }
+                        ?.mapNotNull { evaluateDegradationReason(it) }
                         ?.sorted()
 
                     if (!taskDegradationReasons.isNullOrEmpty()) {
@@ -63,5 +63,12 @@ internal class DefaultConfigurationCacheDegradationController(
             }
         }
         return result
+    }
+
+    // Request is represented by the user code, which can throw. We evaluate such requests to valid degradation reasons.
+    private fun evaluateDegradationReason(request: Provider<String>): String? = try {
+        request.orNull
+    } catch (e: Exception) {
+        e.message ?: e::class.qualifiedName
     }
 }
