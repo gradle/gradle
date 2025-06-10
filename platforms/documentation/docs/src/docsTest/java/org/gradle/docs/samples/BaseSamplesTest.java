@@ -23,12 +23,14 @@ import org.gradle.exemplar.test.runner.SampleModifiers;
 import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 import org.gradle.integtests.fixtures.executer.DependencyReplacingSampleModifier;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
+import org.gradle.integtests.fixtures.executer.RemoveDeadEndCacheServerModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.BuildScanRecommendationOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.EmptyLineRemovalOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmptyLineTrimmerOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
@@ -56,12 +58,14 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     SpringBootWebAppTestOutputNormalizer.class,
     EmptyLineTrimmerOutputNormalizer.class,
     RepositoryMirrorOutputNormalizer.class,
-    BuildScanRecommendationOutputNormalizer.class
+    BuildScanRecommendationOutputNormalizer.class,
+    EmptyLineRemovalOutputNormalizer.class,
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
     MoreMemorySampleModifier.class,
-    DependencyReplacingSampleModifier.class
+    DependencyReplacingSampleModifier.class,
+    RemoveDeadEndCacheServerModifier.class,
 })
 /*
  * To run the samples tests:

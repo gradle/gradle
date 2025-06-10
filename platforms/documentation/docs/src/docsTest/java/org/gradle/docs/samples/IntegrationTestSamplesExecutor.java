@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,18 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .withArguments(filteredFlags)
             .withArgument("--no-problems-report")
             .withTasks(args);
+
+        if (flags.contains("--build-cache")) {
+            // > Failed to load cache entry b982a8cf9ce337cea7c2eacd8bb478fb for task ':bundle': Could not load from local cache:
+            //   Timeout waiting to lock Build cache (/mnt/tcagent1/work/b6cfc23ab10332e6/intTestHomeDir/distributions-full/caches/build-cache-1).
+            //   It is currently in use by another process.
+            //    Owner PID: 5250
+            //    Our PID: 4769
+            //    Owner Operation:
+            //    Our operation:
+            //    Lock file: /mnt/tcagent1/work/b6cfc23ab10332e6/intTestHomeDir/distributions-full/caches/build-cache-1/build-cache-1.lock
+            executer.withGradleUserHomeDir(new File(workingDir, "user-home"));
+        }
 
         if (flags.stream().anyMatch(NO_STACKTRACE_CHECK::equals)) {
             executer.withStackTraceChecksDisabled();
