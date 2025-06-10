@@ -702,8 +702,8 @@ class DefaultConfigurationCache internal constructor(
     private
     fun startCollectingCacheFingerprint() {
         cacheFingerprintController.maybeStartCollectingFingerprint(
-            entryStore.assignSpoolFile(StateType.BuildFingerprint),
-            entryStore.assignSpoolFile(StateType.ProjectFingerprint)
+            { entryStore.assignSpoolFile(StateType.BuildFingerprint) },
+            { entryStore.assignSpoolFile(StateType.ProjectFingerprint) }
         ) { stateFile ->
             cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
                 profileNameFor(stateFile)

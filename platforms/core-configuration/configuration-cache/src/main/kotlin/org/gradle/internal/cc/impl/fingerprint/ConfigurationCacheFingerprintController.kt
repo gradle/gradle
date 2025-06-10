@@ -124,8 +124,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     abstract class WritingState {
 
         open fun maybeStart(
-            buildScopedSpoolFile: StateFile,
-            projectScopedSpoolFile: StateFile,
+            buildScopedSpoolFile: () -> StateFile,
+            projectScopedSpoolFile: () -> StateFile,
             writeContextForOutputStream: (StateFile) -> CloseableWriteContext
         ): WritingState =
             illegalStateFor("start")
@@ -162,15 +162,17 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     inner class Idle : WritingState() {
         override fun maybeStart(
-            buildScopedSpoolFile: StateFile,
-            projectScopedSpoolFile: StateFile,
+            buildScopedSpoolFile: () -> StateFile,
+            projectScopedSpoolFile: () -> StateFile,
             writeContextForOutputStream: (StateFile) -> CloseableWriteContext
         ): WritingState {
 
+            val buildScopedFile = buildScopedSpoolFile()
+            val projectScopedFile = projectScopedSpoolFile()
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintWriterHost(),
-                writeContextForOutputStream(buildScopedSpoolFile),
-                writeContextForOutputStream(projectScopedSpoolFile),
+                writeContextForOutputStream(buildScopedFile),
+                writeContextForOutputStream(projectScopedFile),
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 workExecutionTracker,
@@ -179,7 +181,7 @@ class ConfigurationCacheFingerprintController internal constructor(
                 buildStateRegistry
             )
             addListener(fingerprintWriter)
-            return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
+            return Writing(fingerprintWriter, buildScopedFile, projectScopedFile)
         }
 
         override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
@@ -198,8 +200,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val projectScopedSpoolFile: StateFile
     ) : WritingState() {
         override fun maybeStart(
-            buildScopedSpoolFile: StateFile,
-            projectScopedSpoolFile: StateFile,
+            buildScopedSpoolFile: () -> StateFile,
+            projectScopedSpoolFile: () -> StateFile,
             writeContextForOutputStream: (StateFile) -> CloseableWriteContext
         ): WritingState {
             return this
@@ -233,8 +235,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val projectScopedSpoolFile: StateFile
     ) : WritingState() {
         override fun maybeStart(
-            buildScopedSpoolFile: StateFile,
-            projectScopedSpoolFile: StateFile,
+            buildScopedSpoolFile: () -> StateFile,
+            projectScopedSpoolFile: () -> StateFile,
             writeContextForOutputStream: (StateFile) -> CloseableWriteContext
         ): WritingState {
             addListener(fingerprintWriter)
@@ -318,8 +320,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     // This should be strict but currently this method may be called multiple times when a
     // build invocation both runs tasks and queries models
     fun maybeStartCollectingFingerprint(
-        buildScopedSpoolFile: StateFile,
-        projectScopedSpoolFile: StateFile,
+        buildScopedSpoolFile: () -> StateFile,
+        projectScopedSpoolFile: () -> StateFile,
         writeContextForOutputStream: (StateFile) -> CloseableWriteContext
     ) {
         writingState = writingState.maybeStart(buildScopedSpoolFile, projectScopedSpoolFile, writeContextForOutputStream)
