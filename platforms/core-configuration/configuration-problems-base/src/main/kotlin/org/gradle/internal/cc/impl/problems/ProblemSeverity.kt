@@ -46,5 +46,5 @@ enum class ProblemSeverity {
     /**
      * A problem produced by a task, requested Configuration Cache[degradation][org.gradle.api.internal.ConfigurationCacheDegradationController.requireConfigurationCacheDegradation].
      */
-    DegradationRequested
+    SuppressedSilently
 }

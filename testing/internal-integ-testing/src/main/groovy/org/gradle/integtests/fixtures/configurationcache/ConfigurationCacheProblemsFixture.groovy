@@ -45,6 +45,7 @@ import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.junit.Assert.assertThrows
 import static org.junit.Assert.assertTrue
 
 final class ConfigurationCacheProblemsFixture {
@@ -209,6 +210,26 @@ final class ConfigurationCacheProblemsFixture {
         assertHtmlReportHasProblems(result.output, newProblemsSpec(specAction))
     }
 
+    void assertResultConsoleSummaryHasNoProblems(ExecutionResult result) {
+        assertThrows(AssertionFailedError) {
+            extractSummary(result.output)
+        }
+    }
+
+    void assertResultHasConsoleSummary(
+        ExecutionResult result,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertResultHasConsoleSummary(result, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertResultHasConsoleSummary(
+        ExecutionResult result,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHasConsoleSummary(result.output, newProblemsSpec(specAction))
+    }
+
     private void assertHtmlReportHasProblems(
         String output,
         HasConfigurationCacheProblemsSpec spec
@@ -217,7 +238,6 @@ final class ConfigurationCacheProblemsFixture {
         assertInputs(output, rootDir, spec)
         assertIncompatibleTasks(output, rootDir, spec)
     }
-
 
     HasConfigurationCacheProblemsSpec newProblemsSpec(
         @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
@@ -367,9 +387,9 @@ final class ConfigurationCacheProblemsFixture {
             }
         }
         if (!(spec instanceof ItemSpec.IgnoreUnexpected)) {
-            assert unexpectedItems.isEmpty() : "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
+            assert unexpectedItems.isEmpty(): "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
         }
-        assert expectedItems.isEmpty() : "Expecting $expectedItems in the report, found $unexpectedItems"
+        assert expectedItems.isEmpty(): "Expecting $expectedItems in the report, found $unexpectedItems"
     }
 
     static String formatItemForAssert(Map<String, Object> item, String kind) {
@@ -394,7 +414,7 @@ final class ConfigurationCacheProblemsFixture {
             case "Field": return trace['name']
             case "InputProperty": return trace['name']
             case "OutputProperty": return trace['name']
-            // Build file 'build.gradle'
+                // Build file 'build.gradle'
             case "BuildLogic": return trace['location'].toString().capitalize()
             case "BuildLogicClass": return trace['type']
             default: return "Gradle runtime"
@@ -529,7 +549,7 @@ ${text}
         return new ProblemsSummary(totalProblems, problems.size(), problems)
     }
 
-    @ToString(includeNames=true)
+    @ToString(includeNames = true)
     private static class ProblemsSummary {
         final int totalProblems
         final int uniqueProblems

@@ -54,7 +54,13 @@ class ConfigurationCacheProblemsSummary(
     var overflowed: Boolean = false
 
     private
-    var totalProblemCount: Int = 0
+    var interrupted: Boolean = false
+
+    private
+    val totalProblemCount: Int
+        get() = deferredProblemCount +
+            suppressedProblemCount +
+            if (interrupted) 1 else 0
 
     private
     var deferredProblemCount: Int = 0
@@ -99,11 +105,11 @@ class ConfigurationCacheProblemsSummary(
      */
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
         lock.withLock {
-            totalProblemCount += 1
             when (severity) {
                 ProblemSeverity.Deferred -> deferredProblemCount += 1
                 ProblemSeverity.Suppressed -> suppressedProblemCount += 1
-                ProblemSeverity.Interrupting, ProblemSeverity.DegradationRequested -> {}
+                ProblemSeverity.Interrupting -> interrupted = true
+                else -> {}
             }
             if (overflowed) {
                 return false
@@ -112,9 +118,11 @@ class ConfigurationCacheProblemsSummary(
                 overflowed = true
                 return false
             }
-            val isNewCause = recordProblemCause(problem, severity)
-            if (isNewCause) {
-                collectOriginalException(problem)
+            if (severity != ProblemSeverity.SuppressedSilently) {
+                val isNewCause = recordProblemCause(problem, severity)
+                if (isNewCause) {
+                    collectOriginalException(problem)
+                }
             }
             return true
         }
@@ -173,20 +181,23 @@ class Summary(
     fun textForConsole(cacheActionText: String, htmlReportFile: File? = null): String {
         val documentationRegistry = DocumentationRegistry()
         return StringBuilder().apply {
-            appendLine()
-            appendSummaryHeader(cacheActionText, totalProblemCount)
-            appendLine()
-            topProblemsForConsole().forEach { problem ->
-                append("- ")
-                append(problem.userCodeLocation.capitalized())
-                append(": ")
-                appendLine(problem.message)
-                problem.documentationSection?.let {
-                    appendLine("  See ${documentationRegistry.getDocumentationFor(it.page, it.anchor)}")
+            // When build degrades gracefully, we keep the console output minimal but still want to see the report link
+            if (totalProblemCount > 0) {
+                appendLine()
+                appendSummaryHeader(cacheActionText, totalProblemCount)
+                appendLine()
+                topProblemsForConsole().forEach { problem ->
+                    append("- ")
+                    append(problem.userCodeLocation.capitalized())
+                    append(": ")
+                    appendLine(problem.message)
+                    problem.documentationSection?.let {
+                        appendLine("  See ${documentationRegistry.getDocumentationFor(it.page, it.anchor)}")
+                    }
                 }
-            }
-            if (problemCauseCount > MAX_CONSOLE_PROBLEMS) {
-                appendLine("plus ${problemCauseCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
+                if (problemCauseCount > MAX_CONSOLE_PROBLEMS) {
+                    appendLine("plus ${problemCauseCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
+                }
             }
             htmlReportFile?.let {
                 appendLine()
@@ -200,8 +211,6 @@ class Summary(
         problemCauses.entries.stream()
             .collect(Comparators.least(MAX_CONSOLE_PROBLEMS, consoleComparatorForProblemCauseWithSeverity()))
             .asSequence()
-            // we don't print degradation problems in the console
-            .filter { it.value != ProblemSeverity.DegradationRequested }
             .map { it.key }
 
     private
@@ -260,8 +269,8 @@ private
 fun consoleComparatorForSeverity(): Comparator<ProblemSeverity> =
     Comparator.comparingInt { it: ProblemSeverity ->
         when (it) {
-            ProblemSeverity.Deferred -> 1
-            ProblemSeverity.DegradationRequested -> 2
+            ProblemSeverity.SuppressedSilently -> 1
+            ProblemSeverity.Deferred -> 2
             ProblemSeverity.Suppressed -> 3
             ProblemSeverity.Interrupting -> 4
         }

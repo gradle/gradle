@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.ConfigurationCacheDegradationController
-import org.junit.Ignore
 
 import javax.inject.Inject
 
@@ -40,6 +39,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
             withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
@@ -48,7 +50,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         outputContains("Project path is :")
-        assertConfigurationCacheDegradation("task `:a` of type `DegradingTask`")
+        assertConfigurationCacheDegradation()
     }
 
     def "a task can require CC degradation for multiple reasons"() {
@@ -80,6 +82,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = expectedProblems.size()
             expectedProblems.forEach { withProblem(it) }
@@ -97,8 +102,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         ["-DaccessTaskProject=true", "-DaccessTaskDependencies=true"] | ["Task's project accessed!", "Task's dependencies accessed!"] | "Project access, TaskDependencies access."
     }
 
-    @Ignore("CC problems became interrupting failures in 9.0")
-    def "CC problems in incompatible tasks are not hidden by CC degradation"() {
+    def "CC problems in warning mode are not hidden by CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
@@ -117,14 +121,20 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheFails "foo", "bar"
+        configurationCacheRunLenient "foo", "bar"
 
         then:
         configurationCache.assertNoConfigurationCache()
-        problems.assertFailureHtmlReportHasProblems(failure) {
+
+        and:
+        problems.assertResultHasConsoleSummary(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
+        }
+        problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 2
             withProblem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported.")
             withIncompatibleTask(":foo", "Project access.")
         }
     }
@@ -149,6 +159,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
             withProblem("Build file 'included/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
@@ -157,7 +170,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         outputContains("Hello from included build :")
-        assertConfigurationCacheDegradation("task `:included:foo` of type `DegradingTask`")
+        assertConfigurationCacheDegradation()
     }
 
     def "a buildSrc internal task that requires CC degradation does not introduce root build CC degradation"() {
@@ -216,6 +229,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
             withProblem("Build file 'included/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
@@ -225,7 +241,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         and:
         outputContains("Hello from included build :")
         outputContains("Hello from root build")
-        assertConfigurationCacheDegradation("task `:included:foo` of type `DegradingTask`")
+        assertConfigurationCacheDegradation()
     }
 
     def "no CC degradation if incompatible task is not presented in the task graph"() {
@@ -289,6 +305,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
 
         when:
+        // :tasks instantiates tasks instances at execution time
         configurationCacheRun ":tasks"
 
         then:
@@ -308,10 +325,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
     }
 
-    private assertConfigurationCacheDegradation(String... tasks) {
-        postBuildOutputContains("Configuration caching disabled because degradation was requested.")
-        tasks.each { task ->
-            postBuildOutputContains("\t- $task")
-        }
+    private void assertConfigurationCacheDegradation() {
+        postBuildOutputContains("Configuration caching disabled because incompatible task")
     }
 }
