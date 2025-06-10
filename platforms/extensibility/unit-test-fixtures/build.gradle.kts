@@ -69,6 +69,8 @@ dependencies {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
     integTestDistributionRuntimeClasspath(projects.distributionsFull)
+
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

@@ -16,42 +16,32 @@
 
 package org.gradle.testfixtures
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 @Issue("GRADLE-3558")
-@Requires(UnitTestPreconditions.Jdk11OrEarlier)
-// Avoid testing version range in favor of better coverage build performance.
-@TargetVersions(['5.0', '6.8'])
-class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationSpec {
-
-    public static final String TEST_TASK_NAME = 'test'
-
-    private final List<GradleExecuter> executers = []
-
-    def cleanup() {
-        executers.each { it.cleanup() }
-    }
+@TargetVersions("7.0+")
+class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution")
     def "can apply plugin using ProjectBuilder in a test running with Gradle version under development"() {
-        writeSourceFiles()
-        expect:
-        run TEST_TASK_NAME
-    }
-
-    private void writeSourceFiles() {
+        given:
         File repoDir = file('repo')
         publishHelloWorldPluginWithOldGradleVersion(repoDir)
+
+        when:
         writeConsumingProject(repoDir)
+
+        then:
+        version(current)
+            .withTasks("test")
+            .run()
     }
 
     private void publishHelloWorldPluginWithOldGradleVersion(File repoDir) {
@@ -93,7 +83,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
                 version = '1.0'
 
                 dependencies {
-                    compile gradleApi()
+                    implementation gradleApi()
                 }
 
                 publishing {
@@ -111,7 +101,10 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             """
         }
 
-        createGradleExecutor(version, helloWorldPluginDir, 'publish').noDeprecationChecks().run()
+        version(previous)
+            .inDirectory(helloWorldPluginDir)
+            .withTasks("publish")
+            .run()
     }
 
     private void writeConsumingProject(File repoDir) {
@@ -141,15 +134,17 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         """
 
         file('build.gradle') << """
-            apply plugin: 'groovy'
+            plugins {
+                id("java-gradle-plugin")
+            }
 
             group = 'org.gradle'
             version = '1.0'
 
             dependencies {
-                'implementation' gradleApi()
-                'implementation' 'org.gradle:hello:1.0'
-                'testImplementation' 'junit:junit:4.13'
+                implementation(gradleApi())
+                implementation("org.gradle:hello:1.0")
+                testImplementation("junit:junit:4.13")
             }
 
             repositories {
@@ -157,13 +152,5 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
                 ${mavenCentralRepositoryDefinition()}
             }
         """
-    }
-
-    private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir = testDirectory, String... tasks) {
-        def executer = buildContext.distribution(gradleVersion).executer(temporaryFolder, getBuildContext())
-        executer.inDirectory(projectDir)
-        executer.withTasks(tasks)
-        executers << executer
-        executer
     }
 }

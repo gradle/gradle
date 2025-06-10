@@ -290,7 +290,6 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 
     annotationProcessor(projects.internalInstrumentationProcessor)
     annotationProcessor(platform(projects.distributionsDependencies))
