@@ -112,7 +112,46 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-### Problems API TO DO
+### Promoted features in the Kotlin DSL
+
+The following operator functions in `DependencyHandlerScope` are now considered stable:
+* `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency?`
+* `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
+* `NamedDomainObjectProvider<Configuration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?): ExternalModuleDependency`
+* `NamedDomainObjectProvider<Configuration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyNotation: Any): Dependency?`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?): ExternalModuleDependency`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
+* `<T : Any> Configuration.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
+* `<T : Any> Configuration.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
+* `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>)`
+* `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>)`
+* `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
+* `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
+* `<T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: Provider<T>)`
+* `<T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: ProviderConvertible<T>)`
+* `<T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
+* `<T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
+* `<T : Any> String.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
+* `<T : Any> String.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
+* `<T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T`
+* `<T : ModuleDependency> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T`
+
+The following operator functions in `DependencyConstraintHandlerScope` are now considered stable:
+* `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
+* `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
+* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
+
+The following top-level functions in `DependencyHandlerExtensions` are now considered stable:
+* `DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
+
+The following top-level functions in `KotlinDependencyExtensions` are now considered stable:
+* `PluginDependenciesSpec.embeddedKotlin(module: String): PluginDependencySpec`
+
+The following functions are now considered stable:
+* `GroovyBuilderScope.hasProperty(name: String): Boolean`
 
 <!--
 ### Example promoted
