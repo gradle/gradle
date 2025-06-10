@@ -6,6 +6,7 @@
       <item index="1" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade" />
       <item index="2" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls" />
       <item index="3" class="java.lang.String" itemvalue="org.gradle.internal.service.Provides" />
+      <item index="4" class="java.lang.String" itemvalue="org.gradle.internal.scan.UsedByScanPlugin" />
     </list>
     <pattern value="org.gradle.internal.service.ServiceRegistrationProvider" hierarchically="true" method="configure" />
   </component>
