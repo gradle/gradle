@@ -165,6 +165,11 @@ class ConfigurationCacheProblems(
         onProblem(problem, ProblemSeverity.Interrupting)
     }
 
+    override fun onExecutionTimeProblem(problem: PropertyProblem) {
+        val severity = if (isWarningMode) ProblemSeverity.Deferred else ProblemSeverity.Interrupting
+        onProblem(problem, severity)
+    }
+
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
         val notSeenBefore = incompatibleTasks.add(trace)
         if (notSeenBefore) {
@@ -180,6 +185,10 @@ class ConfigurationCacheProblems(
             override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
                 val failure = failureFactory.create(error)
                 onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+            }
+
+            override fun onExecutionTimeProblem(problem: PropertyProblem) {
+                onProblem(problem)
             }
         }
     }
@@ -241,7 +250,7 @@ class ConfigurationCacheProblems(
     private
     fun ProblemSpec.documentOfProblem(problem: PropertyProblem) {
         problem.documentationSection?.let {
-            documentedAt(Documentation.userManual("configuration_cache", it.anchor).url)
+            documentedAt(Documentation.userManual(it.page, it.anchor).url)
         }
     }
 
