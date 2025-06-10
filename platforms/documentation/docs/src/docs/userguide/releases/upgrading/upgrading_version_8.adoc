@@ -748,7 +748,8 @@ These tasks are now only added to a project when a rule-based plugin is applied 
 
 
 === Configuration Cache changes
-==== Unsupported build events listeners are now configuration cache problems
+
+==== Unsupported build event listeners are now configuration cache problems
 
 The build event listener registration method
 link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`]
@@ -762,11 +763,14 @@ link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getServ
 are currently supported when the Configuration Cache is enabled.
 
 Previously, unsupported providers were silently discarded and never received events when the configuration cache was used.
-Starting with Gradle 9.0, registering such providers becomes a configuration cache problem and fails the build.
+Starting with Gradle 9, registering such providers now causes a configuration cache problem and fails the build.
 
-If your build was correctly with configuration cache before (for example, the registered listeners weren't crucial for build correctness),
-you can temporarily revert to old behavior of ignoring such providers.
-To do that, set the Gradle property `org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners` to `true`.
+If your build was previously working with the configuration cache (e.g., the listeners were nonessential),
+you can temporarily revert to the old behavior by setting:
+[source,properties]
+----
+org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true
+----
 This property will be removed in Gradle 10.
 
 [[changes_8.14]]
