@@ -320,37 +320,47 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         result.assertTaskNotExecuted(":a")
     }
 
-    def "an exception during degradation reason evaluation introduces CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
+    def "user code exceptions in degradation reasons evaluation are surfaced"() {
         buildFile """
             ${taskWithInjectedDegradationController()}
 
             tasks.register("foo", DegradingTask) { task ->
-                getDegradationController().requireConfigurationCacheDegradation(task, provider { throw new IllegalStateException("Reason evaluation failed!") })
-
-                doLast {
-                    println("Project path is \${project.path}")
-                }
+                getDegradationController().requireConfigurationCacheDegradation(
+                    task,
+                    provider { throw new IllegalStateException("Reason evaluation failed!") }
+                )
             }
         """
 
         when:
-        configurationCacheRun ":foo"
+        configurationCacheFails ":foo"
 
         then:
-        configurationCache.assertNoConfigurationCache()
+        failureDescriptionContains("Reason evaluation failed!")
+    }
 
-        and:
-        problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.assertResultHtmlReportHasProblems(result) {
-            totalProblemsCount = 1
-            withProblem("Invocation of 'Task.project' by task ':foo' at execution time is unsupported with the configuration cache.")
-            withIncompatibleTask(":foo", "Reason evaluation failed!.")
-        }
+    def "user code exceptions in task graph traversing are surfaced"() {
+        given:
+        buildFile """
+            ${taskWithInjectedDegradationController()}
 
-        and:
-        result.assertTaskExecuted(":foo")
-        assertConfigurationCacheDegradation()
+            tasks.register("foo", DegradingTask) { task ->
+                // add a request to ensure we need to verify whether tasks are scheduled
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { null })
+            }
+
+            gradle.addListener(new TaskExecutionGraphListener() {
+                void graphPopulated(TaskExecutionGraph graph) {
+                    throw new RuntimeException("Graph traversing failed!")
+                }
+            })
+        """
+
+        when:
+        configurationCacheFails ":foo"
+
+        then:
+        failureDescriptionContains("Graph traversing failed!")
     }
 
     def "degradation controller is available in vintage"() {
@@ -367,10 +377,10 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
 
         when:
-        succeeds(":foo")
+        run ":foo"
 
         then:
-        outputContains("Hello")
+        result.assertTaskExecuted(":foo")
     }
 
     private static String taskWithInjectedDegradationController() {

@@ -129,7 +129,7 @@ class ConfigurationCacheProblems(
             if (seenSerializationErrorOnStore) {
                 return true
             }
-            if (shouldDegradeGracefully()) {
+            if (areDegradationReasonsPresent()) {
                 return true
             }
             val summary = summarizer.get()
@@ -193,7 +193,10 @@ class ConfigurationCacheProblems(
         } else this
     }
 
-    fun shouldDegradeGracefully(): Boolean = degradationController.degradationReasons.isNotEmpty()
+    fun shouldDegradeGracefully(): Boolean {
+        degradationController.collectDegradationReasons()
+        return degradationController.degradationReasons.isNotEmpty()
+    }
 
     private
     fun onIncompatibleTask(trace: PropertyTrace, reason: String) {
@@ -374,7 +377,7 @@ class ConfigurationCacheProblems(
             when {
                 seenSerializationErrorOnStore && deferredProblemCount == 0 -> log("Configuration cache entry discarded due to serialization error.")
                 seenSerializationErrorOnStore -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && shouldDegradeGracefully() -> log("Configuration cache disabled${degradationSummary()}")
+                cacheAction == Store && areDegradationReasonsPresent() -> log("Configuration cache disabled${degradationSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -390,6 +393,9 @@ class ConfigurationCacheProblems(
             }
         }
     }
+
+    private
+    fun areDegradationReasonsPresent(): Boolean = degradationController.degradationReasons.isNotEmpty()
 
     private
     fun degradationSummary(): String {

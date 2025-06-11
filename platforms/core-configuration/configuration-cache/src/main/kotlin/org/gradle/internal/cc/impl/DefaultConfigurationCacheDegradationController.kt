@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
@@ -33,11 +34,12 @@ internal class DefaultConfigurationCacheDegradationController(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
 ) : ConfigurationCacheDegradationController {
 
-    private
-    val logger = Logging.getLogger(DefaultConfigurationCacheDegradationController::class.java)
-
+    private val logger = Logging.getLogger(DefaultConfigurationCacheDegradationController::class.java)
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
-    val degradationReasons by lazy(::collectDegradationReasons)
+    private val collectedDegradationReasons = mutableMapOf<Task, List<String>>()
+
+    val degradationReasons: Map<Task, List<String>>
+        get() = ImmutableMap.copyOf(collectedDegradationReasons)
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         if (!configurationTimeBarrier.isAtConfigurationTime) {
@@ -47,8 +49,7 @@ internal class DefaultConfigurationCacheDegradationController(
         tasksDegradationRequests.compute(task) { _, reasons -> reasons?.plus(reason) ?: listOf(reason) }
     }
 
-    private fun collectDegradationReasons(): Map<Task, List<String>> {
-        val result = mutableMapOf<Task, List<String>>()
+    fun collectDegradationReasons() {
         if (tasksDegradationRequests.isNotEmpty()) {
             deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
                 scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
@@ -57,18 +58,12 @@ internal class DefaultConfigurationCacheDegradationController(
                         ?.sorted()
 
                     if (!taskDegradationReasons.isNullOrEmpty()) {
-                        result[task] = taskDegradationReasons
+                        collectedDegradationReasons[task] = taskDegradationReasons
                     }
                 }
             }
         }
-        return result
     }
 
-    // Request is represented by the user code, which can throw. We evaluate such requests to valid degradation reasons.
-    private fun evaluateDegradationReason(request: Provider<String>): String? = try {
-        request.orNull
-    } catch (e: Exception) {
-        e.message ?: e::class.qualifiedName
-    }
+    private fun evaluateDegradationReason(request: Provider<String>): String? = request.orNull
 }
