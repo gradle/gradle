@@ -98,6 +98,7 @@ class PerformanceTestBuildTypeTest {
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
             "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+            "\"-Dscan.value.tcPipeline=master\"",
             "-s",
             "--no-configuration-cache",
             "%additional.gradle.parameters%",

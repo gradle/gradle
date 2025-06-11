@@ -202,6 +202,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-Dorg.gradle.workers.max=%maxParallelForks%",
         "-PmaxParallelForks=%maxParallelForks%",
         "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+        buildScanCustomValue("tcPipeline", VersionedSettingsBranch.fromDslContext().branchName),
         "-s",
         "--no-configuration-cache",
         "%additional.gradle.parameters%",
