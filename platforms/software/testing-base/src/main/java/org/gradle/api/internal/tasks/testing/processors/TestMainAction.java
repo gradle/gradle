@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -53,6 +54,9 @@ public class TestMainAction implements Runnable {
             processor.startProcessing(resultProcessor);
             try {
                 detector.run();
+            } catch (Throwable t) {
+                resultProcessor.failure(suite.getId(), TestFailure.fromTestFrameworkStartupFailure(t));
+                throw t;
             } finally {
                 // Release worker lease while waiting for tests to complete
                 workerLeaseService.blocking(new Runnable() {

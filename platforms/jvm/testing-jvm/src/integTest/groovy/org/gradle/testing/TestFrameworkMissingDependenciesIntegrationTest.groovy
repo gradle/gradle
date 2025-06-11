@@ -41,6 +41,33 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
 
             test.useJUnit()
+
+            testing {
+                suites {
+                    test {
+                        targets {
+                            all {
+                                testTask.configure {
+                                    addTestListener(new TestListener() {
+                                        void beforeSuite(TestDescriptor suite) {
+                                            println("beforeSuite " + suite + " ")
+                                        }
+                                        void afterSuite(TestDescriptor suite, TestResult result) {
+                                            println("afterSuite " + suite + " " + result.failures + " " + result)
+                                        }
+                                        void beforeTest(TestDescriptor testDescriptor) {
+                                            println("beforeTest " + testDescriptor + " ")
+                                        }
+                                        void afterTest(TestDescriptor testDescriptor, TestResult result) {
+                                            println("afterTest " + testDescriptor + " " + result.failures)
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         """
 
         file("src/test/java/MyTest.java") << """
