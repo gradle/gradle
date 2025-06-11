@@ -16,7 +16,6 @@ plugins {
     id("org.asciidoctor.jvm.convert")
     id("gradlebuild.documentation")
     id("gradlebuild.generate-samples")
-    id("gradlebuild.split-docs")
 }
 
 repositories {
@@ -76,7 +75,6 @@ dependencies {
     docsTestImplementation(project(":internal-integ-testing"))
     docsTestImplementation(project(":base-services"))
     docsTestImplementation(project(":logging"))
-    docsTestImplementation(libs.junit5Vintage)
     docsTestImplementation(libs.junit)
     docsTestRuntimeOnly(libs.junitPlatform)
 
@@ -615,6 +613,8 @@ tasks.named("quickTest") {
 
 // TODO add some kind of test precondition support in sample test conf
 tasks.named<Test>("docsTest") {
+    useJUnitPlatform()
+
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
