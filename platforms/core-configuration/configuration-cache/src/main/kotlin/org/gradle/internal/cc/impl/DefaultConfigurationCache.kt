@@ -549,7 +549,10 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
             ?.let { entryDetails ->
                 // TODO:configuration-cache read only rootDirs at this point
-                EntrySearchResult(entryDetails.buildInvocationScopeId, checkFingerprint(candidateEntry, entryDetails.rootDirs))
+                EntrySearchResult(
+                    entryDetails.buildInvocationScopeId,
+                    checkFingerprint(candidateEntry, entryDetails.rootDirs)
+                )
             } ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
 
     private
