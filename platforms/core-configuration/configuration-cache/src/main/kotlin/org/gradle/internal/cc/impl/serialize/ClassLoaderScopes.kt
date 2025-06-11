@@ -23,10 +23,8 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.ReadIdentities
-import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.WriteIdentities
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
-import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 
 
 internal
@@ -63,7 +61,7 @@ value class ClassLoaderRole(val local: Boolean)
 
 internal
 interface ClassLoaderScopeSpecEncoder {
-    fun WriteContext.encodeScope(scope: ClassLoaderScopeSpec)
+    fun Encoder.encodeScope(scope: ClassLoaderScopeSpec)
 }
 
 
@@ -79,9 +77,14 @@ class InlineClassLoaderScopeSpecEncoder : ClassLoaderScopeSpecEncoder {
     private
     val scopes = WriteIdentities()
 
-    override fun WriteContext.encodeScope(scope: ClassLoaderScopeSpec) {
-        encodePreservingIdentityOf(scopes, scope) { newScope ->
-            when (val parent = newScope.parent) {
+    override fun Encoder.encodeScope(scope: ClassLoaderScopeSpec) {
+        val id = scopes.getId(scope)
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            val newId = scopes.putInstance(scope)
+            writeSmallInt(newId)
+            when (val parent = scope.parent) {
                 null -> {
                     writeBoolean(false)
                 }
@@ -91,16 +94,16 @@ class InlineClassLoaderScopeSpecEncoder : ClassLoaderScopeSpecEncoder {
                     encodeScope(parent)
                 }
             }
-            writeString(newScope.name)
-            writeOrigin(newScope.origin)
-            writeClassPath(newScope.localClassPath)
-            writeHashCode(newScope.localImplementationHash)
-            writeClassPath(newScope.exportClassPath)
+            writeString(scope.name)
+            writeOrigin(scope.origin)
+            writeClassPath(scope.localClassPath)
+            writeHashCode(scope.localImplementationHash)
+            writeClassPath(scope.exportClassPath)
         }
     }
 
     private
-    fun WriteContext.writeOrigin(origin: ClassLoaderScopeOrigin?) {
+    fun Encoder.writeOrigin(origin: ClassLoaderScopeOrigin?) {
         when (origin) {
             is ClassLoaderScopeOrigin.Script -> {
                 writeBoolean(true)

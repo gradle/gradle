@@ -20,14 +20,14 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.readFile
-import org.gradle.internal.serialize.graph.writeCollection
+import org.gradle.internal.serialize.graph.writeCollectionUnchecked
 import org.gradle.internal.serialize.graph.writeFile
 
 
 internal
-fun WriteContext.writeClassPath(classPath: ClassPath) {
+fun Encoder.writeClassPath(classPath: ClassPath) {
     // Ensure that the proper type is going to be restored,
     // because it is important for the equality checks.
     if (classPath is TransformedClassPath) {
@@ -41,18 +41,22 @@ fun WriteContext.writeClassPath(classPath: ClassPath) {
 
 
 private
-fun WriteContext.writeDefaultClassPath(classPath: ClassPath) {
-    writeCollection(classPath.asFiles) {
-        writeFile(it)
+fun Encoder.writeDefaultClassPath(classPath: ClassPath) {
+    classPath.asFiles.let { files ->
+        writeCollectionUnchecked(files, files.size) {
+            writeFile(it)
+        }
     }
 }
 
 
 private
-fun WriteContext.writeTransformedClassPath(classPath: TransformedClassPath) {
-    writeCollection(classPath.asFiles.zip(classPath.asTransformedFiles)) {
-        writeFile(it.first)
-        writeFile(it.second)
+fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath) {
+    classPath.asFiles.zip(classPath.asTransformedFiles).let { files ->
+        writeCollectionUnchecked(files, files.size) {
+            writeFile(it.first)
+            writeFile(it.second)
+        }
     }
 }
 

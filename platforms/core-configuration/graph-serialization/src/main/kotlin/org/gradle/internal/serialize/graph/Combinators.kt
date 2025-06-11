@@ -256,14 +256,20 @@ fun Decoder.readStringsSet(): Set<String> =
     }
 
 
-inline fun <T> WriteContext.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
-    val size = collection.size
+inline fun <T, C : Encoder> C.writeCollectionUnchecked(collection: Collection<T>, size: Int, writeElement: (T) -> Unit): Int {
     writeSmallInt(size)
     var totalWritten = 0
     for (element in collection) {
         writeElement(element)
         ++totalWritten
     }
+    return totalWritten
+}
+
+
+inline fun <T> WriteContext.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
+    val size = collection.size
+    val totalWritten = writeCollectionUnchecked(collection, size, writeElement)
     if (size != totalWritten) {
         reportCollectionWriteFailure("collection", size, totalWritten, collection.size)
     }
