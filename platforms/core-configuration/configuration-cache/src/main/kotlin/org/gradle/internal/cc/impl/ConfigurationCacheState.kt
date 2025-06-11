@@ -85,6 +85,7 @@ import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.readStringsSet
+import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
@@ -529,10 +530,16 @@ class ConfigurationCacheState(
         }
 
     private
-    suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
+    fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
         withIsolate(IsolateOwners.OwnerFlowScope(gradle), userTypesCodec) {
-            val flowScopeState = buildFlowScopeOf(gradle).store()
-            write(flowScopeState)
+            // Grab the allprojects lock to serialize the flow actions.
+            // This is a workaround for parameters that may require dependency resolution under the hood.
+            gradle.owner.projects.withMutableStateOfAllProjects {
+                val flowScopeState = buildFlowScopeOf(gradle).store()
+                runWriteOperation {
+                    write(flowScopeState)
+                }
+            }
         }
     }
 
