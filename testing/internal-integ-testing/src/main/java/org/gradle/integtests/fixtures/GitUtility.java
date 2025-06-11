@@ -19,7 +19,6 @@ package org.gradle.integtests.fixtures;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.internal.storage.file.WindowCache;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.lib.StoredConfig;
@@ -72,10 +71,9 @@ public class GitUtility {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private static void cleanup() {
         // https://github.com/eclipse-jgit/jgit/issues/155
         RepositoryCache.clear();
-        WindowCache.reconfigure(new WindowCacheConfig());
+        new WindowCacheConfig().install();
     }
 }
