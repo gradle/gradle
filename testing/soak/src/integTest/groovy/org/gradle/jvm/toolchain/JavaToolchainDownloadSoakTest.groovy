@@ -118,7 +118,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "build runs again, uses previously auto-provisioned toolchain and warns about toolchain repositories not being configured"
         def toolchainName = AvailableJavaHomes.getJvmInstallationMetadata(EXPECTED_JVM).displayName
-        executer.expectDocumentedDeprecationWarning("Using toolchain '${toolchainName}' installed via auto-provisioning without toolchain repositories. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Builds may fail when this toolchain is not available in other environments. Add toolchain repositories to this build. For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("Using toolchain '${toolchainName}' installed via auto-provisioning without toolchain repositories. This behavior has been deprecated. This will fail with an error in Gradle 10. Builds may fail when this toolchain is not available in other environments. Add toolchain repositories to this build. For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories in the Gradle documentation.")
         succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
     }
 

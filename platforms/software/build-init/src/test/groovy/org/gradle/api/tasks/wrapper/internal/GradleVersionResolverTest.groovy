@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.wrapper
+package org.gradle.api.tasks.wrapper.internal
 
 import org.gradle.api.GradleException
 import spock.lang.Specification
@@ -35,5 +35,26 @@ class GradleVersionResolverTest extends Specification {
         then:
         def e = thrown(GradleException)
         e.message == "There is currently no version information available for 'latest'."
+    }
+
+    def "right alternatives are suggested for bad version"() {
+        when:
+        GradleVersionResolver.parseVersionString("invalid")
+
+        then:
+        def e = thrown(GradleVersionResolver.WrapperVersionException)
+        e.message == "Invalid version specified for argument '--gradle-version'"
+        e.getResolutions() == [
+            "Specify a valid Gradle release listed on https://gradle.org/releases/.",
+            "Use one of the following dynamic version specifications: 'latest', 'release-candidate', 'release-milestone', 'release-nightly', 'nightly'."
+        ]
+    }
+
+    def "get versions from json"() {
+        when:
+        def versions = GradleVersionResolver.getVersions("""[{ "version" : "7.6" }, { "version" : "9.0.3" }]""")
+
+        then:
+        versions == ["7.6", "9.0.3"]
     }
 }

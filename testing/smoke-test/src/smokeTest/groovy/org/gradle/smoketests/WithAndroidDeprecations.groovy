@@ -19,11 +19,14 @@ package org.gradle.smoketests
 import groovy.transform.SelfType
 import groovy.transform.TupleConstructor
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 import java.util.function.Consumer
 
 @SelfType(BaseDeprecations)
 trait WithAndroidDeprecations {
+
+    private static final VersionNumber AGP_8_11 = VersionNumber.parse("8.11")
 
     @TupleConstructor
     private static class IsPropertyInfo {
@@ -43,22 +46,28 @@ trait WithAndroidDeprecations {
         for (def prop : IS_PROPERTIES) {
             deprecationFunction.accept(
                 "Declaring '${prop.name}' as a property using an 'is-' method with a Boolean type on ${prop.location} has been deprecated. " +
-                    "Starting with Gradle 10.0, this property will no longer be treated like a property. " +
+                    "Starting with Gradle 10, this property will no longer be treated like a property. " +
                     "The combination of method name and return type is not consistent with Java Bean property rules. " +
                     "Add a method named '${prop.replacement}' with the same behavior and mark the old one with @Deprecated, or change the type of '${prop.location}.${prop.existing}' (and the setter) to 'boolean'. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties")
         }
     }
 
-    void expectIsPropertyDeprecationWarnings() {
+    void expectIsPropertyDeprecationWarnings(String agpVersion) {
         expectIsPropertyDeprecationWarningsUsing { message ->
-            runner.expectDeprecationWarning(message, "https://issuetracker.google.com/issues/370546370")
+            runner.expectLegacyDeprecationWarningIf(
+                VersionNumber.parse(agpVersion).baseVersion < AGP_8_11,
+                message
+            )
         }
     }
 
-    void maybeExpectIsPropertyDeprecationWarnings() {
+    void maybeExpectIsPropertyDeprecationWarnings(String agpVersion) {
         expectIsPropertyDeprecationWarningsUsing { message ->
-            runner.maybeExpectLegacyDeprecationWarning(message)
+            runner.maybeExpectLegacyDeprecationWarningIf(
+                VersionNumber.parse(agpVersion).baseVersion < AGP_8_11,
+                message
+            )
         }
     }
 

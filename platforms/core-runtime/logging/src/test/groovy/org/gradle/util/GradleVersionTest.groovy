@@ -29,7 +29,7 @@ class GradleVersionTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "'$versionString' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')"
+        e.message == "'$versionString' is not a valid Gradle version string (examples: '9.0.0', '9.1.0-rc-1')"
 
         where:
         versionString << [
@@ -260,5 +260,22 @@ class GradleVersionTest extends Specification {
         '2.0-milestone-3'                     | "3.0"
         '8.1'                                 | '9.0.0'
         '9.1.1'                               | '10.0.0'
+    }
+
+    def "can check if is final"() {
+        expect:
+        DefaultGradleVersion.version(v).isFinal() == isFinal
+
+        where:
+        v                                     | isFinal
+        '1.0'                                 | true
+        '1.0-rc-1'                            | false
+        '1.0-milestone-1'                     | false
+        '1.0-milestone-1-20121012100000+1000' | false
+        '1.0-milestone-1-SNAPSHOT'            | false
+        '1.0-SNAPSHOT'                        | false
+        '9.4.4-branch-XX-20121012100000+1000' | false
+        '8.14.1'                              | true
+        '9.0.0'                               | true
     }
 }

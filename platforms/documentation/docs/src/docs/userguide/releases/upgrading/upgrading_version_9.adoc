@@ -21,7 +21,7 @@ For migrating from Gradle 4.x, 5.x, 6.x, 7.x, or 8.x see the <<upgrading_version
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
+. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +

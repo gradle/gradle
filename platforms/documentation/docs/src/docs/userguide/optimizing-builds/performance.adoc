@@ -161,9 +161,9 @@ When the parallel flag is used on our reference project, the build (`./gradlew c
 
 image::performance/performance-3.png[]
 
-=== Visualize Parallelism with Build Scans
+=== Visualize Parallelism with Build Scan
 
-Build Scans provide a visual timeline of task execution in the *"Timeline"* tab.
+A Build Scan provides a visual timeline of task execution in the *"Timeline"* tab.
 
 In the example below, the build initially has long-running tasks at the beginning and end, creating a bottleneck:
 
@@ -244,9 +244,9 @@ image::performance/performance-5.png[]
 For more information about the Build Cache, check out the
 <<build_cache_use_cases.adoc#use_cases_cache,Build Cache documentation>>.
 
-=== Visualize the Build Cache with Build Scans
+=== Visualize the Build Cache with Build Scan
 
-Build Scans help you analyze *Build Cache effectiveness* through the *"Build Cache"* tab in the *"Performance"* page.
+A Build Scan helps you analyze *Build Cache effectiveness* through the *"Build Cache"* tab in the *"Performance"* page.
 This tab provides key statistics, including:
 
 - The number of tasks that interacted with a cache
@@ -263,7 +263,7 @@ image::performance/task-execution-cacheable.png[title="A task-oriented view of p
 image::performance/timeline-not-cacheable.png[title="Timeline screen with 'not cacheable' tasks only"]
 
 To identify optimization opportunities, sort tasks by duration in the timeline view.
-The build scan above reveals that `:task1` and `:task3` could be improved and made cacheable, while also explaining why Gradle didn’t cache them.
+The Build Scan above reveals that `:task1` and `:task3` could be improved and made cacheable, while also explaining why Gradle didn’t cache them.
 
 [[enable_configuration_cache]]
 == 5. Enable the Configuration Cache
@@ -586,9 +586,9 @@ If a build file or initialization script lowers these values, Gradle queries rep
 When you don't need the absolute latest release of a dependency every time you build, consider
 removing the custom values for these settings.
 
-==== Find dynamic and changing versions with build scans
+==== Find dynamic and changing versions with Build Scan
 
-To locate dynamic dependencies, use Build Scans:
+To locate dynamic dependencies, use a Build Scan:
 
 image::performance/dependency-dynamic-versions.png[title="Find dependencies with dynamic versions"]
 
@@ -639,14 +639,14 @@ include::sample[dir="snippets/performance/resolveAtBuildTime/groovy",files="buil
 The `from()` method in Gradle’s `Copy` task does *not* trigger immediate <<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency resolution>> because it references the dependency *configuration*, not the resolved files.
 This ensures that dependencies are resolved only when the `Copy` task executes.
 
-==== Visualize dependency resolution with build scans
+==== Visualize dependency resolution with Build Scan
 
-The "Dependency resolution" tab on the performance page of a build scan shows dependency
+The "Dependency resolution" tab on the performance page of a Build Scan shows dependency
 resolution time during the configuration and execution phases:
 
 image::performance/bad-dependency-resolution.png[title="Dependency resolution at configuration time"]
 
-Build scans provide another means of identifying this issue.
+A Build Scan provides another means of identifying this issue.
 Your build should spend 0 seconds resolving dependencies during _"project configuration"_.
 This example shows the build resolves dependencies too early in the lifecycle.
 You can also find a "Settings and suggestions" tab on the "Performance" page.
@@ -658,7 +658,7 @@ Gradle allows users to model dependency resolution in a flexible way.
 Simple customizations, such as forcing specific versions or substituting dependencies, have minimal impact on resolution times.
 However, *complex custom logic*—such as downloading and parsing POM files manually—can significantly slow down dependency resolution.
 
-Use *build scans* or *profile reports* to ensure custom dependency resolution logic is not causing performance issues.
+Use *Build Scan* or *profile reports* to ensure custom dependency resolution logic is not causing performance issues.
 This logic may exist in your build scripts or as part of a third-party plugin.
 
 This example forces a custom dependency version but also introduces expensive logic that slows down resolution:
@@ -781,7 +781,7 @@ Report generation adds overhead, particularly in large test suites.
 You can disable report generation entirely if:
 
 * You only need to know whether the tests passed.
-* You use Build Scans, which provide richer test insights.
+* You use a Build Scan, which provide richer test insights.
 
 To disable reports, set `reports.html.required` and `reports.junitXml.required` to `false`:
 

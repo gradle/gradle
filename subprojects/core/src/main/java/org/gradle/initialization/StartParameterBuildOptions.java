@@ -338,7 +338,9 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String LONG_OPTION = "scan";
 
         public BuildScanOption() {
-            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)", "Disables the creation of a build scan. For more information about build scans, please visit https://gradle.com/build-scans."));
+            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION,
+                "Creates a Build Scan. Gradle will emit a warning if the Develocity plugin has not been applied. (https://gradle.com/develocity/product/build-scan/)",
+                "Disables the creation of a Build Scan. For more information about a Build Scan, please visit https://gradle.com/develocity/product/build-scan/."));
         }
 
         @Override

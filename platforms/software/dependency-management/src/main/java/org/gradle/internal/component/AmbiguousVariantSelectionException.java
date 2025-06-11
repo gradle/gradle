@@ -26,7 +26,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import java.util.Collections;
 
 /**
- * This type is {@code deprecated} and will be removed in Gradle 10.0.
+ * This type is {@code deprecated} and will be removed in Gradle 10.
  * <p>
  * This is used by the oss-licenses plugin that is used by Now In Android.  To remove this class, we must first
  * address that with a new version of oss-licenses, or the removal of it from NiA.

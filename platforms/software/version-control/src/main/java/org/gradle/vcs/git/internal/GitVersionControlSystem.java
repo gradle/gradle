@@ -23,7 +23,6 @@ import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.internal.storage.file.WindowCache;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryCache;
@@ -151,14 +150,13 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    @SuppressWarnings("deprecation")
     public static void closeGit(@Nullable Git git) {
         if (git != null) {
             git.close();
         }
         // https://github.com/eclipse-jgit/jgit/issues/155
         RepositoryCache.clear();
-        WindowCache.reconfigure(new WindowCacheConfig());
+        new WindowCacheConfig().install();
     }
 
     private static void updateSubModules(Git git) throws IOException, GitAPIException {

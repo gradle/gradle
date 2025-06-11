@@ -232,7 +232,7 @@ However, it’s an unnecessary extra effort for the developers to track which pr
 All letters are lowercase, and words are separated with a dash (`-`) character.
 
 3. *Define the root project name in the settings file*:
-The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scans.
+The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scan.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
 The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).
 

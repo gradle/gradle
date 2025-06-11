@@ -356,7 +356,7 @@ Running the `projects` task gives you a list of the subprojects of the selected 
 $ gradle projects
 ----
 
-You also get a project report within https://scans.gradle.com/[Build Scans].
+You also get a project report with https://scans.gradle.com/[Build Scan].
 
 [[sec:listing_tasks]]
 === Listing tasks
@@ -428,7 +428,7 @@ You can get detailed information about the task class types using the `--types` 
 
 === Reporting dependencies
 
-https://scans.gradle.com/[Build Scans] give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
+https://scans.gradle.com/[Build Scan] gives a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
 They can be invoked using the `--scan` options:
 
 [source,bash]
@@ -554,7 +554,7 @@ Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec
 Print out the stacktrace also for user exceptions (e.g. compile error). See also <<#sec:command_line_logging, logging options>>.
 
 `--scan`::
-Create a https://gradle.com/build-scans[Build Scan] with fine-grained information about all aspects of your Gradle build.
+Create a https://gradle.com/develocity/product/build-scan[Build Scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that debugs the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
@@ -612,7 +612,7 @@ Specifies the scheduling priority for the Gradle daemon and all processes launch
 Generates a high-level performance report in the `layout.buildDirectory.dir("reports/profile")` directory. `--scan` is preferred.
 
 `--scan`::
-Generate a build scan with detailed performance diagnostics.
+Generate a Build Scan with detailed performance diagnostics.
 
 image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
