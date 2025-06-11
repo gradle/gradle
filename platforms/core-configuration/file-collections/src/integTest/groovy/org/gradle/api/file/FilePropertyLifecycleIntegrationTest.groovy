@@ -689,4 +689,52 @@ task thing {
         outputContains("get from task failed cause: Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
         output.count("prop = 123") == 1
     }
+
+    def "cannot update file property marked disallowChanges"() {
+        taskTypeWithOutputFileProperty()
+
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile """
+        tasks.register("producer", FileProducer) {
+            output = layout.buildDir.file("text.out")
+            output.disallowChanges()
+            def other = file('ignore')
+            doFirst {
+                try {
+                    output = other
+                } catch(IllegalStateException e) {
+                    println("set failed: " + e.message)
+                }
+            }
+        }
+        """
+
+        expect:
+        succeeds("producer")
+        outputContains("set failed: The value for task ':producer' property 'output' is final and cannot be changed any further.")
+    }
+
+    def "cannot update directory property marked disallowChanges"() {
+        taskTypeWithOutputDirectoryProperty()
+
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile """
+        tasks.register("producer", DirProducer) {
+                output = layout.buildDir.dir("dir.out")
+                output.disallowChanges()
+                def other = file('ignore')
+                doFirst {
+                    try {
+                        output = other
+                    } catch(IllegalStateException e) {
+                        println("set failed: " + e.message)
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds("producer")
+        outputContains("set failed: The value for task ':producer' property 'output' is final and cannot be changed any further.")
+    }
 }
