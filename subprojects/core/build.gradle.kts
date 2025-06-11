@@ -310,4 +310,7 @@ tasks.compileTestGroovy {
 
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
-jvmCompile.usesFutureStdlib = true
+
+jvmCompile {
+    usesFutureStdlib = true
+}
