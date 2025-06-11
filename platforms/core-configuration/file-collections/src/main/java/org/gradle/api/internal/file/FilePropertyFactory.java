@@ -18,11 +18,13 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.managed.ManagedObjectCreator;
 import org.gradle.internal.instantiation.managed.ManagedObjectProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 @ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.Project.class})
@@ -31,17 +33,19 @@ public interface FilePropertyFactory {
     @ManagedObjectCreator
     DirectoryProperty newDirectoryProperty();
 
+    DirectoryProperty newDirectoryProperty(PropertyHost customHost);
+
     @ManagedObjectCreator
     RegularFileProperty newFileProperty();
 
     /**
-     * Returns a new FilePropertyFactory configured with the given file resolver and file collection resolver.
+     * Returns a new FilePropertyFactory configured with the given host, file resolver and file collection resolver.
      */
-    FilePropertyFactory withResolvers(FileResolver fileResolver, PathToFileResolver fileCollectionResolver);
+    FilePropertyFactory withResolvers(@Nullable PropertyHost customHost, FileResolver fileResolver, PathToFileResolver fileCollectionResolver);
 
     /**
-     * Returns a new FilePropertyFactory configured with the given file resolver.
+     * Returns a new FilePropertyFactory configured with the given host and file resolver.
      */
-    FilePropertyFactory withResolver(FileResolver fileResolver);
+    FilePropertyFactory withResolver(@Nullable PropertyHost customHost, FileResolver fileResolver);
 
 }

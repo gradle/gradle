@@ -79,6 +79,8 @@ public abstract class ValueState<S> {
 
     public abstract void disallowUnsafeRead();
 
+    public abstract boolean isDisallowUnsafeRead();
+
     /**
      * Marks this value state as being explicitly assigned. Does not remember the given value in any way.
      *
@@ -174,6 +176,9 @@ public abstract class ValueState<S> {
 
     public abstract void warnOnUpgradedPropertyValueChanges();
 
+    @Nullable
+    public abstract PropertyHost getHost();
+
     /**
      * We create one ValueState for every Property in the build. To lower the overall cost of
      * each Property, this implementation uses bitset flags instead of separate booleans.
@@ -204,6 +209,12 @@ public abstract class ValueState<S> {
 
         public NonFinalizedValue(PropertyHost host) {
             this.host = host;
+        }
+
+        @Override
+        @Nullable
+        public PropertyHost getHost() {
+            return host;
         }
 
         @Override
@@ -277,6 +288,11 @@ public abstract class ValueState<S> {
         @Override
         public void disallowUnsafeRead() {
             flags |= DISALLOW_UNSAFE_READ | FINALIZE_ON_NEXT_GET;
+        }
+
+        @Override
+        public boolean isDisallowUnsafeRead() {
+            return (flags & DISALLOW_UNSAFE_READ) != 0;
         }
 
         @Override
@@ -402,6 +418,17 @@ public abstract class ValueState<S> {
     }
 
     private static class FinalizedValue<S> extends ValueState<S> {
+        @Override
+        @Nullable
+        public PropertyHost getHost() {
+            return null; // Finalized value does not need or have a host, it can always be read safely
+        }
+
+        @Override
+        public boolean isDisallowUnsafeRead() {
+            return false;
+        }
+
         @Override
         public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
             return false;

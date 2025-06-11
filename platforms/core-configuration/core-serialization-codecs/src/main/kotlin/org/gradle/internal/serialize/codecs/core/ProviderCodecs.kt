@@ -21,6 +21,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.flow.FlowAction
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.flow.FlowProviders
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
@@ -32,6 +33,7 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSupplier
@@ -45,6 +47,7 @@ import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.RuntimeTaskCheckingPropertyHost
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -73,6 +76,8 @@ import org.gradle.internal.serialize.graph.withCodec
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
+import org.gradle.internal.service.scopes.ProjectBackedPropertyHost
+import org.gradle.util.Path
 
 
 fun defaultCodecForProviderWithChangingValue(
@@ -431,7 +436,9 @@ class DirectoryPropertyCodec(
 
     override suspend fun WriteContext.encode(value: DefaultDirectoryVar) {
         encodePreservingIdentityOf(value) {
+            writeBoolean(value.isDisallowUnsafeRead)
             writeBoolean(value.isDisallowChanges)
+            writePropertyHost(value)
             write(value.fileResolver)
             write(value.fileCollectionResolver)
             providerCodec.run { encodeProvider(value.provider) }
@@ -440,14 +447,17 @@ class DirectoryPropertyCodec(
 
     override suspend fun ReadContext.decode(): DefaultDirectoryVar {
         return decodePreservingIdentity { id ->
+            val isDisallowUnsafeRead = readBoolean()
             val isDisallowChanges = readBoolean()
+            val host = readPropertyHost()
             val fileResolver = readNonNull<FileResolver>()
             val fileCollectionResolver = readNonNull<PathToFileResolver>()
-            val newPropFactory = filePropertyFactory.withResolvers(fileResolver, fileCollectionResolver)
+            val newPropFactory = filePropertyFactory.withResolvers(host, fileResolver, fileCollectionResolver)
             val property = newPropFactory.newDirectoryProperty() as DefaultDirectoryVar
             isolate.identities.putInstance(id, property)
             val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
             property.value(provider)
+            if (isDisallowUnsafeRead) property.disallowUnsafeRead()
             if (isDisallowChanges) property.disallowChanges()
             property
         }
@@ -462,7 +472,9 @@ class RegularFilePropertyCodec(
 
     override suspend fun WriteContext.encode(value: DefaultRegularFileVar) {
         encodePreservingIdentityOf(value) {
+            writeBoolean(value.isDisallowUnsafeRead)
             writeBoolean(value.isDisallowChanges)
+            writePropertyHost(value)
             write(value.fileResolver)
             providerCodec.run { encodeProvider(value.provider) }
         }
@@ -470,18 +482,63 @@ class RegularFilePropertyCodec(
 
     override suspend fun ReadContext.decode(): DefaultRegularFileVar {
         return decodePreservingIdentity { id ->
+            val isDisallowUnsafeRead = readBoolean()
             val isDisallowChanges = readBoolean()
+            val host = readPropertyHost()
             val fileResolver = readNonNull<FileResolver>()
-            val newPropFactory = filePropertyFactory.withResolver(fileResolver)
+            val newPropFactory = filePropertyFactory.withResolver(host, fileResolver)
             val property = newPropFactory.newFileProperty() as DefaultRegularFileVar
             isolate.identities.putInstance(id, property)
             val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
             property.value(provider)
+            if (isDisallowUnsafeRead) property.disallowUnsafeRead()
             if (isDisallowChanges) property.disallowChanges()
             property
         }
     }
 }
+
+
+/**
+ * Writes the [PropertyHost] of a file property, so that checks made by the host (such as rejecting reads
+ * before the producing task has run) can be restored when the property is loaded from the configuration cache.
+ */
+private
+suspend fun WriteContext.writePropertyHost(value: AbstractProperty<*, *>) {
+    val host = value.host
+    when {
+        host == null -> writeByte(0)
+        host == PropertyHost.NO_OP -> writeByte(1)
+        host is ProjectBackedPropertyHost -> {
+            writeByte(2)
+            writePropertyProducer(value)
+        }
+        else -> error("Unsupported host type: ${host::class.java.name}")
+    }
+}
+
+
+private
+suspend fun WriteContext.writePropertyProducer(value: AbstractProperty<*, *>) {
+    val producer = value.producer
+    if (producer is ValueSupplier.TaskProducer) {
+        var task: TaskInternal? = null
+        producer.visitProducerTasks { task = this as TaskInternal }
+        write(task?.identityPath)
+    } else {
+        error("Unsupported producer type: ${value.javaClass.name}")
+    }
+}
+
+
+private
+suspend fun ReadContext.readPropertyHost(): PropertyHost? =
+    when (val discriminator = readByte()) {
+        0.toByte() -> null
+        1.toByte() -> PropertyHost.NO_OP
+        2.toByte() -> RuntimeTaskCheckingPropertyHost(read() as Path)
+        else -> error("Unsupported host type: $discriminator")
+    }
 
 
 class ListPropertyCodec(

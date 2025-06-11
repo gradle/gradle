@@ -253,7 +253,6 @@ task thing {
         output.count("prop = " + file("build/dir.out")) == 3
     }
 
-    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/36710")
     def "cannot query strict task output file property until task starts execution"() {
         taskTypeWithOutputFileProperty()
         settingsFile << "rootProject.name = 'broken'"
