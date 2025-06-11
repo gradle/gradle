@@ -182,22 +182,14 @@ class ConfigurationCacheProblems(
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
         onIncompatibleTask(trace, reason)
-        return object : ErrorsAreProblemsProblemsListener(failureFactory) {
-            override fun onProblem(problem: PropertyProblem) {
-                onProblem(problem, ProblemSeverity.Suppressed)
-            }
-        }
+        return ErrorsAreProblemsProblemsListener(failureFactory, ProblemSeverity.Suppressed)
     }
 
     override fun forTask(task: Task): ProblemsListener {
         val degradationReasons = degradationController.degradationReasons[task]
         return if (!degradationReasons.isNullOrEmpty()) {
             onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
-            object : ErrorsAreProblemsProblemsListener(failureFactory) {
-                override fun onProblem(problem: PropertyProblem) {
-                    onProblem(problem, ProblemSeverity.SuppressedSilently)
-                }
-            }
+            ErrorsAreProblemsProblemsListener(failureFactory, ProblemSeverity.SuppressedSilently)
         } else this
     }
 
@@ -320,19 +312,19 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         val summary = summarizer.get()
-        val hasNoProblems = summary.totalProblemCount == 0
+        val hasNoProblemsForConsole = summary.reportableProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
         val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
-            require(hasNoProblems)
+            require(summary.totalProblemCount == 0)
             return
         }
 
         when (val failure = queryFailure(summary, htmlReportFile)) {
             null -> {
-                val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
+                val logReportAsInfo = hasNoProblemsForConsole && !startParameter.alwaysLogReportLinkAsWarning
                 val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
                 log(summary.textForConsole(details.cacheAction, htmlReportFile))
             }
@@ -371,18 +363,18 @@ class ConfigurationCacheProblems(
 
         override fun beforeComplete() {
             val summary = summarizer.get()
-            val totalProblemCount = summary.totalProblemCount
+            val reportableProblemCount = summary.reportableProblemCount
             val deferredProblemCount = summary.deferredProblemCount
-            val hasProblems = totalProblemCount > 0
+            val hasProblems = reportableProblemCount > 0
             val discardStateDueToProblems = discardStateDueToProblems(summary)
             val hasTooManyProblems = hasTooManyProblems(summary)
-            val problemCountString = totalProblemCount.counter("problem")
+            val problemCountString = reportableProblemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
             when {
                 seenSerializationErrorOnStore && deferredProblemCount == 0 -> log("Configuration cache entry discarded due to serialization error.")
                 seenSerializationErrorOnStore -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && shouldDegradeGracefully() -> log("Configuration caching disabled${degradationSummary()}")
+                cacheAction == Store && shouldDegradeGracefully() -> log("Configuration cache disabled${degradationSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -413,7 +405,7 @@ class ConfigurationCacheProblems(
 
     private
     fun discardStateDueToProblems(summary: Summary) =
-        !isWarningMode && (summary.totalProblemCount > 0 || incompatibleTasks.isNotEmpty())
+        !isWarningMode && (summary.reportableProblemCount > 0 || (incompatibleTasks.isNotEmpty() && degradationController.degradationReasons.isEmpty()))
 
     private
     fun hasTooManyProblems(summary: Summary) =
@@ -439,9 +431,15 @@ class ConfigurationCacheProblems(
         }
     }
 
-    private abstract class ErrorsAreProblemsProblemsListener(
-        private val failureFactory: FailureFactory
+    private inner class ErrorsAreProblemsProblemsListener(
+        private val failureFactory: FailureFactory,
+        private val problemSeverity: ProblemSeverity
     ) : AbstractProblemsListener() {
+
+        override fun onProblem(problem: PropertyProblem) {
+            onProblem(problem, problemSeverity)
+        }
+
         override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
             val failure = failureFactory.create(error)
             onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))

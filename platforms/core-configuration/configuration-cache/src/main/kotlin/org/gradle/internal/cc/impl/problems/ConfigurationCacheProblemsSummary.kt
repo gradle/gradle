@@ -54,19 +54,16 @@ class ConfigurationCacheProblemsSummary(
     var overflowed: Boolean = false
 
     private
-    var interrupted: Boolean = false
-
-    private
-    val totalProblemCount: Int
-        get() = deferredProblemCount +
-            suppressedProblemCount +
-            if (interrupted) 1 else 0
+    var totalProblemCount: Int = 0
 
     private
     var deferredProblemCount: Int = 0
 
     private
     var suppressedProblemCount: Int = 0
+
+    private
+    var suppressedSilentlyProblemCount: Int = 0
 
     /**
      * Unique problem causes observed among all reported problems.
@@ -93,6 +90,7 @@ class ConfigurationCacheProblemsSummary(
         Summary(
             totalProblemCount,
             deferredProblemCount,
+            suppressedSilentlyProblemCount,
             ImmutableMap.copyOf(problemCauses),
             ImmutableList.copyOf(originalProblemExceptions),
             overflowed,
@@ -105,11 +103,12 @@ class ConfigurationCacheProblemsSummary(
      */
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
         lock.withLock {
+            totalProblemCount += 1
             when (severity) {
                 ProblemSeverity.Deferred -> deferredProblemCount += 1
                 ProblemSeverity.Suppressed -> suppressedProblemCount += 1
-                ProblemSeverity.Interrupting -> interrupted = true
-                else -> {}
+                ProblemSeverity.SuppressedSilently -> suppressedSilentlyProblemCount += 1
+                ProblemSeverity.Interrupting -> {}
             }
             if (overflowed) {
                 return false
@@ -164,8 +163,14 @@ class Summary(
      */
     val deferredProblemCount: Int,
 
+    /**
+     * Number of problems which shouldn't be reported in the console.
+     */
     private
-    val problemCauses: Map<ProblemCause, ProblemSeverity>,
+    val suppressedSilentlyProblemCount: Int,
+
+    private
+    val reportableProblemCauses: Map<ProblemCause, ProblemSeverity>,
 
     val originalProblemExceptions: List<Throwable>,
 
@@ -175,16 +180,19 @@ class Summary(
     private
     val maxCollectedProblems: Int
 ) {
-    val problemCauseCount: Int
-        get() = problemCauses.size
+    val reportableProblemCount: Int
+        get() = totalProblemCount - suppressedSilentlyProblemCount
+
+    val reportableProblemCauseCount: Int
+        get() = reportableProblemCauses.size
 
     fun textForConsole(cacheActionText: String, htmlReportFile: File? = null): String {
         val documentationRegistry = DocumentationRegistry()
         return StringBuilder().apply {
             // When build degrades gracefully, we keep the console output minimal but still want to see the report link
-            if (totalProblemCount > 0) {
+            if (reportableProblemCount > 0) {
                 appendLine()
-                appendSummaryHeader(cacheActionText, totalProblemCount)
+                appendSummaryHeader(cacheActionText, reportableProblemCount)
                 appendLine()
                 topProblemsForConsole().forEach { problem ->
                     append("- ")
@@ -195,8 +203,8 @@ class Summary(
                         appendLine("  See ${documentationRegistry.getDocumentationFor(it.page, it.anchor)}")
                     }
                 }
-                if (problemCauseCount > MAX_CONSOLE_PROBLEMS) {
-                    appendLine("plus ${problemCauseCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
+                if (reportableProblemCauseCount > MAX_CONSOLE_PROBLEMS) {
+                    appendLine("plus ${reportableProblemCauseCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
                 }
             }
             htmlReportFile?.let {
@@ -208,7 +216,7 @@ class Summary(
 
     private
     fun topProblemsForConsole(): Sequence<ProblemCause> =
-        problemCauses.entries.stream()
+        reportableProblemCauses.entries.stream()
             .collect(Comparators.least(MAX_CONSOLE_PROBLEMS, consoleComparatorForProblemCauseWithSeverity()))
             .asSequence()
             .map { it.key }
@@ -216,10 +224,10 @@ class Summary(
     private
     fun StringBuilder.appendSummaryHeader(
         cacheAction: String,
-        totalProblemCount: Int
+        reportableProblemCount: Int
     ) {
-        append(totalProblemCount)
-        append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
+        append(reportableProblemCount)
+        append(if (reportableProblemCount == 1) " problem was found " else " problems were found ")
         append(cacheAction)
         append(" the configuration cache")
         if (overflowed) {
@@ -227,11 +235,11 @@ class Summary(
             append(maxCollectedProblems)
             append(" were considered")
         }
-        if (totalProblemCount != problemCauseCount) {
+        if (reportableProblemCount != reportableProblemCauseCount) {
             append(", ")
-            append(problemCauseCount)
+            append(reportableProblemCauseCount)
             append(" of which ")
-            append(if (problemCauseCount == 1) "seems unique" else "seem unique")
+            append(if (reportableProblemCauseCount == 1) "seems unique" else "seem unique")
         }
         append(".")
     }
@@ -263,16 +271,17 @@ fun consoleComparatorForProblemCause(): Comparator<ProblemCause> =
  *
  * Deferred problems go first because their presence is the cause of the Configuration Cache build failure.
  * Suppressed problems are included, but their presence alone would not have triggered a build failure.
- * Interrupting problems will have a dedicated build failure, so they have the lowest summary priority.
+ * Interrupting problems will have a dedicated build failure, so they have the low summary priority.
+ * Suppressed silently problems will not be printed in the console and have the lowest possible priority.
  */
 private
 fun consoleComparatorForSeverity(): Comparator<ProblemSeverity> =
     Comparator.comparingInt { it: ProblemSeverity ->
         when (it) {
-            ProblemSeverity.SuppressedSilently -> 1
-            ProblemSeverity.Deferred -> 2
-            ProblemSeverity.Suppressed -> 3
-            ProblemSeverity.Interrupting -> 4
+            ProblemSeverity.Deferred -> 1
+            ProblemSeverity.Suppressed -> 2
+            ProblemSeverity.Interrupting -> 3
+            ProblemSeverity.SuppressedSilently -> Int.MAX_VALUE
         }
     }
 

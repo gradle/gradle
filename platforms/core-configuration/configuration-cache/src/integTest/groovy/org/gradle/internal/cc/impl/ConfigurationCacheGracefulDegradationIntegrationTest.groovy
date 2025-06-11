@@ -383,6 +383,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     private void assertConfigurationCacheDegradation() {
-        postBuildOutputContains("Configuration caching disabled because incompatible task")
+        postBuildOutputContains("Configuration cache disabled because incompatible task")
     }
 }
