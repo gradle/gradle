@@ -49,6 +49,7 @@ import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
+import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
@@ -59,6 +60,7 @@ import org.gradle.internal.serialize.graph.InlineStringDecoder
 import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
+import org.gradle.internal.serialize.graph.NullClassEncoder
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SharedObjectDecoder
 import org.gradle.internal.serialize.graph.SharedObjectEncoder
@@ -174,7 +176,7 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     override fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>) {
-        withWriteContextFor(stateFile, { "candidates" }) {
+        withWriteContextFor(stateFile, { "candidates" }, customClassEncoder = NullClassEncoder) {
             writeStrings(entries.map { it.id })
         }
     }
@@ -398,6 +400,7 @@ class DefaultConfigurationCacheIO internal constructor(
         outputStream: () -> OutputStream,
         profile: () -> String,
         specialEncoders: SpecialEncoders,
+        customClassEncoder: ClassEncoder?
     ): Pair<CloseableWriteContext, Codecs> =
         encoderFor(stateType, outputStream).let { encoder ->
             writeContextFor(
@@ -405,7 +408,8 @@ class DefaultConfigurationCacheIO internal constructor(
                 encoder,
                 loggingTracerFor(profile, encoder),
                 codecs,
-                specialEncoders
+                specialEncoders,
+                customClassEncoder
             ) to codecs
         }
 
@@ -508,9 +512,10 @@ class DefaultConfigurationCacheIO internal constructor(
         outputStream: () -> OutputStream,
         profile: () -> String,
         specialEncoders: SpecialEncoders,
+        customClassEncoder: ClassEncoder?,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
-        writeContextFor(name, stateType, outputStream, profile, specialEncoders)
+        writeContextFor(name, stateType, outputStream, profile, specialEncoders, customClassEncoder)
             .let { (context, codecs) ->
                 context.writeWith(codecs, writeOperation)
             }
@@ -554,7 +559,8 @@ class DefaultConfigurationCacheIO internal constructor(
         encoder: Encoder,
         tracer: Tracer?,
         codecs: Codecs,
-        specialEncoders: SpecialEncoders = SpecialEncoders()
+        specialEncoders: SpecialEncoders = SpecialEncoders(),
+        customClassEncoder: ClassEncoder? = null
     ): CloseableWriteContext = DefaultWriteContext(
         name,
         codecs.userTypesCodec(),
@@ -564,7 +570,7 @@ class DefaultConfigurationCacheIO internal constructor(
         logger,
         tracer,
         problems,
-        classEncoder(),
+        customClassEncoder ?: classEncoder(),
         specialEncoders = specialEncoders
     )
 

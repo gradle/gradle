@@ -22,6 +22,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.MutableReadContext
@@ -73,6 +74,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         outputStream: () -> OutputStream,
         profile: () -> String,
         specialEncoders: SpecialEncoders = SpecialEncoders(),
+        customClassEncoder: ClassEncoder? = null
     ): Pair<CloseableWriteContext, Codecs>
 
     fun <R> withReadContextFor(
@@ -106,9 +108,18 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         stateFile: ConfigurationCacheStateFile,
         profile: () -> String,
         specialEncoders: SpecialEncoders = SpecialEncoders(),
+        customClassEncoder: ClassEncoder? = null,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
-        withWriteContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::outputStream, profile, specialEncoders, writeOperation)
+        withWriteContextFor(
+            stateFile.stateFile.name,
+            stateFile.stateType,
+            stateFile::outputStream,
+            profile,
+            specialEncoders,
+            customClassEncoder,
+            writeOperation
+        )
 
     fun <R> withWriteContextFor(
         name: String,
@@ -116,6 +127,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         outputStream: () -> OutputStream,
         profile: () -> String,
         specialEncoders: SpecialEncoders,
+        customClassEncoder: ClassEncoder?,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R
 

@@ -143,6 +143,13 @@ interface ClassEncoder {
 }
 
 
+object NullClassEncoder : ClassEncoder {
+    override fun WriteContext.encodeClass(type: Class<*>) {
+        error("$type cannot be encoded in this context.")
+    }
+}
+
+
 interface ClassDecoder {
     fun Decoder.decodeClass(): Class<*>
 
