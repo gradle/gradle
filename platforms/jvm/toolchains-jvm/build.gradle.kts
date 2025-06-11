@@ -40,15 +40,15 @@ dependencies {
     api(projects.resources)
     api(projects.toolchainsJvmShared)
 
-    api(libs.kotlinStdlib)
     api(libs.inject)
+    api(libs.jspecify)
+    api(libs.kotlinStdlib)
 
     implementation(projects.baseDiagnostics)
     implementation(projects.fileTemp)
     implementation(projects.modelCore)
 
     implementation(libs.guava)
-    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
