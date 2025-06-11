@@ -53,8 +53,10 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.model.Path;
 
 import javax.inject.Inject;
@@ -86,6 +88,9 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         this.fileResolver = fileResolver;
         this.providerFactory = providerFactory;
     }
+
+    @Inject
+    protected abstract ConfigurationCacheDegradationController getDegradationController();
 
     @Override
     public void apply(final Project project) {
@@ -141,8 +146,16 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
         });
+        tasks.withType(PublishToIvyRepository.class).configureEach(t -> getDegradationController().requireConfigurationCacheDegradation(t, usingExplicitCredentials(t)));
+
         tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, task -> task.dependsOn(publishTaskName));
         tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
+    }
+
+    private Provider<String> usingExplicitCredentials(PublishToIvyRepository task) {
+        return providerFactory.provider(() -> (AuthenticationSupportedInternal) task.getRepository())
+            .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
+            .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials are unsupported with the Configuration Cache");
     }
 
     private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir) {
