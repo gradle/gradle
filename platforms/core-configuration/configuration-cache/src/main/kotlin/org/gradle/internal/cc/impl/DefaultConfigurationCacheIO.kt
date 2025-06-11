@@ -49,6 +49,7 @@ import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
+import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
@@ -60,6 +61,7 @@ import org.gradle.internal.serialize.graph.InlineStringDecoder
 import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
+import org.gradle.internal.serialize.graph.NullClassDecoder
 import org.gradle.internal.serialize.graph.NullClassEncoder
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SharedObjectDecoder
@@ -123,8 +125,8 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile
     ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
-        withWriteContextFor(stateFile, { "entry details" }) {
-            write(buildInvocationScopeId.id.asString())
+        withWriteContextFor(stateFile, { "entry details" }, customClassEncoder = NullClassEncoder) {
+            writeString(buildInvocationScopeId.id.asString())
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
             writeCollection(intermediateModels.entries) { entry ->
@@ -145,8 +147,8 @@ class DefaultConfigurationCacheIO internal constructor(
         if (!stateFile.exists) {
             return null
         }
-        return withReadContextFor(stateFile) {
-            val buildInvocationScopeId = readNonNull<String>()
+        return withReadContextFor(stateFile, customClassDecoder = NullClassDecoder) {
+            val buildInvocationScopeId = readString()
             val rootDirs = readList { readFile() }
             val addressSerializer = BlockAddressSerializer()
             val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
@@ -186,7 +188,7 @@ class DefaultConfigurationCacheIO internal constructor(
             emptyList()
         }
 
-        else -> withReadContextFor(stateFile) {
+        else -> withReadContextFor(stateFile, customClassDecoder = NullClassDecoder) {
             readStrings().map { CandidateEntry(it) }
         }
     }
@@ -492,6 +494,7 @@ class DefaultConfigurationCacheIO internal constructor(
         stateType: StateType,
         inputStream: () -> InputStream,
         specialDecoders: SpecialDecoders,
+        customClassDecoder: ClassDecoder?,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
         readContextFor(name, stateType, inputStream, specialDecoders)
@@ -534,11 +537,13 @@ class DefaultConfigurationCacheIO internal constructor(
         name: String,
         stateType: StateType,
         inputStream: () -> InputStream,
-        specialDecoders: SpecialDecoders
+        specialDecoders: SpecialDecoders,
+        customClassDecoder: ClassDecoder? = null
     ) = readContextFor(
         name,
         decoderFor(stateType, inputStream),
-        specialDecoders
+        specialDecoders,
+        customClassDecoder
     )
 
     override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
@@ -550,8 +555,15 @@ class DefaultConfigurationCacheIO internal constructor(
     fun readContextFor(
         name: String? = null,
         decoder: Decoder,
-        specialDecoders: SpecialDecoders
-    ) = readContextFor(name, decoder, codecs, specialDecoders) to codecs
+        specialDecoders: SpecialDecoders,
+        customClassDecoder: ClassDecoder? = null
+    ) = readContextFor(
+        name,
+        decoder,
+        codecs,
+        specialDecoders,
+        customClassDecoder
+    ) to codecs
 
     private
     fun writeContextFor(
@@ -579,7 +591,8 @@ class DefaultConfigurationCacheIO internal constructor(
         name: String? = null,
         decoder: Decoder,
         codecs: Codecs,
-        specialDecoders: SpecialDecoders
+        specialDecoders: SpecialDecoders,
+        customClassDecoder: ClassDecoder?
     ): CloseableReadContext = DefaultReadContext(
         name,
         codecs.userTypesCodec(),
@@ -588,7 +601,7 @@ class DefaultConfigurationCacheIO internal constructor(
         startParameter.isIntegrityCheckEnabled,
         logger,
         problems,
-        classDecoder(),
+        customClassDecoder ?: classDecoder(),
         specialDecoders
     )
 

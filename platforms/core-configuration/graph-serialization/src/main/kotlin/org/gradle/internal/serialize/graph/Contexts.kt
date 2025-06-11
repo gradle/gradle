@@ -150,6 +150,12 @@ object NullClassEncoder : ClassEncoder {
 }
 
 
+object NullClassDecoder : ClassDecoder {
+    override fun Decoder.decodeClass(): Class<*> =
+        error("Cannot decode class in this context.")
+}
+
+
 interface ClassDecoder {
     fun Decoder.decodeClass(): Class<*>
 

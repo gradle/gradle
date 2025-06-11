@@ -22,6 +22,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
@@ -80,6 +81,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     fun <R> withReadContextFor(
         stateFile: ConfigurationCacheStateFile,
         specialDecoders: SpecialDecoders = SpecialDecoders(),
+        customClassDecoder: ClassDecoder? = null,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
         withReadContextFor(
@@ -87,6 +89,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
             stateFile.stateType,
             stateFile::inputStream,
             specialDecoders,
+            customClassDecoder,
             readOperation
         )
 
@@ -95,6 +98,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         stateType: StateType,
         inputStream: () -> InputStream,
         specialDecoders: SpecialDecoders = SpecialDecoders(),
+        customClassDecoder: ClassDecoder? = null,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R
 
