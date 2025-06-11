@@ -205,17 +205,17 @@ object InlineStringDecoder : StringDecoder {
 
 //TODO-RC consider making the implementations auto-closeable
 interface SharedObjectEncoder : AutoCloseable {
-    suspend fun <T: Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
+    suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
 }
 
 
 interface SharedObjectDecoder : AutoCloseable {
-    suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
+    suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
 }
 
 
 object InlineSharedObjectDecoder : SharedObjectDecoder {
-    override suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
+    override suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
         readContext.decode()
 
     override fun close() = Unit
