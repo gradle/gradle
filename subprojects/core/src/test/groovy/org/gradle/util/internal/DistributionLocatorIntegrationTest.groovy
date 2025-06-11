@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 import spock.lang.Specification
 
 @Requires(UnitTestPreconditions.Online)
@@ -42,7 +41,6 @@ class DistributionLocatorIntegrationTest extends Specification {
      * If this test fails, it means that the snapshot in `released-versions.json` is no longer available.
      * You need to update that entry with a recent snapshot by hand.
      */
-    @Ignore
     def "locates snapshot versions"() {
         expect:
         urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))
