@@ -530,15 +530,26 @@ class ConfigurationCacheState(
         }
 
     private
-    fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
+    suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
+        suspend fun WriteContext.doWriteFlowScopeOf(gradle: GradleInternal) {
+            val flowScopeState = buildFlowScopeOf(gradle).store()
+            write(flowScopeState)
+        }
+
         withIsolate(IsolateOwners.OwnerFlowScope(gradle), userTypesCodec) {
-            // Grab the allprojects lock to serialize the flow actions.
-            // This is a workaround for parameters that may require dependency resolution under the hood.
-            gradle.owner.projects.withMutableStateOfAllProjects {
-                val flowScopeState = buildFlowScopeOf(gradle).store()
-                runWriteOperation {
-                    write(flowScopeState)
+            val buildState = gradle.owner
+            if (buildState.isProjectsLoaded) {
+                // Grab the allprojects lock to serialize the flow actions.
+                // This is a workaround for parameters that may require dependency resolution under the hood.
+                buildState.projects.withMutableStateOfAllProjects {
+                    runWriteOperation {
+                        doWriteFlowScopeOf(gradle)
+                    }
                 }
+            } else {
+                // Projects are not registered yet, but actions may be already scheduled in the settings context.
+                // Let's run them without locks.
+                doWriteFlowScopeOf(gradle)
             }
         }
     }

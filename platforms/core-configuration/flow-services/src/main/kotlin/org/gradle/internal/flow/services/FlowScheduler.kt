@@ -44,15 +44,26 @@ class FlowScheduler(
     }
 
     fun schedule(scheduled: List<RegisteredFlowAction>) {
-        // Grab the allprojects lock to run the flow actions.
-        // This is a workaround for parameters that may require dependency resolution under the hood.
-        // TODO(mlopatkin) replace this with proper isolation
-        buildState.projects.withMutableStateOfAllProjects {
-            scheduled.forEach { flowAction ->
-                instantiator
-                    .newInstance(flowAction.type)
-                    .execute(flowAction.parameters ?: FlowParameters.None.INSTANCE)
+        if (buildState.isProjectsLoaded) {
+            // Grab the allprojects lock to run the flow actions.
+            // This is a workaround for parameters that may require dependency resolution under the hood.
+            // TODO(mlopatkin) replace this with proper isolation
+            buildState.projects.withMutableStateOfAllProjects {
+                runActions(scheduled)
             }
+        } else {
+            // Projects are not registered yet, but actions may be already scheduled in the settings context.
+            // Let's run them without locks.
+            runActions(scheduled)
+        }
+    }
+
+    private
+    fun runActions(scheduled: List<RegisteredFlowAction>) {
+        scheduled.forEach { flowAction ->
+            instantiator
+                .newInstance(flowAction.type)
+                .execute(flowAction.parameters ?: FlowParameters.None.INSTANCE)
         }
     }
 
