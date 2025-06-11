@@ -72,6 +72,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheProblemsOption(),
         new ConfigurationCacheOption(),
         new ConfigurationCacheIgnoreInputsDuringStore(),
+        new ConfigurationCacheIgnoreUnsupportedBuildEventsListeners(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
@@ -529,6 +530,25 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheIgnoreInputsDuringStore(value);
+        }
+    }
+
+    /**
+     * Suppresses Configuration Cache problems for unsupported listeners registered in {@code BuildEventsListenersRegistry}.
+     *
+     * @since 9.0.0
+     */
+    public static class ConfigurationCacheIgnoreUnsupportedBuildEventsListeners extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners";
+
+        public ConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(value);
         }
     }
 
