@@ -341,7 +341,13 @@ class DefaultConfigurationCache internal constructor(
             val usedModels = intermediateModels.collectAccessedValues()
             val usedMetadata = projectMetadata.collectAccessedValues()
             val sideEffects = buildTreeModelSideEffects.collectSideEffects()
-            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, fileFor(StateType.Entry))
+            cacheIO.writeCacheEntryDetailsTo(
+                buildStateRegistry,
+                usedModels,
+                usedMetadata,
+                sideEffects,
+                fileFor(StateType.Entry)
+            )
         }
         updateMostRecentEntry(entryId)
     }
