@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
-import org.gradle.api.internal.tasks.testing.TestFrameworkStartupFailureException;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestFrameworkStartupFailureException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
@@ -113,6 +113,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
              * We need to throw an exception here and abort normal failure processing so that this information
              * isn't buried in the typical test results report.
              */
+            testState.failures.add(testFailure);
             throw new TestFrameworkStartupFailureException(testFailure);
         } else if (testFailure.getDetails().isAssumptionFailure()) {
             testState.assumptionFailure = testFailure;
