@@ -360,7 +360,7 @@ fun WriteContext.reportCollectionWriteFailure(collectionKind: String, size: Int,
     onError(ConcurrentModificationException("Collection corrupted or changed while iterating")) {
         text("The $collectionKind size() is $size, but $totalWritten entries were available when iterating over it. ")
         if (sizeAfterIteration != size) {
-            text("The size changed to ${sizeAfterIteration} after iterating.")
+            text("The size changed to $sizeAfterIteration after iterating.")
         } else {
             text("The $collectionKind is likely broken or corrupted because of a data race.")
         }
