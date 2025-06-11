@@ -518,14 +518,23 @@ class DefaultConfigurationCacheIO internal constructor(
     private fun readContextFor(
         stateFile: ConfigurationCacheStateFile,
         specialDecoders: SpecialDecoders = SpecialDecoders()
-    ) = readContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::inputStream, specialDecoders)
+    ) = readContextFor(
+        stateFile.stateFile.name,
+        stateFile.stateType,
+        stateFile::inputStream,
+        specialDecoders
+    )
 
     private fun readContextFor(
         name: String,
         stateType: StateType,
         inputStream: () -> InputStream,
         specialDecoders: SpecialDecoders
-    ) = readContextFor(name, decoderFor(stateType, inputStream), specialDecoders)
+    ) = readContextFor(
+        name,
+        decoderFor(stateType, inputStream),
+        specialDecoders
+    )
 
     override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
         val (context, codecs) = readContextFor("unnamed", decoder, SpecialDecoders())
