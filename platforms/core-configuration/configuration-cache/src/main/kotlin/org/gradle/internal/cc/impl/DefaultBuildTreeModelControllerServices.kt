@@ -249,9 +249,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             // Collect and report problems. Don't suggest enabling CC if it is on, even if implicitly (e.g. enabled by isolated projects).
             // Most likely, the user who tries IP is already aware of CC and nudging will be just noise.
             modelParameters.isConfigurationCache -> registration.add(ConfigurationCacheProblems::class.java)
-            // Allow nudging to enable CC if it is off and there is no explicit decision.
-            !requirements.startParameter.configurationCache.isExplicit -> registration.add(ConfigurationCachePromoHandler::class.java)
-            // Do not nudge if CC is explicitly disabled.
+            // Allow nudging to enable CC if it is off and there is no explicit decision. CC doesn't work for model building so do not nudge there.
+            !requirements.startParameter.configurationCache.isExplicit && !requirements.isCreatesModel -> registration.add(ConfigurationCachePromoHandler::class.java)
+            // Do not nudge if CC is explicitly disabled or if models are requested.
             else -> registration.add(IgnoringProblemsListener::class.java, IgnoringProblemsListener)
         }
 
