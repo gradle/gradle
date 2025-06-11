@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.attributes
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 
-class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
+class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
     def "cannot use an attribute value that cannot be made isolated - #type"() {
         given:
         buildFile << """
@@ -100,5 +100,34 @@ class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds()
+    }
+
+    def "can use addAllLater in Kotlin"() {
+        buildKotlinFile << """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
+
+            val foo = configurations.create("foo").attributes
+            foo.attribute(color, "green")
+
+            val bar = configurations.create("bar").attributes
+            bar.attribute(color, "red")
+            bar.attribute(shape, "square")
+            assert(bar.getAttribute(color) == "red")    // `color` is originally red
+
+            bar.addAllLater(foo)
+            assert(bar.getAttribute(color) == "green")  // `color` gets overwritten
+            assert(bar.getAttribute(shape) == "square") // `shape` does not
+
+            foo.attribute(color, "purple")
+            bar.getAttribute(color) == "purple"         // addAllLater is lazy
+
+            bar.attribute(color, "orange")
+            assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
+            assert(bar.getAttribute(shape) == "square") // `shape` remains the same
+        """
+
+        expect:
+        succeeds("help")
     }
 }

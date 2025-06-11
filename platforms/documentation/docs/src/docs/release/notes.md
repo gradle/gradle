@@ -74,6 +74,38 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
+<a name="build-authoring"></a>
+### Build authoring improvements
+
+#### Introduce `AttributeContainer#addAllLater`
+
+This release introduces a new API on `AttributeContainer` allowing all attributes from one attribute container to be lazily added to another.
+
+Consider the following example demonstrating the new API's behavior:
+
+```kotlin
+val color = Attribute.of("color", String::class.java)
+val shape = Attribute.of("shape", String::class.java)
+
+val foo = configurations.create("foo").attributes
+foo.attribute(color, "green")
+
+val bar = configurations.create("bar").attributes
+bar.attribute(color, "red")
+bar.attribute(shape, "square")
+assert(bar.getAttribute(color) == "red")    // `color` is originally red
+
+bar.addAllLater(foo)
+assert(bar.getAttribute(color) == "green")  // `color` gets overwritten
+assert(bar.getAttribute(shape) == "square") // `shape` does not
+
+foo.attribute(color, "purple")
+bar.getAttribute(color) == "purple"         // addAllLater is lazy
+
+bar.attribute(color, "orange")
+assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
+assert(bar.getAttribute(shape) == "square") // `shape` remains the same
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
