@@ -523,7 +523,8 @@ class DefaultConfigurationCacheIO internal constructor(
                 context.writeWith(codecs, writeOperation)
             }
 
-    private fun readContextFor(
+    private
+    fun readContextFor(
         stateFile: ConfigurationCacheStateFile,
         specialDecoders: SpecialDecoders = SpecialDecoders()
     ) = readContextFor(
@@ -533,7 +534,8 @@ class DefaultConfigurationCacheIO internal constructor(
         specialDecoders
     )
 
-    private fun readContextFor(
+    private
+    fun readContextFor(
         name: String,
         stateType: StateType,
         inputStream: () -> InputStream,
