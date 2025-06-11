@@ -45,6 +45,7 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.StatelessPropertyHost
 import org.gradle.internal.cc.base.serialize.readProjectRef
 import org.gradle.internal.cc.base.serialize.writeProjectRef
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -424,7 +425,7 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
             }
             host is ProjectBackedPropertyHost -> {
                 writeByte(2)
-                writeProjectRef(host.project)
+//                writeProjectRef(host.project)
             }
             else -> error("Unsupported host type: ${host::class.java.name}")
         }
@@ -440,8 +441,9 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
                 return PropertyHost.NO_OP
             }
             2.toByte() -> {
-                val project = readProjectRef()
-                return ProjectBackedPropertyHost(project)
+//                val project = readProjectRef()
+//                return ProjectBackedPropertyHost(project)
+                return StatelessPropertyHost()
             }
             else -> {
                 error("Unsupported host type: $discriminator")
