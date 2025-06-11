@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+:gradle-issues: https://github.com/gradle/gradle/issues/
+
 [[config_cache_requirements]]
 = Configuration Cache Requirements for your Build Logic
 

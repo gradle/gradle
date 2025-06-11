@@ -312,16 +312,26 @@ However, these changes did not invalidate the cache.
 +
 Starting in Gradle 8.4, these undeclared inputs are correctly tracked and now cause cache invalidation.
 +
-To temporarily revert to the previous behavior, set the the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
+To temporarily revert to the previous behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
 
-Use these opt-out options sparingly and only if they do not impact task execution results.
+With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic. 
+To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
+
+1. Starting with Gradle 9.0, it is an error to use any provider, except a provider of `BuildService` returned from
+link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`]
+or
+link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`]
+as an argument for
+link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`].
++
+Prior to Gradle 9, unsupported providers were silently discarded and never received events during cache-hit builds.
++
+To temporarily revert to the previous behavior, set the Gradle property:
++
+[source,properties]
+----
+org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true
+----
+
+Use these opt-out options sparingly and only when they do not impact task execution results.
 These options are intended as temporary workarounds and will be removed in future Gradle releases.
-
-
-
-
-
-
-
-
-

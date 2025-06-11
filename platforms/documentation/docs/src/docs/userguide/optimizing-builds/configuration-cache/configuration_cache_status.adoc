@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+:gradle-issues: https://github.com/gradle/gradle/issues/
+
 [[config_cache_status]]
 = Configuration Cache Status
 
@@ -224,11 +226,25 @@ See link:{gradle-issues}22879[gradle/gradle#22879].
 [[config_cache:not_yet_implemented:build_services_in_fingerprint]]
 === Using Build Services to Invalidate the Configuration Cache
 
-Currently, it is impossible to use a `BuildServiceProvider` or provider derived from it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
+Currently, it is impossible to use a provider of `BuildService` or provider derived from it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
 The same applies when such a `ValueSource` is obtained in a task that executes as part of the configuration phase, for example tasks of the `buildSrc` build or included builds contributing plugins.
 
-Note that using a `@ServiceReference` or storing `BuildServiceProvider` in an `@Internal`-annotated property of a task is safe.
+Note that using a `@ServiceReference` or storing `BuildService` in an `@Internal`-annotated property of a task is safe.
 
 Generally speaking, this limitation makes it impossible to use a `BuildService` to invalidate the Configuration Cache.
 
 See link:{gradle-issues}24085[gradle/gradle#24085].
+
+[[config_cache:not_yet_implemented:more_build_event_listeners]]
+=== Using Arbitrary Providers as Build Events Listeners
+
+The build event listener registration method link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`]
+accepts arbitrary providers of any link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[`OperationCompletionListener`] implementations.
+However, only providers returned from link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`] or link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`] are currently supported when the Configuration Cache is used.
+Starting with Gradle 9, using other kinds of providers (including even `registerIfAbsent(...).map { it }`) results in a Configuration Cache problem being emitted.
+Prior to that, such providers were silently ignored.
+
+Check the <<configuration_cache_enabling#config_cache:adoption:changes_in_behavior,adoption guide>> to learn how to _temporarily_ suppress these problems if discarded listeners do not affect your
+build.
+
+See link:{gradle-issues}33772[gradle/gradle#33772].

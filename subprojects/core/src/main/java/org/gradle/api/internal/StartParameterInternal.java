@@ -37,6 +37,7 @@ public class StartParameterInternal extends StartParameter {
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
+    private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheParallel;
@@ -77,6 +78,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
+        p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
@@ -179,6 +181,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheIgnoreInputsDuringStore(boolean ignoreInputsDuringStore) {
         configurationCacheIgnoreInputsDuringStore = ignoreInputsDuringStore;
+    }
+
+    public void setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean configurationCacheIgnoreUnsupportedBuildEventsListeners) {
+        this.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
+    }
+
+    public boolean isConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
+        return configurationCacheIgnoreUnsupportedBuildEventsListeners;
     }
 
     public boolean isConfigurationCacheParallel() {
