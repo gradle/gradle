@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "omits repeated dependencies in case of circular dependencies"() {
@@ -1057,7 +1056,7 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle ${GradleVersion.current().getMajorVersion() + 1}.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 10. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
 
         expect:
         succeeds ':a:dependencies'

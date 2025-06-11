@@ -65,7 +65,7 @@ import java.util.concurrent.Callable
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 10.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class ProjectDelegate : Project {
 
     init {

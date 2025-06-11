@@ -51,7 +51,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-@Deprecated("Will be removed in Gradle 10.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class KotlinBuildScript(
     private val host: KotlinScriptHost<Project>
 ) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.ProjectDelegate() {

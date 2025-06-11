@@ -79,7 +79,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         executer.expectDocumentedDeprecationWarning(
             "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. Use assignment ('description = <value>') instead. " +
+                "This is scheduled to be removed in Gradle 10. Use assignment ('description = <value>') instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
         )
 

@@ -35,7 +35,7 @@ import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDe
 
 class DeprecationMessagesTest extends Specification {
 
-    private static final String NEXT_GRADLE_VERSION = "10.0"
+    private static final String NEXT_GRADLE_VERSION = "10"
     private static final DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     private final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()

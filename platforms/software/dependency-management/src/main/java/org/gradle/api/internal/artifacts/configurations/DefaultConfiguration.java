@@ -1458,7 +1458,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         boolean extraWarningsEnabled = Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled");
 
         if (redundantChange) {
-            // Remove this condition in Gradle 9.x and warn on every redundant change, in Gradle 10.0 this should fail.
+            // Remove this condition in Gradle 9.x and warn on every redundant change, in Gradle 10 this should fail.
             if (extraWarningsEnabled) {
                 warnAboutChangingUsage(methodName, newValue);
             }
@@ -1467,7 +1467,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // This is an actual change, and permitting it is not desired behavior, but we haven't deprecated
                 // changing detached confs usages to false as of 9.0, so we have to permit even these non-redundant changes,
                 // but we can at least warn if the flag is set.
-                // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10.0 this should fail.
+                // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10 this should fail.
                 if (extraWarningsEnabled) {
                     warnAboutChangingUsage(methodName, newValue);
                 }
