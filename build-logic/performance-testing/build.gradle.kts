@@ -9,9 +9,10 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(projects.integrationTesting)
     implementation(projects.cleanup)
     implementation(projects.buildUpdateUtils)
+    implementation(projects.integrationTesting)
+    implementation(projects.jvm)
 
     implementation("com.google.guava:guava")
     implementation("com.google.code.gson:gson")
