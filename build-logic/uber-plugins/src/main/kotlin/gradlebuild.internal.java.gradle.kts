@@ -19,5 +19,9 @@ plugins {
 }
 
 jvmCompile {
-    targetJvmVersion = 8
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
 }

@@ -13,8 +13,16 @@ gradleModule {
 }
 
 jvmCompile {
-    // JSpecify annotations on static inner type return types
-    usesJdkInternals = true
+    compilations {
+        named("main") {
+            // JSpecify annotations on static inner type return types
+            usesJdkInternals = true
+        }
+        named("crossVersionTest") {
+            // The TAPI tests must be able to run the TAPI client, which is still JVM 8 compatible
+            targetJvmVersion = 8
+        }
+    }
 }
 
 tasks.named<Jar>("sourcesJar") {
