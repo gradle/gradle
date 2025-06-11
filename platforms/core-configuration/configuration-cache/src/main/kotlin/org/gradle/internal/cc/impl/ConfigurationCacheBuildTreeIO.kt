@@ -80,7 +80,13 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         specialDecoders: SpecialDecoders = SpecialDecoders(),
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        withReadContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::inputStream, specialDecoders, readOperation)
+        withReadContextFor(
+            stateFile.stateFile.name,
+            stateFile.stateType,
+            stateFile::inputStream,
+            specialDecoders,
+            readOperation
+        )
 
     fun <R> withReadContextFor(
         name: String,
