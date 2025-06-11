@@ -49,6 +49,7 @@ enum class DocumentationSection(val page: String, val anchor: String) {
     NotYetImplementedJavaSerialization("configuration_cache_status", "config_cache:not_yet_implemented:java_serialization"),
     NotYetImplementedTestKitJavaAgent("configuration_cache_status", "config_cache:not_yet_implemented:testkit_build_with_java_agent"),
     NotYetImplementedBuildServiceInFingerprint("configuration_cache_status", "config_cache:not_yet_implemented:build_services_in_fingerprint"),
+    NotYetImplementedBuildEventListeners("configuration_cache_status", "config_cache:not_yet_implemented:more_build_event_listeners"),
     TaskOptOut("config_cache_debugging", "config_cache:task_opt_out"),
     RequirementsBuildListeners("configuration_cache_requirements","config_cache:requirements:build_listeners"),
     RequirementsDisallowedTypes("configuration_cache_requirements","config_cache:requirements:disallowed_types"),
