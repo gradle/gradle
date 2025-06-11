@@ -235,6 +235,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     /**
      * Determines if the repository should not be used to resolve this configuration.
      */
+    @SuppressWarnings("UnnecessaryParentheses")
     private static boolean shouldSkipRepository(
         ResolutionAwareRepository repository,
         String configurationName,

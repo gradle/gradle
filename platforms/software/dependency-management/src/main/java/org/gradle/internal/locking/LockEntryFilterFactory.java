@@ -68,6 +68,7 @@ class LockEntryFilterFactory {
         return new GroupModuleLockEntryFilter(group, module);
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private static void validateNotation(String lockExclude, String[] split, boolean allowFullWildcard, String context) {
         if (split.length != 2) {
             throwInvalid(lockExclude, context);

@@ -105,6 +105,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
         return testLogging.getShowExceptions() && !result.getExceptions().isEmpty();
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private boolean isLoggedGranularity(TestDescriptor descriptor) {
         int level = getLevel(descriptor);
         return ((testLogging.getMinGranularity() == -1 && !descriptor.isComposite()) ||

@@ -16,6 +16,7 @@
 
 package gradlebuild.binarycompatibility.rules
 
+import groovy.transform.CompileStatic
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import javassist.CtClass
@@ -29,6 +30,7 @@ import me.champeau.gradle.japicmp.report.Violation
  * called with the given type, even if the methods and fields inherited don't change.
  * </p>
  */
+@CompileStatic
 class BinaryBreakingSuperclassChangeRule extends AbstractSuperClassChangesRule {
 
     BinaryBreakingSuperclassChangeRule(Map<String, Object> params) {

@@ -65,6 +65,7 @@ public class FileUtils {
     /**
      * Converts a string into a string that is safe to use as a file name. The result will only include ascii characters and numbers, and the "-","_", #, $ and "." characters.
      */
+    @SuppressWarnings("UnnecessaryParentheses")
     public static String toSafeFileName(String name) {
         int size = name.length();
         StringBuilder rc = new StringBuilder(size * 2);

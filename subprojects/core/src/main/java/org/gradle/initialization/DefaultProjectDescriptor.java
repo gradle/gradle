@@ -45,11 +45,14 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
     private File dir;
+    @Nullable
     private File canonicalDir;
+    @Nullable
     private final DefaultProjectDescriptor parent;
     private final Set<DefaultProjectDescriptor> children = new LinkedHashSet<>();
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
+    @Nullable
     private String buildFileName;
 
     public DefaultProjectDescriptor(
@@ -82,7 +85,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     private Path path(String name) {
         if (isRootDescriptor()) {
-            return path = Path.ROOT;
+            return Path.ROOT;
         } else {
             return parent.absolutePath(name);
         }

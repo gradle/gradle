@@ -36,8 +36,7 @@ fun TestCoverage.asBuildScanCustomValue() =
 // where X, Y, Z are all the stages including current stage
 // For example, for the stage PullRequestFeedback, the custom value will be "PartOf=PullRequestFeedback,ReadyForNightly,ReadyForRelease"
 private fun Stage.getBuildScanCustomValues(): List<String> =
-    StageName
-        .values()
+    StageName.entries.toTypedArray()
         .slice(this.stageName.ordinal until StageName.READY_FOR_RELEASE.ordinal + 1)
         .map { it.uuid }
 

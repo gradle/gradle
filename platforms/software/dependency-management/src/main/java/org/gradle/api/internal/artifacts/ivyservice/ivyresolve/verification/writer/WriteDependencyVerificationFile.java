@@ -331,6 +331,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private void registerEntryToBuilder(VerificationEntry entry, AtomicReference<PgpEntry> previousEntry) {
         // checksums are written _after_ PGP, so if the previous entry was PGP and
         // that it matches the artifact id we don't always need to write the checksum

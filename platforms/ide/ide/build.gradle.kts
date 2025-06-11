@@ -88,3 +88,9 @@ testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+errorprone {
+    disabledChecks.addAll(
+        "AssignmentExpression" // 1 occurrences
+    )
+}

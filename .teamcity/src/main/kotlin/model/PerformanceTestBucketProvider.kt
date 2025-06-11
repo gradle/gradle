@@ -186,7 +186,6 @@ data class PerformanceTestDuration(
     val scenario: Scenario,
     val durationInMs: Int,
 ) {
-    fun toCsvLine() = "${scenario.className};${scenario.scenario}"
 }
 
 data class PerformanceScenario(

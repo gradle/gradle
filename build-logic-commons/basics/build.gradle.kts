@@ -27,7 +27,7 @@ dependencies {
         because("For manually defined KotlinSourceSet accessor - sourceSets.main.get().kotlin")
     }
 
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.12.2")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

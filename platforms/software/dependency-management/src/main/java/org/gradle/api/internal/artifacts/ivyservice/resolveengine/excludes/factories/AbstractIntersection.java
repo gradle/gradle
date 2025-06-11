@@ -37,6 +37,7 @@ public abstract class AbstractIntersection<L extends ExcludeSpec, R extends Excl
     }
 
     @Override
+    @SuppressWarnings("UnnecessaryParentheses")
     public boolean applies(ExcludeSpec left, ExcludeSpec right) {
         return (leftType.isInstance(left) && rightType.isInstance(right))
                 || (leftType.isInstance(right) && rightType.isInstance(left));

@@ -123,6 +123,7 @@ public class HttpClientHelper implements Closeable {
         return new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(uri)), cause);
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private Exception wrapWithExplanation(IOException e) {
         if (e instanceof SocketException || (e instanceof SSLException && e.getMessage().contains("readHandshakeRecord"))) {
             return new HttpRequestException("Got socket exception during request. It might be caused by SSL misconfiguration", e);

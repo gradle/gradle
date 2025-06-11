@@ -1595,6 +1595,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return resolved;
     }
 
+    @SuppressWarnings("UnnecessaryParentheses")
     private void resolveGenericsHeader(GenericsType[] types) {
         if (types == null) {
             return;
