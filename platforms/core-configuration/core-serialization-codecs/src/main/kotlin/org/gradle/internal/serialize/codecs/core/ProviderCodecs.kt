@@ -22,6 +22,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.flow.FlowAction
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.flow.FlowProviders
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
@@ -33,6 +34,7 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSupplier
@@ -45,6 +47,7 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.RuntimeTaskCheckingPropertyHost
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -70,6 +73,8 @@ import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
+import org.gradle.internal.service.scopes.ProjectBackedPropertyHost
+import org.gradle.util.Path
 
 
 fun defaultCodecForProviderWithChangingValue(
@@ -353,7 +358,7 @@ class PropertyCodec(
 
     override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
         encodePreservingIdentityOf(value) {
-            writeClass(value.type as Class<*>)
+            writeClass(value.type)
             providerCodec.run { encodeProvider(value.provider) }
         }
     }
@@ -389,7 +394,9 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
             writeByte(1.toByte())
             write(value.fileCollectionResolver)
         }
+        writeBoolean(value.isDisallowUnsafeRead)
         writeBoolean(value.isDisallowChanges)
+        writeHost(value)
         providerCodec.run {
             encodeProvider(value.provider)
         }
@@ -405,10 +412,62 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
             1.toByte() -> readNonNull<PathToFileResolver>().uncheckedCast<PathToFileResolver>()
             else -> error("Unsupported PathToFileResolver discriminator byte value: $discriminator")
         }
+        val isDisallowUnsafeRead = readBoolean()
         val isDisallowChanges = readBoolean()
-        return restorePropertyWithValue(resolver, fileCollectionResolver).apply {
+        val host: PropertyHost? = readHost()
+        return restorePropertyWithValue(host, resolver, fileCollectionResolver).apply {
+            if (isDisallowUnsafeRead) {
+                disallowUnsafeRead()
+            }
             if (isDisallowChanges) {
                 disallowChanges()
+            }
+        }
+    }
+    private suspend fun WriteContext.writeHost(value: P) {
+        val host = value.host
+        when {
+            host == null -> writeByte(0)
+            host == PropertyHost.NO_OP -> {
+                writeByte(1)
+            }
+            host is ProjectBackedPropertyHost -> {
+                writeByte(2)
+                writeProducer(value)
+            }
+            else -> error("Unsupported host type: ${host::class.java.name}")
+        }
+    }
+
+    private suspend fun WriteContext.writeProducer(value : P) {
+        if (value.producer is ValueSupplier.TaskProducer) {
+            writeTaskProducer(value.producer as ValueSupplier.TaskProducer)
+        } else {
+            error("Unsupported producer type: ${value.javaClass.name}")
+        }
+    }
+
+    private suspend fun WriteContext.writeTaskProducer(taskProducer : ValueSupplier.TaskProducer) {
+        var task : TaskInternal? = null
+        taskProducer.visitProducerTasks { task = this as TaskInternal}
+        write(task?.identityPath)
+    }
+
+    private suspend fun ReadContext.readHost(): PropertyHost? {
+        val discriminator = readByte()
+        when (discriminator) {
+            0.toByte() -> {
+                return null
+            }
+            1.toByte() -> {
+                return PropertyHost.NO_OP
+            }
+            2.toByte() -> {
+                val taskPath: Path = read() as Path
+                return RuntimeTaskCheckingPropertyHost(taskPath)
+            }
+            else -> {
+                error("Unsupported host type: $discriminator")
             }
         }
     }
@@ -418,11 +477,12 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
      * by restoring the serialized value but not affecting any "metadata" fields (like `isDisallowChanges`)
      * present in the property.
      *
+     * @param host the [PropertyHost] to use for the property, or null if not applicable
      * @param fileResolver the [FileResolver] to use for resolving file paths
      * @param fileCollectionResolver the [PathToFileResolver] to use for resolving file collections, or null if not applicable
      * @return the property with the decoded provider value set
      */
-    abstract suspend fun ReadContext.restorePropertyWithValue(fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): P
+    abstract suspend fun ReadContext.restorePropertyWithValue(host: PropertyHost?, fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): P
 }
 
 
@@ -430,9 +490,9 @@ class DirectoryPropertyCodec(
     filePropertyFactory: FilePropertyFactory,
     providerCodec: FixedValueReplacingProviderCodec
 ) : AbstractFileVarPropertyCodec<DefaultDirectoryVar>(filePropertyFactory, providerCodec) {
-    override suspend fun ReadContext.restorePropertyWithValue(fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): DefaultDirectoryVar {
+    override suspend fun ReadContext.restorePropertyWithValue(host: PropertyHost?, fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): DefaultDirectoryVar {
         val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        val newPropFactory = filePropertyFactory.withResolvers(fileResolver, fileCollectionResolver!!)
+        val newPropFactory = filePropertyFactory.withResolvers(host, fileResolver, fileCollectionResolver!!)
         return newPropFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
     }
 }
@@ -442,10 +502,11 @@ class RegularFilePropertyCodec(
     filePropertyFactory: FilePropertyFactory,
     providerCodec: FixedValueReplacingProviderCodec
 ) : AbstractFileVarPropertyCodec<DefaultRegularFileVar>(filePropertyFactory, providerCodec) {
-    override suspend fun ReadContext.restorePropertyWithValue(fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): DefaultRegularFileVar {
+    override suspend fun ReadContext.restorePropertyWithValue(host: PropertyHost?, fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): DefaultRegularFileVar {
         val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        val newPropFactory = filePropertyFactory.withResolver(fileResolver)
-        return newPropFactory.newFileProperty().value(provider) as DefaultRegularFileVar
+        val newPropFactory = filePropertyFactory.withResolver(host, fileResolver)
+        val newProp = newPropFactory.newFileProperty().value(provider) as DefaultRegularFileVar
+        return newProp.value(provider) as DefaultRegularFileVar
     }
 }
 

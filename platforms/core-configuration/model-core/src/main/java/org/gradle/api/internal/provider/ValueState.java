@@ -79,6 +79,8 @@ public abstract class ValueState<S> {
 
     public abstract void disallowUnsafeRead();
 
+    public abstract boolean isDisallowUnsafeRead();
+
     /**
      * Marks this value state as being explicitly assigned. Does not remember the given value in any way.
      *
@@ -174,6 +176,9 @@ public abstract class ValueState<S> {
 
     public abstract void warnOnUpgradedPropertyValueChanges();
 
+    @Nullable
+    public abstract PropertyHost getHost();
+
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
         private final Function<S, S> copier;
@@ -188,6 +193,12 @@ public abstract class ValueState<S> {
         public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
             this.host = host;
             this.copier = copier;
+        }
+
+        @Override
+        @Nullable
+        public PropertyHost getHost() {
+            return host;
         }
 
         @Override
@@ -261,6 +272,11 @@ public abstract class ValueState<S> {
         public void disallowUnsafeRead() {
             disallowUnsafeRead = true;
             finalizeOnNextGet = true;
+        }
+
+        @Override
+        public boolean isDisallowUnsafeRead() {
+            return disallowUnsafeRead;
         }
 
         @Override
@@ -373,6 +389,12 @@ public abstract class ValueState<S> {
 
     private static class FinalizedValue<S> extends ValueState<S> {
         @Override
+        @Nullable
+        public PropertyHost getHost() {
+            return null; // Finalized value does not need or have a host, it can always be read safely
+        }
+
+        @Override
         public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
             return false;
         }
@@ -395,6 +417,11 @@ public abstract class ValueState<S> {
         @Override
         public void disallowUnsafeRead() {
             // Finalized already so read is safe
+        }
+
+        @Override
+        public boolean isDisallowUnsafeRead() {
+            return false;
         }
 
         @Override
