@@ -18,7 +18,6 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.CollectingTestOutputEventListener
@@ -29,8 +28,8 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.GUtil
 import org.gradle.util.UsesNativeServices
+import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Timeout
@@ -166,19 +165,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.ABORTED
         and:
         execHandle.waitForFinish().exitValue != 0
-    }
-
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    void "abort warns that it cannot destroy child processes with Java 8 or lower"() {
-        def execHandle = handle().args(args(SlowApp.class)).build()
-
-        when:
-        execHandle.start()
-        execHandle.abort()
-
-        then:
-        def logMessages = outputEventListener.events.findAll { it.logLevel == LogLevel.DEBUG }.collect() { it.message }
-        logMessages.contains('Did not destroy the child processes. This is only supported with Java 9+.')
     }
 
     void "can abort after process has completed"() {
