@@ -881,7 +881,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         executer.expectDocumentedDeprecationWarning("The Gradle.useLogger(Object) method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 10.0. " +
+            "This is scheduled to be removed in Gradle 10. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_use_logger")
 

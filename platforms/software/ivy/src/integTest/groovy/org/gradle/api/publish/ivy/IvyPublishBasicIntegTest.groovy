@@ -297,8 +297,8 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         """
 
         expect: "build warned about transitive = true variant"
-        executer.expectDocumentedDeprecationWarning("Publishing non-transitive configuration 'apiElements'. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Setting 'transitive = false' at the configuration level is ignored by publishing. Consider using 'transitive = false' on each dependency if this needs to be published.")
-        executer.expectDocumentedDeprecationWarning("Publishing non-transitive configuration 'runtimeElements'. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Setting 'transitive = false' at the configuration level is ignored by publishing. Consider using 'transitive = false' on each dependency if this needs to be published.")
+        executer.expectDocumentedDeprecationWarning("Publishing non-transitive configuration 'apiElements'. This behavior has been deprecated. This will fail with an error in Gradle 10. Setting 'transitive = false' at the configuration level is ignored by publishing. Consider using 'transitive = false' on each dependency if this needs to be published.")
+        executer.expectDocumentedDeprecationWarning("Publishing non-transitive configuration 'runtimeElements'. This behavior has been deprecated. This will fail with an error in Gradle 10. Setting 'transitive = false' at the configuration level is ignored by publishing. Consider using 'transitive = false' on each dependency if this needs to be published.")
         succeeds 'publish'
     }
 

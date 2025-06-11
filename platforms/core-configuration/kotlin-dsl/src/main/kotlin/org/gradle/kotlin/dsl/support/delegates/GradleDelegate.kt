@@ -39,7 +39,7 @@ import java.io.File
 /**
  * Facilitates the implementation of the [Gradle] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 10.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class GradleDelegate : Gradle {
 
     init {

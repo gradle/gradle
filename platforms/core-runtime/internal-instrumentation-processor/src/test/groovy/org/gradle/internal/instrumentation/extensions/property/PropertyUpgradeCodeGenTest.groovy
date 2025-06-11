@@ -501,7 +501,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             public final class Task_Adapter {
                 public static File access_get_getDestinationDir(Task self) {
                     DeprecationLogger.deprecate("The usage of Task.destinationDir")
-                            .withContext("Property 'destinationDir' was removed and this compatibility shim will be removed in Gradle 10.0. Please use 'destinationDirectory' property instead.")
+                            .withContext("Property 'destinationDir' was removed and this compatibility shim will be removed in Gradle 10. Please use 'destinationDirectory' property instead.")
                             .willBecomeAnErrorInGradle10()
                             .undocumented()
                             .nagUser();
@@ -510,7 +510,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
                 public static void access_set_setDestinationDir(Task self, File arg0) {
                     DeprecationLogger.deprecate("The usage of Task.destinationDir")
-                            .withContext("Property 'destinationDir' was removed and this compatibility shim will be removed in Gradle 10.0. Please use 'destinationDirectory' property instead.")
+                            .withContext("Property 'destinationDir' was removed and this compatibility shim will be removed in Gradle 10. Please use 'destinationDirectory' property instead.")
                             .willBecomeAnErrorInGradle10()
                             .undocumented()
                             .nagUser();

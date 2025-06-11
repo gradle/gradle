@@ -63,7 +63,7 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     private String supportedJvmDeprecation(int major) {
         "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-            "This will fail with an error in Gradle ${major+1}.0. " +
+            "This will fail with an error in Gradle ${major+1}. " +
             "Use JVM 17 or greater to execute Gradle. " +
             "Projects can continue to use older JVM versions via toolchains. " +
             "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "minimum_daemon_jvm_version")}"

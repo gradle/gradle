@@ -272,7 +272,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.all().findAll {it.detailsType != null && CalculateTaskGraphBuildOperationType.Result.class.isAssignableFrom(it.detailsType) }.size() == 0
     }
 
-    // This test simulates what the build scan plugin does.
+    // This test simulates what the Develocity plugin does.
     def "drains notifications for buildSrc build"() {
         given:
         file("buildSrc/build.gradle") << ""

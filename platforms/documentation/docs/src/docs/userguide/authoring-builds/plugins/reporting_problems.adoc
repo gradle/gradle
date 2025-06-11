@@ -18,7 +18,7 @@
 
 Plugins can report problems through Gradle's problems-reporting APIs.
 The APIs report rich, structured information about problems happening during the build.
-This information can be used by different user interfaces such as Gradle's console output, Build Scans, or IDEs to communicate problems to the user in the most appropriate way.
+This information can be used by different user interfaces such as Gradle's console output, Build Scan, or IDEs to communicate problems to the user in the most appropriate way.
 
 The following example shows an issue reported from a plugin:
 
@@ -64,7 +64,7 @@ link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html#throwing(org.gra
 include::sample[dir="samples/templates/problems-api-usage/reporters/standard-plugin/src/main/java/reporters",files="FailingTask.java[tags=problems-api-fail-the-build]"]
 
 This ensures that build failures are clearly linked to the underlying issues and that these problems are properly communicated to various clients.
-When a build failure is reported using the Problems API, all clients (Tooling API, CLI, Build Scans, etc.) will have access to the association.
+When a build failure is reported using the Problems API, all clients (Tooling API, CLI, Build Scan, etc.) will have access to the association.
 
 === Command-line interface
 
@@ -87,7 +87,7 @@ Execution failed for task ':sample-project:myFailingTask'.
 
 * Try:
 > Remove the Problems.throwing() method call from the task action
-> Run with --scan to generate a Build Scan® (Powered by Develocity®).
+> Run with --scan to get full insights.
 
 BUILD FAILED in 0ms
 ----

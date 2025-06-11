@@ -26,7 +26,8 @@ class EnvironmentVariableJavaHomeInstallationSupplierTest extends Specification 
 
     def "supplies no installations for not defined or empty JAVA_HOME property"() {
         when:
-        def supplier = new EnvironmentVariableJavaHomeInstallationSupplier(environment)
+        def buildOptions = new DefaultToolchainConfiguration(environment)
+        def supplier = new EnvironmentVariableJavaHomeInstallationSupplier(buildOptions)
         def directories = supplier.get()
 
         then:
@@ -39,10 +40,10 @@ class EnvironmentVariableJavaHomeInstallationSupplierTest extends Specification 
     def "supplies installation for JAVA_HOME property"() {
         given:
         def jdk8 = tmpDir.createDir("jdk8")
-        def environment = [JAVA_HOME: jdk8.absolutePath]
+        def buildOptions = new DefaultToolchainConfiguration(["JAVA_HOME": jdk8.absolutePath])
 
         when:
-        def supplier = new EnvironmentVariableJavaHomeInstallationSupplier(environment)
+        def supplier = new EnvironmentVariableJavaHomeInstallationSupplier(buildOptions)
         def directories = supplier.get()
 
         then:

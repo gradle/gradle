@@ -90,12 +90,17 @@ All of those aspects are configurable at the time of generating the Wrapper file
 The Gradle version used for downloading and executing the Wrapper.
 The resulting distribution URL is validated before it is written to the properties file.
 +
+For Gradle versions starting with major version 9, the version can be specified using only the major or minor version number.
+In such cases, the latest normal release matching that major or minor version will be used.
+For example, `9` resolves to the latest `9.x.y` release, and `9.1` resolves to the latest `9.1.x` release.
++
 The following labels are allowed:
 +
 * `link:https://gradle.org/releases[latest]`
 * `link:https://gradle.org/release-candidate[release-candidate]`
-* `link:https://gradle.org/nightly[nightly]`
+* `link:https://services.gradle.org/versions/milestone[release-milestone]`
 * `link:https://gradle.org/release-nightly[release-nightly]`
+* `link:https://gradle.org/nightly[nightly]`
 
 `--distribution-type`::
 The Gradle distribution type used for the Wrapper.
