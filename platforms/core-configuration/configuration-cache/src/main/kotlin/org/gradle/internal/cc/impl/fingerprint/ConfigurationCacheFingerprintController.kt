@@ -162,8 +162,8 @@ class ConfigurationCacheFingerprintController internal constructor(
             val projectScopedFile = parameters.assignProjectScopedSpoolFile()
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintWriterHost(),
-                parameters.writeContextForOutputStream(buildScopedFile),
-                parameters.writeContextForOutputStream(projectScopedFile),
+                parameters.writerContextFor(buildScopedFile),
+                parameters.writerContextFor(projectScopedFile),
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 workExecutionTracker,
@@ -336,21 +336,25 @@ class ConfigurationCacheFingerprintController internal constructor(
     }
 
     suspend fun ReadContext.checkBuildScopedFingerprint(host: Host) =
-        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
+        fingerprintChecker(host).run {
             checkBuildScopedFingerprint()
         }
 
     suspend fun ReadContext.checkProjectScopedFingerprint(host: Host) =
-        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
+        fingerprintChecker(host).run {
             checkProjectScopedFingerprint()
         }
 
     suspend fun ReadContext.collectFingerprintForReusedProjects(host: Host, reusedProjects: Set<Path>): Unit =
-        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
+        fingerprintChecker(host).run {
             visitEntriesForProjects(reusedProjects) { fingerprint ->
                 writingState.append(fingerprint)
             }
         }
+
+    private
+    fun fingerprintChecker(host: Host): ConfigurationCacheFingerprintChecker =
+        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host))
 
     private
     fun addListener(listener: ConfigurationCacheFingerprintWriter) {

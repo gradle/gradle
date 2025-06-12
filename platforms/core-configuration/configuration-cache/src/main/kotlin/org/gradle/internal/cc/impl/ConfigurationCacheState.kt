@@ -137,6 +137,12 @@ enum class StateType(val encryptable: Boolean = false) {
     ProjectFingerprint(true),
 
     /**
+     * Contains the [ClassLoaderScope specifications][org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec]
+     * required to restore the specific configuration cache entry it is associated with.
+     */
+    ClassLoaderScopes(false),
+
+    /**
      * The index file that points to all of these things
      */
     Entry(false),
