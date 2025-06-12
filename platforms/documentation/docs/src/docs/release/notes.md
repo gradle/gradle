@@ -24,8 +24,31 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-
-[Victor Merkulov](https://github.com/urdak)
+[Aaron Matthis](https://github.com/rapus95),
+[Adam](https://github.com/aSemy),
+[Adam](https://github.com/adam-enko),
+[Björn Kautler](https://github.com/Vampire),
+[Daniel Lacasse](https://github.com/lacasseio),
+[Deleted user](https://github.com/ghost),
+[Eng Zer Jun](https://github.com/Juneezee),
+[EunHyunsu](https://github.com/ehs208),
+[FlorianMichael](https://github.com/FlorianMichael),
+[Francisco Prieto](https://github.com/priettt),
+[Jake Wharton](https://github.com/JakeWharton),
+[Kengo TODA](https://github.com/KengoTODA),
+[Kent Kaseda](https://github.com/kaseken),
+[Madalin Valceleanu](https://github.com/vmadalin),
+[Marc Philipp](https://github.com/marcphilipp),
+[Mark S. Lewis](https://github.com/bestbeforetoday),
+[Mycroft Wong](https://github.com/MycroftWong),
+[Na Minhyeok](https://github.com/NaMinhyeok),
+[Nelson Osacky](https://github.com/runningcode),
+[Olivier "Oli" Dagenais](https://github.com/olivierdagenais),
+[ploober](https://github.com/ploober),
+[Radai Rosenblatt](https://github.com/radai-rosenblatt),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Victor Merkulov](https://github.com/urdak).
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
