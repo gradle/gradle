@@ -425,7 +425,8 @@ class ConfigurationCacheProblems(
 
     private
     fun discardStateDueToProblems(summary: Summary) =
-        !isWarningMode && (summary.reportableProblemCount > 0 || (incompatibleTasks.isNotEmpty() && degradationController.degradationReasons.isEmpty()))
+        incompatibleTasks.isNotEmpty() || areDegradationReasonsPresent() ||
+            summary.reportableProblemCount > 0 && !isWarningMode
 
     private
     fun hasTooManyProblems(summary: Summary) =
