@@ -147,7 +147,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCache.assertStateLoaded()
     }
 
-    def "reports a problem when source dependencies are present"() {
+    def "gracefully degrades to vintage when source dependencies are present"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
@@ -162,47 +162,14 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             }
         """
 
+        when:
+        configurationCacheRun("help", "-s")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
         and:
-        def expectedProblem = "Gradle runtime: support for source dependencies is not yet implemented with the configuration cache."
-
-        when:
-        configurationCacheFails("help")
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        when:
-        configurationCacheRunLenient("help")
-
-        then:
-        problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(2)
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        when:
-        configurationCacheFails("help")
-
-        then:
-        configurationCache.assertStateLoaded()
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        when:
-        configurationCacheRunLenient("help")
-
-        then:
-        configurationCache.assertStateLoaded()
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
+        postBuildOutputContains("Configuration cache disabled because incompatible feature was found.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20945")
