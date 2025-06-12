@@ -24,14 +24,12 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -130,14 +128,6 @@ public abstract class IdeaPlugin extends IdePlugin {
         this.projectPathRegistry = projectPathRegistry;
     }
 
-    private static void requestGracefulDegradation(Task task) {
-        getDegradationController(task).requireConfigurationCacheDegradation(task, task.getProject().provider(() -> "Task is not compatible with the configuration cache"));
-    }
-
-    private static ConfigurationCacheDegradationController getDegradationController(Task task) {
-        return ((ProjectInternal) task.getProject()).getServices().get(ConfigurationCacheDegradationController.class);
-    }
-
     public IdeaModel getModel() {
         return ideaModel;
     }
@@ -150,9 +140,9 @@ public abstract class IdeaPlugin extends IdePlugin {
     @Override
     protected void onApply(final Project project) {
         getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
-        getLifecycleTask().configure(IdeaPlugin::requestGracefulDegradation);
+        getLifecycleTask().configure(withGracefulDegradation(project));
         getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
-        getCleanTask().configure(IdeaPlugin::requestGracefulDegradation);
+        getCleanTask().configure(withGracefulDegradation(project));
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
 
@@ -195,9 +185,9 @@ public abstract class IdeaPlugin extends IdePlugin {
                 @Override
                 public void execute(GenerateIdeaProject projectTask) {
                     projectTask.setDescription("Generates IDEA project file (IPR)");
-                    requestGracefulDegradation(projectTask);
                 }
             });
+            projectTask.configure(withGracefulDegradation(project));
             ideaModel.setProject(ideaProject);
 
             ideaProject.setOutputFile(new File(project.getProjectDir(), project.getName() + ".ipr"));
@@ -288,9 +278,9 @@ public abstract class IdeaPlugin extends IdePlugin {
             @Override
             public void execute(GenerateIdeaModule task) {
                 task.setDescription("Generates IDEA module files (IML)");
-                requestGracefulDegradation(task);
             }
         });
+        task.configure(withGracefulDegradation(project));
         ideaModel.setModule(module);
 
         final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);

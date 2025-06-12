@@ -72,7 +72,6 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         assertHasExpectedContents('root.iml')
         assertHasExpectedContents('api/api.iml')
         assertHasExpectedContents('webservice/webservice.iml')
-        expectTaskGetProjectDeprecations(3)
         executer.withTasks('cleanIdea').run()
     }
 
