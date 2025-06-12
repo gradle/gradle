@@ -381,7 +381,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         result.assertTaskExecuted(":foo")
     }
 
-    def "CC report link is present even not problems were reported"() {
+    def "CC report link is present even when no problems were reported"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
