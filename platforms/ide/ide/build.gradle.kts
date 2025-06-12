@@ -54,15 +54,18 @@ dependencies {
     testFixturesImplementation(projects.dependencyManagement)
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(projects.modelCore)
+    testFixturesImplementation(testFixtures(projects.unitTestFixtures))
     testFixturesImplementation(libs.groovyXml)
     testFixturesImplementation(libs.xmlunit)
 
     testImplementation(projects.dependencyManagement)
-    testImplementation(libs.xmlunit)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(libs.equalsverifier)
+    testImplementation(libs.xmlunit)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.languageGroovy))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

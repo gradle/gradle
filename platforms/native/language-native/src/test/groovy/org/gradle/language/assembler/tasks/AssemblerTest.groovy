@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class AssemblerTest extends AbstractProjectBuilderSpec {
 
@@ -36,7 +35,7 @@ class AssemblerTest extends AbstractProjectBuilderSpec {
     Compiler<AssembleSpec> assembler = Mock(Compiler)
 
     def setup() {
-        assembleTask = TestUtil.createTask(Assemble, project)
+        assembleTask = project.tasks.create("name", Assemble)
     }
 
     def "executes using the Assembler"() {

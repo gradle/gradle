@@ -38,14 +38,16 @@ dependencies {
     implementation(libs.commonsLang)
 
     testImplementation(projects.baseServicesGroovy)
-    testImplementation(testFixtures(projects.core))
     testImplementation(projects.native)
     testImplementation(projects.war)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.unitTestFixtures))
     testImplementation(libs.ant)
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 

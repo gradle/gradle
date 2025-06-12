@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.HelpTasksPlugin;
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec;
-import org.gradle.util.TestUtil;
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.HelpTasksPlugin
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.ProjectBuilderTestUtil
 
 /**
  * Tests for the {@link HelpTasksPlugin}.
@@ -27,7 +27,7 @@ import org.gradle.util.TestUtil;
 class HelpTasksPluginSpec extends AbstractProjectBuilderSpec {
     def "tasks description reflects whether project has sub-projects or not"() {
         given:
-        def child = TestUtil.createChildProject(project, "child")
+        def child = ProjectBuilderTestUtil.createChildProject(project, "child")
 
         when:
         project.pluginManager.apply(HelpTasksPlugin)

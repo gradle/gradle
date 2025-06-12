@@ -37,8 +37,8 @@ dependencies {
     runtimeOnly(projects.platformBase)
 
     testImplementation(projects.pluginsJavaBase)
-
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

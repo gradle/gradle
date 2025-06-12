@@ -23,14 +23,16 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.coreApi))
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
     testImplementation(projects.processServices)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testFixturesApi(projects.fileCollections)
     testFixturesApi(testFixtures(projects.modelCore))
+    testFixturesApi(testFixtures(projects.unitTestFixtures))
 
     testFixturesImplementation(libs.guava)
 

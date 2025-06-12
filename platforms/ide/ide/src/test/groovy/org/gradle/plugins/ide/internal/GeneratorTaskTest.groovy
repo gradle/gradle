@@ -18,15 +18,20 @@ package org.gradle.plugins.ide.internal
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.Generator
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class GeneratorTaskTest extends AbstractProjectBuilderSpec {
+
     final Generator<TestConfigurationObject> generator = Mock()
-    final File inputFile = temporaryFolder.file('input')
-    final File outputFile = temporaryFolder.file('output')
-    final GeneratorTask<TestConfigurationObject> task = TestUtil.create(temporaryFolder).task(GeneratorTask)
+
+    File inputFile
+    File outputFile
+    GeneratorTask<TestConfigurationObject> task
 
     def setup() {
+        inputFile = project.file('input')
+        outputFile = project.file('output')
+
+        task = project.tasks.create("name", GeneratorTask)
         task.inputFile = inputFile
         task.outputFile = outputFile
         task.generator = generator

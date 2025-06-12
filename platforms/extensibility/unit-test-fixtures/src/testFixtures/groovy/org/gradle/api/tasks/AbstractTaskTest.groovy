@@ -24,21 +24,16 @@ import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 import static org.junit.Assert.assertTrue
 
 abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "testTask"
-
-    protected DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry()
-    protected ObjectFactory objectFactory = TestUtil.objectFactory()
 
     abstract DefaultTask getTask()
 
@@ -56,10 +51,6 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         return type.cast(task)
     }
 
-    def setup() {
-        serviceRegistry.add(ObjectFactory.class, objectFactory)
-    }
-
     def "test Task"() {
         expect:
         getTask().isEnabled()
@@ -75,9 +66,9 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
     def "test Path"() {
         given:
-        def childProject = TestUtil.createChildProject(project, "child")
+        def childProject = ProjectBuilderTestUtil.createChildProject(project, "child")
         childProject.getProjectDir().mkdirs()
-        def childchildProject = TestUtil.createChildProject(childProject, "childchild")
+        def childchildProject = ProjectBuilderTestUtil.createChildProject(childProject, "childchild")
         childchildProject.getProjectDir().mkdirs()
 
         and:

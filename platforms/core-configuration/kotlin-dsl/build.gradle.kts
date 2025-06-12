@@ -130,14 +130,15 @@ dependencies {
     }
 
     testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.fileTemp)
-    testFixturesImplementation(projects.resources)
-    testFixturesImplementation(projects.kotlinDslToolingBuilders)
-    testFixturesImplementation(projects.testKit)
-    testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.kotlinDslToolingBuilders)
+    testFixturesImplementation(projects.resources)
+    testFixturesImplementation(projects.testKit)
+    testFixturesImplementation(projects.unitTestFixtures)
 
     testFixturesImplementation(testFixtures(projects.hashing))
 

@@ -20,7 +20,7 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.TestUtil;
+import org.gradle.util.ProjectBuilderTestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,8 +37,8 @@ public class AntTargetTest {
 
     private final Target antTarget = new Target();
     private final File baseDir = testDir.getTestDirectory();
-    private final ProjectInternal project = TestUtil.create(testDir).rootProject();
-    private final AntTarget task = TestUtil.createTask(AntTarget.class, project);
+    private final ProjectInternal project = ProjectBuilderTestUtil.createRootProject(testDir);
+    private final AntTarget task = project.getTasks().create("name", AntTarget.class);
 
     @Before
     public void setUp() {

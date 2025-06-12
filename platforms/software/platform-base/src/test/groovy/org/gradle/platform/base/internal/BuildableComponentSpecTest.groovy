@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.platform.base.internal
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractBuildableComponentSpec
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -29,7 +31,8 @@ class BuildableComponentSpecTest extends Specification {
     def element = new TestBuildableComponentSpec(Stub(ComponentSpecIdentifier))
     def dependedOn1 = Stub(Task)
     def dependedOn2 = Stub(Task)
-    def lifecycleTask = TestUtil.create(tmpDir).task(DefaultTask)
+    ProjectInternal project = ProjectBuilderTestUtil.createRootProject(tmpDir)
+    def lifecycleTask = project.tasks.create("name", DefaultTask)
 
     def "has direct dependencies with no lifecycle task set"() {
         when:

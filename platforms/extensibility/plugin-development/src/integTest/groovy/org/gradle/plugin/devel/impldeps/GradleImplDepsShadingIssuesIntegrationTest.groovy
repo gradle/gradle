@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.impldeps
 
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // This tests class loader isolation which is not given in embedded mode
@@ -57,11 +56,12 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
     private static String pluginTest() {
         """
+            import org.gradle.testfixtures.ProjectBuilder
             class MyPluginTest {
 
                 @org.junit.jupiter.api.Test
                 void testCanUseProjectBuilder() {
-                    def project = ${ProjectBuilder.name}.builder().build()
+                    def project = ProjectBuilder.builder().build()
                     project.plugins.apply(MyPlugin)
                     project.evaluate()
                 }

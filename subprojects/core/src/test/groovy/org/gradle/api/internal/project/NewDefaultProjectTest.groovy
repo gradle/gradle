@@ -19,7 +19,7 @@ package org.gradle.api.internal.project
 import org.gradle.api.InvalidUserDataException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import static org.gradle.util.TestUtil.createChildProject
+import static org.gradle.util.ProjectBuilderTestUtil.createChildProject
 
 class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
     def "provides all tasks recursively"() {

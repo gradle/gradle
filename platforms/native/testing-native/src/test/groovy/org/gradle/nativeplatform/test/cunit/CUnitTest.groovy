@@ -19,7 +19,7 @@ import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitConventionPlugin
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.base.TestSuiteSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,7 +30,7 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap
 class CUnitTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
-    final def project = TestUtil.create(testDir).rootProject();
+    final def project = ProjectBuilderTestUtil.createRootProject(testDir);
 
     def "creates a test suite for each library under test"() {
         given:

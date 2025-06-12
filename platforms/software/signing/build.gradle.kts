@@ -28,9 +28,10 @@ dependencies {
         because("Required to access org.gradle.internal.SystemProperties")
     }
 
-    testImplementation(projects.maven)
     testImplementation(projects.ivy)
+    testImplementation(projects.maven)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testRuntimeOnly(projects.distributionsPublishing) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

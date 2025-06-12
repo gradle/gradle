@@ -41,8 +41,9 @@ dependencies {
     runtimeOnly(projects.workers)
 
     testImplementation(projects.baseServicesGroovy)
-    testImplementation(testFixtures(projects.core))
     testImplementation(projects.fileCollections)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

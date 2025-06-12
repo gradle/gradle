@@ -43,6 +43,7 @@ dependencies {
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.platformNative))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestImplementation(projects.internalIntegTesting)
 

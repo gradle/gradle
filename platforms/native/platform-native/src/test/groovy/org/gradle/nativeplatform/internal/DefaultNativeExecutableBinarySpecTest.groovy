@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -29,7 +30,7 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -37,7 +38,6 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    final testUtil = TestUtil.create(tmpDir)
     def namingScheme = DefaultBinaryNamingScheme.component("bigOne").withBinaryType("executable")
     def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null, CollectionCallbackActionDecorator.NOOP))
 
@@ -61,7 +61,8 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     def "returns link task when defined"() {
         when:
-        final linkTask = testUtil.task(LinkExecutable)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(tmpDir)
+        final linkTask = project.tasks.create("name", LinkExecutable)
         tasks.add(linkTask)
 
         then:
@@ -70,7 +71,8 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     def "returns install task when defined"() {
         when:
-        final install = testUtil.task(InstallExecutable)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(tmpDir)
+        final install = project.tasks.create("name", InstallExecutable)
         tasks.add(install)
 
         then:

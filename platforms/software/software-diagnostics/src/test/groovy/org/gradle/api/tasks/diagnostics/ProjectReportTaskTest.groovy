@@ -18,23 +18,23 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.Project
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
     ProjectReportTask task
     final TestStyledTextOutput output = new TestStyledTextOutput().ignoreStyle()
 
     def setup() {
-        task = TestUtil.createTask(ProjectReportTask, project)
+        task = project.tasks.create("name", ProjectReportTask)
         task.renderer.output = output
     }
 
     def rendersReportForRootProjectWithChildren() {
         project.description = 'this is the root project'
-        Project child1 = TestUtil.createChildProject(project, "child1")
+        Project child1 = ProjectBuilderTestUtil.createChildProject(project, "child1")
         child1.description = 'this is a subproject'
-        TestUtil.createChildProject(child1, "child1")
-        TestUtil.createChildProject(project, "child2")
+        ProjectBuilderTestUtil.createChildProject(child1, "child1")
+        ProjectBuilderTestUtil.createChildProject(project, "child2")
 
         when:
         def model = task.calculateReportModelFor(project)
@@ -68,7 +68,7 @@ For example, try running gradle :tasks
     }
 
     def rendersReportForNonRootProjectWithNoChildren() {
-        Project child1 = TestUtil.createChildProject(project, "child1")
+        Project child1 = ProjectBuilderTestUtil.createChildProject(project, "child1")
 
         when:
         def model = task.calculateReportModelFor(child1)

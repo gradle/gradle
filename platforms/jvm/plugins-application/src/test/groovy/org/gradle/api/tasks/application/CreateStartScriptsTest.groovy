@@ -18,10 +18,13 @@ package org.gradle.api.tasks.application
 import org.gradle.api.internal.plugins.UnixStartScriptGenerator
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class CreateStartScriptsTest extends AbstractProjectBuilderSpec {
-    final CreateStartScripts task = TestUtil.create(temporaryFolder).task(CreateStartScripts.class)
+    CreateStartScripts task
+
+    def setup() {
+        task = project.tasks.create("name", CreateStartScripts.class)
+    }
 
     def "uses default start script generators"() {
         expect:

@@ -192,7 +192,7 @@ class DefaultProjectTest extends Specification {
 
         testScript = new EmptyScript()
 
-        testTask = TestUtil.create(temporaryFolder).task(DefaultTask)
+        testTask = Mock(DefaultTask)
 
         projectRegistry = new DefaultProjectRegistry()
 

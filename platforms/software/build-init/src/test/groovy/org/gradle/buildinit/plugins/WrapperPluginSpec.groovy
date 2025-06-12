@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,7 +28,7 @@ import spock.lang.Specification
 class WrapperPluginSpec extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
-    def project = TestUtil.createRootProject(testDir.testDirectory)
+    def project = ProjectBuilderTestUtil.createRootProject(testDir.testDirectory)
 
     def "adds 'wrapper' task"() {
         when:

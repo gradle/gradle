@@ -16,10 +16,13 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class TestReportTest extends AbstractProjectBuilderSpec {
-    def reportTask = TestUtil.create(temporaryFolder).task(TestReport)
+    TestReport reportTask
+
+    def setup() {
+        reportTask = project.tasks.create("name", TestReport)
+    }
 
     def "infers dependencies and results dirs from input tests"() {
         def test1 = test("test1")
@@ -46,7 +49,7 @@ class TestReportTest extends AbstractProjectBuilderSpec {
     }
 
     def test(String name) {
-        def test = TestUtil.createTask(Test, project, name)
+        def test = project.tasks.create(name, Test)
         test.binaryResultsDirectory.set(temporaryFolder.file(name))
         return test
     }

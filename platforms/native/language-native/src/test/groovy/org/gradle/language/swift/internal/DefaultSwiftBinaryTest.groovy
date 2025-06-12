@@ -29,7 +29,7 @@ import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -38,7 +38,7 @@ import spock.lang.Specification
 class DefaultSwiftBinaryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def project = ProjectBuilderTestUtil.createRootProject(tmpDir.testDirectory)
     def implementation = project.configurations.dependencyScope("implementation").get()
     def compile = Stub(Configuration)
     def link = Stub(Configuration)

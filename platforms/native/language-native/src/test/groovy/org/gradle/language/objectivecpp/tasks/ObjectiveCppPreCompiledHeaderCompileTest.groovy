@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class ObjectiveCppPreCompiledHeaderCompileTest extends AbstractProjectBuilderSpec {
 
@@ -36,7 +35,7 @@ class ObjectiveCppPreCompiledHeaderCompileTest extends AbstractProjectBuilderSpe
     Compiler<ObjectiveCppPCHCompileSpec> objCppPCHCompiler = Mock(Compiler)
 
     def setup() {
-        objCppPCHCompile = TestUtil.createTask(ObjectiveCppPreCompiledHeaderCompile, project)
+        objCppPCHCompile = project.tasks.create("name", ObjectiveCppPreCompiledHeaderCompile)
     }
 
     def "executes using the Cpp PCH Compiler"() {

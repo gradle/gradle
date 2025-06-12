@@ -45,12 +45,14 @@ dependencies {
     testImplementation(projects.processServices)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ReportGeneratorTest tests load services like ClassLoaderRegistry.")
     }
 
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
+    integTestImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

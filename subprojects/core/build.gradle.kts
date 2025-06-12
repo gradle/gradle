@@ -153,14 +153,6 @@ dependencies {
     runtimeOnly(libs.groovyDoc)
     runtimeOnly(libs.groovyNio)
 
-    testImplementation(projects.buildInit)
-    testImplementation(projects.platformJvm)
-    testImplementation(projects.platformNative)
-    testImplementation(projects.testingBase)
-    testImplementation(libs.jsoup)
-    testImplementation(libs.log4jToSlf4j)
-    testImplementation(libs.jclToSlf4j)
-
     testFixturesCompileOnly(libs.jetbrainsAnnotations)
 
     testFixturesApi(projects.baseServices) {
@@ -214,11 +206,13 @@ dependencies {
     testFixturesApi(testFixtures(projects.serviceRegistryImpl)) {
         because("test fixtures expose DefaultServiceRegistry")
     }
-    testFixturesApi(projects.unitTestFixtures) {
-        because("test fixtures expose ProjectBuilder")
-    }
+
     testFixturesImplementation(projects.buildOption)
+    testFixturesImplementation(projects.dependencyManagement) {
+        because("Used in VersionCatalogErrorMessages for org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames")
+    }
     testFixturesImplementation(projects.enterpriseOperations)
+    testFixturesImplementation(projects.internalInstrumentationApi)
     testFixturesImplementation(projects.messaging)
     testFixturesImplementation(projects.normalizationJava)
     testFixturesImplementation(projects.persistentCache)
@@ -226,11 +220,10 @@ dependencies {
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.asm)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(projects.internalInstrumentationApi)
     testFixturesImplementation(libs.ivy)
     testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(projects.dependencyManagement) {
-        because("Used in VersionCatalogErrorMessages for org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames")
+    testFixturesImplementation(testFixtures(projects.unitTestFixtures)) {
+        because("test fixtures expose ProjectBuilder")
     }
 
     testFixturesRuntimeOnly(projects.pluginUse) {
@@ -243,31 +236,40 @@ dependencies {
         because("We always need a BuildStateRegistry service implementation")
     }
 
-    testImplementation(projects.dependencyManagement)
 
-    testImplementation(testFixtures(projects.serialization))
+    testImplementation(projects.buildInit)
+    testImplementation(projects.dependencyManagement)
+    testImplementation(projects.platformJvm)
+    testImplementation(projects.platformNative)
+    testImplementation(projects.testingBase)
+    testImplementation(projects.unitTestFixtures)
+    testImplementation(testFixtures(projects.baseDiagnostics))
+    testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.execution))
+    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.modelReflect))
-    testImplementation(testFixtures(projects.logging))
-    testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.baseDiagnostics))
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.snapshots))
-    testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))
+    testImplementation(testFixtures(projects.unitTestFixtures))
+    testImplementation(libs.jclToSlf4j)
+    testImplementation(libs.jsoup)
+    testImplementation(libs.log4jToSlf4j)
 
-    integTestImplementation(projects.workers)
+    integTestImplementation(projects.daemonServices)
     integTestImplementation(projects.dependencyManagement)
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.war)
-    integTestImplementation(projects.daemonServices)
+    integTestImplementation(projects.workers)
+    integTestImplementation(testFixtures(projects.fileTemp))
+    integTestImplementation(testFixtures(projects.native))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)
     integTestImplementation(libs.littleproxy)
-    integTestImplementation(testFixtures(projects.native))
-    integTestImplementation(testFixtures(projects.fileTemp))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")

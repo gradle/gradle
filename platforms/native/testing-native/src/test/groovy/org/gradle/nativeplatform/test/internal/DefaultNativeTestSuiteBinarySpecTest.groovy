@@ -17,12 +17,13 @@
 package org.gradle.nativeplatform.test.internal
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -31,8 +32,6 @@ import spock.lang.Specification
 class DefaultNativeTestSuiteBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
-    final def testUtil = TestUtil.create(testDir)
-
     def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null, CollectionCallbackActionDecorator.NOOP))
 
     def "returns null for link, install and run when none defined"() {
@@ -44,7 +43,8 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
 
     def "returns link task when defined"() {
         when:
-        final linkTask = testUtil.task(LinkExecutable)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(testDir)
+        final linkTask = project.tasks.create("name", LinkExecutable)
         tasks.add(linkTask)
 
         then:
@@ -55,7 +55,8 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
 
     def "returns install task when defined"() {
         when:
-        final installTask = testUtil.task(InstallExecutable)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(testDir)
+        final installTask = project.tasks.create("name", InstallExecutable)
         tasks.add(installTask)
 
         then:
@@ -66,7 +67,8 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
 
     def "returns run task when defined"() {
         when:
-        final runTask = testUtil.task(RunTestExecutable)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(testDir)
+        final runTask = project.tasks.create("name", RunTestExecutable)
         tasks.add(runTask)
 
         then:

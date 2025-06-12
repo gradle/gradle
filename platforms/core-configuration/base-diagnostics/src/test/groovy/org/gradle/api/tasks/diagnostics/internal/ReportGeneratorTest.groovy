@@ -21,7 +21,7 @@ import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 class ReportGeneratorTest extends AbstractProjectBuilderSpec {
 
@@ -94,8 +94,8 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
 
     def 'passes each project to renderer'() {
         setup:
-        def child1 = TestUtil.createChildProject(project, "child1");
-        def child2 = TestUtil.createChildProject(project, "child2");
+        def child1 = ProjectBuilderTestUtil.createChildProject(project, "child1");
+        def child2 = ProjectBuilderTestUtil.createChildProject(project, "child2");
         def generator = createReportGenerator()
         def child1Details = ProjectDetails.of(child1)
         def child2Details = ProjectDetails.of(child2)

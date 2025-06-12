@@ -17,9 +17,10 @@ package org.gradle.api.internal.artifacts.publish
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -27,10 +28,9 @@ class ArchivePublishArtifactTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
-    def testUtil = TestUtil.create(temporaryFolder)
-
     def "provides sensible default values for quite empty archive tasks"() {
-        def quiteEmptyJar = testUtil.task(DummyJar)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(temporaryFolder)
+        def quiteEmptyJar = project.tasks.create("name", DummyJar)
         quiteEmptyJar.destinationDirectory.set(temporaryFolder.testDirectory)
 
         when:
@@ -46,15 +46,16 @@ class ArchivePublishArtifactTest extends Specification {
     }
 
     def "configures name correctly"() {
-        def noName = testUtil.task(DummyJar)
-        def withArchiveName = testUtil.task(DummyJar)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(temporaryFolder)
+        def noName = project.tasks.create("one", DummyJar)
+        def withArchiveName = project.tasks.create("two", DummyJar)
         withArchiveName.archiveFileName.set("hey")
-        def withBaseName = testUtil.task(DummyJar)
+        def withBaseName = project.tasks.create("three", DummyJar)
         withBaseName.archiveBaseName.set("foo")
-        def withAppendix = testUtil.task(DummyJar)
+        def withAppendix = project.tasks.create("four", DummyJar)
         withAppendix.archiveBaseName.set("foo")
         withAppendix.archiveAppendix.set("javadoc")
-        def withAppendixOnly = testUtil.task(DummyJar)
+        def withAppendixOnly = project.tasks.create("five", DummyJar)
         withAppendixOnly.archiveAppendix.set("javadoc")
         def taskDependencyFactory = TestFiles.taskDependencyFactory()
 

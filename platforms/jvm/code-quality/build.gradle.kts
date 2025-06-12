@@ -54,8 +54,10 @@ dependencies {
 
     testImplementation(projects.fileCollections)
     testImplementation(projects.pluginsJava)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testFixturesImplementation(projects.core)
     testFixturesImplementation(testFixtures(projects.core))

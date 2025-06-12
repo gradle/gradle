@@ -38,7 +38,7 @@ class JavadocTest extends AbstractProjectBuilderSpec {
     Javadoc task
 
     def setup() {
-        task = TestUtil.createTask(Javadoc, project, "javadoc")
+        task = project.tasks.create("javadoc", Javadoc)
         task.setClasspath(configurationMock)
         task.setDestinationDir(destDir)
         task.source(srcDir)

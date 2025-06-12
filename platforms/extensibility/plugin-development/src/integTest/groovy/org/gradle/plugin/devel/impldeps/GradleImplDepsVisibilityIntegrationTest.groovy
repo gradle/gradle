@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.impldeps
 import com.google.common.collect.Maps
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.testfixtures.ProjectBuilder
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // This tests class loader isolation which is not given in embedded mode
 class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
@@ -116,11 +115,12 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 
         file('src/test/groovy/MyTest.groovy') << """
+            import org.gradle.testfixtures.ProjectBuilder
             class MyTest {
 
                 @org.junit.jupiter.api.Test
                 void testCanUseProjectBuilder() {
-                    def project = ${ProjectBuilder.name}.builder().build()
+                    def project = ProjectBuilder.builder().build()
                     project.plugins.apply(MyPlugin)
                     project.plugins.apply(org.gradle.api.plugins.JavaPlugin)
                     project.evaluate()

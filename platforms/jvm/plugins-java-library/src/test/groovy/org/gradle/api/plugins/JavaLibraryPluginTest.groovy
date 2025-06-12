@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 import static org.gradle.util.internal.WrapUtil.toSet
 
@@ -171,9 +171,9 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         }
 
         given:
-        def commonProject = TestUtil.createChildProject(project, "common")
-        def toolsProject = TestUtil.createChildProject(project, "tools")
-        def internalProject = TestUtil.createChildProject(project, "internal")
+        def commonProject = ProjectBuilderTestUtil.createChildProject(project, "common")
+        def toolsProject = ProjectBuilderTestUtil.createChildProject(project, "tools")
+        def internalProject = ProjectBuilderTestUtil.createChildProject(project, "internal")
 
         project.pluginManager.apply(JavaPlugin)
         commonProject.pluginManager.apply(JavaLibraryPlugin)

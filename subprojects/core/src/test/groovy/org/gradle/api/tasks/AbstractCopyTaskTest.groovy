@@ -20,7 +20,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 
 @UsesNativeServices
@@ -35,7 +34,7 @@ class AbstractCopyTaskTest extends WorkspaceTest {
             .withProjectDir(projectDir)
             .withGradleUserHomeDir(file("userHome").createDir())
             .build()
-        task = TestUtil.createTask(TestCopyTask, project)
+        task = project.tasks.create("name", TestCopyTask)
     }
 
     def "copy spec methods delegate to main spec of copy action"() {

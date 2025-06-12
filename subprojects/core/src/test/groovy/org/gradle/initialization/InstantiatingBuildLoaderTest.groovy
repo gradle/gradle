@@ -31,7 +31,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -141,9 +141,9 @@ class InstantiatingBuildLoaderTest extends Specification {
     ProjectInternal project(ProjectDescriptor descriptor, ProjectInternal parent) {
         ProjectInternal project
         if (parent) {
-            project = TestUtil.createChildProject(parent, descriptor.name, descriptor.projectDir)
+            project = ProjectBuilderTestUtil.createChildProject(parent, descriptor.name, descriptor.projectDir)
         } else {
-            project = TestUtil.createRootProject(descriptor.projectDir)
+            project = ProjectBuilderTestUtil.createRootProject(descriptor.projectDir)
         }
         project
     }

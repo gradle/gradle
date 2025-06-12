@@ -62,15 +62,13 @@ dependencies {
 
     testImplementation(projects.fileCollections)
     testImplementation(projects.enterpriseOperations)
-
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestImplementation(projects.baseServicesGroovy)
-
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.toolingApi))
-
     integTestImplementation(libs.groovyTest)
     integTestImplementation(libs.jetbrainsAnnotations)
 

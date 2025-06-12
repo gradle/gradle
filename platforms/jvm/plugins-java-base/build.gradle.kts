@@ -58,6 +58,8 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
 
+    integTestImplementation(testFixtures(projects.unitTestFixtures))
+
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesImplementation(projects.internalIntegTesting)

@@ -27,7 +27,6 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.Path
-import org.gradle.util.TestUtil
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
@@ -40,7 +39,7 @@ class GradleBuildBuilderTest extends Specification {
     @ClassRule
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     @Shared
-    def project = TestUtil.builder(temporaryFolder).withName("root").build()
+    def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).withName("root").build()
     @Shared
     def child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
     @Shared

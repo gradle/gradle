@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal
 
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.nativeplatform.NativeResourceSet
 import org.gradle.nativeplatform.BuildType
@@ -31,7 +32,7 @@ import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -138,7 +139,8 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         def binary = sharedLibrary
 
         when:
-        final linkTask = TestUtil.create(tmpDir).task(LinkSharedLibrary)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(tmpDir)
+        final linkTask = project.tasks.create("name", LinkSharedLibrary)
         binary.tasks.add(linkTask)
 
         then:

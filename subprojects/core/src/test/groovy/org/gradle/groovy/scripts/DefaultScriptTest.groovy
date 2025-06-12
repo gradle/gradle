@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -38,7 +38,7 @@ class DefaultScriptTest extends Specification {
 
         when:
         DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
-        ProjectInternal testProject = TestUtil.create(temporaryFolder).rootProject()
+        ProjectInternal testProject = ProjectBuilderTestUtil.createRootProject(temporaryFolder)
         testProject.ext.custom = 'true'
         script.setScriptSource(new TextResourceScriptSource(new StringTextResource('script', '//')))
         script.init(testProject, serviceRegistryMock)

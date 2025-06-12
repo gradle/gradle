@@ -89,16 +89,16 @@ dependencies {
     testFixturesImplementation(projects.testSuitesBase)
     testFixturesImplementation(projects.pluginsJvmTestSuite)
 
-
     testImplementation(projects.baseServicesGroovy)
     testImplementation(projects.cli)
     testImplementation(projects.internalIntegTesting)
     testImplementation(projects.native)
-    testImplementation(projects.snapshots)
     testImplementation(projects.processServices)
+    testImplementation(projects.snapshots)
     testImplementation(projects.wrapperMain)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformNative))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testRuntimeOnly(libs.maven3Compat)
     testRuntimeOnly(libs.maven3PluginApi)

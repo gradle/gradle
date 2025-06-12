@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
     private DependencyReportTask task
@@ -29,14 +29,14 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
     private Configuration conf2
 
     def setup() {
-        task = TestUtil.createTask(DependencyReportTask.class, project)
+        task =  project.tasks.create("name", DependencyReportTask.class)
         conf1 = project.configurations.create("conf1")
         conf2 = project.configurations.create("conf2")
         task.renderer = renderer
     }
 
     def "task is configured correctly"() {
-        task = TestUtil.create(temporaryFolder).task(DependencyReportTask.class);
+        task = ProjectBuilderTestUtil.createRootProject(temporaryFolder).tasks.create("name", DependencyReportTask);
 
         expect:
         task.renderer instanceof AsciiDependencyReportRenderer

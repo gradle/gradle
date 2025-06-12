@@ -57,19 +57,20 @@ dependencies {
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
 
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.ide))
     testImplementation(testFixtures(projects.toolingApi))
+    testImplementation(testFixtures(projects.unitTestFixtures))
+    testImplementation(libs.xmlunit)
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    testImplementation(libs.xmlunit)
-
-
     integTestImplementation(projects.internalIntegTesting)
+    integTestImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

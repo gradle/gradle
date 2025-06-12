@@ -33,9 +33,10 @@ dependencies {
     testImplementation(projects.snapshots)
 
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.platformBase))
-    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestImplementation(libs.slf4jApi)
 

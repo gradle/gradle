@@ -50,10 +50,10 @@ dependencies {
     testImplementation(projects.resourcesHttp)
 
     testImplementation(libs.xmlunit)
-
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestImplementation(projects.enterpriseOperations)
 

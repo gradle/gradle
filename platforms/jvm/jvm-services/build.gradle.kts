@@ -52,12 +52,13 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.xmlApis)
 
-    testImplementation(projects.native)
     testImplementation(projects.fileCollections)
-    testImplementation(projects.snapshots)
+    testImplementation(projects.native)
     testImplementation(projects.resources)
-    testImplementation(libs.slf4jApi)
+    testImplementation(projects.snapshots)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.core))
+    testImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

@@ -37,14 +37,14 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 abstract class AbstractExecutionPlanSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-    private def backing = TestUtil.createRootProject(temporaryFolder.testDirectory)
+    private def backing = ProjectBuilderTestUtil.createRootProject(temporaryFolder.testDirectory)
     private def locks = new ArrayList<MockLock>()
     private def acquired = new HashSet<MockLock>()
     def thisBuild = backing.gradle

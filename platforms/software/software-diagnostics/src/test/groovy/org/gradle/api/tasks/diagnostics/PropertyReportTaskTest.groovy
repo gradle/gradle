@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -31,7 +31,7 @@ class PropertyReportTaskTest extends Specification {
 
     def setup() {
         renderer = Mock()
-        task = TestUtil.create(temporaryFolder).task(PropertyReportTask.class)
+        task = ProjectBuilderTestUtil.createRootProject(temporaryFolder).tasks.create("name", PropertyReportTask.class)
         task.setRenderer(renderer)
     }
 
