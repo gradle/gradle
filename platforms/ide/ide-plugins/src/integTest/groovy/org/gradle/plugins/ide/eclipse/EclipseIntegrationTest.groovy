@@ -22,7 +22,6 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
@@ -40,7 +39,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         when:
         executer.withTasks("eclipse").run()
@@ -89,7 +87,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void sourceEntriesInClasspathFileAreSortedAsPerUsualConvention() {
         def expectedOrder = [
             "src/main/java",
@@ -125,7 +122,6 @@ sourceSets {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void outputDirDefaultsToEclipseDefault() {
         runEclipseTask("apply plugin: 'java'; apply plugin: 'eclipse'")
 
@@ -139,7 +135,6 @@ sourceSets {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void canHandleCircularModuleDependencies() {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         def artifact2 = mavenRepo.module("myGroup", "myArtifact2", "1.0").dependsOn("myGroup", "myArtifact1", "1.0").publish().artifactFile
@@ -161,7 +156,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void canConfigureTargetRuntimeName() {
 
         runEclipseTask """
@@ -182,7 +176,6 @@ eclipse {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void eclipseFilesAreWrittenWithUtf8Encoding() {
         runEclipseTask """
 apply plugin: "war"
@@ -212,7 +205,6 @@ eclipse {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void triggersBeforeAndWhenConfigurationHooks() {
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
@@ -272,7 +264,6 @@ tasks.eclipse {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void respectsPerConfigurationExcludes() {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         mavenRepo.module("myGroup", "myArtifact2", "1.0").publish()
@@ -298,7 +289,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void respectsPerDependencyExcludes() {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         mavenRepo.module("myGroup", "myArtifact2", "1.0").publish()
@@ -329,7 +319,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void addsLinkToTheProjectFile() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -352,7 +341,6 @@ eclipse.project {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void allowsConfiguringJavaVersionWithSimpleTypes() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -370,7 +358,6 @@ eclipse.jdt {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void sourceAndTargetCompatibilityDefaultIsCurrentJavaVersion() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -384,7 +371,6 @@ apply plugin: 'eclipse'
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void sourceAndTargetCompatibilityDefinedInPluginConvention() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -400,7 +386,6 @@ java {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void jdtSettingsHasPrecedenceOverJavaPluginConvention() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -422,7 +407,6 @@ eclipse {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void dslAllowsShortFormsForProject() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -445,7 +429,6 @@ eclipse.project {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void dslAllowsShortForms() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -466,7 +449,6 @@ eclipse {
 
     @Test
     @Issue("GRADLE-1157")
-    @ToBeFixedForConfigurationCache
     void canHandleDependencyWithoutSourceJarInFlatDirRepo() {
         def repoDir = testDirectory.createDir("repo")
         repoDir.createFile("lib-1.0.jar")
@@ -487,7 +469,6 @@ dependencies {
 
     @Test
     @Issue("GRADLE-1706") // doesn't prove that the issue is fixed because the test also passes with 1.0-milestone-4
-    @ToBeFixedForConfigurationCache
     void canHandleDependencyWithoutSourceJarInMavenRepo() {
         mavenRepo.module("some", "lib", "1.0").publish()
 
