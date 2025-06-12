@@ -52,6 +52,7 @@ import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
+import org.gradle.plugins.ide.eclipse.internal.DefaultEclipseProject;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator;
@@ -59,8 +60,6 @@ import org.gradle.plugins.ide.eclipse.model.BuildCommand;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
-import org.gradle.plugins.ide.eclipse.model.EclipseProject;
-import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
@@ -143,18 +142,19 @@ public abstract class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseProject(final ProjectInternal project, final EclipseModel model) {
-        final EclipseProject projectModel = model.getProject();
+        DefaultEclipseProject projectModel = (DefaultEclipseProject)model.getProject();
 
         projectModel.setName(uniqueProjectNameProvider.getUniqueName(project));
 
-        final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
-        convention.map("comment", new Callable<String>() {
-            @Override
-            public String call() {
-                return project.getDescription();
-            }
-
-        });
+        projectModel.getCommentProperty().convention(project.provider(() -> project.getDescription()));
+//        final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
+//        convention.map("comment", new Callable<String>() {
+//            @Override
+//            public String call() {
+//                return project.getDescription();
+//            }
+//
+//        });
 
         final TaskProvider<GenerateEclipseProject> task = project.getTasks().register(ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject.class, model.getProject());
         task.configure(new Action<GenerateEclipseProject>() {
@@ -175,13 +175,14 @@ public abstract class EclipsePlugin extends IdePlugin {
                 }
 
                 projectModel.natures("org.eclipse.jdt.core.javanature");
-                convention.map("linkedResources", new Callable<Set<Link>>() {
-                    @Override
-                    public Set<Link> call() {
-                        return new LinkedResourcesCreator().links(project);
-                    }
-
-                });
+                projectModel.getlinkedResourcesProperty().convention(project.provider(() -> new LinkedResourcesCreator().links(project)));
+//                convention.map("linkedResources", new Callable<Set<Link>>() {
+//                    @Override
+//                    public Set<Link> call() {
+//                        return new LinkedResourcesCreator().links(project);
+//                    }
+//
+//                });
             }
 
         });

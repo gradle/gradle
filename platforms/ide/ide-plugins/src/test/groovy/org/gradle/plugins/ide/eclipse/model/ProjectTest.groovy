@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.eclipse.internal.DefaultEclipseProject
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -53,7 +54,7 @@ class ProjectTest extends Specification {
     }
 
     def configureMergesValues() {
-        EclipseProject eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger))
+        EclipseProject eclipseProject = TestUtil.newInstance(DefaultEclipseProject, Mock(XmlFileContentMerger))
         eclipseProject.name = 'constructorName'
         eclipseProject.comment = 'constructorComment'
         eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet
@@ -94,7 +95,7 @@ class ProjectTest extends Specification {
     }
 
     def toXml_shouldContainCustomValues() {
-        EclipseProject eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger))
+        EclipseProject eclipseProject = TestUtil.newInstance(DefaultEclipseProject, Mock(XmlFileContentMerger))
         eclipseProject.name = 'constructorName'
         eclipseProject.comment = 'constructorComment'
         eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet

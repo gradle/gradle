@@ -28,6 +28,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.internal.DefaultEclipseProject;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -67,6 +68,9 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 public abstract class EclipseModel {
 
+
+    @SuppressWarnings("unused")
+    private final Project gradleProject;
     private EclipseProject project;
 
     private EclipseClasspath classpath;
@@ -82,6 +86,7 @@ public abstract class EclipseModel {
     public EclipseModel() {
         synchronizationTasks = new DefaultTaskDependency();
         autoBuildTasks = new DefaultTaskDependency();
+        gradleProject = null;
     }
 
     /**
@@ -91,6 +96,7 @@ public abstract class EclipseModel {
      */
     @Inject
     public EclipseModel(Project project) {
+        this.gradleProject = project;
         TaskDependencyFactory taskDependencyFactory = ((ProjectInternal) project).getTaskDependencyFactory();
         this.synchronizationTasks = taskDependencyFactory.configurableDependency();
         this.autoBuildTasks = taskDependencyFactory.configurableDependency();
@@ -113,7 +119,7 @@ public abstract class EclipseModel {
         if (project == null) {
             XmlTransformer xmlTransformer = new XmlTransformer();
             xmlTransformer.setIndentation("\t");
-            project = getObjectFactory().newInstance(EclipseProject.class, new XmlFileContentMerger(xmlTransformer));
+            project = getObjectFactory().newInstance(DefaultEclipseProject.class, new XmlFileContentMerger(xmlTransformer));
         }
         return project;
     }
