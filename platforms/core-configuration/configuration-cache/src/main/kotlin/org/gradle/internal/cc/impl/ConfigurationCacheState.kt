@@ -110,7 +110,7 @@ enum class StateType(val encryptable: Boolean = false) {
     Work(true),
 
     /**
-     * Contains work-related state that is meant to be shared for the entire build.
+     * Contains work-related state meant to be shared for the entire build.
      */
     WorkShared(true),
 
