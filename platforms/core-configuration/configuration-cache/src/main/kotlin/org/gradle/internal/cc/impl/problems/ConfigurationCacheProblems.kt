@@ -182,14 +182,14 @@ class ConfigurationCacheProblems(
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
         onIncompatibleTask(trace, reason)
-        return ErrorsAreProblemsProblemsListener(failureFactory, ProblemSeverity.Suppressed)
+        return ErrorsAreProblemsProblemsListener(ProblemSeverity.Suppressed)
     }
 
     override fun forTask(task: Task): ProblemsListener {
         val degradationReasons = degradationController.degradationReasons[task]
         return if (!degradationReasons.isNullOrEmpty()) {
             onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
-            ErrorsAreProblemsProblemsListener(failureFactory, ProblemSeverity.SuppressedSilently)
+            ErrorsAreProblemsProblemsListener(ProblemSeverity.SuppressedSilently)
         } else this
     }
 
@@ -314,6 +314,7 @@ class ConfigurationCacheProblems(
      * been reported in which case a warning is also logged with the location of the report.
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
+        addNotReportedDegradingTasks()
         val summary = summarizer.get()
         val hasNoProblemsForConsole = summary.reportableProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
@@ -322,17 +323,30 @@ class ConfigurationCacheProblems(
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(summary.totalProblemCount == 0)
+            require(!areDegradationReasonsPresent())
             return
         }
 
         when (val failure = queryFailure(summary, htmlReportFile)) {
             null -> {
-                val logReportAsInfo = hasNoProblemsForConsole && !startParameter.alwaysLogReportLinkAsWarning
-                val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
+                val log: (String) -> Unit = when {
+                    areDegradationReasonsPresent() -> logger::warn
+                    hasNoProblemsForConsole && !startParameter.alwaysLogReportLinkAsWarning -> logger::info
+                    else -> logger::warn
+                }
                 log(summary.textForConsole(details.cacheAction, htmlReportFile))
             }
 
             else -> validationFailures.accept(failure)
+        }
+    }
+
+    private fun addNotReportedDegradingTasks() {
+        degradationController.degradationReasons.forEach { (task, reasons) ->
+            val trace = locationForTask(task)
+            if (!incompatibleTasks.contains(trace)) {
+                reportIncompatibleTask(trace, reasons.joinToString())
+            }
         }
     }
 
@@ -438,7 +452,6 @@ class ConfigurationCacheProblems(
     }
 
     private inner class ErrorsAreProblemsProblemsListener(
-        private val failureFactory: FailureFactory,
         private val problemSeverity: ProblemSeverity
     ) : AbstractProblemsListener() {
 

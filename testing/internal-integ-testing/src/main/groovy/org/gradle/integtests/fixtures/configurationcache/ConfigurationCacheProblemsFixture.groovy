@@ -329,7 +329,8 @@ final class ConfigurationCacheProblemsFixture {
             output,
             totalProblemCount,
             spec.uniqueProblems.size(),
-            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
+            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount,
+            spec.incompatibleTasks instanceof ItemSpec.ExpectingSome
         )
     }
 
@@ -426,9 +427,10 @@ final class ConfigurationCacheProblemsFixture {
         String output,
         int totalProblemCount,
         int uniqueProblemCount,
-        int problemsWithStackTraceCount
+        int problemsWithStackTraceCount,
+        boolean expectIncompatibleTasks
     ) {
-        def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
+        def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0 || expectIncompatibleTasks
         def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (expectReport) {
             Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)

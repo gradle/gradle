@@ -323,7 +323,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     def "user code exceptions in degradation reasons evaluation are surfaced"() {
         buildFile """
             ${taskWithInjectedDegradationController()}
-
             tasks.register("foo", DegradingTask) { task ->
                 getDegradationController().requireConfigurationCacheDegradation(
                     task,
@@ -343,7 +342,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         given:
         buildFile """
             ${taskWithInjectedDegradationController()}
-
             tasks.register("foo", DegradingTask) { task ->
                 // add a request to ensure we need to verify whether tasks are scheduled
                 getDegradationController().requireConfigurationCacheDegradation(task, provider { null })
@@ -381,6 +379,37 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         result.assertTaskExecuted(":foo")
+    }
+
+    def "CC report link is present even not problems were reported"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+            tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+                doLast {
+                    println("Hello")
+                }
+            }
+        """
+
+        when:
+        run ":foo", ENABLE_CLI_OPT // disable printing a report link by default
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 0
+            withIncompatibleTask(":foo", "Because reasons.")
+        }
+
+        and:
+        result.assertTaskExecuted(":foo")
+        assertConfigurationCacheDegradation()
     }
 
     private static String taskWithInjectedDegradationController() {
