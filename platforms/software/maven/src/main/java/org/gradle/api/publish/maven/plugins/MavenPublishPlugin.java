@@ -157,17 +157,9 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     }
 
     private Provider<String> usingExplicitCredentials(PublishToMavenRepository task) {
-        return getProviderFactory().provider(() -> tryToGetRepository(task))
+        return getProviderFactory().provider(() -> (AuthenticationSupportedInternal) task.getRepository())
                 .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
                 .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials are unsupported with the Configuration Cache");
-    }
-
-    private static AuthenticationSupportedInternal tryToGetRepository(PublishToMavenRepository task) {
-        try {
-            return (AuthenticationSupportedInternal) task.getRepository();
-        } catch (RuntimeException e) {
-            return null;
-        }
     }
 
     private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {
