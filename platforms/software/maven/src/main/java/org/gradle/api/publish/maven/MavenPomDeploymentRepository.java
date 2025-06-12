@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * The repository information of the Maven {@code distributionManagement} node.
@@ -27,6 +28,7 @@ import org.gradle.api.provider.Property;
  * @since 9.1.0
  */
 @Incubating
+@NullMarked
 public interface MavenPomDeploymentRepository {
     /**
      * A unique identifier for a repository.
