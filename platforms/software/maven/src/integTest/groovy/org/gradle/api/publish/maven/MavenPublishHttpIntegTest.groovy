@@ -361,7 +361,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         module.assertPublishedAsJavaModule()
         if (GradleContextualExecuter.isConfigCache()) {
-            result.assertHasPostBuildOutput("Configuration cache disabled because incompatible task was found.")
+            postBuildOutputContains("Configuration cache disabled because incompatible task was found.")
         }
     }
 
@@ -386,7 +386,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         module.assertPublishedAsJavaModule()
         if (GradleContextualExecuter.isConfigCache()) {
-            result.assertHasPostBuildOutput("Configuration cache disabled because incompatible task was found.")
+            postBuildOutputContains("Configuration cache disabled because incompatible task was found.")
         }
     }
 
