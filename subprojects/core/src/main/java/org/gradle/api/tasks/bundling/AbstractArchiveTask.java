@@ -97,9 +97,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         getDirPermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE));
         getFilePermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE));
 
+        // TODO: Wire provider directly instead of reading it at configuration time.
         boolean useFileSystemPermissions = getProject().getProviders()
             .gradleProperty(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY)
-            .getOrElse("false").trim().equalsIgnoreCase("true");
+            .map(value -> Boolean.parseBoolean(value.trim()))
+            .getOrElse(false);
         getInputs().property(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY, useFileSystemPermissions);
         if (useFileSystemPermissions) {
             useFileSystemPermissions();
