@@ -376,6 +376,9 @@ abstract class AbstractIsolateContext<T>(
         currentCodec = previousValues.second
     }
 
+    override val problemsListener: ProblemsListener
+        get() = currentProblemsListener
+
     override fun onProblem(problem: PropertyProblem) {
         currentProblemsListener.onProblem(problem)
     }
