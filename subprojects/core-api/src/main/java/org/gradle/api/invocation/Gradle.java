@@ -352,7 +352,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * provides with your own implementation, for certain types of events.
      *
      * @param logger The logger to use.
-     * @deprecated Will be removed in Gradle 9. Logging customization through listeners is no longer supported.
+     * @deprecated Will be removed in Gradle 10. Logging customization through listeners is no longer supported.
      */
     @Deprecated
     void useLogger(Object logger);
