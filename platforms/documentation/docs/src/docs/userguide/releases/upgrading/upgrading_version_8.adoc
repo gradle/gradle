@@ -87,10 +87,6 @@ Groovy 4 no longer treats getters with an `is` prefix and a `Boolean` return typ
 Gradle still recognizes these as properties for now, but this behavior will change in Gradle 10 to align with Groovy 4.
 See <<#groovy_boolean_properties,the deprecation notice>> for more details.
 
-===== Non-abstract managed properties may no longer be attached
-
-**TODO, waiting on https://github.com/gradle/gradle/issues/33215 resolution**
-
 ===== `DELEGATE_FIRST` closures may now prefer the delegate in some cases
 
 Groovy 4 has changed the behavior of closures using the `DELEGATE_FIRST` strategy.
