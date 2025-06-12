@@ -37,7 +37,7 @@ public abstract class DefaultMavenPomDistributionManagement implements MavenPomD
     @Override
     public void relocation(Action<? super MavenPomRelocation> action) {
         if (relocation == null) {
-            relocation = objectFactory.newInstance(DefaultMavenPomRelocation.class, objectFactory);
+            relocation = objectFactory.newInstance(MavenPomRelocation.class, objectFactory);
         }
         action.execute(relocation);
     }
