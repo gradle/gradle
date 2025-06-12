@@ -1387,9 +1387,9 @@
         {
             "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
             "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.getVersionRangeMapper()",
-            "acceptation": "Making all injecting getters abstract",
+            "acceptation": "Protected service injection method removed",
             "changes": [
-                "Method is now abstract"
+                "Method has been removed"
             ]
         },
         {
