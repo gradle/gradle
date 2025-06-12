@@ -47,7 +47,7 @@ The previous step will help you identify potential problems by issuing deprecati
 Gradle 9 requires Java 17 or higher to run the Gradle Daemon.
 This is a breaking change from previous versions, which supported Java 8 and Java 11.
 
-Your project can still target lower Java versions using [toolchains](https://docs.gradle.org/current/userguide/toolchains.html).
+Your project can still target lower Java versions using <<toolchains.adoc#toolchains, Toolchains>>.
 The Gradle Client can still run on Java 8.
 
 For more, see the <<#minimum_daemon_jvm_version,Running Gradle on older JVMs>> section below.
