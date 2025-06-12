@@ -48,6 +48,8 @@ import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.RuntimeTaskCheckingPropertyHost
+import org.gradle.internal.cc.base.serialize.readProjectRef
+import org.gradle.internal.cc.base.serialize.writeProjectRef
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -524,7 +526,9 @@ suspend fun WriteContext.writePropertyProducer(value: AbstractProperty<*, *>) {
     if (producer is ValueSupplier.TaskProducer) {
         var task: TaskInternal? = null
         producer.visitProducerTasks { task = this as TaskInternal }
-        write(task?.identityPath)
+        val producerTask = task!!
+        write(producerTask.identityPath)
+        writeProjectRef(producerTask.project)
     } else {
         error("Unsupported producer type: ${value.javaClass.name}")
     }
@@ -536,7 +540,11 @@ suspend fun ReadContext.readPropertyHost(): PropertyHost? =
     when (val discriminator = readByte()) {
         0.toByte() -> null
         1.toByte() -> PropertyHost.NO_OP
-        2.toByte() -> RuntimeTaskCheckingPropertyHost(read() as Path)
+        2.toByte() -> {
+            val taskPath = read() as Path
+            val project = readProjectRef()
+            RuntimeTaskCheckingPropertyHost(taskPath, project)
+        }
         else -> error("Unsupported host type: $discriminator")
     }
 
