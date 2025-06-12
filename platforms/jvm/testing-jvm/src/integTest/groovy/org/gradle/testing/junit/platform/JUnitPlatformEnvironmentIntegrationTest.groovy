@@ -18,6 +18,7 @@ package org.gradle.testing.junit.platform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.testing.fixture.TestFrameworkStartupTestFixture
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 
@@ -29,7 +30,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
  * <p>This test intentionally does not extend {@link JUnitPlatformIntegrationSpec} in order to have
  * complete control over the configuration of the test setup</p>
  */
-class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
+class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec implements TestFrameworkStartupTestFixture {
 
     // The versions tested against here are intentionally different than the version of junit-platform-launcher
     // that Gradle will load from the distribution. This way, we can use the version on the application classpath

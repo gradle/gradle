@@ -20,15 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitCoverage
-
-import static org.gradle.util.Matchers.matchesRegexp
+import org.gradle.testing.fixture.TestFrameworkStartupTestFixture
 
 /**
  * Tests behavior of the test task there are problems starting test processing.
  *
  * See also {@link TestFrameworkMissingDependenciesIntegrationTest} for related tests.
  */
-class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpec {
+class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpec implements TestFrameworkStartupTestFixture {
     def "bad jvm arg stops worker from starting"() {
         given:
         buildFile << """
@@ -47,32 +46,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
                 jvmArgs('-phasers=stun')
             }
 
-            testing {
-                suites {
-                    test {
-                        targets {
-                            all {
-                                testTask.configure {
-                                    addTestListener(new TestListener() {
-                                        void beforeSuite(TestDescriptor suite) {
-                                            println("beforeSuite " + suite + " ")
-                                        }
-                                        void afterSuite(TestDescriptor suite, TestResult result) {
-                                            println("afterSuite " + suite + " " + result)
-                                        }
-                                        void beforeTest(TestDescriptor testDescriptor) {
-                                            println("beforeTest " + testDescriptor + " ")
-                                        }
-                                        void afterTest(TestDescriptor testDescriptor, TestResult result) {
-                                            println("afterTest " + testDescriptor + " " + result)
-                                        }
-                                    })
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            ${addLoggingTestListener()}
         """
 
         addMyTestForJunit5()
@@ -87,8 +61,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasErrorOutput("Error: A fatal exception has occurred. Program will exit.")
 
         and: "Task failure is reported"
-        failure.assertHasDescription("Execution failed for task ':test'.")
-        failure.assertThatCause(matchesRegexp(/Process 'Gradle Test Executor \d+' finished with non-zero exit value 1/))
+        assertTestWorkerFailedToStart()
 
         and: "No test class results are created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
@@ -106,6 +79,8 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
             dependencies {
                 testCompileOnly("org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}")
             }
+
+            ${addLoggingTestListener()}
         """
 
         addMyTestForJunit5()
