@@ -28,7 +28,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.BasicScript
-import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsUseProjectDuringExecution
+import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsGradleModelTypes
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -170,7 +170,7 @@ object ClosureCodec : Codec<Closure<*>> {
                 text(" references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
             }
                 .exception(exceptionMessage)
-                .documentationSection(RequirementsUseProjectDuringExecution)
+                .documentationSection(RequirementsGradleModelTypes)
                 .mapLocation { trace }
                 .build()
 
