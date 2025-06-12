@@ -25,7 +25,7 @@ class SuggestionsMessages {
 
     public static final String INFO_DEBUG = "Run with --info or --debug option to get more log output."
     public static final String DEBUG = "Run with --debug option to get more log output."
-    public static final String SCAN = "Run with --scan to get full insights."
+    public static final String SCAN = "Run with --scan to generate a Build Scan (Powered by Develocity)."
     public static final String GET_HELP = "Get more help at https://help.gradle.org."
     public static final String STACKTRACE_MESSAGE = "Run with --stacktrace option to get the stack trace."
 

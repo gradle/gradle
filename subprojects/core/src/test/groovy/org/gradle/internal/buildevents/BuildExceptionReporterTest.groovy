@@ -55,7 +55,7 @@ class BuildExceptionReporterTest extends Specification {
     static final String LOCATION = "<location>"
     static final String STACKTRACE = "{info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace."
     static final String INFO_OR_DEBUG = "{info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output."
-    static final String TRY_SCAN = "{info}> {normal}Run with {userinput}--scan{normal} to get full insights."
+    static final String TRY_SCAN = "{info}> {normal}Run with {userinput}--scan{normal} to generate a Build Scan (Powered by Develocity)."
     static final String GET_HELP = "{info}> {normal}Get more help at {userinput}https://help.gradle.org{normal}."
 
 
