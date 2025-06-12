@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
@@ -26,6 +25,7 @@ import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
 @ServiceScope(BuildTree::class)
@@ -39,7 +39,7 @@ internal class DefaultConfigurationCacheDegradationController(
     private val collectedDegradationReasons = mutableMapOf<Task, List<String>>()
 
     val degradationReasons: Map<Task, List<String>>
-        get() = ImmutableMap.copyOf(collectedDegradationReasons)
+        get() = Collections.unmodifiableMap(collectedDegradationReasons)
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         if (!configurationTimeBarrier.isAtConfigurationTime) {

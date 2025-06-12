@@ -166,6 +166,7 @@ class Summary(
     /**
      * Number of problems which shouldn't be reported in the console.
      */
+    private
     val suppressedSilentlyProblemCount: Int,
 
     private
