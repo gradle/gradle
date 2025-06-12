@@ -27,6 +27,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -83,8 +84,9 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
-    @Inject
-    protected abstract ConfigurationCacheDegradationController getDegradationController();
+    private ConfigurationCacheDegradationController getDegradationController(Task task) {
+        return ((ProjectInternal) task.getProject()).getServices().get(ConfigurationCacheDegradationController.class);
+    }
 
     @Inject
     protected abstract ProviderFactory getProviderFactory();
@@ -146,7 +148,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
             });
             tasks.withType(PublishToMavenRepository.class).configureEach(t ->
-                getDegradationController().requireConfigurationCacheDegradation(t, usingExplicitCredentials(t))
+                getDegradationController(t).requireConfigurationCacheDegradation(t, usingExplicitCredentials(t))
             );
 
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));

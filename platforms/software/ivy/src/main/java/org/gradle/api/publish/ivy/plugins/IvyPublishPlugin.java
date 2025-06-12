@@ -21,6 +21,7 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
@@ -89,8 +90,9 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         this.providerFactory = providerFactory;
     }
 
-    @Inject
-    protected abstract ConfigurationCacheDegradationController getDegradationController();
+    private ConfigurationCacheDegradationController getDegradationController(Task task) {
+        return ((ProjectInternal) task.getProject()).getServices().get(ConfigurationCacheDegradationController.class);
+    }
 
     @Override
     public void apply(final Project project) {
@@ -146,7 +148,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
         });
-        tasks.withType(PublishToIvyRepository.class).configureEach(t -> getDegradationController().requireConfigurationCacheDegradation(t, usingExplicitCredentials(t)));
+        tasks.withType(PublishToIvyRepository.class).configureEach(t -> getDegradationController(t).requireConfigurationCacheDegradation(t, usingExplicitCredentials(t)));
 
         tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, task -> task.dependsOn(publishTaskName));
         tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
