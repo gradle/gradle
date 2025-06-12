@@ -43,7 +43,7 @@ public interface MavenPomDistributionManagement {
     /**
      * Configures the repository information.
      *
-     * @since 8.14
+     * @since 9.1.0
      */
     @Incubating
     void repository(Action<? super MavenPomDeploymentRepository> action);

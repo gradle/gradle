@@ -24,21 +24,21 @@ import org.gradle.api.provider.Property;
  *
  * @see MavenPom
  * @see MavenPomDistributionManagement
- * @since 8.14
+ * @since 9.1.0
  */
 @Incubating
 public interface MavenPomDeploymentRepository {
     /**
      * A unique identifier for a repository.
      *
-     * @since 8.14
+     * @since 9.1.0
      */
     Property<String> getId();
 
     /**
      * Human readable name of the repository.
      *
-     * @since 8.14
+     * @since 9.1.0
      */
     Property<String> getName();
 
@@ -47,14 +47,14 @@ public interface MavenPomDeploymentRepository {
      *
      * Default value: <code>true</code>
      *
-     * @since 8.14
+     * @since 9.1.0
      */
     Property<Boolean> getUniqueVersion();
 
     /**
      * The url of the repository, in the form <code>protocol://hostname/path</code>.
      *
-     * @since 8.14
+     * @since 9.1.0
      */
     Property<String> getUrl();
 
@@ -63,7 +63,7 @@ public interface MavenPomDeploymentRepository {
      *
      * Default value: <code>default</code>
      *
-     * @since 8.14
+     * @since 9.1.0
      */
     Property<String> getLayout();
 }
