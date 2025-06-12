@@ -310,8 +310,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Sets the file and directory permissions for archived files to be read from the file system.
-     *
+     * Sets the directory and file permissions for archived files to be read from the file system.
+     * Any subsequent configuration of {@link #getDirPermissions()} or {@link #getFilePermissions()} will override this setting, but only for the specifically configured property.
+     * <p>
      * Note: On Windows, file system permissions are not support and permissions will be set to `0755` for directories and `0644` for files.
      *
      * @since 9.0.0
