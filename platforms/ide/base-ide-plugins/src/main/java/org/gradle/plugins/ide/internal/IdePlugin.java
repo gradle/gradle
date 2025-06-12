@@ -174,13 +174,12 @@ public abstract class IdePlugin implements Plugin<Project> {
     }
 
     protected static Action<Task> withGracefulDegradation(Project project) {
-        ConfigurationCacheDegradationController degradationController = ((ProjectInternal) project).getServices().get(ConfigurationCacheDegradationController.class);
-        return new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                degradationController.requireConfigurationCacheDegradation(task, project.provider(() -> "Task is not compatible with the configuration cache"));
-            }
-        };
+        return task -> ((ProjectInternal) project).getServices()
+            .get(ConfigurationCacheDegradationController.class)
+            .requireConfigurationCacheDegradation(
+                task,
+                project.provider(() -> "Task is not compatible with the configuration cache")
+        );
     }
 
     protected void onApply(Project target) {
