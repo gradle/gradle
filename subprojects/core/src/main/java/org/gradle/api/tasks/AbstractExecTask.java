@@ -125,7 +125,6 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Nullable
     @Optional
     @Input
     @Override

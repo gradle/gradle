@@ -55,7 +55,6 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    @Nullable
     @ToBeReplacedByLazyProperty
     public List<String> getArgs() {
         return super.getArgs();
