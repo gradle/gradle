@@ -115,7 +115,7 @@ class MavenPomFileGeneratorTest extends Specification {
                 repository {
                     id.set("internalMaven")
                     name.set("Our internal maven repo")
-                    url.set("https://internal.maven.repo.com")
+                    url.set("https://internal.maven.example.com")
                 }
             }
             mailingLists {
@@ -145,7 +145,7 @@ class MavenPomFileGeneratorTest extends Specification {
             distributionManagement.relocation.groupId == "org.example.new"
             distributionManagement.repository.id == "internalMaven"
             distributionManagement.repository.name == "Our internal maven repo"
-            distributionManagement.repository.url == "https://internal.maven.repo.com"
+            distributionManagement.repository.url == "https://internal.maven.example.com"
             mailingLists.mailingList.name == "Users"
             properties["spring-boot.version"] == "2.1.2.RELEASE"
             properties["hibernate.version"] == "5.4.1.Final"

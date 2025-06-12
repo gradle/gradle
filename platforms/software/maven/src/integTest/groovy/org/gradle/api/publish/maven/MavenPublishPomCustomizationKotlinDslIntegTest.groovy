@@ -126,7 +126,7 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
                                 repository {
                                     id = "internalMaven"
                                     name = "Our internal maven repo"
-                                    url = "https://internal.maven.repo.com"
+                                    url = "https://internal.maven.example.com"
                                 }
                             }
                             mailingLists {
@@ -231,7 +231,7 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
         and:
         parsedPom.distributionManagement.repository.id.text() == "internalMaven"
         parsedPom.distributionManagement.repository.name.text() == "Our internal maven repo"
-        parsedPom.distributionManagement.repository.url.text() == "https://internal.maven.repo.com"
+        parsedPom.distributionManagement.repository.url.text() == "https://internal.maven.example.com"
 
         and:
         parsedPom.mailingLists.size() == 2
