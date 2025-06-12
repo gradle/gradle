@@ -218,4 +218,124 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Zip"    | "zipTo"    | "zipTree"
         "Tar"    | "tarTo"    | "tarTree"
     }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "#description configuration for #taskType overrides file system permissions for #taskType archives"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        def archName = "test.${taskType.toLowerCase()}"
+        and:
+        buildFile << """
+            tasks.register("pack", $taskType) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+                useFileSystemPermissions()
+                $permissionConfiguration
+            }
+            """
+        when:
+        run "pack"
+
+        then:
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        file("build/child").mode == expectedDirMode
+        file("build/child/reference.txt").mode == expectedFileMode
+
+        where:
+        description       | taskType | unpackMethod | permissionConfiguration            | expectedFileMode | expectedDirMode
+        "filePermissions" | "Zip"    | "unzipTo"    | "filePermissions { unix('0711') }" | 0711             | 0777
+        "dirPermissions"  | "Zip"    | "unzipTo"    | "dirPermissions { unix('0711') }"  | 0746             | 0711
+        "filePermissions" | "Tar"    | "untarTo"    | "filePermissions { unix('0711') }" | 0711             | 0777
+        "dirPermissions"  | "Tar"    | "untarTo"    | "dirPermissions { unix('0711') }"  | 0746             | 0711
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "can set absent provider for #description permissions for #taskType and that will configure file system permissions"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        def archName = "test.${taskType.toLowerCase()}"
+        and:
+        buildFile << """
+            tasks.register("pack", $taskType) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+                $permissionConfiguration
+            }
+            """
+
+        when:
+        run "pack"
+
+        then:
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        file("build/child").mode == expectedDirMode
+        file("build/child/reference.txt").mode == expectedFileMode
+
+        where:
+        description       | taskType | unpackMethod | permissionConfiguration               | expectedFileMode             | expectedDirMode
+        "filePermissions" | "Zip"    | "unzipTo"    | "filePermissions = provider { null }" | 0746                         | FileSystem.DEFAULT_DIR_MODE
+        "dirPermissions"  | "Zip"    | "unzipTo"    | "dirPermissions = provider { null }"  | FileSystem.DEFAULT_FILE_MODE | 0777
+        "filePermissions" | "Tar"    | "untarTo"    | "filePermissions = provider { null }" | 0746                         | FileSystem.DEFAULT_DIR_MODE
+        "dirPermissions"  | "Tar"    | "untarTo"    | "dirPermissions = provider { null }"  | FileSystem.DEFAULT_FILE_MODE | 0777
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "eachFile overrides subsequential #description permission setting for files on #taskType"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        def archName = "test.${taskType.toLowerCase()}"
+        and:
+        buildFile << """
+            tasks.register("pack", $taskType) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+                eachFile {
+                    permissions {
+                        user.execute = true
+                        user.read = true
+                        user.write = true
+                        group.read = false
+                        group.write = false
+                        other.read = false
+                        other.write = false
+                        other.execute = false
+                        other.read = false
+                    }
+                }
+                $permissionConfiguration
+            }
+            """
+
+        when:
+        run "pack"
+
+        then:
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        file("build/child/reference.txt").permissions == "rwx------"
+
+        where:
+        description    | taskType | unpackMethod | permissionConfiguration
+        "fileSystem"   | "Zip"    | "unzipTo"    | "useFileSystemPermissions()"
+        "reproducible" | "Zip"    | "unzipTo"    | "filePermissions { unix('0777') }"
+        "fileSystem"   | "Tar"    | "untarTo"    | "useFileSystemPermissions()"
+        "reproducible" | "Tar"    | "untarTo"    | "filePermissions { unix('0777') }"
+    }
 }
