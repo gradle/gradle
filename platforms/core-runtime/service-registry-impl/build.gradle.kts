@@ -6,6 +6,8 @@ description = "Implementation of the service registry framework"
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

@@ -6,6 +6,8 @@ description = "Process memory abstractions."
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

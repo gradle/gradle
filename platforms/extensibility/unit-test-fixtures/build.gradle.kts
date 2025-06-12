@@ -20,6 +20,14 @@ plugins {
 
 description = "Public types for unit testing plugins"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -61,6 +69,8 @@ dependencies {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
     integTestDistributionRuntimeClasspath(projects.distributionsFull)
+
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

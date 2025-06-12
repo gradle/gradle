@@ -4,6 +4,14 @@ plugins {
 
 description = "File system watchers for keeping the VFS up-to-date"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.snapshots)
     api(projects.buildOperations)

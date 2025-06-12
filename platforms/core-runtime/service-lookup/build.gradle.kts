@@ -6,6 +6,8 @@ description = "Internal API to dynamically lookup services provided by Gradle mo
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

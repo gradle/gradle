@@ -5,6 +5,14 @@ plugins {
 description = """Contains some base and shared classes for JVM language support, like AbstractCompile class and BaseForkOptions classes,
 JVM-specific dependencies blocks and JVM test suite interfaces."""
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "OverridesJavaxInjectableMethod", // 1 occurrences

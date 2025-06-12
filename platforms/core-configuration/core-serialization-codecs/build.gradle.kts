@@ -20,6 +20,12 @@ plugins {
 
 description = "Configuration Cache serialization codecs for :core (and family) types"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

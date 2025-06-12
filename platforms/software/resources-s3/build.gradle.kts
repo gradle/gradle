@@ -4,6 +4,14 @@ plugins {
 
 description = "Implementation for interacting with S3 repositories"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.serviceProvider)
     api(projects.core)

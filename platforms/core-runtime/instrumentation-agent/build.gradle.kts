@@ -5,6 +5,8 @@ plugins {
 description = "A Java agent implementation that instruments loaded classes"
 
 gradleModule {
+    entryPoint = true
+
     targetRuntimes {
         // Agent's premain is invoked before main(), so it should not cause the startup to fail because of the too new class file format.
         usedInClient = true

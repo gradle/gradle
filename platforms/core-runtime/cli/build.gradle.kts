@@ -7,5 +7,7 @@ description = "Utilities for parsing command line arguments"
 gradleModule {
     targetRuntimes {
         usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
     }
 }

@@ -4,6 +4,14 @@ plugins {
 
 description = "Publishing plugin for Ivy repositories"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)

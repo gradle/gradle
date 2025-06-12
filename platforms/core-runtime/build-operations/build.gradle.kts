@@ -7,6 +7,8 @@ description = "Build operations are our way to inspect the process of executing 
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

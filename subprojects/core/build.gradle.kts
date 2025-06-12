@@ -4,6 +4,14 @@ plugins {
 
 description = "Public and internal 'core' Gradle APIs with implementation"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 configurations {
     register("reports")
 }
@@ -282,7 +290,6 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 
     annotationProcessor(projects.internalInstrumentationProcessor)
     annotationProcessor(platform(projects.distributionsDependencies))

@@ -5,6 +5,14 @@ plugins {
 
 description = "Common shared build cache classes"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     implementation(libs.jspecify)
 

@@ -20,6 +20,14 @@ plugins {
 
 description = "Controls for the instrumentation agent potentially applied to the process"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
 

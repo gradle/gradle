@@ -4,6 +4,14 @@ plugins {
 
 description = "Implementation of model reflection"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)

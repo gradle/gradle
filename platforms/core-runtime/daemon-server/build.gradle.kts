@@ -20,6 +20,14 @@ plugins {
 
 description = "Implementation of the Gradle daemon server"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.launcher)
     api(projects.logging)

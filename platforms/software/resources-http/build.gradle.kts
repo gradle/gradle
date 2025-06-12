@@ -4,6 +4,14 @@ plugins {
 
 description = "Implementation for interacting with repositories over HTTP"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)

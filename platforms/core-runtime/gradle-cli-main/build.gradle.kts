@@ -25,6 +25,7 @@ description = "Entry point of the `gradle` command. Bootstraps the implementatio
 gradleModule {
     targetRuntimes {
         usedInClient = true
+        usedInDaemon = true
     }
 }
 

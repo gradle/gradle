@@ -9,6 +9,8 @@ description = "Extensions to the Java language that are used across the Gradle c
 
 gradleModule {
     targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
         usedInWorkers = true
     }
 }

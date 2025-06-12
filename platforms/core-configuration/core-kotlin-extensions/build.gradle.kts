@@ -5,6 +5,12 @@ plugins {
 
 description = "Kotlin extensions to make working with Gradle :core and family more convenient"
 
+gradleModule {
+    targetRuntimes {
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)

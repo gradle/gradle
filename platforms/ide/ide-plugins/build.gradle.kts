@@ -20,6 +20,15 @@ plugins {
 
 description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
 
+gradleModule {
+    entryPoint = true
+
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)

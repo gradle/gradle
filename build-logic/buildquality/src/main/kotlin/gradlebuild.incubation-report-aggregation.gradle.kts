@@ -6,6 +6,12 @@ plugins {
     id("base")
 }
 
+configurations.default {
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("incompatible-with-everything"))
+    }
+}
+
 val reports by configurations.creating {
     isVisible = false
     isCanBeResolved = false

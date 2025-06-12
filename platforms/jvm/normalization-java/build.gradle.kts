@@ -7,6 +7,14 @@ plugins {
 
 description = "API extraction for Java"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "NonApiType", // 1 occurrences

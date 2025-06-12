@@ -5,6 +5,14 @@ plugins {
 
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.files)

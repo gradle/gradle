@@ -24,6 +24,13 @@ description = """Problem SPI implementations.
     |This project contains the SPI implementations for the problem reporting infrastructure.
 """.trimMargin()
 
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+        usedInDaemon = true
+    }
+}
+
 
 val problemReportReportPath by configurations.creating {
     isVisible = false
