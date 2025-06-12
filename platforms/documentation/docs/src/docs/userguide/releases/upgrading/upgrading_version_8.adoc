@@ -714,7 +714,7 @@ That means that:
 
 This change improves the reproducibility of builds and ensures that the generated archives are consistent across different environments.
 
-You can restore the previous behaviour for one or more properties for your task with the next configuration:
+You can restore the previous behaviour for one or more properties for your task with the following configuration:
 
 ====
 [.multi-language-sample]
@@ -748,6 +748,14 @@ tasks.withType(AbstractArchiveTask).configureEach {
 ----
 =====
 ====
+
+You can also preserve the file system permissions across archives tasks by configuring a property:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.archives.use-file-system-permissions=true
+----
 
 ==== `test` task fails when no tests are discovered
 
