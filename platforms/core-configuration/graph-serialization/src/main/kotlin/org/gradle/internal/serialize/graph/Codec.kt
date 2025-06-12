@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.graph
 
 import org.gradle.api.logging.Logger
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -167,6 +168,8 @@ interface IsolateContext {
     val isolate: Isolate
 
     val trace: PropertyTrace
+
+    val problemsListener: ProblemsListener
 
     fun onProblem(problem: PropertyProblem)
 
