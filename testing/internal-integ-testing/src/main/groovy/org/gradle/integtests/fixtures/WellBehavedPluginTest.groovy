@@ -47,8 +47,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
-        "PmdPluginIntegrationTest",
-        "IdeaPluginGoodBehaviourTest"
+        "PmdPluginIntegrationTest"
     ])
     void "can apply plugin unqualified"() {
         given:
@@ -77,7 +76,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "PmdPluginIntegrationTest",
-        "IdeaPluginGoodBehaviourTest"
     ])
     def "plugin can build with empty project"() {
         given:

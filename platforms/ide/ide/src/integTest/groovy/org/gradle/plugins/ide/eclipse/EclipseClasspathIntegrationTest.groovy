@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 import org.junit.Test
@@ -34,7 +33,6 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
     private final String jreContainerPath = "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-${JavaVersion.current().isJava9Compatible() ? JavaVersion.current().getMajorVersion() : JavaVersion.current()}/"
 
     @Test
-    @ToBeFixedForConfigurationCache
     void classpathContainsLibraryEntriesForExternalAndFileDependencies() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
@@ -77,7 +75,6 @@ dependencies {
 
     @Test
     @Issue("GRADLE-1945")
-    @ToBeFixedForConfigurationCache
     void unresolvedDependenciesAreLogged() {
         //given
         def module = mavenRepo.module('myGroup', 'existing-artifact', '1.0')
@@ -120,7 +117,6 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
 
     @Test
     @Issue("GRADLE-1622")
-    @ToBeFixedForConfigurationCache
     void classpathContainsEntriesForDependenciesThatOnlyDifferByClassifier() {
         //given:
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
@@ -159,7 +155,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void includesTransitiveRepoFileDependencies() {
         //given
         def someArtifactJar = mavenRepo.module('someGroup', 'someArtifact', '1.0').publish().artifactFile
@@ -206,7 +201,6 @@ configure(project(":c")){
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void includesTransitiveImplementationDependencies() {
         //given
         def someArtifactJar = mavenRepo.module('someGroup', 'someArtifact', '1.0').publish().artifactFile
@@ -255,7 +249,6 @@ configure(project(":c")){
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void transitiveProjectDependenciesMappedAsDirectDependencies() {
         given:
         createDirs("a", "b", "c")
@@ -289,7 +282,6 @@ configure(project(":b")){
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void transitiveFileDependenciesMappedAsDirectDependencies() {
         createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
@@ -332,7 +324,6 @@ configure(project(":c")){
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void classpathContainsConflictResolvedDependencies() {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
         def someLib2Jar = mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
@@ -388,7 +379,6 @@ configure(project(":b")){
 
 
     @Test
-    @ToBeFixedForConfigurationCache
     void substitutesPathVariablesIntoLibraryPathsExceptForJavadoc() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
@@ -429,7 +419,6 @@ eclipse {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void canCustomizeTheClasspathModel() {
         //when
         runEclipseTask """
@@ -486,7 +475,6 @@ eclipse {
 
     @Issue("GRADLE-3101")
     @Test
-    @ToBeFixedForConfigurationCache
     void canCustomizeTheClasspathModelUsingPlusEqual() {
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.publish()
@@ -530,7 +518,6 @@ dependencies {
 
     @Test
     @Issue("GRADLE-1487")
-    @ToBeFixedForConfigurationCache
     void handlesPlusMinusConfigurationsForSelfResolvingDeps() {
         //when
         runEclipseTask """
@@ -561,7 +548,6 @@ eclipse.classpath {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void handlesPlusMinusConfigurationsForProjectDeps() {
         //when
         createDirs("foo", "bar", "unwanted")
@@ -595,7 +581,6 @@ eclipse.classpath {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void handlesPlusMinusConfigurationsForExternalDeps() {
         //given
         def jar = mavenRepo.module('coolGroup', 'coolArtifact', '1.0').dependsOn('coolGroup', 'unwantedArtifact', '1.0').publish().artifactFile
@@ -633,7 +618,6 @@ eclipse.classpath {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void canToggleJavadocAndSourcesOn() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
@@ -672,7 +656,6 @@ eclipse.classpath {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void canToggleJavadocAndSourcesOff() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
@@ -709,7 +692,6 @@ eclipse.classpath {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void removeDependenciesFromExistingClasspathFileWhenMerging() {
         //given
         getClasspathFile() << """<?xml version="1.0" encoding="UTF-8"?>
@@ -740,7 +722,6 @@ dependencies {
 
     @Issue('GRADLE-1953')
     @Test
-    @ToBeFixedForConfigurationCache
     void canConstructAndReconstructClasspathFromJavaSourceSets() {
         given:
         def buildFile = file("build.gradle") << """
@@ -766,7 +747,6 @@ apply plugin: 'eclipse'
 
     @Issue('GRADLE-3335')
     @Test
-    @ToBeFixedForConfigurationCache
     void handlesExcludeOnSharedSourceFolders() {
         given:
         def buildFile = file("build.gradle") << """
@@ -822,7 +802,6 @@ sourceSets {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void handlesIncludesOnSharedSourceFolders() {
         given:
         def buildFile = file("build.gradle") << """
@@ -882,7 +861,6 @@ sourceSets {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void canAccessXmlModelBeforeAndAfterGeneration() {
         //given
         def classpath = getClasspathFile([:])
@@ -937,7 +915,6 @@ eclipseClasspath.doLast() {
 
     @Issue("GRADLE-1502")
     @Test
-    @ToBeFixedForConfigurationCache
     void createsLinkedResourcesForSourceDirectoriesWhichAreNotUnderTheProjectDirectory() {
         file('someGroovySrc').mkdirs()
 
@@ -977,7 +954,6 @@ project(':api') {
 
     @Issue("GRADLE-1402")
     @Test
-    @ToBeFixedForConfigurationCache
     void shouldNotPutSourceSetsOutputDirOnClasspath() {
         testFile('build/generated/main/prod.resource').createFile()
         testFile('build/generated/test/test.resource').createFile()
@@ -998,7 +974,6 @@ sourceSets.test.output.dir "$buildDir/generated/test"
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void theBuiltByTaskBeExecuted() {
         //when
         def result = runEclipseTask('''
@@ -1016,7 +991,6 @@ task generateForTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
         def repoJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publish().artifactFile
@@ -1053,7 +1027,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void addsScalaIdeClasspathContainerAndRemovesLibrariesDuplicatedByContainer() {
         //given
         def otherLib = mavenRepo.module('other', 'lib', '3.0').publish().artifactFile
@@ -1084,7 +1057,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void avoidsDuplicateJreContainersInClasspathWhenMerging() {
         //given
         getClasspathFile() << """<?xml version="1.0" encoding="UTF-8"?>
@@ -1107,7 +1079,6 @@ apply plugin: 'eclipse'
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void compileOnlyDependenciesAddedToClasspath() {
         // given
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
@@ -1134,7 +1105,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void compileOnlyDependenciesAreNotExported() {
         // given
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
@@ -1177,7 +1147,6 @@ project(':b') {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "test compile only dependencies mapped to classpath and not exported"() {
         // given
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
@@ -1225,7 +1194,6 @@ project(':b') {
      * use case or another.
      */
     @Test
-    @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library for compile and compile-only mapped to classpath"() {
         // given
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
@@ -1273,7 +1241,6 @@ project(':b') {
      * use case or another.
      */
     @Test
-    @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library for runtime and compile-only mapped to classpath"() {
         // given
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
@@ -1321,7 +1288,6 @@ project(':b') {
      * use case or another.
      */
     @Test
-    @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library for test-compile and testcompile-only mapped to classpath"() {
         // given
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
