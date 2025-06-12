@@ -142,7 +142,6 @@ public abstract class IdeaPlugin extends IdePlugin {
         getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
         getLifecycleTask().configure(withGracefulDegradation(project));
         getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
-        getCleanTask().configure(withGracefulDegradation(project));
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
 
