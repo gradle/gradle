@@ -39,8 +39,9 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.0]]
 == Upgrading from 8.14 and earlier
 
-=== Language and DSL changes
+=== Language, JDK, and DSL changes
 
+[[java-17]]
 ==== Java 17 is now required
 
 Gradle 9 requires Java 17 or higher to run the Gradle Daemon.
