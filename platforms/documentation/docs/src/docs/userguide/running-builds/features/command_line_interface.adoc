@@ -14,6 +14,7 @@
 
 [[command_line_interface_reference]]
 = Command-Line Interface Reference
+:keywords: cli, clean, check, projects, tasks, rerun-tasks, continue, build-cache, no-build-cache, configuration-cache, no-configuration-cache, configuration-cache-problems, configure-on-demand, no-configure-on-demand, max-workers, parallel, no-parallel, priority, profile, scan, watch-fs, no-watch-fs, help, version, show-version, full-stacktrace, stacktrace, org.gradle.debug, org.gradle.debug.host, org.gradle.debug.port, org.gradle.debug.server, org.gradle.debug.suspend, org.gradle.daemon.debug, project-cache-dir, system-prop, init-script, project-prop, org.gradle.jvmargs, org.gradle.java.home, gradle-user-home, dependency-verification, write-verification-metadata, refresh-keys, export-keys, include-build, offline, refresh-dependencies, dry-run, continuous, write-locks, update-locks , no-rebuild, org.gradle.warning.mode, warning-mode, no-problems-report, problems-report, org.gradle.console, console, org.gradle.logging.level, quiet, warn, info, debug, daemon, no-daemon, foreground, status, stop, org.gradle.daemon.idletimeout, exclude-task, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, gradle-version
 
 The command-line interface is the **primary method of interacting with Gradle**.
 
@@ -355,7 +356,7 @@ Running the `projects` task gives you a list of the subprojects of the selected 
 $ gradle projects
 ----
 
-You also get a project report within https://scans.gradle.com/[Build Scans].
+You also get a project report with https://scans.gradle.com/[Build Scan].
 
 [[sec:listing_tasks]]
 === Listing tasks
@@ -427,7 +428,7 @@ You can get detailed information about the task class types using the `--types` 
 
 === Reporting dependencies
 
-https://scans.gradle.com/[Build Scans] give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
+https://scans.gradle.com/[Build Scan] gives a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
 They can be invoked using the `--scan` options:
 
 [source,bash]
@@ -553,7 +554,7 @@ Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec
 Print out the stacktrace also for user exceptions (e.g. compile error). See also <<#sec:command_line_logging, logging options>>.
 
 `--scan`::
-Create a https://gradle.com/build-scans[Build Scan] with fine-grained information about all aspects of your Gradle build.
+Create a https://gradle.com/develocity/product/build-scan[Build Scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that debugs the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
@@ -602,7 +603,7 @@ Toggles configure-on-demand. Only relevant projects are configured in this build
 Sets the maximum number of workers that Gradle may use. _Default is number of processors_.
 
 `--parallel`, `--no-parallel`::
-Build projects in parallel. For limitations of this option, see <<performance.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
+Build projects in parallel. For limitations of this option, see <<performance.adoc#sec:enable_parallel_execution, Parallel Project Execution>>. _Default is off_.
 
 `--priority`::
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
@@ -611,7 +612,7 @@ Specifies the scheduling priority for the Gradle daemon and all processes launch
 Generates a high-level performance report in the `layout.buildDirectory.dir("reports/profile")` directory. `--scan` is preferred.
 
 `--scan`::
-Generate a build scan with detailed performance diagnostics.
+Generate a Build Scan with detailed performance diagnostics.
 
 image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
 

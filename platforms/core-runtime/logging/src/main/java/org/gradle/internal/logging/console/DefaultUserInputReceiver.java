@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.console;
 
 import com.google.common.base.CharMatcher;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.ReadStdInEvent;

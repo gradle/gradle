@@ -299,6 +299,8 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             excludeBuilder.add(excludeRuleConverter.convertExcludeRule(excludeRule));
         }
 
+        configuration.markDependenciesObserved();
+
         return new DependencyState(dependencyBuilder.build(), fileBuilder.build(), excludeBuilder.build());
     }
 

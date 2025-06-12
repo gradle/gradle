@@ -128,7 +128,7 @@ dependencies {
 fun configFile(fileName: String) = resources.text.fromFile(rules.asFileTree.filter { it.name == fileName })
 
 checkstyle {
-    toolVersion = "8.12"
+    toolVersion = "10.25.0"
     config = configFile("checkstyle.xml")
     val projectDirectory = layout.projectDirectory
     configDirectory = rules.elements.map {

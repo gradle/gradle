@@ -281,7 +281,7 @@ To add `lib` to the build, update the `settings.gradle(.kts)` file in the root a
 [source,kotlin]
 ----
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 rootProject.name = "authoring-tutorial"
@@ -296,7 +296,7 @@ include("lib") // Add lib to the build
 [source, groovy]
 ----
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 rootProject.name = 'authoring-tutorial'
@@ -377,6 +377,7 @@ Our build for the root project `authoring-tutorial` now includes two subprojects
 You can build `lib` independent of `app`.
 However, to build `app`, Gradle will also build `lib`.
 
+[[step_3_understand_composite_builds]]
 == Step 3. Understand Composite Builds
 A composite build is simply a build that includes other builds.
 
@@ -523,7 +524,7 @@ To add our `license-plugin` build to the root project, update the root `settings
 [source,kotlin]
 ----
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 rootProject.name = "authoring-tutorial"
@@ -540,7 +541,7 @@ includeBuild("gradle/license-plugin") // Add the new build
 [source, groovy]
 ----
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 rootProject.name = 'running-tutorial-groovy'

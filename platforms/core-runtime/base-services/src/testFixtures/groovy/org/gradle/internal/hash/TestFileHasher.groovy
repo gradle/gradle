@@ -16,13 +16,15 @@
 
 package org.gradle.internal.hash
 
+import org.gradle.internal.UncheckedException
+
 class TestFileHasher implements FileHasher {
     @Override
     HashCode hash(File file) {
         try {
             return Hashing.hashFile(file)
         } catch (IOException e) {
-            throw new UncheckedIOException(e)
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

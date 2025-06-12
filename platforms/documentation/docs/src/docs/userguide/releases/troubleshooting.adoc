@@ -38,7 +38,7 @@ Build time:    2025-05-13 06:56:13 UTC
 Revision:      3c890746756262d3778e12eaa5155d661d7cbdf2
 
 Kotlin:        2.1.21
-Groovy:        4.0.26
+Groovy:        4.0.27
 Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
 Launcher JVM:  22.0.1 (Oracle Corporation 22.0.1+8-16)
 Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)
@@ -89,10 +89,10 @@ Common dependency resolution issues, such as resolving version conflicts, are co
 
 You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 
-.Debugging dependency conflicts with build scans
+.Debugging dependency conflicts with Build Scan
 image::troubleshooting-dependency-management-build-scan.png[]
 
-The link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[actual build scan] with filtering criteria is available for exploration.
+The actual link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[Build Scan] with filtering criteria is available for exploration.
 
 [[sec:troubleshooting_performance]]
 == Troubleshooting slow builds
@@ -135,9 +135,9 @@ NOTE: Additional logs from the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>
 
 === Task executed when it should have been UP-TO-DATE
 
-`--info` logs explain why a task was executed, though build scans do this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
+`--info` logs explain why a task was executed, though a Build Scan does this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
 
-.Debugging incremental build with a build scan
+.Debugging incremental build with Build Scan
 image::troubleshooting-task-execution-build-scan.png[]
 
 You can learn what the task outcomes mean from <<more_about_tasks.adoc#sec:task_outcomes,this listing>>.

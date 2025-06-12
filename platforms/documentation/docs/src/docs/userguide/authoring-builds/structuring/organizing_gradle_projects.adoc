@@ -1,0 +1,562 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[organizing_gradle_projects]]
+= Structuring and Organizing Gradle Projects
+
+It is important to structure your Gradle project to optimize build performance.
+A multi-project build is the standard in Gradle.
+
+[[sub:project_locations]]
+== Project Concepts
+
+There are four key concepts to understand Gradle projects:
+
+1. **Root project**: The top-level project in a build that contains the `settings.gradle(.kts)` file and typically aggregates all subprojects.
+
+2. **Subprojects**: Individual modules (components) that are part of a multi-project build and are included by the root project via the `settings.gradle(.kts)` file.
+
+3. **Settings file**: A `settings.gradle(.kts)` configuration file used to define the structure of a multi-project build, including which subprojects are part of it and optionally how they're named or located.
+
+4. **Build scripts**: `build.gradle(.kts)` files that define how a project is built (applying plugins, declaring dependencies, configuring tasks, etc...) executed per project (subprojects can each have one).
+
+Let's take a look at an example:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+my-project/     // <1>
+├── settings.gradle.kts // <2>
+├── app/                    // <3>
+│   ├── build.gradle.kts        // <4>
+│   └── src/
+├── core/                   // <3>
+│   ├── build.gradle.kts        // <4>
+│   └── src/
+└── util/                   // <3>
+    ├── build.gradle.kts        // <4>
+    └── src/
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+my-project/     // <1>
+├── settings.gradle // <2>
+├── app/                // <3>
+│   ├── build.gradle        // <4>
+│   └── src/
+├── core/               // <3>
+│   ├── build.gradle        // <4>
+│   └── src/
+└── util/               // <3>
+    ├── build.gradle        // <4>
+    └── src/
+----
+=====
+<1> Root project directory
+<2> Settings file
+<3> Subproject
+<4> Subproject build file
+
+[[sec:creating_single_project_builds]]
+== Single-Project Build
+
+image::structuring-builds-1.png[]
+
+Let's look at a _basic_ multi-project build example that contains a root project and a single subproject.
+
+The root project is called `my-project`, located somewhere on your machine.
+From Gradle's perspective, the root is the top-level directory `.`.
+
+The project contains a single subproject called `app`:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.   // <1>
+├── settings.gradle // <2>
+└── app/                // <3>
+    ├── build.gradle       // <4>
+    └── src/            // <5>
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.   // <1>
+├── settings.gradle.kts // <2>
+└── app/                    // <3>
+    ├── build.gradle.kts        // <4>
+    └── src/                // <5>
+----
+=====
+<1> Root project
+<2> Subproject
+<3> Subproject build file
+<4> Settings file
+<5> Source code and more
+
+This is the recommended project structure for starting any Gradle project.
+The <<build_init_plugin#build_init_plugin,Build Init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject:
+
+The `settings.gradle(.kts)` file describes the project structure to Gradle:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/basic-multiproject">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="settings.gradle[]"]
+====
+
+In this case, Gradle will look for a build file for the `app` subproject in the `./app` directory.
+
+You can view the structure of a multi-project build by running the `projects` command:
+
+----
+$ ./gradlew -q projects
+include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
+----
+
+In this example, the `app` subproject is a Java application that applies the <<application_plugin#application_plugin,Java Application plugin>> and configures the main class.
+
+The application prints `Hello World` to the console:
+
+====
+include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
+.app/src/main/java/com/example/Hello.java
+[source, java]
+----
+include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java/com/example/Hello.java[]
+----
+====
+
+You can run the application by executing the `run` task from the <<application_plugin#application_plugin,Application plugin>> in the project root:
+----
+$ ./gradlew -q run
+include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
+----
+
+[[sec:creating_multi_project_builds]]
+== Multi-Project Build (`include()`)
+
+image::structuring-builds-2.png[]
+
+In the settings file, you can use the `include` method to add another subproject to the root project:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/standardLayouts">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
+include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
+====
+
+The `include` method takes <<intro_multi_project_builds#sec:project_path,project paths>> as arguments.
+The project path is assumed to be equal to the relative physical file system path.
+For example, a path `services:api` is mapped by default to a folder `./services/api` (relative to the project root `.`).
+
+More examples of how to work with the project path can be found in the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])].
+
+Let's add another subproject called `lib` to the previously created project.
+
+All we need to do is add another `include` statement in the root settings file:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/multiproject/multiple-subprojects">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/multiproject/multiple-subprojects/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/multiple-subprojects/groovy",files="settings.gradle[]"]
+====
+
+Gradle will then look for the build file of the new `lib` subproject in the `./lib/` directory:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.       // <1>
+├── settings.gradle.kts // <2>
+├── app/                    // <3>
+│   ├── build.gradle.kts        // <4>
+│   └── src/
+└── lib/                    // <3>
+    ├── build.gradle.kts        // <4>
+    └── src/
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.       // <1>
+├── settings.gradle // <2>
+├── app/                // <3>
+│   ├── build.gradle        // <4>
+│   └── src/
+└── lib/                // <3>
+    ├── build.gradle        // <4>
+    └── src/
+----
+=====
+<1> Root project
+<2> Settings file
+<3> Subproject
+<4> Subproject build file
+
+You can learn more about multi-project builds in <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>.
+
+[[sec:build_sources]]
+== Sharing Build Logic (`buildSrc`)
+
+image::structuring-builds-3.png[]
+
+When projects grow in size and complexity, it's common to see the same logic repeated across multiple subprojects—like applying the same plugins, configuring the same tasks, or declaring the same dependencies.
+
+Duplicated build logic is hard to maintain and easy to get wrong.
+Gradle provides a built-in way to centralize and reuse this logic: a special directory called `buildSrc`.
+
+`buildSrc` is a separate build located in the root of your Gradle project.
+Any code you put in this directory is automatically compiled and added to the classpath of your main build.
+
+Let's take a look at our multi-project build:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── settings.gradle.kts
+├── app/
+│   ├── build.gradle.kts    // <1>
+│   └── src/
+└── lib/
+    ├── build.gradle.kts    // <1>
+    └── src/
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── settings.gradle
+├── app/
+│   ├── build.gradle    // <1>
+│   └── src/
+└── lib/
+    ├── build.gradle    // <1>
+    └── src/
+----
+=====
+<1> Subproject build script, applies `java-library` and testing logic
+
+We now encapsulate reusable configuration logic in a `java-library-convention.gradle.kts` file.
+
+Because the file is named `java-library-convention.gradle.kts`, Gradle automatically registers it as a plugin with the ID `java-library-convention`.
+It compiles and makes this plugin available to all other build scripts in the project.
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── settings.gradle.kts
+├── buildSrc/
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/
+│       └── java-library-convention.gradle.kts  // <1>
+├── app/
+│   ├── build.gradle.kts    // <2>
+│   └── src/
+└── lib/
+    ├── build.gradle.kts    // <2>
+    └── src/
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── settings.gradle
+├── buildSrc/
+│   ├── build.gradle
+│   └── src/main/groovy/
+│       └── java-library-convention.gradle  // <1>
+├── app/
+│   ├── build.gradle    // <2>
+│   └── src/
+└── lib/
+    ├── build.gradle    // <2>
+    └── src/
+----
+=====
+<1> Applies `java-library` and testing logic
+<2> Subproject build script, applies `java-library` and testing logic
+
+You can learn more about multi-project builds in <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logc between Subprojects using BuildSrc>>.
+
+[[sec:composite_builds]]
+== Composite Builds (`includeBuild()`)
+
+image::structuring-builds-4.png[]
+
+In Gradle, composite builds (or included builds) are ways to compose multiple builds together.
+
+They allow you to work with multiple Gradle projects (builds) as if they were part of a single build, without needing to publish artifacts to a repository.
+
+Imagine we want to break up our multi-project build into two separate builds:
+
+- A shared library in `libs`
+- An application that uses it (our previous multi-project build)
+
+We want to:
+
+- Keep them in separate builds (they could be in separate repos)
+- But develop them together without publishing `lib`
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── settings.gradle.kts
+├── buildSrc/
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/
+│       └── java-library-convention.gradle.kts
+├── app/
+│   ├── build.gradle.kts
+│   └── src/
+├── core/
+│   ├── build.gradle.kts
+│   └── src/
+├── util/
+│   ├── build.gradle.kts
+│   └── src/
+└── libs/           // <1>
+    └── lib/
+        ├── settings.gradle.kts
+        ├── build.gradle.kts
+        └── src/
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── settings.gradle
+├── buildSrc/
+│   ├── build.gradle
+│   └── src/main/groovy/
+│       └── java-library-convention.gradle
+├── app/
+│   ├── build.gradle
+│   └── src/
+├── core/
+│   ├── build.gradle
+│   └── src/
+├── util/
+│   ├── build.gradle
+│   └── src/
+└── libs/           // <1>
+    └── lib/
+        ├── settings.gradle
+        ├── build.gradle
+        └── src/
+----
+=====
+<1> Standalone, reusable library (included build)
+
+Here, `lib` is a separate Gradle build that lives in `libs/lib`.
+It’s not part of the normal `include(...)` multi-project structure.
+
+Instead, we treat it as an included build, a distinct build that we can use without publishing it to a repository.
+
+In the root `settings.gradle(.kts)`, we tell Gradle to include `lib` as part of a composite build using `includeBuild()`:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/kotlin",files="settings.gradle.kts[tags=inc]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/groovy",files="settings.gradle[tags=inc]"]
+====
+
+You can learn more about multi-project builds in <<composite_builds.adoc#composite_builds,Composite Builds>>.
+
+[[sec:structuring_recommendations]]
+== Structuring Recommendations
+
+Source code and build logic should be organized in a clear, consistent, and meaningful way.
+This section outlines recommendations that lead to readable and maintainable Gradle projects.
+It also highlights common pitfalls and how to avoid them to ensure your builds stay robust and scalable.
+
+[[sec:separate_language_source_files]]
+=== Use separate Language-specific Source Files
+
+Gradle's language plugins define conventions for discovering and compiling source code.
+For example, when the <<java_plugin.adoc#java_plugin,Java plugin>> is applied, Gradle automatically compiles source files in `src/main/java`.
+
+Other language plugins follow a similar convention: the last part of the source directory (e.g., `java`, `groovy`, `kotlin`) indicates the language of the source files it contains.
+
+Some compilers support cross-compilation of multiple languages from the same directory.
+For example, the Groovy compiler can compile both Java and Groovy source files from `src/main/groovy`.
+
+However, Gradle recommends separating source files by language into distinct directories (e.g., `src/main/java` and `src/main/kotlin`).
+This improves build performance and makes builds more predictable—both for Gradle and for humans reading the project layout.
+
+Here’s an example source layout for a project using both Java and Kotlin:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── build.gradle.kts
+└── src
+    └── main
+        ├── java
+        │   └── HelloWorld.java
+        └── kotlin
+            └── Utils.kt
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── build.gradle
+└── src
+    └── main
+        ├── java
+        │   └── HelloWorld.java
+        └── kotlin
+            └── Utils.kt
+----
+=====
+====
+
+[[sec:separate_test_type_source_files]]
+=== Use separate Source Files per Test type
+
+It's common for a project to define and run multiple types of tests—such as unit tests, integration tests, functional tests, or smoke tests.
+To keep things maintainable and organized, Gradle recommends storing each test type’s source code in its own dedicated source directory.
+
+For example, instead of placing all tests under `src/test/java`, you might use:
+
+[source,text]
+----
+src/
+├── test/                      // Unit tests
+│   └── java/
+├── integrationTest/           // Integration tests
+│   └── java/
+└── functionalTest/            // Functional tests
+    └── java/
+----
+
+To see how this works in practice, check out the
+link:../samples/sample_jvm_multi_project_with_additional_test_types.html[example project] which demonstrates how to define a custom `integrationTest` source set and task in a Java-based project.
+
+NOTE: Gradle allows you to define multiple source sets and test tasks, so you can fully isolate and control each type of test in your build.
+
+[[sec:use_standard_conventions]]
+=== Use standard Conventions
+
+All Gradle core plugins follow the *convention over configuration* principle, a well-known software engineering paradigm that favors sensible defaults over manual setup.
+You can read more about it here: link:https://en.wikipedia.org/wiki/Convention_over_configuration[Convention over configuration].
+
+Gradle plugins provide predefined behaviors and directory structures that "just work" in most cases.
+Let’s take the <<java_plugin.adoc#java_plugin,Java Plugin>> as an example:
+
+* The default source directory is `src/main/java`.
+* The default output location for compiled classes and packaged artifacts (like JARs) is `build/`.
+
+While Gradle allows you to override most defaults, doing so can make your build harder to understand and maintain—especially for teams or newcomers.
+
+TIP: Stick to standard conventions unless you have a strong reason to deviate (e.g., adapting to a legacy layout).
+Refer to the reference documentation for each plugin to learn about its default conventions and behaviors.
+
+[[sec:settings_file]]
+=== Use a Settings file
+
+Every time you run a Gradle build, Gradle attempts to locate a `settings.gradle` (Groovy DSL) or `settings.gradle.kts` (Kotlin DSL) file.
+To do this, it walks up the directory hierarchy from the current working directory to the filesystem root.
+As soon as it finds a settings file, it stops searching and uses that as the entry point for the build.
+
+In a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>, the settings file is *required*.
+It defines which projects are part of the build and enables Gradle to correctly configure and evaluate the entire project hierarchy.
+
+You may also need a settings file to <<organizing_gradle_projects.adoc#organizing_gradle_projects,add shared libraries or plugins>> to the build classpath using `pluginManagement` or `dependencyResolutionManagement`.
+
+The following example shows a standard Gradle project layout:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── settings.gradle.kts
+├── subproject-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── settings.gradle
+├── subproject-one
+│   └── build.gradle
+└── subproject-two
+    └── build.gradle
+----
+=====
+====

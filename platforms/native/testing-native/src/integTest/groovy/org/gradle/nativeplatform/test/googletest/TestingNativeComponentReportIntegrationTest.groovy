@@ -29,11 +29,10 @@ plugins {
     id 'cpp'
     id 'google-test-test-suite'
 }
-
-model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         someExe(NativeExecutableSpec)
     }

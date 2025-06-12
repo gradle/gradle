@@ -43,19 +43,20 @@ data class PropertyProblem(
 
 
 // TODO:configuration-cache extract interface and move enum back to :configuration-cache
-enum class DocumentationSection(val anchor: String) {
-    NotYetImplemented("config_cache:not_yet_implemented"),
-    NotYetImplementedSourceDependencies("config_cache:not_yet_implemented:source_dependencies"),
-    NotYetImplementedJavaSerialization("config_cache:not_yet_implemented:java_serialization"),
-    NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
-    NotYetImplementedBuildServiceInFingerprint("config_cache:not_yet_implemented:build_services_in_fingerprint"),
-    TaskOptOut("config_cache:task_opt_out"),
-    RequirementsBuildListeners("config_cache:requirements:build_listeners"),
-    RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
-    RequirementsExternalProcess("config_cache:requirements:external_processes"),
-    RequirementsTaskAccess("config_cache:requirements:task_access"),
-    RequirementsSysPropEnvVarRead("config_cache:requirements:reading_sys_props_and_env_vars"),
-    RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
+enum class DocumentationSection(val page: String, val anchor: String) {
+    NotYetImplemented("configuration_cache_status", "config_cache:not_yet_implemented"),
+    NotYetImplementedSourceDependencies("configuration_cache_status", "config_cache:not_yet_implemented:source_dependencies"),
+    NotYetImplementedJavaSerialization("configuration_cache_status", "config_cache:not_yet_implemented:java_serialization"),
+    NotYetImplementedTestKitJavaAgent("configuration_cache_status", "config_cache:not_yet_implemented:testkit_build_with_java_agent"),
+    NotYetImplementedBuildServiceInFingerprint("configuration_cache_status", "config_cache:not_yet_implemented:build_services_in_fingerprint"),
+    NotYetImplementedBuildEventListeners("configuration_cache_status", "config_cache:not_yet_implemented:more_build_event_listeners"),
+    TaskOptOut("config_cache_debugging", "config_cache:task_opt_out"),
+    RequirementsBuildListeners("configuration_cache_requirements","config_cache:requirements:build_listeners"),
+    RequirementsDisallowedTypes("configuration_cache_requirements","config_cache:requirements:disallowed_types"),
+    RequirementsExternalProcess("configuration_cache_requirements","config_cache:requirements:external_processes"),
+    RequirementsTaskAccess("configuration_cache_requirements","config_cache:requirements:task_access"),
+    RequirementsSysPropEnvVarRead("configuration_cache_requirements","config_cache:requirements:reading_sys_props_and_env_vars"),
+    RequirementsUseProjectDuringExecution("configuration_cache_requirements","config_cache:requirements:use_project_during_execution")
 }
 
 

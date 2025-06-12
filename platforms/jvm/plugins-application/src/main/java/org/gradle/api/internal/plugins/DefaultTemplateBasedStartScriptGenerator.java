@@ -20,9 +20,9 @@ import com.google.common.io.CharSource;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.resources.CharSourceBackedTextResource;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
 import org.gradle.util.internal.TextUtil;
@@ -56,7 +56,7 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
             String scriptContent = generateStartScriptContentFromTemplate(binding);
             destination.write(scriptContent);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -77,7 +77,7 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
             String output = template.make(binding).toString();
             return TextUtil.convertLineSeparators(output, lineSeparator);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

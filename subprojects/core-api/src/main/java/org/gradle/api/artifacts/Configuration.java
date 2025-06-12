@@ -105,21 +105,20 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     State getState();
 
     /**
-     * Returns true if this is a visible configuration. A visible configuration is usable outside the project it belongs
-     * to. The default value is true.
-     *
-     * @return true if this is a visible configuration.
+     * This is a legacy property and the value does not affect dependency resolution
+     * in any way. There is no need to read this property and this method will be deprecated
+     * in an upcoming Gradle version.
+     * <p>
+     * The value of this property does not dictate in any way the "visibility" of
+     * a configuration, or if it is accessible between projects.
      */
     boolean isVisible();
 
     /**
-     * Sets the visibility of this configuration. When visible is set to true, this configuration is visible outside
-     * the project it belongs to. The default value is true.
+     * Sets the value returned by {@link #isVisible()}. There is no need to set this property
+     * and this method will be deprecated in an upcoming Gradle version.
      *
-     * @implSpec Usage: This method should only be called on consumable configurations, but will not warn if used otherwise.
-     *
-     * @param visible true if this is a visible configuration
-     * @return this configuration
+     * @param visible the value to set.
      */
     Configuration setVisible(boolean visible);
 

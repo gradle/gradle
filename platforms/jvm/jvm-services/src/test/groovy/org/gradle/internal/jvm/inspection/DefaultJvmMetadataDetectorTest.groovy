@@ -25,18 +25,18 @@ import org.gradle.process.internal.ClientExecHandleBuilder
 import org.gradle.process.internal.ClientExecHandleBuilderFactory
 import org.gradle.process.internal.ExecHandle
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
-import spock.lang.TempDir
 
 class DefaultJvmMetadataDetectorTest extends Specification {
-
-    @TempDir
-    File temporaryFolder
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     TestFile tmpDir
     def setup() {
-        tmpDir = new TestFile(new File(temporaryFolder, "tmp").tap { mkdirs() })
+        tmpDir = temporaryFolder.createDir("tmp")
     }
 
     def "cleans up generated Probe class"() {
@@ -45,7 +45,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
-        def javaHome = new File(temporaryFolder, "localGradle").tap { mkdirs() }
+        def javaHome = temporaryFolder.createDir("localGradle")
         def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
@@ -59,71 +59,49 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
-        File javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
+        def javaHome = temporaryFolder.createDir(jdk)
         if (!jre) {
-            def binDir = new File(javaHome, "bin")
+            def binDir = javaHome.file("bin")
             if (binDir.mkdir()) {
-                File javac = new File(binDir, OperatingSystem.current().getExecutableName('javac'))
-                javac << 'dummy'
+                binDir.file(OperatingSystem.current().getExecutableName('javac')).touch()
+                binDir.file(OperatingSystem.current().getExecutableName('javadoc')).touch()
+                binDir.file(OperatingSystem.current().getExecutableName('jar')).touch()
             }
         }
         def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
         metadata.languageVersion == javaVersion
-        displayName == null || displayName == (metadata.displayName + " " + metadata.languageVersion.majorVersion)
+        displayName == metadata.displayName
         metadata.javaHome != null
 
         where:
-        jdk              | systemProperties         | javaVersion             | displayName                  | jre
-        'localGradle'    | currentGradle()          | JavaVersion.current()   | null                         | false
-        'localGradle'    | currentGradle()          | JavaVersion.current()   | null                         | true
-        'openJdk4'       | openJdkJvm('4')          | JavaVersion.VERSION_1_4 | 'OpenJDK 4'                  | false
-        'openJdk5'       | openJdkJvm('5')          | JavaVersion.VERSION_1_5 | 'OpenJDK 5'                  | false
-        'openJdk6'       | openJdkJvm('6')          | JavaVersion.VERSION_1_6 | 'OpenJDK 6'                  | false
-        'openJdk7'       | openJdkJvm('7')          | JavaVersion.VERSION_1_7 | 'OpenJDK 7'                  | false
-        'openJdk8'       | openJdkJvm('8')          | JavaVersion.VERSION_1_8 | 'OpenJDK 8'                  | false
-        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK 9'                  | false
-        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK JRE 9'              | true
-        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK 11'            | false
-        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'        | true
-        'AdoptOpenJDKJ9' | adoptOpenJDKJ9('14.0.2') | JavaVersion.VERSION_14  | 'AdoptOpenJDK 14'            | false
-        'oracleJdk4'     | oracleJvm('4')           | JavaVersion.VERSION_1_4 | 'Oracle JDK 4'               | false
-        'oracleJre4'     | oracleJvm('4')           | JavaVersion.VERSION_1_4 | 'Oracle JRE 4'               | true
-        'oracleJdk5'     | oracleJvm('5')           | JavaVersion.VERSION_1_5 | 'Oracle JDK 5'               | false
-        'oracleJdk6'     | oracleJvm('6')           | JavaVersion.VERSION_1_6 | 'Oracle JDK 6'               | false
-        'oracleJdk7'     | oracleJvm('7')           | JavaVersion.VERSION_1_7 | 'Oracle JDK 7'               | false
-        'oracleJdk8'     | oracleJvm('8')           | JavaVersion.VERSION_1_8 | 'Oracle JDK 8'               | false
-        'oracleJdk9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JDK 9'               | false
-        'oracleJre9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JRE 9'               | true
-        'ibmJdk4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JDK 4'                  | false
-        'ibmJre4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JRE 4'                  | true
-        'ibmJdk5'        | ibmJvm('5')              | JavaVersion.VERSION_1_5 | 'IBM JDK 5'                  | false
-        'ibmJdk6'        | ibmJvm('6')              | JavaVersion.VERSION_1_6 | 'IBM JDK 6'                  | false
-        'ibmJdk7'        | ibmJvm('7')              | JavaVersion.VERSION_1_7 | 'IBM JDK 7'                  | false
-        'ibmJdk8'        | ibmJvm('8')              | JavaVersion.VERSION_1_8 | 'IBM JDK 8'                  | false
-        'ibmJdk9'        | ibmJvm('9')              | JavaVersion.VERSION_1_9 | 'IBM JDK 9'                  | false
-        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Azul Zulu JRE 6'            | true
-        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Azul Zulu JDK 8'            | false
-        'hpuxJre6'       | hpuxJvm('6')             | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'                | true
-        'hpuxJdk7'       | hpuxJvm('7')             | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'                | false
-        'sapjdk13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JDK 13'      | false
-        'sapjre13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JRE 13'      | true
-        'correttojdk11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JDK 11'     | false
-        'correttojre11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JRE 11'     | true
-        'bellsoftjdk11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JDK 15'   | false
-        'bellsoftjre11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JRE 15'   | true
-        'graalvm'        | graalVm('15')            | JavaVersion.VERSION_15  | 'GraalVM Community JRE 15'   | true
-        'temurinjdk8'    | temurin8Jvm('8')         | JavaVersion.VERSION_1_8 | 'Eclipse Temurin JDK 8'      | false
-        'temurinjdk11'   | temurin11Jvm('11')       | JavaVersion.VERSION_11  | 'Eclipse Temurin JDK 11'     | false
-        'temurinjdk16'   | temurin11Jvm('16')       | JavaVersion.VERSION_16  | 'Eclipse Temurin JDK 16'     | false
-        'temurinjdk17'   | temurinJvm('17')         | JavaVersion.VERSION_17  | 'Eclipse Temurin JDK 17'     | false
-        'temurinjre8'    | temurin8Jvm('8')         | JavaVersion.VERSION_1_8 | 'Eclipse Temurin JRE 8'      | true
-        'temurinjre11'   | temurin11Jvm('11')       | JavaVersion.VERSION_11  | 'Eclipse Temurin JRE 11'     | true
-        'semerujdk11'    | semeruJvm11()            | JavaVersion.VERSION_11  | 'IBM JDK 11'                 | false
-        'semerujdk16'    | semeruJvm16()            | JavaVersion.VERSION_16  | 'IBM JDK 16'                 | false
-        'semerujdk17'    | semeruJvm17()            | JavaVersion.VERSION_17  | 'IBM JDK 17'                 | false
-        'whitespaces'    | whitespaces('11.0.3')    | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'        | true
+        jdk              | systemProperties         | javaVersion             | displayName                              | jre
+        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK JDK 9 (1.9.0-b08)'              | false
+        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK JRE 9 (1.9.0-b08)'              | true
+        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK JDK 11 (11.0.3+7)'         | false
+        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11 (11.0.3+7)'         | true
+        'AdoptOpenJDKJ9' | adoptOpenJDKJ9('14.0.2') | JavaVersion.VERSION_14  | 'AdoptOpenJDK JDK 14 (14.0.2+7)'         | false
+        'oracleJdk9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JDK 9 (1.9.0-b08)'               | false
+        'oracleJre9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JRE 9 (1.9.0-b08)'               | true
+        'ibmJre4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JRE 4 (1.4.0-b08)'                  | true
+        'ibmJdk9'        | ibmJvm('9')              | JavaVersion.VERSION_1_9 | 'IBM JDK 9 (1.9.0-b08)'                  | false
+        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Azul Zulu JRE 6 (1.6.0_66-b08)'         | true
+        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Azul Zulu JDK 8 (1.8.0_66-b08)'         | false
+        'hpuxJre6'       | hpuxJvm('6')             | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6 (1.6.0_66-b08)'             | true
+        'hpuxJdk7'       | hpuxJvm('7')             | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7 (1.7.0_66-b08)'             | false
+        'sapjdk13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JDK 13 (13.0.2-b08)'     | false
+        'sapjre13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JRE 13 (13.0.2-b08)'     | true
+        'correttojdk11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JDK 11 (11.0.8+10-LTS)' | false
+        'correttojre11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JRE 11 (11.0.8+10-LTS)' | true
+        'bellsoftjdk11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JDK 15 (15+36)'       | false
+        'bellsoftjre11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JRE 15 (15+36)'       | true
+        'graalvm'        | graalVm('15')            | JavaVersion.VERSION_15  | 'GraalVM Community JRE 15 (15-b08)'      | true
+        'temurinjdk17'   | temurinJvm('17')         | JavaVersion.VERSION_17  | 'Eclipse Temurin JDK 17 (17-b08)'        | false
+        'temurinjre8'    | temurin8Jvm('8')         | JavaVersion.VERSION_1_8 | 'Eclipse Temurin JRE 8 (8-b08)'          | true
+        'semerujdk16'    | semeruJvm16()            | JavaVersion.VERSION_16  | 'IBM JDK 16 (16.0.2+7)'                  | false
+        'semerujdk17'    | semeruJvm17()            | JavaVersion.VERSION_17  | 'IBM JRE 17 (17.0.5+8)'                  | true
+        'whitespaces'    | whitespaces('11.0.3')    | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11 (11.0.3+7)'         | true
     }
 
     def "probes whether #jdk is a j9 virtual machine"() {
@@ -132,7 +110,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
-        def javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
+        def javaHome = temporaryFolder.createDir(jdk)
         def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
@@ -164,9 +142,9 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
-        File javaHome = new File(jdk)
-        if (exists) {
-            javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
+        def javaHome = temporaryFolder.createDir(jdk)
+        if (!exists) {
+            javaHome.deleteDir()
         }
         def metadata = detector.getMetadata(testLocation(javaHome))
 

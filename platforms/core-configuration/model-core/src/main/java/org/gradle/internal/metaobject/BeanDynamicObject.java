@@ -24,7 +24,7 @@ import groovy.lang.MetaMethod;
 import groovy.lang.MetaProperty;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
@@ -37,6 +37,7 @@ import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.state.ModelObject;
 import org.jspecify.annotations.Nullable;
@@ -275,9 +276,13 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 // Do not check for opaque properties when implementing PropertyMixIn, as this is expensive
             }
 
-            // TODO: Deprecate and nag about this
             MetaMethod metaMethod = lookupMethod(metaClass, "is" + StringUtils.capitalize(name), MetaClassHelper.EMPTY_CLASS_ARRAY);
             if (metaMethod != null && metaMethod.getReturnType().equals(Boolean.class)) {
+                DeprecationLogger.deprecateAction("Referencing property '" + name + "' that was declared with an 'is-' method with a Boolean type on " + getDisplayName())
+                    .withAdvice("Access the property using " + metaMethod.getName() + "() explicitly, rename " + metaMethod.getName() + ", or change the return type to boolean.")
+                    .startingWithGradle10("this property will no longer be treated like a property")
+                    .withUpgradeGuideSection(8, "groovy_boolean_properties")
+                    .nagUser();
                 return DynamicInvokeResult.found(metaMethod.invoke(bean, MetaClassHelper.EMPTY_CLASS_ARRAY));
             }
 

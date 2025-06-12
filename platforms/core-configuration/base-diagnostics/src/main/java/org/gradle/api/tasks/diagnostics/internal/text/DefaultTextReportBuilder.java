@@ -18,10 +18,10 @@ package org.gradle.api.tasks.diagnostics.internal.text;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.File;
@@ -79,7 +79,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
             try {
                 renderer.render(value, textReportBuilder);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         });
     }
@@ -141,7 +141,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
                 try {
                     renderer.render(t, textReportBuilder);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             });
         }

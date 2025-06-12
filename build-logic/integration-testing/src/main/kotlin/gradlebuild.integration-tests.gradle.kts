@@ -21,6 +21,7 @@ import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTasks
 import gradlebuild.integrationtests.createTestTask
+import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 
 plugins {
@@ -43,4 +44,5 @@ createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATI
     includeSpockAnnotation("org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory")
     (options as JUnitPlatformOptions).includeEngines("spock")
     failOnNoDiscoveredTests.set(false)
+    setSystemPropertiesOfTestJVM("all")
 }

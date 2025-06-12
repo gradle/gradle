@@ -39,7 +39,11 @@ public class FeaturePreviews {
          *     it is now behind a specific (internal) feature, used only by some internal tests.
          * </p>
          */
-        INTERNAL_BUILD_SERVICE_USAGE(true, null);
+        INTERNAL_BUILD_SERVICE_USAGE(true, null),
+        /**
+         * This exists to test inactive feature previews
+         */
+        ALWAYS_INACTIVE(false, null);
 
         public static Feature withName(String name) {
             try {

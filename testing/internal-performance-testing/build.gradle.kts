@@ -65,10 +65,6 @@ dependencies {
     implementation(libs.mina)
     implementation(libs.slf4jApi)
 
-    compileOnly(libs.javaParser) {
-        because("The Groovy compiler inspects the dependencies at compile time")
-    }
-
     runtimeOnly(libs.jclToSlf4j)
     runtimeOnly(libs.jetty)
     runtimeOnly(libs.mySqlConnector)

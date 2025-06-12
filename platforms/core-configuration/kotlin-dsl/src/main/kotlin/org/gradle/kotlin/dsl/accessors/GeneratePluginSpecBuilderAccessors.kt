@@ -76,14 +76,14 @@ import java.io.File
  * This is public in order to be usable by precompiled script plugins support.
  */
 fun writeSourceCodeForPluginSpecBuildersFor(
-    pluginDescriptorsClassPath: ClassPath,
+    pluginTrees: Map<String, PluginTree>,
     sourceFile: File,
     packageName: String
 ) {
     withSynchronousIO {
         writePluginDependencySpecAccessorsSourceCodeTo(
             sourceFile,
-            pluginDependencySpecAccessorsFor(pluginDescriptorsClassPath),
+            pluginDependencySpecAccessorsFor(pluginTrees).toList(),
             format = AccessorFormats.internal,
             header = fileHeaderFor(packageName)
         )
@@ -145,11 +145,6 @@ sealed class PluginDependencySpecAccessor {
 }
 
 
-private
-fun pluginDependencySpecAccessorsFor(pluginDescriptorsClassPath: ClassPath): List<PluginDependencySpecAccessor> =
-    pluginDependencySpecAccessorsFor(pluginTreesFrom(pluginDescriptorsClassPath)).toList()
-
-
 internal
 fun IO.buildPluginDependencySpecAccessorsFor(
     pluginDescriptorsClassPath: ClassPath,
@@ -158,7 +153,7 @@ fun IO.buildPluginDependencySpecAccessorsFor(
 ) {
     makeAccessorOutputDirs(srcDir, binDir, KOTLIN_DSL_PACKAGE_PATH)
 
-    val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath)
+    val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath.asFiles)
 
     val baseFileName = "$KOTLIN_DSL_PACKAGE_PATH/PluginDependencySpecAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
@@ -363,19 +358,21 @@ fun typeSpecForPluginGroupType(groupType: String) =
     TypeSpec(groupType, InternalName("$KOTLIN_DSL_PACKAGE_PATH/$groupType"))
 
 
-internal
-fun pluginTreesFrom(pluginDescriptorsClassPath: ClassPath): Map<String, PluginTree> =
-    PluginTree.of(pluginSpecsFrom(pluginDescriptorsClassPath))
+fun pluginTreesFrom(classPathFiles: Iterable<File>): Map<String, PluginTree> =
+    pluginTreesFrom(pluginEntriesFrom(classPathFiles))
 
 
-private
-fun pluginSpecsFrom(pluginDescriptorsClassPath: ClassPath): Sequence<PluginTree.PluginSpec> =
-    pluginDescriptorsClassPath
-        .asFiles
+fun pluginTreesFrom(pluginEntries: List<Pair<String, String>>): Map<String, PluginTree> =
+    PluginTree.of(pluginEntries.map { PluginTree.PluginSpec(it.first, it.second) }.asSequence())
+
+
+fun pluginEntriesFrom(classPathFiles: Iterable<File>): List<Pair<String, String>> =
+    classPathFiles
         .asSequence()
         .filter { it.isFile && it.extension.equals("jar", true) }
         .flatMap { pluginEntriesFrom(it).asSequence() }
-        .map { PluginTree.PluginSpec(it.pluginId, it.implementationClass) }
+        .map { Pair(it.pluginId, it.implementationClass)}
+        .toCollection(mutableListOf())
 
 
 private

@@ -25,6 +25,7 @@ import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
@@ -46,6 +47,7 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.flow.services.BuildWorkResultProvider
 import org.gradle.internal.flow.services.RegisteredFlowAction
 import org.gradle.internal.serialize.graph.Codec
@@ -373,12 +375,21 @@ class DirectoryPropertyCodec(
 ) : Codec<DefaultDirectoryVar> {
 
     override suspend fun WriteContext.encode(value: DefaultDirectoryVar) {
-        providerCodec.run { encodeProvider(value.provider) }
+        write(value.fileResolver)
+        write(value.fileCollectionResolver)
+        providerCodec.run {
+            encodeProvider(value.provider)
+        }
     }
 
     override suspend fun ReadContext.decode(): DefaultDirectoryVar {
+        val resolver = readNonNull<PathToFileResolver>()
+        require(resolver is FileResolver) {
+            "Expected decoded resolver to be a FileResolver, but was ${resolver::class.java.name}"
+        }
+        val fileCollectionResolver = readNonNull<PathToFileResolver>()
         val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        return filePropertyFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
+        return filePropertyFactory.withResolvers(resolver, fileCollectionResolver).newDirectoryProperty().value(provider) as DefaultDirectoryVar
     }
 }
 
@@ -389,12 +400,17 @@ class RegularFilePropertyCodec(
 ) : Codec<DefaultRegularFileVar> {
 
     override suspend fun WriteContext.encode(value: DefaultRegularFileVar) {
+        write(value.fileResolver)
         providerCodec.run { encodeProvider(value.provider) }
     }
 
     override suspend fun ReadContext.decode(): DefaultRegularFileVar {
+        val resolver = readNonNull<PathToFileResolver>()
+        require(resolver is FileResolver) {
+            "Expected decoded resolver to be a FileResolver, but was ${resolver::class.java.name}"
+        }
         val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        return filePropertyFactory.newFileProperty().value(provider) as DefaultRegularFileVar
+        return filePropertyFactory.withResolver(resolver).newFileProperty().value(provider) as DefaultRegularFileVar
     }
 }
 

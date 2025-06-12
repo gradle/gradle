@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -147,7 +147,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 if (!configurationInternal.isCanBeMutated()) {
                     throw new IllegalStateException(
                         "The configuration '" + configuration.getName() + "' is not mutable. " +
-                        "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
+                            "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
                     );
                 }
                 configurationInternal.getResolutionStrategy().setIncludeAllSelectableVariantResults(true);
@@ -266,24 +266,16 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     }
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected VersionSelectorScheme getVersionSelectorScheme() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionSelectorScheme getVersionSelectorScheme();
 
     @Inject
-    protected VersionComparator getVersionComparator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionComparator getVersionComparator();
 
     @Inject
-    protected VersionParser getVersionParser() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionParser getVersionParser();
 
     /**
      * An injected {@link AttributesFactory}.
@@ -293,9 +285,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Inject
-    protected AttributesFactory getImmutableAttributesFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract AttributesFactory getImmutableAttributesFactory();
 
     /**
      * An injected {@link AttributesFactory}.

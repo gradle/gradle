@@ -22,32 +22,14 @@ import org.junit.Rule
 
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         server.start()
-        buildFile << """
+        buildFile """
 enum Color { Red, Green, Blue }
 def type = Attribute.of("artifactType", String)
-
-abstract class ToColor implements TransformAction<Parameters> {
-    interface Parameters extends TransformParameters {
-        @Input
-        Property<Color> getColor()
-    }
-
-    @InputArtifact
-    abstract Provider<FileSystemLocation> getInputArtifact()
-
-    void transform(TransformOutputs outputs) {
-        def input = inputArtifact.get().asFile
-        def color = parameters.color.get()
-        println "Transforming \$input.name to \$color"
-        def out = outputs.file(color.toString())
-        out.text = input.name
-    }
-}
-
 dependencies {
     registerTransform(ToColor) {
         from.attribute(type, "jar")
@@ -74,7 +56,7 @@ dependencies {
     compile files(f)
 }
 
-task redThings {
+tasks.register('redThings') {
     def files = configurations.compile.incoming.artifactView {
         attributes {
             attribute(type, "red")
@@ -85,7 +67,7 @@ task redThings {
     }
 }
 
-task blueThings {
+tasks.register('blueThings') {
     def files = configurations.compile.incoming.artifactView {
         attributes {
             attribute(type, "blue")
@@ -98,25 +80,49 @@ task blueThings {
 """
     }
 
+    def setupTransform(String beforeTransformLogic = "") {
+        buildFile """
+            abstract class ToColor implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    Property<Color> getColor()
+                }
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    $beforeTransformLogic
+                    def input = inputArtifact.get().asFile
+                    def color = parameters.color.get()
+                    println "Transforming \$input.name to \$color"
+                    def out = outputs.file(color.toString())
+                    out.text = input.name
+                }
+            }
+        """
+    }
+
     def "multiple build processes share transform output cache"() {
         given:
         // Run two builds where one build applies one transform and the other build the second
-        buildFile << """
+        setupTransform()
+        buildFile """
 task block1 {
     doLast {
         ${server.callFromBuild("block1")}
     }
 }
-block1.mustRunAfter redThings
-blueThings.mustRunAfter block1
 
 task block2 {
     doLast {
         ${server.callFromBuild("block2")}
     }
 }
-block2.mustRunAfter blueThings
 
+block1.mustRunAfter redThings
+blueThings.mustRunAfter block1
+block2.mustRunAfter blueThings
 """
         // Ensure build scripts compiled
         run("help")
@@ -147,44 +153,61 @@ block2.mustRunAfter blueThings
         result2.output.count("Transforming thing.jar to Blue") == 1
     }
 
-    def "file is transformed once only by concurrent builds"() {
+    /**
+     * With current cache implementation we don't use locking for cache entries (Gradle 8.6+)
+     * we run transform in temporary directory and we then use atomic move to move it to the final location.
+     * Due to that we can have multiple builds running the same transform at the same time, but we will always have just one result in the final cache location.
+     */
+    def "concurrent builds can transform the same file at the same time"() {
         given:
-        // Run two builds concurrently
+        setupTransform("${server.callFromBuildUsingExpression("parameters.color.get()")}")
         buildFile << """
 task block1 {
     doLast {
         ${server.callFromBuild("block1")}
     }
 }
-redThings.mustRunAfter block1
 
 task block2 {
     doLast {
         ${server.callFromBuild("block2")}
     }
 }
+
+redThings.mustRunAfter block1
 redThings.mustRunAfter block2
+blueThings.mustRunAfter redThings
 """
         // Ensure build scripts compiled
         run("help")
 
         def block = server.expectConcurrentAndBlock("block1", "block2")
+        def redBlock = server.expectConcurrentAndBlock("Red", "Red")
+        def blueBlock = server.expectConcurrentAndBlock("Blue", "Blue")
 
         when:
-        // Block until both builds are ready to start resolving
+        // Run two builds concurrently
         def build1 = executer.withTasks("block1", "redThings", "blueThings").start()
         def build2 = executer.withTasks("block2", "redThings", "blueThings").start()
 
-        // Resolve concurrently
+        // Block until both builds are ready to start resolving
         block.waitForAllPendingCalls()
         block.releaseAll()
+        // Resolve concurrently
+        redBlock.waitForAllPendingCalls()
+        redBlock.releaseAll()
+        blueBlock.waitForAllPendingCalls()
+        blueBlock.releaseAll()
 
         def result1 = build1.waitForFinish()
         def result2 = build2.waitForFinish()
 
         then:
-        result1.output.count("Transforming") + result2.output.count("Transforming") == 2
-        result1.output.count("Transforming thing.jar to Red") + result2.output.count("Transforming thing.jar to Red") == 1
-        result1.output.count("Transforming thing.jar to Blue") + result2.output.count("Transforming thing.jar to Blue") == 1
+        result1.output.count("Transforming") == 2
+        result2.output.count("Transforming") == 2
+        result1.output.count("Transforming thing.jar to Red") == 1
+        result2.output.count("Transforming thing.jar to Red") == 1
+        result1.output.count("Transforming thing.jar to Blue") == 1
+        result2.output.count("Transforming thing.jar to Blue") == 1
     }
 }

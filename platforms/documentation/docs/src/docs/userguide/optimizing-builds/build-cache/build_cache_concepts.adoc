@@ -16,7 +16,7 @@
 
 How much of your build gets loaded from the cache depends on many factors.
 In this section you will see some of the tools that are essential for well-cached builds.
-https://gradle.com/build-scans[Build scans] are part of that toolchain and will be used throughout this guide.
+https://gradle.com/develocity/product/build-scan[Build Scan] is part of that toolchain and will be used throughout this guide.
 
 == Build cache key
 
@@ -155,7 +155,7 @@ For the same reason, Gradle cannot remove <<incremental_build.adoc#sec:stale_tas
 Tasks that have discrete, non-overlapping outputs can always be handled in a safe fashion by Gradle.
 For the aforementioned reasons, task output caching is automatically disabled for tasks whose output directories overlap with another task.
 
-Build scans show tasks where caching was disabled due to overlapping outputs in the timeline:
+A Build Scan shows tasks where caching was disabled due to overlapping outputs in the timeline:
 
 [.screenshot]
 image::build-cache/overlapping-outputs-timeline.png[]

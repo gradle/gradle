@@ -279,8 +279,8 @@ project.status = 'foo'
                     project.getConfigurations().configureEach(conf -> {
                         conf.defaultDependencies(deps -> {
                             DeprecationLogger.deprecate("foo")
-                                .willBecomeAnErrorInGradle10()
-                                .undocumented()
+                                .willBecomeAnErrorInNextMajorGradleVersion()
+                                .withUserManual("feature_lifecycle", "sec:deprecated")
                                 .nagUser();
                         });
                     });
@@ -345,7 +345,7 @@ task broken {
         fails "broken"
 
         then:
-        failure.assertHasCause "Cannot change dependencies of dependency configuration ':conf' after it has been included in dependency resolution."
+        failure.assertHasCause("Cannot mutate the dependencies of configuration ':conf' after the configuration's child configuration ':child' was resolved. After a configuration has been observed, it should not be modified.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")

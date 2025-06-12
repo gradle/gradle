@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withBeanTrace
 import org.gradle.internal.serialize.graph.withImmediateMode
 import org.gradle.internal.serialize.graph.writeEnum
@@ -107,8 +108,13 @@ class JavaObjectSerializationCodec(
                     }
                 }
 
-                Format.ReadResolve -> {
+                Format.ReadResolveBean -> {
                     readResolve(decodeBean())
+                        .also { putIdentity(id, it) }
+                }
+
+                Format.ReadResolveAny -> {
+                    readResolve(readNonNull())
                         .also { putIdentity(id, it) }
                 }
 
@@ -159,14 +165,25 @@ class JavaObjectSerializationCodec(
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
-                if (replacement is SerializedLambda) {
-                    writeEnum(Format.SerializedLambda)
-                    SerializedLambdaParametersCheckingCodec.run {
-                        encode(replacement)
+                when {
+                    replacement is SerializedLambda -> {
+                        writeEnum(Format.SerializedLambda)
+                        SerializedLambdaParametersCheckingCodec.run {
+                            encode(replacement)
+                        }
                     }
-                } else {
-                    writeEnum(Format.ReadResolve)
-                    encodeBean(replacement)
+
+                    replacement::class.java === value::class.java -> {
+                        // Avoid a StackOverflowException when the replacement and value are of the same type.
+                        // TODO:configuration-cache Skipping Java serialization for the replacement is likely incorrect when the class also supports the `writeObject` protocol
+                        writeEnum(Format.ReadResolveBean)
+                        encodeBean(value)
+                    }
+
+                    else -> {
+                        writeEnum(Format.ReadResolveAny)
+                        write(replacement)
+                    }
                 }
             }
         }
@@ -176,7 +193,7 @@ class JavaObjectSerializationCodec(
     object ReadResolveEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
-                writeEnum(Format.ReadResolve)
+                writeEnum(Format.ReadResolveBean)
                 encodeBean(value)
             }
         }
@@ -184,7 +201,8 @@ class JavaObjectSerializationCodec(
 
     private
     enum class Format {
-        ReadResolve,
+        ReadResolveBean,
+        ReadResolveAny,
         WriteObject,
         ReadObject,
         SerializedLambda

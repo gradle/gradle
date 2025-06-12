@@ -261,7 +261,6 @@ class SmokeTestGradleRunner extends GradleRunner {
         }
 
         new ResultAssertion(
-            0,
             deprecationWarningsToCheck.collect { ExpectedDeprecationWarning.withMessage(it) },
             maybeExpectedDeprecationWarnings.collect { ExpectedDeprecationWarning.withMessage(it) },
             expectStackTraces,

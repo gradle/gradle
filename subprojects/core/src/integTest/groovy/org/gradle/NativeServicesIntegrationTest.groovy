@@ -162,7 +162,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     functionalTest(JvmTestSuite) {
-                        useSpock("2.3-groovy-4.0")
+                        useSpock()
                         dependencies {
                             implementation(project())
                         }

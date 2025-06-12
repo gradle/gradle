@@ -36,6 +36,9 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
         @get:Optional
         val buildTimestampFromGradleProperty: Property<String>
 
+        @get:Optional
+        val enableConfigurationCacheForDocsTests: Property<Boolean>
+
         val runningOnCi: Property<Boolean>
 
         val runningInstallTask: Property<Boolean>
@@ -43,6 +46,14 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
     }
 
     override fun obtain(): String? = parameters.run {
+        if (enableConfigurationCacheForDocsTests.getOrElse(false)) {
+            // If the CC is enabled for docs tests, use a static dummy timestamp (the Epoch) so that we get hits,
+            // otherwise we'll use the current timestamp by default and miss
+            val formatter = SimpleDateFormat("yyyyMMddHHmmssZ").apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            return formatter.format(Date(0L))
+        }
 
         val buildTimestampFromReceipt = buildTimestampFromBuildReceipt.orNull
         if (buildTimestampFromReceipt != null) {

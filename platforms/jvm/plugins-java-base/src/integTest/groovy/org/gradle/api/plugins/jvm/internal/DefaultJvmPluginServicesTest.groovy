@@ -31,12 +31,17 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.internal.instantiation.InstanceGenerator
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
+import spock.lang.Subject
 
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
 import static org.gradle.api.attributes.Bundling.EMBEDDED
@@ -56,26 +61,27 @@ import static org.gradle.api.attributes.java.TargetJvmEnvironment.TARGET_JVM_ENV
 import static org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
 import static org.gradle.util.AttributeTestUtil.named
 
-class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
+class DefaultJvmPluginServicesTest extends AbstractProjectBuilderSpec {
+
+    @Subject
+    DefaultJvmPluginServices services = new DefaultJvmPluginServices(
+        TestUtil.objectFactory(),
+        TestUtil.providerFactory(),
+        TestUtil.instantiatorFactory().decorateScheme().instantiator(),
+        TestUtil.taskDependencyFactory()
+    )
 
     def "configures compileClasspath"() {
-        def mutable = AttributeTestUtil.attributesFactory().mutable()
-        def attrs = Mock(HasConfigurableAttributes)
-        def config = Stub(ConfigurationInternal) {
-            getAttributes() >> mutable
+        def config = project.configurations.create("foo")
+        def javaCompileProvider = project.tasks.register("compileJava", JavaCompile) {
+            it.targetCompatibility = '8'
         }
-        def javaCompileProvider = Stub(TaskProvider) {
-            get() >> Stub(JavaCompile) {
-                getTargetCompatibility() >> '8'
-            }
-        }
+
         when:
-        services.configureAsCompileClasspath(attrs)
+        services.configureAsCompileClasspath(config)
 
         then:
-        1 * attrs.getAttributes() >> mutable
-        0 * _
-        mutable.asMap() == [
+        (config.attributes as AttributeContainerInternal).asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
@@ -83,10 +89,12 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         ]
 
         when:
-        jvmLanguageUtilities.useDefaultTargetPlatformInference(config, javaCompileProvider)
+        project.plugins.apply(JavaBasePlugin)
+        def languageUtils = new DefaultJvmLanguageUtilities(Mock(InstanceGenerator), project)
+        languageUtils.useDefaultTargetPlatformInference(config, javaCompileProvider)
 
         then:
-        mutable.asMap() == [
+        (config.attributes as AttributeContainerInternal).asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),

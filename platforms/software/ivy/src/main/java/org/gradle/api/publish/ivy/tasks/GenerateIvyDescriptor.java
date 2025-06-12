@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator;
@@ -47,9 +48,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
     private Object destination;
 
     @Inject
-    protected PathToFileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PathToFileResolver getFileResolver();
 
     /**
      * The module descriptor metadata.
@@ -90,7 +89,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
     /**
      * Sets the destination the descriptor will be written to.
      *
-     * The value is resolved with {@link org.gradle.api.Project#file(Object)}
+     * The value is resolved with {@link Project#file(Object)}
      *
      * @param destination The file the descriptor will be written to.
      */
@@ -100,7 +99,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
-         ivyDescriptorSpec.get().writeTo(getDestination());
+        ivyDescriptorSpec.get().writeTo(getDestination());
     }
 
     IvyDescriptorFileGenerator.DescriptorFileSpec computeIvyDescriptorFileSpec() {
@@ -115,11 +114,11 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
             return (IvyModuleDescriptorSpecInternal) ivyModuleDescriptorSpec;
         } else {
             throw new InvalidUserDataException(
-                    String.format(
-                            "ivyModuleDescriptor implementations must implement the '%s' interface, implementation '%s' does not",
-                            IvyModuleDescriptorSpecInternal.class.getName(),
-                            ivyModuleDescriptorSpec.getClass().getName()
-                    )
+                String.format(
+                    "ivyModuleDescriptor implementations must implement the '%s' interface, implementation '%s' does not",
+                    IvyModuleDescriptorSpecInternal.class.getName(),
+                    ivyModuleDescriptorSpec.getClass().getName()
+                )
             );
         }
     }

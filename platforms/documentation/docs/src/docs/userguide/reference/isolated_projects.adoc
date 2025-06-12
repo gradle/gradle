@@ -15,6 +15,7 @@
 :gradle-issues: https://github.com/gradle/gradle/issues/
 
 = Isolated Projects
+:keywords: ip
 
 Isolated Projects is a pre-alpha Gradle feature that extends the configuration cache to further improve performance, particularly the performance of Android Studio and IDEA sync.
 

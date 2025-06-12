@@ -26,7 +26,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.util.PatternSet;
@@ -45,8 +44,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 import java.util.Collections;
 
-public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
-    private final ObjectFactory objectFactory;
+public abstract class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
     private final SetProperty<Linkage> linkage;
@@ -56,40 +54,39 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, RoleBasedConfigurationContainerInternal configurations, AttributesFactory attributesFactory) {
-        super(name, objectFactory);
-        this.objectFactory = objectFactory;
-        this.developmentBinary = objectFactory.property(CppBinary.class);
-        publicHeaders = objectFactory.fileCollection();
+    public DefaultCppLibrary(String name, RoleBasedConfigurationContainerInternal configurations, AttributesFactory attributesFactory) {
+        super(name);
+        this.developmentBinary = getObjectFactory().property(CppBinary.class);
+        publicHeaders = getObjectFactory().fileCollection();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
 
-        linkage = objectFactory.setProperty(Linkage.class);
+        linkage = getObjectFactory().setProperty(Linkage.class);
         linkage.set(Collections.singleton(Linkage.SHARED));
 
-        dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
+        dependencies = getObjectFactory().newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
 
-        Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
+        Usage apiUsage = getObjectFactory().named(Usage.class, Usage.C_PLUS_PLUS_API);
 
-        Configuration ae = configurations.consumableLocked(getNames().withSuffix("cppApiElements"));
-        apiElements = ae;
-        apiElements.extendsFrom(dependencies.getApiDependencies());
-        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-        apiElements.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+        this.apiElements = configurations.consumableLocked(getNames().withSuffix("cppApiElements"), conf -> {
+            conf.extendsFrom(dependencies.getApiDependencies());
+            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+            conf.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+        });
 
         AttributeContainer publicationAttributes = attributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
         publicationAttributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.ZIP_TYPE);
-        mainVariant = new MainLibraryVariant("api", apiElements, publicationAttributes, objectFactory);
+        mainVariant = new MainLibraryVariant("api", apiElements, publicationAttributes, getObjectFactory());
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppSharedLibrary result = getObjectFactory().newInstance(DefaultCppSharedLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }
 
     public DefaultCppStaticLibrary addStaticLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppStaticLibrary result = getObjectFactory().newInstance(DefaultCppStaticLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }

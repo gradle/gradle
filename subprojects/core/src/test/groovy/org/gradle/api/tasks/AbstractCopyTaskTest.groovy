@@ -51,7 +51,7 @@ class AbstractCopyTaskTest extends WorkspaceTest {
         task.mainSpec.buildRootResolver().source.files == task.project.fileTree(projectDir).files
     }
 
-    static class TestCopyTask extends AbstractCopyTask {
+    static abstract class TestCopyTask extends AbstractCopyTask {
         CopyAction copyAction
 
         protected CopyAction createCopyAction() {

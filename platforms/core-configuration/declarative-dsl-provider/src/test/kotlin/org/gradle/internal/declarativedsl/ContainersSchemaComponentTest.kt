@@ -16,8 +16,6 @@
 
 package org.gradle.internal.declarativedsl
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
@@ -31,7 +29,6 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
-import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
@@ -41,11 +38,14 @@ import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
 import org.gradle.internal.declarativedsl.schemaUtils.findType
 import org.gradle.internal.declarativedsl.schemaUtils.hasFunctionNamed
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
+import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.gradle.internal.reflect.Instantiator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 
 class ContainersSchemaComponentTest {
     @Test

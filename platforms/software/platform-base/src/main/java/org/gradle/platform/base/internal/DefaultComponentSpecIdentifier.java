@@ -16,7 +16,7 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.base.Objects;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;

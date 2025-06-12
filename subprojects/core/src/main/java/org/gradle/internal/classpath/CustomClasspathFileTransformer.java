@@ -16,10 +16,8 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.file.FileType;
@@ -27,9 +25,11 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.model.internal.asm.AsmConstants;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
@@ -105,10 +105,7 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
-                throw new UncheckedIOException(
-                    format("Failed to create receipt for instrumented classpath file '%s/%s'.", destDirName, destFileName),
-                    e
-                );
+                throw new UncheckedIOException(format("Failed to create receipt for instrumented classpath file '%s/%s'.", destDirName, destFileName), e);
             }
             return transformed;
         } finally {

@@ -16,6 +16,7 @@
 
 package org.gradle.util;
 
+import org.gradle.api.Incubating;
 import org.gradle.util.internal.DefaultGradleVersion;
 
 /**
@@ -55,7 +56,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      *
      * @return The major version.
      *
-     * @since 9.0
+     * @since 9.0.0
      */
     public abstract int getMajorVersion();
 
@@ -74,6 +75,15 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      * @return The version base
      */
     public abstract GradleVersion getBaseVersion();
+
+    /**
+     * Returns {@code true} if this version is a final release.
+     *
+     * @return Whether this version is a final release
+     * @since 9.0.0
+     */
+    @Incubating
+    public abstract boolean isFinal();
 
     @Override
     public abstract int compareTo(GradleVersion o);

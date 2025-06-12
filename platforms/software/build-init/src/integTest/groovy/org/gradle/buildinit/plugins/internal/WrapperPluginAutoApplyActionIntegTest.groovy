@@ -65,12 +65,12 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
             wrapper{
-                gradleVersion = '12.34'
+                gradleVersion = '12.34.0'
             }
     """
         run 'wrapper', '--no-validate-url'
         then:
-        wrapper.generated("12.34")
+        wrapper.generated("12.34.0")
     }
 
     def "can depend on dynamic applied wrapper task"() {

@@ -109,12 +109,16 @@ public abstract class EarPlugin implements Plugin<Project> {
                 component.getMainFeature().getSourceSet().getResources().srcDir(task.getAppDirectory());
             });
 
-            DeploymentDescriptor deploymentDescriptor = createDeploymentDescriptor();
-            if (deploymentDescriptor.getDisplayName() == null) {
-                deploymentDescriptor.setDisplayName(project.getName());
-            }
-            if (deploymentDescriptor.getDescription() == null) {
-                deploymentDescriptor.setDescription(project.getDescription());
+            DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
+            deploymentDescriptor.readFrom("META-INF/application.xml");
+            deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
+            if (deploymentDescriptor != null) {
+                if (deploymentDescriptor.getDisplayName() == null) {
+                    deploymentDescriptor.setDisplayName(project.getName());
+                }
+                if (deploymentDescriptor.getDescription() == null) {
+                    deploymentDescriptor.setDescription(project.getDescription());
+                }
             }
             task.setDeploymentDescriptor(deploymentDescriptor);
         });
@@ -125,6 +129,22 @@ public abstract class EarPlugin implements Plugin<Project> {
     private void wireEarTaskConventions(Project project) {
         project.getTasks().withType(Ear.class).configureEach(task -> {
             task.getAppDirectory().convention(project.provider(() -> project.getLayout().getProjectDirectory().dir("src/main/application")));
+            task.getConventionMapping().map("libDirName", new Callable<String>() {
+                @Override
+                public String call() throws Exception {
+                    return DEFAULT_LIB_DIR_NAME;
+                }
+            });
+            task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
+                @Override
+                public DeploymentDescriptor call() throws Exception {
+                    DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
+                    deploymentDescriptor.readFrom("META-INF/application.xml");
+                    deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
+                    return deploymentDescriptor;
+                }
+            });
+
             task.from((Callable<FileCollection>) () -> {
                 if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
                     return null;
@@ -146,28 +166,19 @@ public abstract class EarPlugin implements Plugin<Project> {
         });
     }
 
-    private DeploymentDescriptor createDeploymentDescriptor() {
-        DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
-        deploymentDescriptor.readFrom("META-INF/application.xml");
-        deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
-        return deploymentDescriptor;
-    }
-
     private void configureConfigurations(final ProjectInternal project) {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
 
-        // Once these configurations become non-consumable, we can use
-        // 'jvmPluginServices.configureAsRuntimeClasspath()' to configure the configurations.
-        Configuration deployConfiguration = configurations.resolvableDependencyScopeLocked(DEPLOY_CONFIGURATION_NAME);
-        deployConfiguration.setVisible(false);
-        deployConfiguration.setTransitive(false);
-        deployConfiguration.setDescription("Classpath for deployable modules, not transitive.");
-        jvmPluginServices.configureAttributes(deployConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
+        Configuration deployConfiguration = configurations.resolvableDependencyScopeLocked(DEPLOY_CONFIGURATION_NAME, conf -> {
+            conf.setTransitive(false);
+            conf.setDescription("Classpath for deployable modules, not transitive.");
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
 
-        Configuration earlibConfiguration = configurations.resolvableDependencyScopeLocked(EARLIB_CONFIGURATION_NAME);
-        earlibConfiguration.setVisible(false);
-        earlibConfiguration.setDescription("Classpath for module dependencies.");
-        jvmPluginServices.configureAttributes(earlibConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
+        Configuration earlibConfiguration = configurations.resolvableDependencyScopeLocked(EARLIB_CONFIGURATION_NAME, conf -> {
+            conf.setDescription("Classpath for module dependencies.");
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
             .extendsFrom(deployConfiguration, earlibConfiguration);

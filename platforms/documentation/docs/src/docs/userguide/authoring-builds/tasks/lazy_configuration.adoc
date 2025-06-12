@@ -389,7 +389,9 @@ Guidelines to be successful with the Provider API:
 ** For configurable properties, expose the link:{javadocPath}/org/gradle/api/provider/Property.html[Property] directly through a single getter.
 ** For non-configurable properties, expose an link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] directly through a single getter.
 
-2. Avoid simplifying calls like `obj.getProperty().get()` and `obj.getProperty().set(T)` in your code by introducing additional getters and setters.
+2. Do not try to simplify calls like `obj.getProperty().get()` and `obj.getProperty().set(T)` in your code by introducing additional getters and setters.
+Using such wrapper methods would undermine the purpose of `Property` and prevent wiring of properties together.
+It would cause the current value to be obtained immediately (rather than being lazily evaluated).
 
 3. When migrating your plugin to use providers, follow these guidelines:
 ** If it's a new property, expose it as a link:{javadocPath}/org/gradle/api/provider/Property.html[Property] or link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] using a single getter.

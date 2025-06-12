@@ -252,7 +252,7 @@ abstract class AbstractBinaryCompatibilityTest {
             withSettings("""include("v1", "v2", "binary-compatibility")""")
             withBuildScript(
                 """
-                    import gradlebuild.identity.extension.ModuleIdentityExtension
+                    import gradlebuild.identity.extension.GradleModuleExtension
 
                     plugins {
                         base
@@ -261,7 +261,7 @@ abstract class AbstractBinaryCompatibilityTest {
                     subprojects {
                         apply(plugin = "gradlebuild.module-identity")
                         apply(plugin = "kotlin")
-                        the<ModuleIdentityExtension>().baseName.set("api-module")
+                        the<GradleModuleExtension>().identity.baseName.set("api-module")
                         repositories {
                             mavenCentral()
                         }
@@ -424,6 +424,12 @@ abstract class AbstractBinaryCompatibilityTest {
             listOf(
                 "$thing ${describe(thing, desc)}: Is not annotated with @Incubating.",
                 "$thing ${describe(thing, desc)}: Is not annotated with @since 2.0."
+            )
+
+        fun addedWithInvalidSince(thing: String, desc: String): List<String> =
+            listOf(
+                "$thing ${describe(thing, desc)}: Is not annotated with @Incubating.",
+                "$thing ${describe(thing, desc)}: Has invalid @since: it should be 2.0, but currently is 1.0."
             )
 
         fun removed(thing: String, desc: String): Pair<String, List<String>> =

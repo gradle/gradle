@@ -48,9 +48,7 @@ class DefaultOutputSnapshotterTest extends Specification {
         1 * work.visitOutputs(workspace, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor outputVisitor ->
             outputVisitor.visitOutputProperty("output", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(root, contents))
         }
-        1 * fileCollectionSnapshotter.snapshot(contents) >> Stub(FileCollectionSnapshotter.Result) {
-            snapshot >> outputSnapshot
-        }
+        1 * fileCollectionSnapshotter.snapshot(contents) >> outputSnapshot
         0 * _
 
         then:

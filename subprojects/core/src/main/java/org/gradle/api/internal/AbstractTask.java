@@ -66,7 +66,6 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -586,26 +585,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
-    @Deprecated
-    public org.gradle.api.plugins.Convention getConvention() {
-        return getConventionVia("Task.convention", false);
-    }
-
-    @Internal
-    @Override
     public ExtensionContainer getExtensions() {
         notifyConventionAccess("Task.extensions");
         assertDynamicObject();
-        return extensibleDynamicObject.getExtensionContainer();
-    }
-
-    private org.gradle.api.plugins.Convention getConventionVia(String invocationDescription, boolean disableDeprecationForConventionAccess) {
-        notifyConventionAccess(invocationDescription);
-        assertDynamicObject();
-        if (disableDeprecationForConventionAccess) {
-            return DeprecationLogger.whileDisabled(() -> extensibleDynamicObject.getConvention());
-        }
-        return extensibleDynamicObject.getConvention();
+        return extensibleDynamicObject.getExtensions();
     }
 
     @Internal
@@ -898,6 +881,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getMustRunAfter() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.mustRunAfter");
         return mustRunAfter;
     }
 
@@ -925,6 +909,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getFinalizedBy() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.finalizedBy");
         return finalizedBy;
     }
 
@@ -952,6 +937,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getShouldRunAfter() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.shouldRunAfter");
         return shouldRunAfter;
     }
 

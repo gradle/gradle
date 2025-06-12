@@ -26,6 +26,11 @@
     LB='{'
     RB='}'
 
+    NULL='null'
+    TRUE='true'
+    FALSE='false'
+    THIS='this'
+
     space='regexp:\s+'
     comment='regexp://.*|/\*[^/*]*\*/'
     id='regexp:\p{Alpha}\w*'                                    // TODO: doesn't work with all unicode characters, no idea how to fix it ...
@@ -43,27 +48,27 @@
 
 root ::= statements
 
-statement ::= (assignment | block | functionChain)
+statement ::= (assignment | block | expression)
 statements ::= (statement SEMI*)*
 
-assignment ::= directlyAssignableExpression (EQ|PLUSEQ) assignmentValue {pin=2}
+assignment ::= directlyAssignableExpression (EQ|PLUSEQ) expression {pin=2}
 directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
-assignmentValue ::= (simpleIdentifier (navigationSuffix* valueArguments)?) | literalOrIdentifier
 
 block ::= simpleIdentifier valueArguments? annotatedLambda
 annotatedLambda ::= LB statements RB {pin=1}
 
-functionChain ::= simpleIdentifier postfixUnarySuffixes
-postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
-
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgument ::= (simpleIdentifier EQ)? (functionChain | literalOrIdentifier)
+valueArgument ::= (simpleIdentifier EQ)? expression
+
+expression ::= simpleExpression ('to' simpleExpression)?
+simpleExpression ::= simpleIdentifier postfixUnarySuffixes | primaryExpression
+postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
+primaryExpression ::= simpleIdentifier | stringLiteral | literalConstant
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
-literalOrIdentifier ::= literalConstant | simpleIdentifier | stringLiteral
-literalConstant ::= "null" | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
-booleanLiteral ::= "true" | "false" {pin=1}
+literalConstant ::= NULL | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
+booleanLiteral ::= TRUE | FALSE {pin=1}
 
 stringLiteral ::= string
 

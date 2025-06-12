@@ -70,9 +70,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Fail the build on compilation errors.
@@ -146,7 +144,9 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Encoding of source files.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getEncoding() {
         return encoding;
     }
@@ -226,7 +226,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     /**
      * Phases of the compiler to log.
      * Legal values: namer, typer, pickler, uncurry, tailcalls, transmatch, explicitouter, erasure,
-     *               lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
+     * lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
      */
     @Console
     @ToBeReplacedByLazyProperty

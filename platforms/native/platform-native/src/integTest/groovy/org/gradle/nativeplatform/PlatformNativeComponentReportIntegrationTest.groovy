@@ -31,11 +31,10 @@ class PlatformNativeComponentReportIntegrationTest extends AbstractNativeCompone
 plugins {
     id 'cpp'
 }
-
+toolChains {
+    ${toolChain.buildScriptConfig}
+}
 model {
-    toolChains {
-        ${toolChain.buildScriptConfig}
-    }
     components {
         someLib(NativeLibrarySpec) {
             binaries.withType(StaticLibraryBinarySpec) {
@@ -89,13 +88,12 @@ Binaries
 plugins {
     id 'cpp'
 }
-
+toolChains {
+    ${toolChain.buildScriptConfig}
+}
 model {
     platforms {
         windows { operatingSystem 'windows'; architecture 'sparc' }
-    }
-    toolChains {
-        ${toolChain.buildScriptConfig}
     }
     components {
         someLib(NativeLibrarySpec) {
@@ -179,17 +177,18 @@ plugins {
     id 'assembler'
 }
 
+toolChains {
+    ${toolChain.buildScriptConfig}
+}
+
 model {
-    toolChains {
-        ${toolChain.buildScriptConfig}
+    flavors {
+        free
+        paid
     }
     platforms {
         i386 { architecture 'i386' }
         amd64 { architecture 'amd64' }
-    }
-    flavors {
-        free
-        paid
     }
     components {
         someLib(NativeLibrarySpec) {

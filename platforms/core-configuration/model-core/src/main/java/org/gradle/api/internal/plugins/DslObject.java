@@ -25,6 +25,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.jspecify.annotations.Nullable;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -37,11 +38,13 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * object does not have that functionality. For example, calling {@link #getConventionMapping()} will fail
  * if the backing object does not implement {@link IConventionAware}.
  */
-@SuppressWarnings("deprecation")
 public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware {
 
+    @Nullable
     private DynamicObject dynamicObject;
+    @Nullable
     private ExtensionContainer extensionContainer;
+    @Nullable
     private ConventionMapping conventionMapping;
 
     private final Object object;

@@ -25,6 +25,6 @@ Gradle's Build Tool source code is open-source and licensed under the link:https
 Gradle's User Manual and DSL Reference Manual are licensed under link:http://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
 
 [[licenses:build_scan_plugin]]
-== Gradle Build Scan Plugin
+== Develocity Plugin (formerly Gradle Build Scan Plugin)
 
-Use of the link:https://scans.gradle.com/plugin/[Build Scan plugin] is subject to link:https://gradle.com/legal/terms-of-service/[Gradle's Terms of Service].
+Use of the link:https://scans.gradle.com/plugin/[Develocity plugin] is subject to link:https://gradle.com/legal/terms-of-service/[Gradle's Terms of Service].

@@ -7,6 +7,7 @@ description = "Services and utilities needed by Develocity plugin"
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.enterpriseOperations)
     api(projects.configurationCache)
     api(projects.core)
     api(projects.coreApi)
@@ -16,6 +17,7 @@ dependencies {
     api(projects.jvmServices)
     api(projects.launcher)
     api(projects.modelCore)
+    api(projects.problemsApi)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)

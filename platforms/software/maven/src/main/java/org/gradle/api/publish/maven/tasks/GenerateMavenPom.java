@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
@@ -50,20 +51,16 @@ public abstract class GenerateMavenPom extends DefaultTask {
     );
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     /**
      * Get the version range mapper.
      *
      * @deprecated This method will be removed in Gradle 9.0
      */
-    @Inject
     @Deprecated
-    protected VersionRangeMapper getVersionRangeMapper() {
-        throw new UnsupportedOperationException();
-    }
+    @Inject
+    protected abstract VersionRangeMapper getVersionRangeMapper();
 
     /**
      * The Maven POM.
@@ -104,7 +101,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
     /**
      * Sets the destination the descriptor will be written to.
      *
-     * The value is resolved with {@link org.gradle.api.Project#file(Object)}
+     * The value is resolved with {@link Project#file(Object)}
      *
      * @param destination The file the descriptor will be written to.
      */

@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -69,6 +69,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -79,7 +80,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
- * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
+ * Generates a Gradle metadata file to represent a published {@link SoftwareComponent} instance.
  *
  * @since 4.3
  */
@@ -147,9 +148,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 4.4
      */
     @Inject
-    protected FileCollectionFactory getFileCollectionFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileCollectionFactory getFileCollectionFactory();
 
     /**
      * Returns the {@link BuildInvocationScopeId} to use for generation.
@@ -157,9 +156,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 4.4
      */
     @Inject
-    protected BuildInvocationScopeId getBuildInvocationScopeId() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildInvocationScopeId getBuildInvocationScopeId();
 
     /**
      * Returns the {@link ProjectDependencyPublicationResolver} to use for generation.
@@ -167,9 +164,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 4.4
      */
     @Inject
-    protected ProjectDependencyPublicationResolver getProjectDependencyPublicationResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectDependencyPublicationResolver getProjectDependencyPublicationResolver();
 
     /**
      * Returns the {@link ChecksumService} to use.
@@ -177,9 +172,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 6.6
      */
     @Inject
-    protected ChecksumService getChecksumService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ChecksumService getChecksumService();
 
     /**
      * Returns the output file location.

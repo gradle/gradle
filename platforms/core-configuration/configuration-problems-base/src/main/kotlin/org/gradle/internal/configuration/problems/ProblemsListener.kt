@@ -16,16 +16,21 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scope
 
-
-@EventScope(Scope.BuildTree::class)
 interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)
 
     fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
+
+    /**
+     * Execution-time problems are treated as [interrupting][org.gradle.internal.cc.impl.problems.ProblemSeverity.Interrupting]
+     * and must have an [PropertyProblem.exception].
+     *
+     * These problems arise from access to the configuration-time state that is generally not available after
+     * loading the tasks from cache, so the code accessing it must not proceed, and the task should immediately fail.
+     */
+    fun onExecutionTimeProblem(problem: PropertyProblem)
 
     fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener
 }

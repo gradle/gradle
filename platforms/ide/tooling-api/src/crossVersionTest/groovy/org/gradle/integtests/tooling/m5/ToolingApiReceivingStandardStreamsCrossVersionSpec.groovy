@@ -16,12 +16,12 @@
 package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfigurationPhase
-import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
 
-class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
+class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiSpecification {
 
     def "receives standard streams while the build is executing"() {
         given:

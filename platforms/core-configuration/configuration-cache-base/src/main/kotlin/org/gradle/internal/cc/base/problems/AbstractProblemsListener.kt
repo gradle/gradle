@@ -16,28 +16,11 @@
 
 package org.gradle.internal.cc.base.problems
 
-import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
-import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
-import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.configuration.problems.StructuredMessageBuilder
-import java.io.IOException
 
 
 abstract class AbstractProblemsListener : ProblemsListener {
-
-    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-        // Let IO and configuration cache exceptions surface to the top.
-        if (error is IOException || error is ConfigurationCacheThrowable) {
-            throw error
-        }
-        throw ConfigurationCacheError(
-            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message).render()}",
-            error.maybeUnwrapInvocationTargetException()
-        )
-    }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
 }

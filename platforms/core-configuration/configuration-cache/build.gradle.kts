@@ -27,6 +27,7 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.fileTemp)
     api(projects.graphSerialization)
+    api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
@@ -61,7 +62,6 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.inputTracking)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
@@ -71,7 +71,6 @@ dependencies {
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
-    implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.jspecify)
     implementation(libs.kryo)
@@ -89,7 +88,7 @@ dependencies {
     testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
     testImplementation(libs.kotlinCoroutinesDebug)
 
     integTestImplementation(projects.cli)

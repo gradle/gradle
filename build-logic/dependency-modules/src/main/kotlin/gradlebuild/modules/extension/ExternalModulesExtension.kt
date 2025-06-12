@@ -21,12 +21,12 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     val groovyVersion = when (bundleGroovyMajor) {
-        4 -> "4.0.26"
+        4 -> "4.0.27"
         // This is expected to contain Groovy 5 soon, once it's released or we need to test it.
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
-    val configurationCacheReportVersion = "1.25"
+    val configurationCacheReportVersion = "1.26"
     val gradleIdeStarterVersion = "0.5"
     val kotlinVersion = "2.1.21"
 
@@ -49,13 +49,13 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val bouncycastlePgp = "org.bouncycastle:bcpg-jdk18on"
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
+    val bouncycastleUtil = "org.bouncycastle:bcutil-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
     val commonsIo = "commons-io:commons-io"
-    val commonsLang = "commons-lang:commons-lang"
-    val commonsLang3 = "org.apache.commons:commons-lang3"
+    val commonsLang = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
@@ -109,7 +109,9 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val jetbrainsAnnotations = "org.jetbrains:annotations"
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
     val jgitSsh = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache"
+    val jgitSshAgent = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache.agent"
     val jna = "net.java.dev.jna:jna"
+    val jnaPlatform = "net.java.dev.jna:jna-platform"
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
@@ -186,7 +188,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val guice = "com.google.inject:guice"
     val httpmime = "org.apache.httpcomponents:httpmime"
     val jacksonKotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
-    val javaParser = "com.github.javaparser:javaparser-core"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
     val jettyServer = "org.eclipse.jetty:jetty-server"
@@ -201,8 +202,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val littleproxy = "xyz.rogfam:littleproxy"
     val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
-    val mockitoKotlin = "com.nhaarman:mockito-kotlin"
-    val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
+    val mockitoKotlin = "org.mockito.kotlin:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "com.mysql:mysql-connector-j"
     val netty = "io.netty:netty-all"
@@ -240,13 +240,13 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         awsS3Sts to License.Apache2,
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
+        bouncycastleUtil to License.MIT,
         bsh to License.Apache2,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
         commonsHttpclient to License.Apache2,
         commonsIo to License.Apache2,
         commonsLang to License.Apache2,
-        commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
         compileTesting to License.Apache2,
         configurationCacheReport to License.Apache2,

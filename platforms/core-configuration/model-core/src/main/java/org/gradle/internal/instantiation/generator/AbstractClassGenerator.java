@@ -29,6 +29,7 @@ import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MetaClass;
+import groovy.transform.Generated;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.IsolatedAction;
@@ -82,6 +83,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -380,17 +382,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isManagedProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property));
+        return property.isReadableWithoutSetterOfPropertyType() && (property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property::hasAnnotation));
     }
 
-    private static boolean hasNestedAnnotation(PropertyMetadata property) {
-        return NESTED_ANNOTATION_TYPES.stream().anyMatch(property::hasAnnotation);
-    }
-
-    private static boolean isEagerAttachProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and getter is final, so attach owner eagerly in constructor
-        // This should apply to all 'managed' types however for backwards compatibility is applied only to property types
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getMainGetter().shouldOverride() && hasPropertyType(property);
+    private static boolean hasNestedAnnotation(Predicate<Class<? extends Annotation>> hasAnnotation) {
+        return NESTED_ANNOTATION_TYPES.stream().anyMatch(hasAnnotation);
     }
 
     private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
@@ -399,11 +395,42 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return Provider.class.isAssignableFrom(property.getType()) || SupportsConvention.class.isAssignableFrom(property.getType());
     }
 
-    private static boolean isLazyAttachProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and getter is not final, so attach owner lazily when queried
+    /**
+     * Determine if, should the property need to be attached, if it should be done lazily in the main getter, or eagerly in the constructor.
+     *
+     * @param property the property to check
+     * @return {@code true} if the property should be lazily attached, {@code false} if it should be eagerly attached
+     */
+    private static boolean isLazyAttachPropertyIfNeeded(PropertyMetadata property) {
+        if (property.getMainGetter().isAbstract()) {
+            // All abstract properties can be lazily attached
+            return true;
+        }
+        if (!property.getOverridableGetters().isEmpty()) {
+            // All properties that override a method can be lazily attached,
+            // unless they have a known backing field and @Generated, in which case we need to eagerly attach them
+            // to keep Groovy properties working inside their own class.
+
+            // In theory, we should eagerly attach all overridable properties just in case,
+            // but that would break existing code that relies on lazy attachment of properties.
+            return property.getBackingField() == null || !property.getMainGetter().method.isAnnotationPresent(Generated.class);
+        }
+        // Other Property should be eagerly attached, as they are not overridable.
+        // Other non-Property properties cannot be eagerly attached for backwards compatibility reasons.
+        return !hasPropertyType(property);
+    }
+
+    private static boolean isAttachProperty(PropertyMetadata property) {
+        return property.isReadableWithoutSetterOfPropertyType() && isAttachableType(property.getType(), property::hasAnnotation);
+    }
+
+    private static boolean isAttachableMethod(MethodMetadata metadata) {
+        return isAttachableType(metadata.getReturnType(), metadata.method::isAnnotationPresent);
+    }
+
+    private static boolean isAttachableType(Class<?> type, Predicate<Class<? extends Annotation>> propertyHasAnnotation) {
         // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and @Nested value current implement OwnerAware
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty()
-            && (Provider.class.isAssignableFrom(property.getType()) || isConfigurableFileCollectionType(property.getType()) || hasNestedAnnotation(property));
+        return Provider.class.isAssignableFrom(type) || isConfigurableFileCollectionType(type) || hasNestedAnnotation(propertyHasAnnotation);
     }
 
     private static boolean isReattachProperty(PropertyMetadata property) {
@@ -428,14 +455,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isConfigurableFileCollectionType(Class<?> type) {
         return ConfigurableFileCollection.class.isAssignableFrom(type);
-    }
-
-    private static boolean isAttachableType(MethodMetadata method) {
-        return Provider.class.isAssignableFrom(method.getReturnType()) || isConfigurableFileCollectionType(method.getReturnType()) || hasNestedAnnotation(method);
-    }
-
-    private static boolean hasNestedAnnotation(MethodMetadata method) {
-        return NESTED_ANNOTATION_TYPES.stream().anyMatch(annotation -> method.method.getAnnotation(annotation) != null);
     }
 
     private boolean isRoleType(PropertyMetadata property) {
@@ -694,6 +713,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return overridableSetters;
         }
 
+        @Nullable
+        public Field getBackingField() {
+            return backingField;
+        }
+
         public Class<?> getType() {
             if (mainGetter != null) {
                 return mainGetter.getReturnType();
@@ -909,7 +933,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private void addSetMethods(AbstractClassGenerator.ClassGenerationVisitor visitor) {
             for (PropertyMetadata property : mutableProperties) {
                 if (property.setMethods.isEmpty()) {
-                    // TODO: remove in Gradle 10.0
+                    // TODO: remove in Gradle 10
                     Set<Class<?>> appliedTo = new HashSet<>();
                     for (Method setter : property.setters) {
                         if (appliedTo.add(setter.getParameterTypes()[0])) {
@@ -1017,7 +1041,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetadata property : conventionProperties) {
-                boolean applyRole = isLazyAttachProperty(property) && isRoleType(property);
+                boolean applyRole = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property) && isRoleType(property);
                 if (applyRole) {
                     visitor.instantiatesNestedObjects();
                 }
@@ -1028,9 +1052,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyTo(ClassGenerationVisitor visitor) {
             boolean addExtensionProperty = extensible && !hasExtensionAwareImplementation;
             boolean mixInConventionAware = conventionAware && !IConventionAware.class.isAssignableFrom(type);
-            if (addExtensionProperty || mixInConventionAware) {
-                visitor.addNoDeprecationConventionPrivateGetter();
-            }
             if (addExtensionProperty) {
                 visitor.addExtensionsProperty();
             }
@@ -1039,10 +1060,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
             for (PropertyMetadata property : conventionProperties) {
                 visitor.applyConventionMappingToProperty(property);
-                boolean attachProperty = isLazyAttachProperty(property);
+                boolean attachProperty = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property);
                 boolean applyRole = attachProperty && isRoleType(property);
                 for (MethodMetadata getter : property.getOverridableGetters()) {
-                    boolean attachOwner = attachProperty && isAttachableType(getter);
+                    boolean attachOwner = attachProperty && isAttachableMethod(getter);
                     visitor.applyConventionMappingToGetter(property, getter, attachOwner, applyRole);
                 }
                 for (Method setter : property.getOverridableSetters()) {
@@ -1067,9 +1088,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (isEagerAttachProperty(property)) {
-                // Property is read-only and main getter is final, so attach eagerly in constructor
-                // If the getter is not final, then attach lazily in the getter
+            if (isAttachProperty(property) && !isLazyAttachPropertyIfNeeded(property)) {
                 eagerAttachProperties.add(property);
             }
 
@@ -1487,8 +1506,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void mixInDynamicAware();
 
-        void addNoDeprecationConventionPrivateGetter();
-
         void mixInConventionAware();
 
         void mixInGroovyObject();
@@ -1564,17 +1581,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     // To remove this deprecation, we need to do a few things:
                     // 1. We should no longer recognize isXXX for anything that is not explicitly boolean (primitive type)
                     // 2. We should be able to remove this validator completely. We do not need to make this an error.
-                    //
-                    // If we do not upgrade to Groovy 4 in Gradle 9, we can still remove this deprecation and drop support for these types of properties.
-
-                    DeprecationLogger.deprecateAction("Declaring an 'is-' property with a Boolean type")
+                    // See PropertyAccessorType, BeanDynamicObject and DefaultTypeAnnotationMetadataStore for similar special handling
+                    DeprecationLogger.deprecateAction("Declaring '" + property.getName() + "' as a property using an 'is-' method with a Boolean type on " + method.getDeclaringClass().getCanonicalName())
+                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules.")
                         .withAdvice(String.format(
                             "Add a method named '%s' with the same behavior and mark the old one with @Deprecated, or change the type of '%s.%s' (and the setter) to 'boolean'.",
                             method.getName().replace("is", "get"),
                             method.getDeclaringClass().getCanonicalName(), method.getName()
                         ))
-                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy.")
-                        .startingWithGradle9("this property will be ignored by Gradle")
+                        .startingWithGradle10("this property will no longer be treated like a property")
                         .withUpgradeGuideSection(8, "groovy_boolean_properties")
                         .nagUser();
                 }

@@ -23,8 +23,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
@@ -78,24 +76,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Required for decorating reports container callbacks for tracing user code application.
-     *
-     * @since 5.1
-     */
-    @Inject
-    protected CollectionCallbackActionDecorator getCallbackActionDecorator() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected IsolatedAntBuilder getAntBuilder() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Instantiator getInstantiator();
 
     /**
      * Collection of execution data files to analyze.

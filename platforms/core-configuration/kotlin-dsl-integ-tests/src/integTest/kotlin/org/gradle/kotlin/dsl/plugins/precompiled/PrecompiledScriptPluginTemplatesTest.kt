@@ -16,14 +16,6 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import com.nhaarman.mockito_kotlin.KStubbing
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -50,6 +42,14 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.name.NameUtils
 import org.junit.Test
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.KStubbing
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.io.File
 
 
@@ -524,6 +524,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
         val pluginRepositoriesBlock = repositoriesBlockFor(pluginsRepository)
 
+        file("bar").mkdirs()
         withSettings(
             """
             pluginManagement {

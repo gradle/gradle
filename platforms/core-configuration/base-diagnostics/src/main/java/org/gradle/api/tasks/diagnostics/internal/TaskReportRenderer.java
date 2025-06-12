@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.internal.CollectionUtils;

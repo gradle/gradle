@@ -19,9 +19,7 @@
 package org.gradle.kotlin.dsl.normalization
 
 import com.google.common.collect.ImmutableMultimap
-import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.FileCollectionFingerprinter
-import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileNormalizer
@@ -44,18 +42,17 @@ import java.io.File
 
 internal
 class KotlinCompileClasspathFingerprinter(
-    private val classpathSnapshotHashesCache: KotlinDslCompileAvoidanceClasspathHashCache,
-    private val fileCollectionSnapshotter: FileCollectionSnapshotter
+    private val classpathSnapshotHashesCache: KotlinDslCompileAvoidanceClasspathHashCache
 ) : FileCollectionFingerprinter {
 
     override fun getNormalizer(): FileNormalizer {
         throw UnsupportedOperationException("Not implemented")
     }
 
-    override fun fingerprint(files: FileCollection): CurrentFileCollectionFingerprint {
+    override fun fingerprint(fileSystemSnapshot: FileSystemSnapshot, previousFingerprint: FileCollectionFingerprint?): CurrentFileCollectionFingerprint {
         val fingerprints: MutableMap<String, HashCode> = mutableMapOf()
 
-        fileCollectionSnapshotter.snapshot(files).snapshot.accept { snapshot ->
+        fileSystemSnapshot.accept { snapshot ->
             // if not jar file or class directory, we ignore it
             if (snapshot is RegularFileSnapshot && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
                 return@accept SnapshotVisitResult.CONTINUE
@@ -92,10 +89,6 @@ class KotlinCompileClasspathFingerprinter(
                 hasher.putLong(it)
             }
         return hasher.hash()
-    }
-
-    override fun fingerprint(snapshot: FileSystemSnapshot, previousFingerprint: FileCollectionFingerprint?): CurrentFileCollectionFingerprint {
-        throw UnsupportedOperationException("Not implemented")
     }
 
     override fun empty(): CurrentFileCollectionFingerprint {

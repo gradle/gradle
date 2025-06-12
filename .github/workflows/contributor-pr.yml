@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Set the DEVELOCITY_ACCESS_KEY so that Gradle Build Scans are generated
+  # Set the DEVELOCITY_ACCESS_KEY so that a Build Scan is generated
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
   # Enable debug for the `gradle-build-action` cache operations
   GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true

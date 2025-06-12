@@ -5,7 +5,9 @@ plugins {
 description = "Implementation of the service registry framework"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {

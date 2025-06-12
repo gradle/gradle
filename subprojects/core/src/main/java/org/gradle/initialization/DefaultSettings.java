@@ -63,7 +63,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.time.Instant.now;
-import static org.apache.commons.lang.ArrayUtils.contains;
+import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.gradle.internal.hash.Hashing.sha512;
 
 public abstract class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
@@ -372,7 +372,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             DeprecationLogger
                 .deprecate("enableFeaturePreview('" + feature.name() + "')")
                 .withAdvice("The feature flag is no longer relevant, please remove it from your settings file.")
-                .willBeRemovedInGradle9()
+                .willBeRemovedInGradle10()
                 .withUserManual("feature_lifecycle", "feature_preview")
                 .nagUser();
         }

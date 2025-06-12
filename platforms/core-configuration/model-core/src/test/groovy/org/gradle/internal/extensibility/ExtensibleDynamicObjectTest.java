@@ -705,7 +705,7 @@ public class ExtensibleDynamicObjectTest {
         }
 
         public void defineProperty(String name, Object value) {
-            extensibleDynamicObject.getExtensionContainer().getExtraProperties().set(name, value);
+            extensibleDynamicObject.getExtensions().getExtraProperties().set(name, value);
         }
     }
 

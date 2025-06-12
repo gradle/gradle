@@ -23,6 +23,7 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.text.StreamingStyledTextOutputFactory;
+import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
@@ -73,7 +74,11 @@ public abstract class EntryPoint {
     protected Action<Throwable> createErrorHandler() {
         DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
         loggingConfiguration.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
-        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(originalStdErr), loggingConfiguration, new DefaultBuildClientMetaData(new GradleLauncherMetaData()));
+        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(originalStdErr),
+            loggingConfiguration,
+            new DefaultBuildClientMetaData(new GradleLauncherMetaData()),
+            DefaultFailureFactory.withDefaultClassifier()
+        );
     }
 
     protected abstract void doAction(String[] args, ExecutionListener listener);

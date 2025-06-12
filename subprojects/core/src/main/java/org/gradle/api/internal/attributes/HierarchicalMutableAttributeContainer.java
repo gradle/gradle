@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -61,6 +62,12 @@ import java.util.TreeMap;
         return this;
     }
 
+    @Override
+    public AttributeContainer addAllLater(AttributeContainer other) {
+        primary.addAllLater(other);
+        return this;
+    }
+
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
@@ -73,6 +80,16 @@ import java.util.TreeMap;
             return attribute;
         }
         return fallback.getAttribute(key);
+    }
+
+    @Override
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries() {
+        return primary.getEntries().zip(fallback.getEntries(), (prim, fall) ->
+            ImmutableMap.<Attribute<?>, AttributeEntry<?>>builderWithExpectedSize(prim.size() + fall.size())
+                .putAll(fall.entrySet())
+                .putAll(prim.entrySet())
+                .buildKeepingLast()
+        );
     }
 
     @Override

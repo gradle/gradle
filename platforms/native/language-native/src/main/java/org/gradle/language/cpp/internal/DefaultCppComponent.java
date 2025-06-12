@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.util.PatternSet;
@@ -48,16 +47,15 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final SetProperty<TargetMachine> targetMachines;
 
     @Inject
-    public DefaultCppComponent(String name, ObjectFactory objectFactory) {
-        super(objectFactory);
+    public DefaultCppComponent(String name) {
         this.name = name;
         cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc"));
-        privateHeaders = objectFactory.fileCollection();
+        privateHeaders = getObjectFactory().fileCollection();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
-        baseName = objectFactory.property(String.class);
+        baseName = getObjectFactory().property(String.class);
         names = Names.of(name);
-        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
-        targetMachines = objectFactory.setProperty(TargetMachine.class);
+        binaries = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultBinaryCollection.class, CppBinary.class));
+        targetMachines = getObjectFactory().setProperty(TargetMachine.class);
     }
 
     @Override

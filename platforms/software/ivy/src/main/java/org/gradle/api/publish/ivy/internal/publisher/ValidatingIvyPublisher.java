@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -36,6 +35,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class ValidatingIvyPublisher implements IvyPublisher {
@@ -133,10 +133,10 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     private boolean hasCoordinates(IvyArtifact one, String name, String extension, String type, String classifier) {
-        return ObjectUtils.equals(one.getName(), name)
-                && ObjectUtils.equals(one.getType(), type)
-                && ObjectUtils.equals(one.getExtension(), extension)
-                && ObjectUtils.equals(one.getClassifier(), classifier);
+        return Objects.equals(one.getName(), name)
+                && Objects.equals(one.getType(), type)
+                && Objects.equals(one.getExtension(), extension)
+                && Objects.equals(one.getClassifier(), classifier);
     }
 
     private void checkCanPublish(String name, IvyArtifact artifact) {
