@@ -922,7 +922,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                         attribute(attr1, 'hello')
                     }
                 }
-                api("org.test:foo:1.1")
 
                 api(project(':utils')) {
                     attributes {
@@ -931,7 +930,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 }
 
                 constraints {
-                    implementation("org.test:foo:1.1") {
+                    implementation("org.test:bar:1.1") {
                         attributes {
                             attribute(attr1, 'world')
                             attribute(attr2, true)
@@ -956,12 +955,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 classpath = files()
             }
         """)
-
-        buildFile """
-            repositories {
-                maven { url = "${mavenRepo.uri}" }
-            }
-        """
 
         when:
         run "publish"
@@ -988,7 +981,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
             dependency('publishTest:utils:1.0') {
                 hasAttribute('custom', 'bazinga')
             }
-            constraint('org.test:foo:1.1') {
+            constraint('org.test:bar:1.1') {
                 hasAttributes(custom: 'world', nice: true)
             }
             noMoreDependencies()
