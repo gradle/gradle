@@ -240,7 +240,8 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                saveWorkGraph()
+                degradeGracefullyOr { saveWorkGraph() }
+                crossConfigurationTimeBarrier()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -271,8 +272,17 @@ class DefaultConfigurationCache internal constructor(
 
         return runWorkThatContributesToCacheEntry {
             val model = creator()
+            // Graceful degradation. We don't care about the models saving at the moment since it's happening
+            // only when Isolated Projects enabled. That's it, there is no model saving in CC + noIP mode.
             saveModel(model)
             model
+        }
+    }
+
+    private
+    fun degradeGracefullyOr(action: () -> Unit) {
+        if (!problems.shouldDegradeGracefully()) {
+            action()
         }
     }
 
@@ -610,8 +620,6 @@ class DefaultConfigurationCache internal constructor(
             }
             WorkGraphStoreResult(stateStoreResult.accessedFiles, stateStoreResult.value)
         }
-
-        crossConfigurationTimeBarrier()
     }
 
     private
