@@ -46,6 +46,8 @@ import javax.inject.Inject;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
+    private static final String USE_FILE_SYSTEM_PERMISSIONS_PROPERTY = "org.gradle.archives.use-file-system-permissions";
+
     // All of these field names are really long to prevent collisions with the groovy setters.
     // Groovy will try to set the private fields if given the opportunity.
     // This makes it much more difficult for this to happen accidentally.
@@ -88,9 +90,20 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(false);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(true);
+        configureDefaultPermissions();
+    }
 
+    private void configureDefaultPermissions() {
         getDirPermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE));
         getFilePermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE));
+
+        boolean useFileSystemPermissions = getProject().getProviders()
+            .gradleProperty(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY)
+            .getOrElse("false").trim().equalsIgnoreCase("true");
+        getInputs().property(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY, useFileSystemPermissions);
+        if (useFileSystemPermissions) {
+            useFileSystemPermissions();
+        }
     }
 
     @Inject

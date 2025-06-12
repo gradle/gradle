@@ -91,6 +91,39 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
+    def "file and directory permissions are preserved when using #taskName task with file system permissions global flag"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
+            }
+        }
+        propertiesFile << """
+            org.gradle.archives.use-file-system-permissions=true
+        """
+        def archName = "test.${taskName.toLowerCase()}"
+        and:
+        buildFile << """
+            task pack(type: $taskName) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+            }
+            """
+        when:
+        run "pack"
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        then:
+        file("build/child").mode == 0777
+        file("build/child/reference.txt").mode == 0746
+        where:
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "file and directory permissions can be overridden in #taskName task"() {
         given:
         createDir('parent') {
