@@ -91,12 +91,14 @@ public abstract class WarPlugin implements Plugin<Project> {
 
     @SuppressWarnings("deprecation")
     private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
-        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
-            setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME, conf -> {
+            conf.setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        });
 
-        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
-            extendsFrom(providedCompileConfiguration).
-            setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME, conf -> {
+            conf.extendsFrom(providedCompileConfiguration);
+            conf.setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        });
 
         mainFeature.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
         mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);

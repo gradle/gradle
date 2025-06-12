@@ -38,32 +38,32 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         initScriptFile """
             org.gradle.internal.deprecation.DeprecationLogger.deprecate('Init script')
-                .willBeRemovedInGradle9()
-                .undocumented()
+                .willBeRemovedInGradle10()
+                .withUserManual("feature_lifecycle", "sec:deprecated")
                 .nagUser()
             org.gradle.internal.deprecation.DeprecationLogger.deprecate('Init script')
-                  .willBeRemovedInGradle9()
-                  .undocumented()
+                  .willBeRemovedInGradle10()
+                  .withUserManual("feature_lifecycle", "sec:deprecated")
                   .nagUser()
         """
 
         file('script.gradle') << """
-            org.gradle.internal.deprecation.DeprecationLogger.deprecate('Plugin script').willBeRemovedInGradle9().undocumented().nagUser();
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate('Plugin script').willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
         """
 
         buildFile """
             apply from: 'script.gradle'
             apply plugin: SomePlugin
 
-            org.gradle.internal.deprecation.DeprecationLogger.deprecateBuildInvocationFeature('Some invocation feature').withAdvice("Don't do custom invocation.").willBeRemovedInGradle9().undocumented().nagUser()
-            org.gradle.internal.deprecation.DeprecationLogger.deprecateIndirectUsage('Some indirect deprecation').withAdvice('Some advice.').willBeRemovedInGradle9().undocumented().nagUser()
+            org.gradle.internal.deprecation.DeprecationLogger.deprecateBuildInvocationFeature('Some invocation feature').withAdvice("Don't do custom invocation.").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+            org.gradle.internal.deprecation.DeprecationLogger.deprecateIndirectUsage('Some indirect deprecation').withAdvice('Some advice.').willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
 
             task t(type:SomeTask) {
                 doLast {
                     org.gradle.internal.deprecation.DeprecationLogger.deprecate('Custom Task action')
                             .withAdvice('Use task type X instead.').withContext("Task ':t' should not have custom actions attached.")
-                            .willBeRemovedInGradle9()
-                            .undocumented()
+                            .willBeRemovedInGradle10()
+                            .withUserManual("feature_lifecycle", "sec:deprecated")
                             .nagUser()
                 }
             }
@@ -72,14 +72,14 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
             class SomePlugin implements Plugin<Project> {
                 void apply(Project p){
-                    org.gradle.internal.deprecation.DeprecationLogger.deprecate('Plugin').willBeRemovedInGradle9().undocumented().nagUser();
+                    org.gradle.internal.deprecation.DeprecationLogger.deprecate('Plugin').willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                 }
             }
 
             class SomeTask extends DefaultTask {
                 @TaskAction
                 void someAction(){
-                    org.gradle.internal.deprecation.DeprecationLogger.deprecate('Typed task').willBeRemovedInGradle9().undocumented().nagUser();
+                    org.gradle.internal.deprecation.DeprecationLogger.deprecate('Typed task').willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                 }
             }
 
@@ -92,7 +92,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def initDeprecation = operations.only("Apply initialization script 'init.gradle' to build").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }.each {}
         Map<String, Object> initDeprecationDetails = initDeprecation.details['deprecation'] as Map<String, Object>
         initDeprecationDetails.summary == 'Init script has been deprecated.'
-        initDeprecationDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        initDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         initDeprecationDetails.advice == null
         initDeprecationDetails.contextualAdvice == null
         initDeprecationDetails.stackTrace.length() > 0
@@ -101,7 +101,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def pluginDeprecation = operations.only("Apply plugin SomePlugin to root project 'root'").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         Map<String, Object> pluginDeprecationDetails = pluginDeprecation.details['deprecation'] as Map<String, Object>
         pluginDeprecationDetails.summary == 'Plugin has been deprecated.'
-        pluginDeprecationDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        pluginDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         pluginDeprecationDetails.advice == null
         pluginDeprecationDetails.contextualAdvice == null
         pluginDeprecationDetails.type == 'USER_CODE_DIRECT'
@@ -111,7 +111,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def invocationDeprecation = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }[0]
         Map<String, Object> invocationDeprecationDetails = invocationDeprecation.details['deprecation'] as Map<String, Object>
         invocationDeprecationDetails.summary == 'Some invocation feature has been deprecated.'
-        invocationDeprecationDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        invocationDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         invocationDeprecationDetails.advice == "Don't do custom invocation."
         invocationDeprecationDetails.type == "BUILD_INVOCATION"
         invocationDeprecationDetails.stackTrace.length() > 0
@@ -120,7 +120,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def userIndirectCodeDeprecation = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }[1]
         Map<String, Object> userIndirectCodeDeprecationDetails = userIndirectCodeDeprecation.details['deprecation'] as Map<String, Object>
         userIndirectCodeDeprecationDetails.summary == 'Some indirect deprecation has been deprecated.'
-        userIndirectCodeDeprecationDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        userIndirectCodeDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         userIndirectCodeDeprecationDetails.advice == "Some advice."
         userIndirectCodeDeprecationDetails.type == 'USER_CODE_INDIRECT'
         userIndirectCodeDeprecationDetails.stackTrace.length() > 0
@@ -129,7 +129,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def scriptPluginDeprecation = operations.only("Apply script 'script.gradle' to root project 'root'").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         Map<String, Object> scriptPluginDeprecationDetails = scriptPluginDeprecation.details['deprecation'] as Map<String, Object>
         scriptPluginDeprecationDetails.summary == 'Plugin script has been deprecated.'
-        scriptPluginDeprecationDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        scriptPluginDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         scriptPluginDeprecationDetails.advice == null
         scriptPluginDeprecationDetails.type == 'USER_CODE_DIRECT'
         scriptPluginDeprecationDetails.stackTrace.length() > 0
@@ -138,7 +138,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def taskDoLastDeprecation = operations.only("Execute doLast {} action for :t").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         Map<String, Object> taskDoLastDeprecationDetails = taskDoLastDeprecation.details['deprecation'] as Map<String, Object>
         taskDoLastDeprecationDetails.summary == 'Custom Task action has been deprecated.'
-        taskDoLastDeprecationDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        taskDoLastDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         taskDoLastDeprecationDetails.advice == 'Use task type X instead.'
         taskDoLastDeprecationDetails.contextualAdvice == "Task ':t' should not have custom actions attached."
         taskDoLastDeprecationDetails.type == 'USER_CODE_DIRECT'
@@ -148,7 +148,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def typedTaskDeprecation = operations.only("Execute someAction for :t").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         Map<String, Object> typedTaskDeprecationDetails = typedTaskDeprecation.details['deprecation'] as Map<String, Object>
         typedTaskDeprecationDetails.summary == 'Typed task has been deprecated.'
-        typedTaskDeprecationDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        typedTaskDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         typedTaskDeprecationDetails.advice == null
         typedTaskDeprecationDetails.contextualAdvice == null
         typedTaskDeprecationDetails.type == 'USER_CODE_DIRECT'
@@ -159,7 +159,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def typedTaskDeprecation2 = operations.only("Execute someAction for :t2").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         Map<String, Object> typedTaskDeprecation2Details = typedTaskDeprecation2.details['deprecation'] as Map<String, Object>
         typedTaskDeprecation2Details.summary == 'Typed task has been deprecated.'
-        typedTaskDeprecation2Details.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        typedTaskDeprecation2Details.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         typedTaskDeprecation2Details.advice == null
         typedTaskDeprecation2Details.contextualAdvice == null
         typedTaskDeprecation2Details.type == 'USER_CODE_DIRECT'
@@ -205,7 +205,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         verifyAll(receivedProblem(7)) {
             fqid == 'deprecation:typed-task'
             contextualLabel == 'Typed task has been deprecated.'
-            details == 'This is scheduled to be removed in Gradle 9.0.'
+            details.startsWith('This is scheduled to be removed in Gradle ')
             additionalData.asMap == ['type': 'USER_CODE_DIRECT']
         }
         if (getReceivedProblems().size() == 9) {
@@ -213,7 +213,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             verifyAll(receivedProblem(8)) {
                 fqid == 'deprecation:typed-task'
                 contextualLabel == 'Typed task has been deprecated.'
-                details == 'This is scheduled to be removed in Gradle 9.0.'
+                details.startsWith('This is scheduled to be removed in Gradle ')
                 additionalData.asMap == ['type': 'USER_CODE_DIRECT']
             }
         }
@@ -223,7 +223,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
     def "emits deprecation warnings as build operation progress events for buildSrc builds"() {
         when:
         file('buildSrc/build.gradle') << """
-            org.gradle.internal.deprecation.DeprecationLogger.deprecate('BuildSrc script').willBeRemovedInGradle9().undocumented().nagUser();
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate('BuildSrc script').willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
         """
 
         and:
@@ -234,7 +234,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def buildSrcDeprecations = operations.only("Apply build file 'buildSrc${File.separator}build.gradle' to project ':buildSrc'").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         Map<String, Object> buildSrcDeprecationsDetails = buildSrcDeprecations.details['deprecation'] as Map<String, Object>
         buildSrcDeprecationsDetails.summary.contains('BuildSrc script has been deprecated.')
-        buildSrcDeprecationsDetails.removalDetails.contains('This is scheduled to be removed in Gradle 9.0.')
+        buildSrcDeprecationsDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         buildSrcDeprecationsDetails.advice == null
         buildSrcDeprecationsDetails.contextualAdvice == null
         buildSrcDeprecationsDetails.type == 'USER_CODE_DIRECT'
@@ -251,11 +251,11 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
     def "emits deprecation warnings as build operation progress events for composite builds"() {
         file('included/settings.gradle') << "rootProject.name = 'included'"
         file('included/build.gradle') << """
-            org.gradle.internal.deprecation.DeprecationLogger.deprecate('Included build script').willBeRemovedInGradle9().undocumented().nagUser();
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate('Included build script').willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
 
             task t {
                 doLast {
-                    org.gradle.internal.deprecation.DeprecationLogger.deprecate('Included build task').willBeRemovedInGradle9().undocumented().nagUser();
+                    org.gradle.internal.deprecation.DeprecationLogger.deprecate('Included build task').willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                 }
             }
         """
@@ -277,7 +277,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def includedBuildScriptDeprecations = operations.only("Apply build file 'included${File.separator}build.gradle' to project ':included'").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         Map<String, Object> includedBuildScriptDeprecationsDetails = includedBuildScriptDeprecations.details['deprecation'] as Map<String, Object>
         includedBuildScriptDeprecationsDetails.summary == 'Included build script has been deprecated.'
-        includedBuildScriptDeprecationsDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        includedBuildScriptDeprecationsDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         includedBuildScriptDeprecationsDetails.advice == null
         includedBuildScriptDeprecationsDetails.contextualAdvice == null
         includedBuildScriptDeprecationsDetails.type == 'USER_CODE_DIRECT'
@@ -287,7 +287,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def includedBuildTaskDeprecations = operations.only("Execute doLast {} action for :included:t").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         Map<String, Object> includedBuildTaskDeprecationsDetails = includedBuildTaskDeprecations.details['deprecation'] as Map<String, Object>
         includedBuildTaskDeprecationsDetails.summary == 'Included build task has been deprecated.'
-        includedBuildTaskDeprecationsDetails.removalDetails == 'This is scheduled to be removed in Gradle 9.0.'
+        includedBuildTaskDeprecationsDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
         includedBuildTaskDeprecationsDetails.advice == null
         includedBuildTaskDeprecationsDetails.contextualAdvice == null
         includedBuildTaskDeprecationsDetails.type == 'USER_CODE_DIRECT'
@@ -312,8 +312,8 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             buildFile """
                 org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it')
                                                                  .withProblemIdDisplayName('Thing has been deprecated.')
-                                                                 .willBeRemovedInGradle9()
-                                                                 .undocumented()
+                                                                 .willBeRemovedInGradle10()
+                                                                 .withUserManual("feature_lifecycle", "sec:deprecated")
                                                                  .nagUser();
             """
         }
@@ -352,8 +352,8 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             buildFile """
                 org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it')
                                                                 .withProblemIdDisplayName('Thing has been deprecated.')
-                                                                .willBeRemovedInGradle9()
-                                                                .undocumented()
+                                                                .willBeRemovedInGradle10()
+                                                                .withUserManual("feature_lifecycle", "sec:deprecated")
                                                                 .nagUser();
             """
         }

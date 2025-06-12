@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.provider.DelegatingProviderWithValue;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -27,12 +28,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Function;
 
 public final class DefaultMutableAttributeContainer extends AbstractAttributeContainer {
@@ -42,7 +41,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     private final AttributeValueIsolator attributeValueIsolator;
 
     // Mutable State
-    private final MapProperty<Attribute<?>, Isolatable<?>> state;
+    private final MapProperty<Attribute<?>, AttributeEntry<?>> state;
 
     /**
      * Should only be true when realizing lazy attributes, to protect against reentrant
@@ -57,14 +56,12 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     ) {
         this.attributesFactory = attributesFactory;
         this.attributeValueIsolator = attributeValueIsolator;
-        this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, Isolatable.class));
+        this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, AttributeEntry.class));
     }
 
     @Override
     public String toString() {
-        Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
-        sorted.putAll(getRealizedEntries());
-        return sorted.toString();
+        return asImmutable().toString();
     }
 
     @Override
@@ -79,7 +76,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         checkInsertionAllowed(key);
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
-        state.put(key, attributeValueIsolator.isolate(value));
+        state.put(key, new AttributeEntry<>(key, attributeValueIsolator.isolate(value)));
         return this;
     }
 
@@ -88,20 +85,28 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         checkInsertionAllowed(key);
         assertAttributeValueIsNotNull(provider);
 
-        ProviderInternal<T> providerInternal = Cast.uncheckedCast(provider);
+        @SuppressWarnings("unchecked")
+        ProviderInternal<T> presentProvider = new DelegatingProviderWithValue<>(
+            (ProviderInternal<T>) provider,
+            "Providers passed to attributeProvider(Attribute, Provider) must always be present when queried."
+        );
 
-        Provider<Isolatable<T>> isolated;
-        Class<T> valueType = providerInternal.getType();
-        Class<Isolatable<T>> typedIsolatable = Cast.uncheckedCast(Isolatable.class);
+        Provider<AttributeEntry<T>> isolated;
+        Class<T> valueType = presentProvider.getType();
+        Class<AttributeEntry<T>> typedAttributeEntry = Cast.uncheckedCast(AttributeEntry.class);
         if (valueType != null) {
             // We can only sometimes check the type of the provider ahead of time.
             assertAttributeTypeIsValid(valueType, key);
-            isolated = new MappingProvider<>(typedIsolatable, providerInternal, attributeValueIsolator::isolate);
+            isolated = new MappingProvider<>(typedAttributeEntry, presentProvider, value -> {
+                Isolatable<T> isolate = attributeValueIsolator.isolate(value);
+                return new AttributeEntry<>(key, isolate);
+            });
         } else {
             // Otherwise, check the type when the value is realized.
-            isolated = new MappingProvider<>(typedIsolatable, providerInternal, t -> {
-                assertAttributeTypeIsValid(t.getClass(), key);
-                return attributeValueIsolator.isolate(t);
+            isolated = new MappingProvider<>(typedAttributeEntry, presentProvider, value -> {
+                assertAttributeTypeIsValid(value.getClass(), key);
+                Isolatable<T> isolate = attributeValueIsolator.isolate(value);
+                return new AttributeEntry<>(key, isolate);
             });
         }
 
@@ -110,16 +115,16 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         return this;
     }
 
+    @Override
+    public AttributeContainer addAllLater(AttributeContainer other) {
+        state.putAll(((AttributeContainerInternal) other).getEntries());
+        return this;
+    }
+
     private <T> void checkInsertionAllowed(Attribute<T> key) {
         if (realizingLazyState) {
             throw new IllegalStateException("Cannot add new attribute '" + key.getName() + "' while realizing all attributes of the container.");
         }
-    }
-
-    private Map<Attribute<?>, Isolatable<?>> getRealizedEntries() {
-        Map<Attribute<?>, Isolatable<?>> realizedState = doRealize(Provider::get);
-        assertNoDuplicateNames(realizedState.keySet());
-        return realizedState;
     }
 
     private static void assertNoDuplicateNames(Set<Attribute<?>> attributes) {
@@ -142,7 +147,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
      * <p>
      * TODO: This sort of tracking should be handled by the provider API infrastructure
      */
-    private <T> T doRealize(Function<MapProperty<Attribute<?>, Isolatable<?>>, T> realizeAction) {
+    private <T> T doRealize(Function<MapProperty<Attribute<?>, AttributeEntry<?>>, T> realizeAction) {
         realizingLazyState = true;
         try {
             return realizeAction.apply(state);
@@ -175,12 +180,19 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         if (!isValidAttributeRequest(key)) {
             return null;
         }
-        return Cast.uncheckedCast(state.getting(key).map(Isolatable::isolate).getOrNull());
+        return Cast.uncheckedCast(state.getting(key).map(entry -> entry.getValue().isolate()).getOrNull());
+    }
+
+    @Override
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries() {
+        return state;
     }
 
     @Override
     public ImmutableAttributes asImmutable() {
-        return attributesFactory.fromMap(getRealizedEntries());
+        Map<Attribute<?>, AttributeEntry<?>> realizedState = doRealize(Provider::get);
+        assertNoDuplicateNames(realizedState.keySet());
+        return attributesFactory.fromEntries(realizedState.values());
     }
 
     @Override

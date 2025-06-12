@@ -15,21 +15,19 @@
  */
 package org.gradle.internal.build.event.types;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.problems.failure.DefaultFailureFactory;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailurePrinter;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalFailure;
-import org.jspecify.annotations.NonNull;
 
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -72,38 +70,38 @@ public class DefaultFailure implements Serializable, InternalFailure {
     }
 
     public static InternalFailure fromThrowable(Throwable throwable) {
-        return fromThrowable(throwable, t -> ImmutableList.of(), p -> null);
+        return fromThrowable(throwable, p -> null);
     }
 
-    public static InternalFailure fromThrowable(Throwable t, ProblemLocator problemLocator, Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper) {
-
-        // Iterate through the cause hierarchy, with including multi-cause exceptions and convert them to a corresponding Failure with the same cause structure. If the current exception has a
-        // corresponding problem in `problemsMapping` (ie the exception was thrown via ProblemReporter.throwing()), then the problem will be also available in the new failure object.
-        StringWriter out = new StringWriter();
-        PrintWriter wrt = new PrintWriter(out);
-        t.printStackTrace(wrt);
-        Throwable cause = t.getCause();
-        List<InternalFailure> causeFailures = getCauseFailures(problemLocator, mapper, cause);
-        List<InternalBasicProblemDetailsVersion3> problemMapping =
-            problemLocator.findAll(t)
-                .stream()
-                .filter(Objects::nonNull)
-                .map(mapper)
-                .filter(Objects::nonNull)
-                .collect(toList());
-
-        return new DefaultFailure(t.getMessage(), out.toString(), causeFailures, problemMapping);
+    public static InternalFailure fromThrowable(Throwable t, Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper) {
+        Failure failure = DefaultFailureFactory.withDefaultClassifier().create(t);
+        return fromFailure(failure, mapper);
     }
 
-    @NonNull
-    private static List<InternalFailure> getCauseFailures(ProblemLocator problemLocator, Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper, Throwable cause) {
-        if (cause == null) {
-            return Collections.emptyList();
-        } else if (cause instanceof MultiCauseException) {
-            MultiCauseException multiCause = (MultiCauseException) cause;
-            return multiCause.getCauses().stream().map(f -> fromThrowable(f, problemLocator, mapper)).collect(toList());
-        } else {
-            return Collections.singletonList(fromThrowable(cause, problemLocator, mapper));
-        }
+    public static InternalFailure fromFailure(Failure buildFailure, Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper) {
+        // Iterate through the cause hierarchy and convert them to a corresponding Failure with the same cause structure. If the current failure has a
+        // corresponding problem (ie the exception was thrown via ProblemReporter.throwing()), then the problem will be also available in the new failure object.
+        String failureString = FailurePrinter.printToString(buildFailure);
+        List<InternalFailure> causeFailures = convertCausesToFailures(buildFailure.getCauses(), mapper);
+        List<InternalBasicProblemDetailsVersion3> problemDetails = buildFailure.getProblems().stream()
+            .map(mapper)
+            .collect(toList());
+
+        return new DefaultFailure(buildFailure.getMessage(), failureString, causeFailures, problemDetails);
     }
+
+    private static List<InternalFailure> convertCausesToFailures(
+        List<Failure> causes,
+        Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper
+    ) {
+        return causes.stream()
+            // Skip multi cause exceptions - no idea why
+            // For example TaskExecutionException is a MultiCauseException and skipped, so the task that failed is not added as a context here.
+            .flatMap(cause -> cause.getOriginal() instanceof MultiCauseException
+                ? cause.getCauses().stream()
+                : Stream.of(cause))
+            .map(cause -> fromFailure(cause, mapper))
+            .collect(toList());
+    }
+
 }

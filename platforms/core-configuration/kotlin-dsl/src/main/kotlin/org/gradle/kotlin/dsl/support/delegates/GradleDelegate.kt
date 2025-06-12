@@ -39,7 +39,7 @@ import java.io.File
 /**
  * Facilitates the implementation of the [Gradle] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 10.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class GradleDelegate : Gradle {
 
     init {
@@ -47,7 +47,7 @@ abstract class GradleDelegate : Gradle {
         if (!org.gradle.kotlin.dsl.InitScriptApi::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(GradleDelegate::class.java)
                 .willBeRemovedInGradle10()
-                .undocumented()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }

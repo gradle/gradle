@@ -97,6 +97,7 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
 
     // TODO: write a similar test for the RegularFileProperty
     @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle/issues/322591")
     def "ConfigurableFileCollection files derived from directory property via #method respect execution time directory change"() {
         settingsFile """
             include("sub")
@@ -134,5 +135,90 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "file(Provider<String>)"    | "dir.file(provider{'file.txt'})"  | ["sub/subDir2/file.txt"]
         "files(<string>)"           | "dir.files('file.txt')"           | ["sub/subDir2/file.txt"]
         "files(provider{<string>})" | "dir.files(provider{'file.txt'})" | ["sub/subDir2/file.txt"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32992")
+    def "provider-backed relative files in directory properties via #method are resolved relative to their owner"() {
+        given:
+        settingsFile """
+            include("sub")
+            include("other")
+        """
+        createDirs("other")
+
+        buildFile "sub/build.gradle", """
+            abstract class CustomTask extends DefaultTask {
+                @InputFiles abstract DirectoryProperty getIncoming()
+                @TaskAction void run() {
+                    println("Effective file: \${incoming.get()}")
+                    println("Effective fileTree: \${incoming.asFileTree.files.toSorted()}")
+                }
+            }
+
+            def fooBarTxt = project.objects.fileProperty()
+            fooBarTxt.set(file("fooBar.txt"))
+            tasks.register("foo", CustomTask) {
+                incoming.fileProvider(${expression})
+            }
+        """
+
+        when:
+        def directoryContents = ['foo.txt', 'bar.txt'].collect { testDirectory.createDir(expectedDir).file(it).touch() }
+        file('sub/fooBar.txt') << "subDir/fileContent"
+        executer.withEnvironmentVars([FOO: 'subDir/env'])
+        executer.withArgument("-Dfoo.bar=subDir/sysprop")
+        executer.withArgument("-Pbar=subDir/gradleProp")
+        run ":sub:foo"
+
+        then:
+        outputContains("Effective file: ${ testDirectory.file(expectedDir) }")
+        outputContains("Effective fileTree: ${ directoryContents.toSorted() }")
+
+        where:
+        method                      | expression                                                        | expectedDir
+        "systemProperty"            | "providers.systemProperty('foo.bar').map { new File(it) }"        | "sub/subDir/sysprop"
+        "environmentVariable"       | "providers.environmentVariable('FOO').map { new File(it) }"       | "sub/subDir/env"
+        "gradleProperty"            | "providers.gradleProperty('bar').map { new File(it) }"            | "sub/subDir/gradleProp"
+        "fileContents"              | "providers.fileContents(fooBarTxt).asText.map { new File(it) }"   | "sub/subDir/fileContent"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32992")
+    def "provider-backed relative files in regular file properties via #method are resolved relative to their owner"() {
+        given:
+        settingsFile """
+            include("sub")
+            include("other")
+        """
+        createDirs("other")
+
+        buildFile "sub/build.gradle", """
+            abstract class CustomTask extends DefaultTask {
+                @InputFiles abstract RegularFileProperty getIncoming()
+                @TaskAction void run() { println("Effective file: \${incoming.get()}") }
+            }
+
+            def fooTxt = project.objects.fileProperty()
+            fooTxt.set(file("foo.txt"))
+            tasks.register("foo", CustomTask) {
+                incoming.fileProvider(${expression})
+            }
+        """
+
+        when:
+        file('sub/foo.txt') << "subDir/fileContent"
+        executer.withEnvironmentVars([FOO: 'subDir/env'])
+        executer.withArgument("-Dfoo.bar=subDir/sysprop")
+        executer.withArgument("-Pbar=subDir/gradleProp")
+        run ":sub:foo"
+
+        then:
+        outputContains("Effective file: ${ testDirectory.file(expectedFile) }")
+
+        where:
+        method                      | expression                                                        | expectedFile
+        "systemProperty"            | "providers.systemProperty('foo.bar').map { new File(it) }"        | "sub/subDir/sysprop"
+        "environmentVariable"       | "providers.environmentVariable('FOO').map { new File(it) }"       | "sub/subDir/env"
+        "gradleProperty"            | "providers.gradleProperty('bar').map { new File(it) }"            | "sub/subDir/gradleProp"
+        "fileContents"              | "providers.fileContents(fooTxt).asText.map { new File(it) }"      | "sub/subDir/fileContent"
     }
 }

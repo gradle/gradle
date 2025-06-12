@@ -281,12 +281,8 @@ public abstract class TaskReportTask extends ConventionReportTask {
      * @since 5.0
      */
     @Inject
-    protected ProjectStateRegistry getProjectStateRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectStateRegistry getProjectStateRegistry();
 
     @Inject
-    protected ProjectTaskLister getProjectTaskLister() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectTaskLister getProjectTaskLister();
 }

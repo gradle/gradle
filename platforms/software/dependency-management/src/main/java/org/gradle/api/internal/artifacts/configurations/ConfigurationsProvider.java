@@ -15,25 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * Provides access to all configurations that should be included as variants
+ * within a local project component.
+ */
 public interface ConfigurationsProvider {
-    /**
-     * Returns the number of configurations in this provider.
-     * <p>
-     * This method is provided for performance reasons. It should be more efficient to call this method
-     * than to call {@link #getAll()} and then call {@link Set#size()} on the result.
-     *
-     * @return the number of configurations in this provider, the same count as would be visited by calling {@link #getAll()}
-     */
-    int size();
-
-    boolean isFixedSize();
-
-    Set<? extends ConfigurationInternal> getAll();
 
     /**
      * Visit all consumable configurations provided by this configurations provider,
@@ -41,8 +29,5 @@ public interface ConfigurationsProvider {
      * to be non-consumable are not realized.
      */
     void visitConsumable(Consumer<ConfigurationInternal> visitor);
-
-    @Nullable
-    ConfigurationInternal findByName(String name);
 
 }

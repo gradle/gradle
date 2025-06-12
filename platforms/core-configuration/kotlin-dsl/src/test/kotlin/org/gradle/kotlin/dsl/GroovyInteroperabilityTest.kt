@@ -198,13 +198,11 @@ class GroovyInteroperabilityTest {
             on { invokeMethod(any(), any()) } doReturn expectedInvokeResult
         }
 
-        @Suppress("UnnecessaryVariable")
-        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance(expectedDelegate))
+            assertThat(this.delegate, sameInstance(delegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -233,8 +231,6 @@ class GroovyInteroperabilityTest {
             }
         }
 
-        @Suppress("UnnecessaryVariable")
-        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "nest" {
@@ -243,7 +239,7 @@ class GroovyInteroperabilityTest {
                 assertThat(nestedInvokeResult, sameInstance(expectedNestedInvokeResult))
             }
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance(expectedDelegate))
+            assertThat(this.delegate, sameInstance(delegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -253,6 +249,7 @@ class GroovyInteroperabilityTest {
     }
 
     interface NonGroovyObject {
+        @Suppress("unused")
         val existingProperty: String
         fun withKeywordArguments(args: Map<String, Any?>): Any?
     }
@@ -265,13 +262,11 @@ class GroovyInteroperabilityTest {
             on { withKeywordArguments(any()) } doReturn expectedInvokeResult
         }
 
-        @Suppress("UnnecessaryVariable")
-        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance<Any>(expectedDelegate))
+            assertThat(this.delegate, sameInstance(delegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))

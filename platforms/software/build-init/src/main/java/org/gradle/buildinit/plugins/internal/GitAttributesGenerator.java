@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -44,7 +44,7 @@ public class GitAttributesGenerator implements BuildContentGenerator {
                 writer.println();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

@@ -32,7 +32,7 @@ fun TestCoverage.asBuildScanCustomValue() =
         testJvmVersion.toCapitalized() +
         "${vendor.displayName}${os.asName()}${arch.asName()}"
 
-// Generates a build scan custom value "PartOf=X,Y,Z"
+// Generates a Build Scan custom value "PartOf=X,Y,Z"
 // where X, Y, Z are all the stages including current stage
 // For example, for the stage PullRequestFeedback, the custom value will be "PartOf=PullRequestFeedback,ReadyForNightly,ReadyForRelease"
 private fun Stage.getBuildScanCustomValues(): List<String> =

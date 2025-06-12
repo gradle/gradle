@@ -56,8 +56,9 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         Stub(FileHasherStatistics.Collector),
         Stub(DirectorySnapshotterStatistics.Collector),
         buildOperationRunner,
-        delegate,
-        new DefaultInternalOptions([:]))
+        new DefaultInternalOptions([:]),
+        delegate
+    )
 
     def setup() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]

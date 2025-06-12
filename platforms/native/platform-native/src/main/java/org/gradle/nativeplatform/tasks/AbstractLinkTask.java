@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -186,7 +187,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     /**
-     * Adds a set of object files to be linked. The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds a set of object files to be linked. The provided source object is evaluated as per {@link Project#files(Object...)}.
      */
     @Override
     public void source(Object source) {
@@ -194,7 +195,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     /**
-     * Adds a set of library files to be linked. The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds a set of library files to be linked. The provided libs object is evaluated as per {@link Project#files(Object...)}.
      */
     public void lib(Object libs) {
         this.libs.from(libs);
@@ -207,18 +208,14 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      */
     @Nested
     protected CompilerVersion getCompilerVersion() {
-        return ((VersionAwareCompiler)createCompiler()).getVersion();
+        return ((VersionAwareCompiler) createCompiler()).getVersion();
     }
 
     @Inject
-    protected BuildOperationLoggerFactory getOperationLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationLoggerFactory getOperationLoggerFactory();
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 
     @TaskAction
     protected void link() {

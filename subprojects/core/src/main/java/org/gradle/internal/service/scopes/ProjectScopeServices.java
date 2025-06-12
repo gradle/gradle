@@ -302,7 +302,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ProjectFinder createProjectFinder() {
-        return new DefaultProjectFinder(() -> project);
+        return new DefaultProjectFinder(project.getOwner());
     }
 
     @Provides

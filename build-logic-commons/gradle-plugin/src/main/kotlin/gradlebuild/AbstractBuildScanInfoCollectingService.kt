@@ -26,10 +26,10 @@ import org.gradle.tooling.events.task.TaskOperationResult
 import java.io.Serializable
 
 /**
- * A BuildService which monitors a few tasks (in both build-logic and main build) and collects information for build scan.
+ * A BuildService which monitors a few tasks (in both build-logic and main build) and collects information for Build Scan.
  * It's currently implemented by two use cases:
- * 1. Collect cache misses for compilation tasks and publish a `CACHE_MISS` tag for build scan.
- * 2. Collect failed task paths and display a link which points to the corresponding task in the build scan, like `https://ge.gradle.org/s/xxx/console-log?task=yyy`.
+ * 1. Collect cache misses for compilation tasks and publish a `CACHE_MISS` tag for a Build Scan.
+ * 2. Collect failed task paths and display a link which points to the corresponding task in the Build Scan, like `https://ge.gradle.org/s/xxx/console-log?task=yyy`.
  */
 abstract class AbstractBuildScanInfoCollectingService : BuildService<AbstractBuildScanInfoCollectingService.Params>, OperationCompletionListener {
     /**

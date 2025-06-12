@@ -29,6 +29,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -379,7 +380,9 @@ public class DefaultTransform implements Transform {
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
                     );
                 }
-            })
+            }),
+            // We are not validating transform parameter locations
+            FileCollectionStructureVisitor.NO_OP
         );
 
         ImmutableList<InternalProblem> validationMessages = validationContext.getProblems();

@@ -73,14 +73,6 @@ public abstract class Documentation implements InternalDocLink {
          * Output: See USER_MANUAL_URL for more details.
          */
         @CheckReturnValue
-        public T withUserManual(String documentationId) {
-            return withDocumentation(Documentation.userManual(documentationId));
-        }
-
-        /**
-         * Output: See USER_MANUAL_URL for more details.
-         */
-        @CheckReturnValue
         public T withUserManual(String documentationId, String section) {
             return withDocumentation(Documentation.userManual(documentationId, section));
         }

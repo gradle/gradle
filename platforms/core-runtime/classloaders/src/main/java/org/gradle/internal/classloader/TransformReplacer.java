@@ -18,7 +18,7 @@ package org.gradle.internal.classloader;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.jspecify.annotations.Nullable;
@@ -74,7 +74,7 @@ public class TransformReplacer implements Closeable {
         try {
             return getLoader(protectionDomain).loadTransformedClass(className);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

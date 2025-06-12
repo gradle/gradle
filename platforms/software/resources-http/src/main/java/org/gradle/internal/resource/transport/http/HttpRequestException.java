@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
@@ -24,7 +23,8 @@ import org.gradle.internal.exceptions.Contextual;
  * This is different from a HTTP request returning an HTTP error code.
  */
 @Contextual
-public class HttpRequestException extends UncheckedIOException {
+public class HttpRequestException extends RuntimeException {
+
     public HttpRequestException(String message, Throwable cause) {
         super(message, cause);
     }

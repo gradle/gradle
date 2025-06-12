@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.MultiJvmTestCompatibility
 import org.hamcrest.CoreMatchers
@@ -344,6 +346,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "incompatible user versions of classes that we also use don't affect test execution"() {
 
         // These dependencies are quite particular.
@@ -464,6 +467,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5305")
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "test can install an irreplaceable SecurityManager"() {
         given:
         executer

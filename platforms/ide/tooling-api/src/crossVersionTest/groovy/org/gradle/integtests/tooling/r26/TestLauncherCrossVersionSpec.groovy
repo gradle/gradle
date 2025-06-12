@@ -358,7 +358,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
     def "runs all test tasks in multi project build when test class passed by name"() {
         setup:
-        settingsFile << "include ':sub1', 'sub2', ':sub2:sub3', ':sub4'"
+        includeProjects("sub1", "sub2", "sub2:sub3", "sub4")
         ["sub1", "sub2/sub3"].each { projectFolderName ->
             file("${projectFolderName}/src/test/java/example/MyTest.java") << """
                 package example;
@@ -406,7 +406,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "compatible with configure on demand"() {
         setup:
         10.times {
-            settingsFile << "include ':sub$it'\n"
+            includeProjects("sub$it")
             file("sub$it/src/test/java/example/MyTest.java") << """
                 package example;
                 public class MyTest {

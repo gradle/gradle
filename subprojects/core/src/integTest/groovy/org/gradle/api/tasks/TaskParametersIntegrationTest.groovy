@@ -442,7 +442,7 @@ task someTask {
         buildFile << """
             import org.gradle.integtests.fixtures.validation.ValidationProblem
 
-            class InvalidTask extends SourceTask {
+            abstract class InvalidTask extends SourceTask {
                 @ValidationProblem File inputFile
 
                 @TaskAction void execute() {

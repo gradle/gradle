@@ -762,7 +762,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns true if build scan should be created.
+     * Returns true if a Build Scan should be created.
      *
      * @since 3.4
      */
@@ -771,7 +771,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether a build scan should be created.
+     * Specifies whether a Build Scan should be created.
      *
      * @since 3.4
      */
@@ -780,7 +780,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns true when build scan creation is explicitly disabled.
+     * Returns true when Build Scan creation is explicitly disabled.
      *
      * @since 3.4
      */
@@ -789,7 +789,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether build scan creation is explicitly disabled.
+     * Specifies whether Build Scan creation is explicitly disabled.
      *
      * @since 3.4
      */

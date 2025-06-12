@@ -803,29 +803,19 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ExecActionFactory getExecActionFactory();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 
     private Iterable<String> jvmArgsConventionValue() {
         Iterable<String> jvmArgs = getConventionMapping().getConventionValue(null, "jvmArgs", false);

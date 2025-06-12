@@ -24,7 +24,9 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
+import org.gradle.internal.buildtree.BuildTreeModelCreator
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
+import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController
 import org.gradle.internal.buildtree.DefaultBuildTreeModelCreator
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer
@@ -35,7 +37,7 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 
 
-class VintageBuildTreeLifecycleControllerFactory(
+open class VintageBuildTreeLifecycleControllerFactory(
     private val buildModelParameters: BuildModelParameters,
     private val taskGraph: BuildTreeWorkGraphController,
     private val buildOperationExecutor: BuildOperationExecutor,
@@ -52,18 +54,27 @@ class VintageBuildTreeLifecycleControllerFactory(
 
     // Used when CC is not enabled
     override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
-        val workPreparer = createWorkPreparer(targetBuild)
-        val modelCreator = createModelCreator(targetBuild)
+        return createControllerImpl(createWorkPreparer(targetBuild), createModelCreator(targetBuild), targetBuild, workExecutor, finishExecutor)
+    }
+
+    internal
+    fun createControllerImpl(
+        workPreparer: BuildTreeWorkPreparer,
+        modelCreator: BuildTreeModelCreator,
+        targetBuild: BuildLifecycleController,
+        workExecutor: BuildTreeWorkExecutor,
+        finishExecutor: BuildTreeFinishExecutor
+    ): DefaultBuildTreeLifecycleController {
         val workController = VintageBuildTreeWorkController(workPreparer, workExecutor, taskGraph)
         return DefaultBuildTreeLifecycleController(targetBuild, workController, modelCreator, finishExecutor, stateTransitionControllerFactory, startParameter, buildModelParameters)
     }
 
     internal
-    fun createModelCreator(targetBuild: BuildLifecycleController) =
+    fun createModelCreator(targetBuild: BuildLifecycleController): BuildTreeModelCreator =
         DefaultBuildTreeModelCreator(targetBuild.gradle.owner, createIntermediateActionRunner(), parameterCarrierFactory, buildStateRegistry, buildOperationRunner)
 
     internal
-    fun createWorkPreparer(targetBuild: BuildLifecycleController) =
+    fun createWorkPreparer(targetBuild: BuildLifecycleController): BuildTreeWorkPreparer =
         DefaultBuildTreeWorkPreparer(targetBuild.gradle.owner, targetBuild)
 
     private

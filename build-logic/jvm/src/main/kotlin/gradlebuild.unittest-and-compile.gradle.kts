@@ -444,7 +444,7 @@ fun configureTests() {
         }
 
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // GitHub actions for contributor PRs uses public build scan instance
+            // GitHub actions for contributor PRs use a public Build Scan instance
             // in this case we need to explicitly configure the PTS server
             // Don't move this line into the lambda as it may cause config cache problems
             extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {

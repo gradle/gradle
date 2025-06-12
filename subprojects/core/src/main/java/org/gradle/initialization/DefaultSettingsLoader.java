@@ -25,12 +25,15 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.util.Path;
 
 import java.util.List;
@@ -46,26 +49,30 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private final BuildLayoutFactory buildLayoutFactory;
     private final List<BuiltInCommand> builtInCommands;
     private final Logger logger;
+    private final InternalProblems problems;
 
     public DefaultSettingsLoader(
         SettingsProcessor settingsProcessor,
         BuildLayoutFactory buildLayoutFactory,
-        List<BuiltInCommand> builtInCommands
+        List<BuiltInCommand> builtInCommands,
+        InternalProblems problems
     ) {
-        this(settingsProcessor, buildLayoutFactory, builtInCommands, Logging.getLogger(DefaultSettingsLoader.class));
+        this(settingsProcessor, buildLayoutFactory, builtInCommands, Logging.getLogger(DefaultSettingsLoader.class), problems);
     }
 
     @VisibleForTesting
-    /* package */ DefaultSettingsLoader(
+        /* package */ DefaultSettingsLoader(
         SettingsProcessor settingsProcessor,
         BuildLayoutFactory buildLayoutFactory,
         List<BuiltInCommand> builtInCommands,
-        Logger logger
+        Logger logger,
+        InternalProblems problems
     ) {
         this.settingsProcessor = settingsProcessor;
         this.buildLayoutFactory = buildLayoutFactory;
         this.builtInCommands = builtInCommands;
         this.logger = logger;
+        this.problems = problems;
     }
 
     @Override
@@ -173,17 +180,19 @@ public class DefaultSettingsLoader implements SettingsLoader {
                 throw new GradleException("'" + SettingsInternal.BUILD_SRC + "' cannot be used as a project name as it is a reserved name" + suffix);
             }
             if (!project.getProjectDir().exists() || !project.getProjectDir().isDirectory() || !project.getProjectDir().canWrite()) {
-                emitProjectDirectoryMissingWarning(project.getPath(), project.getProjectDir().toString());
+                failOnMissingProjectDirectory(project.getPath(), project.getProjectDir().toString());
             }
         });
     }
 
-    private static void emitProjectDirectoryMissingWarning(String projectPath, String projectDir) {
-        String template = "Configuring project '%s' without an existing directory is deprecated. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.";
-        DeprecationLogger.deprecateBehaviour(String.format(template, projectPath, projectDir))
-            .withAdvice("Make sure the project directory exists and can be written.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_missing_project_directory")
-            .nagUser();
+    private void failOnMissingProjectDirectory(String projectPath, String projectDir) {
+        String template = "Configuring project '%s' without an existing directory is not allowed. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.";
+        throw problems.getInternalReporter().throwing(
+            new GradleException(String.format(template, projectPath, projectDir)),
+            ProblemId.create("confituring-project-with-invalid-directory", "Configuring project with invalid directory", GradleCoreProblemGroup.configurationUsage()),
+            spec ->
+                spec.solution("Make sure the project directory exists and is writable.")
+                    .documentedAt(Documentation.userManual("multi_project_builds", "include_existing_projects_only").getUrl())
+        );
     }
 }

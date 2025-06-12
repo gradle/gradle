@@ -19,7 +19,8 @@ package org.gradle.configurationcache.extensions
 
 @Deprecated(
     "This was never intended as a public API.",
-    ReplaceWith("this.toString().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }")
+    ReplaceWith("this.toString().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }"),
+    DeprecationLevel.HIDDEN
 )
 fun CharSequence.capitalized(): String =
     toString().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }

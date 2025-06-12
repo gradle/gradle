@@ -18,6 +18,9 @@ package org.gradle.internal.execution.impl
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.internal.execution.FileCollectionFingerprinter
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.FileCollectionSnapshotter
@@ -53,7 +56,6 @@ class DefaultInputFingerprinterTest extends Specification {
     def inputSnapshot = Mock(ValueSnapshot)
     def fileInput = Mock(FileCollection)
     def fileInputSnapshot = Mock(FileSystemSnapshot)
-    def fileInputSnapshotResult = Mock(FileCollectionSnapshotter.Result)
     def fileInputFingerprint = Mock(CurrentFileCollectionFingerprint)
     def normalizer = Mock(FileNormalizer)
 
@@ -69,9 +71,7 @@ class DefaultInputFingerprinterTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(input) >> inputSnapshot
-        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
-        _ * fileInputSnapshotResult.containsArchiveTrees() >> false
-        1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
+        1 * snapshotter.snapshot(fileInput, _) >> fileInputSnapshot
         1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
         0 * _
 
@@ -82,7 +82,6 @@ class DefaultInputFingerprinterTest extends Specification {
 
     def "marks archive trees as properties requiring empty check"() {
         def archiveTreeInput = Mock(FileCollection)
-        def archiveTreeInputSnapshotResult = Mock(FileCollectionSnapshotter.Result)
         def archiveTreeInputSnapshot = Mock(FileSystemSnapshot)
         def archiveTreeInputFingerprint = Mock(CurrentFileCollectionFingerprint)
 
@@ -99,17 +98,14 @@ class DefaultInputFingerprinterTest extends Specification {
         }
 
         then:
-        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
-        _ * fileInputSnapshotResult.fileTreeOnly >> false
-        _ * fileInputSnapshotResult.containsArchiveTrees() >> false
-        1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
+        1 * snapshotter.snapshot(fileInput, _) >> fileInputSnapshot
         1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
 
         then:
-        1 * snapshotter.snapshot(archiveTreeInput) >> archiveTreeInputSnapshotResult
-        _ * archiveTreeInputSnapshotResult.fileTreeOnly >> false
-        _ * archiveTreeInputSnapshotResult.containsArchiveTrees() >> true
-        1 * archiveTreeInputSnapshotResult.snapshot >> archiveTreeInputSnapshot
+        1 * snapshotter.snapshot(archiveTreeInput, _) >> { FileCollection fileCollection, FileCollectionStructureVisitor visitor ->
+            visitor.visitFileTreeBackedByFile(Mock(File), Mock(FileTreeInternal), Mock(FileSystemMirroringFileTree))
+            return archiveTreeInputSnapshot
+        }
         1 * fingerprinter.fingerprint(archiveTreeInputSnapshot, null) >> archiveTreeInputFingerprint
 
         0 * _
@@ -193,7 +189,7 @@ class DefaultInputFingerprinterTest extends Specification {
         }
 
         then:
-        1 * snapshotter.snapshot(fileInput) >> { throw failure }
+        1 * snapshotter.snapshot(fileInput, _) >> { throw failure }
         0 * _
 
         then:
@@ -210,6 +206,6 @@ class DefaultInputFingerprinterTest extends Specification {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints = ImmutableSortedMap.of(),
         Consumer<InputVisitor> inputs
     ) {
-        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs)
+        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs, FileCollectionStructureVisitor.NO_OP)
     }
 }

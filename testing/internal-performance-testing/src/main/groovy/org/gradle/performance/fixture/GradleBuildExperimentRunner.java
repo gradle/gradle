@@ -52,7 +52,6 @@ import org.gradle.util.GradleVersion;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -216,7 +215,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         try (InputStream inputStream = Files.newInputStream(gradlePropertiesFile.toPath())) {
             gradleProperties.load(inputStream);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         String[] jvmOptsFromGradleProperties = gradleProperties.getProperty("org.gradle.jvmargs").split(" ");
         final ImmutableList<String> actualJvmArgs = ImmutableList.<String>builder()

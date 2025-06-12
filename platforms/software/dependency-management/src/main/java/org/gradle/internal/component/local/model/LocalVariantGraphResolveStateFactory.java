@@ -33,9 +33,4 @@ public interface LocalVariantGraphResolveStateFactory {
      */
     void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor);
 
-    /**
-     * Invalidates any caching used for producing variant state.
-     */
-    void invalidate();
-
 }

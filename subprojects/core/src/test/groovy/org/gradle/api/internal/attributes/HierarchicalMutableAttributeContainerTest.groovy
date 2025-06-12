@@ -279,4 +279,21 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
             assert it[Attribute.of("test", String)] == "b" // Second attribute to be added remains
         }
     }
+
+    def "can addAllLater to container"() {
+        def container = createContainer()
+        def other = createContainer()
+        container.addAllLater(other)
+
+        def a = Attribute.of("a", String)
+        def b = Attribute.of("b", String)
+
+        when:
+        other.attribute(a, "aa")
+        other.attributeProvider(b, Providers.of("bb"))
+
+        then:
+        other.getAttribute(a) == "aa"
+        other.getAttribute(b) == "bb"
+    }
 }

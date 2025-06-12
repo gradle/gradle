@@ -109,11 +109,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
-    public Path calculateIdentityPathForProject(Path projectPath) {
-        return getBuildController().getGradle().getIdentityPath().append(projectPath);
-    }
-
-    @Override
     public File getBuildRootDir() {
         return getBuildController().getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }

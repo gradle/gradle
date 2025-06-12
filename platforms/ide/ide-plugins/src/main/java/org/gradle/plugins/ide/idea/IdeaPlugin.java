@@ -36,6 +36,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
@@ -47,7 +48,6 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleInternal;
@@ -112,7 +112,6 @@ public abstract class IdeaPlugin extends IdePlugin {
     private static final String IDEA_PROJECT_TASK_NAME = "ideaProject";
     private static final String IDEA_WORKSPACE_TASK_NAME = "ideaWorkspace";
 
-    private final Instantiator instantiator;
     private IdeaModel ideaModel;
     private List<Project> allJavaProjects;
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
@@ -120,8 +119,10 @@ public abstract class IdeaPlugin extends IdePlugin {
     private final ProjectStateRegistry projectPathRegistry;
 
     @Inject
-    public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
-        this.instantiator = instantiator;
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    public IdeaPlugin(UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
         this.projectPathRegistry = projectPathRegistry;
@@ -154,7 +155,7 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaWorkspace(final Project project) {
-        final IdeaWorkspace workspace = project.getObjects().newInstance(IdeaWorkspace.class);
+        final IdeaWorkspace workspace = getObjectFactory().newInstance(IdeaWorkspace.class);
         ideaModel.setWorkspace(workspace);
 
         if (isRoot()) {
@@ -176,7 +177,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         if (isRoot()) {
             XmlFileContentMerger ipr = new XmlFileContentMerger(new XmlTransformer());
             // Instantiating an internal subclass is required for Isolated Projects-safe model building
-            final IdeaProject ideaProject = instantiator.newInstance(IdeaProjectInternal.class, project, ipr);
+            final IdeaProject ideaProject = getObjectFactory().newInstance(IdeaProjectInternal.class, project, ipr);
             final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().register(IDEA_PROJECT_TASK_NAME, GenerateIdeaProject.class, ideaProject);
             projectTask.configure(new Action<GenerateIdeaProject>() {
                 @Override
@@ -267,7 +268,7 @@ public abstract class IdeaPlugin extends IdePlugin {
     private void configureIdeaModule(final ProjectInternal project) {
         IdeaModuleIml iml = new IdeaModuleIml(new XmlTransformer(), project.getProjectDir());
         // Instantiating an internal subclass is required for Isolated Projects-safe model building
-        final IdeaModule module = instantiator.newInstance(IdeaModuleInternal.class, project, iml);
+        final IdeaModule module = getObjectFactory().newInstance(IdeaModuleInternal.class, project, iml);
 
         final TaskProvider<GenerateIdeaModule> task = project.getTasks().register(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, module);
         task.configure(new Action<GenerateIdeaModule>() {
@@ -295,25 +296,11 @@ public abstract class IdeaPlugin extends IdePlugin {
                 return project.getProjectDir();
             }
         });
-        Set<File> testSourceDirs = new LinkedHashSet<>();
-        conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
-            @Override
-            public Set<File> call() {
-                return testSourceDirs;
-            }
-        });
         Set<File> resourceDirs = new LinkedHashSet<>();
         conventionMapping.map("resourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
                 return resourceDirs;
-            }
-        });
-        Set<File> testResourceDirs = new LinkedHashSet<>();
-        conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
-            @Override
-            public Set<File> call() throws Exception {
-                return testResourceDirs;
             }
         });
         Set<File> excludeDirs = new LinkedHashSet<>();

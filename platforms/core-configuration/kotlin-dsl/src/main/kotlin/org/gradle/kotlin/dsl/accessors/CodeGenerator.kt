@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.plugins.ExtensionAware
 
 import org.gradle.kotlin.dsl.support.unsafeLazy
+import org.gradle.util.internal.TextUtil
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -61,27 +62,115 @@ data class AccessorScope(
 internal
 fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(
+            receiver.type.kotlinString,
+            name,
+            type.type.kotlinString,
+            type.deprecation(),
+            uniqueOptInAnnotations(receiver, type)
+        )
         is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(receiver.type.kotlinString, name, type)
+    }
+}
+
+internal fun maybeDeprecationAnnotations(deprecation: Deprecated?): String {
+    fun deprecatedAnnotation(deprecation: Deprecated) =
+        "@Deprecated(\"${TextUtil.escapeString(deprecation.message)}\", level = DeprecationLevel.${deprecation.level.name})"
+
+    return when (deprecation?.level) {
+        null -> ""
+
+        DeprecationLevel.WARNING -> """
+        |@Suppress("deprecation")
+        |        ${deprecatedAnnotation(deprecation)}
+        """.trimMargin() + "\n        "
+
+        DeprecationLevel.ERROR -> """
+        |@Suppress("DEPRECATION_ERROR")
+        |        ${deprecatedAnnotation(deprecation)}
+        """.trimIndent() + "\n        "
+
+        DeprecationLevel.HIDDEN -> ""
+    }
+}
+
+internal fun maybeOptInAnnotationSource(vararg types: TypeAccessibility) =
+    maybeOptInAnnotationSource(uniqueOptInAnnotations(*types))
+
+private fun uniqueOptInAnnotations(vararg types: TypeAccessibility): List<AnnotationRepresentation> =
+    types.filterIsInstance<TypeAccessibility.Accessible>().flatMap { it.optInRequirements }.distinctBy { it.type.kotlinString }
+
+internal fun maybeOptInAnnotationSource(optInAnnotations: List<AnnotationRepresentation>): String {
+    val annotationSources = object {
+        private fun annotationValueSource(annotationValueRepresentation: AnnotationValueRepresentation): String = when (annotationValueRepresentation) {
+            is AnnotationValueRepresentation.AnnotationValue -> annotationSource(annotationValueRepresentation.representation, asValue = true)
+            is AnnotationValueRepresentation.ClassValue -> annotationValueRepresentation.type.kotlinString + "::class"
+            is AnnotationValueRepresentation.EnumValue -> annotationValueRepresentation.type.kotlinString + "." + annotationValueRepresentation.entryName
+            is AnnotationValueRepresentation.PrimitiveValue -> annotationValueRepresentation.value.let { if (it is String) "\"$it\"" else it.toString() }
+            is AnnotationValueRepresentation.ValueArray -> annotationValueRepresentation.elements.joinToString(", ", "[", "]") { annotationValueSource(it) }
+        }
+
+        fun annotationSource(annotationRepresentation: AnnotationRepresentation, asValue: Boolean = false): String = buildString {
+            if (!asValue) {
+                append("@")
+            }
+            append(annotationRepresentation.type.kotlinString)
+            if (annotationRepresentation.values.isNotEmpty() || asValue) {
+                append("(")
+                annotationRepresentation.values.entries.forEachIndexed { index, (name, value) ->
+                    if (name != "value" || annotationRepresentation.values.size > 1) {
+                        append(name)
+                        append(" = ")
+                    }
+                    append(annotationValueSource(value))
+                    if (index != annotationRepresentation.values.size - 1) append(", ")
+                }
+                append(")")
+            }
+        }
+    }
+
+
+    return optInAnnotations.map { annotationSources.annotationSource(it) }.let {
+        if (it.isNotEmpty()) {
+            buildString {
+                append(it.first())
+                if (it.size > 1) {
+                    appendLine()
+                    it.subList(1, it.size).forEach { appendLine("        $it") }
+                    append("        ")
+                } else {
+                    append("\n        ")
+                }
+            }
+        } else ""
     }
 }
 
 
 private
-fun accessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleExtensionAccessorFor(
+    targetType: String,
+    name: AccessorNameSpec,
+    type: String,
+    deprecation: Deprecated?,
+    optInAnnotations: List<AnnotationRepresentation>
+): String = name.run {
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(optInAnnotations)}"
     """
         /**
          * Retrieves the [$original][$type] extension.
          */
-        val $targetType.`$kotlinIdentifier`: $type get() =
+        ${annotations}val $targetType.`$kotlinIdentifier`: $type get() =
             $thisExtensions.getByName("$stringLiteral") as $type
 
         /**
          * Configures the [$original][$type] extension.
          */
-        fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+        ${annotations}fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
             $thisExtensions.configure("$stringLiteral", configure)
-    """
+
+    """.trimMargin()
 }
 
 
@@ -111,22 +200,25 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
 internal
 fun existingTaskAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, type.type.kotlinString, spec.type.deprecation(), spec.type.requiredOptIns().orEmpty())
         is TypeAccessibility.Inaccessible -> inaccessibleExistingTaskAccessorFor(name, type)
     }
 }
 
 
 private
-fun accessibleExistingTaskAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
-    """
+fun accessibleExistingTaskAccessorFor(name: AccessorNameSpec, type: String, deprecation: Deprecated?, requiredOptIns: List<AnnotationRepresentation>): String {
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(requiredOptIns)}"
+    return name.run {
+        """
         /**
          * Provides the existing [$original][$type] task.
          */
-        val TaskContainer.`$kotlinIdentifier`: TaskProvider<$type>
+        ${annotations}val TaskContainer.`$kotlinIdentifier`: TaskProvider<$type>
             get() = named<$type>("$stringLiteral")
 
     """
+    }
 }
 
 
@@ -148,19 +240,21 @@ fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: Type
 internal
 fun existingContainerElementAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString, type.deprecation(), uniqueOptInAnnotations(spec.type))
         is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type)
     }
 }
 
 
 private
-fun accessibleExistingContainerElementAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleExistingContainerElementAccessorFor(targetType: String, name: AccessorNameSpec, type: String, deprecation: Deprecated?, optIns: List<AnnotationRepresentation>): String = name.run {
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(optIns)}"
+
     """
         /**
          * Provides the existing [$original][$type] element.
          */
-        val $targetType.`$kotlinIdentifier`: NamedDomainObjectProvider<$type>
+        ${annotations}val $targetType.`$kotlinIdentifier`: NamedDomainObjectProvider<$type>
             get() = named<$type>("$stringLiteral")
 
     """
@@ -185,21 +279,22 @@ fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name:
 internal
 fun modelDefaultAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString, type.deprecation(), type.optInRequirements)
         is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(name, type)
     }
 }
 
 
 private
-fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String, deprecation: Deprecated?, optIns: List<AnnotationRepresentation>): String = name.run {
+    val annotations = """${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(optIns)}"""
     """
-        /**
-         * Adds model defaults for the [$original][$name] software type.
-         */
-        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
-            add("$stringLiteral", $type, configure)
-    """
+    |        /**
+    |         * Adds model defaults for the [$original][$name] software type.
+    |         */
+    |        ${annotations}fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+    |            add("$stringLiteral", $type, configure)
+    """.trimMargin()
 }
 
 

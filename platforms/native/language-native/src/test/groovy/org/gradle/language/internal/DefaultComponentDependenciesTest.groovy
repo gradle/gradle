@@ -37,12 +37,7 @@ class DefaultComponentDependenciesTest extends Specification {
         configurations.dependencyScopeLocked("impl") >> implDeps
         implDeps.dependencies >> deps
 
-        dependencies = new DefaultComponentDependencies(configurations, "impl") {
-            @Override
-            protected DependencyHandler getDependencyHandler() {
-                return dependencyFactory
-            }
-        }
+        dependencies = new DefaultComponentDependencies(configurations, "impl", dependencyFactory)
     }
 
     def "can add implementation dependency"() {

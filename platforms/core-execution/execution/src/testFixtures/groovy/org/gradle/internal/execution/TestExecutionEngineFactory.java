@@ -21,6 +21,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
+import org.gradle.internal.execution.impl.DefaultExecutionProblemHandler;
 import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutionStep;
@@ -66,6 +67,7 @@ public class TestExecutionEngineFactory {
         InternalProblems problems
     ) {
         NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
+        ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler(validationWarningReporter, virtualFileSystem);
         // @formatter:off
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationRunner,
@@ -73,7 +75,7 @@ public class TestExecutionEngineFactory {
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
+            new ValidateStep<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
             new ResolveIncrementalCachingStateStep<>(buildCacheController, false,
             new SkipUpToDateStep<>(

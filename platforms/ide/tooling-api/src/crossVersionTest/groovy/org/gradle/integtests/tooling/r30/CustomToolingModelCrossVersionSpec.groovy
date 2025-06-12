@@ -77,7 +77,7 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     def "retains underlying object identity in model returned to client via build action"() {
-        settingsFile << "include 'a', 'b'"
+        includeProjects("a", "b")
 
         when:
         CustomModel model = withConnection { connection ->
@@ -90,7 +90,7 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     def "retains underlying object identity in complex model returned to client via build action"() {
-        settingsFile << "include 'a', 'b'"
+        includeProjects("a", "b")
 
         when:
         Map<String, CustomModel> model = withConnection { connection ->

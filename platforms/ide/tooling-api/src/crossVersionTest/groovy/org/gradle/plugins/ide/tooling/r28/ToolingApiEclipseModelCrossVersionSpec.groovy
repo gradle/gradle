@@ -42,10 +42,10 @@ project(':contrib:impl') {
     }
 }
 """
-        createDirs("api", "impl", "contrib", "contrib/api", "contrib/impl")
-        file('settings.gradle').text = """
+        settingsFile << """
         rootProject.name = "root"
-        include 'api', 'impl', 'contrib:api', 'contrib:impl'"""
+        """
+        includeProjects("api", "impl", "contrib", "contrib:api", "contrib:impl")
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)

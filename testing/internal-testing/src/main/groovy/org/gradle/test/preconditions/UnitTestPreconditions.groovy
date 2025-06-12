@@ -25,53 +25,48 @@ import org.gradle.test.precondition.TestPrecondition
 import org.jetbrains.kotlin.config.JvmTarget
 import org.testcontainers.DockerClientFactory
 
-// These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
-// permitted subtypes to use the parent type's methods without importing them
-import static org.gradle.test.precondition.TestPrecondition.satisfied;
-import static org.gradle.test.precondition.TestPrecondition.notSatisfied;
-
 @CompileStatic
 class UnitTestPreconditions {
 
     static final class Symlinks implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return satisfied(MacOs) || satisfied(Linux)
+            return TestPrecondition.satisfied(MacOs) || TestPrecondition.satisfied(Linux)
         }
     }
 
     static final class NoSymlinks implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(Symlinks)
+            return TestPrecondition.notSatisfied(Symlinks)
         }
     }
 
     static final class CaseInsensitiveFs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return satisfied(MacOs) || satisfied(Windows)
+            return TestPrecondition.satisfied(MacOs) || TestPrecondition.satisfied(Windows)
         }
     }
 
     static final class CaseSensitiveFs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(CaseInsensitiveFs)
+            return TestPrecondition.notSatisfied(CaseInsensitiveFs)
         }
     }
 
     static final class FilePermissions implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return satisfied(MacOs) || satisfied(Linux)
+            return TestPrecondition.satisfied(MacOs) || TestPrecondition.satisfied(Linux)
         }
     }
 
     static final class NoFilePermissions implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(FilePermissions)
+            return TestPrecondition.notSatisfied(FilePermissions)
         }
     }
 
@@ -85,14 +80,14 @@ class UnitTestPreconditions {
     static final class MandatoryFileLockOnOpen implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return satisfied(Windows)
+            return TestPrecondition.satisfied(Windows)
         }
     }
 
     static final class NoMandatoryFileLockOnOpen implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(MandatoryFileLockOnOpen)
+            return TestPrecondition.notSatisfied(MandatoryFileLockOnOpen)
         }
     }
 
@@ -106,14 +101,21 @@ class UnitTestPreconditions {
     static final class NotWindows implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(Windows)
+            return TestPrecondition.notSatisfied(Windows)
+        }
+    }
+
+    static final class NotAlpine implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return System.getenv("RUNNING_ON_ALPINE") == null
         }
     }
 
     static final class NotWindowsJavaBefore11 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(Windows) || satisfied(Jdk11OrLater)
+            return TestPrecondition.notSatisfied(Windows) || TestPrecondition.satisfied(Jdk11OrLater)
         }
     }
 
@@ -135,7 +137,7 @@ class UnitTestPreconditions {
     static final class IsNotKnownWindowsSocketDisappearanceIssue implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(IsKnownWindowsSocketDisappearanceIssue)
+            return TestPrecondition.notSatisfied(IsKnownWindowsSocketDisappearanceIssue)
         }
     }
 
@@ -149,28 +151,21 @@ class UnitTestPreconditions {
     static final class NotMacOs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(MacOs)
-        }
-    }
-
-    static final class NotJava8OnMacOs implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return !satisfied(MacOs) || JavaVersion.current() != JavaVersion.VERSION_1_8
+            return TestPrecondition.notSatisfied(MacOs)
         }
     }
 
     static final class MacOsM1 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return satisfied(MacOs) && OperatingSystem.current().toString().contains("aarch64")
+            return TestPrecondition.satisfied(MacOs) && OperatingSystem.current().toString().contains("aarch64")
         }
     }
 
     static final class NotMacOsM1 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(MacOsM1)
+            return TestPrecondition.notSatisfied(MacOsM1)
         }
     }
 
@@ -184,7 +179,7 @@ class UnitTestPreconditions {
     static final class NotLinux implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(Linux)
+            return TestPrecondition.notSatisfied(Linux)
         }
     }
 
@@ -198,7 +193,7 @@ class UnitTestPreconditions {
     static final class UnixDerivative implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            satisfied(MacOs) || satisfied(Linux) || satisfied(Unix)
+            TestPrecondition.satisfied(MacOs) || TestPrecondition.satisfied(Linux) || TestPrecondition.satisfied(Unix)
         }
     }
 
@@ -413,7 +408,7 @@ class UnitTestPreconditions {
     static final class CanInstallExecutable implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return satisfied(FilePermissions) || satisfied(Windows)
+            return TestPrecondition.satisfied(FilePermissions) || TestPrecondition.satisfied(Windows)
         }
     }
 
@@ -451,7 +446,7 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             // Bundled with XCode on macOS
-            return notSatisfied(MacOs) || satisfied(HasXCode)
+            return TestPrecondition.notSatisfied(MacOs) || TestPrecondition.satisfied(HasXCode)
         }
     }
 
@@ -459,7 +454,7 @@ class UnitTestPreconditions {
     static final class HighPerformance implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfied(MacOs)
+            return TestPrecondition.notSatisfied(MacOs)
         }
     }
 
@@ -480,7 +475,7 @@ class UnitTestPreconditions {
     static final class NotStableGroovy implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            notSatisfied(StableGroovy)
+            TestPrecondition.notSatisfied(StableGroovy)
         }
     }
 

@@ -55,7 +55,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         when:
         def result = mixedRunner(parallel, androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
             .deprecations(AndroidDeprecations) {
-                expectIsPropertyDeprecationWarnings()
+                expectIsPropertyDeprecationWarnings(androidPluginVersion)
             }
             .build()
 

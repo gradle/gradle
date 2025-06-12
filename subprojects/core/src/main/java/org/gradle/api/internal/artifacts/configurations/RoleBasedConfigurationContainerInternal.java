@@ -125,7 +125,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     @Deprecated
     Configuration resolvableDependencyScopeLocked(String name, Action<? super Configuration> action);
 
-    // TODO: In Gradle 9.1, this method should be deprecated.  It is only used as a workaround for Kotlin in DefaultJvmFeature.
+    // TODO: This is only used as a workaround for Kotlin in DefaultJvmFeature -- we should inline and remove this method.
     /**
      * If a configuration with the given name already exists,return it.
      * Otherwise, creates a new dependency scope configuration with the given name.

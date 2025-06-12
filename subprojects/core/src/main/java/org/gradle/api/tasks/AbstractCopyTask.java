@@ -115,44 +115,28 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     protected abstract CopyAction createCopyAction();
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Instantiator getInstantiator();
 
     @Inject
-    protected FileSystem getFileSystem() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileSystem getFileSystem();
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     @Inject
-    protected FileLookup getFileLookup() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileLookup getFileLookup();
 
     @Inject
-    protected DirectoryFileTreeFactory getDirectoryFileTreeFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DirectoryFileTreeFactory getDirectoryFileTreeFactory();
 
     @Inject
-    protected DocumentationRegistry getDocumentationRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @TaskAction
     protected void copy() {

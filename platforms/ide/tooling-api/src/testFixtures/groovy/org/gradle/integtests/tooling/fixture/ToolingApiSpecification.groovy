@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.ProjectDirectoryCreator
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -74,7 +75,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiVersion('>=8.0')
 @TargetGradleVersion('>=4.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation {
+abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation, ProjectDirectoryCreator {
     /**
      * See https://github.com/gradle/gradle-private/issues/3216
      * To avoid flakiness when reusing daemons between CLI and TAPI
@@ -500,8 +501,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
         // Check for deprecation warnings.
         new ResultAssertion(
-            0,
-            expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+                expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
             maybeExpectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),

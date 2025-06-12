@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
@@ -70,7 +69,6 @@ fun DependencyHandler.create(
  *
  * @since 7.6
  */
-@Incubating
 inline fun DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
 
     (create(dependencyNotation) as ExternalModuleDependency).apply(dependencyConfiguration)
