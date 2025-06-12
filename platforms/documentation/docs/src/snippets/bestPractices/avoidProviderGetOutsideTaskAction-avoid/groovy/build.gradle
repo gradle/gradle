@@ -15,7 +15,7 @@ abstract class MyTask extends DefaultTask {
     }
 }
 
-Provider<String> currentEnvironment = providers.gradleProperty("currentEnvironment") // <2>
+Provider<String> currentEnvironment = providers.gradleProperty("currentEnvironment").orElse("234") // <2>
 // end::provider-get-task-setup[]
 
 // tag::avoid-this[]
@@ -24,10 +24,3 @@ tasks.register("avoidThis", MyTask) {
     myOutput = new File(layout.buildDirectory.get().asFile, "output-avoid.txt")  // <2>
 }
 // end::avoid-this[]
-
-// tag::do-this[]
-tasks.register("doThis", MyTask) {
-    myInput = currentEnvironment.map { "currentEnvironment=$it" }  // <1>
-    myOutput = layout.buildDirectory.file("output-do.txt")  // <2>
-}
-// end::do-this[]
