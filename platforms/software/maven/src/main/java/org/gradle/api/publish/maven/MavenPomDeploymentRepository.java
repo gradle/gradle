@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 
 /**
- * The repository information of the Maven distributionManagement node.
+ * The repository information of the Maven {@code distributionManagement} node.
  *
  * @see MavenPom
  * @see MavenPomDistributionManagement
