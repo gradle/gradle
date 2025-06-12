@@ -324,10 +324,12 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Sets the directory and file permissions for archived files to be read from the file system.
+     * <p>
      * Any subsequent configuration of {@link #getDirPermissions()} or {@link #getFilePermissions()} will override this setting, but only for the specifically configured property.
      * <p>
-     * Note: On Windows, file system permissions are not support and permissions will be set to `0755` for directories and `0644` for files.
-     *
+     * Note: On Windows, file system permissions are not supported, and permissions will be set to <code>755</code> for directories and <code>644</code> for files.
+     * <p>
+     * This setting can also be applied to all archive tasks of the build via <code>org.gradle.archives.use-file-system-permissions=true</code> property.
      * @since 9.0.0
      */
     @Incubating
