@@ -64,7 +64,8 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
         "ul", "li",
         "a", "p",
         "pre", "div", "span",
-        "label", "input"
+        "label", "input",
+        "button"
     )));
 
     private static boolean isValidHtmlTag(String name) {
