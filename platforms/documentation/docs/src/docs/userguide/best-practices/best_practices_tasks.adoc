@@ -193,6 +193,16 @@ include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-av
 
 Instead, you should explicitly wire task inputs and outputs like this:
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidProviderGetOutsideTaskAction-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidProviderGetOutsideTaskAction-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-do/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-do/groovy",files="build.gradle[tags=do-this]"]
