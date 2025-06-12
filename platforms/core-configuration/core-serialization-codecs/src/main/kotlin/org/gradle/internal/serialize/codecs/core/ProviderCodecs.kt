@@ -48,6 +48,8 @@ import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.RuntimeTaskCheckingPropertyHost
+import org.gradle.internal.cc.base.serialize.readProjectRef
+import org.gradle.internal.cc.base.serialize.writeProjectRef
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -449,8 +451,9 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
 
     private suspend fun WriteContext.writeTaskProducer(taskProducer : ValueSupplier.TaskProducer) {
         var task : TaskInternal? = null
-        taskProducer.visitProducerTasks { task = this as TaskInternal}
-        write(task?.identityPath)
+        taskProducer.visitProducerTasks { task = this as TaskInternal }
+        write(task!!.identityPath)
+        writeProjectRef((task as TaskInternal).project)
     }
 
     private suspend fun ReadContext.readHost(): PropertyHost? {
@@ -464,7 +467,8 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
             }
             2.toByte() -> {
                 val taskPath: Path = read() as Path
-                return RuntimeTaskCheckingPropertyHost(taskPath)
+                val project = readProjectRef()
+                return RuntimeTaskCheckingPropertyHost(taskPath, project)
             }
             else -> {
                 error("Unsupported host type: $discriminator")

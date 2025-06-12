@@ -17,22 +17,24 @@
 package org.gradle.internal.cc.base.serialize
 
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.Path
 
-class RuntimeTaskCheckingPropertyHost(val taskPath: Path) : PropertyHost {
-
-
+class RuntimeTaskCheckingPropertyHost(val taskPath: Path, val project: ProjectInternal) : PropertyHost {
     override fun beforeRead(producer: ModelObject?): String? {
-        if (producer != null) {
-            val producerTask = producer.getTaskThatOwnsThisObject() as TaskInternal?
-            if (producerTask != null && producerTask.getState().isConfigurable()) {
+        try {
+            val producerTask = project.tasks.resolveTask(taskPath.toString()) as TaskInternal
+            if (producerTask.getState().isConfigurable()) {
                 // Currently cannot tell the difference between access from the producing task and access from outside, so assume
                 // all access after the task has started execution is ok
                 return producerTask.toString() + " has not completed yet"
             }
+        } catch (e: Exception) {
+            throw RuntimeException(e)
         }
+
         return null
     }
 }
