@@ -99,6 +99,11 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
+    public PathToFileResolver getResolver() {
+        return fileResolver;
+    }
+
+    @Override
     public FileCollectionFactory forChildScope(FileCollectionObservationListener listener) {
         return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem, listener);
     }
