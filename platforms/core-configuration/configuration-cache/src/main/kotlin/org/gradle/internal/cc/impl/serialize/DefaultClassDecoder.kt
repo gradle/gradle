@@ -17,92 +17,94 @@
 package org.gradle.internal.cc.impl.serialize
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.internal.Describables
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.DeserializationInstantiator
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ReadIdentities
+import org.gradle.internal.serialize.graph.decodePreservingIdentity
+import java.util.IdentityHashMap
 
 
 internal
 class DefaultClassDecoder(
     private val defaultClassLoaderScope: ClassLoaderScope,
-    private val instantiator: DeserializationInstantiator
+    private val instantiator: DeserializationInstantiator,
+    private val scopeSpecDecoder: ClassLoaderScopeSpecDecoder = InlineClassLoaderScopeSpecDecoder()
 ) : ClassDecoder {
 
     private
     val classes = ReadIdentities()
 
+    /**
+     * Associate each spec with its corresponding scope.
+     *
+     * It is safe to maintain the association
+     * by identity since [ScopeLookup] maintains a 1-to-1 mapping between scopes and their corresponding
+     * specs and [ClassLoaderScopeSpecDecoder] preserves identities upon decoding.
+     */
     private
-    val scopes = ReadIdentities()
+    val scopeBySpec = IdentityHashMap<ClassLoaderScopeSpec, ClassLoaderScope>()
 
-    override fun Decoder.decodeClass(): Class<*> {
-        val id = readSmallInt()
-        val type = classes.getInstance(id)
-        if (type != null) {
-            return type as Class<*>
-        }
+    override fun Decoder.decodeClass(): Class<*> = decodePreservingIdentity(classes) { id ->
         val isGenerated = readBoolean()
         val name = readString()
         val classLoader = decodeClassLoader()
         val newType = classForName(name, classLoader ?: gradleRuntimeClassLoader)
         val actualType = if (isGenerated) instantiator.getGeneratedType(newType) else newType
         classes.putInstance(id, actualType)
-        return actualType
+        actualType
     }
 
     override fun Decoder.decodeClassLoader(): ClassLoader? =
         if (readBoolean()) {
             val scope = readScope()
-            if (readBoolean()) {
+            val classLoader = if (readBoolean()) {
                 scope.localClassLoader
             } else {
                 scope.exportClassLoader
             }
+            classLoader
         } else {
             null
         }
 
     private
     fun Decoder.readScope(): ClassLoaderScope {
-        val id = readSmallInt()
-        val scope = scopes.getInstance(id)
-        if (scope != null) {
-            return scope as ClassLoaderScope
+        val spec = scopeSpecDecoder.run { decodeScope() }
+        return scopeFor(spec)
+    }
+
+    private
+    fun scopeFor(spec: ClassLoaderScopeSpec): ClassLoaderScope {
+
+        val cached = scopeBySpec[spec]
+        if (cached != null) {
+            return cached
         }
 
-        val parent = if (readBoolean()) {
-            readScope()
+        val parent = if (spec.parent != null) {
+            scopeFor(spec.parent)
         } else {
             defaultClassLoaderScope
         }
 
-        val name = readString()
-        val origin = if (readBoolean()) {
-            ClassLoaderScopeOrigin.Script(readString(), Describables.of(readString()), Describables.of(readString()))
+        val newScope = if (spec.localImplementationHash != null && spec.exportClassPath.isEmpty) {
+            parent.createLockedChild(
+                spec.name,
+                spec.origin,
+                spec.localClassPath,
+                spec.localImplementationHash,
+                null
+            )
         } else {
-            null
-        }
-        val localClassPath = readClassPath()
-        val localImplementationHash = readHashCode()
-        val exportClassPath = readClassPath()
-
-        val newScope = if (localImplementationHash != null && exportClassPath.isEmpty) {
-            parent.createLockedChild(name, origin, localClassPath, localImplementationHash, null)
-        } else {
-            parent.createChild(name, origin).local(localClassPath).export(exportClassPath).lock()
+            parent
+                .createChild(spec.name, spec.origin)
+                .local(spec.localClassPath)
+                .export(spec.exportClassPath)
+                .lock()
         }
 
-        scopes.putInstance(id, newScope)
+        scopeBySpec.put(spec, newScope)
         return newScope
-    }
-
-    private
-    fun Decoder.readHashCode() = if (readBoolean()) {
-        HashCode.fromBytes(readBinary())
-    } else {
-        null
     }
 }

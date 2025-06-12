@@ -38,11 +38,12 @@ class ConfigurationCacheReportIntegrationTest extends AbstractConfigurationCache
 
     def "report with problem loads successfully"() {
         given:
-        buildFile '''
+        buildFile """
+            def capturedProject = project
             tasks.register('notOk') {
-                doLast { println project.name }
+                doLast { println capturedProject.name }
             }
-        '''
+        """
 
         when:
         configurationCacheFails 'notOk'

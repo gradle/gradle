@@ -88,7 +88,7 @@ class DocsTest(
             arch = os.defaultArch,
             timeout = 60,
             extraParameters =
-                buildScanTagParam(docsTestType.docsTestName) +
+                buildScanTagParam(docsTestType.docsTestName) + " " +
                     parallelizationMethod.extraBuildParameters +
                     " -PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}" +
                     " -PtestJavaVersion=${testJava.version.major}" +

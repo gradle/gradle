@@ -102,7 +102,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
- * @deprecated This class will be removed in Gradle 9.0. Please use {@link org.gradle.api.DefaultTask} instead.
+ * @deprecated This class will be removed in Gradle 10. Please use {@link org.gradle.api.DefaultTask} instead.
  */
 @Deprecated
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")

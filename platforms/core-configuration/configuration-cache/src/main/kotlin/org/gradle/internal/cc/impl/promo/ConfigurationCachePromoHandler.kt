@@ -45,7 +45,7 @@ class ConfigurationCachePromoHandler(
             return
         }
 
-        val docUrl = documentationRegistry.getDocumentationFor("configuration_cache", "config_cache:usage")
+        val docUrl = documentationRegistry.getDocumentationFor("configuration_cache_enabling")
         // TODO(mlopatkin): finalize the message
         Logging.getLogger(ConfigurationCachePromoHandler::class.java).lifecycle("Consider enabling configuration cache to speed up this build: $docUrl")
     }

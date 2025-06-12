@@ -545,7 +545,9 @@ class ConfigurationCacheFingerprintWriter(
 
     fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T {
         val previous = projectForThread.get()
-        val projectSink = sinksForProject.computeIfAbsent(project.buildTreePath) { ProjectScopedSink(host, project, projectScopedWriter) }
+        val projectSink = sinksForProject.computeIfAbsent(project.buildTreePath) {
+            ProjectScopedSink(host, project, projectScopedWriter)
+        }
         projectForThread.set(projectSink)
         try {
             return action()
@@ -891,11 +893,18 @@ class ConfigurationCacheFingerprintWriter(
         project: ProjectIdentity,
         private val writer: ScopedFingerprintWriter<ProjectSpecificFingerprint>
     ) : Sink(host) {
+
         private
         val projectIdentityPath = project.buildTreePath
 
         init {
-            writer.write(ProjectSpecificFingerprint.ProjectIdentity(project.buildTreePath, Path.path(project.buildIdentifier.buildPath), project.projectPath))
+            writer.write(
+                ProjectSpecificFingerprint.ProjectIdentity(
+                    project.buildTreePath,
+                    Path.path(project.buildIdentifier.buildPath),
+                    project.projectPath
+                )
+            )
         }
 
         override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {

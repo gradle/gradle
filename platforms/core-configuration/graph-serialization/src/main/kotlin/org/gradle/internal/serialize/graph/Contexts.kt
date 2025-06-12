@@ -133,10 +133,6 @@ class DefaultWriteContext(
 }
 
 
-@JvmInline
-value class ClassLoaderRole(val local: Boolean)
-
-
 interface ClassEncoder {
     fun WriteContext.encodeClass(type: Class<*>)
 
@@ -144,6 +140,19 @@ interface ClassEncoder {
      * Tries to encode the given [classLoader].
      */
     fun WriteContext.encodeClassLoader(classLoader: ClassLoader?) = Unit
+}
+
+
+object NullClassEncoder : ClassEncoder {
+    override fun WriteContext.encodeClass(type: Class<*>) {
+        error("$type cannot be encoded in this context.")
+    }
+}
+
+
+object NullClassDecoder : ClassDecoder {
+    override fun Decoder.decodeClass(): Class<*> =
+        error("Cannot decode class in this context.")
 }
 
 
@@ -196,17 +205,17 @@ object InlineStringDecoder : StringDecoder {
 
 //TODO-RC consider making the implementations auto-closeable
 interface SharedObjectEncoder : AutoCloseable {
-    suspend fun <T: Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
+    suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
 }
 
 
 interface SharedObjectDecoder : AutoCloseable {
-    suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
+    suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
 }
 
 
 object InlineSharedObjectDecoder : SharedObjectDecoder {
-    override suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
+    override suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
         readContext.decode()
 
     override fun close() = Unit
@@ -375,6 +384,9 @@ abstract class AbstractIsolateContext<T>(
         currentIsolate = previousValues.first
         currentCodec = previousValues.second
     }
+
+    override val problemsListener: ProblemsListener
+        get() = currentProblemsListener
 
     override fun onProblem(problem: PropertyProblem) {
         currentProblemsListener.onProblem(problem)

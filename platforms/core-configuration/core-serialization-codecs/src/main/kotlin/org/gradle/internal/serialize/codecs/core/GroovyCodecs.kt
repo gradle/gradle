@@ -23,10 +23,15 @@ import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
 import groovy.lang.Script
 import org.codehaus.groovy.runtime.InvokerHelper
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.BasicScript
+import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsGradleModelTypes
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -35,6 +40,7 @@ import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.writeEnum
 
 
@@ -92,11 +98,15 @@ object ClosureCodec : Codec<Closure<*>> {
     private
     fun ReadContext.readReference(): Any =
         when (readEnum<ClosureReference>()) {
-            ClosureReference.Project -> BrokenScript(Project::class.java)
-            ClosureReference.Settings -> BrokenScript(Settings::class.java)
-            ClosureReference.Init -> BrokenScript(Gradle::class.java)
+            ClosureReference.Project -> BrokenScript(Project::class.java, trace, problemsFactory(), problemsListener)
+            ClosureReference.Settings -> BrokenScript(Settings::class.java, trace, problemsFactory(), problemsListener)
+            ClosureReference.Init -> BrokenScript(Gradle::class.java, trace, problemsFactory(), problemsListener)
             ClosureReference.NotScript -> BrokenObject
         }
+
+    private
+    fun ReadContext.problemsFactory(): ProblemFactory =
+        isolate.owner.serviceOf<ProblemFactory>()
 
     private
     enum class ClosureReference {
@@ -107,12 +117,17 @@ object ClosureCodec : Codec<Closure<*>> {
     object BrokenObject : GroovyObjectSupport()
 
     private
-    class BrokenScript(targetType: Class<*>) : Script() {
+    class BrokenScript(
+        targetType: Class<*>,
+        private val trace: PropertyTrace,
+        private val problemFactory: ProblemFactory,
+        private val problemsListener: ProblemsListener
+    ) : Script() {
         private
         val targetMetadata = ThreadSafeMetaClassWrapper(targetType)
 
         override fun run(): Any {
-            scriptReferenced()
+            scriptReferenced(invocationDescription = "Script.run")
         }
 
         override fun getProperty(propertyName: String): Any {
@@ -125,7 +140,7 @@ object ClosureCodec : Codec<Closure<*>> {
                 }
                 throw MissingPropertyException(propertyName)
             }
-            scriptReferenced()
+            scriptReferenced(invocationDescription = propertyName)
         }
 
         override fun setProperty(propertyName: String, newValue: Any?) {
@@ -133,20 +148,38 @@ object ClosureCodec : Codec<Closure<*>> {
             if (targetMetadata.hasProperty(null, propertyName) == null) {
                 throw MissingPropertyException(propertyName)
             }
-            scriptReferenced()
+            scriptReferenced(invocationDescription = propertyName)
         }
 
         override fun invokeMethod(name: String, args: Any): Any {
             // See above for why this check happens
             if (targetMetadata.respondsTo(null, name).isEmpty()) {
-                throw MissingMethodException(name, Project::class.java, arrayOf())
+                throw MissingMethodException(name, targetMetadata.targetType, arrayOf())
             }
-            scriptReferenced()
+            scriptReferenced(invocationDescription = name)
         }
 
         private
-        fun scriptReferenced(): Nothing {
-            error("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+        fun scriptReferenced(invocationDescription: String): Nothing {
+            val exceptionMessage =
+                "Invocation of '$invocationDescription' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
+
+            val problem = problemFactory.problem {
+                text("invocation of ")
+                reference(invocationDescription)
+                text(" references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+            }
+                .exception(exceptionMessage)
+                .documentationSection(RequirementsGradleModelTypes)
+                .mapLocation { trace }
+                .build()
+
+            problemsListener.onExecutionTimeProblem(problem)
+
+            // We normally fail immediately on execution-time problems, except when in the warning mode.
+            // However, even in the warning mode, we don't have a reasonable way of proceeding in this situation
+            // so we make sure to throw
+            throw problem.exception ?: InvalidUserCodeException(exceptionMessage)
         }
     }
 }
@@ -175,6 +208,9 @@ private value class ThreadSafeMetaClassWrapper private constructor(
     private val metaClass: MetaClass
 ) {
     constructor(cls: Class<*>) : this(synchronized(cls) { InvokerHelper.getMetaClass(cls) })
+
+    val targetType: Class<*>
+        get() = metaClass.theClass
 
     fun hasProperty(obj: Any?, propertyName: String) = synchronized(metaClass) { metaClass.hasProperty(obj, propertyName) }
 

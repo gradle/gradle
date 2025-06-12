@@ -322,6 +322,75 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/33713")
+    def "flow actions can consume configurations"() {
+        // TODO(mlopatkin): this is a test for a regression in KMP (resolving referenced configuration without a lock).
+        //  However, the way configuration is consumed doesn't make sense. FlowActions should be able to consume configurations directly.
+        //  See https://github.com/gradle/gradle/issues/32913
+        given:
+
+        buildFile """
+            plugins {
+                id("java")
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                implementation 'com.google.guava:guava:18.0'
+            }
+
+            import org.gradle.api.flow.*
+
+            class FlowActionInjection implements FlowAction<Params> {
+                interface Params extends FlowParameters {
+                    @Input
+                    Property<String> getInputText()
+                }
+
+                @Override void execute(Params parameters) {
+                    println(parameters.inputText.get())
+                }
+            }
+
+            class FlowActionInjectionPlugin implements Plugin<Project> {
+
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+
+                @Inject
+                FlowActionInjectionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+
+                void apply(Project target) {
+                    def classpath = target.configurations["compileClasspath"]
+
+                    def p = target.provider { classpath.resolve().join(", ") }
+
+                    flowScope.always(FlowActionInjection) {
+                        parameters {
+                            inputText = p
+                        }
+                    }
+                }
+            }
+
+            apply type: FlowActionInjectionPlugin
+
+            tasks.register("run") {}
+        """
+
+        when:
+        run("run")
+
+        then:
+        outputContains("guava")
+    }
+
     enum ScriptTarget {
         SETTINGS,
         PROJECT;

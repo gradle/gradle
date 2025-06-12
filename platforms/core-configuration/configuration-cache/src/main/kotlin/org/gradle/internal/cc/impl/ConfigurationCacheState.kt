@@ -85,6 +85,7 @@ import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.readStringsSet
+import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
@@ -109,7 +110,7 @@ enum class StateType(val encryptable: Boolean = false) {
     Work(true),
 
     /**
-     * Contains work-related state that is meant to be shared for the entire build.
+     * Contains work-related state meant to be shared for the entire build.
      */
     WorkShared(true),
 
@@ -530,9 +531,26 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
-        withIsolate(IsolateOwners.OwnerFlowScope(gradle), userTypesCodec) {
+        suspend fun WriteContext.doWriteFlowScopeOf(gradle: GradleInternal) {
             val flowScopeState = buildFlowScopeOf(gradle).store()
             write(flowScopeState)
+        }
+
+        withIsolate(IsolateOwners.OwnerFlowScope(gradle), userTypesCodec) {
+            val buildState = gradle.owner
+            if (buildState.isProjectsLoaded) {
+                // Grab the allprojects lock to serialize the flow actions.
+                // This is a workaround for parameters that may require dependency resolution under the hood.
+                buildState.projects.withMutableStateOfAllProjects {
+                    runWriteOperation {
+                        doWriteFlowScopeOf(gradle)
+                    }
+                }
+            } else {
+                // Projects are not registered yet, but actions may be already scheduled in the settings context.
+                // Let's run them without locks.
+                doWriteFlowScopeOf(gradle)
+            }
         }
     }
 

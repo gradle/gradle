@@ -45,6 +45,7 @@ Live JVM state types (e.g., `ClassLoader`, `Thread`, `OutputStream`, `Socket`) a
 
 The only exceptions are standard streams (`System.in`, `System.out`, `System.err`), which can be used, for example, as parameters for link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] and link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] tasks.
 
+[[config_cache:requirements:gradle_model_types]]
 === Gradle Model Types
 
 Gradle model types (e.g., `Gradle`, `Settings`, `Project`, `SourceSet`, `Configuration`) are often used to pass task inputs that should instead be explicitly declared.

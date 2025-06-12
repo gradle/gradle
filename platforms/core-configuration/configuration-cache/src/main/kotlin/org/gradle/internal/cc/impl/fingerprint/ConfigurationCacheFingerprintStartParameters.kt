@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.internal.cc.impl.fingerprint
 
-import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
+import org.gradle.internal.serialize.graph.CloseableWriteContext
 
-/**
- * Details about an artifact set being resolved.
- *
- * @since 4.0
- */
-public final class ResolveArtifactsBuildOperationType implements BuildOperationType<ResolveArtifactsBuildOperationType.Details, ResolveArtifactsBuildOperationType.Result> {
 
-    public interface Details {
-
-    }
-
-    public interface Result {
-
-    }
-
-    private ResolveArtifactsBuildOperationType() {
-    }
-
+internal
+interface ConfigurationCacheFingerprintStartParameters {
+    fun assignBuildScopedSpoolFile(): ConfigurationCacheStateStore.StateFile
+    fun assignProjectScopedSpoolFile(): ConfigurationCacheStateStore.StateFile
+    fun writeContextForOutputStream(stateFile: ConfigurationCacheStateStore.StateFile): CloseableWriteContext
 }
