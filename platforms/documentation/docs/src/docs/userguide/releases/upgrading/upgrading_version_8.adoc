@@ -522,6 +522,15 @@ The following helper methods for launching external processes were <<#deprecated
 * `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
 * `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
 
+==== Removal of unused public APIs
+
+The following types have been removed in Gradle 9.0.
+These types are not used in Gradle's public API and as such are not useful.
+
+* `org.gradle.api.artifacts.ArtifactIdentifier`
+* `org.gradle.api.publish.ivy.IvyDependency`
+* `org.gradle.api.publish.maven.MavenDependency`
+
 === Packaging and Artifact Behavior Changes
 
 ==== Artifact Signing now matches OpenPGP Key Version

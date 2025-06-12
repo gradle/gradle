@@ -169,6 +169,54 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Class org.gradle.api.artifacts.ArtifactIdentifier",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getClassifier()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getExtension()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getModuleVersionIdentifier()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getName()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getType()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ClientModule",
             "member": "Class org.gradle.api.artifacts.ClientModule",
             "acceptation": "Removed deprecated class",
@@ -1201,6 +1249,54 @@
             ]
         },
         {
+            "type": "org.gradle.api.publish.ivy.IvyDependency",
+            "member": "Class org.gradle.api.publish.ivy.IvyDependency",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.IvyDependency",
+            "member": "Method org.gradle.api.publish.ivy.IvyDependency.getConfMapping()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.IvyDependency",
+            "member": "Method org.gradle.api.publish.ivy.IvyDependency.getModule()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.IvyDependency",
+            "member": "Method org.gradle.api.publish.ivy.IvyDependency.getOrganisation()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.IvyDependency",
+            "member": "Method org.gradle.api.publish.ivy.IvyDependency.getRevision()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.IvyDependency",
+            "member": "Method org.gradle.api.publish.ivy.IvyDependency.isTransitive()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",
             "member": "Method org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor.getFileResolver()",
             "acceptation": "Making all injecting getters abstract",
@@ -1222,6 +1318,46 @@
             "acceptation": "Making all injecting getters abstract",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenDependency",
+            "member": "Class org.gradle.api.publish.maven.MavenDependency",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenDependency",
+            "member": "Method org.gradle.api.publish.maven.MavenDependency.getArtifactId()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenDependency",
+            "member": "Method org.gradle.api.publish.maven.MavenDependency.getGroupId()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenDependency",
+            "member": "Method org.gradle.api.publish.maven.MavenDependency.getType()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenDependency",
+            "member": "Method org.gradle.api.publish.maven.MavenDependency.getVersion()",
+            "acceptation": "Removing deprecated APIs",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
