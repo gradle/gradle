@@ -59,18 +59,23 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
     }
 
     @Override
+    public DirectoryProperty newDirectoryProperty(PropertyHost customHost) {
+        return new DefaultDirectoryVar(customHost, fileResolver, fileCollectionFactory);
+    }
+
+    @Override
     public RegularFileProperty newFileProperty() {
         return new DefaultRegularFileVar(host, fileResolver);
     }
 
     @Override
-    public FilePropertyFactory withResolvers(FileResolver fileResolver, PathToFileResolver fileCollectionResolver) {
-        return new DefaultFilePropertyFactory(host, fileResolver, fileCollectionFactory.withResolver(fileCollectionResolver));
+    public FilePropertyFactory withResolvers(@Nullable PropertyHost customHost, FileResolver fileResolver, PathToFileResolver fileCollectionResolver) {
+        return new DefaultFilePropertyFactory(customHost != null ? customHost : host, fileResolver, fileCollectionFactory.withResolver(fileCollectionResolver));
     }
 
     @Override
-    public FilePropertyFactory withResolver(FileResolver fileResolver) {
-        return new DefaultFilePropertyFactory(host, fileResolver, fileCollectionFactory);
+    public FilePropertyFactory withResolver(@Nullable PropertyHost customHost, FileResolver fileResolver) {
+        return new DefaultFilePropertyFactory(customHost != null ? customHost : host, fileResolver, fileCollectionFactory);
     }
 
     @Override

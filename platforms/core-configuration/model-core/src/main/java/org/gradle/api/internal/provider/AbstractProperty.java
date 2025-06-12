@@ -71,8 +71,17 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return state.isFinalized();
     }
 
+    public boolean isDisallowUnsafeRead() {
+        return state.isDisallowUnsafeRead();
+    }
+
     public boolean isDisallowChanges() {
         return state.isDisallowChanges();
+    }
+
+    @Nullable
+    public PropertyHost getHost() {
+        return state.getHost();
     }
 
     protected boolean isExplicit() {

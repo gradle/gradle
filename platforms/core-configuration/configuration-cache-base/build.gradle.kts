@@ -21,16 +21,17 @@ plugins {
 description = "Configuration cache internal API shared between :configuration-cache and codecs"
 
 dependencies {
+    api(projects.baseServices)
     api(projects.configurationProblemsBase)
     api(projects.core)
     api(projects.coreApi)
     api(projects.graphSerialization)
     api(projects.stdlibJavaExtensions)
     api(projects.loggingApi)
+    api(projects.modelCore)
 
     api(libs.kotlinStdlib)
     api(libs.inject)
 
-    implementation(projects.baseServices)
     implementation(projects.serviceLookup)
 }
