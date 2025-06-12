@@ -1014,12 +1014,17 @@ That means that:
 
 - File order in the archive is deterministic.
 - Files have fixed timestamps (timestamps depends on the archive type).
+- All directories have fixed permissions set to `0755`.
+- All files have fixed permissions set to `0644`.
 
 
 If desired this behaviour can be changed.
 
 For example, to make a `Zip` task file order based on the file system you need to set link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:reproducibleFileOrder[Zip.isReproducibleFileOrder()] to `false`.
 To preserve file system timestamps set link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:preserveFileTimestamps[Zip.isPreserveFileTimestamps()] to `true`.
+To configure permissions, you can use the link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:dirPermissions-org.gradle.api.Action-[Zip.dirPermissions(org.gradle.api.Action)] and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:filePermissions-org.gradle.api.Action-[Zip.filePermissions(org.gradle.api.Action)] methods.
+To use file system permission instead of reproducible permissions use link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:useFileSystemPermissions[Zip.useFileSystemPermissions()].
+Alternatively to use file system permissions globally for you build you can add `org.gradle.archives.use-file-system-permissions=true` to `gradle.properties` file.
 
 Add the following configuration to change one or more properties on a task level:
 

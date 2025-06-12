@@ -726,6 +726,8 @@ tasks.withType<AbstractArchiveTask>().configureEach {
     isReproducibleFileOrder = false
     // Use file timestamps from the file system
     isPreserveFileTimestamps = true
+    // Use permissions from the file system
+    useFileSystemPermissions()
 }
 ----
 =====
@@ -739,6 +741,8 @@ tasks.withType(AbstractArchiveTask).configureEach {
     reproducibleFileOrder = false
     // Use file timestamps from the file system
     preserveFileTimestamps = true
+    // Use permissions from the file system
+    useFileSystemPermissions()
 }
 ----
 =====

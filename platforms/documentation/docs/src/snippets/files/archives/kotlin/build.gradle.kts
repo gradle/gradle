@@ -53,6 +53,9 @@ tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = true
     // Make file order based on the file system
     isReproducibleFileOrder = false
+    // Use permissions from the file system
+    useFileSystemPermissions()
+
 }
 // end::revert-reproducible[]
 
