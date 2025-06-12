@@ -388,6 +388,13 @@ class ConfigurationCacheFingerprintWriter(
         addEnvVariablesPrefixedByToFingerprint(prefix, snapshot)
     }
 
+    override fun envVariable(name: String, value: String?) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+        addEnvVariableToFingerprint(name, value)
+    }
+
     private
     fun addEnvVariablesPrefixedByToFingerprint(prefix: String, snapshot: Map<String, String?>) {
         buildScopedSink.write(ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy(prefix, snapshot))
