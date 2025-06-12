@@ -189,26 +189,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
     }
 
     private void setupIncludedBuild() {
-        /*file("plugin1/settings.gradle") << """
-            ${applyToolchainResolverPlugin(
-                "CustormToolchainResolver",
-                singleUrlResolverCode("https://good_for_nothing.com/"),
-                JavaToolchainDownloadUtil.DEFAULT_PLUGIN,
-                """
-                    toolchainManagement {
-                        jvm {
-                            javaRepositories {
-                                repository('custom') {
-                                    resolverClass = CustomToolchainResolver
-                                }
-                            }
-                        }
-                    }
-                """
-            )}
-
-            rootProject.name = 'plugin1'
-        """*/ //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
+        //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
         file("plugin1/settings.gradle") << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
 

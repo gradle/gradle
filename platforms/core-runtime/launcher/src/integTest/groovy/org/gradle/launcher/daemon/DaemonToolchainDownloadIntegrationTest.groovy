@@ -59,7 +59,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
     def "toolchain download on http fails"() {
         given:
         writeJvmCriteria(javaVersion)
-        writeToolchainDownloadUrls("http://insecure-server.com")
+        writeToolchainDownloadUrls("http://example.com")
 
         when:
         failure = executer
@@ -69,13 +69,13 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) " +
-            "from 'http://insecure-server.com', due to: Attempting to download java toolchain from an insecure URI http://insecure-server.com. This is not supported, use a secure URI instead")
+            "from 'http://example.com', due to: Attempting to download java toolchain from an insecure URI http://example.com. This is not supported, use a secure URI instead")
     }
 
     def "toolchain download on syntax exception url fails"() {
         given:
         writeJvmCriteria(javaVersion)
-        writeToolchainDownloadUrls("https://server.com/v=^10")
+        writeToolchainDownloadUrls("https://example.com/v=^10")
 
         when:
         failure = executer
@@ -84,7 +84,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'https://server.com/v=^10'")
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'https://example.com/v=^10'")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
