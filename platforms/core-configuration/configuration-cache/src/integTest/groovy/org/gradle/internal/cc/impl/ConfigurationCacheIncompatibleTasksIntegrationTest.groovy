@@ -109,24 +109,28 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         assertStateStoredAndDiscardedForDeclaredTask(9)
     }
 
-    def "incompatible task problems are not subtracted from max-problems"() {
+    def "problems from incompatible tasks do not count towards max problems limit in #mode-on-problems mode"() {
         given:
         addIncompatibleTasksWithProblems()
 
         when:
-        configurationCacheRun "declared", "$MAX_PROBLEMS_SYS_PROP=1"
+        configurationCacheRun "declared", "$MAX_PROBLEMS_SYS_PROP=1", "--configuration-cache-problems=$mode"
 
         then:
         result.assertTasksExecuted(":declared")
         assertStateStoredAndDiscardedForDeclaredTask(9)
+
+        where:
+        mode   | _
+        "fail" | _
+        "warn" | _
     }
 
-    def "incompatible task problems are not subtracted from max-problems but problems from tasks that are not marked incompatible are"() {
+    def "in warning mode, problems from unmarked tasks count towards max problems limit even when incompatible task is present"() {
         given:
         addIncompatibleTasksWithProblems()
 
         when:
-        // using warning mode, because otherwise any CC problem results in the main CC build failure, and not too-many-problems failure
         configurationCacheFails "declared", "notDeclared", "$MAX_PROBLEMS_SYS_PROP=1", WARN_PROBLEMS_CLI_OPT
 
         then:
