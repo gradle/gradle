@@ -46,6 +46,8 @@ public interface FileCollectionFactory {
      */
     FileCollectionFactory withResolver(PathToFileResolver fileResolver);
 
+    PathToFileResolver getResolver();
+
     FileCollectionFactory forChildScope(FileCollectionObservationListener listener);
 
     FileCollectionFactory forChildScope(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost);
