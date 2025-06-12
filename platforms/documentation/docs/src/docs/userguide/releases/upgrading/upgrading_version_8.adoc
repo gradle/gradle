@@ -288,62 +288,6 @@ The `model` and `component` tasks report on the structure of legacy software mod
 Previously, these tasks were automatically added to the project for every build.
 These tasks are now only added to a project when a rule-based plugin is applied (such as those provided by Gradle's support for building native software).
 
-[[reproducible_archives_by_default]]
-==== Archive tasks now produce reproducible archives by default
-
-In Gradle 9, the default behavior of archive tasks (such as `Jar`, `Ear`, `War`, `Zip`, and `AbstractArchiveTask`) has changed to produce reproducible archives by default.
-That means that:
-
-- File order in the archive is now deterministic.
-- Files have fixed timestamps (timestamps depends on the archive type).
-- All directories have fixed permissions set to `0755`.
-- All files have fixed permissions set to `0644`.
-
-This change improves the reproducibility of builds and ensures that the generated archives are consistent across different environments.
-
-You can restore the previous behaviour for one or more properties for your task with the following configuration:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-tasks.withType<AbstractArchiveTask>().configureEach {
-    // Make file order based on the file system
-    isReproducibleFileOrder = false
-    // Use file timestamps from the file system
-    isPreserveFileTimestamps = true
-    // Use permissions from the file system
-    useFileSystemPermissions()
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-tasks.withType(AbstractArchiveTask).configureEach {
-    // Makes file order non deterministic
-    reproducibleFileOrder = false
-    // Use file timestamps from the file system
-    preserveFileTimestamps = true
-    // Use permissions from the file system
-    useFileSystemPermissions()
-}
-----
-=====
-====
-
-You can also preserve the file system permissions across archives tasks by configuring a property:
-
-[source,properties]
-.gradle.properties
-----
-org.gradle.archives.use-file-system-permissions=true
-----
-
 === Configuration Cache changes
 
 ==== Unsupported build event listeners are now configuration cache problems
