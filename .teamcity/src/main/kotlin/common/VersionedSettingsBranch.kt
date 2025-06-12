@@ -53,7 +53,7 @@ data class VersionedSettingsBranch(
 
         private val OLD_RELEASE_PATTERN = "release(\\d+)x".toRegex()
 
-        fun fromDslContext(): VersionedSettingsBranch = VersionedSettingsBranch(DslContext.getParameter("branch", "master"))
+        fun fromDslContext(): VersionedSettingsBranch = VersionedSettingsBranch(DslContext.getParameter("branch"))
 
         private fun determineNightlyPromotionTriggerHour(branchName: String) =
             when (branchName) {
