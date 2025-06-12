@@ -31,7 +31,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -87,9 +86,6 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     private ConfigurationCacheDegradationController getDegradationController(Task task) {
         return ((ProjectInternal) task.getProject()).getServices().get(ConfigurationCacheDegradationController.class);
     }
-
-    @Inject
-    protected abstract ProviderFactory getProviderFactory();
 
     @Override
     public void apply(final Project project) {
@@ -157,7 +153,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     }
 
     private Provider<String> usingExplicitCredentials(PublishToMavenRepository task) {
-        return getProviderFactory().provider(() -> (AuthenticationSupportedInternal) task.getRepository())
+        return task.getProject().provider(() -> (AuthenticationSupportedInternal) task.getRepository())
                 .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
                 .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials are unsupported with the Configuration Cache");
     }
