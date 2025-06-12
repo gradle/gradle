@@ -111,7 +111,7 @@ class JsonProblemWriter(private val problem: InternalProblem, private val failur
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
-                val fileLocations = problem.originLocations + problem.contextualLocations
+                val fileLocations = (problem.originLocations + problem.contextualLocations).filter { it is FileLocation || it is PluginIdLocation || it is TaskLocation}
                 if (fileLocations.isNotEmpty()) {
                     property("locations") {
                         jsonObjectList(fileLocations) { location ->

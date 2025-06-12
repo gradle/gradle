@@ -26,7 +26,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
-    val configurationCacheReportVersion = "1.25"
+    val configurationCacheReportVersion = "1.26"
     val gradleIdeStarterVersion = "0.5"
     val kotlinVersion = "2.1.21"
 
