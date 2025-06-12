@@ -154,7 +154,7 @@ object ClosureCodec : Codec<Closure<*>> {
         override fun invokeMethod(name: String, args: Any): Any {
             // See above for why this check happens
             if (targetMetadata.respondsTo(null, name).isEmpty()) {
-                throw MissingMethodException(name, Project::class.java, arrayOf())
+                throw MissingMethodException(name, targetMetadata.targetType, arrayOf())
             }
             scriptReferenced(invocationDescription = name)
         }
@@ -208,6 +208,9 @@ private value class ThreadSafeMetaClassWrapper private constructor(
     private val metaClass: MetaClass
 ) {
     constructor(cls: Class<*>) : this(synchronized(cls) { InvokerHelper.getMetaClass(cls) })
+
+    val targetType: Class<*>
+        get() = metaClass.theClass
 
     fun hasProperty(obj: Any?, propertyName: String) = synchronized(metaClass) { metaClass.hasProperty(obj, propertyName) }
 
