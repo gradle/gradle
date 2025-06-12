@@ -37,7 +37,7 @@ public abstract class AntTarget extends ConventionTask {
 
     public AntTarget() {
         getDegradationController().requireConfigurationCacheDegradation(this,
-            getProject().getProviders().provider(() -> "Task '" + this.getName() + "' of type '" + AntTarget.class.getSimpleName() + "' is not supported with the Configuration Cache")
+            getProject().getProviders().provider(() -> "Task is not compatible with the Configuration Cache")
         );
     }
 
