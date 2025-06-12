@@ -895,7 +895,7 @@ class ConfigurationCacheFingerprintWriter(
         val projectIdentityPath = project.buildTreePath
 
         init {
-            writer.write(ProjectSpecificFingerprint.ProjectIdentity(project.buildTreePath, Path.path(project.buildIdentifier.buildPath), project.projectPath))
+            writer.write(ProjectSpecificFingerprint.ProjectIdentity(project.buildTreePath, project.buildPath, project.projectPath))
         }
 
         override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {

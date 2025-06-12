@@ -17,11 +17,9 @@
 package org.gradle.composite.internal;
 
 import org.gradle.BuildResult;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -79,11 +77,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             CompositeStoppable.stoppable().addFailure(t).add(buildScopeServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
         }
-    }
-
-    @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return DefaultBuildIdentifier.ROOT;
     }
 
     @Override

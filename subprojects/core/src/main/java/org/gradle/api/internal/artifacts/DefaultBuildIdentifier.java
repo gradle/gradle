@@ -37,6 +37,10 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
         return buildPath.toString();
     }
 
+    public Path getIdentityPath() {
+        return buildPath;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
