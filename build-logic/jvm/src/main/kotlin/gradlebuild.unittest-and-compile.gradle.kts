@@ -441,6 +441,8 @@ fun configureTests() {
                     requirements = listOf(dogfoodingTag)
                 }
             }
+
+            println("Project: ${this@configureEach.project.name} TD enabled: ${enabled.get()}")
         }
 
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
