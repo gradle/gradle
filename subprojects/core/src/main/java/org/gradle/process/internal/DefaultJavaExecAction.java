@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
  *
- * TODO: We should remove setters and have abstract getters in Gradle 9.0 and configure builder in execute() method.
+ * TODO: We should remove setters and have abstract getters in Gradle 10 and configure builder in execute() method.
  */
 public class DefaultJavaExecAction implements JavaExecAction {
 
