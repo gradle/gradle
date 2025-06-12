@@ -35,7 +35,7 @@ trait TestFrameworkStartupTestFixture {
 
         def taskOutput = result.groupedOutput.task(taskName).output
         assert !(taskOutput =~ /beforeSuite Gradle Test Executor \d+/)
-        assert taskOutput.contains("afterSuite Gradle Test Run $taskName [] FAILURE")
+        assert taskOutput =~ /afterSuite Gradle Test Run $taskName \[.*\] FAILURE/
     }
 
     void assertTestWorkerStartedAndTestFrameworkFailedToStart(String taskName = ":test") {
@@ -44,8 +44,7 @@ trait TestFrameworkStartupTestFixture {
 
         def taskOutput = result.groupedOutput.task(taskName).output
         assert taskOutput =~ /beforeSuite Gradle Test Executor \d+/
-        //noinspection RegExpRedundantEscape
-        assert taskOutput.contains("afterSuite Gradle Test Run $taskName [] FAILURE")
+        assert taskOutput =~ (/afterSuite Gradle Test Run $taskName \[.*\] FAILURE/)
     }
 
     void assertSuggestsInspectTaskConfiguration() {

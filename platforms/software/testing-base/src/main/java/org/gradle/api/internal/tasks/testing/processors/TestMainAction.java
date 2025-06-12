@@ -50,13 +50,12 @@ public class TestMainAction implements Runnable {
     public void run() {
         TestDescriptorInternal suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName);
         resultProcessor.started(suite, new TestStartEvent(clock.getCurrentTime()));
+
         try {
             processor.startProcessing(resultProcessor);
+
             try {
                 detector.run();
-            } catch (Throwable t) {
-                resultProcessor.failure(suite.getId(), TestFailure.fromTestFrameworkStartupFailure(t));
-                throw t;
             } finally {
                 // Release worker lease while waiting for tests to complete
                 workerLeaseService.blocking(new Runnable() {
@@ -66,6 +65,9 @@ public class TestMainAction implements Runnable {
                     }
                 });
             }
+        } catch (Throwable t) {
+            resultProcessor.failure(suite.getId(), TestFailure.fromTestFrameworkStartupFailure(t));
+            throw t;
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }

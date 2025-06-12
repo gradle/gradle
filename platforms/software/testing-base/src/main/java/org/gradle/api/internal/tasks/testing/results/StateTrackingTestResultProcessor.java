@@ -107,13 +107,13 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
                     testId, executing.keySet()));
         }
         if (testFailure.getDetails().isStartupFailure()) {
+            testState.failures.add(testFailure);
             /*
              * This is a special case of test failure where the testing framework has completely failed to start up.
              * We want to treat this not as a test failure, but as a TASK failure, as it indicates a task misconfiguration.
              * We need to throw an exception here and abort normal failure processing so that this information
              * isn't buried in the typical test results report.
              */
-            testState.failures.add(testFailure);
             throw new TestFrameworkStartupFailureException(testFailure);
         } else if (testFailure.getDetails().isAssumptionFailure()) {
             testState.assumptionFailure = testFailure;
