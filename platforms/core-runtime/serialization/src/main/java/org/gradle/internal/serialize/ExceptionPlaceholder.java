@@ -23,9 +23,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +57,6 @@ class ExceptionPlaceholder implements Serializable {
     private final String type;
     private byte[] serializedException;
     private String message;
-    @Nullable
-    private final List<String> resolutions;
     private String toString;
     private final boolean contextual;
     private final boolean assertionError;
@@ -88,11 +84,6 @@ class ExceptionPlaceholder implements Serializable {
             message = throwable.getMessage();
         } catch (Throwable failure) {
             getMessageExec = failure;
-        }
-        if (throwable instanceof ResolutionProvider) {
-            resolutions = ((ResolutionProvider) throwable).getResolutions();
-        } else {
-            resolutions = null;
         }
 
         if (isJava14()) {
@@ -241,9 +232,6 @@ class ExceptionPlaceholder implements Serializable {
             if (clazz != null && causes.size() <= 1) {
                 Constructor<?> constructor = clazz.getConstructor(String.class);
                 Throwable reconstructed = (Throwable) constructor.newInstance(message);
-                if (reconstructed instanceof ResolutionProvider && resolutions != null) {
-                    ((ResolutionProvider) reconstructed).getResolutions().addAll(resolutions);
-                }
                 if (!causes.isEmpty()) {
                     reconstructed.initCause(causes.get(0));
                 }
@@ -255,7 +243,7 @@ class ExceptionPlaceholder implements Serializable {
             // Don't log
         } catch (NoSuchMethodException ignored) {
             // Don't log
-        } catch (@SuppressWarnings("CatchMayIgnoreException") Throwable ignored) {
+        } catch (Throwable ignored) {
             LOGGER.debug("Ignoring failure to recreate throwable.", ignored);
         }
 
@@ -263,12 +251,12 @@ class ExceptionPlaceholder implements Serializable {
         if (causes.size() <= 1) {
             if (contextual) {
                 // there are no @Contextual assertion errors in Gradle so we're safe to use this type only
-                placeholder = new ContextualPlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0), resolutions);
+                placeholder = new ContextualPlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
             } else {
                 if (assertionError) {
                     placeholder = new PlaceholderAssertionError(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
                 } else {
-                    placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0), resolutions);
+                    placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
                 }
             }
         } else {

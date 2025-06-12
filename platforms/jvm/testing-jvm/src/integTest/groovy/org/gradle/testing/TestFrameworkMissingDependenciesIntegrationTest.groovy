@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.TestNGCoverage
-import org.gradle.util.GradleVersion
 
 /**
  * Tests behavior of different test frameworks when their required
@@ -85,11 +84,10 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
 
         then: "Test framework startup failure is reported"
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load JUnit 4\./)
+        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load JUnit 4\. {2}Please ensure that JUnit 4 is available on the test runtime classpath\./)
 
         and: "Resolutions are provided"
-        assertSuggestsCheckingTestFrameworkAvailability("JUnit 4")
-        assertSuggestsUpgradeGuide()
+        assertSuggestsInspectTaskConfiguration()
 
         and: "No test class results created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
@@ -125,11 +123,10 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
 
         then: "Test framework startup failure is reported"
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load JUnit Platform\./)
+        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load JUnit Platform\. {2}Please ensure that the JUnit Platform is available on the test runtime classpath\./)
 
         and: "Resolutions are provided"
-        assertSuggestsCheckingTestFrameworkAvailability("the JUnit Platform")
-        assertSuggestsUpgradeGuide()
+        assertSuggestsInspectTaskConfiguration()
 
         and: "No test class results created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
@@ -165,21 +162,16 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
 
         then: "Test framework startup failure is reported"
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load TestNG\./)
+        failureHasCause(~/Could not start Gradle Test Executor \d+: Failed to load TestNG\. {2}Please ensure that TestNG is available on the test runtime classpath\./)
 
         and: "Resolutions are provided"
-        assertSuggestsCheckingTestFrameworkAvailability("TestNG")
-        assertSuggestsUpgradeGuide()
+        assertSuggestsInspectTaskConfiguration()
 
         and: "No test class results created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
     }
 
-    private assertSuggestsCheckingTestFrameworkAvailability(String testFramework) {
-        failure.assertHasResolution("Please ensure that $testFramework is available on the test runtime classpath.")
-    }
-
-    private assertSuggestsUpgradeGuide() {
-        failure.assertHasResolution("See the upgrade guide for more details: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#test_framework_implementation_dependencies.")
+    private assertSuggestsInspectTaskConfiguration() {
+        failure.assertHasResolution("Inspect your task configuration for errors.")
     }
 }

@@ -27,7 +27,6 @@ import org.gradle.internal.time.Clock;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassProcessor {
@@ -57,13 +56,7 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
         try {
             Class.forName("org.testng.TestNG");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException(
-                "Failed to load TestNG.",
-                Arrays.asList(
-                    "Please ensure that TestNG is available on the test runtime classpath.",
-                    getUpgradeGuide()
-                )
-            );
+            throw new TestFrameworkNotAvailableException("Failed to load TestNG.  Please ensure that TestNG is available on the test runtime classpath.");
         }
     }
 
