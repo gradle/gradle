@@ -11,6 +11,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.DslContext
 import model.CIBuildModel
 import model.JsonBasedGradleSubprojectProvider
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -39,6 +40,10 @@ import java.io.File
 
 @ExtendWith(MockKExtension::class)
 class ApplyDefaultConfigurationTest {
+    init {
+        DslContext.initForTest()
+    }
+
     @MockK(relaxed = true)
     lateinit var buildType: BaseGradleBuildType
 
