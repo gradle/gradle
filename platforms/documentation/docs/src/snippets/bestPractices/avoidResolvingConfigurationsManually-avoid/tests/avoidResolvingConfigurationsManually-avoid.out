@@ -1,11 +1,11 @@
-> Task :library:badClasspathPrinter FAILED
+> Task :app:badClasspathPrinter FAILED
 1 actionable task: 1 executed
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':library:badClasspathPrinter'.
-> File or directory /home/user/gradle/samples/library/build/libs/library.jar doesn't exist
+Execution failed for task ':app:badClasspathPrinter'.
+> File or directory /home/user/gradle/samples/lib/build/libs/lib.jar doesn't exist
 
 * Try:
 > Run with --stacktrace option to get the stack trace.

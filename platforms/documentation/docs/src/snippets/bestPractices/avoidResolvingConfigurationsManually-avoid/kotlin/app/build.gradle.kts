@@ -1,10 +1,10 @@
 plugins {
-    `java-library`
+    `application`
 }
 
-// tag::bad-classpath-printer[]
+// tag::avoid-this[]
 dependencies {
-    runtimeOnly(project(":library")) // <1>
+    runtimeOnly(project(":lib")) // <1>
 }
 
 abstract class BadClasspathPrinter : DefaultTask() {
@@ -30,10 +30,4 @@ abstract class BadClasspathPrinter : DefaultTask() {
 tasks.register("badClasspathPrinter", BadClasspathPrinter::class) {
     classpath = configurations.named("runtimeClasspath").get().resolve() // <3>
 }
-// end::bad-classpath-printer[]
-
-tasks.named("jar").configure {
-    doLast {
-        logger.lifecycle("jar task was executed")
-    }
-}
+// end::avoid-this[]
