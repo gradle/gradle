@@ -18,6 +18,7 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -94,18 +95,18 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     private void configureDefaultPermissions() {
-        getDirPermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE));
-        getFilePermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE));
+        ConfigurableFilePermissions defaultDirPermissions = getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE);
+        ConfigurableFilePermissions defaultFilePermissions = getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE);
 
-        // TODO: Wire provider directly instead of reading it at configuration time.
-        boolean useFileSystemPermissions = getProject().getProviders()
+        getDirPermissions().convention(defaultDirPermissions);
+        getFilePermissions().convention(defaultFilePermissions);
+
+        Provider<Boolean> useFileSystemPermissions = getProject().getProviders()
             .gradleProperty(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY)
             .map(value -> Boolean.parseBoolean(value.trim()))
-            .getOrElse(false);
-        getInputs().property(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY, useFileSystemPermissions);
-        if (useFileSystemPermissions) {
-            useFileSystemPermissions();
-        }
+            .orElse(false);
+        getDirPermissions().set(useFileSystemPermissions.map(fileSystemPermissions -> fileSystemPermissions ? null : defaultDirPermissions));
+        getFilePermissions().set(useFileSystemPermissions.map(fileSystemPermissions -> fileSystemPermissions ? null : defaultFilePermissions));
     }
 
     @Inject
