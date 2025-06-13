@@ -63,8 +63,7 @@ abstract class AbstractTaskProjectAccessChecker(
     private
     fun currentTask() = workExecutionTracker.currentTask.orElse(null)
 
-    private
-    fun shouldReportExecutionTimeAccess(task: TaskInternal): Boolean {
+    override fun shouldReportExecutionTimeAccess(task: TaskInternal): Boolean {
         return isTaskExecutionTime(task) && !currentEvaluationShouldBeReducedByStore()
     }
 
