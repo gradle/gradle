@@ -169,7 +169,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCache.assertNoConfigurationCache()
 
         and:
-        postBuildOutputContains("Configuration cache disabled because incompatible feature (source dependencies) was found.")
+        postBuildOutputContains("Configuration cache disabled because incompatible feature usage (source dependencies) was found.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20945")
