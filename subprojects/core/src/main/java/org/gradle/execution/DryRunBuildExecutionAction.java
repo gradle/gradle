@@ -28,27 +28,21 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
  */
 public class DryRunBuildExecutionAction implements BuildWorkExecutor {
     private final StyledTextOutputFactory textOutputFactory;
-    private final BuildWorkExecutor delegate;
 
-    public DryRunBuildExecutionAction(StyledTextOutputFactory textOutputFactory, BuildWorkExecutor delegate) {
+    public DryRunBuildExecutionAction(StyledTextOutputFactory textOutputFactory) {
         this.textOutputFactory = textOutputFactory;
-        this.delegate = delegate;
     }
 
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        if (gradle.getStartParameter().isDryRun()) {
-            for (Task task : plan.getContents().getTasks()) {
-                textOutputFactory.create(DryRunBuildExecutionAction.class)
-                    .append(((TaskInternal) task).getIdentityPath().getPath())
-                    .append(" ")
-                    .style(StyledTextOutput.Style.ProgressStatus)
-                    .append("SKIPPED")
-                    .println();
-            }
-            return ExecutionResult.succeeded();
-        } else {
-            return delegate.execute(gradle, plan);
+        for (Task task : plan.getContents().getTasks()) {
+            textOutputFactory.create(DryRunBuildExecutionAction.class)
+                .append(((TaskInternal) task).getIdentityPath().getPath())
+                .append(" ")
+                .style(StyledTextOutput.Style.ProgressStatus)
+                .append("SKIPPED")
+                .println();
         }
+        return ExecutionResult.succeeded();
     }
 }
