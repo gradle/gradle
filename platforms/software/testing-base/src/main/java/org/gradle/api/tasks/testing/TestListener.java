@@ -32,9 +32,9 @@ import org.gradle.internal.service.scopes.Scope;
  * Note that the {@link #beforeSuite(TestDescriptor)} method will be called
  * at 3 different times:
  * <ol>
- *     <li>Before the test worker has been started by the test task</li>
- *     <li>Before the test worker has started running tests, but after it has loaded the testing framework</li>
- *     <li>Before <strong>each</strong> "test suite" as defined by the testing framework is run
+ *     <li>Before the test task executes any tests</li>
+ *     <li>Each time a test worker is started before it executes any tests</li>
+ *     <li>Before <strong>each</strong> "test suite" as defined by the testing framework is executed
  *     (for JVM, this typically means prior to every test class)</li>
  * </ol>
  */
