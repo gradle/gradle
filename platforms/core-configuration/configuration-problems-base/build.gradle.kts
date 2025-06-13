@@ -54,7 +54,6 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
-    implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.jacksonCore)
 
