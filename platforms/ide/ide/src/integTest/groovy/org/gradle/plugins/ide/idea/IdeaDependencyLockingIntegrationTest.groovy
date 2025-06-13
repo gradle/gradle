@@ -16,14 +16,12 @@
 
 package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Test
 
 class IdeaDependencyLockingIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "does not break when lockfile is out of date"() {
         //given
         def mvnRepo = maven(file("repo"))
@@ -60,7 +58,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "does not break when extra dependency not in lockfile is defined"() {
         //given
         def mvnRepo = maven(file("repo"))
