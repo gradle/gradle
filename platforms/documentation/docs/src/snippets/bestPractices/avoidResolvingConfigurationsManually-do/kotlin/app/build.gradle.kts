@@ -1,10 +1,10 @@
 plugins {
-    `java-library`
+    `application`
 }
 
-// tag::good-classpath-printer[]
+// tag::do-this[]
 dependencies {
-    runtimeOnly(project(":library")) // <1>
+    runtimeOnly(project(":lib")) // <1>
 }
 
 abstract class GoodClasspathPrinter : DefaultTask() {
@@ -30,10 +30,4 @@ abstract class GoodClasspathPrinter : DefaultTask() {
 tasks.register("goodClasspathPrinter", GoodClasspathPrinter::class.java) {
     resolvedClasspath.from(configurations.named("runtimeClasspath")) // <3>
 }
-
-tasks.named("jar").configure {
-    doLast {
-        logger.lifecycle("jar task was executed")
-    }
-}
-// end::good-classpath-printer[]
+// end::do-this[]

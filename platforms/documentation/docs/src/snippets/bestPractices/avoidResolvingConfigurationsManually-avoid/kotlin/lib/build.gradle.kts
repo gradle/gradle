@@ -3,9 +3,9 @@ plugins {
 }
 
 // tag::avoid-this[]
-tasks.named("jar").configure {
+tasks.named("compileJava").configure {
     doLast {
-        logger.lifecycle("jar task was executed")
+        logger.lifecycle("Lib was compiled")
     }
 }
 // end::avoid-this[]
