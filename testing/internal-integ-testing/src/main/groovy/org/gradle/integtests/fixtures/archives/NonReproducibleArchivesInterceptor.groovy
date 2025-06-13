@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 
-class ReproducibleArchivesInterceptor extends AbstractMultiTestInterceptor {
+class NonReproducibleArchivesInterceptor extends AbstractMultiTestInterceptor {
 
-    protected ReproducibleArchivesInterceptor(Class<?> target) {
+    protected NonReproducibleArchivesInterceptor(Class<?> target) {
         super(target)
     }
 
@@ -51,19 +51,18 @@ class ReproducibleArchivesInterceptor extends AbstractMultiTestInterceptor {
         }
 
         protected void before(IMethodInvocation invocation) {
-            if (withReproducibleArchives) {
+            if (!withReproducibleArchives) {
                 AbstractIntegrationSpec instance = invocation.instance as AbstractIntegrationSpec
-                def initScript = instance.testDirectory.file('reproducible-archives-init.gradle')
+                def initScript = instance.testDirectory.file('non-reproducible-archives-init.gradle')
                 initScript.text = """
-                        rootProject { prj ->
-                            allprojects {
-                                tasks.withType(AbstractArchiveTask) {
-                                    preserveFileTimestamps = false
-                                    reproducibleFileOrder = true
-                                }
-                            }
+                    gradle.lifecycle.beforeProject {
+                        tasks.withType(AbstractArchiveTask).configureEach {
+                            preserveFileTimestamps = true
+                            reproducibleFileOrder = false
+                            useFileSystemPermissions()
                         }
-                    """.stripIndent()
+                    }
+                """.stripIndent()
                 instance.executer.beforeExecute {
                     usingInitScript(initScript)
                 }

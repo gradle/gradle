@@ -17,10 +17,10 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestNonReproducibleArchives
 import spock.lang.Ignore
 
-@TestReproducibleArchives
+@TestNonReproducibleArchives
 class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "creating zips"() {
         given:

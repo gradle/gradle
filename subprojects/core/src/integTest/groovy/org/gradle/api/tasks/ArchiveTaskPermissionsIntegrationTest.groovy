@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestNonReproducibleArchives
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -26,7 +26,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.junit.Assert.assertTrue
 
-@TestReproducibleArchives
+@TestNonReproducibleArchives
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(UnitTestPreconditions.FilePermissions)
