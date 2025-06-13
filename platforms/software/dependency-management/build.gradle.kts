@@ -16,19 +16,12 @@ errorprone {
         "DefaultCharset", // 3 occurrences
         "Finally", // 4 occurrences
         "IdentityHashMapUsage", // 2 occurrences
-        "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 5 occurrences
-        "InlineMeSuggester", // 2 occurrences
         "InvalidParam", // 1 occurrences
-        "MathAbsoluteNegative",
-        "MissingCasesInEnumSwitch", // 7 occurrences
-        "MixedMutabilityReturnType", // 5 occurrences
-        "ModifiedButNotUsed", // 1 occurrences
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
         "ReferenceEquality", // 10 occurrences
-        "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
@@ -62,6 +55,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.security)
     api(projects.serialization)
     api(projects.serviceLookup)
@@ -88,9 +82,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.wrapperShared)
-
-    implementation(libs.ant)
+    
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)

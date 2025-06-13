@@ -4,7 +4,7 @@ plugins {
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
-gradlebuildJava {
+jvmCompile {
     usesJdkInternals = true
 }
 
@@ -12,10 +12,6 @@ errorprone {
     disabledChecks.addAll(
         "CheckReturnValue", // 2 occurrences
         "DoNotClaimAnnotations", // 6 occurrences
-        "InconsistentCapitalization", // 1 occurrences
-        "InvalidInlineTag", // 3 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-        "MixedMutabilityReturnType", // 3 occurrences
     )
 }
 
@@ -41,6 +37,7 @@ dependencies {
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.processServices)
+    api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceProvider)
     api(projects.snapshots)
@@ -62,9 +59,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
-    implementation(projects.logging)
     implementation(projects.loggingApi)
-    implementation(projects.logging)
     implementation(projects.problemsRendering)
     implementation(projects.toolingApi)
 
@@ -79,6 +74,7 @@ dependencies {
     testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.toolchainsJvm))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 
@@ -88,6 +84,8 @@ dependencies {
     }
 
     integTestImplementation(projects.messaging)
+    integTestImplementation(testFixtures(projects.buildProcessServices))
+
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.commonsHttpclient)

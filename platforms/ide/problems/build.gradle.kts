@@ -80,7 +80,6 @@ dependencies {
 
     testImplementation(libs.mockitoKotlin)
     testImplementation(libs.kotlinReflect)
-    testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.mockitoCore)
 
     integTestImplementation(projects.internalTesting)
@@ -90,3 +89,7 @@ dependencies {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+// Problems should not be part of the public API, this only contains internal types
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())

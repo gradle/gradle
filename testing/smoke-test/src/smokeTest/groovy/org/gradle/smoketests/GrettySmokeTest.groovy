@@ -18,8 +18,11 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Ignore
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -27,8 +30,12 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 @UnsupportedWithConfigurationCache(
     because = "The Gretty plugin does not support configuration caching"
 )
+@Ignore("https://github.com/gretty-gradle-plugin/gretty/pull/316")
+@Requires(UnitTestPreconditions.Jdk11OrLater)
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
+    // There is no version of Gretty compatible with 9.0
+    @Ignore("https://github.com/gretty-gradle-plugin/gretty/issues/312")
     def 'run Jetty with Gretty #grettyConfig.version'() {
         given:
         def grettyVersion = VersionNumber.parse(grettyConfig.version)
@@ -69,15 +76,8 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
                 "https://github.com/gretty-gradle-plugin/gretty/issues/297"
             )
             .expectDeprecationWarning(
-                "The Project.javaexec(Closure) method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
-                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_project_exec",
-                "https://github.com/gretty-gradle-plugin/gretty/issues/312"
-            )
-            .expectDeprecationWarning(
                 "Invocation of Task.project at execution time has been deprecated. " +
-                    "This will fail with an error in Gradle 10.0. " +
+                    "This will fail with an error in Gradle 10. " +
                     "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                     "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_7.html#task_project",
                 "https://github.com/gretty-gradle-plugin/gretty/issues/313"

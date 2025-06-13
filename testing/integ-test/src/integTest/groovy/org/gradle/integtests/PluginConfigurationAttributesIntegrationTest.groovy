@@ -88,6 +88,8 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                 consumer {
                     canBeConsumed = false
                     assert canBeResolved
+                    // extra attributes interferes with Guava's metadata
+                    exclude(group: "com.google.guava", module: "guava")
                     attributes {
                         attribute(Attribute.of("test", String), "test")
                         ${plugin == 'codenarc' ?

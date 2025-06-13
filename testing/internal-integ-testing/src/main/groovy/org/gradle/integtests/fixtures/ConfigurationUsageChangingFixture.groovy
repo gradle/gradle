@@ -36,6 +36,11 @@ trait ConfigurationUsageChangingFixture {
     }
 
     void expectChangingUsage(String configurationPath, String method, boolean value) {
-        executer.expectDocumentedDeprecationWarning("Calling $method($value) on configuration '$configurationPath' has been deprecated. This will fail with an error in Gradle 9.0. This configuration's role was set upon creation and its usage should not be changed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        executer.expectDocumentedDeprecationWarning("Calling $method($value) on configuration '$configurationPath' has been deprecated. This will fail with an error in Gradle 10. This configuration's role was set upon creation and its usage should not be changed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+    }
+
+    void assertUsageLockedFailure(String configurationName, String roleName = null) {
+        String suffix = roleName ? "as it was locked upon creation to the role: '$roleName'." : "as it has been locked."
+        failure.assertHasCause("Cannot change the allowed usage of configuration ':$configurationName', $suffix")
     }
 }

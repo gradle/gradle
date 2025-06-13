@@ -26,19 +26,18 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Options for Scala platform compilation.
  */
-@SuppressWarnings("deprecation")
-public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compile.AbstractOptions {
+public abstract class BaseScalaCompileOptions implements Serializable {
 
     private static final long serialVersionUID = 0;
 
@@ -71,9 +70,7 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
     private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Fail the build on compilation errors.
@@ -147,7 +144,9 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
      * Encoding of source files.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getEncoding() {
         return encoding;
     }
@@ -227,7 +226,7 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
     /**
      * Phases of the compiler to log.
      * Legal values: namer, typer, pickler, uncurry, tailcalls, transmatch, explicitouter, erasure,
-     *               lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
+     * lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -248,22 +247,6 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
     }
 
     /**
-     * Options for running the Scala compiler in a separate process.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setForkOptions(ScalaForkOptions forkOptions) {
-        DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setForkOptions(ScalaForkOptions)")
-            .replaceWith("forkOptions(Action)")
-            .withContext("Setting a new instance of forkOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.forkOptions = forkOptions;
-    }
-
-    /**
      * Configure options for running the Scala compiler in a separate process.
      *
      * @since 8.11
@@ -278,22 +261,6 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
     @Nested
     public IncrementalCompileOptions getIncrementalOptions() {
         return incrementalOptions;
-    }
-
-    /**
-     * Options for incremental compilation of Scala code.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #incrementalOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
-        DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setIncrementalOptions(IncrementalCompileOptions)")
-            .replaceWith("scalaDocOptions(Action)")
-            .withContext("Setting a new instance of scalaDocOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.incrementalOptions = incrementalOptions;
     }
 
     /**

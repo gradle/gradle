@@ -5,7 +5,11 @@ plugins {
 
 description = "Tools for creating secure hashes for files and other content"
 
-gradlebuildJava.usedInWorkers() // org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)

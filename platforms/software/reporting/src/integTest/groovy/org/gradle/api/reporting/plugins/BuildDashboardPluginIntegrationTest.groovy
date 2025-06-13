@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -375,6 +376,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'dashboard includes JaCoCo reports'() {
         given:
+        JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()
         goodCode()
         goodTests()
         buildFile << """

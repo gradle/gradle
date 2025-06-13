@@ -21,9 +21,9 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.process.internal.ExecException;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.NullMarked;
 
@@ -86,7 +86,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         try {
             toolExec.execute();
             invocation.getLogger().operationSuccess(description.getDisplayName(), combineOutput(stdOutput, errOutput));
-        } catch (ExecException e) {
+        } catch (ProcessExecutionException e) {
             invocation.getLogger().operationFailed(description.getDisplayName(), combineOutput(stdOutput, errOutput));
             throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s.", name, description.getDisplayName()));
         }

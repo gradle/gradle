@@ -11,7 +11,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
-    api(projects.persistentCache)
+    api(projects.scopedPersistentCache)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
@@ -19,17 +19,18 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.serialization)
     implementation(projects.files)
     implementation(projects.functional)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
+    implementation(projects.persistentCache)
+    implementation(projects.serialization)
 
     implementation(libs.guava)
-    implementation(libs.jgitSsh) {
-        exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
-    }
+    implementation(libs.jgitSsh)
     implementation(libs.jsr305)
+
+    runtimeOnly(libs.jgitSshAgent)
 
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
@@ -40,9 +41,7 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
 
     testFixturesImplementation(libs.jgit)
-    testFixturesImplementation(libs.jgitSsh) {
-        exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
-    }
+    testFixturesImplementation(libs.jgitSsh)
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.commonsHttpclient)
     testFixturesImplementation(libs.guava)

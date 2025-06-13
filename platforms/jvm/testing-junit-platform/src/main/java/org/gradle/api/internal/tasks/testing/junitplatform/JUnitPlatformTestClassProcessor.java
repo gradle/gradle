@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -319,6 +321,16 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     private static class BackwardsCompatibleLauncherSession implements AutoCloseable {
 
         static BackwardsCompatibleLauncherSession open() {
+            try {
+                Class.forName("org.junit.platform.launcher.core.LauncherFactory");
+            } catch (ClassNotFoundException e) {
+                throw new InvalidUserCodeException(
+                    "Failed to load JUnit Platform. " +
+                    "Please ensure that the JUnit Platform is available on the test runtime classpath. " +
+                    "See the user guide for more details: " + new DocumentationRegistry().getDocumentationFor("java_testing", "using_junit5")
+                );
+            }
+
             try {
                 LauncherSession launcherSession = LauncherFactory.openSession();
                 return new BackwardsCompatibleLauncherSession(launcherSession);

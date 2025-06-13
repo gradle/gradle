@@ -106,4 +106,12 @@ public interface TestFailureDetails {
      */
     @Nullable
     String getActual();
+
+    /**
+     * Is this an assumption failure?
+     *
+     * @since 8.14
+     * @return true if this is an assumption failure
+     */
+    boolean isAssumptionFailure();
 }

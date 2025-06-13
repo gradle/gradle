@@ -16,10 +16,11 @@
 package org.gradle.api.internal.notations
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -31,17 +32,24 @@ import spock.lang.Specification
 
 class ProjectDependencyFactoryTest extends Specification {
 
-    def projectDummy = Mock(ProjectInternal)
+    def projectState = Mock(ProjectState) {
+        getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "foo")
+    }
+    def projectDummy = Mock(ProjectInternal) {
+        getOwner() >> projectState
+    }
+
     def projectFinder = Mock(ProjectFinder)
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     def projectStateRegistry = Mock(ProjectStateRegistry) {
-        stateFor(Path.path(":foo")) >> Mock(ProjectState) {
-            getMutableModel() >> projectDummy
-        }
+        stateFor(Path.path(":foo")) >> projectState
     }
     def depFactory = new DefaultProjectDependencyFactory(
-        TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, TestUtil.objectFactory(),
-        AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory(), projectStateRegistry
+        TestUtil.instantiatorFactory().decorateLenient(),
+        capabilityNotationParser,
+        TestUtil.objectFactory(),
+        AttributeTestUtil.attributesFactory(),
+        projectStateRegistry
     )
     def factory = new ProjectDependencyFactory(depFactory)
 
@@ -57,7 +65,7 @@ class ProjectDependencyFactoryTest extends Specification {
         def projectDependency = factory.createFromMap(projectFinder, mapNotation);
 
         then:
-        projectDependency.getDependencyProject() == projectDummy
+        projectDependency.path == projectState.identity.projectPath.path
         projectDependency.targetConfiguration == "compile"
         projectDependency.isTransitive() == expectedTransitive
     }
@@ -76,6 +84,6 @@ class ProjectDependencyFactoryTest extends Specification {
 
     def "can create project dependency from path"() {
         expect:
-        depFactory.create(Path.path(":foo")).dependencyProject == projectDummy
+        depFactory.create(Path.path(":foo")).path == projectState.identity.projectPath.path
     }
 }

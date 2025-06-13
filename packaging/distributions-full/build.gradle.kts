@@ -20,6 +20,9 @@ dependencies {
     pluginsRuntimeOnly(projects.pluginDevelopment)
     pluginsRuntimeOnly(projects.buildConfiguration)
     pluginsRuntimeOnly(projects.buildInit)
+    pluginsRuntimeOnly(projects.wrapperMain) {
+        because("Need to include the wrapper source in the distribution")
+    }
     pluginsRuntimeOnly(projects.buildProfile)
     pluginsRuntimeOnly(projects.antlr)
     pluginsRuntimeOnly(projects.enterprise)

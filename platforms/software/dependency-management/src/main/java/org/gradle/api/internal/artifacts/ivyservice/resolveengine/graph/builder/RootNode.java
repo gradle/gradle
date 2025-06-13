@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
@@ -30,8 +31,6 @@ import java.util.Set;
 class RootNode extends NodeState implements RootGraphNode {
     private final ResolveOptimizations resolveOptimizations;
     private final List<? extends DependencyMetadata> syntheticDependencies;
-
-    boolean incomingEdgeWasAdded = false;
 
     RootNode(long resultId, ComponentState moduleRevision, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveState root) {
         super(resultId, moduleRevision, resolveState, root, false);
@@ -51,17 +50,11 @@ class RootNode extends NodeState implements RootGraphNode {
 
     @Override
     void addIncomingEdge(EdgeState dependencyEdge) {
-        super.addIncomingEdge(dependencyEdge);
-        incomingEdgeWasAdded = true;
-
-        // TODO: We read `incomingEdgeWasAdded` at the end of graph resolution.
-        // If this method is ever called, we trigger a deprecation warning.
-        // In Gradle 9.0, we should fail here immediately if someone tries to
-        // add an incoming edge to a root node.
-    }
-
-    public boolean wasIncomingEdgeAdded() {
-        return incomingEdgeWasAdded;
+        throw new InvalidUserCodeException(
+            "Cannot select root node '" + getMetadata().getName() + "' as a variant. " +
+                "Configurations should not act as both a resolution root and a variant simultaneously. " +
+                "Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them."
+        );
     }
 
     @Override

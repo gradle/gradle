@@ -18,15 +18,14 @@ dependencies {
     api(projects.languageJvm)
     api(projects.loggingApi)
     api(projects.modelCore)
-    api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.platformJvm)
+    api(projects.scopedPersistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workers)
 
-    api(libs.groovy)
     api(libs.inject)
     api(libs.jspecify)
 
@@ -36,6 +35,7 @@ dependencies {
     implementation(projects.fileCollections)
     implementation(projects.jvmServices)
     implementation(projects.logging)
+    implementation(projects.persistentCache)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.reporting)
@@ -49,6 +49,8 @@ dependencies {
         exclude(module="log4j-api")
     }
 
+    runtimeOnly(libs.groovy)
+
     testImplementation(projects.baseServicesGroovy)
     testImplementation(projects.files)
     testImplementation(projects.resources)
@@ -61,6 +63,7 @@ dependencies {
 
     integTestImplementation(projects.jvmServices)
 
+    testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.languageJvm))
 
     testRuntimeOnly(projects.distributionsCore) {

@@ -610,6 +610,7 @@ class MyPlugin extends RuleSource {
     }
 }
 apply type: MyPlugin
+apply plugin: 'model-reporting-tasks'
 """
 
         when:

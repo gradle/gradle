@@ -17,8 +17,8 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.Lists;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 

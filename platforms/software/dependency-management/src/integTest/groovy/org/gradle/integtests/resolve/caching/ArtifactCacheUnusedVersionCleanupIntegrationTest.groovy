@@ -67,13 +67,12 @@ class ArtifactCacheUnusedVersionCleanupIntegrationTest extends AbstractIntegrati
         currentModulesMetadataDir.assertExists()
     }
 
-    def "does not cleanup unused versions of caches when cleanup disabled"(CleanupMethod method) {
+    def "does not cleanup unused versions of caches when cleanup disabled"() {
         given:
         gcFile.lastModified = daysAgo(2)
-        disableCacheCleanup(method)
+        disableCacheCleanupViaDsl()
 
         when:
-        method.maybeExpectDeprecationWarning(executer)
         succeeds("help")
 
         then:
@@ -81,9 +80,6 @@ class ArtifactCacheUnusedVersionCleanupIntegrationTest extends AbstractIntegrati
         oldMetadataDir.assertExists()
         currentModulesDir.assertExists()
         currentModulesMetadataDir.assertExists()
-
-        where:
-        method << CleanupMethod.values()
     }
 
     TestFile getGcFile() {

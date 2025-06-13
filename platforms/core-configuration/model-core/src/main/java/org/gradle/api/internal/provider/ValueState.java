@@ -231,7 +231,9 @@ public abstract class ValueState<S> {
             } else if (warnOnUpgradedPropertyChanges) {
                 String shownDisplayName = displayName.getDisplayName();
                 DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
-                    .startingWithGradle9("changing property value of " + shownDisplayName + " at execution time is deprecated and will fail in Gradle 10")
+                    // this should only happen in Gradle 10, when Provider API migration will come to the mainline,
+                    // so forbidding it must wait until Gradle 11
+                    .startingWithGradle11("changing property value of " + shownDisplayName + " at execution time will become an error")
                     // TODO add documentation
                     .undocumented()
                     .nagUser();

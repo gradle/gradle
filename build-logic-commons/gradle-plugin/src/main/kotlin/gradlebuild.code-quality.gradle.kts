@@ -47,6 +47,7 @@ errorproneExtension.disabledChecks.addAll(
     "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
     "JavaUtilDate", // We are fine with using Date
     "StringSplitter", // We are fine with using String.split() as is
+    "InlineMeSuggester", // Only suppression seems to actually "fix" this, so make it global
 )
 
 project.plugins.withType<JavaBasePlugin> {
@@ -105,7 +106,7 @@ val rules by configurations.creating {
 
 val groovyVersion = GroovySystem.getVersion()
 val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-val codenarcVersion = if (isAtLeastGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
+val codenarcVersion = if (isAtLeastGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
 
 dependencies {
     rules("gradlebuild:code-quality-rules") {
@@ -127,7 +128,7 @@ dependencies {
 fun configFile(fileName: String) = resources.text.fromFile(rules.asFileTree.filter { it.name == fileName })
 
 checkstyle {
-    toolVersion = "8.12"
+    toolVersion = "10.25.0"
     config = configFile("checkstyle.xml")
     val projectDirectory = layout.projectDirectory
     configDirectory = rules.elements.map {

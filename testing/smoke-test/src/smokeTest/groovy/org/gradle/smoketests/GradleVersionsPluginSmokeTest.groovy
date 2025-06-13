@@ -18,15 +18,12 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
-import org.junit.Assume
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     def 'can check for updated versions'() {
-        Assume.assumeTrue('Incompatible with Groovy 4: Execution failed for task \':dependencyUpdates\'. > groovy/util/XmlSlurper', VersionNumber.parse(GroovySystem.version).major < 4) // TODO Watch for merge and release of https://github.com/ben-manes/gradle-versions-plugin/pull/656
         given:
         buildFile << """
             plugins {
@@ -64,7 +61,7 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         runner.expectDeprecationWarningIf(
             GradleContextualExecuter.isNotConfigCache(),
             "Invocation of Task.project at execution time has been deprecated. " +
-                "This will fail with an error in Gradle 10.0. " +
+                "This will fail with an error in Gradle 10. " +
                 "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project",
             "https://github.com/ben-manes/gradle-versions-plugin/issues/910"

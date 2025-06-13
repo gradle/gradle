@@ -21,6 +21,8 @@ import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
+import java.util.regex.Pattern
+
 class UnixStartScriptGeneratorTest extends Specification {
 
     UnixStartScriptGenerator generator = new UnixStartScriptGenerator()
@@ -122,9 +124,29 @@ class UnixStartScriptGeneratorTest extends Specification {
         destination.toString().contains(/DEFAULT_JVM_OPTS=""/)
     }
 
-    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath) {
+    def "generates correct output for #type entry point"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin/sample/start', entryPoint)
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        // This is a little difficult to locate exactly, here I used the trailing part of the `set --` command.
+        destination.toString().find(/${Pattern.quote(entryPointArgs)} \\[\n\s]+"\$@"/)
+
+        where:
+        type                          | entryPoint                                        | entryPointArgs
+        "main class"                  | new MainClass("com.example.Main")                 | 'com.example.Main'
+        "executable jar"              | new ExecutableJar("example.jar")                  | '-jar "$APP_HOME/example.jar"'
+        "main module"                 | new MainModule("com.example", null)               | '--module com.example'
+        "main module with main class" | new MainModule("com.example", "com.example.Main") | '--module com.example/com.example.Main'
+    }
+
+    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath, AppEntryPoint appEntryPoint = new MainClass("")) {
         final String applicationName = 'TestApp'
         final List<String> classpath = WrapUtil.toList('path\\to\\Jar.jar')
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, "", defaultJvmOpts, classpath, [], scriptRelPath, null)
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
     }
 }

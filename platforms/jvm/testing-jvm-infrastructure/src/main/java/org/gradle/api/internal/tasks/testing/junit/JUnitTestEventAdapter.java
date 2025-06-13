@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -117,9 +118,31 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testAssumptionFailure(Failure failure) {
+        TestDescriptorInternal testInternal;
         synchronized (lock) {
+            testInternal = executing.get(failure.getDescription());
             assumptionFailed.add(failure.getDescription());
         }
+
+        if (testInternal != null) {
+            // This is the normal path, we've just seen a test failure
+            // for a test that we saw start
+            Throwable exception = failure.getException();
+            reportAssumptionFailure(testInternal.getId(), exception);
+        } else {
+            // This can happen when, for example, a @BeforeClass or @AfterClass method fails
+            // We generate an artificial start/failure/completed sequence of events
+            testInternal = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
+            resultProcessor.started(testInternal, startEvent());
+            Throwable exception = failure.getException();
+            reportAssumptionFailure(testInternal.getId(), exception);
+            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
+        }
+    }
+
+    private void reportAssumptionFailure(Object descriptorId, Throwable throwable) {
+        TestFailure assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(throwable);
+        resultProcessor.failure(descriptorId, assumptionFailure);
     }
 
     @Override

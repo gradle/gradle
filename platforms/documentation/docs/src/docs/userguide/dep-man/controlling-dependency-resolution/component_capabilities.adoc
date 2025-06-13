@@ -51,7 +51,7 @@ Gradle will fail if both are on the classpath.
 
 Since only one should be used, Gradle’s resolution strategy allows you to *select* `HikariCP`, resolving the conflict.
 
-[[sec:declaring-capabilities-external-modules]]
+[[sec:declaring-capabilities-coordinates]]
 == Understanding capability coordinates
 
 A **capability** is identified by a `(group, module, version)` triplet.
@@ -89,6 +89,66 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 With this rule in place, the build will fail if both `asm:asm` ( < = `3.3.1`) and `org.ow2.asm:asm` (`4.0+`) are present in the dependency graph.
 
 NOTE: Gradle won’t resolve the conflict automatically, but this helps you realize that the problem exists. It’s recommended to package such rules into plugins for use in builds, allowing users to decide which version to use or to fix the classpath conflict.
+
+[[sec:declaring-capabilities-external-modules]]
+== Declaring capabilities for external modules
+
+Gradle allows you to declare capabilities not only for components you build but also for external components that don’t define them.
+
+For example, consider the following dependencies in your build file:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
+====
+
+As it stands, it's not obvious that this setup results in two logging frameworks on the classpath.
+Specifically, `zookeeper` brings in `log4j`, but we want to use `log4j-over-slf4j`.
+
+To proactively detect this conflict, we can define a rule stating that both frameworks provide the same capability:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
+====
+
+This ensures that Gradle detects the conflict and fails with a clear error message:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/tests",files="dependencyReport.out"]
+====
+
+[[sec:declaring-additional-capabilities-for-a-local-component]]
+== Declaring capabilities for a local component
+
+Every component has an _implicit capability_ matching its GAV coordinates. H
+owever, you can also declare additional explicit capabilities, which is useful when a library published under different GAV coordinates serves as an _alternate implementation_ of the same API:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/kotlin",files="build.gradle.kts[tags=declare-outgoing-capabilities]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
+====
+
+Capabilities must be attached to _outgoing configurations_, which are <<declaring_configurations.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.
+
+In this example, we declare two capabilities:
+
+1. `com.acme:my-library:1.0` - the _implicit capability_ of the library.
+2. `com.other:module:1.1` -  an additional capability assigned to this library.
+
+It's important to declare the implicit capability explicitly because once you define any _explicit_ capability, _all_ capabilities must be declared, including the _implicit_ one.
+
+The second capability can either be specific to this library or match a capability provided by an external component.
+If `com.other:module` appears elsewhere in the dependency graph, the build will fail, and consumers <<component_capabilities.adoc#sec:selecting-between-candidates,must choose which module to use>>.
+
+Capabilities are published in Gradle Module Metadata but have no equivalent in POM or Ivy metadata files.
+As a result, when publishing such a component, Gradle warns that this feature is only supported for Gradle consumers:
+
+----
+Maven publication 'maven' contains dependencies that cannot be represented in a published pom file.
+  - Declares capability com.acme:my-library:1.0
+  - Declares capability com.other:module:1.1
+----
 
 [[sec:selecting-between-candidates]]
 == Selecting between candidates

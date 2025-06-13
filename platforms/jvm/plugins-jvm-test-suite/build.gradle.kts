@@ -39,9 +39,9 @@ dependencies {
 
     api(libs.inject)
 
-    implementation(projects.logging)
     implementation(projects.pluginsJavaBase)
     implementation(projects.testingBase)
+    implementation(projects.reporting)
 
     implementation(libs.guava)
     implementation(libs.jspecify)

@@ -5,7 +5,7 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
-gradlebuildJava {
+jvmCompile {
     usesJdkInternals = true
 }
 
@@ -48,7 +48,6 @@ dependencies {
     testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(projects.baseAsm)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.groovyDatetime)
     testFixturesImplementation(libs.groovyDateUtil)
 

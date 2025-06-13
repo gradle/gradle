@@ -32,6 +32,8 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
@@ -180,6 +182,25 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     public JavaExecSpec setErrorOutput(OutputStream errorOutput) {
         streamsSpec.setErrorOutput(errorOutput);
         return this;
+    }
+
+    @Override
+    public List<String> getAllJvmArgs() {
+        List<String> allJvmArgs = new ArrayList<>(super.getAllJvmArgs());
+        allJvmArgs.addAll(getJvmArguments().get());
+        return Collections.unmodifiableList(allJvmArgs);
+    }
+
+    @Override
+    public void setAllJvmArgs(List<String> arguments) {
+        getJvmArguments().empty();
+        super.setAllJvmArgs(arguments);
+    }
+
+    @Override
+    public void setAllJvmArgs(Iterable<?> arguments) {
+        getJvmArguments().empty();
+        super.setAllJvmArgs(arguments);
     }
 
     @Override

@@ -28,10 +28,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
     def "caches execution of BuildAction that queries custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -133,10 +130,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
     def "invalidates all cached models when build scoped input changes"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -214,11 +208,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             project.providers.gradleProperty("shared-input").getOrNull()
             project.providers.systemProperty("\${project.name}-input").getOrNull()
         """)
-        settingsFile << """
-            include("a")
-            include("b")
-            include("c")
-        """
+        includeProjects("a", "b", "c")
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
@@ -338,10 +328,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
     def "caches execution of BuildAction that queries each model multiple times"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -419,10 +406,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
     def "caches execution of BuildAction that queries nullable custom tooling model"() {
         given:
         withSomeNullableToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """

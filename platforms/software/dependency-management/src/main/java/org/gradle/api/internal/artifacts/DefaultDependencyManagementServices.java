@@ -63,7 +63,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
@@ -94,8 +93,6 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
@@ -103,12 +100,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
@@ -178,64 +172,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     @Override
-    public DependencyResolutionServices newBuildscriptResolver(DomainObjectContext owner) {
-        return newDetachedResolver(
-            parent.get(FileResolver.class),
-            parent.get(FileCollectionFactory.class),
-            owner,
-            new AnonymousModule()
-        );
-    }
-
-    @Override
     public DependencyResolutionServices newDetachedResolver(
         FileResolver resolver,
         FileCollectionFactory fileCollectionFactory,
         DomainObjectContext owner
-    ) {
-        DependencyResolutionServices services = newDetachedResolver(
-            resolver,
-            fileCollectionFactory,
-            owner,
-            new AnonymousModule()
-        );
-
-        // We restrict this so that detached resolvers only represent adhoc root components that do not expose variants.
-        services.getConfigurationContainer().configureEach(configuration -> {
-            if (configuration.isCanBeConsumed()) {
-                throw new InvalidUserCodeException("Cannot create consumable configurations in detached resolvers");
-            }
-        });
-
-        return services;
-    }
-
-    @Override
-    public DependencyResolutionServices newProjectBuildscriptResolver(
-        FileResolver resolver,
-        FileCollectionFactory fileCollectionFactory,
-        ProjectInternal project
-    ) {
-        return newDetachedResolver(
-            resolver,
-            fileCollectionFactory,
-            StandaloneDomainObjectContext.forProjectBuildscript(project),
-            project.getServices().get(DependencyMetaDataProvider.class).getModule()
-        );
-    }
-
-    private DependencyResolutionServices newDetachedResolver(
-        FileResolver resolver,
-        FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner,
-        Module identity
     ) {
         ServiceRegistry services = ServiceRegistryBuilder.builder()
             .parent(parent)
             .provider(registration -> {
                 registration.add(FileResolver.class, resolver);
                 registration.add(FileCollectionFactory.class, fileCollectionFactory);
-                registration.add(DependencyMetaDataProvider.class, () -> identity);
+                registration.add(DependencyMetaDataProvider.class, AnonymousModule::new);
                 registration.add(ProjectFinder.class, new UnknownProjectFinder("Project dependencies cannot be declared here."));
                 registration.add(DomainObjectContext.class, owner);
             })
@@ -243,7 +190,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             .provider(new DependencyResolutionScopeServices(owner))
             .build();
 
-        return services.get(DependencyResolutionServices.class);
+        DependencyResolutionServices dms = services.get(DependencyResolutionServices.class);
+
+        // We restrict this so that detached resolvers only represent adhoc root components that do not expose variants.
+        dms.getConfigurationContainer().configureEach(configuration -> {
+            if (configuration.isCanBeConsumed()) {
+                throw new InvalidUserCodeException("Cannot create consumable configurations in detached resolvers");
+            }
+        });
+
+        return dms;
     }
 
     @Override
@@ -276,7 +232,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         void configure(ServiceRegistration registration) {
             registration.add(TransformedVariantFactory.class, DefaultTransformedVariantFactory.class);
-            registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ResolveExceptionMapper.class);
             registration.add(ResolutionStrategyFactory.class);
             registration.add(LocalComponentRegistry.class, DefaultLocalComponentRegistry.class);
@@ -291,8 +246,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(GraphVariantSelector.class);
             registration.add(TransformedVariantConverter.class);
             registration.add(ResolutionExecutor.class);
+            registration.add(ShortCircuitingResolutionExecutor.class);
+            registration.add(ConfigurationResolver.Factory.class, DefaultConfigurationResolver.Factory.class);
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
+            registration.add(PublishArtifactNotationParserFactory.class);
         }
 
         @Provides
@@ -460,37 +418,22 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationContainerInternal createConfigurationContainer(
             Instantiator instantiator,
             CollectionCallbackActionDecorator callbackDecorator,
-            DependencyMetaDataProvider dependencyMetaDataProvider,
             DomainObjectContext domainObjectContext,
-            AttributesSchemaInternal attributesSchema,
-            DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
             DefaultConfigurationFactory defaultConfigurationFactory,
-            ResolutionStrategyFactory resolutionStrategyFactory
+            ResolutionStrategyFactory resolutionStrategyFactory,
+            InternalProblems problemsService,
+            ConfigurationResolver.Factory resolverFactory,
+            AttributesSchemaInternal attributesSchema
         ) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
                 callbackDecorator,
-                dependencyMetaDataProvider,
                 domainObjectContext,
-                attributesSchema,
-                rootComponentMetadataBuilderFactory,
                 defaultConfigurationFactory,
-                resolutionStrategyFactory
-            );
-        }
-
-        @Provides
-        PublishArtifactNotationParserFactory createPublishArtifactNotationParserFactory(
-            Instantiator instantiator,
-            DependencyMetaDataProvider metaDataProvider,
-            FileResolver fileResolver,
-            TaskDependencyFactory taskDependencyFactory
-        ) {
-            return new PublishArtifactNotationParserFactory(
-                instantiator,
-                metaDataProvider,
-                fileResolver,
-                taskDependencyFactory
+                resolutionStrategyFactory,
+                problemsService,
+                resolverFactory,
+                attributesSchema
             );
         }
 
@@ -602,32 +545,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             GradlePluginVariantsSupport.configureFailureHandler(handler);
             PlatformSupport.configureFailureHandler(handler);
             return handler;
-        }
-
-        @Provides
-        ConfigurationResolver createConfigurationResolver(
-            RepositoriesSupplier repositoriesSupplier,
-            ResolutionExecutor resolutionExecutor,
-            AttributeDesugaring attributeDesugaring,
-            ArtifactTypeRegistry artifactTypeRegistry,
-            ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler,
-            AttributeSchemaServices attributeSchemaServices,
-            DependencyLockingProvider dependencyLockingProvider
-        ) {
-            ShortCircuitingResolutionExecutor shortCircuitingResolutionExecutor = new ShortCircuitingResolutionExecutor(
-                resolutionExecutor,
-                attributeDesugaring,
-                dependencyLockingProvider
-            );
-
-            return new DefaultConfigurationResolver(
-                repositoriesSupplier,
-                shortCircuitingResolutionExecutor,
-                attributeDesugaring,
-                artifactTypeRegistry,
-                componentModuleMetadataHandler,
-                attributeSchemaServices
-            );
         }
 
         @Provides

@@ -207,13 +207,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         ComponentOverrideMetadata componentOverrideMetadata;
         if (selectors != null && selectors.size() > 0) {
-            // Taking the first selector here to determine the 'changing' status and 'client module' is our best bet to get the selector that will most likely be chosen in the end.
+            // Taking the first selector here to determine the 'changing' status is our best bet to get the selector that will most likely be chosen in the end.
             // As selectors are sorted accordingly (see ModuleSelectors.SELECTOR_COMPARATOR).
             SelectorState firstSelector = selectors.first();
 
-            @SuppressWarnings("deprecation")
-            ComponentOverrideMetadata md = DefaultComponentOverrideMetadata.forDependency(firstSelector.isChanging(), selectors.getFirstDependencyArtifact(), firstSelector.getClientModule());
-            componentOverrideMetadata = md;
+            componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelector.isChanging(), selectors.getFirstDependencyArtifact());
         } else {
             componentOverrideMetadata = DefaultComponentOverrideMetadata.EMPTY;
         }

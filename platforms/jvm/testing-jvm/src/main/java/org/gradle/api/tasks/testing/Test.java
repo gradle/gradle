@@ -72,6 +72,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
@@ -171,10 +172,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
-    private FileCollection testClassesDirs;
+    private final ConfigurableFileCollection testClassesDirs = getObjectFactory().fileCollection();
     private final PatternFilterable patternSet;
-    private FileCollection classpath;
-    private final ConfigurableFileCollection stableClasspath;
+    private final ConfigurableFileCollection classpath = getObjectFactory().fileCollection();
+    private final ConfigurableFileCollection stableClasspath = getObjectFactory().fileCollection();
     private final Property<TestFramework> testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -184,15 +185,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
-        classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
-        stableClasspath = objectFactory.fileCollection();
-        stableClasspath.from(new Callable<Object>() {
-            @Override
-            public Object call() {
-                return getClasspath();
-            }
-        });
+        stableClasspath.from((Callable<Object>) this::getClasspath);
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
@@ -200,7 +194,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
-        testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+        testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -300,7 +294,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return forkOptions.getSystemProperties();
     }
 
@@ -308,7 +302,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         forkOptions.setSystemProperties(properties);
     }
 
@@ -316,7 +310,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test systemProperties(Map<String, ?> properties) {
+    public Test systemProperties(Map<String, ? extends @Nullable Object> properties) {
         forkOptions.systemProperties(properties);
         return this;
     }
@@ -325,7 +319,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test systemProperty(String name, Object value) {
+    public Test systemProperty(String name, @Nullable Object value) {
         forkOptions.systemProperty(name, value);
         return this;
     }
@@ -695,11 +689,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @TaskAction
     public void executeTests() {
         JavaVersion javaVersion = getJavaVersion();
-        if (!javaVersion.isJava6Compatible()) {
-            throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
-        }
-        if (!javaVersion.isJava8Compatible()) {
-            throw new UnsupportedJavaRuntimeException("Support for test execution using Java 7 or earlier was removed in Gradle 9.0.");
+        if (!javaVersion.isCompatibleWith(JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION))) {
+            throw new UnsupportedJavaRuntimeException(String.format(
+                "Gradle does not support executing tests using JVM %s or earlier.",
+                SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION - 1
+            ));
         }
 
         if (getDebug()) {
@@ -868,7 +862,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.0
      */
     public void setTestClassesDirs(FileCollection testClassesDirs) {
-        this.testClassesDirs = testClassesDirs;
+        this.testClassesDirs.setFrom(testClassesDirs);
     }
 
     /**
@@ -980,27 +974,27 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies that JUnit4 should be used to discover and execute the tests.
      *
-     * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
+     * @see #useJUnit(Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+        useTestFramework(getObjectFactory().newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
     /**
      * Specifies that JUnit4 should be used to discover and execute the tests with additional configuration.
      * <p>
-     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions JUnit4 specific options}.
+     * The supplied action configures an instance of {@link JUnitOptions JUnit4 specific options}.
      *
      * @param testFrameworkConfigure A closure used to configure JUnit4 options.
      */
     public void useJUnit(@Nullable @DelegatesTo(JUnitOptions.class) Closure testFrameworkConfigure) {
-        useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
+        useJUnit(configureUsing(testFrameworkConfigure));
     }
 
     /**
      * Specifies that JUnit4 should be used to discover and execute the tests with additional configuration.
      * <p>
-     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions JUnit4 specific options}.
+     * The supplied action configures an instance of {@link JUnitOptions JUnit4 specific options}.
      *
      * @param testFrameworkConfigure An action used to configure JUnit4 options.
      * @since 3.5
@@ -1018,11 +1012,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      *
-     * @see #useJUnitPlatform(org.gradle.api.Action) Configure JUnit Platform specific options.
+     * @see #useJUnitPlatform(Action) Configure JUnit Platform specific options.
      * @since 4.6
      */
     public void useJUnitPlatform() {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true, getDryRun()));
+        useTestFramework(getObjectFactory().newInstance(JUnitPlatformTestFramework.class, getFilter(), getDryRun()));
     }
 
     /**
@@ -1033,7 +1027,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      * <p>
-     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions JUnit Platform specific options}.
+     * The supplied action configures an instance of {@link JUnitPlatformOptions JUnit Platform specific options}.
      *
      * @param testFrameworkConfigure A closure used to configure JUnit platform options.
      * @since 4.6
@@ -1046,17 +1040,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies that TestNG should be used to discover and execute the tests.
      *
-     * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
+     * @see #useTestNG(Action) Configure TestNG specific options.
      */
     public void useTestNG() {
-        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getObjectFactory()));
+        useTestFramework(getObjectFactory().newInstance(TestNGTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun(), this.getReports().getHtml()));
 
     }
 
     /**
      * Specifies that TestNG should be used to discover and execute the tests with additional configuration.
      * <p>
-     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions TestNG specific options}.
+     * The supplied action configures an instance of {@link TestNGOptions TestNG specific options}.
      *
      * @param testFrameworkConfigure A closure used to configure TestNG options.
      */
@@ -1067,7 +1061,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies that TestNG should be used to discover and execute the tests with additional configuration.
      * <p>
-     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions TestNG specific options}.
+     * The supplied action configures an instance of {@link TestNGOptions TestNG specific options}.
      *
      * @param testFrameworkConfigure An action used to configure TestNG options.
      * @since 3.5
@@ -1118,7 +1112,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        this.classpath.setFrom(classpath);
     }
 
     /**
@@ -1280,52 +1274,32 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 
     @Inject
-    protected ActorFactory getActorFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ActorFactory getActorFactory();
 
     @Inject
-    protected WorkerProcessFactory getProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract WorkerProcessFactory getProcessBuilderFactory();
 
     @Inject
-    protected PatternSetFactory getPatternSetFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PatternSetFactory getPatternSetFactory();
 
     @Inject
-    protected JavaForkOptionsFactory getForkOptionsFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaForkOptionsFactory getForkOptionsFactory();
 
     @Inject
-    protected ModuleRegistry getModuleRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ModuleRegistry getModuleRegistry();
 
     @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaModuleDetector getJavaModuleDetector();
 }

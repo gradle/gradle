@@ -43,4 +43,9 @@ public class TestCompleteEvent {
     public TestResult.@Nullable ResultType getResultType() {
         return resultType;
     }
+
+    @Override
+    public String toString() {
+        return "complete(" + resultType + ")=" + endTime;
+    }
 }

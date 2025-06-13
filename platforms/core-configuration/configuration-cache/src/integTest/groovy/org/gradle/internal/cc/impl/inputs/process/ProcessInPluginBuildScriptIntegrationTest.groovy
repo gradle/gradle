@@ -16,8 +16,7 @@
 
 package org.gradle.internal.cc.impl.inputs.process
 
-import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.exec
-import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.javaexec
+
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.processBuilder
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.stringArrayExecute
@@ -52,13 +51,9 @@ class ProcessInPluginBuildScriptIntegrationTest extends AbstractProcessIntegrati
 
         where:
         snippetsFactory             | file
-        exec().groovy               | "included/settings.gradle"
-        javaexec().groovy           | "included/settings.gradle"
         processBuilder().groovy     | "included/settings.gradle"
         stringArrayExecute().groovy | "included/settings.gradle"
         runtimeExec().groovy        | "included/settings.gradle"
-        exec().kotlin               | "included/settings.gradle.kts"
-        javaexec().kotlin           | "included/settings.gradle.kts"
         processBuilder().kotlin     | "included/settings.gradle.kts"
         stringArrayExecute().kotlin | "included/settings.gradle.kts"
         runtimeExec().kotlin        | "included/settings.gradle.kts"
@@ -105,13 +100,9 @@ class ProcessInPluginBuildScriptIntegrationTest extends AbstractProcessIntegrati
 
         where:
         snippetsFactory             | file
-        exec().groovy               | "included/build.gradle"
-        javaexec().groovy           | "included/build.gradle"
         processBuilder().groovy     | "included/build.gradle"
         stringArrayExecute().groovy | "included/build.gradle"
         runtimeExec().groovy        | "included/build.gradle"
-        exec().kotlin               | "included/build.gradle.kts"
-        javaexec().kotlin           | "included/build.gradle.kts"
         processBuilder().kotlin     | "included/build.gradle.kts"
         stringArrayExecute().kotlin | "included/build.gradle.kts"
         runtimeExec().kotlin        | "included/build.gradle.kts"

@@ -65,14 +65,11 @@ class ResolveTestFixture {
 
     /**
      * Injects the appropriate stuff into the build script. By default, creates a 'checkDeps' task that resolves the configuration provided in the constructor.
+     *
+     * Prefer {@link #configureSettings()}.
      */
     void prepare(@DelegatesTo(CheckTaskBuilder) Closure closure = {}) {
-        def builder = new CheckTaskBuilder()
-        closure.delegate = builder
-        closure.run()
-        if (builder.configs.isEmpty()) {
-            builder.config(config, "checkDeps")
-        }
+        Map<String, String> configs = getTaskConfigs(closure)
 
         def existingScript = buildFile.exists() ? buildFile.text : ""
         def start = existingScript.indexOf(START_MARKER)
@@ -80,43 +77,74 @@ class ResolveTestFixture {
         if (start >= 0) {
             existingScript = existingScript.substring(0, start) + existingScript.substring(end, existingScript.length())
         }
-        def buildScriptBlock = """
-buildscript {
-    dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
-}
-"""
-        String generatedContent = ""
-        builder.configs.forEach { config, taskName ->
-            generatedContent += """
-allprojects {
-    tasks.register("${taskName}", ${GenerateGraphTask.name}) {
-        it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
-        it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
-        it.files.from(configurations.${config})
-
-        it.incomingFiles = configurations.${config}.incoming.files
-        it.incomingArtifacts = configurations.${config}.incoming.artifacts
-
-        it.artifactViewFiles = configurations.${config}.incoming.artifactView { }.files
-        it.artifactViewArtifacts = configurations.${config}.incoming.artifactView { }.artifacts
-
-        it.lenientArtifactViewFiles = configurations.${config}.incoming.artifactView { it.lenient = true }.files
-        it.lenientArtifactViewArtifacts = configurations.${config}.incoming.artifactView { it.lenient = true }.artifacts
-
-        it.buildArtifacts = ${buildArtifacts}
-        ${registerInputs(config)}
-    }
-}
-"""
-        }
 
         buildFile.text = """
-$buildScriptBlock
-$existingScript
-$START_MARKER
-$generatedContent
-$END_MARKER
-"""
+            ${buildscriptBlock()}
+            $existingScript
+            $START_MARKER
+            allprojects {
+                ${generateResolveTasks(configs)}
+            }
+            $END_MARKER
+        """
+    }
+
+    private Map<String, String> getTaskConfigs(Closure closure) {
+        def builder = new CheckTaskBuilder()
+        closure.delegate = builder
+        closure.run()
+        if (builder.configs.isEmpty()) {
+            builder.config(config, "checkDeps")
+        }
+        builder.configs
+    }
+
+    private String generateResolveTasks(Map<String, String> configs) {
+        return configs.entrySet().collect {
+            String config = it.key
+            String taskName = it.value
+            """
+                tasks.register("${taskName}", ${GenerateGraphTask.name}) {
+                    it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
+                    it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
+                    it.files.from(configurations.${config})
+
+                    it.incomingFiles = configurations.${config}.incoming.files
+                    it.incomingArtifacts = configurations.${config}.incoming.artifacts
+
+                    it.artifactViewFiles = configurations.${config}.incoming.artifactView { }.files
+                    it.artifactViewArtifacts = configurations.${config}.incoming.artifactView { }.artifacts
+
+                    it.lenientArtifactViewFiles = configurations.${config}.incoming.artifactView { it.lenient = true }.files
+                    it.lenientArtifactViewArtifacts = configurations.${config}.incoming.artifactView { it.lenient = true }.artifacts
+
+                    it.buildArtifacts = ${buildArtifacts}
+                    ${registerInputs(config)}
+                }
+            """
+        }.join("\n")
+    }
+
+    private String buildscriptBlock() {
+        """
+            buildscript {
+                dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
+            }
+        """
+    }
+
+    /**
+     * Returns Groovy code which when added to the Settings file, enables
+     * the resolve test fixture for all projects.
+     */
+    String configureSettings(@DelegatesTo(CheckTaskBuilder) Closure closure = {}) {
+        def configs = getTaskConfigs(closure)
+        """
+            ${buildscriptBlock()}
+            gradle.lifecycle.beforeProject {
+                ${generateResolveTasks(configs)}
+            }
+        """
     }
 
     /**
@@ -331,7 +359,7 @@ $END_MARKER
                 }
             }.toSet()
             if (actualReasons != reasons) {
-                errors << "Expected reasons ${reasons} but was: ${actual.reasons}"
+                errors << "Expected reasons ${reasons} but was: ${actualReasons}"
             }
             this.variants.each { variant ->
                 def actualVariant = actual.variants.find { it.name == variant.name }
@@ -395,7 +423,11 @@ $END_MARKER
         if (!equals) {
             def actualFormatted = Joiner.on("\n").join(actualSorted)
             def expectedFormatted = Joiner.on("\n").join(expectedSorted)
-            throw new ComparisonFailure("Result contains unexpected $compType", expectedFormatted, actualFormatted);
+
+            def missingFromActual = Joiner.on("\n").join(expectedSorted - actualSorted)
+            def missingFromExpected = Joiner.on("\n").join(actualSorted - expectedSorted)
+
+            throw new ComparisonFailure("Result contains unexpected $compType\n\nMissing from actual:\n" + missingFromActual + "\nMissing from expected:\n" + missingFromExpected + "\n\n", expectedFormatted, actualFormatted);
         }
     }
 
@@ -679,7 +711,7 @@ $END_MARKER
         private boolean implicitArtifact = true
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
-        private final Set<String> reasons = new TreeSet<String>()
+        private final Set<String> reasons = new LinkedHashSet<String>()
         private boolean ignoreRequested
         private final Set<String> ignoreReasons = new HashSet<>()
         private final Set<String> ignoreReasonPrefixes = new HashSet<>()

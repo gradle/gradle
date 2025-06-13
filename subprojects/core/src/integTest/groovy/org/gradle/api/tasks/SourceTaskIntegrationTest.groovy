@@ -25,7 +25,7 @@ class SourceTaskIntegrationTest extends AbstractIntegrationSpec {
         file("src/a/two.txt").createFile()
 
         buildFile << """
-            class TestTask extends SourceTask {
+            abstract class TestTask extends SourceTask {
                 @TaskAction
                 def list() {
                     source.visit { fte -> println("visit " + fte.relativePath) }
@@ -68,7 +68,7 @@ class SourceTaskIntegrationTest extends AbstractIntegrationSpec {
         file("src/a/two.txt").createFile()
 
         buildFile << """
-            class TestTask extends SourceTask {
+            abstract class TestTask extends SourceTask {
                 @OutputFile
                 File outputFile
 
@@ -129,7 +129,7 @@ class SourceTaskIntegrationTest extends AbstractIntegrationSpec {
         file("src/a/two.txt").createFile()
 
         buildFile << """
-            class TestTask extends SourceTask {
+            abstract class TestTask extends SourceTask {
                 @OutputFile
                 File outputFile
 

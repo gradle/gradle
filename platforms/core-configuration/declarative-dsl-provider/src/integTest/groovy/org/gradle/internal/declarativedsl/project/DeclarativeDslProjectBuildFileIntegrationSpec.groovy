@@ -81,6 +81,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
 referencePoint = (1, 2)
 arguments = [one, two]
 flags = []
+mapProperty = {}
 primaryAccess = { primary, false, false}
 secondaryAccess { two, true, false}
 secondaryAccess { three, true, true}"""
@@ -101,7 +102,7 @@ secondaryAccess { three, true, true}"""
             defaults {
                 restricted {
                     arguments = listOf("one")
-                    flags = listOf("foo", "bar")
+                    flags = listOf(1, 2)
                 }
             }
         """
@@ -109,7 +110,7 @@ secondaryAccess { three, true, true}"""
         file("build.gradle.dcl") << """
             restricted {
                 arguments += listOf("two", "three")
-                flags += listOf("baz")
+                flags += listOf(3)
             }
         """
 
@@ -118,13 +119,45 @@ secondaryAccess { three, true, true}"""
 
         then:
         outputContains("arguments = [one, two, three]")
-        outputContains("flags = [foo, bar, baz]")
+        outputContains("flags = [1, 2, 3]")
 
         where:
         language | _
         "java"   | _
         "kotlin" | _
     }
+
+    def 'can set and augment map properties from a DCL file'() {
+        given:
+        simpleDeclarativePlugin(language)
+
+        file("settings.gradle.dcl") << """
+
+            defaults {
+                restricted {
+                    mapProperty = mapOf("one" to 1, "two" to 2)
+                }
+            }
+        """
+
+        file("build.gradle.dcl") << """
+            restricted {
+                mapProperty += mapOf("three" to 3, "four" to 4)
+            }
+        """
+
+        when:
+        run(":printConfiguration")
+
+        then:
+        outputContains("mapProperty = {one=1, two=2, three=3, four=4}")
+
+        where:
+        language | _
+        "java"   | _
+        "kotlin" | _
+    }
+
 
     def simpleDeclarativePlugin(String language = "kotlin") {
         file("build-logic/build.gradle.kts") << defineCustomPluginBuild(language)
@@ -176,6 +209,7 @@ secondaryAccess { three, true, true}"""
                             System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
                             System.out.println("arguments = " + getRestricted().getArguments().get());
                             System.out.println("flags = " + getRestricted().getFlags());
+                            System.out.println("mapProperty = " + getRestricted().getMapProperty().get());
                             System.out.println("primaryAccess = { " +
                                     acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
                             );
@@ -229,6 +263,7 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.Action;
         import org.gradle.api.model.ObjectFactory;
         import org.gradle.api.provider.ListProperty;
+        import org.gradle.api.provider.MapProperty;
         import org.gradle.api.provider.Property;
 
         import javax.inject.Inject;
@@ -262,14 +297,17 @@ secondaryAccess { three, true, true}"""
             @Restricted
             public abstract ListProperty<String> getArguments();
 
-            private List<String> flags = new ArrayList<>();
+            @Restricted
+            public abstract MapProperty<String, Integer> getMapProperty();
 
-            @Restricted // TODO: test a primitive-typed list as well (has issues currently)
-            public List<String> getFlags() {
+            private List<Integer> flags = new ArrayList<>();
+
+            @Restricted
+            public List<Integer> getFlags() {
                 return flags;
             }
 
-            public void setFlags(List<String> flags) {
+            public void setFlags(List<Integer> flags) {
                 this.flags = flags;
             }
 
@@ -335,6 +373,7 @@ secondaryAccess { three, true, true}"""
 
         import org.gradle.api.model.ObjectFactory
         import org.gradle.api.provider.ListProperty
+        import org.gradle.api.provider.MapProperty
         import org.gradle.api.provider.Property
         import org.gradle.declarative.dsl.model.annotations.Adding
         import org.gradle.declarative.dsl.model.annotations.Configuring
@@ -344,7 +383,7 @@ secondaryAccess { three, true, true}"""
         @Restricted
         abstract class Extension @Inject constructor(private val objects: ObjectFactory) {
             val primaryAccess: Access
-            abstract val secondaryAccess: ListProperty<Access?>
+            abstract val secondaryAccess: ListProperty<Access>
 
             init {
                 this.primaryAccess = objects.newInstance(Access::class.java)
@@ -355,16 +394,19 @@ secondaryAccess { three, true, true}"""
             }
 
             @get:Restricted
-            abstract val id: Property<String?>
+            abstract val id: Property<String>
 
             @get:Restricted
-            abstract val referencePoint: Property<Point?>
+            abstract val referencePoint: Property<Point>
 
             @get:Restricted
             abstract val arguments: ListProperty<String>
 
-            @get:Restricted // TODO: test a primitive-typed list as well (has issues currently)
-            var flags: List<String> = emptyList()
+            @get:Restricted
+            abstract val mapProperty: MapProperty<String, Int>
+
+            @get:Restricted
+            var flags: List<Int> = emptyList()
 
             @Configuring
             fun primaryAccess(configure: Access.() -> Unit) {
@@ -393,13 +435,13 @@ secondaryAccess { three, true, true}"""
                 }
 
                 @get:Restricted
-                abstract val name: Property<String?>
+                abstract val name: Property<String>
 
                 @get:Restricted
-                abstract val read: Property<Boolean?>
+                abstract val read: Property<Boolean>
 
                 @get:Restricted
-                abstract val write: Property<Boolean?>
+                abstract val write: Property<Boolean>
             }
 
             class Point(val x: Int, val y: Int)

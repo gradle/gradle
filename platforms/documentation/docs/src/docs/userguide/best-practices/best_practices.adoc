@@ -22,7 +22,7 @@ There are many scenarios where how to best use Gradle is unclear, as Gradle prov
 Often there is a need to determine if a current solution is likely to cause problems down the line, or if problems could have been avoided in advance by using Gradle differently.
 This guide aims to help Gradle authors navigate these scenarios and make informed decisions about how to use Gradle effectively.
 
-=== What this Guide Is
+=== What this Guide is
 
 This section outlines best practices for authoring Gradle builds that are maintainable, function properly, and are aligned with Gradle's core design philosophy.
 Some of these practices are things to do, and some are things to avoid doing.
@@ -44,10 +44,16 @@ The items in this guide are meant to be _brief_, _understandable_, and _actionab
 
 == Best Practices
 
-- <<bp_general.adoc#best_practices_general,General Gradle Best Practices>>
-- <<bp_dependencies.adoc#best_practices_for_dependencies,Best Practices for Dependencies>>
-- <<bp_tasks.adoc#best_practices_for_tasks,Best Practices for Tasks>>
+- <<best_practices_general.adoc#best_practices_general,General Best Practices>>
+- <<best_practices_dependencies.adoc#best_practices_for_dependencies,Best Practices for Dependencies>>
+- <<best_practices_tasks.adoc#best_practices_for_tasks,Best Practices for Tasks>>
+- <<best_practices_performance.adoc#best_practices_for_performance,Best Practices for Performance>>
 
-== Further Reference
+== Other Advice
+
+- <<performance.adoc#performance_gradle, Improving the Performance of Gradle Builds>>
+- <<organizing_gradle_projects.adoc#sec:structuring_recommendations,Structuring Gradle Builds>>
+
+== References
 
 - <<tags_reference.adoc#tags_reference,Tags Used in Best Practices>>

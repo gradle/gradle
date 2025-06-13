@@ -47,13 +47,14 @@ fun EvaluationSchemaBuilder.gradleDslGeneralSchema() {
     /** This should go before [MinimalSchemaBuildingComponent], as it needs to claim the properties */
     registerAnalysisSchemaComponent(GradlePropertyApiAnalysisSchemaComponent())
 
+    /** This should go before [MinimalSchemaBuildingComponent], as it needs its function extractor to take priority */
+    registerAnalysisSchemaComponent(StandardLibraryComponent)
+
     registerAnalysisSchemaComponent(MinimalSchemaBuildingComponent())
 
     registerAnalysisSchemaComponent(TypeDiscoveryFromRestrictedFunctions())
 
     registerAnalysisSchemaComponent(SupertypeTypeDiscovery())
-
-    registerAnalysisSchemaComponent(StandardLibraryComponent)
 
     ifConversionSupported {
         /** This should go before the default runtime function resolution implementation by [conversionSupport] in order to intercept the calls to the intrinsics. */

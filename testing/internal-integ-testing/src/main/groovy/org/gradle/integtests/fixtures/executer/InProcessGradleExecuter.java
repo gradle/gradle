@@ -21,7 +21,6 @@ import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -312,7 +311,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
                 output.putNextEntry(new JarEntry("META-INF/"));
                 output.closeEntry();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             } finally {
                 IoActions.closeQuietly(output);
             }

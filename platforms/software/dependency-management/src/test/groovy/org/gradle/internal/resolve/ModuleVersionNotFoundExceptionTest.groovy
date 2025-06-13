@@ -15,12 +15,14 @@
  */
 package org.gradle.internal.resolve
 
+import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
+import org.gradle.internal.Describables
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -127,9 +129,9 @@ Searched in the following locations:
     }
 
     def "can add incoming paths to exception"() {
-        def a = DefaultModuleComponentIdentifier.newId(mid("org", "a"), "1.2")
-        def b = DefaultModuleComponentIdentifier.newId(mid("org", "b"), "5")
-        def c = DefaultModuleComponentIdentifier.newId(mid("org", "c"), "1.0")
+        Describable a = Describables.of("org:a:1.2")
+        Describable b = Describables.of("org:b:5")
+        Describable c = Describables.of("org:c:1.0")
 
         def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"), ["http://somewhere"])
         def onePath = exception.withIncomingPaths([[a, b, c]])

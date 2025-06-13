@@ -59,8 +59,4 @@ public class VisualCppInstall implements Named {
     private Architecture getPlatformArchitecture(NativePlatformInternal targetPlatform) {
         return targetPlatform.getArchitecture();
     }
-
-    private VisualCpp getDescriptor(NativePlatformInternal targetPlatform) {
-        return platforms.get(getPlatformArchitecture(targetPlatform));
-    }
 }

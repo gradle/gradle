@@ -194,6 +194,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
             case PREFER_SETTINGS:
                 LOGGER.warn(message);
                 break;
+            default:
+                break;
         }
     }
 
@@ -209,6 +211,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
                 throw new InvalidUserCodeException(message);
             case PREFER_SETTINGS:
                 LOGGER.warn(message);
+                break;
+            default:
                 break;
         }
     }

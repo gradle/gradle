@@ -524,7 +524,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private static class ExecutorState implements ExecutorStats {
-        private final AtomicReference<List<WorkerState>> allWorkers = new AtomicReference<>();
+        private final AtomicReference<List<ExecutorState.WorkerState>> allWorkers = new AtomicReference<>();
 
         public void maybeStartWorkers(Runnable startAction) {
             if (allWorkers.get() != null) {
@@ -537,7 +537,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
         @Override
         public WorkerStats startWorker() {
-            WorkerState state = new WorkerState();
+            ExecutorState.WorkerState state = new ExecutorState.WorkerState();
             allWorkers.get().add(state);
             return state;
         }
@@ -556,7 +556,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                 return null;
             }
 
-            List<WorkerState> workers = allWorkers.get();
+            List<ExecutorState.WorkerState> workers = allWorkers.get();
             if (workers == null || workers.isEmpty()) {
                 // Workers have not been started yet, assume this is going to happen and that everything is healthy
                 return null;
@@ -564,7 +564,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
             int waitingWorkers = 0;
             int stoppedWorkers = 0;
-            for (WorkerState worker : workers) {
+            for (ExecutorState.WorkerState worker : workers) {
                 ExecutionState currentState = worker.state.get();
                 if (currentState == ExecutionState.Running) {
                     return null;

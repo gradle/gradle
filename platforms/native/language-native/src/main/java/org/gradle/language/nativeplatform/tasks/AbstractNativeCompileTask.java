@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -100,24 +101,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     @Inject
-    protected TaskFileVarFactory getTaskFileVarFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract TaskFileVarFactory getTaskFileVarFactory();
 
     @Inject
-    protected IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IncrementalCompilerBuilder getIncrementalCompilerBuilder();
 
     @Inject
-    protected BuildOperationLoggerFactory getOperationLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationLoggerFactory getOperationLoggerFactory();
 
     @Inject
-    protected FileCollectionFactory getFileCollectionFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileCollectionFactory getFileCollectionFactory();
 
     @TaskAction
     protected void compile(InputChanges inputs) {
@@ -275,7 +268,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     /**
-     * Adds a set of source files to be compiled. The provided sourceFiles object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds a set of source files to be compiled. The provided sourceFiles object is evaluated as per {@link Project#files(Object...)}.
      */
     public void source(Object sourceFiles) {
         source.from(sourceFiles);

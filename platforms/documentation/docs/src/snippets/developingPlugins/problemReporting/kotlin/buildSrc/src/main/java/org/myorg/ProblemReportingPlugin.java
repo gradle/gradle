@@ -35,7 +35,7 @@ public class ProblemReportingPlugin implements Plugin<Project> {
             .solution("Please use plugin 'y'")
             .severity(Severity.WARNING)
             .additionalData(SomeData.class, additionalData -> {
-                additionalData.setName("Some name");
+                additionalData.setName("Some name"); // <4>
             })
         );
     }

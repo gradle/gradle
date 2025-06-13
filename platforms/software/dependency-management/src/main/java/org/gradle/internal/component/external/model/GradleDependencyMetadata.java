@@ -19,26 +19,17 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
-import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class GradleDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
     private final ModuleComponentSelector selector;
@@ -110,7 +101,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (target instanceof ModuleComponentSelector) {
             return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, endorsing, reason, force, artifacts);
         }
-        return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
+        return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this.withArtifacts(artifacts));
+    }
+
+    private DependencyMetadata withArtifacts(List<IvyArtifactName> artifacts) {
+        return new GradleDependencyMetadata(selector, excludes, constraint, endorsing, reason, force, artifacts);
     }
 
     @Override
@@ -121,24 +116,6 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     @Override
     public List<ExcludeMetadata> getExcludes() {
         return excludes;
-    }
-
-    @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema, Set<CapabilitySelector> explicitRequestedCapabilities) {
-        if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
-            VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
-                consumerAttributes,
-                explicitRequestedCapabilities,
-                targetComponentState,
-                consumerSchema,
-                getArtifacts()
-            );
-            return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
-        }
-
-        // Fallback to legacy variant selection for target components that don't support attribute matching.
-        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
-        return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
     }
 
     @Override

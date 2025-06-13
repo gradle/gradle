@@ -20,11 +20,19 @@ plugins {
     id("gradlebuild.start-scripts")
 }
 
-description = "Java 6-compatible entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
+description = "Entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
-gradlebuildJava {
-    usedForStartup()
-    usesIncompatibleDependencies = true
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+    }
+}
+
+tasks.jar {
+    manifest {
+        // Allow launcher to access JNI: https://openjdk.org/jeps/472
+        attributes("Enable-Native-Access" to "ALL-UNNAMED")
+    }
 }
 
 app {

@@ -229,7 +229,7 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
             repositories {
                 maven {
                     url = "${mavenHttpRepo.uri}"
-                    artifactUrls('http://does-not-exist.com')
+                    artifactUrls('http://does-not-exist.invalid')
                 }
             }
             dependencies {
@@ -241,7 +241,7 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
         module.pom.expectGet()
         module.artifact.expectGetMissing()
         fails("resolve")
-        failure.assertHasErrorOutput("does-not-exist.com") // Cannot check whole message, as it differs between OS
+        failure.assertHasErrorOutput("does-not-exist.invalid") // Cannot check whole message, as it differs between OS
 
         and:
         module.artifact.expectGetMissing()

@@ -17,10 +17,7 @@
 package org.gradle.api
 
 import groovy.transform.SelfType
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @SelfType(AbstractDomainObjectContainerIntegrationTest)
 trait AbstractNamedDomainObjectContainerIntegrationTest {
@@ -51,7 +48,6 @@ trait AbstractNamedDomainObjectContainerIntegrationTest {
 
 
 class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can mutate the task container from named container"() {
         buildFile """
             testContainer.configureEach {
@@ -60,9 +56,11 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
             toBeRealized.get()
 
             task verify {
+                def realizedPresent = provider { tasks.findByName("realized") != null }
+                def toBeRealizedPresent = provider { tasks.findByName("toBeRealized") != null }
                 doLast {
-                    assert tasks.findByName("realized") != null
-                    assert tasks.findByName("toBeRealized") != null
+                    assert realizedPresent.get()
+                    assert toBeRealizedPresent.get()
                 }
             }
         """
@@ -117,5 +115,23 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
         """
         expect:
         succeeds "help"
+    }
+
+    def "failing to create a domain object produces a nice message"() {
+        buildFile << """
+            testContainer.register("foo") {
+                throw new RuntimeException("fail creation")
+            }.get()
+        """
+
+        when:
+        fails "help"
+
+        then:
+
+        failure.assertHasFailure("A problem occurred evaluating root project 'root'.") {
+            it.assertHasFirstCause("Could not create domain object 'foo' (SomeType) in SomeType container")
+            it.assertHasCause("fail creation")
+        }
     }
 }

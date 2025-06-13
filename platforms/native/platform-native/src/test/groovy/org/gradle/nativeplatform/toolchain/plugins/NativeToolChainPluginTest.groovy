@@ -20,18 +20,15 @@ import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.nativeplatform.toolchain.NativeToolChain
-import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 abstract class NativeToolChainPluginTest extends AbstractProjectBuilderSpec {
-
-    def registry
-
+    NativeToolChainRegistryInternal registry
     def setup() {
-        registry = project.modelRegistry
         project.pluginManager.apply(getPluginClass())
+        registry = project.toolChains
     }
 
     abstract Class<? extends Plugin> getPluginClass()
@@ -43,19 +40,15 @@ abstract class NativeToolChainPluginTest extends AbstractProjectBuilderSpec {
     }
 
     NativeToolChainInternal getToolchain() {
-        registry.get("toolChains", NativeToolChainRegistryInternal).getByName(getToolchainName()) as NativeToolChainInternal
+        registry.getByName(getToolchainName()) as NativeToolChainInternal
     }
 
     void register() {
-        registry.mutate(NativeToolChainRegistry) {
-            it.create(getToolchainName(), getToolchainClass())
-        }
+        registry.create(getToolchainName(), getToolchainClass())
     }
 
     void addDefaultToolchain() {
-        registry.mutate(NativeToolChainRegistryInternal) {
-            it.addDefaultToolChains()
-        }
+        registry.addDefaultToolChains()
     }
 
     def "tool chain is extended"() {

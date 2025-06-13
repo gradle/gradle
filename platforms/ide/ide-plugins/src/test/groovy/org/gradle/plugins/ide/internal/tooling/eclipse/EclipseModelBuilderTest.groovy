@@ -149,8 +149,8 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(pluginType)
-        project.sourceCompatibility = null
-        project.targetCompatibility = null
+        project.java.sourceCompatibility = null
+        project.java.targetCompatibility = null
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)

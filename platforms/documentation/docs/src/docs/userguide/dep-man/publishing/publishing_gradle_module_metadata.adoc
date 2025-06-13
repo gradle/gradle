@@ -15,7 +15,7 @@
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[sec:understanding-gradle-module-md]]
-= Understanding Gradle Module Metadata
+= Gradle Module Metadata
 
 Gradle Module Metadata is a format used to serialize the Gradle component model.
 It is similar to https://maven.apache.org/pom.html[Apache Maven™'s POM file] or https://ant.apache.org/ivy/[Apache Ivy™ ivy.xml] files.

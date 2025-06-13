@@ -65,9 +65,6 @@ public interface ResolvableSelectorState {
     @Nullable
     IvyArtifactName getFirstDependencyArtifact();
 
-    @Deprecated
-    org.gradle.api.artifacts.ClientModule getClientModule();
-
     boolean isChanging();
 
     default boolean isProject() {

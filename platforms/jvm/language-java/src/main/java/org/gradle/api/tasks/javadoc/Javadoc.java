@@ -46,7 +46,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -60,7 +60,6 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -108,12 +107,15 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
+    @Nullable
     private File destinationDir;
 
     private boolean failOnError = true;
 
+    @Nullable
     private String title;
 
+    @Nullable
     private String maxMemory;
 
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
@@ -121,6 +123,7 @@ public abstract class Javadoc extends SourceTask {
     private FileCollection classpath = getProject().files();
     private final ModularitySpec modularity;
 
+    @Nullable
     private String executable;
     private final Property<JavadocTool> javadocTool;
 
@@ -143,7 +146,7 @@ public abstract class Javadoc extends SourceTask {
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
 
         StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
@@ -183,8 +186,8 @@ public abstract class Javadoc extends SourceTask {
         File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-                customExecutable, "Toolchain from `executable` property",
-                toolchainExecutable, "toolchain from `javadocTool` property");
+            customExecutable, "Toolchain from `executable` property",
+            toolchainExecutable, "toolchain from `javadocTool` property");
     }
 
     private boolean isModule() {
@@ -263,7 +266,7 @@ public abstract class Javadoc extends SourceTask {
     /**
      * <p>Sets the directory to generate the documentation into.</p>
      */
-    public void setDestinationDir(File destinationDir) {
+    public void setDestinationDir(@Nullable File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
@@ -282,7 +285,7 @@ public abstract class Javadoc extends SourceTask {
      *
      * @param maxMemory The amount of memory
      */
-    public void setMaxMemory(String maxMemory) {
+    public void setMaxMemory(@Nullable String maxMemory) {
         this.maxMemory = maxMemory;
     }
 
@@ -304,48 +307,6 @@ public abstract class Javadoc extends SourceTask {
      */
     public void setTitle(@Nullable String title) {
         this.title = title;
-    }
-
-    /**
-     * Returns whether Javadoc generation is accompanied by verbose output.
-     *
-     * @see #setVerbose(boolean)
-     * @deprecated This method duplicates the functionality of {@code getOptions().isVerbose()}. It will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    @Internal
-    public boolean isVerbose() {
-        DeprecationLogger.deprecateMethod(Javadoc.class, "isVerbose()")
-            .replaceWith("getOptions().isVerbose()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
-            .nagUser();
-        return options.isVerbose();
-    }
-
-    /**
-     * Sets whether Javadoc generation is accompanied by verbose output or not. The verbose output is done via println
-     * (by the underlying Ant task). Thus it is not handled by our logging.
-     *
-     * @param verbose Whether the output should be verbose.
-     * @deprecated This method duplicates the functionality of {@code getOptions().verbose()}. It will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public void setVerbose(boolean verbose) {
-        if (verbose) {
-            DeprecationLogger.deprecateMethod(Javadoc.class, "setVerbose(true)")
-                .replaceWith("getOptions().verbose()")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
-                .nagUser();
-            options.verbose();
-        } else {
-            DeprecationLogger.deprecateMethod(Javadoc.class, "setVerbose(false)")
-                .withAdvice("Passing false to this method does nothing. You may want to call getOptions().quiet().")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
-                .nagUser();
-        }
     }
 
     /**
@@ -447,37 +408,23 @@ public abstract class Javadoc extends SourceTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaModuleDetector getJavaModuleDetector();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 }

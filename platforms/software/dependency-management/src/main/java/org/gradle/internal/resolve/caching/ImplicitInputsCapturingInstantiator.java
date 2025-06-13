@@ -17,7 +17,6 @@ package org.gradle.internal.resolve.caching;
 
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookupException;
@@ -42,7 +41,6 @@ import java.util.List;
  *
  * If recording inputs is not required, the {@link #newInstance(Class, Object...)}
  * method can still be called, in which case it creates a non capturing instance.
- *
  */
 @NullMarked
 public class ImplicitInputsCapturingInstantiator implements Instantiator {
@@ -117,16 +115,6 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
                 return ((ImplicitInputsProvidingService)service).withImplicitInputRecorder(registrar);
             }
             return service;
-        }
-
-        @Override
-        public <T> Factory<T> getFactory(Class<T> type) throws UnknownServiceException, ServiceLookupException {
-            return serviceRegistry.getFactory(type);
-        }
-
-        @Override
-        public <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException {
-            return serviceRegistry.newInstance(type);
         }
     }
 }

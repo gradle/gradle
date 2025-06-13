@@ -16,6 +16,7 @@
 
 package org.gradle.internal.io;
 
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ public interface IoSupplier<T> {
             try {
                 return supplier.get();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }

@@ -278,7 +278,6 @@ class MavenPomFileGeneratorTest extends Specification {
     private MavenPomInternal newPom() {
         MavenPomInternal pom = TestUtil.objectFactory().newInstance(
             DefaultMavenPom.class,
-            TestUtil.objectFactory()
         )
 
         pom.coordinates.groupId.set("group-id")

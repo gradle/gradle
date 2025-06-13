@@ -131,8 +131,13 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
 
+    private final ConventionInterceptors conventionInterceptors = new ConventionInterceptors();
+
     @Override
     public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name, String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+        if(conventionInterceptors.visitMethodInsn(mv, className, opcode, owner, name, descriptor, isInterface, readMethodNode)) {
+            return true;
+        }
         switch (opcode) {
             case Opcodes.INVOKESTATIC:
                 return visitINVOKESTATIC(mv, className, owner, name, descriptor);

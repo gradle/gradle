@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -63,15 +62,13 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         given:
         succeeds(":a:javadoc")
         def bJar = file("b/build/libs/b.jar")
-        def oldHash = bJar.md5Hash
+        bJar.setLastModified(0L)
+        def oldTimestamp = bJar.lastModified()
+
         when:
-        // Timestamps in the jar have a 2-second precision, so we need to see a different jar before continuing
-        ConcurrentTestUtil.poll(6) {
-            // cleaning b and rebuilding will cause b.jar to be different
-            succeeds(":b:clean")
-            succeeds(":a:javadoc")
-            assert oldHash != bJar.md5Hash
-        }
+        succeeds(":b:clean")
+        succeeds(":a:javadoc")
+        assert bJar.lastModified() > oldTimestamp
 
         then:
         result.assertTasksNotSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar")

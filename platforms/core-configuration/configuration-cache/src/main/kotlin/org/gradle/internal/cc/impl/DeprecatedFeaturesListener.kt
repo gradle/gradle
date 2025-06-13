@@ -55,7 +55,7 @@ class DeprecatedFeaturesListener(
                 // A couple of places in Gradle continue calling useLogger until this method is removed, and we suppress the
                 // warning for their InternalListeners here.
                 DeprecationLogger.deprecateMethod(Gradle::class.java, "useLogger(Object)")
-                    .willBeRemovedInGradle9()
+                    .willBeRemovedInGradle10()
                     .withUpgradeGuideSection(8, "deprecated_use_logger")
                     .nagUser();
             }

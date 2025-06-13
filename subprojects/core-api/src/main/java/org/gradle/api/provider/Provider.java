@@ -224,16 +224,6 @@ public interface Provider<T> {
     Provider<T> orElse(Provider<? extends T> provider);
 
     /**
-     * Deprecated. There is no need to use this method.
-     *
-     * @since 6.5
-     * @deprecated Since version 7.4 this method does nothing. All providers can be used at configuration time without explicit opt-in.
-     * @see <a href="https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation">the upgrade guide</a>
-     */
-    @Deprecated
-    Provider<T> forUseAtConfigurationTime();
-
-    /**
      * Returns a provider which value will be computed by combining this provider value with another
      * provider value using the supplied combiner function.
      *

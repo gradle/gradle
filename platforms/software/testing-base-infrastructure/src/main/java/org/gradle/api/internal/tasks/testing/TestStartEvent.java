@@ -50,4 +50,9 @@ public class TestStartEvent {
     public TestStartEvent withParentId(Object parentId) {
         return new TestStartEvent(startTime, parentId);
     }
+
+    @Override
+    public String toString() {
+        return "start(" + parentId + ")=" + startTime;
+    }
 }

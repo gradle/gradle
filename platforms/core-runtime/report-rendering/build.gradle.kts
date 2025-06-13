@@ -24,7 +24,6 @@ dependencies {
     api(projects.core)
 
     implementation(projects.baseServices)
-    implementation(projects.logging)
 
     implementation(libs.commonsLang)
     implementation(libs.jspecify)

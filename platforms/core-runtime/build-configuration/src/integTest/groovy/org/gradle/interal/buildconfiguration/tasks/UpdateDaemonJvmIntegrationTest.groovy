@@ -28,7 +28,6 @@ import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.GradleVersion
 
 import java.util.stream.Stream
 
@@ -37,6 +36,7 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainR
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.constantUrlResolverCode
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.noUrlResolverCode
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def setup() {
@@ -68,7 +68,10 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         then:
         // TODO The description is different with CC on
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
-        failureHasCause("Toolchain download repositories have not been configured.")
+        failureHasCause("Invalid task configuration")
+        failureCauseContains("Toolchain download repositories have not been configured.")
+        failure.assertHasResolution("Learn more about toolchain repositories")
+
     }
 
     def "When execute updateDaemonJvm without options Then daemon jvm properties are populated with default values"() {
@@ -323,7 +326,8 @@ tasks.named("updateDaemonJvm") {
         then:
         // TODO The description is different with CC on
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
-        failureHasCause("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
+        failureHasCause("Invalid task configuration")
+        failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
     }
 
     def "configuring the languageVersion will use that value for the generate properties file"() {
@@ -375,24 +379,6 @@ tasks.named("updateDaemonJvm") {
 
         then:
         assertJvmCriteria(Jvm.current().javaVersion, "murin")
-    }
-
-    def "having the deprecated jvmVendor configured is an error when running the task"() {
-        given:
-        buildFile("""
-tasks.named("updateDaemonJvm") {
-    jvmVendor = "foo"
-    toolchainPlatforms = []
-}
-""")
-        executer.expectDeprecationWarning("The UpdateDaemonJvm.jvmVendor property has been deprecated. This is scheduled to be removed in Gradle 9.0. Executing the 'updateDaemonJvm' task will fail with this usage present Please use the vendor property instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.buildconfiguration.tasks.UpdateDaemonJvm.html#org.gradle.buildconfiguration.tasks.UpdateDaemonJvm:jvmVendor in the Gradle documentation.")
-
-        when:
-        fails "updateDaemonJvm"
-
-        then:
-        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
-        failureHasCause("Configuring 'jvmVendor' is no longer supported")
     }
 
     def "can hardcode download URLs in task configuration for generation and then it does not require a toolchain provider configured"() {

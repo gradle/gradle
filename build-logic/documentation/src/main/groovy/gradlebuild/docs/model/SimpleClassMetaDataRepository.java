@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.apache.commons.lang.StringUtils.getLevenshteinDistance;
+import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 
 public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements ClassMetaDataRepository<T> {
     private final Map<String, T> classes = new TreeMap<>();

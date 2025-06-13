@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.Flag
+import kotlinx.metadata.KmFunction
+import kotlinx.metadata.KmProperty
+import kotlinx.metadata.KmPropertyAccessorAttributes
 import kotlinx.metadata.KmType
 import kotlinx.metadata.KmTypeProjection
 import kotlinx.metadata.KmVariance
-import kotlinx.metadata.flagsOf
+import kotlinx.metadata.hasAnnotations
+import kotlinx.metadata.isNullable
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Action
 import org.gradle.api.Incubating
@@ -40,6 +42,7 @@ import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
+import org.gradle.kotlin.dsl.support.bytecode.inlineGetterAttributes
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
@@ -52,12 +55,13 @@ import org.gradle.kotlin.dsl.support.bytecode.newValueParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.nullable
 import org.gradle.kotlin.dsl.support.bytecode.providerConvertibleOfStar
 import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionAttributes
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsAttributes
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
-import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlags
+import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyAttributes
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
+import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Type
 
@@ -66,7 +70,6 @@ internal
 fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForConfiguration -> fragmentsForConfiguration(accessor)
     is Accessor.ForExtension -> fragmentsForExtension(accessor)
-    is Accessor.ForConvention -> fragmentsForConvention(accessor)
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
     is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
@@ -77,20 +80,22 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
 private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragments = accessor.run {
     val className = "${accessor.spec.softwareTypeName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
     val functionName = spec.softwareTypeName.original
-    val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>()))
+    val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>(), emptyList()))
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
+    val deprecation = accessor.spec.modelType.deprecation()
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.modelType)}"
 
     className to sequenceOf(
         AccessorFragment(
             source = """
-                /**
-                 * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
-                 */
-                @Incubating
-                fun Project.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
-                    applySoftwareType(this, "$functionName", configure)
-                }
-            """.trimIndent(),
+            |        /**
+            |         * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
+            |         */
+            |        @Incubating
+            |        ${annotations}fun Project.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
+            |            applySoftwareType(this, "$functionName", configure)
+            |        }
+            """.trimMargin(),
             signature = JvmMethodSignature(
                 functionName,
                 "(L$jvmProjectType;Lorg/gradle/api/Action;)V"
@@ -99,6 +104,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                 publicStaticMethod(signature, annotations = {
                     visitAnnotation(Type.getDescriptor(Incubating::class.java), true).visitEnd()
                 }) {
+                    maybeWithDeprecation(deprecation)
                     ALOAD(0)
                     LDC(functionName)
                     ALOAD(1)
@@ -108,7 +114,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = publicFunctionWithAnnotationsFlags, // has @Incubating
+                    functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating and maybe deprecations
                     receiverType = kotlinProjectType,
                     valueParameters = listOf(
                         newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinModelType)))
@@ -118,7 +124,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                     signature = signature
                 )
             }
-    ))
+        ))
 }
 
 private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerElementFactory): Fragments = accessor.run {
@@ -128,44 +134,48 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
     val (kotlinElementType, _) = accessibleTypesFor(accessor.spec.elementType)
     val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessor.spec.receiverType)
     val elementTypeKotlinString = accessor.spec.elementType.type.kotlinString
+    val deprecation = accessor.spec.elementType.deprecation()
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.elementType)}"
+
 
     className to sequenceOf(
         AccessorFragment(
             source = elementFactoryName.run {
                 """
-                    /**
-                     * Registers or configures a new "$elementFactoryName" element in a named domain object container of [$elementTypeKotlinString].
-                     */
-                    @${Incubating::class.simpleName}
-                    fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
-                        name: String,
-                        configure: Action<in $elementTypeKotlinString>
-                    ) {
-                        if (name in names) {
-                            named(name, configure)
-                        } else {
-                            register(name, configure)
-                        }
-                    }
-                """.trimIndent()
+                |        /**
+                |         * Registers or configures a new "$elementFactoryName" element in a named domain object container of [$elementTypeKotlinString].
+                |         */
+                |        @${Incubating::class.simpleName}
+                |        ${annotations}fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
+                |            name: String,
+                |            configure: Action<in $elementTypeKotlinString>
+                |        ) {
+                |            if (name in names) {
+                |                named(name, configure)
+                |            } else {
+                |                register(name, configure)
+                |            }
+                |        }
+                """.trimMargin()
             },
             bytecode = {
                 publicStaticMethod(signature, annotations = {
                     visitAnnotation(Type.getDescriptor(Incubating::class.java), true).visitEnd()
+                    maybeWithDeprecation(deprecation)
                 }) {
                     ALOAD(0)
                     ALOAD(1)
                     ALOAD(2)
-                    invokeRuntime("maybeRegister", signature.desc)
+                    invokeRuntime("maybeRegister", signature.descriptor)
                     RETURN()
                 }
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = publicFunctionWithAnnotationsFlags, // has @Incubating
+                    functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating and maybe deprecations
                     receiverType = kotlinReceiverType,
                     valueParameters = listOf(
-                        newValueParameterOf("name", KotlinType.string),
+                        newValueParameterOf("name", KotlinType.string.also { it.isNullable = false }),
                         newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinElementType)))
                     ),
                     returnType = KotlinType.unit,
@@ -189,8 +199,8 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
     val propertyName = name.original
     val className = "${propertyName.uppercaseFirstChar()}ConfigurationAccessorsKt"
     val (functionFlags, deprecationBlock) =
-        if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
-        else publicFunctionFlags to ""
+        if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsAttributes to config.getDeclarationDeprecationBlock()
+        else publicFunctionAttributes to ""
 
     className to sequenceOf(
         AccessorFragment(
@@ -219,7 +229,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = nullable(GradleType.dependency),
                     name = signature.name,
@@ -270,7 +280,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -321,7 +331,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -372,7 +382,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -424,7 +434,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 val methodBody: MethodVisitor.() -> Unit = {
                     ALOAD(0)
                     LDC(propertyName)
-                    for (i in 1..7) { ALOAD(i) }
+                    for (i in 1..7) {
+                        ALOAD(i)
+                    }
                     @Suppress("MaxLineLength")
                     invokeRuntime(
                         "addExternalModuleDependencyTo",
@@ -461,7 +473,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -514,7 +526,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.typeParameter,
                     name = propertyName,
@@ -564,7 +576,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -608,7 +620,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
+                    functionAttributes = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -759,12 +771,16 @@ fun fragmentsForContainerElementOf(
     val receiverType = accessibleReceiverType.type.kmType
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
+    val deprecation = returnType.deprecation()
+    val optIns = returnType.requiredOptIns()
 
     return className to sequenceOf(
         AccessorFragment(
             source = source,
             bytecode = {
                 publicStaticMethod(signature) {
+                    maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optIns)
                     ALOAD(0)
                     LDC(propertyName)
                     LDC(jvmReturnType)
@@ -777,8 +793,17 @@ fun fragmentsForContainerElementOf(
                     name = propertyName,
                     receiverType = receiverType,
                     returnType = genericTypeOf(classOf(providerType), kotlinReturnType),
-                    getterSignature = signature
-                )
+                    getterSignature = signature,
+                    getterAttributes = {
+                        inlineGetterAttributes()
+                        hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optIns)
+                    },
+                    propertyAttributes = {
+                        readOnlyPropertyAttributes()
+                        hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optIns)
+                    })
             },
             signature = jvmGetterSignatureFor(
                 propertyName,
@@ -790,9 +815,27 @@ fun fragmentsForContainerElementOf(
 
 
 private
-fun MetadataFragmentScope.maybeHasAnnotations(flags: Int): Int = when {
-    useLowPriorityInOverloadResolution -> flags + flagsOf(Flag.HAS_ANNOTATIONS)
-    else -> flags
+fun MetadataFragmentScope.maybeFunctionHasAnnotations(attributes: KmFunction.() -> Unit): KmFunction.() -> Unit = when {
+    useLowPriorityInOverloadResolution -> {
+        {
+            attributes(this)
+            hasAnnotations = true
+        }
+    }
+
+    else -> attributes
+}
+
+private
+fun MetadataFragmentScope.maybePropertyHasAnnotations(attributes: KmProperty.() -> Unit): KmProperty.() -> Unit = when {
+    useLowPriorityInOverloadResolution -> {
+        {
+            attributes(this)
+            hasAnnotations = true
+        }
+    }
+
+    else -> attributes
 }
 
 
@@ -806,6 +849,8 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
     val receiverType = accessibleReceiverType.type.kmType
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinExtensionType, jvmExtensionType) = accessibleTypesFor(extensionType)
+    val deprecation = accessorSpec.type.deprecation()
+    val optInRequirement = accessorSpec.type.requiredOptIns()
 
     return className to sequenceOf(
 
@@ -820,6 +865,8 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     if (useLowPriorityInOverloadResolution) {
                         withLowPriorityInOverloadResolution()
                     }
+                    maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optInRequirement)
                     ALOAD(0)
                     LDC(name.original)
                     invokeRuntime(
@@ -833,7 +880,11 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
-                    flags = maybeHasAnnotations(readOnlyPropertyFlags),
+                    propertyAttributes = maybePropertyHasAnnotations {
+                        readOnlyPropertyAttributes()
+                        hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optInRequirement)
+                    },
                     name = propertyName,
                     receiverType = receiverType,
                     returnType = kotlinExtensionType,
@@ -853,6 +904,8 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     if (useLowPriorityInOverloadResolution) {
                         withLowPriorityInOverloadResolution()
                     }
+                    maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optInRequirement)
                     ALOAD(0)
                     CHECKCAST(GradleTypeName.extensionAware)
                     INVOKEINTERFACE(
@@ -872,7 +925,11 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = maybeHasAnnotations(publicFunctionFlags),
+                    functionAttributes = maybeFunctionHasAnnotations {
+                        publicFunctionAttributes()
+                        hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optInRequirement)
+                    },
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -886,77 +943,104 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
     )
 }
 
+private fun KmFunction.hasAnnotationsIfDeprecated(deprecation: Deprecated?) {
+    if (deprecation != null) {
+        hasAnnotations = true
+    }
+}
+
+private fun KmProperty.hasAnnotationsIfDeprecated(deprecation: Deprecated?) {
+    if (deprecation != null) {
+        hasAnnotations = true
+    }
+}
+
+private fun KmPropertyAccessorAttributes.hasAnnotationsIfDeprecated(deprecation: Deprecated?) {
+    if (deprecation != null) {
+        hasAnnotations = true
+    }
+}
+
+private fun KmFunction.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
+    if (optInRequirements != null) {
+        hasAnnotations = true
+    }
+}
+
+private fun KmProperty.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
+    if (optInRequirements != null) {
+        hasAnnotations = true
+    }
+}
+
+private fun KmPropertyAccessorAttributes.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
+    if (optInRequirements != null) {
+        hasAnnotations = true
+    }
+}
+
 
 private
 fun MethodVisitor.withLowPriorityInOverloadResolution() {
     visitAnnotation("Lkotlin/internal/LowPriorityInOverloadResolution;", true).visitEnd()
 }
 
-
-private
-fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
-
-    val accessorSpec = accessor.spec
-    val className = internalNameForAccessorClassOf(accessorSpec)
-    val (accessibleReceiverType, name, conventionType) = accessorSpec
-    val receiverType = accessibleReceiverType.type.kmType
-    val propertyName = name.kotlinIdentifier
-    val receiverTypeName = accessibleReceiverType.internalName()
-    val (kotlinConventionType, jvmConventionType) = accessibleTypesFor(conventionType)
-
-    return className to sequenceOf(
-
-        AccessorFragment(
-            source = conventionAccessor(accessorSpec),
-            signature = jvmGetterSignatureFor(
-                propertyName,
-                accessorDescriptorFor(receiverTypeName, jvmConventionType)
-            ),
-            bytecode = {
-                publicStaticMethod(signature) {
-                    loadConventionOf(name, conventionType, jvmConventionType)
-                    ARETURN()
-                }
-            },
-            metadata = {
-                kmPackage.properties += newPropertyOf(
-                    name = propertyName,
-                    receiverType = receiverType,
-                    returnType = kotlinConventionType,
-                    getterSignature = signature
-                )
-            }
-        ),
-
-        AccessorFragment(
-            source = "",
-            bytecode = {
-                publicStaticMethod(signature) {
-                    ALOAD(1)
-                    loadConventionOf(name, conventionType, jvmConventionType)
-                    invokeAction()
-                    RETURN()
-                }
-            },
-            metadata = {
-                kmPackage.functions += newFunctionOf(
-                    receiverType = receiverType,
-                    returnType = KotlinType.unit,
-                    name = propertyName,
-                    valueParameters = listOf(
-                        newValueParameterOf("configure", actionTypeOf(kotlinConventionType))
-                    ),
-                    signature = signature
-                )
-            },
-            signature = JvmMethodSignature(
-                propertyName,
-                "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
-            )
-        )
-    )
+private fun MethodVisitor.maybeWithDeprecation(deprecated: Deprecated?) {
+    if (deprecated != null) {
+        visitAnnotation("Lkotlin/Deprecated;", true).run {
+            visit("message", deprecated.message)
+            visitEnum("level", "Lkotlin/DeprecationLevel;", deprecated.level.name)
+            visitEnd()
+        }
+    }
 }
 
+private object AnnotationUtils {
+    private fun handleAnnotation(
+        annotation: AnnotationRepresentation,
+        visitAnnotation: (typeDescriptor: String) -> AnnotationVisitor
+    ) {
+        val annotationClass = annotation.type.value.concreteClass
+        visitAnnotation(Type.getDescriptor(annotationClass)).run {
+            for ((name, valueRepresentation) in annotation.values) {
+                visitValue(name, valueRepresentation)
+            }
+            visitEnd()
+        }
+    }
+
+    fun MethodVisitor.writeAnnotation(annotation: AnnotationRepresentation) {
+        handleAnnotation(annotation) { visitAnnotation(it, true) }
+    }
+
+    fun AnnotationVisitor.writeAnnotation(name: String?, annotation: AnnotationRepresentation) {
+        handleAnnotation(annotation) { visitAnnotation(name, it) }
+    }
+
+    private fun AnnotationVisitor.visitValue(name: String?, value: AnnotationValueRepresentation) {
+        when (value) {
+            is AnnotationValueRepresentation.AnnotationValue -> writeAnnotation(name, value.representation)
+            is AnnotationValueRepresentation.ClassValue -> visit(name, Type.getType(value.type.value.concreteClass))
+            is AnnotationValueRepresentation.EnumValue -> visitEnum(name, Type.getDescriptor(value.type.value.concreteClass), value.entryName)
+            is AnnotationValueRepresentation.PrimitiveValue -> visit(name, value.value)
+            is AnnotationValueRepresentation.ValueArray -> visitArray(name).run {
+                value.elements.forEach { element ->
+                    visitValue(null, element)
+                }
+                visitEnd()
+            }
+        }
+    }
+
+}
+
+private fun MethodVisitor.maybeWithOptInRequirement(optInRequirements: List<AnnotationRepresentation>?) {
+    optInRequirements?.forEach { annotation ->
+        with(AnnotationUtils) {
+            writeAnnotation(annotation)
+        }
+    }
+}
 
 private
 fun fragmentsForModelDefault(
@@ -969,12 +1053,16 @@ fun fragmentsForModelDefault(
     val softwareTypeName = name.kotlinIdentifier
     val receiverType = accessibleReceiverType.type.kmType
     val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
+    val deprecation = accessor.spec.type.deprecation()
+    val optIns = accessor.spec.type.requiredOptIns()
 
     return className to sequenceOf(
         AccessorFragment(
             source = modelDefaultAccessor(accessorSpec),
             bytecode = {
                 publicStaticMethod(signature) {
+                    maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optIns)
                     ALOAD(0)
                     LDC(softwareTypeName)
                     LDC(jvmPublicType)
@@ -991,7 +1079,12 @@ fun fragmentsForModelDefault(
                     valueParameters = listOf(
                         newValueParameterOf("configureAction", actionTypeOf(kotlinPublicType))
                     ),
-                    signature = signature
+                    signature = signature,
+                    functionAttributes = {
+                        publicFunctionAttributes()
+                        hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optIns)
+                    }
                 )
             },
             signature = JvmMethodSignature(
@@ -1024,23 +1117,26 @@ private
 fun TypeAccessibility.Accessible.internalName() =
     type.value.concreteClass.internalName
 
+internal fun TypeAccessibility.deprecation(): Deprecated? =
+    when (this) {
+        is TypeAccessibility.Accessible -> type.value.concreteClass.run {
+            (annotations.find { it is Deprecated } as Deprecated?)?.let { Deprecated(it.message, ReplaceWith(""), it.level) }
+                ?: (annotations.find { it is java.lang.Deprecated } as java.lang.Deprecated?)?.let { Deprecated("Deprecated in Java") }
+        }
+
+        else -> null
+    }
+
+internal fun TypeAccessibility.requiredOptIns(): List<AnnotationRepresentation>? =
+    when (this) {
+        is TypeAccessibility.Accessible -> this.optInRequirements.takeIf { it.isNotEmpty() }
+        else -> null
+    }
+
 
 private
 fun MethodVisitor.invokeAction() {
     INVOKEINTERFACE(GradleTypeName.action, "execute", "(Ljava/lang/Object;)V")
-}
-
-
-private
-fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAccessibility, jvmReturnType: InternalName) {
-    ALOAD(0)
-    LDC(name.original)
-    invokeRuntime(
-        "conventionPluginOf",
-        "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
-    )
-    if (returnType is TypeAccessibility.Accessible)
-        CHECKCAST(jvmReturnType)
 }
 
 

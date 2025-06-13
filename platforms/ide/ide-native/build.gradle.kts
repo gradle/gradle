@@ -29,7 +29,6 @@ dependencies {
     api(projects.ide)
     api(projects.stdlibJavaExtensions)
     api(projects.languageNative)
-    api(projects.platformBase)
     api(projects.platformNative)
     api(projects.serviceProvider)
 
@@ -38,6 +37,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
     implementation(projects.functional)
+    implementation(projects.platformBase)
     implementation(libs.commonsLang)
     implementation(libs.jsr305)
 

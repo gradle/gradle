@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.api
 
-
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
@@ -68,7 +67,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        configuration << ["legacy", "consumable", "resolvable", "consumableUnlocked", "resolvableUnlocked", "dependencyScopeUnlocked"]
+        configuration << ["legacy", "consumable", "resolvable", "consumableLocked", "resolvableLocked", "dependencyScopeUnlocked"]
     }
 
     def "can prevent usage mutation of roleless configurations"() {
@@ -111,32 +110,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         assertUsageLockedFailure('testConf')
     }
 
-    def "can add declaration alternatives to configuration deprecated for declaration"() {
-        given:
-        buildFile << """
-            configurations {
-                migratingUnlocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) {
-                    addDeclarationAlternatives("anotherConf")
-                }
-            }
-
-            dependencies {
-                testConf "org:foo:1.0"
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        succeeds 'help'
-    }
-
     def "can add resolution alternatives to configuration deprecated for resolution"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         buildFile << """
             configurations {
                 deps
-                migratingUnlocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
+                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE) {
                     addResolutionAlternatives("anotherConf")
                     extendsFrom(deps)
                 }
@@ -154,7 +134,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for resolution. This will fail with an error in Gradle 10. Please resolve the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds 'resolve'
     }
 
@@ -184,7 +164,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         configuration << ['runtimeClasspath', 'compileClasspath']
     }
 
-    def "configurations created by buildSrc automatically can have usage changed"() {
+    def "configurations created by buildSrc automatically can not have usage changed (#configuration - #method(#value))"() {
         given:
         file("buildSrc/src/main/java/MyTask.java") << """
             import org.gradle.api.DefaultTask;
@@ -201,9 +181,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 assert findByName('implementation')
 
                 implementation {
-                    canBeConsumed = !canBeConsumed
-                    canBeResolved = !canBeResolved
-                    canBeDeclared = !canBeDeclared
+                    assert !canBeConsumed
+                    assert !canBeResolved
+                    assert canBeDeclared
+
+                    $method($value)
                 }
             }
         """
@@ -212,14 +194,21 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             tasks.register('myTask', MyTask)
         """
 
-        expect:
-        expectConsumableChanging(':buildSrc:implementation', true)
-        expectResolvableChanging(':buildSrc:implementation', true)
-        expectDeclarableChanging(':buildSrc:implementation', false)
-        succeeds 'myTask'
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating project ':buildSrc'.")
+        assertUsageLockedFailure(configuration, role)
+
+        where:
+        configuration               | method               | role               | value
+        'buildSrc:implementation'   | 'setCanBeResolved'   | 'Dependency Scope' | true
+        'buildSrc:implementation'   | 'setCanBeConsumed'   | 'Dependency Scope' | true
+        'buildSrc:implementation'   | 'setCanBeDeclared'   | 'Dependency Scope' | false
     }
 
-    def "configurations can have usage changed from other projects"() {
+    def "configurations can not have usage changed from other projects (#configuration - #method(#value)"() {
         given:
         file("projectA/build.gradle") << """
             plugins {
@@ -245,23 +234,304 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                         assert findByName('implementation')
 
                         implementation {
-                            canBeConsumed = !canBeConsumed
-                            canBeResolved = !canBeResolved
-                            canBeDeclared = !canBeDeclared
+                            assert !canBeConsumed
+                            assert !canBeResolved
+                            assert canBeDeclared
+
+                            $method($value)
                         }
                     }
                 }
             }
         """
 
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasDescription("A problem occurred configuring project ':projectA'.")
+        assertUsageLockedFailure(configuration, role)
+
+        where:
+        configuration               | method               | role               | value
+        'projectA:implementation'   | 'setCanBeConsumed'   | 'Dependency Scope' | true
+        'projectA:implementation'   | 'setCanBeResolved'   | 'Dependency Scope' | true
+        'projectA:implementation'   | 'setCanBeDeclared'   | 'Dependency Scope' | false
+    }
+
+    def "can update all roles for non-locked configurations"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            configurations {
+                create('c1')
+                create('c2') { }
+                register('c3')
+                register('c4') { }
+                maybeCreate('c5')
+                c6
+                c7 { }
+            }
+
+            configurations.all {
+                canBeResolved = !canBeResolved
+                canBeConsumed = !canBeConsumed
+                canBeDeclared = !canBeDeclared
+            }
+        """
+
         expect:
-        expectConsumableChanging(':projectA:implementation', true)
-        expectResolvableChanging(':projectA:implementation', true)
-        expectDeclarableChanging(':projectA:implementation', false)
-        expectConsumableChanging(':projectB:implementation', true)
-        expectResolvableChanging(':projectB:implementation', true)
-        expectDeclarableChanging(':projectB:implementation', false)
+        executer.noDeprecationChecks() // These are checked in the other tests, and there would be many of them here
         succeeds 'help'
+    }
+
+    def "changing usage for a configuration in the legacy role is allowed"() {
+        given:
+        buildFile << """
+            configurations.create('custom')
+            assert configurations.custom.canBeResolved
+            configurations.custom.canBeResolved = false
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+    def "using a reserved configuration (#conf) fails if JavaBasePlugin applied"() {
+        given:
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.Plugin
+            import org.gradle.api.plugins.BasePlugin
+            import org.gradle.api.plugins.JvmEcosystemPlugin
+
+            class MyPlugin implements Plugin {
+                void apply(project) {
+                    project.pluginManager.apply(BasePlugin.class)
+                    project.pluginManager.apply(JvmEcosystemPlugin.class)
+
+                    project.sourceSets.create('custom')
+                    project.configurations.create('$conf')
+                }
+            }
+        """
+
+        file('buildSrc/build.gradle') << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/my-plugin.properties") << "implementation-class=MyPlugin"
+
+        buildFile << """
+            plugins {
+                id 'my-plugin'
+                id 'java'
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasDescription("An exception occurred applying plugin request [id: 'java']")
+        failureHasCause("""Cannot add a configuration with name '$conf' as a configuration with that name already exists.""")
+
+        where:
+        conf                | sourceSet
+        'customCompileOnly' | 'custom'
+        'implementation'    | 'main'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26461")
+    def "cannot anticipate configuration names to be created from sourcesets"() {
+        given:
+        settingsFile """
+            include 'resolver', 'producer'
+        """
+
+        file("resolver/build.gradle") << """
+            plugins {
+                id 'java-base'
+            }
+
+            configurations {
+                noAttributes
+            }
+
+            dependencies {
+                noAttributes project(":producer")
+            }
+
+            abstract class ResolveTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getMyInputs()
+
+                @TaskAction
+                void doTask() {
+                    /**
+                     * If additionalRuntimeClasspath in producer is consumable, it will
+                     * be selected instead of runtimeElements.  This ensures it does not
+                     * remain consumable after the sourceset is created.
+                     */
+                    assert myInputs*.name == ['producer.jar']
+                }
+            }
+
+            tasks.register("resolve", ResolveTask) {
+                myInputs.from(configurations.noAttributes)
+            }
+        """
+
+        file("producer/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            ${confCreationCode}
+
+            configurations.additionalRuntimeClasspath.outgoing {
+                artifact file('wrong-file.jar')
+            }
+
+            sourceSets {
+                additional
+            }
+        """
+
+        expect:
+        fails "resolve"
+        failure.assertHasDescription("A problem occurred evaluating project ':producer'.")
+        failure.assertHasCause("""Cannot add a configuration with name 'additionalRuntimeClasspath' as a configuration with that name already exists.""")
+
+        where:
+        confCreationCode | createdRole | description
+        """
+            configurations {
+                additionalRuntimeClasspath
+            }
+        """                                                                             | ConfigurationRoles.ALL        | "legacy configuration with implicit allowed usage"
+        """
+            configurations {
+                additionalRuntimeClasspath {
+                    canBeConsumed = true
+                }
+            }
+        """                                                                             | ConfigurationRoles.ALL        | "legacy configuration with explicit set consumed = true"
+        "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | "role-based configuration"
+        "configurations.consumableLocked('additionalRuntimeClasspath')"                 | ConfigurationRoles.CONSUMABLE | "internal locked role-based configuration"
+    }
+
+    def "redundantly changing usage on a legacy configuration does not warn even if flag is set"() {
+        given:
+        buildFile << """
+            def test = configurations.create('test')
+
+            assert test.canBeResolved
+            assert test.canBeConsumed
+            assert test.canBeDeclared
+
+            test.setCanBeConsumed(true)
+            test.setCanBeResolved(true)
+            test.setCanBeDeclared(true)
+        """
+
+        expect:
+        succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
+    }
+
+    def "changing usage for configuration #configuration fails"() {
+        given: "a buildscript which attempts to change a configuration's usage"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            configurations {
+                $configuration {
+                    canBeResolved = !canBeResolved
+                }
+            }
+        """
+
+        when: "the build fails"
+        fails 'help'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        assertUsageLockedFailure(configuration, role)
+
+        where: "a non-exhaustive list of configurations is tested"
+        configuration       | role
+        'api'               | 'Dependency Scope'
+        'implementation'    | 'Dependency Scope'
+        'compileOnly'       | 'Dependency Scope'
+        'runtimeOnly'       | 'Dependency Scope'
+        'archives'          | 'Consumable'
+    }
+
+    def "setting consumable = false fails for consumable configurations added by java plugin"() {
+        given: "a buildscript which attempts to change a configuration's usage"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            configurations {
+                "$configuration" {
+                    assert canBeConsumed
+                    canBeConsumed = false
+                }
+            }
+        """
+
+        when: "the build fails because the configuration is not allowed to change"
+        fails 'help'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        assertUsageLockedFailure(configuration, role)
+
+        where: "a non-exhaustive list of configurations is tested"
+        configuration       | role
+        'default'           | 'Consumable'
+        'archives'          | 'Consumable'
+        'apiElements'       | 'Consumable'
+        'runtimeElements'   | 'Consumable'
+    }
+
+    def "changing consumable to true always fails for non-LEGACY configurations (can not change #configuration usage)"() {
+        given: "a buildscript which attempts to change a configuration's usage"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            configurations {
+                $configuration {
+                    assert !canBeConsumed
+                    canBeConsumed = true
+                }
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        assertUsageLockedFailure(configuration, role)
+
+        where:
+        configuration       | role
+        'api'               | 'Dependency Scope'
+        'implementation'    | 'Dependency Scope'
+        'runtimeOnly'       | 'Dependency Scope'
+        'compileOnly'       | 'Dependency Scope'
+        'compileOnlyApi'    | 'Dependency Scope'
+        'runtimeClasspath'  | 'Resolvable'
+        'compileClasspath'  | 'Resolvable'
     }
     // endregion Roleless (Implicit LEGACY Role) Configurations
 
@@ -361,33 +631,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
     }
 
-    def "can update all roles for non-locked configurations"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
-
-            configurations {
-                create('c1')
-                create('c2') { }
-                register('c3')
-                register('c4') { }
-                maybeCreate('c5')
-                c6
-                c7 { }
-            }
-
-            configurations.all {
-                canBeResolved = !canBeResolved
-                canBeConsumed = !canBeConsumed
-                canBeDeclared = !canBeDeclared
-            }
-        """
-
-        expect:
-        executer.noDeprecationChecks() // These are checked in the other tests, and there would be many of them here
-        succeeds 'help'
-    }
-
     def "locked configurations' usage can not be updated with all"() {
         given:
         buildFile << """
@@ -414,255 +657,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "resolvable('conf') { }"       | 'Resolvable'
         "dependencyScope('conf')"      | 'Dependency Scope'
         "dependencyScope('conf') { }"  | 'Dependency Scope'
-
-    }
-    // endregion Role-Based Configurations
-
-    // region Warnings
-    def "changing usage for configuration #configuration produces warnings"() {
-        given: "a buildscript which attempts to change a configuration's usage"
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            configurations {
-                $configuration {
-                    canBeResolved = !canBeResolved
-                }
-            }
-        """
-
-        expect: "the build succeeds and a deprecation warning is logged"
-        expectResolvableChanging(":$configuration", true)
-        succeeds 'help'
-
-        where: "a non-exhaustive list of configurations is tested"
-        configuration << ['api', 'implementation', 'compileOnly', 'runtimeOnly', 'archives']
     }
 
-    def "setting consumable = false is deprecated for consumable configurations added by java plugin"() {
-        given: "a buildscript which attempts to change a configuration's usage"
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            configurations {
-                "$configuration" {
-                    assert canBeConsumed
-                    canBeConsumed = false
-                }
-            }
-        """
-
-        expect: "the build succeeds and a deprecation warning is logged if the configuration is not allowed to change"
-        expectConsumableChanging(":$configuration", false)
-        succeeds 'help'
-
-        where: "a non-exhaustive list of configurations is tested"
-        configuration << ['default', 'archives', 'apiElements', 'runtimeElements']
-    }
-
-    def "changing consumable to true always warns for non-LEGACY configurations (can not change #configuration usage)"() {
-        given: "a buildscript which attempts to change a configuration's usage"
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            configurations {
-                $configuration {
-                    assert !canBeConsumed
-                    canBeConsumed = true
-                }
-            }
-        """
-
-        expect:
-        expectConsumableChanging(":$configuration", true)
-        succeeds 'help'
-
-        where:
-        configuration << ['api', 'implementation', 'runtimeOnly', 'compileOnly', 'compileOnlyApi', 'runtimeClasspath', 'compileClasspath']
-    }
-
-    def "changing usage for a configuration in the legacy role is allowed"() {
-        given:
-        buildFile << """
-            configurations.create('custom')
-            assert configurations.custom.canBeResolved
-            configurations.custom.canBeResolved = false
-        """
-
-        expect:
-        succeeds 'help'
-    }
-
-    def "using a reserved configuration name emits a deprecation warning if JavaBasePlugin applied"() {
-        given:
-        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
-            import org.gradle.api.Plugin
-            import org.gradle.api.plugins.BasePlugin
-            import org.gradle.api.plugins.JvmEcosystemPlugin
-
-            class MyPlugin implements Plugin {
-                void apply(project) {
-                    project.pluginManager.apply(BasePlugin.class)
-                    project.pluginManager.apply(JvmEcosystemPlugin.class)
-
-                    project.sourceSets.create('custom')
-                    project.configurations.create('customCompileOnly')
-
-                    project.configurations.create('implementation')
-                }
-            }
-        """
-
-        file('buildSrc/build.gradle') << """
-            plugins {
-                id 'groovy-gradle-plugin'
-            }
-        """
-
-        file("buildSrc/src/main/resources/META-INF/gradle-plugins/my-plugin.properties") << "implementation-class=MyPlugin"
-
-        buildFile << """
-            plugins {
-                id 'my-plugin'
-                id 'java'
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The configuration customCompileOnly was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name customCompileOnly. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration customCompileOnly to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Create source set custom prior to creating or accessing the configurations associated with it. For more information, please refer to https://docs.gradle.org/current/userguide/building_java_projects.html#sec:implicit_sourceset_configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("The configuration implementation was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name implementation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration implementation to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Create source set main prior to creating or accessing the configurations associated with it. For more information, please refer to https://docs.gradle.org/current/userguide/building_java_projects.html#sec:implicit_sourceset_configurations in the Gradle documentation.")
-        succeeds 'help'
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/26461")
-    def "when anticipating configurations to be created from sourcesets, their usage is reset (creation = #description)"() {
-        given:
-        settingsFile """
-            include 'resolver', 'producer'
-        """
-
-        file("resolver/build.gradle") << """
-            plugins {
-                id 'java-base'
-            }
-
-            configurations {
-                noAttributes
-            }
-
-            dependencies {
-                noAttributes project(":producer")
-            }
-
-            abstract class ResolveTask extends DefaultTask {
-                @InputFiles
-                abstract ConfigurableFileCollection getMyInputs()
-
-                @TaskAction
-                void doTask() {
-                    /**
-                     * If additionalRuntimeClasspath in producer is consumable, it will
-                     * be selected instead of runtimeElements.  This ensures it does not
-                     * remain consumable after the sourceset is created.
-                     */
-                    assert myInputs*.name == ['producer.jar']
-                }
-            }
-
-            tasks.register("resolve", ResolveTask) {
-                myInputs.from(configurations.noAttributes)
-            }
-        """
-
-        file("producer/build.gradle") << """
-            plugins {
-                id 'java'
-            }
-
-            ${confCreationCode}
-
-            configurations.additionalRuntimeClasspath.outgoing {
-                artifact file('wrong-file.jar')
-            }
-
-            sourceSets {
-                additional
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The configuration additionalRuntimeClasspath was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name additionalRuntimeClasspath. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration additionalRuntimeClasspath to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Create source set additional prior to creating or accessing the configurations associated with it. For more information, please refer to https://docs.gradle.org/current/userguide/building_java_projects.html#sec:implicit_sourceset_configurations in the Gradle documentation.")
-        if (canMutate) {
-            succeeds "resolve"
-        } else {
-            fails "resolve"
-            failure.assertHasErrorOutput("Gradle cannot mutate the usage of configuration 'additionalRuntimeClasspath' because it is locked.")
-        }
-
-        where:
-        confCreationCode | createdRole | canMutate | description
-        """
-            configurations {
-                additionalRuntimeClasspath
-            }
-        """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with implicit allowed usage"
-        """
-            configurations {
-                additionalRuntimeClasspath {
-                    canBeConsumed = true
-                }
-            }
-        """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with explicit set consumed = true"
-        "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | false | "role-based configuration"
-        "configurations.consumableUnlocked('additionalRuntimeClasspath')"               | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration"
-        "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')"    | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration, if it doesn't already exist"
-    }
-
-    def "changing usage on detached configurations does not warn"() {
-        given:
-        buildFile << """
-            def detached = project.configurations.detachedConfiguration()
-
-            assert detached.canBeConsumed
-            assert detached.canBeResolved
-            assert detached.canBeDeclared
-
-            detached.canBeResolved = false
-            detached.canBeConsumed = false
-            detached.canBeDeclared = false
-        """
-
-        expect:
-        run "help"
-    }
-
-    def "changing usage on detached configurations warns when flag is set"() {
-        given:
-        buildFile << """
-            def detached = project.configurations.detachedConfiguration()
-
-            detached.canBeResolved = false
-            detached.canBeConsumed = false
-            detached.canBeDeclared = false
-        """
-
-        expect:
-        expectConsumableChanging(":detachedConfiguration1", false)
-        expectResolvableChanging(":detachedConfiguration1", false)
-        expectDeclarableChanging(":detachedConfiguration1", false)
-        succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
-    }
-
-    def "redundantly changing usage on a role-locked configuration warns when flag is set"() {
+    def "redundantly changing usage on a role-locked configuration emits warning when flag is set (#configuration - #method(#value))"() {
         given:
         buildFile << """
             configurations {
@@ -670,20 +667,16 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 resolvable('res')
                 dependencyScope('dep')
             }
-
             configurations.cons.canBeConsumed = true
             configurations.cons.canBeResolved = false
             configurations.cons.canBeDeclared = false
-
             configurations.res.canBeConsumed = false
             configurations.res.canBeResolved = true
             configurations.res.canBeDeclared = false
-
             configurations.dep.canBeConsumed = false
             configurations.dep.canBeResolved = false
             configurations.dep.canBeDeclared = true
         """
-
         expect:
         expectConsumableChanging(":cons", true)
         expectResolvableChanging(":cons", false)
@@ -696,23 +689,112 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         expectDeclarableChanging(":dep", true)
         succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
+    // endregion Role-Based Configurations
 
-    def "redundantly changing usage on a legacy configuration does not warn"() {
+    // region Migrating configurations
+    def "can add declaration alternatives to configuration deprecated for declaration"() {
         given:
         buildFile << """
-            def test = configurations.create('test')
-            test.setCanBeConsumed(true)
-            test.setCanBeResolved(true)
-            test.setCanBeDeclared(true)
+            configurations {
+                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) {
+                    addDeclarationAlternatives("anotherConf")
+                }
+            }
+
+            dependencies {
+                testConf "org:foo:1.0"
+            }
+        """
+        expect:
+        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 10. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        succeeds 'help'
+    }
+    // endregion Migrating configurations
+
+    // region Detached configurations
+
+    // Note that this is not desired behavior and ideally any change to a detached configuration's
+    // usage should fail, however we have to allow changes to false for now as KGP does this.
+    def "changing usage #property = #change (change property to false) on detached configurations is permitted"() {
+        given:
+        buildFile << """
+            def detached = project.configurations.detachedConfiguration()
+
+            assert detached.canBeResolved
+            assert detached.canBeDeclared
+
+            detached.$property($change)
         """
 
         expect:
+        run "help"
+
+        where:
+        property | change
+        "setCanBeResolved" | false
+        "setCanBeDeclared" | false
+    }
+
+    def "changing usage #property = #change (change property to true) on detached configurations fails"() {
+        given:
+        buildFile << """
+            def detached = project.configurations.detachedConfiguration()
+
+            assert !detached.canBeConsumed
+
+            detached.$property($change)
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failure.assertHasCause("""Method call not allowed
+  Calling $property($change) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+
+        where:
+        property | change
+        "setCanBeConsumed" | true
+    }
+
+    def "changing usage redundantly on detached configurations warns when flag is set"() {
+        given:
+        buildFile << """
+            def detached = project.configurations.detachedConfiguration()
+
+            assert detached.canBeResolved
+            assert !detached.canBeConsumed
+            assert detached.canBeDeclared
+
+            detached.canBeResolved = true
+            detached.canBeConsumed = false
+            detached.canBeDeclared = true
+        """
+
+        expect:
+        expectConsumableChanging(":detachedConfiguration1", false)
+        expectResolvableChanging(":detachedConfiguration1", true)
+        expectDeclarableChanging(":detachedConfiguration1", true)
         succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
-    // endregion Warnings
 
-    private void assertUsageLockedFailure(String configurationName, String roleName = null) {
-        String suffix = roleName ? "as it was locked upon creation to the role: '$roleName'." : "as it has been locked."
-        failure.assertHasCause("Cannot change the allowed usage of configuration ':$configurationName', $suffix")
+    def "changing usage redundantly on detached configurations does NOT warn when flag is NOT set"() {
+        given:
+        buildFile << """
+            def detached = project.configurations.detachedConfiguration()
+
+            assert detached.canBeResolved
+            assert !detached.canBeConsumed
+            assert detached.canBeDeclared
+
+            detached.canBeResolved = true
+            detached.canBeConsumed = false
+            detached.canBeDeclared = true
+        """
+
+        expect:
+        succeeds('help')
     }
+    // endregion Detached configurations
 }

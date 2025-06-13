@@ -18,19 +18,23 @@ package org.gradle.testfixtures
 
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.SupportedJavaVersions
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
+import org.junit.Assume
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
+class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
         buildFile << """
@@ -68,7 +72,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
 
         then:
-        testExecuted()
+        testPassed()
     }
 
     def "project builder has correctly set working directory"() {
@@ -87,11 +91,39 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test')
 
         then:
-        testExecuted()
+        testPassed()
+    }
+
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    def "using project builder on unsupported java version fails"() {
+        Assume.assumeTrue("Gradle can execute tests", jdk.javaVersionMajor >= SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION)
+
+        given:
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersionMajor})
+                }
+            }
+        """
+        withTest("""
+            expect:
+            ProjectBuilder.builder().build()
+        """)
+
+        when:
+        withInstallations(jdk)
+        fails('test')
+
+        then:
+        testFailed(containsString(SupportedJavaVersionsExpectations.getIncompatibleDaemonJvmVersionErrorMessage("Gradle", jdk.javaVersionMajor)))
+
+        where:
+        jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
     }
 
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
-    def "using project builder on Java versions earlier than 17 emits a deprecation warning"() {
+    def "using project builder on deprecated java version emits a deprecation warning"() {
         given:
         withTest("""
             expect:
@@ -102,12 +134,12 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test')
 
         then:
-        testExecuted()
-        assertTestStdout(containsString("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"))
+        testPassed()
+        assertTestStdout(containsString(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning))
     }
 
     @Requires(UnitTestPreconditions.NonDeprecatedDaemonJdkVersion)
-    def "using project builder on Java versions 17 and later does not emit a deprecation warning"() {
+    def "using project builder on non-deprecated java version does not emit a deprecation warning"() {
         given:
         withTest("""
             expect:
@@ -118,8 +150,8 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test')
 
         then:
-        testExecuted()
-        assertTestStdout(not(containsString("Executing Gradle on JVM versions 16 and lower has been deprecated")))
+        testPassed()
+        assertTestStdout(not(containsString(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)))
     }
 
     void withTest(String body) {
@@ -135,10 +167,16 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void testExecuted() {
+    void testPassed() {
         def results = new DefaultTestExecutionResult(testDirectory)
         results.assertTestClassesExecuted('Test')
-        results.testClass('Test').assertTestsExecuted('test')
+        results.testClass('Test').assertTestPassed('test')
+    }
+
+    void testFailed(Matcher<String> matcher) {
+        def results = new DefaultTestExecutionResult(testDirectory)
+        results.assertTestClassesExecuted('Test')
+        results.testClass('Test').assertTestFailed('test', matcher)
     }
 
     void assertTestStdout(Matcher<String> matcher) {

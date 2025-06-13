@@ -437,7 +437,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         javaTaskSource << """
             @org.gradle.work.DisableCachingByDefault(because = "my task")
-            public class MyTask extends org.gradle.api.tasks.Copy {
+            public abstract class MyTask extends org.gradle.api.tasks.Copy {
                 public MyTask() {
                     from("input.txt");
                     setDestinationDir(new java.io.File("output"));

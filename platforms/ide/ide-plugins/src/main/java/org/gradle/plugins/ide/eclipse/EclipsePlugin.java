@@ -117,6 +117,7 @@ public abstract class EclipsePlugin extends IdePlugin {
     @Override
     protected void onApply(Project project) {
         getLifecycleTask().configure(withDescription("Generates all Eclipse files."));
+        getLifecycleTask().configure(withGracefulDegradation(project));
         getCleanTask().configure(withDescription("Cleans all Eclipse files."));
 
         EclipseModel model = project.getExtensions().create("eclipse", EclipseModel.class, project);
@@ -213,7 +214,11 @@ public abstract class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
-        model.setClasspath(project.getObjects().newInstance(EclipseClasspath.class, project));
+        EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
+        classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
+
+        model.setClasspath(classpath);
+
         ((IConventionAware) model.getClasspath()).getConventionMapping().map("defaultOutputDir", new Callable<File>() {
             @Override
             public File call() {
@@ -236,6 +241,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                         task.setOutputFile(project.file(".classpath"));
                     }
                 });
+                task.configure(withGracefulDegradation(project));
                 addWorker(task, ECLIPSE_CP_TASK_NAME);
 
                 XmlTransformer xmlTransformer = new XmlTransformer();

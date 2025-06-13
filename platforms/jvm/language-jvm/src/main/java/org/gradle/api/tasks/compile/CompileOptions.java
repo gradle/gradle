@@ -22,9 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -37,7 +35,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
@@ -48,20 +45,17 @@ import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
-import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Main options for Java compilation.
  */
-@SuppressWarnings("deprecation")
-public abstract class CompileOptions extends AbstractOptions {
+public abstract class CompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     private boolean failOnError = true;
@@ -245,22 +239,6 @@ public abstract class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Sets options for generating debugging information.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #debugOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setDebugOptions(DebugOptions debugOptions) {
-        DeprecationLogger.deprecateMethod(CompileOptions.class, "setDebugOptions(DebugOptions)")
-            .replaceWith("debugOptions(Action)")
-            .withContext("Setting a new instance of debugOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.debugOptions = debugOptions;
-    }
-
-    /**
      * Execute the given action against {@link #getDebugOptions()}.
      *
      * @since 8.11
@@ -295,22 +273,6 @@ public abstract class CompileOptions extends AbstractOptions {
     @Nested
     public ForkOptions getForkOptions() {
         return forkOptions;
-    }
-
-    /**
-     * Sets options for running the compiler in a child process.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setForkOptions(ForkOptions forkOptions) {
-        DeprecationLogger.deprecateMethod(CompileOptions.class, "setForkOptions(ForkOptions)")
-            .replaceWith("forkOptions(Action)")
-            .withContext("Setting a new instance of forkOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.forkOptions = forkOptions;
     }
 
     /**
@@ -413,48 +375,6 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
-    }
-
-    /**
-     * Convenience method to set {@link ForkOptions} with named parameter syntax.
-     * Calling this method will set {@code fork} to {@code true}.
-     *
-     * @deprecated This method will be removed in Gradle 9.0
-     */
-    @Deprecated
-    public CompileOptions fork(Map<String, Object> forkArgs) {
-
-        DeprecationLogger.deprecateMethod(CompileOptions.class, "fork(Map)")
-            .withAdvice("Set properties directly on the 'forkOptions' property instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_abstract_options")
-            .nagUser();
-
-        fork = true;
-        DeprecationLogger.whileDisabled(() -> forkOptions.define(forkArgs));
-        return this;
-    }
-
-    /**
-     * Convenience method to set {@link DebugOptions} with named parameter syntax.
-     * Calling this method will set {@code debug} to {@code true}.
-     *
-     * @deprecated This method will be removed in Gradle 9.0
-     */
-    @Deprecated
-    public CompileOptions debug(Map<String, Object> debugArgs) {
-
-        DeprecationLogger.deprecateMethod(CompileOptions.class, "debug(Map)")
-            .withAdvice("Set properties directly on the 'debugOptions' property instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_abstract_options")
-            .nagUser();
-
-        debug = true;
-
-        // Disable deprecation to avoid double-warning
-        DeprecationLogger.whileDisabled(() -> debugOptions.define(debugArgs));
-        return this;
     }
 
     /**
@@ -602,64 +522,10 @@ public abstract class CompileOptions extends AbstractOptions {
             @ReplacedAccessor(value = GETTER, name = "getAnnotationProcessorGeneratedSourcesDirectory"),
             @ReplacedAccessor(value = SETTER, name = "setAnnotationProcessorGeneratedSourcesDirectory")
         },
-        binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
     )
     public DirectoryProperty getGeneratedSourceOutputDirectory() {
         return generatedSourceOutputDirectory;
-    }
-
-    /**
-     * Returns the directory to place source files generated by annotation processors.
-     *
-     * @since 4.3
-     * @deprecated Use {@link #getGeneratedSourceOutputDirectory()} instead. This method will be removed in Gradle 9.0.
-     */
-    @Nullable
-    @Deprecated
-    @ReplacedBy("generatedSourceOutputDirectory")
-    public File getAnnotationProcessorGeneratedSourcesDirectory() {
-        DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
-            .replaceWith("generatedSourceOutputDirectory")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        return generatedSourceOutputDirectory.getAsFile().getOrNull();
-    }
-
-    /**
-     * Sets the directory to place source files generated by annotation processors.
-     *
-     * @since 4.3
-     * @deprecated Use {@link #getGeneratedSourceOutputDirectory()}.set() instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File file) {
-        DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
-            .replaceWith("generatedSourceOutputDirectory")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        this.generatedSourceOutputDirectory.set(file);
-    }
-
-    /**
-     * Sets the directory to place source files generated by annotation processors.
-     *
-     * @since 4.3
-     * @deprecated Use {@link #getGeneratedSourceOutputDirectory()}.set() instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public void setAnnotationProcessorGeneratedSourcesDirectory(Provider<File> file) {
-        DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
-            .replaceWith("generatedSourceOutputDirectory")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        this.generatedSourceOutputDirectory.fileProvider(file);
     }
 
     /**

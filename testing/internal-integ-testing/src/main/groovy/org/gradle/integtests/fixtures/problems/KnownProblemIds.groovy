@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.problems
 
+import org.gradle.internal.jvm.SupportedJavaVersions
+
 class KnownProblemIds {
 
     static void assertIsKnown(ReceivedProblem problem) {
@@ -26,9 +28,9 @@ class KnownProblemIds {
             definition.id.fqid ==~ pattern
         }?.value
         assert knownDefinition != null: "Unknown problem id: ${definition.id.fqid}"
-
-        def knownDisplayName = knownDefinition.find { it == definition.id.displayName }
-        assert knownDisplayName != null, "Unexpected display name for problem: expected one of '${knownDefinition}', got '${definition.id.displayName}'"
+        assert knownDefinition instanceof List: "Known problem definition must be a list of expected display names"
+        def definitionWithMatchingDisplayName = knownDefinition.find { definition.id.displayName ==~ it }
+        assert definitionWithMatchingDisplayName != null, "Unexpected display name for problem: '${definition.id.displayName}"
 
         def groupFqid = groupOf(definition.id.fqid)
         while (groupFqid != null) {
@@ -50,6 +52,7 @@ class KnownProblemIds {
     private static final Map<String, String> KNOWN_GROUPS = [
         'problems-api': 'Problems API',
         'validation': 'Validation',
+        'configuration-usage': 'Configuration usage',
         'compilation': 'Compilation',
         'deprecation': 'Deprecation',
         'compilation:java': 'Java compilation',
@@ -76,13 +79,12 @@ class KnownProblemIds {
     private static final HashMap<String, List<String>> KNOWN_DEFINITIONS = [
         'problems-api:missing-id': ['Problem id must be specified'],
         'problems-api:unsupported-additional-data': ['Unsupported additional data type'],
+        'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
         'compilation:groovy-dsl:compilation-failed': ['Groovy DSL script compilation problem'],
         // Flexible java compilation categories
         // The end of the category is matched with a regex, as there are many possible endings (and also changes with JDK versions)
         // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
-        'compilation:java:compiler-err-.+': ['Java compilation error'],
-        'compilation:java:compiler-warn-.+': ['Java compilation warning'],
-        'compilation:java:compiler-note-.+': ['Java compilation note'],
+        'compilation:java:compiler.*' : ['.*'],
         'compilation:java:initialization-failed': ['Java compilation initialization error'],
         'dependency-version-catalog:alias-not-finished': ['version catalog error'],
         'dependency-version-catalog:invalid-dependency-notation': ['Dependency version catalog problem'],
@@ -93,10 +95,8 @@ class KnownProblemIds {
         'dependency-version-catalog:too-many-import-invocation': ['version catalog error'],
         'dependency-version-catalog:no-import-files': ['version catalog error'],
         'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
-        'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration': ['Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.'],
         'deprecation:custom-task-action': ['Custom Task action has been deprecated.'],
-        'deprecation:executing-gradle-on-jvm-versions-and-lower': ['Executing Gradle on JVM versions 16 and lower has been deprecated.'],
-        'deprecation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin.'],
+        'deprecation:executing-gradle-on-jvm-versions-and-lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower has been deprecated.'],
         'deprecation:included-build-script': ['Included build script has been deprecated.'],
         'deprecation:included-build-task': ['Included build task has been deprecated.'],
         'deprecation:init-script': ['Init script has been deprecated.'],
@@ -104,11 +104,12 @@ class KnownProblemIds {
         'deprecation:plugin-script': ['Plugin script has been deprecated.'],
         'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption': ['The detachedConfiguration1 configuration has been deprecated for consumption.'],
         'deprecation:configurations-acting-as-both-root-and-variant': ['Configurations should not act as both a resolution root and a variant simultaneously.'],
-        'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl': ['Properties should be assigned using the \'propName = value\' syntax. Setting a property via the Gradle-generated \'propName value\' or \'propName(value)\' syntax in Groovy DSL has been deprecated.'],
-        'deprecation:repository-jcenter': ['The RepositoryHandler.jcenter() method has been deprecated.'],
+        'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl': ['Properties should be assigned using the \'propName = value\' syntax. Setting a property via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL has been deprecated.'],
+        'deprecation:repository-jcenter' : ['The RepositoryHandler.jcenter\\(\\) method has been deprecated.'],
         'task-selection:no-matches': ['No matches', 'cannot locate task'],
+        'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection': ['error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''],
         'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported': ['registration of listener on \'Gradle.buildFinished\' is unsupported'],
-        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported': ['invocation of \'Task.project\' at execution time is unsupported.'],
+        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
         'plugin-application:target-type-mismatch': ['Unexpected plugin type'],
         'task-selection:ambiguous-matches': ['Ambiguous matches'],
         'task-selection:selection-failed': ['Selection failed'],
@@ -142,6 +143,7 @@ class KnownProblemIds {
         'validation:type-validation:invalid-use-of-type-annotation': ['Incorrect use of type annotation'],
         'validation:type-validation:not-cacheable-without-reason': ['Not cacheable without reason'],
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
+        'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
 
         // dependency resolution failures
         'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],

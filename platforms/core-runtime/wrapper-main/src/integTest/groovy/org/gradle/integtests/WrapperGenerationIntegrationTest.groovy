@@ -35,7 +35,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f")
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3")
 
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -65,7 +65,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 46 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 47 * 1024
     }
 
     def "wrapper jar has LICENSE file"() {
@@ -183,9 +183,12 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         Manifest manifest = contents.file('META-INF/MANIFEST.MF').withInputStream { new Manifest(it) } as Manifest
         with(manifest.mainAttributes) {
-            size() == 2
+            size() == 5
             getValue(Attributes.Name.MANIFEST_VERSION) == '1.0'
             getValue(Attributes.Name.IMPLEMENTATION_TITLE) == 'Gradle Wrapper'
+            getValue(Attributes.Name.MAIN_CLASS) == org.gradle.wrapper.GradleWrapperMain.class.getName()
+            getValue("SPDX-License-Identifier") == "Apache-2.0"
+            getValue("Enable-Native-Access") == "ALL-UNNAMED"
         }
     }
 

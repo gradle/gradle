@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.scala.ScalaCompilationFixture
+import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
 import static org.gradle.api.JavaVersion.VERSION_11
@@ -44,7 +45,14 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
     }
 
     def getDocsPath() {
-        return classes.isScala3() ? "build/docs/scaladoc/_empty_" : "build/docs/scaladoc"
+        VersionNumber scalaVersion = VersionNumber.parse(classes.scalaVersion)
+        if (scalaVersion.major < 3) {
+            return "build/docs/scaladoc"
+        } else if (scalaVersion.major == 3 && scalaVersion.minor < 3) {
+            return 'build/docs/scaladoc/_empty_'
+        } else {
+            return 'build/docs/scaladoc/$lessempty$greater$'
+        }
     }
 
     def setup() {

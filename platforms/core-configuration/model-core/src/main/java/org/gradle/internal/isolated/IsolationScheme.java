@@ -22,7 +22,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Types;
@@ -40,7 +39,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -174,15 +172,12 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
     /**
      * Returns the services available for injection into the implementation instance.
      */
-    public ServiceLookup servicesForImplementation(@Nullable PARAMS params, ServiceLookup allServices) {
-        return servicesForImplementation(params, allServices, Collections.emptyList(), c -> false);
-    }
-
-    /**
-     * Returns the services available for injection into the implementation instance.
-     */
-    public ServiceLookup servicesForImplementation(@Nullable PARAMS params, ServiceLookup allServices, Collection<? extends Class<?>> additionalWhiteListedServices, Spec<Class<?>> whiteListPolicy) {
-        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalWhiteListedServices, whiteListPolicy);
+    public ServiceLookup servicesForImplementation(
+        @Nullable PARAMS params,
+        ServiceLookup allServices,
+        Collection<? extends Class<?>> additionalWhiteListedServices
+    ) {
+        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalWhiteListedServices);
     }
 
     private static class ServicesForIsolatedObject implements ServiceLookup {
@@ -190,23 +185,20 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         private final Class<?> noParamsType;
         private final Collection<? extends Class<?>> additionalWhiteListedServices;
         private final ServiceLookup allServices;
-        private final Object params;
-        private final Spec<Class<?>> whiteListPolicy;
+        private final @Nullable Object params;
 
         public ServicesForIsolatedObject(
             Class<?> interfaceType,
             Class<?> noParamsType,
             @Nullable Object params,
             ServiceLookup allServices,
-            Collection<? extends Class<?>> additionalWhiteListedServices,
-            Spec<Class<?>> whiteListPolicy
+            Collection<? extends Class<?>> additionalWhiteListedServices
         ) {
             this.interfaceType = interfaceType;
             this.noParamsType = noParamsType;
             this.additionalWhiteListedServices = additionalWhiteListedServices;
             this.allServices = allServices;
             this.params = params;
-            this.whiteListPolicy = whiteListPolicy;
         }
 
         @Nullable
@@ -245,9 +237,6 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
                     if (serviceClass.isAssignableFrom(whiteListedService)) {
                         return allServices.find(whiteListedService);
                     }
-                }
-                if (whiteListPolicy.isSatisfiedBy(serviceClass)) {
-                    return allServices.find(serviceClass);
                 }
             }
             return null;

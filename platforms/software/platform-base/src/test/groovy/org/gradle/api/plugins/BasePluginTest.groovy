@@ -34,7 +34,6 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(BasePlugin)
 
         then:
-        project.convention.plugins.base instanceof BasePluginConvention
         project.extensions.findByType(BasePluginExtension) != null
     }
 
@@ -142,15 +141,15 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def someZip = project.tasks.create('someZip', Zip)
-        someZip.destinationDirectory.get().asFile == project.distsDirectory.get().asFile
+        someZip.destinationDirectory.get().asFile == project.base.distsDirectory.get().asFile
         someZip.archiveVersion.get() == project.version
-        someZip.archiveBaseName.get() == project.archivesBaseName
+        someZip.archiveBaseName.get() == project.base.archivesName.get()
 
         and:
         def someTar = project.tasks.create('someTar', Tar)
-        someTar.destinationDirectory.get().asFile == project.distsDirectory.get().asFile
+        someTar.destinationDirectory.get().asFile == project.base.distsDirectory.get().asFile
         someTar.archiveVersion.get() == project.version
-        someTar.archiveBaseName.get() == project.archivesBaseName
+        someTar.archiveBaseName.get() == project.base.archivesName.get()
     }
 
     def "uses null version when project version not specified"() {
@@ -175,13 +174,11 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def defaultConfig = project.configurations[Dependency.DEFAULT_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
-        defaultConfig.visible
         defaultConfig.transitive
 
         and:
         def archives = project.configurations[Dependency.ARCHIVES_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
-        archives.visible
         archives.transitive
     }
 }

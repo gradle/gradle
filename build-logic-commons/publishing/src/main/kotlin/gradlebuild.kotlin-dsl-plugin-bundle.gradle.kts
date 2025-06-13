@@ -44,7 +44,7 @@ configurations.all {
 publishing.publications.withType<MavenPublication>().configureEach {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
-        artifactId = moduleIdentity.baseName.get()
+        artifactId = gradleModule.identity.baseName.get()
     }
     pom {
         licenses {
@@ -131,10 +131,7 @@ gradlePlugin {
 // For local consumption by tests - this should be unified with publish-public-libraries if possible
 configurations.create("localLibsRepositoryElements") {
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-local-repository"))
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("gradle-local-repository"))
     }
     isCanBeResolved = false
     isCanBeConsumed = true

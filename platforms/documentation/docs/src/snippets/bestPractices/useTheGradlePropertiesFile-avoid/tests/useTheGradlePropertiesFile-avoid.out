@@ -1,0 +1,17 @@
+> Task :first FAILED
+
+> Task :second
+Second task succeeding as expected
+2 actionable tasks: 2 executed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':first'.
+> First task failing as expected
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.

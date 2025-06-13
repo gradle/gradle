@@ -18,7 +18,6 @@ package org.gradle.process;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
@@ -36,8 +34,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-
-import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Specifies the options for executing a Java application.
@@ -76,32 +72,9 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Input
     @ReplacesEagerProperty(
         replacedAccessors = @ReplacedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
-        binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
     )
     Property<String> getMainClass();
-
-    /**
-     * Sets the fully qualified name of the main class to be executed.
-     *
-     * @param main the fully qualified name of the main class to be executed.
-     *
-     * @return this
-     *
-     * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    @ReplacedBy("mainClass")
-    default JavaExecSpec setMain(@Nullable String main) {
-        DeprecationLogger.deprecateProperty(JavaExecSpec.class, "main")
-                .replaceWith("mainClass")
-                .willBeRemovedInGradle9()
-                .withDslReference()
-                .nagUser();
-
-        getMainClass().set(main);
-        return this;
-    }
 
     /**
      * Returns the arguments passed to the main class to be executed.

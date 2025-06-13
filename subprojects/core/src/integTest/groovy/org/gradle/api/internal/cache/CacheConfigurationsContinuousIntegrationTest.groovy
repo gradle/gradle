@@ -18,7 +18,6 @@ package org.gradle.api.internal.cache
 
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -26,8 +25,6 @@ import org.gradle.util.internal.TextUtil
 
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 
 class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousIntegrationTest implements GradleUserHomeCleanupFixture {
     def setup() {
@@ -87,7 +84,6 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
         file('build/foo/foo').text == 'baz'
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can change cache configurations in between builds in a session"() {
         executer.requireOwnGradleUserHomeDir()
 

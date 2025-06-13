@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +40,7 @@ import java.util.Map;
 /**
  * Compilation options to be passed to the Groovy compiler.
  */
-@SuppressWarnings("deprecation")
-public abstract class GroovyCompileOptions extends AbstractOptions {
+public abstract class GroovyCompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     private boolean failOnError = true;
@@ -73,9 +72,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     private final SetProperty<String> disabledGlobalASTTransformations = getObjectFactory().setProperty(String.class);
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -191,6 +188,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * <p>
      * <b>This feature is only available if compiling with Groovy 2.1 or later.</b>
      * </p>
+     *
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
@@ -270,23 +268,6 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Sets options for running the Groovy compiler in a separate process. These options only take effect
-     * if {@code fork} is set to {@code true}.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setForkOptions(GroovyForkOptions forkOptions) {
-        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "setForkOptions(GroovyForkOptions)")
-            .replaceWith("forkOptions(Action)")
-            .withContext("Setting a new instance of forkOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.forkOptions = forkOptions;
-    }
-
-    /**
      * Execute the given action against {@link #getForkOptions()}.
      *
      * @since 8.11
@@ -311,7 +292,9 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * </dl>
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public Map<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
     }
@@ -392,25 +375,4 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
         this.keepStubs = keepStubs;
     }
 
-    /**
-     * Convenience method to set {@link GroovyForkOptions} with named parameter syntax.
-     * Calling this method will set {@code fork} to {@code true}.
-     *
-     * @deprecated This method will be removed in Gradle 9.0
-     */
-    @Deprecated
-    public GroovyCompileOptions fork(Map<String, Object> forkArgs) {
-
-        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "fork(Map)")
-            .withAdvice("Set properties directly on the 'forkOptions' property instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_abstract_options")
-            .nagUser();
-
-        fork = true;
-
-        // Disable deprecation to avoid double-warning
-        DeprecationLogger.whileDisabled(() -> forkOptions.define(forkArgs));
-        return this;
-    }
 }

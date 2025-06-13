@@ -400,11 +400,11 @@ BUILD SUCCESSFUL in 1s
 7 actionable tasks: 7 up-to-date
 Resolving local hostname is slow, see https://gradle.com/help/gradle-slow-host-name
 
-Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service defined at https://gradle.com/terms-of-service. Do you accept these terms? [yes, no] yes
+Publishing a Build Scan to scans.gradle.com requires accepting the Gradle Terms of Service defined at https://gradle.com/terms-of-service. Do you accept these terms? [yes, no] yes
 
 Gradle Terms of Service accepted.
 
-Publishing build scan...
+Publishing Build Scan...
 https://gradle.com/s/link
 ----
 

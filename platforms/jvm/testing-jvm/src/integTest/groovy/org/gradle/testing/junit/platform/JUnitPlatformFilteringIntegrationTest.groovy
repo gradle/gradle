@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.platform
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Issue
 
@@ -170,6 +171,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         '''
 
         when:
+        maybeExpectArchUnitUnsafeDeprecationWarning()
         succeeds('test')
 
         then:
@@ -215,6 +217,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         '''
 
         when:
+        maybeExpectArchUnitUnsafeDeprecationWarning()
         succeeds('test')
 
         then:
@@ -261,5 +264,14 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         expect:
         fails('test')
         errorOutput.contains("No tests found for given includes")
+    }
+
+    /**
+     * ArchUnit uses an Guava version older than 33.4.5, which emits this warning when being used with Java 24+.
+     */
+    private void maybeExpectArchUnitUnsafeDeprecationWarning() {
+        if (JavaVersion.current() >= JavaVersion.VERSION_24) {
+            executer.expectExternalDeprecatedMessage("WARNING: A terminally deprecated method in sun.misc.Unsafe has been called")
+        }
     }
 }

@@ -23,9 +23,10 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "must run with specific JDK that may differ from the current test JDK")
     def 'JVM version too low uses custom error message for plugin'() {
         given:
         def currentJdk = Jvm.current()
@@ -104,7 +105,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration 'classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
-         root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+         buildscript of root project 'consumer' > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
@@ -184,12 +185,13 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration 'classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
-         root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+         buildscript of root project 'consumer' > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Dependency requires at least JVM runtime version $tooHighJava. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "must run with specific JDK that may differ from the current test JDK")
     def 'JVM version too low uses custom error message for plugin when using composite build'() {
         given:
         def currentJdk = Jvm.current()
@@ -259,82 +261,10 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration 'classpath'.
    > Could not resolve project :producer.
      Required by:
-         root project :
+         buildscript of root project 'consumer'
       > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
-    }
-
-    @Requires(UnitTestPreconditions.Jdk11OrEarlier)
-    def 'spring boot 3 plugin usage with jvm < 17 uses custom error message'() {
-        given:
-        Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
-
-        buildFile << """
-            plugins {
-                id "application"
-                id "org.springframework.boot" version "3.2.1"           // Any version of Spring Boot >= 3
-                id "io.spring.dependency-management" version "1.1.4"    // Align this with the Spring Boot version (see TestedVersions)
-            }
-
-            ${mavenCentralRepository()}
-
-            application {
-                applicationDefaultJvmArgs = ['-DFOO=42']
-            }
-
-            dependencies {
-                implementation 'org.springframework.boot:spring-boot-starter'
-            }
-
-            testing.suites.test {
-                useJUnitJupiter()
-                dependencies {
-                    implementation 'org.springframework.boot:spring-boot-starter-test'
-                }
-            }
-        """.stripIndent()
-
-        file('src/main/java/example/Application.java') << """
-            package example;
-
-            import org.springframework.boot.SpringApplication;
-            import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-            @SpringBootApplication
-            public class Application {
-                public static void main(String[] args) {
-                    SpringApplication.run(Application.class, args);
-                    System.out.println("FOO: " + System.getProperty("FOO"));
-                }
-            }
-        """.stripIndent()
-
-        file("src/test/java/example/ApplicationTest.java") << """
-            package example;
-
-            import org.junit.jupiter.api.Test;
-            import org.springframework.boot.test.context.SpringBootTest;
-
-            @SpringBootTest
-            class ApplicationTest {
-                @Test
-                void contextLoads() {
-                }
-            }
-        """
-
-        when:
-        fails 'build', "--stacktrace"
-
-        then:
-        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration 'classpath'.
-   > Could not resolve org.springframework.boot:spring-boot-gradle-plugin:3.2.1.
-     Required by:
-         root project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
-      > Dependency requires at least JVM runtime version 17. This build uses a Java $currentJava JVM.""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
-        failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
     }
 
     private String pluginImplementation() {

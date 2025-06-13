@@ -43,6 +43,7 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
@@ -156,9 +157,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private File userHomeDir;
     private String javaHome;
     private Jvm jvm;
-    private File buildScript;
     private File projectDir;
-    private File settingsFile;
     private boolean ignoreMissingSettingsFile;
     private boolean ignoreCleanupAssertions;
     private PipedOutputStream stdinPipe;
@@ -179,7 +178,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
 
-    private int expectedGenericDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
@@ -245,8 +243,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         initScripts.clear();
         workingDir = null;
         projectDir = null;
-        buildScript = null;
-        settingsFile = null;
         ignoreMissingSettingsFile = false;
         // ignoreCleanupAssertions is intentionally sticky
         // ignoreCleanupAssertions = false;
@@ -263,7 +259,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         commandLineJvmOpts.clear();
         buildJvmOpts.clear();
         useOnlyRequestedJvmOpts = false;
-        expectedGenericDeprecationWarnings = 0;
         expectedDeprecationWarnings.clear();
         stackTraceChecksOn = true;
         jdkWarningChecksOn = false;
@@ -334,12 +329,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (projectDir != null) {
             executer.usingProjectDirectory(projectDir);
         }
-        if (buildScript != null) {
-            executer.usingBuildScript(buildScript);
-        }
-        if (settingsFile != null) {
-            executer.usingSettingsFile(settingsFile);
-        }
         if (ignoreMissingSettingsFile) {
             executer.ignoreMissingSettingsFile();
         }
@@ -357,7 +346,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         executer.withTasks(tasks);
         executer.withArguments(args);
-        executer.withEnvironmentVars(environmentVars);
+        executer.withEnvironmentVarsIncludingJavaHome(environmentVars);
         executer.usingExecutable(executable);
         if (quiet) {
             executer.withQuietLogging();
@@ -399,9 +388,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         executer.noExtraLogging();
 
-        if (expectedGenericDeprecationWarnings > 0) {
-            executer.expectDeprecationWarnings(expectedGenericDeprecationWarnings);
-        }
         expectedDeprecationWarnings.forEach(executer::expectDeprecationWarning);
         if (!eagerClassLoaderCreationChecksOn) {
             executer.withEagerClassLoaderCreationCheckDisabled();
@@ -479,22 +465,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    @Deprecated
-    public GradleExecuter usingBuildScript(File buildScript) {
-        this.buildScript = buildScript;
-        return this;
-    }
-
-    @Override
     public GradleExecuter usingProjectDirectory(File projectDir) {
         this.projectDir = projectDir;
-        return this;
-    }
-
-    @Override
-    @Deprecated
-    public GradleExecuter usingSettingsFile(File settingsFile) {
-        this.settingsFile = settingsFile;
         return this;
     }
 
@@ -605,6 +577,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
+
+        // Note: it's possible we shouldn't calculate _any_ implicit JVM args when requested to use only the specified ones, but to preserve behavior I only excluded the new flag here
+        if (useOnlyRequestedJvmOpts) {
+            return;
+        }
+
+        JavaVersion javaVersion = getJavaVersionFromJavaHome();
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            // Remove known warning that occurs in the launcher. This can be fixed by refactoring the bin/gradle start script to pass the flag or by adding the flag to the launcher JAR
+            // and refactoring the start script to use that JAR instead of a main class.
+            gradleInvocation.implicitLauncherJvmArgs.add("--enable-native-access=ALL-UNNAMED");
+        }
     }
 
     protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
@@ -793,6 +777,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public final GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
         Preconditions.checkArgument(!environment.containsKey("JAVA_HOME"), "Cannot provide JAVA_HOME to withEnvironmentVars, use withJavaHome instead");
+        return withEnvironmentVarsIncludingJavaHome(environment);
+    }
+
+    @Override
+    public GradleExecuter withEnvironmentVarsIncludingJavaHome(Map<String, ?> environment) {
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
             environmentVars.put(entry.getKey(), entry.getValue().toString());
@@ -1084,10 +1073,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     protected List<String> getAllArgs() {
         List<String> allArgs = new ArrayList<>();
-        if (buildScript != null) {
-            allArgs.add("--build-file");
-            allArgs.add(buildScript.getAbsolutePath());
-        }
         if (projectDir != null) {
             allArgs.add("--project-dir");
             allArgs.add(projectDir.getAbsolutePath());
@@ -1095,10 +1080,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         for (File initScript : initScripts) {
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
-        }
-        if (settingsFile != null) {
-            allArgs.add("--settings-file");
-            allArgs.add(settingsFile.getAbsolutePath());
         }
         if (quiet) {
             allArgs.add("--quiet");
@@ -1120,7 +1101,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("dependencies");
         }
 
-        if (settingsFile == null && !ignoreMissingSettingsFile) {
+        if (!ignoreMissingSettingsFile) {
             ensureSettingsFileAvailable();
         }
 
@@ -1216,9 +1197,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                 tmpDir = getDefaultTmpDir();
             }
             String tmpDirPath = tmpDir.createDir().getAbsolutePath();
-            if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
-                properties.put("java.io.tmpdir", tmpDirPath);
-            }
+            properties.put("java.io.tmpdir", tmpDirPath);
         }
 
         if (!disablePluginRepositoryMirror) {
@@ -1253,10 +1232,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         properties.put("org.gradle.kotlin.dsl.skipMetadataVersionCheck", "false");
 
         return properties;
-    }
-
-    protected boolean supportsWhiteSpaceInEnvVars() {
-        return true;
     }
 
     @Override
@@ -1386,18 +1361,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings = new ArrayList<>();
         if (filterJavaVersionDeprecation) {
-            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(normalizeDocumentationLink(
-                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-                    "This will fail with an error in Gradle 9.0. " +
-                    "Use JVM 17 or greater to execute Gradle. " +
-                    "Projects can continue to use older JVM versions via toolchains. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
-            )));
+            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(
+                SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(getComputedGradleVersion())
+            ));
         }
 
         return new ResultAssertion(
-            expectedGenericDeprecationWarnings,
             expectedDeprecationWarnings,
             maybeExpectedDeprecationWarnings,
             !stackTraceChecksOn,
@@ -1414,16 +1383,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter expectDeprecationWarning() {
-        return expectDeprecationWarnings(1);
-    }
-
-    @Override
-    public GradleExecuter expectDeprecationWarnings(int count) {
-        Preconditions.checkState(expectedGenericDeprecationWarnings == 0, "expected deprecation count is already set for this execution");
-        Preconditions.checkArgument(count > 0, "expected deprecation count must be positive");
-        expectedGenericDeprecationWarnings = count;
-        return this;
+    public GradleExecuter expectExternalDeprecatedMessage(String warning) {
+        return expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(warning));
     }
 
     @Override
@@ -1434,15 +1395,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+        return expectExternalDeprecatedMessage(normalizeDocumentationLink(warning));
     }
 
     private String normalizeDocumentationLink(String warning) {
-        if (gradleVersionOverride != null) {
-            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersionOverride);
-        } else {
-            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersion);
-        }
+        return DocumentationUtils.normalizeDocumentationLink(warning, getComputedGradleVersion());
+    }
+
+    private GradleVersion getComputedGradleVersion() {
+        return gradleVersionOverride != null ? gradleVersionOverride : gradleVersion;
     }
 
     @Override

@@ -52,7 +52,7 @@ public class ResolutionParameters {
     private final LocalVariantGraphResolveState rootVariant;
     private final ImmutableList<ModuleVersionLock> moduleVersionLocks;
     private final ResolutionStrategy.SortOrder defaultSortOrder;
-    private final ConfigurationIdentity configurationIdentity;
+    private final @Nullable ConfigurationIdentity configurationIdentity;
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ImmutableModuleReplacements moduleReplacements;
     private final ConflictResolution moduleConflictResolutionStrategy;

@@ -27,10 +27,10 @@ dependencies {
     api(projects.ide)
     api(libs.inject)
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.core)
     implementation(projects.logging)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)

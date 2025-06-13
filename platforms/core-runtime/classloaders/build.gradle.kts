@@ -22,8 +22,13 @@ plugins {
 
 description = "Tools to handle classloaders"
 
-gradlebuildJava{
-    usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
+
+jvmCompile {
     usesFutureStdlib = true
 }
 

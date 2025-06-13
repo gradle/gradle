@@ -56,6 +56,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     @Override
+    @SuppressWarnings("MixedMutabilityReturnType")
     public List<File> findScriptsIn(File dir) {
         File[] candidates = dir.listFiles();
         if (candidates == null || candidates.length == 0) {

@@ -1,0 +1,353 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_for_dependencies]]
+= Best Practices for Dependencies
+
+[[use_version_catalogs]]
+== Use Version Catalogs to Centralize Dependency Versions
+
+Use Version Catalogs provide a centralized, declarative way to manage dependency versions throughout a build.
+
+=== Explanation
+
+When you define your dependency versions in a single, shared version catalog, you reduce duplication and make upgrades easier.
+Instead of changing dozens of `build.gradle(.kts)` files, you update the version in one place.
+This simplifies maintenance, improves consistency, and reduces the risk of accidental version drift between modules.
+Consistent version declarations across projects also make it easier to reason about behavior during testing—especially in modular builds where transitive upgrades can silently change runtime behavior in later stages of the build.
+
+However, version catalogs only influence declared versions, not resolved versions.
+Use them in combination with <<dependency_locking.adoc#sec:dependency-locking,dependency locking>> and <<resolution_rules.adoc#using-resolution-rules,version alignment>> to enforce consistency across builds.
+To influence resolved versions, check out <<platforms.adoc#platforms,platforms>>.
+
+=== Example
+
+==== Don't Do This
+
+Avoid declaring versions in `project.ext`, constants, or local variables:
+
+====
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+Avoid misusing version catalogs for unrelated concerns:
+
+* Don’t use them to store shared strings or non-library constants
+* Don’t overload them with arbitrary logic or plugin-specific configuration
+
+==== Do This Instead
+
+Use a centralized `libs.versions.toml` file in your `gradle/` directory:
+
+====
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/kotlin",files="gradle/libs.versions.toml[]"]
+====
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useVersionCatalogs-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useVersionCatalogs-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+=== References
+
+- <<version_catalogs.adoc#version-catalog,Version Catalogs>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:version-catalog,#version-catalog>>`
+
+[[name_version_catalog_entries]]
+== Name Version Catalog Entries Appropriately
+
+Consistent and descriptive names in your version catalog enhance readability and maintainability across your build scripts.
+
+=== Explanation
+
+Version catalogs provide a centralized way to manage dependencies.
+Adopting clear naming conventions for catalog entries ensures that developers can easily identify and use dependencies throughout the project.
+
+The following guidelines help in naming catalog entries effectively:
+
+1. **Use dashes to separate segments**: Prefer dashes (`-`) over underscores (`_`) to separate different parts of the entry name.
++
+*Example*: For `org.apache.logging.log4j:log4j-api`, use `log4j-api`
+
+2. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment.
++
+*Example*: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind`
+
+3. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
++
+*Example*: For `io.ktor:ktor-client-core`, use `ktor-client-core`, not `ktor-ktor-client-core`
+
+4. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
++
+*Example*: `spring-boot-starter-web` becomes `springBootStarterWeb`
+
+5. **Avoid implicit terms**: Exclude terms that are obvious or implied in the context of your project.
++
+*Example*: For `com.amazonaws:aws-java-sdk-core`, use `aws-core`, not `aws-javaSdkCore`
+
+6. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
++
+*Example*: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
+
+=== Example
+
+====
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/kotlin",files="gradle/libs.versions.toml[]"]
+====
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/versionCatalogNaming-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/versionCatalogNaming-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+=== References
+
+- link:https://blog.gradle.org/best-practices-naming-version-catalog-entries[Best Practices for Naming Gradle Version Catalog Entries]
+
+=== Tags
+
+`<<tags_reference.adoc#tag:version-catalog,#version-catalog>>`
+
+[[set_up_repositories_in_settings]]
+== Set up your Dependency Repositories in the Settings file
+
+Declare your repositories for your plugins and dependencies in `settings.gradle.kts`.
+
+=== Explanation
+
+Using `settings.gradle.kts` file to declare repositories has several benefits:
+
+ - *Avoids repetition*: Centralizing repository declarations eliminates the need to repeat them in each project's `build.gradle.kts`.
+ - *Improves debuggability*: Ensures all projects resolve dependencies during resolution from the same repositories, in a consistent order.
+ - *Matches the build model*: Repositories are not part of the project definition; they are part of global build logic, so settings is a more appropriate place for them.
+
+NOTE: While https://github.com/gradle/gradle/issues/32443[`dependencyResolutionManagement.repositories` is an incubating API], it is the preferred way of declaring repositories.
+
+=== Example
+
+==== Don't Do This
+
+You could set up repositories in individual `build.gradle.kts` files with:
+
+====
+include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+==== Do This Instead
+
+Instead, you should set them up in `settings.gradle.kts` like this:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/settingsRepositories-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/settingsRepositories-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/settingsRepositories-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-do/groovy",files="settings.gradle[tags=do-this]"]
+====
+
+=== Tags
+
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+[[dont_depend_on_kotlin_stdlib]]
+== Don't Explicitly Depend on the Kotlin Standard Library
+
+The Kotlin Gradle Plugin automatically adds a dependency on the Kotlin standard library (`stdlib`) to each source set, so there is no need to declare it explicitly.
+
+=== Explanation
+
+The version of the standard library added is the same as the version of the Kotlin Gradle Plugin applied to the project.
+If your build does not require a specific or different version of the standard library, you should avoid adding it manually.
+
+NOTE: Setting the `kotlin.stdlib.default.dependency` property to `false` prevents the Kotlin plugin from automatically adding the Kotlin standard library dependency to your project. This can be useful in specific scenarios, such as when you want to manage the Kotlin standard library dependency version manually.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *`stdlib` is explicitly depended upon*: This project contains an implicit dependency on the Kotlin standard library, which is required to compile its source code.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/kotlinStdLib-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/kotlinStdLib-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/kotlinStdLib-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/kotlinStdLib-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
+
+=== References
+
+- https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html[the `kotlin()` function]
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
+[[avoid_duplicate_dependencies]]
+== Avoid Redundant Dependency Declarations
+
+Avoid declaring the same dependency multiple times, especially when it is already available transitively or through another configuration.
+
+=== Explanation
+
+Duplicating dependencies in Gradle build scripts can lead to:
+
+* *Increased maintenance*: Declaring a dependency in multiple places makes it harder to manage.
+* *Unexpected behavior*: Declaring the same dependency in multiple configurations (e.g., `compileOnly` and `implementation`) can result in hard-to-diagnose classpath issues.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-avoid/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-avoid/groovy",files="build.gradle[]"]
+====
+
+<1> Redundant dependency in `implementation` scope.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDuplicateDependencies-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDuplicateDependencies-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/groovy",files="build.gradle[]"]
+====
+
+<1> Declare dependency once
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
+[[single-gav-string]]
+== Declare Dependencies using a single GAV (`group:artifact:version`) String
+
+When declaring dependencies without a <<version_catalogs.adoc#version-catalog,version catalog>>, prefer using the single GAV string notation `implementation("org.example:library:1.0")`.
+Avoid using the named argument notation unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
+
+TIP: The named argument and map notations may be deprecated in the future.
+
+=== Explanation
+
+All of these declarations will be treated equivalently when Gradle resolves dependencies.
+However, the single-string form is more concise, easier to read, and is widely adopted in the broader JVM ecosystem.
+
+This format is also recommended by link:https://central.sonatype.com/artifact/com.google.guava/guava[Maven Central] in its documentation and usage examples, making it the most familiar and consistent style for developers across tools.
+
+A valid reason to use named arguments format is when resolving a dependency from an Ivy repository that requires selecting a specific configuration by name.
+This syntax is only applicable for Ivy dependencies and should not be used with standard Maven modules:
+
+[source,kotlin]
+----
+// Use this syntax only for Ivy modules when a specific configuration must be selected
+dependencies {
+    implementation(group = "org.someOrg", name = "someModule", version = "1.0", configuration = "someConf")
+}
+----
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/useGavString-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useGavString-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+<1> Avoid the named argument notation when declaring dependencies
+<2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useGavString-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useGavString-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/useGavString-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useGavString-do/groovy",files="build.gradle[tags=do-this]"]
+====
+<1> Use the string notation instead when declaring dependencies
+<2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
+
+=== References
+
+- <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,Declaring Dependencies Basics>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`

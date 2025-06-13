@@ -19,7 +19,6 @@ package org.gradle
 import org.apache.tools.ant.taskdefs.Expand
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -39,8 +38,8 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Override
-    int getMaxDistributionSizeBytes() {
-        return 63 * 1024 * 1024
+    int getDistributionSizeMiB() {
+        return 65
     }
 
     @Override
@@ -49,7 +48,6 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Requires(UnitTestPreconditions.NotWindows)
-    @ToBeFixedForConfigurationCache
     def sourceZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
@@ -64,7 +62,6 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             // we add implicit Xmx1024m in AbstractGradleExecuter.getImplicitBuildJvmArgs()
             // that's too small for this build
             useOnlyRequestedJvmOpts()
-            withArgument("--no-configuration-cache") // TODO:configuration-cache remove me
             withTasks(':distributions-full:binDistributionZip')
             withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
             withArgument("-Porg.gradle.java.installations.auto-detect=false")

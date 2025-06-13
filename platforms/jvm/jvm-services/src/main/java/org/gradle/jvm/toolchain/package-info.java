@@ -17,4 +17,7 @@
 /**
  * Defines tools that can build things that run on the JVM.
  */
+@NullMarked
 package org.gradle.jvm.toolchain;
+
+import org.jspecify.annotations.NullMarked;

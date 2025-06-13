@@ -63,6 +63,11 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
         return delegate.trySetProperty(name, value)
     }
 
+    override fun trySetPropertyWithoutInstrumentation(name: String, value: Any?): DynamicInvokeResult {
+        onAccess(MemberKind.PROPERTY, name)
+        return delegate.trySetPropertyWithoutInstrumentation(name, value)
+    }
+
     override fun getProperties(): MutableMap<String, *> {
         onAccess(MemberKind.PROPERTY, null)
         return delegate.properties

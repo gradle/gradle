@@ -29,7 +29,6 @@ dependencies {
     implementation(projects.execution)
     implementation(projects.fileCollections)
     implementation(projects.languageJava)
-    implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)

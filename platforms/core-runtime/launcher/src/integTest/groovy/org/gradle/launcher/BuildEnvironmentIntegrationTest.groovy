@@ -30,6 +30,7 @@ import java.nio.charset.Charset
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll("default locale for gradle build switched to #locale")
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit locale")
     def "builds can be executed with different default locales"() {
         given:
         executer.withDefaultLocale(locale)
@@ -145,6 +146,7 @@ task check {
     }
 
     @Unroll("build default encoding matches specified - input = #inputEncoding, expectedEncoding: #expectedEncoding")
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requests explicit encoding")
     def "build default encoding matches specified"(String inputEncoding, String expectedEncoding) {
         given:
         executerEncoding inputEncoding

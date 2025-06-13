@@ -35,15 +35,6 @@ import java.io.File;
 
 public class ZipCopyAction implements CopyAction {
 
-    /**
-     * This field is internal API and should not be used in build scripts.
-     * It is deprecated in order to allow graceful transition for potential users.
-     *
-     * @see ZipEntryConstants#CONSTANT_TIME_FOR_ZIP_ENTRIES
-     */
-    @Deprecated
-    public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES;
-
     private final File zipFile;
     private final ZipCompressor compressor;
     private final DocumentationRegistry documentationRegistry;

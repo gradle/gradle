@@ -144,9 +144,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         child1.plugins.apply(JavaPlugin)
         child2.plugins.apply(JavaPlugin)
         project.idea.project.languageLevel = '1.2'
-        project.targetCompatibility = '1.3'
-        child1.targetCompatibility = '1.4'
-        child2.targetCompatibility = '1.5'
+        project.java.targetCompatibility = '1.3'
+        child1.java.targetCompatibility = '1.4'
+        child2.java.targetCompatibility = '1.5'
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -222,7 +222,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         when:
         [project, child1, child2].each {
             it.plugins.apply(JavaPlugin)
-            it.targetCompatibility = "1.5"
+            it.java.targetCompatibility = "1.5"
         }
         def ideaProject = buildIdeaProjectModel()
 
@@ -238,9 +238,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         [project, child1, child2].each {
             it.plugins.apply(JavaPlugin)
         }
-        project.targetCompatibility = "1.5"
-        child1.targetCompatibility = "1.6"
-        child2.targetCompatibility = "1.7"
+        project.java.targetCompatibility = "1.5"
+        child1.java.targetCompatibility = "1.6"
+        child2.java.targetCompatibility = "1.7"
 
         def ideaProject = buildIdeaProjectModel()
 
@@ -256,8 +256,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         [project, child1].each {
             it.plugins.apply(JavaPlugin)
         }
-        project.targetCompatibility = "1.6"
-        child1.targetCompatibility = "1.7"
+        project.java.targetCompatibility = "1.6"
+        child1.java.targetCompatibility = "1.7"
 
         def ideaProject = buildIdeaProjectModel()
 

@@ -108,7 +108,7 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
         fails('checkDep')
 
         then:
-        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project 'testproject'")
         failure.assertHasCause("Cannot select a variant by configuration name from 'test:target:1.0'.")
 
         where:
@@ -128,7 +128,7 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
         fails('checkDep')
 
         then:
-        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project 'testproject'")
         failure.assertHasCause("Cannot select a variant by configuration name from 'test:target:1.0'.")
     }
 

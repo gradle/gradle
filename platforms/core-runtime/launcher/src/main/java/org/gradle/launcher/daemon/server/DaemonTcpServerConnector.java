@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.UUIDGenerator;
@@ -31,6 +30,7 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.Serializers;
 import org.gradle.launcher.daemon.protocol.Message;
 
+import java.io.UncheckedIOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 

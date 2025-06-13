@@ -10,7 +10,6 @@ description = "API extraction for Java"
 errorprone {
     disabledChecks.addAll(
         "NonApiType", // 1 occurrences
-        "ProtectedMembersInFinalClass", // 1 occurrences
     )
 }
 

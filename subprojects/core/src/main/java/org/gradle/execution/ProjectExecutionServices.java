@@ -114,7 +114,8 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         TaskExecutionModeResolver repository,
         TaskListenerInternal taskListenerInternal,
         ExecutionEngine executionEngine,
-        InputFingerprinter inputFingerprinter
+        InputFingerprinter inputFingerprinter,
+        MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             executionHistoryStore,
@@ -130,7 +131,8 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             fileCollectionFactory,
             taskDependencyFactory,
             // TODO Can we inject a PathToFileResolver here directly?
-            fileOperations.getFileResolver()
+            fileOperations.getFileResolver(),
+            missingTaskDependencyDetector
         );
         executer = new ProblemsTaskPathTrackingTaskExecuter(executer);
         executer = new FinalizePropertiesTaskExecuter(executer);
@@ -145,13 +147,11 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     @Provides
     FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
         StringInterner stringInterner,
-        FileCollectionSnapshotter fileCollectionSnapshotter,
         ResourceSnapshotterCacheService resourceSnapshotterCacheService,
         InputNormalizationHandlerInternal inputNormalizationHandler
     ) {
         return new FileCollectionFingerprinterRegistrations(
             stringInterner,
-            fileCollectionSnapshotter,
             resourceSnapshotterCacheService,
             inputNormalizationHandler.getRuntimeClasspath().getClasspathResourceFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),

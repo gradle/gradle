@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 class BrokenTextResourceIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
@@ -69,7 +67,7 @@ task text(type: TextTask)
         failure.assertHasCause("Cannot expand TAR '${file}' as it does not exist.")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "the underlying file collection looses its display name")
     def "reports read of missing archive entry"() {
         given:
         buildFile << """

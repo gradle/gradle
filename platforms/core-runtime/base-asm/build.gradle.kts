@@ -20,7 +20,11 @@ plugins {
 
 description = "Base asm classes and utilities for Gradle's internal use"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(libs.asm)

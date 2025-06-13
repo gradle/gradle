@@ -31,7 +31,6 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
-    def fileResolver = TestFiles.resolver(testDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
     def propertyFactory = TestUtil.propertyFactory()
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
@@ -236,28 +235,28 @@ class DefaultCopySpecResolutionTest extends Specification {
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
-        childResolver.fileMode == null
-        childResolver.dirMode == null
+        !childResolver.filePermissions.isPresent()
+        !childResolver.dirPermissions.isPresent()
     }
 
     def testInheritsPermissionsFromParent() {
         when:
         DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        parentSpec.fileMode = 0x1
-        parentSpec.dirMode = 0x2
+        parentSpec.filePermissions { it.unix(1) }
+        parentSpec.dirPermissions { it.unix(2) }
 
         then:
-        childResolver.fileMode == 0x1
-        childResolver.dirMode == 0x2
+        childResolver.immutableFilePermissions.get().toUnixNumeric() == 1
+        childResolver.immutableDirPermissions.get().toUnixNumeric() == 2
 
         when:
-        child.fileMode = 0x3
-        child.dirMode = 0x4
+        child.filePermissions { it.unix(3) }
+        child.dirPermissions { it.unix(4) }
 
         then:
-        childResolver.fileMode == 0x3
-        childResolver.dirMode == 0x4
+        childResolver.immutableFilePermissions.get().toUnixNumeric() == 3
+        childResolver.immutableDirPermissions.get().toUnixNumeric() == 4
     }
 
     def canWalkDownTreeCreatedUsingFromIntegrationTest() {

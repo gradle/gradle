@@ -137,6 +137,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     @Override
+    @SuppressWarnings("MixedMutabilityReturnType")
     public Collection<ComponentState> getVersions() {
         if (this.versions.isEmpty()) {
             return Collections.emptyList();

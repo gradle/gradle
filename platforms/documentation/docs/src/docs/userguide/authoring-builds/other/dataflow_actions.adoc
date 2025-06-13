@@ -14,6 +14,7 @@
 
 [[dataflow_action]]
 = Dataflow Actions
+:keywords: flowaction, flowprovider
 
 NOTE: The dataflow actions support is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature and is subject to change.
 

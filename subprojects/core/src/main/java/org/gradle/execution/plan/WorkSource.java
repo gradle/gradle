@@ -16,7 +16,7 @@
 
 package org.gradle.execution.plan;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;

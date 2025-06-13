@@ -58,16 +58,14 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
             project.file("groovy-xml-${groovyVersion}.jar"),
             project.file("groovy-groovydoc-${groovyVersion}.jar"),
             project.file("groovy-nio-${groovyVersion}.jar"),
-            project.file("groovy-sql-${groovyVersion}.jar"),
-            project.file("groovy-test-${groovyVersion}.jar")
+            project.file("groovy-sql-${groovyVersion}.jar")
         ])
 
         then:
-        classpath.files.size() == 13
+        classpath.files.size() == 10
         classpath.files.contains(project.file("groovy-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-ant-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-astbuilder-${groovyVersion}.jar"))
-        classpath.files.contains(project.file("groovy-console-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-datetime-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-dateutil-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-templates-${groovyVersion}.jar"))
@@ -75,8 +73,6 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classpath.files.contains(project.file("groovy-xml-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-groovydoc-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-nio-${groovyVersion}.jar"))
-        classpath.files.contains(project.file("groovy-sql-${groovyVersion}.jar"))
-        classpath.files.contains(project.file("groovy-test-${groovyVersion}.jar"))
 
         where:
         groovyVersion << GroovyCoverage.SINCE_3_0
@@ -110,9 +106,9 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         "2.1.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
         "2.5.2"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
         "2.5.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
-        "3.0.10"             | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
-        "3.0.10"             | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
-        "4.0.0"              | ""         | "org.apache.groovy"   | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "3.0.10"             | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-datetime", "groovy-dateutil", "groovy-nio"]
+        "3.0.10"             | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-datetime", "groovy-dateutil", "groovy-nio"]
+        "4.0.0"              | ""         | "org.apache.groovy"   | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-datetime", "groovy-dateutil", "groovy-nio"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {

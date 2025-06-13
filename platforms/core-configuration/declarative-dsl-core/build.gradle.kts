@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.publish-public-libraries")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 
     embeddedKotlin("plugin.serialization")
 }
@@ -32,6 +33,8 @@ dependencies {
     testImplementation("org.jetbrains:annotations:24.0.1")
 
     testFixturesImplementation(libs.kotlinReflect)
+
+    integTestImplementation(testFixtures(projects.kotlinDsl))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

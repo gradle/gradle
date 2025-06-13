@@ -73,7 +73,8 @@ internal
 data class DefaultValueFactoryNode(
     override val factoryName: String,
     override val sourceData: SourceData,
-    override val values: List<DeclarativeDocument.ValueNode>
+    override val isInfix: Boolean,
+    override val values: List<DeclarativeDocument.ValueNode>,
 ) : DeclarativeDocument.ValueNode.ValueFactoryNode {
-    override fun toString() = "valueFactory($factoryName, [${values.joinToString()}])"
+    override fun toString() = "valueFactory($factoryName, ${if (isInfix) "<infix>," else ""}[${values.joinToString()}])"
 }

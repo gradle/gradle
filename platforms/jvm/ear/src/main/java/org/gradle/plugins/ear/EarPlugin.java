@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -35,9 +34,9 @@ import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
+import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -78,19 +77,10 @@ public abstract class EarPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
-
-        EarPluginConvention earPluginConvention = objectFactory.newInstance(org.gradle.plugins.ear.internal.DefaultEarPluginConvention.class);
-        DeprecationLogger.whileDisabled(() -> {
-            project.getConvention().getPlugins().put("ear", earPluginConvention);
-            earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
-            earPluginConvention.setAppDirName("src/main/application");
-        });
-
         configureConfigurations((ProjectInternal) project);
-
         PluginContainer plugins = project.getPlugins();
-        setupEarTask(project, earPluginConvention, plugins);
-        wireEarTaskConventions(project, earPluginConvention);
+        setupEarTask(project, plugins);
+        wireEarTaskConventions(project);
         wireEarTaskConventionsWithJavaPluginApplied(project, plugins);
     }
 
@@ -108,43 +98,50 @@ public abstract class EarPlugin implements Plugin<Project> {
         });
     }
 
-    private void setupEarTask(final Project project, EarPluginConvention convention, PluginContainer plugins) {
+    private void setupEarTask(final Project project, PluginContainer plugins) {
         TaskProvider<Ear> ear = project.getTasks().register(EAR_TASK_NAME, Ear.class, task -> {
             task.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
             task.setGroup(BasePlugin.BUILD_GROUP);
-            DeprecationLogger.whileDisabled(() -> task.getGenerateDeploymentDescriptor().convention(convention.getGenerateDeploymentDescriptor()));
+            task.getGenerateDeploymentDescriptor().convention(true);
 
             plugins.withType(JavaPlugin.class, javaPlugin -> {
                 final JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
                 component.getMainFeature().getSourceSet().getResources().srcDir(task.getAppDirectory());
             });
+
+            DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
+            deploymentDescriptor.readFrom("META-INF/application.xml");
+            deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
+            if (deploymentDescriptor != null) {
+                if (deploymentDescriptor.getDisplayName() == null) {
+                    deploymentDescriptor.setDisplayName(project.getName());
+                }
+                if (deploymentDescriptor.getDescription() == null) {
+                    deploymentDescriptor.setDescription(project.getDescription());
+                }
+            }
+            task.setDeploymentDescriptor(deploymentDescriptor);
         });
 
-        DeploymentDescriptor deploymentDescriptor =  DeprecationLogger.whileDisabled(() -> convention.getDeploymentDescriptor());
-        if (deploymentDescriptor != null) {
-            if (deploymentDescriptor.getDisplayName() == null) {
-                deploymentDescriptor.setDisplayName(project.getName());
-            }
-            if (deploymentDescriptor.getDescription() == null) {
-                deploymentDescriptor.setDescription(project.getDescription());
-            }
-        }
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
     }
 
-    private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
+    private void wireEarTaskConventions(Project project) {
         project.getTasks().withType(Ear.class).configureEach(task -> {
-            task.getAppDirectory().convention(project.provider(() -> project.getLayout().getProjectDirectory().dir(DeprecationLogger.whileDisabled(() -> earConvention.getAppDirName()))));
+            task.getAppDirectory().convention(project.provider(() -> project.getLayout().getProjectDirectory().dir("src/main/application")));
             task.getConventionMapping().map("libDirName", new Callable<String>() {
                 @Override
                 public String call() throws Exception {
-                    return DeprecationLogger.whileDisabled(() -> earConvention.getLibDirName());
+                    return DEFAULT_LIB_DIR_NAME;
                 }
             });
             task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
                 @Override
                 public DeploymentDescriptor call() throws Exception {
-                    return DeprecationLogger.whileDisabled(() -> earConvention.getDeploymentDescriptor());
+                    DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
+                    deploymentDescriptor.readFrom("META-INF/application.xml");
+                    deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
+                    return deploymentDescriptor;
                 }
             });
 
@@ -172,18 +169,16 @@ public abstract class EarPlugin implements Plugin<Project> {
     private void configureConfigurations(final ProjectInternal project) {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
 
-        // Once these configurations become non-consumable, we can use
-        // 'jvmPluginServices.configureAsRuntimeClasspath()' to configure the configurations.
-        Configuration deployConfiguration = configurations.migratingUnlocked(DEPLOY_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
-        deployConfiguration.setVisible(false);
-        deployConfiguration.setTransitive(false);
-        deployConfiguration.setDescription("Classpath for deployable modules, not transitive.");
-        jvmPluginServices.configureAttributes(deployConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
+        Configuration deployConfiguration = configurations.resolvableDependencyScopeLocked(DEPLOY_CONFIGURATION_NAME, conf -> {
+            conf.setTransitive(false);
+            conf.setDescription("Classpath for deployable modules, not transitive.");
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
 
-        Configuration earlibConfiguration = configurations.migratingUnlocked(EARLIB_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
-        earlibConfiguration.setVisible(false);
-        earlibConfiguration.setDescription("Classpath for module dependencies.");
-        jvmPluginServices.configureAttributes(earlibConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
+        Configuration earlibConfiguration = configurations.resolvableDependencyScopeLocked(EARLIB_CONFIGURATION_NAME, conf -> {
+            conf.setDescription("Classpath for module dependencies.");
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
             .extendsFrom(deployConfiguration, earlibConfiguration);

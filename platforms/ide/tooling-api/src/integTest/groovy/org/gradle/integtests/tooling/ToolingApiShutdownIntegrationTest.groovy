@@ -16,11 +16,9 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Retry
 import spock.lang.Timeout
 
-@Ignore
 class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
 
     @Retry(count = 3)
@@ -63,7 +61,7 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 private static void runHelp(File projectLocation) throws Exception {
-                    GradleConnector connector = GradleConnector.newConnector().useGradleVersion("6.8-20201118175938+0000"); // can be changed to latest release after 6.8 is available
+                    GradleConnector connector = GradleConnector.newConnector().useGradleVersion("8.13");
                     ProjectConnection connection = connector.forProjectDirectory(projectLocation).connect();
                     connection.newBuild().forTasks("help").run(new ResultHandler<Void>() {
                         public void onComplete(Void result) { }

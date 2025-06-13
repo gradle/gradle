@@ -332,7 +332,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
 1 problem was found storing the configuration cache.
 - Build file 'build.gradle': line 6: registration of listener on 'Gradle.buildFinished' is unsupported
-  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/configuration_cache.html#config_cache:requirements:build_listeners
+  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/configuration_cache_requirements.html#config_cache:requirements:build_listeners
 """
     }
 

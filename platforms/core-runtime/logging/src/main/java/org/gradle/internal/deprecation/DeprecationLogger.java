@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.deprecation;
 
-import com.google.common.base.Strings;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
 import org.gradle.internal.Factory;
@@ -40,8 +39,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p>
  * DeprecationTimeline is mandatory and is added using one of:
  * <ul>
- *   <li>{@link DeprecationMessageBuilder#willBeRemovedInGradle9()}
- *   <li>{@link DeprecationMessageBuilder#willBecomeAnErrorInGradle9()}
+ *   <li>{@link DeprecationMessageBuilder#willBeRemovedInGradle10()}
+ *   <li>{@link DeprecationMessageBuilder#willBecomeAnErrorInGradle10()}
  * </ul>
  * <p>
  * After DeprecationTimeline is set, Documentation reference must be added using one of:
@@ -125,23 +124,6 @@ public class DeprecationLogger {
     @CheckReturnValue
     public static DeprecationMessageBuilder.DeprecateBehaviour deprecateBehaviour(String behaviour) {
         return new DeprecationMessageBuilder.DeprecateBehaviour(behaviour);
-    }
-
-    /**
-     * Output: ${behaviour}. This behavior is deprecated. ${advice}
-     */
-    @CheckReturnValue
-    @SuppressWarnings("rawtypes")
-    public static DeprecationMessageBuilder.WithDeprecationTimeline warnOfChangedBehaviour(final String behaviour, final String advice) {
-        return new DeprecationMessageBuilder.WithDeprecationTimeline(new DeprecationMessageBuilder() {
-            @Override
-            DeprecationMessage build() {
-                if (problemIdDisplayName == null) {
-                    setProblemIdDisplayName(Strings.nullToEmpty(createDefaultDeprecationIdDisplayName()));
-                }
-                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, null, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT, problemIdDisplayName, problemId);
-            }
-        }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here
     }
 
     /**

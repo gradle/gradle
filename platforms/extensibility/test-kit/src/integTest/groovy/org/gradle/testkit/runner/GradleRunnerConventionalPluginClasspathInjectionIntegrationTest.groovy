@@ -36,12 +36,15 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
     }
 
     def "uses conventional plugin classpath if requested and is available"() {
-        expect:
-        pluginUnderTest.build().exposeMetadata {
+        when:
+        def result = pluginUnderTest.build().exposeMetadata {
             runner('helloWorld')
                 .withPluginClasspath()
                 .build()
         }
+
+        then:
+        result.task(":helloWorld").outcome == TaskOutcome.SUCCESS
     }
 
     @InspectsBuildOutput

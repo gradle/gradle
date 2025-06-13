@@ -109,11 +109,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
-    public Path calculateIdentityPathForProject(Path projectPath) {
-        return getBuildController().getGradle().getIdentityPath().append(projectPath);
-    }
-
-    @Override
     public File getBuildRootDir() {
         return getBuildController().getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }
@@ -125,11 +120,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
         throw new UnsupportedOperationException();
     }
 

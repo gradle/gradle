@@ -18,14 +18,11 @@ package org.gradle.integtests.tooling.r88
 
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.TestLauncher
 import spock.lang.Timeout
 
 @Timeout(120)
 @TargetGradleVersion(">=8.8")
-@Requires(UnitTestPreconditions.Jdk17OrEarlier)
 /**
  * @see org.gradle.integtests.tooling.r70.TestDisplayNameJUnit5CrossVersionSpec and
  * @see TestDisplayNameJUnit4CrossVersionSpec
@@ -38,18 +35,14 @@ class TestDisplayNameSpockCrossVersionSpec extends TestLauncherSpec {
     @Override
     String simpleJavaProject() {
         """
-        allprojects{
+        allprojects {
             apply plugin: 'groovy'
             ${mavenCentralRepository()}
             dependencies {
-                implementation 'org.codehaus.groovy:groovy-all:3.0.0'
-                testImplementation platform("org.spockframework:spock-bom:2.1-groovy-3.0")
-                testImplementation "org.spockframework:spock-core:2.1-groovy-3.0"
+                implementation(localGroovy())
             }
 
-            test {
-                useJUnitPlatform()
-            }
+            testing.suites.test.useSpock()
         }
         """
     }

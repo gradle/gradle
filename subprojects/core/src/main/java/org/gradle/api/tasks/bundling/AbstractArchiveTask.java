@@ -17,20 +17,20 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -38,13 +38,16 @@ import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
+import javax.inject.Inject;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
+
+    private static final String USE_FILE_SYSTEM_PERMISSIONS_PROPERTY = "org.gradle.archives.use-file-system-permissions";
+
     // All of these field names are really long to prevent collisions with the groovy setters.
     // Groovy will try to set the private fields if given the opportunity.
     // This makes it much more difficult for this to happen accidentally.
@@ -85,9 +88,28 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveFile = objectFactory.fileProperty();
         archiveFile.convention(archiveDestinationDirectory.file(archiveName));
 
-        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(true);
-        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(false);
+        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(false);
+        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(true);
+        configureDefaultPermissions();
     }
+
+    private void configureDefaultPermissions() {
+        getDirPermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE));
+        getFilePermissions().convention(getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE));
+
+        // TODO: Wire provider directly instead of reading it at configuration time.
+        boolean useFileSystemPermissions = getProject().getProviders()
+            .gradleProperty(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY)
+            .map(value -> Boolean.parseBoolean(value.trim()))
+            .getOrElse(false);
+        getInputs().property(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY, useFileSystemPermissions);
+        if (useFileSystemPermissions) {
+            useFileSystemPermissions();
+        }
+    }
+
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
         if (GUtil.isTrue(value)) {
@@ -141,24 +163,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Internal("Represented by the archiveFile")
     public DirectoryProperty getDestinationDirectory() {
         return archiveDestinationDirectory;
-    }
-
-    /**
-     * The path where the archive is constructed. The path is simply the {@code destinationDirectory} plus the {@code archiveFileName}.
-     *
-     * @return a File object with the path to the archive
-     * @deprecated Use {@link #getArchiveFile()}
-     */
-    @Deprecated
-    @ReplacedBy("archiveFile")
-    public File getArchivePath() {
-        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first. https://github.com/gradle/gradle/issues/16783
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archivePath").replaceWith("archiveFile")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        return getArchiveFile().get().getAsFile();
     }
 
     /**
@@ -318,6 +322,22 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
         archiveReproducibleFileOrder.set(reproducibleFileOrder);
+    }
+
+    /**
+     * Sets the directory and file permissions for archived files to be read from the file system.
+     * <p>
+     * Any subsequent configuration of {@link #getDirPermissions()} or {@link #getFilePermissions()} will override this setting, but only for the specifically configured property.
+     * <p>
+     * Note: On Windows, file system permissions are not supported, and permissions will be set to <code>755</code> for directories and <code>644</code> for files.
+     * <p>
+     * This setting can also be applied to all archive tasks of the build via <code>org.gradle.archives.use-file-system-permissions=true</code> property.
+     * @since 9.0.0
+     */
+    @Incubating
+    public void useFileSystemPermissions() {
+        getFilePermissions().set(getProject().getProviders().provider(() -> null));
+        getDirPermissions().set(getProject().getProviders().provider(() -> null));
     }
 
     @Override

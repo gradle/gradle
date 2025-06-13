@@ -11,11 +11,8 @@ errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 6 occurrences
         "GetClassOnEnum", // 1 occurrences
-        "HidingField", // 2 occurrences
         "ImmutableEnumChecker", // 2 occurrences
-        "InconsistentCapitalization", // 1 occurrences
         "ReferenceEquality", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
     )
 }
 
@@ -48,8 +45,8 @@ dependencies {
     }
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.serviceLookup)
-    implementation(projects.wrapperMain)
     implementation(projects.wrapperShared)
+    implementation(projects.resources)
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -79,6 +76,10 @@ dependencies {
 
     compileOnly(projects.platformBase)
 
+    runtimeOnly(projects.wrapperMain) {
+        because("WrapperGenerator uses the /gradle-wrapper.jar resource")
+    }
+
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.platformBase)
     testFixturesImplementation(projects.coreApi)
@@ -89,11 +90,13 @@ dependencies {
     testFixturesImplementation(projects.pluginsJvmTestSuite)
 
 
-    testImplementation(projects.cli)
     testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.cli)
+    testImplementation(projects.internalIntegTesting)
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
     testImplementation(projects.processServices)
+    testImplementation(projects.wrapperMain)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformNative))
 

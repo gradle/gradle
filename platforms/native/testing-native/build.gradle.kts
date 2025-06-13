@@ -4,12 +4,6 @@ plugins {
 
 description = "Plugins, tasks and domain objects for testing native code"
 
-errorprone {
-    disabledChecks.addAll(
-        "MixedMutabilityReturnType", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseDiagnostics)
     api(projects.baseServices)

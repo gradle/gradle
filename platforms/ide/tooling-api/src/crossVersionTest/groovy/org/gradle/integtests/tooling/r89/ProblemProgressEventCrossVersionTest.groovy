@@ -37,7 +37,6 @@ import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
@@ -65,11 +64,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             plugins {
               id 'java-library'
             }
-            repositories.jcenter()
             task bar {}
             task baz {}
         """
-
+        settingsFile << 'rootProject.name = "root"'
 
         when:
         def listener = new ProblemProgressListener()
@@ -85,16 +83,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        listener.problems.size() == 2
-        verifyAll(listener.problems[0]) {
-            definition.id.displayName == "The RepositoryHandler.jcenter() method has been deprecated."
-            definition.id.group.displayName == "Deprecation"
-            definition.id.group.name == "deprecation"
-            definition.severity == Severity.WARNING
-            locations.size() == (targetVersion < GradleVersion.version('8.13') ? 2 : 1)
-            (locations[0] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
-            additionalData.asMap['type'] == 'USER_CODE_DIRECT'
-        }
+        listener.problems.size() == 1
+        listener.problems[0].contextualLabel.contextualLabel == "Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project 'root'. Candidates are: 'bar', 'baz'."
     }
 
     def "Problems expose details via Tooling API events with failure"() {
@@ -119,11 +109,15 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(problems[0]) {
             details?.details == expectedDetails
             definition.documentationLink?.url == expectedDocumentation
-            locations.size() >= 2
+
+            def locationCount = getLocationCount()
+            locations.size() >= locationCount
             (locations[0] as LineInFileLocation).path == '/tmp/foo'
-            (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
+            if (targetVersion < GradleVersion.version("8.14")) {
+                (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
+            }
             if (targetVersion >= GradleVersion.version("8.12")) {
-                assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
+                assert (locations[locationCount - 1] as TaskPathLocation).buildTreePath == ':reportProblem'
             }
             definition.severity == Severity.WARNING
             solutions.size() == 1
@@ -134,6 +128,16 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         detailsConfig              | expectedDetails | documentationConfig                         | expectedDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
+    }
+
+    int getLocationCount() {
+        if (targetVersion >= GradleVersion.version("8.14")) {
+            return 2
+        }
+        if (targetVersion >= GradleVersion.version("8.12")) {
+            return 3
+        }
+        return 2
     }
 
     def "Problems expose details via Tooling API events with problem definition"() {
@@ -222,7 +226,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         where:
         javaHome << [
-            jdk8,
             jdk17,
             jdk21
         ]

@@ -47,12 +47,10 @@ class BuildTypeTest {
     fun `CompileAll parameters are correct`() {
         val linuxPaths =
             listOf(
-                "%linux.java7.oracle.64bit%",
                 "%linux.java8.oracle.64bit%",
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
-                "%linux.java23.openjdk.64bit%",
                 "%linux.java24.openjdk.64bit%",
             )
         val expectedInstallationPaths = linuxPaths.joinToString(",")
@@ -62,6 +60,7 @@ class BuildTypeTest {
                 "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+                "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
                 "--continue",
@@ -86,7 +85,7 @@ class BuildTypeTest {
                 "TestFunctionalTest",
                 "Test Functional Test",
                 "Test Functional Test",
-                TestCoverage(4, TestType.PLATFORM, Os.WINDOWS, JvmVersion.JAVA_23, JvmVendor.OPENJDK),
+                TestCoverage(4, TestType.PLATFORM, Os.WINDOWS, JvmVersion.JAVA_24, JvmVendor.OPENJDK),
                 buildModel.stages[2],
             )
 
@@ -96,7 +95,6 @@ class BuildTypeTest {
                 "%windows.java11.openjdk.64bit%",
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
-                "%windows.java23.openjdk.64bit%",
                 "%windows.java24.openjdk.64bit%",
             )
         val expectedInstallationPaths = windowsPaths.joinToString(",")
@@ -106,17 +104,18 @@ class BuildTypeTest {
                 "-Dorg.gradle.workers.max=4",
                 "-PmaxParallelForks=4",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+                "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
                 "--continue",
-                "-DbuildScan.PartOf=PlatformJava23AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
-                "-PtestJavaVersion=23",
+                "-DbuildScan.PartOf=PlatformJava24AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+                "-PtestJavaVersion=24",
                 "-PtestJavaVendor=openjdk",
                 "-Dscan.tag.FunctionalTest",
                 "-Dscan.value.coverageOs=windows",
                 "-Dscan.value.coverageArch=amd64",
                 "-Dscan.value.coverageJvmVendor=openjdk",
-                "-Dscan.value.coverageJvmVersion=java23",
+                "-Dscan.value.coverageJvmVersion=java24",
                 "-PflakyTests=exclude",
                 "-Dscan.tag.Check",
                 "-PteamCityBuildId=%teamcity.build.id%",

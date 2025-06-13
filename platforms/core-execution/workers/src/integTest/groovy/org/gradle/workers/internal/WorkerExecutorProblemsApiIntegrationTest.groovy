@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import com.google.common.collect.Iterables
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -40,16 +41,16 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                 implementation(gradleApi())
             }
         """
-        file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
-            package org.gradle.test;
+        file('buildSrc/src/main/java/org/someorg/test/ProblemsWorkerTaskParameter.java') << """
+            package org.someorg.test;
 
             import org.gradle.workers.WorkParameters;
 
             public interface ProblemsWorkerTaskParameter extends WorkParameters { }
         """
 
-        file('buildSrc/src/main/java/org/gradle/test/SomeOtherData.java') << """
-            package org.gradle.test;
+        file('buildSrc/src/main/java/org/someorg/test/SomeOtherData.java') << """
+            package org.someorg.test;
 
             public interface SomeOtherData {
                 String getOtherName();
@@ -57,8 +58,8 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        file('buildSrc/src/main/java/org/gradle/test/SomeData.java') << """
-            package org.gradle.test;
+        file('buildSrc/src/main/java/org/someorg/test/SomeData.java') << """
+            package org.someorg.test;
 
             import org.gradle.api.problems.AdditionalData;
             import org.gradle.api.provider.Property;
@@ -77,8 +78,8 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                   void setOtherData(SomeOtherData otherData);
             }
         """
-        file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
-            package org.gradle.test;
+        file('buildSrc/src/main/java/org/someorg/test/ProblemWorkerTask.java') << """
+            package org.someorg.test;
 
             import java.io.File;
             import java.io.FileWriter;
@@ -119,7 +120,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     );
 
                     // Write the current build operation id to a file
-                    // This needs to be Java 6 compatible, as we are in a worker
                     // Backslashes need to be escaped, so test works on Windows
                     File buildOperationIdFile = new File("${buildOperationIdFile.absolutePath.replace('\\', '\\\\')}");
                     try(FileWriter writer = new FileWriter(buildOperationIdFile)) {
@@ -139,7 +139,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import javax.inject.Inject
-            import org.gradle.test.ProblemWorkerTask
+            import org.someorg.test.ProblemWorkerTask
 
 
             abstract class ProblemTask extends DefaultTask {
@@ -163,39 +163,62 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             operationId == Long.parseLong(buildOperationIdFile.text)
             exception.message == "Exception message"
             exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
-            contextualLocations.size() == 1
-            (contextualLocations[0] as TaskLocation).buildTreePath == ":reportProblem"
-        }
-
-        def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperationsFixture))
-        with(problem) {
-            with(definition) {
-                name == 'type'
-                displayName == 'label'
-                with(group) {
-                    displayName == 'Generic'
-                    name == 'generic'
-                    parent == null
-                }
-                documentationLink == null
-            }
-            severity == Severity.WARNING.name()
+            definition.id.name == 'type'
+            definition.id.displayName == 'label'
+            definition.id.group.displayName == 'Generic'
+            definition.id.group.name == 'generic'
+            definition.id.group.parent == null
+            definition.documentationLink == null
+            definition.severity == Severity.WARNING
             contextualLabel == null
             solutions == []
             details == null
-            contextualLocations.empty
-            if (isolationMode == "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
-                // TODO: Should have the stack location for all isolation modes
-                assert originLocations.empty
-            } else {
-                assert originLocations.size() == 1
-                with(originLocations[0]) {
+            contextualLocations.size() == 1
+            (contextualLocations[0] as TaskLocation).buildTreePath == ":reportProblem"
+            operationId == Long.parseLong(buildOperationIdFile.text)
+            exception.message == "Exception message"
+            exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
+
+            if (isolationMode != "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
+                with(originLocations[0] as StackTraceLocation) {
                     // TODO: Should have the file location for all isolation modes
                     fileLocation == null
-                    stackTrace.find { it.className == 'org.gradle.test.ProblemWorkerTask' && it.methodName == 'execute' && it.fileName == 'ProblemWorkerTask.java' }
+                    stackTrace.find { it.className == 'org.someorg.test.ProblemWorkerTask' && it.methodName == 'execute' && it.fileName == 'ProblemWorkerTask.java' }
                 }
             }
-            failure != null
+
+            //This is here to test the values returned by the org.gradle.api.problems.internal.DefaultProblemProgressDetails.getOriginLocations
+            // and org.gradle.api.problems.internal.DefaultProblemProgressDetails.getContextualLocations.
+            def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperationsFixture))
+            with(problem) {
+                this.with(definition) {
+                    name == 'type'
+                    displayName == 'label'
+                    this.with(group) {
+                        displayName == 'Generic'
+                        name == 'generic'
+                        parent == null
+                    }
+                    documentationLink == null
+                }
+                severity == Severity.WARNING.name()
+                contextualLabel == null
+                solutions == []
+                details == null
+                contextualLocations.empty
+                if (isolationMode == "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
+                    // TODO: Should have the stack location for all isolation modes
+                    assert originLocations.empty
+                } else {
+                    assert originLocations.size() == 1
+                    this.with(originLocations[0]) {
+                        // TODO: Should have the file location for all isolation modes
+                        fileLocation == null
+                        stackTrace.find { it.className == 'org.someorg.test.ProblemWorkerTask' && it.methodName == 'execute' && it.fileName == 'ProblemWorkerTask.java' }
+                    }
+                }
+                failure != null
+            }
         }
 
         where:
@@ -205,7 +228,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
     static Collection<Map<String, ?>> filteredProblemDetails(BuildOperationsFixture buildOperations) {
         List<Map<String, ?>> details = buildOperations.progress(ProblemUsageProgressDetails).details
         details
-            .findAll { it.definition.name != 'executing-gradle-on-jvm-versions-and-lower'}
+            .findAll { it.definition.name != 'executing-gradle-on-jvm-versions-and-lower' }
     }
 
 }

@@ -20,13 +20,13 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Options for the ScalaDoc tool.
  */
-@SuppressWarnings("deprecation")
-public abstract class ScalaDocOptions extends org.gradle.api.tasks.compile.AbstractOptions {
+public abstract class ScalaDocOptions implements Serializable {
     private boolean deprecation = true;
     private boolean unchecked = true;
     private String windowTitle;

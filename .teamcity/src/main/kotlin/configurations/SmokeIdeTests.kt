@@ -44,6 +44,7 @@ class SmokeIdeTests(
                 listOf(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("SmokeIdeTests"),
+                    "-PflakyTests=exclude",
                 ).joinToString(" "),
         )
     }) {

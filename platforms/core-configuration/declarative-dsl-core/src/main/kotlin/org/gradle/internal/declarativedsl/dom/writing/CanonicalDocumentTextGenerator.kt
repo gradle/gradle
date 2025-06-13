@@ -39,7 +39,12 @@ class CanonicalCodeGenerator {
             else -> value.toString()
         }
 
-        is ValueNode.ValueFactoryNode -> "${node.factoryName}(${node.values.joinToString { valueNodeString(it) }})"
+        is ValueNode.ValueFactoryNode -> if (node.isInfix) {
+            check(node.values.size == 2) { "An infix call value factory node must have exactly two values, got: ${node.values}" }
+            "${valueNodeString(node.values[0])} ${node.factoryName} ${valueNodeString(node.values[1])}"
+        } else {
+            "${node.factoryName}(${node.values.joinToString { valueNodeString(it) }})"
+        }
 
         is ValueNode.NamedReferenceNode -> node.referenceName
     }

@@ -12,7 +12,7 @@ dependencies {
     //      The error can be reproduced in production code by running an integration test
     //      that uses Kotlin DSL, like ManagedPropertyJavaInterOpIntegrationTest.
     implementation("org.ow2.asm:asm:9.7.1")
-    implementation("com.google.guava:guava:33.4.5-jre") {
+    implementation("com.google.guava:guava:33.4.6-jre") {
         isTransitive = false
     }
 }

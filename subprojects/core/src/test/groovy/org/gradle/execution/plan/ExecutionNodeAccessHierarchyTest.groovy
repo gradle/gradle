@@ -37,9 +37,9 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         def node1 = Mock(Node)
         def node2 = Mock(Node)
         def node3 = Mock(Node)
-        hierarchy.recordNodeAccessingLocations(node1, ["/some/location"])
-        hierarchy.recordNodeAccessingLocations(node2, ["/some/other/location"])
-        hierarchy.recordNodeAccessingLocations(node3, ["/some/other/third"])
+        hierarchy.recordNodeAccessingLocation(node1, "/some/location")
+        hierarchy.recordNodeAccessingLocation(node2, "/some/other/location")
+        hierarchy.recordNodeAccessingLocation(node3, "/some/other/third")
 
         expect:
         assertNodesAccessing("/some", node1, node2, node3)
@@ -57,11 +57,11 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         def child = Mock(Node)
         def other = Mock(Node)
         def location = "/some/location"
-        hierarchy.recordNodeAccessingLocations(node1, [location])
-        hierarchy.recordNodeAccessingLocations(child, ["/some/location/second"])
-        hierarchy.recordNodeAccessingLocations(node2, [location])
-        hierarchy.recordNodeAccessingLocations(other, ["/some/other"])
-        hierarchy.recordNodeAccessingLocations(node3, [location])
+        hierarchy.recordNodeAccessingLocation(node1, location)
+        hierarchy.recordNodeAccessingLocation(child, "/some/location/second")
+        hierarchy.recordNodeAccessingLocation(node2, location)
+        hierarchy.recordNodeAccessingLocation(other, "/some/other")
+        hierarchy.recordNodeAccessingLocation(node3, location)
 
         expect:
         assertNodesAccessing(location, node1, node2, node3, child)
@@ -71,9 +71,9 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         def child = Mock(Node)
         def grandChild = Mock(Node)
         def ancestor = Mock(Node)
-        hierarchy.recordNodeAccessingLocations(child, ["/some/location/child/within"])
-        hierarchy.recordNodeAccessingLocations(ancestor, ["/some/location"])
-        hierarchy.recordNodeAccessingLocations(grandChild, ["/some/location/child/within/some/grandchild"])
+        hierarchy.recordNodeAccessingLocation(child, "/some/location/child/within")
+        hierarchy.recordNodeAccessingLocation(ancestor, "/some/location")
+        hierarchy.recordNodeAccessingLocation(grandChild, "/some/location/child/within/some/grandchild")
 
         expect:
         assertNodesAccessing("/some", ancestor, child, grandChild)
@@ -85,8 +85,8 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
     def "ancestor accesses location"() {
         def node1 = Mock(Node)
         def node2 = Mock(Node)
-        hierarchy.recordNodeAccessingLocations(node1, ["/some/location"])
-        hierarchy.recordNodeAccessingLocations(node2, ["/some/location/within/deep"])
+        hierarchy.recordNodeAccessingLocation(node1, "/some/location")
+        hierarchy.recordNodeAccessingLocation(node2, "/some/location/within/deep")
 
         expect:
         assertNodesAccessing("/some/location/within", node1, node2)
@@ -104,14 +104,14 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         def node6 = Mock(Node)
         def node7 = Mock(Node)
 
-        hierarchy.recordNodeAccessingLocations(rootNode, [root.absolutePath])
-        hierarchy.recordNodeAccessingLocations(node1, [root.file("location").absolutePath])
-        hierarchy.recordNodeAccessingLocations(node2, [root.file("sub/location").absolutePath])
-        hierarchy.recordNodeAccessingLocations(node3, [root.file("third/within").absolutePath])
-        hierarchy.recordNodeAccessingLocations(node4, [root.file("included/without").absolutePath])
-        hierarchy.recordNodeAccessingLocations(node7, [root.file("included/within").absolutePath])
-        hierarchy.recordNodeAccessingLocations(node5, [root.file("excluded/within").absolutePath])
-        hierarchy.recordNodeAccessingLocations(node6, [temporaryFolder.createDir("other").file("third").absolutePath])
+        hierarchy.recordNodeAccessingLocation(rootNode, root.absolutePath)
+        hierarchy.recordNodeAccessingLocation(node1, root.file("location").absolutePath)
+        hierarchy.recordNodeAccessingLocation(node2, root.file("sub/location").absolutePath)
+        hierarchy.recordNodeAccessingLocation(node3, root.file("third/within").absolutePath)
+        hierarchy.recordNodeAccessingLocation(node4, root.file("included/without").absolutePath)
+        hierarchy.recordNodeAccessingLocation(node7, root.file("included/within").absolutePath)
+        hierarchy.recordNodeAccessingLocation(node5, root.file("excluded/within").absolutePath)
+        hierarchy.recordNodeAccessingLocation(node6, temporaryFolder.createDir("other").file("third").absolutePath)
 
         expect:
         nodesRelatedTo(root, "*/within") == ([rootNode, node3, node5, node7] as Set)
@@ -127,10 +127,10 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         def directory = Mock(Node)
         def file = Mock(Node)
 
-        hierarchy.recordNodeAccessingLocations(rootNode, [root.absolutePath])
-        hierarchy.recordNodeAccessingLocations(missing, [root.file("missing").absolutePath])
-        hierarchy.recordNodeAccessingLocations(directory, [root.createDir("directory").absolutePath])
-        hierarchy.recordNodeAccessingLocations(file, [root.createFile("file").absolutePath])
+        hierarchy.recordNodeAccessingLocation(rootNode, root.absolutePath)
+        hierarchy.recordNodeAccessingLocation(missing, root.file("missing").absolutePath)
+        hierarchy.recordNodeAccessingLocation(directory, root.createDir("directory").absolutePath)
+        hierarchy.recordNodeAccessingLocation(file, root.createFile("file").absolutePath)
 
         expect:
         nodesRelatedTo(root, "**/within") == ([rootNode, directory] as Set)
@@ -144,7 +144,7 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         def root = temporaryFolder.file("root")
 
         def childNode = Mock(Node)
-        hierarchy.recordNodeAccessingLocations(childNode, [root.file("some/sub/dir").absolutePath])
+        hierarchy.recordNodeAccessingLocation(childNode, root.file("some/sub/dir").absolutePath)
         expect:
         nodesRelatedTo(root, "some/sub/dir") == ([childNode] as Set)
         nodesRelatedTo(root, "some/sub/other") == ([] as Set)
@@ -167,8 +167,8 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         def root = Mock(Node)
         def childNode = Mock(Node)
 
-        hierarchy.recordNodeAccessingLocations(root, ["/"])
-        hierarchy.recordNodeAccessingLocations(childNode, ["/some/location"])
+        hierarchy.recordNodeAccessingLocation(root, "/")
+        hierarchy.recordNodeAccessingLocation(childNode, "/some/location")
 
         expect:
         assertNodesAccessing("/", root, childNode)
@@ -179,7 +179,7 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
     def "can return nodes accessing some path taking includes and excludes into consideration"() {
         def childNode = Mock(Node)
 
-        hierarchy.recordNodeAccessingLocations(childNode, ["/some/root/child/relative/path"])
+        hierarchy.recordNodeAccessingLocation(childNode, "/some/root/child/relative/path")
         expect:
         hierarchy.getNodesAccessing("/some/root", excludes("child")).empty
         hierarchy.getNodesAccessing("/some/root", includes("child")).empty

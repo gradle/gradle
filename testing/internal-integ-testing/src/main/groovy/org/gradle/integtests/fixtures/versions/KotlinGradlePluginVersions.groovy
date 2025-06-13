@@ -37,9 +37,11 @@ class KotlinGradlePluginVersions {
         "1.8",
         "1.9",
         "2.0",
+        "2.1",
+        "2.2",
     ]
 
-    private static final LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION = VersionNumber.parse("1.6")
+    private static final LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION = VersionNumber.parse("2.0")
 
     private final Factory<Properties> propertiesFactory
     private Properties properties
@@ -109,6 +111,7 @@ class KotlinGradlePluginVersions {
     static final VersionNumber KOTLIN_2_0_0 = VersionNumber.parse('2.0.0')
     static final VersionNumber KOTLIN_2_0_20 = VersionNumber.parse('2.0.20')
     static final VersionNumber KOTLIN_2_1_20 = VersionNumber.parse('2.1.20')
+    static final VersionNumber KOTLIN_2_1_21 = VersionNumber.parse('2.1.21')
 
     static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
         assumeCurrentJavaVersionIsSupportedBy(VersionNumber.parse(kotlinVersion))
@@ -131,6 +134,9 @@ class KotlinGradlePluginVersions {
     private static JavaVersion getMaximumJavaVersionFor(VersionNumber kotlinVersion) {
         if (kotlinVersion.baseVersion < KOTLIN_2_0_0) {
             return JavaVersion.VERSION_21
+        }
+        if (kotlinVersion.baseVersion < KOTLIN_2_1_20) {
+            return JavaVersion.VERSION_22
         }
         return null
     }

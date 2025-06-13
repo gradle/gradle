@@ -14,75 +14,135 @@
  * limitations under the License.
  */
 
+@file:OptIn(ExperimentalBuildToolsApi::class)
+
 package org.gradle.kotlin.dsl.normalization
 
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.AbiExtractingClasspathResourceHasher
-import org.gradle.api.internal.changedetection.state.CachingResourceHasher
-import org.gradle.api.internal.changedetection.state.PropertiesFileFilter
-import org.gradle.api.internal.changedetection.state.ResourceEntryFilter
-import org.gradle.api.internal.changedetection.state.ResourceFilter
-import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
-import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher
-import org.gradle.api.internal.changedetection.state.ZipHasher
-import org.gradle.internal.execution.FileCollectionSnapshotter
-import org.gradle.internal.execution.model.InputNormalizer
+import com.google.common.collect.ImmutableMultimap
+import org.gradle.internal.execution.FileCollectionFingerprinter
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileNormalizer
-import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter
-import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy
-import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.FingerprintingStrategy
+import org.gradle.internal.fingerprint.FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER
+import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.tools.api.ApiClassExtractionException
-import org.gradle.internal.tools.api.ApiClassExtractor
-import org.gradle.kotlin.dsl.support.loggerFor
+import org.gradle.internal.snapshot.SnapshotVisitResult
+import org.jetbrains.kotlin.buildtools.api.CompilationService
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
+import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
+import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
+import java.io.File
 
 
 internal
 class KotlinCompileClasspathFingerprinter(
-    cacheService: ResourceSnapshotterCacheService,
-    fileCollectionSnapshotter: FileCollectionSnapshotter,
-    stringInterner: StringInterner
-) : AbstractFileCollectionFingerprinter(
-    ClasspathFingerprintingStrategy.compileClasspathFallbackToRuntimeClasspath(
-        CachingResourceHasher(
-            AbiExtractingClasspathResourceHasher.withoutFallback(ApiClassExtractor
-                .withWriter(KotlinApiMemberWriter.adapter())
-                .includePackagePrivateMembers()
-                .build()),
-            cacheService
-        ),
-        ClasspathFingerprintingStrategy.runtimeClasspathResourceHasher(
-            RuntimeClasspathResourceHasher(),
-            LineEndingSensitivity.DEFAULT,
-            PropertiesFileFilter.FILTER_NOTHING,
-            ResourceEntryFilter.FILTER_NOTHING,
-            ResourceFilter.FILTER_NOTHING
-        ),
-        cacheService,
-        stringInterner,
-        CompileAvoidanceExceptionReporter()
-    ),
-    fileCollectionSnapshotter
-),
-    CompileClasspathFingerprinter {
+    private val classpathSnapshotHashesCache: KotlinDslCompileAvoidanceClasspathHashCache
+) : FileCollectionFingerprinter {
 
     override fun getNormalizer(): FileNormalizer {
-        return InputNormalizer.COMPILE_CLASSPATH
+        throw UnsupportedOperationException("Not implemented")
+    }
+
+    override fun fingerprint(fileSystemSnapshot: FileSystemSnapshot, previousFingerprint: FileCollectionFingerprint?): CurrentFileCollectionFingerprint {
+        val fingerprints: MutableMap<String, HashCode> = mutableMapOf()
+
+        fileSystemSnapshot.accept { snapshot ->
+            // if not jar file or class directory, we ignore it
+            if (snapshot is RegularFileSnapshot && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
+                return@accept SnapshotVisitResult.CONTINUE
+            }
+
+            val fingerprint = classpathSnapshotHashesCache.getHash(snapshot.hash) {
+                computeHashForFile(File(snapshot.absolutePath))
+            }
+            fingerprints[snapshot.absolutePath] = fingerprint
+
+            // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
+            SnapshotVisitResult.SKIP_SUBTREE
+        }
+
+        return when {
+            fingerprints.isEmpty() -> EmptyCurrentFileCollectionFingerprint(COMPILE_CLASSPATH_IDENTIFIER)
+            else -> CurrentFileCollectionFingerprintImpl(fingerprints)
+        }
+    }
+
+    private
+    fun computeHashForFile(file: File): HashCode {
+        val snapshots = compilationService.calculateClasspathSnapshot(file, ClassSnapshotGranularity.CLASS_LEVEL, true).classSnapshots
+        return hash(snapshots)
+    }
+
+    private
+    fun hash(snapshots: Map<String, ClassSnapshot>): HashCode {
+        val hasher = Hashing.newHasher()
+        snapshots.entries.stream()
+            .filter { it.value is AccessibleClassSnapshot }
+            .map { (it.value as AccessibleClassSnapshot).classAbiHash }
+            .forEach {
+                hasher.putLong(it)
+            }
+        return hasher.hash()
+    }
+
+    override fun empty(): CurrentFileCollectionFingerprint {
+        throw UnsupportedOperationException("Not implemented")
     }
 }
 
 
 private
-class CompileAvoidanceExceptionReporter : ZipHasher.HashingExceptionReporter {
-    override fun report(zipFileSnapshot: RegularFileSnapshot, e: Exception) {
-        if (e is ApiClassExtractionException) {
-            val jarPath = zipFileSnapshot.absolutePath
-            logger.info("Cannot use Kotlin build script compile avoidance with {}: {}", jarPath, e.message)
+class CurrentFileCollectionFingerprintImpl(private val fingerprints: Map<String, HashCode>) : CurrentFileCollectionFingerprint {
+
+    private
+    val hashCode: HashCode by lazy {
+        val hasher = Hashing.newHasher()
+        fingerprints.values.forEach {
+            hasher.putHash(it)
         }
+        hasher.hash()
+    }
+
+    override fun getHash(): HashCode = hashCode
+
+    override fun getStrategyIdentifier(): String = COMPILE_CLASSPATH_IDENTIFIER
+
+    override fun getSnapshot(): FileSystemSnapshot {
+        throw UnsupportedOperationException("Not implemented")
+    }
+
+    override fun isEmpty(): Boolean {
+        throw UnsupportedOperationException("Not implemented")
+    }
+
+    override fun archive(factory: CurrentFileCollectionFingerprint.ArchivedFileCollectionFingerprintFactory): FileCollectionFingerprint {
+        throw UnsupportedOperationException("Not implemented")
+    }
+
+    override fun getFingerprints(): Map<String, FileSystemLocationFingerprint> {
+        throw UnsupportedOperationException("Not implemented")
+    }
+
+    override fun getRootHashes(): ImmutableMultimap<String, HashCode> {
+        throw UnsupportedOperationException("Not implemented")
+    }
+
+    override fun wasCreatedWithStrategy(strategy: FingerprintingStrategy): Boolean {
+        throw UnsupportedOperationException("Not implemented")
     }
 }
 
 
 internal
-val logger = loggerFor<KotlinCompileClasspathFingerprinter>()
+val compilationService = compilationServiceFor<KotlinCompileClasspathFingerprinter>()
+
+
+internal
+inline fun <reified T : Any> compilationServiceFor(): CompilationService =
+    CompilationService.loadImplementation(T::class.java.classLoader)

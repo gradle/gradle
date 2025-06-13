@@ -79,9 +79,6 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.NonNull;
@@ -474,7 +471,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         onMutableStateAccess("properties");
         return delegate.getProperties();
     }
@@ -650,30 +647,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public ProjectLayout getLayout() {
         onMutableStateAccess("layout");
         return delegate.getLayout();
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult javaexec(Closure closure) {
-        return delegate.javaexec(closure);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        return delegate.javaexec(action);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult exec(Closure closure) {
-        return delegate.exec(closure);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult exec(Action<? super ExecSpec> action) {
-        return delegate.exec(action);
     }
 
     @Override
@@ -1111,17 +1084,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public void artifacts(Action<? super ArtifactHandler> configureAction) {
         onMutableStateAccess("artifacts");
         delegate.artifacts(configureAction);
-    }
-
-    /**
-     * @deprecated the concept of conventions is deprecated. Use extensions instead
-     */
-    @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public org.gradle.api.plugins.Convention getConvention() {
-        onMutableStateAccess("convention");
-        return delegate.getConvention();
     }
 
     @Override

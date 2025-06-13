@@ -34,7 +34,6 @@ import spock.lang.Issue
  * when setting a new upper bound, otherwise the lower bound is lifted, as the method level annotations
  * replace the class level ones.
  */
-@TargetGradleVersion('>=3.3')
 class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
     def "Can run no-op build action against root of composite build"() {
         given:

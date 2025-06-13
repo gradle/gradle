@@ -30,7 +30,6 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
-    implementation(projects.snapshots)
     implementation(projects.toolingApi)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
@@ -48,9 +47,13 @@ dependencies {
     compileOnly(libs.kotlinReflect)
 
     testImplementation(testFixtures(projects.kotlinDsl))
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
 }
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
 }
+
+// Kotlin DSL provider plugins should not be part of the public API
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())
