@@ -24,6 +24,8 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
@@ -72,6 +74,9 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         assertHasExpectedContents('root.iml')
         assertHasExpectedContents('api/api.iml')
         assertHasExpectedContents('webservice/webservice.iml')
+        if (!GradleContextualExecuter.isConfigCache()) {
+            expectTaskGetProjectDeprecations(3)
+        }
         executer.withTasks('cleanIdea').run()
     }
 
