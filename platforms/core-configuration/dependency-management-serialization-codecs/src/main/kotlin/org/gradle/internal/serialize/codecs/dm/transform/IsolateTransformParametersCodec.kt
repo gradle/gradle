@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransform.IsolateTrans
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
@@ -39,7 +39,7 @@ class IsolateTransformParametersCodec(
     val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     val fileCollectionFactory: FileCollectionFactory,
     val documentationRegistry: DocumentationRegistry,
-    val problems: InternalProblems
+    val problems: ProblemsInternal
 ) : Codec<IsolateTransformParameters> {
     override suspend fun WriteContext.encode(value: IsolateTransformParameters) {
         write(value.parameterObject)

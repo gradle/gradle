@@ -19,7 +19,7 @@ package org.gradle.internal.isolated;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
@@ -230,8 +230,8 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
                 if (serviceClass.isAssignableFrom(BuildServiceRegistry.class)) {
                     return allServices.find(BuildServiceRegistry.class);
                 }
-                if (serviceClass.isAssignableFrom(InternalProblems.class)) {
-                    return allServices.find(InternalProblems.class);
+                if (serviceClass.isAssignableFrom(ProblemsInternal.class)) {
+                    return allServices.find(ProblemsInternal.class);
                 }
                 for (Class<?> whiteListedService : additionalWhiteListedServices) {
                     if (serviceClass.isAssignableFrom(whiteListedService)) {

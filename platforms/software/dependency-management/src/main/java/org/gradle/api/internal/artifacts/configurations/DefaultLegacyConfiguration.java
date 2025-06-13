@@ -31,8 +31,8 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -71,7 +71,7 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
-        InternalProblems problemsService,
+        ProblemsInternal problemsService,
         DocumentationRegistry documentationRegistry
     ) {
         super(

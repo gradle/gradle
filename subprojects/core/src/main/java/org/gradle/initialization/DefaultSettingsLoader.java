@@ -27,7 +27,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
@@ -49,13 +49,13 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private final BuildLayoutFactory buildLayoutFactory;
     private final List<BuiltInCommand> builtInCommands;
     private final Logger logger;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
     public DefaultSettingsLoader(
         SettingsProcessor settingsProcessor,
         BuildLayoutFactory buildLayoutFactory,
         List<BuiltInCommand> builtInCommands,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         this(settingsProcessor, buildLayoutFactory, builtInCommands, Logging.getLogger(DefaultSettingsLoader.class), problems);
     }
@@ -66,7 +66,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         BuildLayoutFactory buildLayoutFactory,
         List<BuiltInCommand> builtInCommands,
         Logger logger,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         this.settingsProcessor = settingsProcessor;
         this.buildLayoutFactory = buildLayoutFactory;

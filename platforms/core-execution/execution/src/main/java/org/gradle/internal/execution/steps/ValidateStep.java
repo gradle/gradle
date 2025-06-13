@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.UnitOfWork;
@@ -122,6 +122,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
     @ServiceScope(Scope.Global.class)
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork.Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings);
+        void recordValidationWarnings(UnitOfWork.Identity identity, UnitOfWork work, Collection<? extends ProblemInternal> warnings);
     }
 }

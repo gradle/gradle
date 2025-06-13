@@ -22,7 +22,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
@@ -404,8 +404,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
             resolutions.addAll(((ResolutionProvider) failure.getOriginal()).getResolutions());
         }
 
-        Collection<InternalProblem> all = failure.getProblems();
-        for (InternalProblem problem : all) {
+        Collection<ProblemInternal> all = failure.getProblems();
+        for (ProblemInternal problem : all) {
             resolutions.addAll(problem.getSolutions());
         }
 
@@ -434,7 +434,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         try {
             String msg = failure.getMessage();
             StringBuilder builder = new StringBuilder();
-            Collection<InternalProblem> problems = failure.getProblems();
+            Collection<ProblemInternal> problems = failure.getProblems();
             if (!problems.isEmpty()) {
                 // Skip the exception message unless it is a compilation error
                 if (failure.getOriginal() instanceof CompilationFailedIndicator) {

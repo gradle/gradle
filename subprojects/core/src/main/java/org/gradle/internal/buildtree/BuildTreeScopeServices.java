@@ -37,7 +37,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.DefaultTaskSelector;
@@ -148,7 +148,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected BuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
+    protected BuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, ProblemsInternal problemsService) {
         return new DefaultBuildTaskSelector(buildRegistry, taskSelector, commands, problemsService);
     }
 
