@@ -81,6 +81,10 @@ Read the link:#jspecify[JSpecify section] below to learn about potential breakin
 Groovy has been upgraded from version 3.0.24 to https://groovy-lang.org/changelogs/changelog-4.0.27.html[4.0.27].
 For a complete overview of changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
 
+The update to Groovy 4 comes with many breaking changes, such as the removal of legacy packages, changes in the module structure, a parser rewrite, and bytecode output changes.
+For a complete overview of these and more changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
+These changes may affect those who use Groovy directly or indirectly in Gradle, and in rare cases, users relying on transitive dependencies.
+
 ===== `is`-prefixed `Boolean` properties no longer recognized by Groovy
 
 Groovy 4 no longer treats getters with an `is` prefix and a `Boolean` return type as properties.
