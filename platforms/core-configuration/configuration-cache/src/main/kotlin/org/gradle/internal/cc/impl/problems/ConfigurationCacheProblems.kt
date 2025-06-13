@@ -433,9 +433,9 @@ class ConfigurationCacheProblems(
                 when {
                     degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
                     degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
-                    degradingTaskCount == 0 && degradingFeatures.size == 1 -> "feature ${featuresAsString} was"
-                    degradingTaskCount == 0 && degradingFeatures.size > 1 -> "features ${featuresAsString} were"
-                    else -> "tasks and features ${featuresAsString} were"
+                    degradingTaskCount == 0 && degradingFeatures.size == 1 -> "feature usage ${featuresAsString} was"
+                    degradingTaskCount == 0 && degradingFeatures.size > 1 -> "feature usage ${featuresAsString} were"
+                    else -> "tasks and feature usage ${featuresAsString} were"
                 } + " found."
         }
     }
