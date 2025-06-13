@@ -20,6 +20,7 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRuleChain;
+import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
@@ -32,6 +33,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<T> {
+
     private final List<Action<? super CompatibilityCheckDetails<T>>> rules = new ArrayList<>();
     private final Instantiator instantiator;
     private final IsolatableFactory isolatableFactory;
@@ -54,26 +56,33 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
     }
 
     @Override
-    public void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
-        rules.add(new InstantiatingAction<>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule, configureAction, isolatableFactory)),
-            instantiator, new ExceptionHandler<>(rule)));
+    public void add(Class<? extends AttributeCompatibilityRule<T>> ruleClass, Action<? super ActionConfiguration> configureAction) {
+        ConfigurableRule<CompatibilityCheckDetails<T>> rule = DefaultConfigurableRule.of(ruleClass, configureAction, isolatableFactory);
+        rules.add(createAction(rule, instantiator));
     }
 
     @Override
-    public void add(final Class<? extends AttributeCompatibilityRule<T>> rule) {
-        rules.add(new InstantiatingAction<>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule)),
-            instantiator, new ExceptionHandler<>(rule)));
+    public void add(final Class<? extends AttributeCompatibilityRule<T>> ruleClass) {
+        ConfigurableRule<CompatibilityCheckDetails<T>> rule = DefaultConfigurableRule.of(ruleClass);
+        rules.add(createAction(rule, instantiator));
     }
 
     public List<Action<? super CompatibilityCheckDetails<T>>> getRules() {
         return rules;
     }
 
+    public static <T> Action<CompatibilityCheckDetails<T>> createAction(
+        ConfigurableRule<CompatibilityCheckDetails<T>> rule,
+        Instantiator instantiator
+    ) {
+        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
+    }
+
     private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {
 
-        private final Class<? extends AttributeCompatibilityRule<T>> rule;
+        private final Class<?> rule;
 
-        private ExceptionHandler(Class<? extends AttributeCompatibilityRule<T>> rule) {
+        private ExceptionHandler(Class<?> rule) {
             this.rule = rule;
         }
 
@@ -82,4 +91,5 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
             throw new AttributeMatchException(String.format("Could not determine whether value %s is compatible with value %s using %s.", details.getProducerValue(), details.getConsumerValue(), ModelType.of(rule).getDisplayName()), throwable);
         }
     }
+
 }
