@@ -220,7 +220,7 @@ configure<KotlinJvmProjectExtension> {
         into(layout.buildDirectory.dir("generated/kotlin-abi-filtered"))
         from(layout.buildDirectory.dir("generated/kotlin-abi")) {
             includeEmptyDirs = false
-            include(PublicKotlinDslApi.includes)
+            include("org/gradle/kotlin/dsl/*")
             // Those leak in the public API - see org.gradle.kotlin.dsl.NamedDomainObjectContainerScope for example
             include("org/gradle/kotlin/dsl/support/delegates/*")
             include("META-INF/*.kotlin_module")
