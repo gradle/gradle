@@ -51,6 +51,23 @@ class ExecKotlinDSLIntegrationTest extends AbstractIntegrationSpec {
         "its setter"    | "setArgs(listOf(${echoArguments}))"
     }
 
+    def "can execute command without setting any value for Exec.args"() {
+        buildKotlinFile << """
+            import org.gradle.internal.jvm.Jvm
+
+            tasks.register<Exec>("execTask") {
+                executable = Jvm.current().getJavaExecutable().absolutePath
+                setIgnoreExitValue(true)
+            }
+        """
+
+        when:
+        run "execTask"
+
+        then:
+        errorOutput.contains("Usage: java")
+    }
+
     String getEchoArguments() {
         return """ "-cp", sourceSets["main"].runtimeClasspath.asPath, "Echo", "foo", "bar" """
     }

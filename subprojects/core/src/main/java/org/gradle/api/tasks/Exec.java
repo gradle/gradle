@@ -17,7 +17,6 @@ package org.gradle.api.tasks;
 
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
-import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -72,7 +71,7 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    public Exec setArgs(@Nullable Iterable<?> arguments) {
+    public Exec setArgs(Iterable<?> arguments) {
         return super.setArgs(arguments);
     }
 
