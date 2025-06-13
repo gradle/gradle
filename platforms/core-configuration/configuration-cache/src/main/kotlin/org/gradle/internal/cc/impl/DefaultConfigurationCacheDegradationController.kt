@@ -66,7 +66,7 @@ internal class DefaultConfigurationCacheDegradationController(
     }
 
     fun collectDegradationReasons() {
-        collectFeatureDegradationRequests()
+        collectFeatureDegradationReasons()
         if (tasksDegradationRequests.isNotEmpty()) {
             deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
                 scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
@@ -82,7 +82,7 @@ internal class DefaultConfigurationCacheDegradationController(
         }
     }
 
-    private fun collectFeatureDegradationRequests() {
+    private fun collectFeatureDegradationReasons() {
         if (isSourceDependenciesUsed()) {
             collectedDegradationReasons[DegradationContext.Feature("source dependencies")] = listOf("Source dependencies are not compatible yet")
         }
