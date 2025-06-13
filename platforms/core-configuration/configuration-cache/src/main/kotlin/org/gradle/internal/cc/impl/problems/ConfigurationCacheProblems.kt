@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.problems
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
@@ -420,15 +421,23 @@ class ConfigurationCacheProblems(
         val degradingFeatures = mutableListOf<String>()
         degradationController.visitDegradedTasks { _, _ -> degradingTaskCount++ }
         degradationController.visitDegradedFeatures { feature, _ -> degradingFeatures.add(feature) }
-        val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
-        return " because incompatible " +
-            when {
-                degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
-                degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
-                degradingTaskCount == 0 && degradingFeatures.size ==  1 -> "feature ${featuresAsString} was"
-                degradingTaskCount == 0 && degradingFeatures.size > 1 -> "features ${featuresAsString} were"
-                else -> "tasks and features ${featuresAsString} were"
-            }  + " found."
+        return DegradationSummary(degradingFeatures, degradingTaskCount).render()
+    }
+
+    @VisibleForTesting
+    internal
+    class DegradationSummary(private val degradingFeatures: List<String>, private val degradingTaskCount: Int) {
+        fun render(): String {
+            val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
+            return " because incompatible " +
+                when {
+                    degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
+                    degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
+                    degradingTaskCount == 0 && degradingFeatures.size == 1 -> "feature ${featuresAsString} was"
+                    degradingTaskCount == 0 && degradingFeatures.size > 1 -> "features ${featuresAsString} were"
+                    else -> "tasks and features ${featuresAsString} were"
+                } + " found."
+        }
     }
 
     private
