@@ -17,8 +17,10 @@
 package org.gradle.api.reporting.components;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer;
 import org.gradle.api.tasks.TaskAction;
@@ -58,6 +60,11 @@ public abstract class ComponentReport extends DefaultTask {
 
     @Inject
     protected abstract TypeAwareBinaryRenderer getBinaryRenderer();
+
+    @Inject
+    public ComponentReport() {
+        getServices().get(ConfigurationCacheDegradationController.class).requireConfigurationCacheDegradation(this, Providers.of("Task is not compatible with the Configuration Cache"));
+    }
 
     @TaskAction
     public void report() {
