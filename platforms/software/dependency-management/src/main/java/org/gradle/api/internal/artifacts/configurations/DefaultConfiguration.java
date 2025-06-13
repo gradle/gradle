@@ -1109,9 +1109,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     /**
      * Instead of copying a configuration's roles outright, we allow copied configurations
      * to assume any role. However, any roles which were previously disabled will become
-     * deprecated in the copied configuration. In 9.0, we will update this to copy
-     * roles and deprecations without modification. Or, better yet, we will remove support
-     * for copying configurations altogether.
+     * deprecated in the copied configuration.
      *
      * This means the copy created is <strong>NOT</strong> a strictly identical copy of the original, as the role
      * will be not only a different instance, but also may return different deprecation values.

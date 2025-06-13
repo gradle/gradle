@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
 import org.gradle.api.tasks.Internal;
@@ -52,15 +51,6 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     @Inject
     protected abstract FileResolver getFileResolver();
-
-    /**
-     * Get the version range mapper.
-     *
-     * @deprecated This method will be removed in Gradle 9.0
-     */
-    @Deprecated
-    @Inject
-    protected abstract VersionRangeMapper getVersionRangeMapper();
 
     /**
      * The Maven POM.

@@ -18,12 +18,9 @@ package org.gradle.api.internal.project.ant
 
 import groovy.xml.MarkupBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
-
-    private static final String CONFIGURATION_CACHE_FAIL_REASON = "serialization issues with org.gradle.api.tasks.ant.AntTarget"
 
     File antBuildFile
 
@@ -49,7 +46,6 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
-    @ToBeFixedForConfigurationCache(because = CONFIGURATION_CACHE_FAIL_REASON)
     def "by default basedir is same as Ant file location"() {
         expect:
         "test basedir"("""
@@ -58,7 +54,6 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1698")
-    @ToBeFixedForConfigurationCache(because = CONFIGURATION_CACHE_FAIL_REASON)
     def "user can set different basedir for imported Ant file"() {
         expect:
         "test basedir"("""
@@ -66,7 +61,6 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
         """, testDirectory.getParentFile(), "test-build")
     }
 
-    @ToBeFixedForConfigurationCache(because = CONFIGURATION_CACHE_FAIL_REASON)
     def "user can specify transformer without specifying basedir"() {
         expect:
         "test basedir"("""
@@ -77,7 +71,6 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1698")
-    @ToBeFixedForConfigurationCache(because = CONFIGURATION_CACHE_FAIL_REASON)
     def "user can specify both basedir and transformer"() {
         expect:
         "test basedir"("""
