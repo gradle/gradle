@@ -416,17 +416,17 @@ class ConfigurationCacheProblems(
 
     private
     fun degradationSummary(): String {
-        var degradingTasks = 0
+        var degradingTaskCount = 0
         val degradingFeatures = mutableListOf<String>()
-        degradationController.visitDegradedTasks { _, _ -> degradingTasks++ }
+        degradationController.visitDegradedTasks { _, _ -> degradingTaskCount++ }
         degradationController.visitDegradedFeatures { feature, _ -> degradingFeatures.add(feature) }
         val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
         return " because incompatible " +
             when {
-                degradingTasks == 1 && degradingFeatures.isEmpty() -> "task was"
-                degradingTasks > 1 && degradingFeatures.isEmpty() -> "tasks were"
-                degradingTasks == 0 && degradingFeatures.size ==  1 -> "feature ${featuresAsString} was"
-                degradingTasks == 0 && degradingFeatures.size > 1 -> "features ${featuresAsString} were"
+                degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
+                degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
+                degradingTaskCount == 0 && degradingFeatures.size ==  1 -> "feature ${featuresAsString} was"
+                degradingTaskCount == 0 && degradingFeatures.size > 1 -> "features ${featuresAsString} were"
                 else -> "tasks and features ${featuresAsString} were"
             }  + " found."
     }
