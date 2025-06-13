@@ -106,16 +106,4 @@ public abstract class TestFailure {
     public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
         return DefaultTestFailure.fromTestFrameworkFailure(failure, causes);
     }
-
-    /**
-     * Creates a new TestFailure instance from a test framework <strong>startup</strong> failure.
-     *
-     * @param failure the failure
-     * @return the new instance
-     *
-     * @since 9.0.0
-     */
-    public static TestFailure fromTestFrameworkStartupFailure(Throwable failure) {
-        return DefaultTestFailure.fromTestFrameworkStartupFailure(failure, null);
-    }
 }

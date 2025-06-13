@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
@@ -23,7 +24,6 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
-import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -66,7 +66,7 @@ public class TestMainAction implements Runnable {
                 });
             }
         } catch (Throwable t) {
-            resultProcessor.failure(suite.getId(), TestFailure.fromTestFrameworkStartupFailure(t));
+            resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(t));
             throw t;
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
