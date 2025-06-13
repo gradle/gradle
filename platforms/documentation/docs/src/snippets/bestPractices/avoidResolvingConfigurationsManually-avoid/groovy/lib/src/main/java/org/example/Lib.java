@@ -1,3 +1,3 @@
 package sample;
 
-class Sample {}
+class Lib {}
