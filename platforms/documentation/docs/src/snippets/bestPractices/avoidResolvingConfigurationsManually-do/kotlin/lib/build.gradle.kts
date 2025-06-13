@@ -1,11 +1,11 @@
 plugins {
-    id "java-library"
+    `java-library`
 }
 
-// tag::avoid-this[]
+// tag::do-this[]
 tasks.named("compileJava").configure {
     doLast {
         logger.lifecycle("Lib was compiled")
     }
 }
-// end::avoid-this[]
+// end::do-this[]

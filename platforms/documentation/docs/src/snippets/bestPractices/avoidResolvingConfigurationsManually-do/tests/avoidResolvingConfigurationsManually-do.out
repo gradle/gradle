@@ -1,12 +1,13 @@
-> Task :library:processResources NO-SOURCE
-> Task :library:compileJava
-> Task :library:classes
+> Task :lib:processResources NO-SOURCE
 
-> Task :library:jar
-jar task was executed
+> Task :lib:compileJava
+Lib was compiled
 
-> Task :library:goodClasspathPrinter
-/home/user/gradle/samples/library/build/libs/library.jar#0
+> Task :lib:classes
+> Task :lib:jar
+
+> Task :app:goodClasspathPrinter
+/home/user/gradle/samples/lib/build/libs/lib.jar#0
 
 BUILD SUCCESSFUL in 0s
 3 actionable tasks: 3 executed
