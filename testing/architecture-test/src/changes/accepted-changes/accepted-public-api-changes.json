@@ -1721,11 +1721,27 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.setArgs(java.lang.Iterable)",
+            "acceptation": "Setting parameter to null doesn't work",
+            "changes": [
+                "Parameter 0 from null accepting to non-null accepting breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.Delete",
             "member": "Method org.gradle.api.tasks.Delete.getDeleter()",
             "acceptation": "Making all injecting getters abstract",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Exec",
+            "member": "Method org.gradle.api.tasks.Exec.setArgs(java.lang.Iterable)",
+            "acceptation": "Setting parameter to null doesn't work",
+            "changes": [
+                "Parameter 0 from null accepting to non-null accepting breaking change"
             ]
         },
         {
