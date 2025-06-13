@@ -39,17 +39,23 @@ internal class DefaultConfigurationCacheDegradationController(
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
     private val collectedDegradationReasons = mutableMapOf<DegradationContext, List<String>>()
 
-    val hasDegradationReasons: Boolean get() = collectedDegradationReasons.isNotEmpty()
+    val hasDegradationReasons: Boolean by lazy { collectedDegradationReasons.isNotEmpty() }
 
-    val hasTaskDegradationReasons: Boolean get() = collectedDegradationReasons.any {
-        e -> e.key is DegradationContext.Task
+    val hasTaskDegradationReasons: Boolean by lazy {
+        collectedDegradationReasons.any {
+            e -> e.key is DegradationContext.Task
+        }
     }
 
-    val taskDegradationReasons: Map<Task, List<String>> get() = collectedDegradationReasons
-        .filter { e -> e.key is DegradationContext.Task }
-        .mapKeys { e -> (e.key as DegradationContext.Task).task }
+    val taskDegradationReasons: Map<Task, List<String>> by lazy {
+        collectedDegradationReasons
+            .filter { e -> e.key is DegradationContext.Task }
+            .mapKeys { e -> (e.key as DegradationContext.Task).task }
+    }
 
-    val featureDegradationReasons: List<DegradationContext.Feature> get() = collectedDegradationReasons.keys.filterIsInstance<DegradationContext.Feature>()
+    val featureDegradationReasons: List<DegradationContext.Feature> by lazy {
+        collectedDegradationReasons.keys.filterIsInstance<DegradationContext.Feature>()
+    }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         if (!configurationTimeBarrier.isAtConfigurationTime) {
