@@ -291,3 +291,45 @@ include::{snippetsPath}/bestPractices/groupTasks-do/tests/groupTasks.good.out[]
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`
+
+== Don't resolve Configurations before Task Execution
+
+Resolving configurations before the task execution phase can lead to incorrect results and slower builds.
+
+=== Explanation
+
+Calling manual resolution via the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method returns a set of files that does not preserve references to the tasks that produced those files.
+This breaks automatic task dependency wiring through task input properties.
+
+In addition, resolving configurations during the configuration phase can slow down the build, even for tasks (e.g., `help`) that don't require the resolved dependencies.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="library/build.gradle.kts;build.gradle.kts[tags=bad-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="library/build.gradle;build.gradle[tags=bad-classpath-printer]"]
+====
+
+<1> *Add project dependency*: It implies that `:library:jar` task should be executed in order to resolve runtime classpath.
+<2> *Declare input files property as Set of files*: It doesn't track task dependencies.
+<3> *Pass resolved configuration to input files property*: Dependency on `:library:jar` task will be lost here.
+<4> *Consume actual jar file or classes directory to calculate digest*: Due to broken task dependencies, library.jar file will not exist at this point.
+
+==== Do This Instead
+
+To avoid issues, always defer resolution to the execution phase by using lazy APIs like link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`].
+
+====
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="library/build.gradle.kts;build.gradle.kts[tags=good-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="library/build.gradle;build.gradle[tags=good-classpath-printer]"]
+====
+
+<1> *Add project dependency*: It implies that jar task should be executed in order to resolve runtime classpath.
+<2> *Declare input files property as ConfigurableFileCollection*: It will track task dependencies.
+<3> *Pass configuration as-is to input files property*: It will be resolved when necessary and task dependencies will be preserved.
+<4> *Consume actual jar file or classes directory to calculate digest*: Here all files should exist at this point.
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#configurations>>`
