@@ -1,0 +1,42 @@
+plugins {
+    id 'java-library'
+}
+
+// tag::good-classpath-printer[]
+dependencies {
+    runtimeOnly(project(":library")) // <1>
+}
+
+abstract class GoodClasspathPrinter extends DefaultTask {
+
+    @InputFiles
+    abstract ConfigurableFileCollection getResolvedClasspath() // <2>
+
+    protected int calculateDigest(File fileOrDirectory) {
+        if (!fileOrDirectory.exists()) {
+            throw new IllegalArgumentException("File or directory $fileOrDirectory doesn't exist")
+        }
+        return 0 // actual implementation is stripped
+    }
+
+    @TaskAction
+    void run() {
+        logger.lifecycle(
+            resolvedClasspath.collect { file ->
+                def digest = calculateDigest(file) // <4>
+                "$file#$digest"
+            }.join("\n")
+        )
+    }
+}
+
+tasks.register("goodClasspathPrinter", GoodClasspathPrinter) {
+    resolvedClasspath.from(configurations.named("runtimeClasspath")) // <3>
+}
+
+tasks.named("jar").configure {
+    doLast {
+        logger.lifecycle("jar task was executed")
+    }
+}
+// end::good-classpath-printer[]

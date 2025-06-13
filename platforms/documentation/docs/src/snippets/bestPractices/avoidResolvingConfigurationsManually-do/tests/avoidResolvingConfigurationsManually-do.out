@@ -5,7 +5,7 @@
 > Task :library:jar
 jar task was executed
 
-> Task :goodClasspathPrinter
+> Task :library:goodClasspathPrinter
 /home/user/gradle/samples/library/build/libs/library.jar#0
 
 BUILD SUCCESSFUL in 0s
