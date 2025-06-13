@@ -37,7 +37,7 @@ public final class TestFrameworkStartupFailureException extends GradleException 
     public TestFrameworkStartupFailureException(TestFailure testFailure) {
         super(testFailure.getDetails().getMessage() != null ? testFailure.getDetails().getMessage() : "", testFailure.getRawFailure());
 
-        if (testFailure.getRawFailure() instanceof ResolutionProvider) {
+        if (testFailure.getRawFailure() instanceof ResolutionProvider && !((ResolutionProvider) testFailure.getRawFailure()).getResolutions().isEmpty()) {
             this.resolutions = new ArrayList<>(((ResolutionProvider) testFailure.getRawFailure()).getResolutions());
         } else {
             this.resolutions = Collections.singletonList("Inspect your task configuration for errors.");
