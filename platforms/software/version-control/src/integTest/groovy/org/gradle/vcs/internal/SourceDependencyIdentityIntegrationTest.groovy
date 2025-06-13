@@ -98,7 +98,7 @@ Required by:
         dependency(dependencyName)
 
         when:
-        fails(":assemble", "-s")
+        fails(":assemble")
 
         then:
         failure.assertHasDescription("Execution failed for task ':${buildName}:classes'.")
