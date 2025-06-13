@@ -30,7 +30,7 @@ import static org.junit.Assert.assertTrue
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "file and directory permissions from file system are replaced by unix defaults when using #taskName task"() {
+    def "file and directory permissions from file system are replaced by unix defaults when using #taskType task"() {
         given:
         createDir('parent') {
             child {
@@ -38,29 +38,33 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 file('reference.txt').mode = 0746
             }
         }
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskType.toLowerCase()}"
+
         and:
         buildFile << """
-            task pack(type: $taskName) {
+            tasks.register("pack", $taskType) {
                 archiveFileName = "$archName"
                 destinationDirectory = projectDir
                 from 'parent'
             }
         """
+
         when:
         run "pack"
         file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+
         then:
         file("build/child").mode == FileSystem.DEFAULT_DIR_MODE
         file("build/child/reference.txt").mode == FileSystem.DEFAULT_FILE_MODE
+
         where:
-        taskName | unpackMethod
+        taskType | unpackMethod
         "Zip"    | "unzipTo"
         "Tar"    | "untarTo"
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "file and directory permissions are preserved when using #taskName task with file system permissions"() {
+    def "file and directory permissions are preserved when using #taskType task with file system permissions"() {
         given:
         createDir('parent') {
             child {
@@ -68,30 +72,34 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 file('reference.txt').mode = 0746
             }
         }
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskType.toLowerCase()}"
+
         and:
         buildFile << """
-            task pack(type: $taskName) {
+            tasks.register("pack", $taskType) {
                 archiveFileName = "$archName"
                 destinationDirectory = projectDir
                 from 'parent'
                 useFileSystemPermissions()
             }
         """
+
         when:
         run "pack"
         file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+
         then:
         file("build/child").mode == 0777
         file("build/child/reference.txt").mode == 0746
+
         where:
-        taskName | unpackMethod
+        taskType | unpackMethod
         "Zip"    | "unzipTo"
         "Tar"    | "untarTo"
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "file and directory permissions are preserved when using #taskName task with file system permissions global flag"() {
+    def "file and directory permissions are preserved when using #taskType task with file system permissions global flag"() {
         given:
         createDir('parent') {
             child {
@@ -102,29 +110,33 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         propertiesFile << """
             org.gradle.archives.use-file-system-permissions=true
         """
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskType.toLowerCase()}"
+
         and:
         buildFile << """
-            task pack(type: $taskName) {
+            tasks.register("pack", $taskType) {
                 archiveFileName = "$archName"
                 destinationDirectory = projectDir
                 from 'parent'
             }
         """
+
         when:
         run "pack"
         file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+
         then:
         file("build/child").mode == 0777
         file("build/child/reference.txt").mode == 0746
+
         where:
-        taskName | unpackMethod
+        taskType | unpackMethod
         "Zip"    | "unzipTo"
         "Tar"    | "untarTo"
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "file and directory permissions can be overridden in #taskName task"() {
+    def "file and directory permissions can be overridden in #taskType task"() {
         given:
         createDir('parent') {
             child {
@@ -132,11 +144,11 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 file('reference.txt').mode = 0777
             }
         }
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskType.toLowerCase()}"
 
         and:
         buildFile << """
-            task pack(type: $taskName) {
+            tasks.register("pack", $taskType) {
                 archiveFileName = "$archName"
                 destinationDirectory = projectDir
                 filePermissions { unix("0774") }
@@ -144,31 +156,35 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 from 'parent'
             }
         """
+
         when:
         run "pack"
         and:
         file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+
         then:
         file("build/child").mode == 0756
         file("build/child/reference.txt").mode == 0774
+
         where:
-        taskName | unpackMethod
+        taskType | unpackMethod
         "Zip"    | "unzipTo"
         "Tar"    | "untarTo"
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
-    def "file and directory permissions are preserved for unpacked #taskName archives by default"() {
+    def "file and directory permissions are preserved for unpacked #taskType archives by default"() {
         given:
         TestFile testDir = createDir('testdir') {
             mode = 0753
             file('reference.txt').mode = 0762
         }
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskType.toLowerCase()}"
         testDir.usingNativeTools()."$packMethod"(file(archName))
+
         and:
         buildFile << """
-            task unpack(type: Copy) {
+            tasks.register("unpack", Copy) {
                 from $treeMethod("$archName")
                 into 'unpacked'
             }
@@ -176,48 +192,53 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run "unpack"
+
         and:
         then:
         file("unpacked/testdir").mode == 0753
         file("unpacked/testdir/reference.txt").mode == 0762
+
         where:
-        taskName | packMethod | treeMethod
+        taskType | packMethod | treeMethod
         "Zip"    | "zipTo"    | "zipTree"
         "Tar"    | "tarTo"    | "tarTree"
     }
 
     @Requires(UnitTestPreconditions.Symlinks)
-    def "symlinked file permissions are preserved when using #taskName task with file system permissions"() {
+    def "symlinked file permissions are preserved when using #taskType task with file system permissions"() {
         given:
         createDir('parent') {
             mode = 0777
             file('reference.txt').mode = 0746
             link('link', 'reference.txt')
         }
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskType.toLowerCase()}"
         and:
         buildFile << """
-            task pack(type: $taskName) {
+            tasks.register("pack", $taskType) {
                 archiveFileName = "$archName"
                 destinationDirectory = projectDir
                 from 'parent'
                 useFileSystemPermissions()
             }
         """
+
         when:
         run "pack"
         file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+
         then:
         file("build/reference.txt").mode == 0746
         file("build/link").mode == file("build/reference.txt").mode
+
         where:
-        taskName | unpackMethod
+        taskType | unpackMethod
         "Zip"    | "unzipTo"
         "Tar"    | "untarTo"
     }
 
     @Requires(UnitTestPreconditions.NoFilePermissions)
-    def "file and directory permissions are not preserved when dealing with #taskName archives on OS with no permission support"() {
+    def "file and directory permissions are not preserved when dealing with #taskType archives on OS with no permission support"() {
         given:
         TestFile testDir = createDir('root') {
             def testDir = testdir {
@@ -227,27 +248,28 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             testDir.setReadOnly()
         }
         testDir.setReadOnly()
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskType.toLowerCase()}"
         testDir."$packMethod"(file(archName))
+
         and:
         buildFile << """
-            task unpack(type: Copy) {
+            tasks.register("unpack", Copy) {
                 from $treeMethod("$archName")
                 into 'unpacked'
             }
         """
+
         when:
         run "unpack"
-        then:
 
+        then:
         def testOutputFile = file("unpacked/testdir/reference.txt")
         testOutputFile.canWrite()
-
         def testOutputDir = file("unpacked/testdir")
         testOutputDir.canWrite()
 
         where:
-        taskName | packMethod | treeMethod
+        taskType | packMethod | treeMethod
         "Zip"    | "zipTo"    | "zipTree"
         "Tar"    | "tarTo"    | "tarTree"
     }
@@ -262,6 +284,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         def archName = "test.${taskType.toLowerCase()}"
+
         and:
         buildFile << """
             tasks.register("pack", $taskType) {
@@ -298,6 +321,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         def archName = "test.${taskType.toLowerCase()}"
+
         and:
         propertiesFile << """
             org.gradle.archives.use-file-system-permissions=true
@@ -309,7 +333,8 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 from 'parent'
                 $permissionConfiguration
             }
-            """
+        """
+
         when:
         run "pack"
 
@@ -336,9 +361,10 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         def archName = "test.${taskType.toLowerCase()}"
+
         and:
         buildFile << """
-            task pack(type: $taskType) {
+            tasks.register("pack", $taskType) {
                 archiveFileName = "$archName"
                 destinationDirectory = projectDir
                 from 'parent'
@@ -346,12 +372,15 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 useFileSystemPermissions()
             }
         """
+
         when:
         run "pack"
         file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+
         then:
         file("build/child").mode == 0777
         file("build/child/reference.txt").mode == 0746
+
         where:
         description       | taskType | unpackMethod | permissionConfiguration
         "filePermissions" | "Zip"    | "unzipTo"    | "filePermissions { unix('0711') }"
