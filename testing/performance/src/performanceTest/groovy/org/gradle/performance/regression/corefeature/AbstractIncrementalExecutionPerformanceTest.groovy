@@ -19,7 +19,6 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 
@@ -42,10 +41,10 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 
-    protected boolean enableReproducibleArchives(CrossVersionPerformanceTestRunner runner, boolean reproducibleArchivesEnabled) {
-        if (reproducibleArchivesEnabled) {
+    protected boolean configureArchiveReproducibility(boolean reproducibleArchivesDisabled) {
+        if (reproducibleArchivesDisabled) {
             runner.addBuildMutator { invocationSettings ->
-                new EnableReproducibleArchivesMutator(invocationSettings.projectDir)
+                new DisableReproducibleArchivesMutator(invocationSettings.projectDir)
             }
         }
     }
@@ -54,15 +53,15 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
         return configurationCachingEnabled ? " with configuration caching" : ""
     }
 
-    protected static reproducibleArchivesMessage(boolean reproducibleArchivesEnabled) {
-        return reproducibleArchivesEnabled ? " with reproducible archives" : ""
+    protected static reproducibleArchivesMessage(boolean reproducibleArchivesDisabled) {
+        return reproducibleArchivesDisabled ? " with non-reproducible archives" : ""
     }
 
-    class EnableReproducibleArchivesMutator implements BuildMutator {
+    class DisableReproducibleArchivesMutator implements BuildMutator {
 
         private final File projectDir
 
-        EnableReproducibleArchivesMutator(File projectDir) {
+        DisableReproducibleArchivesMutator(File projectDir) {
             this.projectDir = projectDir
         }
 
@@ -71,14 +70,14 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
             def groovySettingsFile = new File(projectDir, "settings.gradle")
             def kotlinSettingsFile = new File(projectDir, "settings.gradle.kts")
             if (groovySettingsFile.exists()) {
-                applyReproducibleArchives(
+                disableReproducibleArchives(
                     groovySettingsFile,
                     "tasks.withType(AbstractArchiveTask)",
                     "preserveFileTimestamps",
                     "reproducibleFileOrder"
                 )
             } else if (kotlinSettingsFile.exists()) {
-                applyReproducibleArchives(
+                disableReproducibleArchives(
                     kotlinSettingsFile,
                     "tasks.withType<AbstractArchiveTask>()",
                     "isPreserveFileTimestamps",
@@ -89,14 +88,13 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
             }
         }
 
-        private void applyReproducibleArchives(File settingsFile, String withType, String preserveFileTimestamps, String reproducibleFileOrder) {
+        private void disableReproducibleArchives(File settingsFile, String withType, String preserveFileTimestamps, String reproducibleFileOrder) {
             settingsFile << """
                 |settings.gradle.lifecycle.beforeProject {
                 |    ${withType}.configureEach {
-                |        $preserveFileTimestamps = false
-                |        $reproducibleFileOrder = true
-                |        dirPermissions { }
-                |        filePermissions { }
+                |        $preserveFileTimestamps = true
+                |        $reproducibleFileOrder = false
+                |        useFileSystemPermissions()
                 |    }
                 |}
             """.stripMargin()

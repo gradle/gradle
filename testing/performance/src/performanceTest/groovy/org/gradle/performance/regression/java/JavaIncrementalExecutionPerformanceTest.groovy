@@ -61,7 +61,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
             return isGroovyProject ? new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
         }
         enableConfigurationCaching(configurationCachingEnabled)
-        enableReproducibleArchives(runner, reproducibleArchivesEnabled)
+        configureArchiveReproducibility(reproducibleArchivesDisabled)
 
         when:
         def result = runner.run()
@@ -70,10 +70,10 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        configurationCachingEnabled | configurationCaching                                     | reproducibleArchivesEnabled | reproducibleArchives
-        true                        | configurationCachingMessage(configurationCachingEnabled) | false                       | reproducibleArchivesMessage(reproducibleArchivesEnabled)
-        false                       | configurationCachingMessage(configurationCachingEnabled) | false                       | reproducibleArchivesMessage(reproducibleArchivesEnabled)
-        false                       | configurationCachingMessage(configurationCachingEnabled) | true                        | reproducibleArchivesMessage(reproducibleArchivesEnabled)
+        configurationCachingEnabled | configurationCaching                                     | reproducibleArchivesDisabled | reproducibleArchives
+        true                        | configurationCachingMessage(configurationCachingEnabled) | false                        | reproducibleArchivesMessage(reproducibleArchivesDisabled)
+        false                       | configurationCachingMessage(configurationCachingEnabled) | false                        | reproducibleArchivesMessage(reproducibleArchivesDisabled)
+        false                       | configurationCachingMessage(configurationCachingEnabled) | true                         | reproducibleArchivesMessage(reproducibleArchivesDisabled)
     }
 
     @RunFor([
