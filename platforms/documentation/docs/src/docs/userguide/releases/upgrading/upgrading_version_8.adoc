@@ -454,7 +454,7 @@ As a result, you must now apply the plugin explicitly using its full ID and vers
 [source,kotlin]
 ----
 plugins {
-    id("com.gradle.develocity") version "4.0"
+    id("com.gradle.develocity") version "4.0.2"
 }
 ----
 
@@ -463,7 +463,7 @@ If you're still using the legacy name, you may apply the deprecated plugin ID to
 [source,kotlin]
 ----
 plugins {
-    id("com.gradle.enterprise") version "4.0"
+    id("com.gradle.enterprise") version "3.19.2"
 }
 ----
 
@@ -837,6 +837,18 @@ you can temporarily revert to the old behavior by setting:
 org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true
 ----
 This property will be removed in Gradle 10.
+
+==== Configuration Cache entry is now always discarded for incompatible tasks in warning mode
+
+Configuration Cache enables gradual migration by allowing to explicitly mark tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>>.
+When incompatible tasks are scheduled for execution, cache entry is not stored and tasks do not run in parallel to ensure correctness.
+Configuration Cache can also run in the <<configuration_cache_enabling.adoc#config_cache:usage:ignore_problems,warning mode>> by enabling `org.gradle.configuration-cache.problems=warn`,
+which hides problems and allows storing and loading of the cache entry, running tasks in parallel with potential issues.
+The warning mode exists as a migration and troubleshooting aid and is not intended as a persistent way of ignoring incompatibilities.
+
+Starting with Gradle 9, the presence of incompatible tasks in the work graph results in the cache entry being discarded regardless of the warning mode to ensure correctness.
+If you relied on the warning mode previously, consider marking the offending tasks as incompatible instead.
+However, at this stage of Configuration Cache maturity and ecosystem adoption, we recommend resolving the incompatibilities instead to ensure performance benefits this feature brings.
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
