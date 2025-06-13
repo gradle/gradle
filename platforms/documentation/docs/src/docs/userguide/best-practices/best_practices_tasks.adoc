@@ -308,8 +308,8 @@ In addition, resolving configurations during the configuration phase can slow do
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="library/build.gradle.kts;build.gradle.kts[tags=bad-classpath-printer]"]
-include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="library/build.gradle;build.gradle[tags=bad-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-avoid/kotlin/library",files="build.gradle.kts[tags=bad-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-avoid/groovy/library",files="build.gradle[tags=bad-classpath-printer]"]
 ====
 
 <1> *Add project dependency*: It implies that `:library:jar` task should be executed in order to resolve runtime classpath.
@@ -319,11 +319,11 @@ include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually
 
 ==== Do This Instead
 
-To avoid issues, always defer resolution to the execution phase by using lazy APIs like link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`].
+To avoid issues, always defer resolution to the execution phase by using lazy APIs like link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection].
 
 ====
-include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="library/build.gradle.kts;build.gradle.kts[tags=good-classpath-printer]"]
-include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="library/build.gradle;build.gradle[tags=good-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-do/kotlin/library",files="build.gradle.kts[tags=good-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-do/groovy/library",files="build.gradle[tags=good-classpath-printer]"]
 ====
 
 <1> *Add project dependency*: It implies that jar task should be executed in order to resolve runtime classpath.
