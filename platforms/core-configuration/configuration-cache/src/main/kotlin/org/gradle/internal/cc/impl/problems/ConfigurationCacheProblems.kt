@@ -417,24 +417,27 @@ class ConfigurationCacheProblems(
 
     private
     fun degradationSummary(): String {
-        var degradingTaskCount = 0
-        val degradingFeatures = mutableListOf<String>()
-        degradationController.visitDegradedTasks { _, _ -> degradingTaskCount++ }
-        degradationController.visitDegradedFeatures { feature, _ -> degradingFeatures.add(feature) }
+        val degradingTaskCount = degradationController.degradedTaskCount
+        val degradingFeatures = buildList {
+            degradationController.visitDegradedFeatures { feature, _ -> add(feature) }
+        }
         return DegradationSummary(degradingFeatures, degradingTaskCount).render()
     }
 
     @VisibleForTesting
     internal
     class DegradationSummary(private val degradingFeatures: List<String>, private val degradingTaskCount: Int) {
+        init {
+            require(degradingFeatures.isNotEmpty() || degradingTaskCount > 0)
+        }
         fun render(): String {
             val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
             return " because incompatible " +
                 when {
                     degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
                     degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
-                    degradingTaskCount == 0 && degradingFeatures.size == 1 -> "feature usage ${featuresAsString} was"
-                    degradingTaskCount == 0 && degradingFeatures.size > 1 -> "feature usage ${featuresAsString} were"
+                    degradingTaskCount == 0 && degradingFeatures.isNotEmpty() -> "feature usage ${featuresAsString} was"
+                    degradingTaskCount == 1 -> "task and feature usage ${featuresAsString} were"
                     else -> "tasks and feature usage ${featuresAsString} were"
                 } + " found."
         }

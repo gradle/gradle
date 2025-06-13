@@ -45,6 +45,8 @@ internal class DefaultConfigurationCacheDegradationController(
     val hasTaskDegradationReasons: Boolean get() =
         taskDegradationReasons.isNotEmpty()
 
+    val degradedTaskCount: Int get() = taskDegradationReasons.size
+
     fun getDegradationReasonsForTask(task: Task): List<String>? =
         taskDegradationReasons[task]
 
@@ -90,10 +92,4 @@ internal class DefaultConfigurationCacheDegradationController(
     private fun evaluateDegradationReason(request: Provider<String>): String? = request.orNull
 
     private fun isSourceDependenciesUsed(): Boolean = vcsMappingsStore.asResolver().hasRules()
-
-    sealed interface DegradationContext {
-        data class Task(val task: org.gradle.api.Task) : DegradationContext
-        data class Feature(val incompatibleFeatureName: String) : DegradationContext
-    }
-
 }
