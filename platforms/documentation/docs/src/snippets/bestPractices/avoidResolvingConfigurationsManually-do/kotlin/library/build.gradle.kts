@@ -1,0 +1,39 @@
+plugins {
+    `java-library`
+}
+
+// tag::good-classpath-printer[]
+dependencies {
+    runtimeOnly(project(":library")) // <1>
+}
+
+abstract class GoodClasspathPrinter : DefaultTask() {
+    @get:InputFiles
+    abstract val resolvedClasspath: ConfigurableFileCollection // <2>
+
+    private fun calculateDigest(fileOrDirectory: File): Int {
+        require(fileOrDirectory.exists()) { "File or directory $fileOrDirectory doesn't exist" }
+        return 0 // actual implementation is stripped
+    }
+
+    @TaskAction
+    fun run() {
+        logger.lifecycle(
+            resolvedClasspath.joinToString("\n") {
+                val digest = calculateDigest(it) // <4>
+                "$it#$digest"
+            }
+        )
+    }
+}
+
+tasks.register("goodClasspathPrinter", GoodClasspathPrinter::class.java) {
+    resolvedClasspath.from(configurations.named("runtimeClasspath")) // <3>
+}
+
+tasks.named("jar").configure {
+    doLast {
+        logger.lifecycle("jar task was executed")
+    }
+}
+// end::good-classpath-printer[]
