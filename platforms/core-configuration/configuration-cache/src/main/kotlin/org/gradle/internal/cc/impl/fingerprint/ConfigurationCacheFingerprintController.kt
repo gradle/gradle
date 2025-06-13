@@ -52,7 +52,6 @@ import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.extensions.core.directoryChildrenNamesHash
 import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
@@ -63,10 +62,8 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.util.Path
 import org.gradle.util.internal.BuildCommencedTimeProvider
-import org.gradle.util.internal.GFileUtils
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
@@ -83,7 +80,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val modelParameters: BuildModelParameters,
     private val workInputListeners: WorkInputListeners,
-    private val fileSystemAccess: FileSystemAccess,
+    private val inputFileCheckerHost: ConfigurationCacheInputFileChecker.Host,
     private val fileCollectionSnapshotter: FileCollectionSnapshotter,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
     private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
@@ -411,13 +408,13 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = startParameter.ignoredFileSystemCheckInputs
 
         override fun hashCodeOf(file: File): HashCode =
-            fileSystemAccess.read(file.absolutePath).hash
+            inputFileCheckerHost.hashCodeOf(file)
 
         override fun hashCodeOfDirectoryChildrenNames(file: File): HashCode =
             directoryChildrenNamesHash(file)
 
         override fun displayNameOf(file: File): String =
-            GFileUtils.relativePathOf(file, rootDirectory)
+            inputFileCheckerHost.displayNameOf(file)
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode {
             val snapshot = fileCollectionSnapshotter.snapshot(fileCollection)
@@ -447,7 +444,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     inner class CacheFingerprintCheckerHost(
         private val host: Host
-    ) : ConfigurationCacheFingerprintChecker.Host {
+    ) : ConfigurationCacheFingerprintChecker.Host,
+        ConfigurationCacheInputFileChecker.Host by inputFileCheckerHost {
 
         private
         val gradleProperties by lazy(host::gradleProperties)
@@ -485,12 +483,6 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()
 
-        override fun hashCodeOf(file: File) =
-            hashCodeAndTypeOf(file).first
-
-        override fun hashCodeAndTypeOf(file: File): Pair<HashCode, FileType> =
-            fileSystemAccess.read(file.absolutePath).let { it.hash to it.type }
-
         override fun hashCodeOfDirectoryContent(file: File): HashCode =
             directoryChildrenNamesHash(file)
 
@@ -498,9 +490,6 @@ class ConfigurationCacheFingerprintController internal constructor(
             val snapshot = fileCollectionSnapshotter.snapshot(fileCollection)
             return fileCollectionFingerprinter.fingerprint(snapshot, null).hash
         }
-
-        override fun displayNameOf(fileOrDirectory: File): String =
-            GFileUtils.relativePathOf(fileOrDirectory, rootDirectory)
 
         override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
             (host.valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
@@ -516,10 +505,6 @@ class ConfigurationCacheFingerprintController internal constructor(
             return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
         }
     }
-
-    private
-    val rootDirectory
-        get() = startParameter.rootDirectory
 
     private
     fun StateFile.delete() {

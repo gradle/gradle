@@ -23,19 +23,26 @@ import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpecDecoder
 import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpecEncoder
 import org.gradle.internal.cc.impl.serialize.InlineClassLoaderScopeSpecDecoder
 import org.gradle.internal.cc.impl.serialize.InlineClassLoaderScopeSpecEncoder
+import org.gradle.internal.cc.impl.serialize.readClassPath
+import org.gradle.internal.cc.impl.serialize.writeClassPath
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.PositionAwareEncoder
+import org.gradle.internal.serialize.graph.readFile
+import org.gradle.internal.serialize.graph.writeFile
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
+import java.io.File
 import java.util.IdentityHashMap
 
 
 /**
- * Manages the encoding and decoding of [ClassLoaderScope specifications][org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec].
+ * Manages the encoding and decoding of [ClassLoaderScope specifications][ClassLoaderScopeSpec].
  */
 @ServiceScope(Scope.BuildTree::class)
 internal
@@ -89,10 +96,12 @@ class IsolatedProjectsClassLoaderScopesFingerprintController : ClassLoaderScopes
  * TODO:configuration-cache discard service state after entry has been fully loaded
  */
 internal
-class ConfigurationCacheClassLoaderScopesFingerprintController : ClassLoaderScopesFingerprintController {
+class ConfigurationCacheClassLoaderScopesFingerprintController(
+    private val inputFileCheckerHost: ConfigurationCacheInputFileChecker.Host
+) : ClassLoaderScopesFingerprintController {
 
     private
-    var writingState: WritingState = NotWriting
+    var writingState: WritingState = NotWriting()
 
     private
     var scopeSpecs: Map<Int, ClassLoaderScopeSpec>? = null
@@ -107,27 +116,13 @@ class ConfigurationCacheClassLoaderScopesFingerprintController : ClassLoaderScop
         scopeSpecs = commited.encodedScopes
     }
 
-    override fun checkClassLoaderScopes(decoderSupplier: () -> Decoder): InvalidationReason? {
+    override fun checkClassLoaderScopes(decoderSupplier: () -> Decoder): InvalidationReason? =
         decoderSupplier().let { decoder ->
             require(decoder is Closeable)
             decoder.useToRun {
-                val result = HashMap<Int, ClassLoaderScopeSpec>()
-                InlineClassLoaderScopeSpecDecoder().run {
-                    while (true) {
-                        val id = readSmallInt()
-                        if (id == 0) {
-                            break
-                        }
-                        // TODO:configuration-cache validate class paths
-                        val scopeSpec = decodeScope()
-                        result[id] = scopeSpec
-                    }
-                }
-                scopeSpecs = result
+                checkAndLoadClassLoaderScopeSpecs()
             }
         }
-        return null
-    }
 
     override fun encoder(): ClassLoaderScopeSpecEncoder =
         writingState.encoder()
@@ -137,6 +132,36 @@ class ConfigurationCacheClassLoaderScopesFingerprintController : ClassLoaderScop
             null -> error("Classloader scopes have not been stored to or loaded from the cache.")
             else -> SharedClassLoaderScopeSpecDecoder(scopes)
         }
+
+    private
+    fun Decoder.checkAndLoadClassLoaderScopeSpecs(): InvalidationReason? = structuredMessageOrNull {
+        val result = HashMap<Int, ClassLoaderScopeSpec>()
+        val inputFileChecker = ConfigurationCacheInputFileChecker(inputFileCheckerHost)
+        HashingInlineClassLoaderScopeSpecDecoder().run {
+            while (true) {
+                val id = readSmallInt()
+                if (id == 0) {
+                    break
+                }
+                val scopeSpec = decodeScope()
+                result[id] = scopeSpec
+
+                while (hashes.isNotEmpty()) {
+                    val (file, hash) = hashes.removeFirst()
+                    val invalidationReason =
+                        inputFileChecker.run {
+                            check(file, hash)
+                        }
+                    if (invalidationReason != null) {
+                        scopeSpecs = null
+                        return@structuredMessageOrNull invalidationReason
+                    }
+                }
+            }
+        }
+        scopeSpecs = result
+        null
+    }
 
     private
     abstract class WritingState {
@@ -156,22 +181,22 @@ class ConfigurationCacheClassLoaderScopesFingerprintController : ClassLoaderScop
     }
 
     private
-    object NotWriting : WritingState() {
+    inner class NotWriting : WritingState() {
 
         override fun prepare(parameters: ConfigurationCacheFingerprintStartParameters): Writing =
             parameters.assignClassLoaderScopesFile().let { spoolFile ->
-                Writing(spoolFile, parameters.encoderFor(spoolFile))
+                Writing(
+                    spoolFile,
+                    SharedClassLoaderScopeSpecEncoder(parameters.encoderFor(spoolFile))
+                )
             }
     }
 
     private
     class Writing(
         val spoolFile: ConfigurationCacheStateStore.StateFile,
-        encoder: PositionAwareEncoder
+        val sharedClassLoaderScopeSpecEncoder: SharedClassLoaderScopeSpecEncoder
     ) : WritingState() {
-
-        private
-        val sharedClassLoaderScopeSpecEncoder = SharedClassLoaderScopeSpecEncoder(encoder)
 
         override fun prepare(parameters: ConfigurationCacheFingerprintStartParameters): Writing =
             this
@@ -190,13 +215,13 @@ class ConfigurationCacheClassLoaderScopesFingerprintController : ClassLoaderScop
     data class Committed(val encodedScopes: Map<Int, ClassLoaderScopeSpec>) : WritingState()
 
     private
-    class SharedClassLoaderScopeSpecEncoder(val encoder: PositionAwareEncoder) : ClassLoaderScopeSpecEncoder {
+    inner class SharedClassLoaderScopeSpecEncoder(val encoder: PositionAwareEncoder) : ClassLoaderScopeSpecEncoder {
 
         private
         val scopeIds = IdentityHashMap<ClassLoaderScopeSpec, Int>()
 
         private
-        val specEncoder = InlineClassLoaderScopeSpecEncoder()
+        val specEncoder = HashingInlineClassLoaderScopeSpecEncoder()
 
         override fun Encoder.encodeScope(scope: ClassLoaderScopeSpec) {
             val (id, isNew) = idFor(scope)
@@ -248,5 +273,30 @@ class ConfigurationCacheClassLoaderScopesFingerprintController : ClassLoaderScop
 
         override fun Decoder.decodeScope(): ClassLoaderScopeSpec =
             encodedScopes.getValue(readSmallInt())
+    }
+
+    private
+    inner class HashingInlineClassLoaderScopeSpecEncoder : InlineClassLoaderScopeSpecEncoder() {
+
+        override fun Encoder.encodeClassPath(classPath: ClassPath) {
+            writeClassPath(classPath) { file ->
+                writeFile(file)
+                writeHashCode(inputFileCheckerHost.hashCodeOf(file))
+            }
+        }
+    }
+
+    private
+    inner class HashingInlineClassLoaderScopeSpecDecoder : InlineClassLoaderScopeSpecDecoder() {
+
+        val hashes = ArrayDeque<Pair<File, HashCode>>()
+
+        override fun Decoder.decodeClassPath(): ClassPath =
+            readClassPath {
+                val file = readFile()
+                val hash = readHashCode()
+                hashes.addLast(file to hash)
+                file
+            }
     }
 }
