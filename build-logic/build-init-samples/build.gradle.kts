@@ -5,6 +5,8 @@ plugins {
 description = "Provides a plugin to generate samples using internal build init APIs"
 
 dependencies {
+    implementation(projects.jvm)
+
     implementation("gradlebuild:basics")
     implementation("org.gradle.guides:gradle-guides-plugin")
     implementation("org.asciidoctor:asciidoctor-gradle-jvm") {

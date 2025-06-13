@@ -48,6 +48,7 @@ import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
 import gradlebuild.integrationtests.ide.DEFAULT_ANDROID_STUDIO_VERSION
+import gradlebuild.jvm.JvmCompileExtension
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -103,6 +104,10 @@ class PerformanceTestPlugin : Plugin<Project> {
         createAndWireCommitDistributionTask(performanceTestExtension)
         createAdditionalTasks(performanceTestSourceSet)
         configureIdePlugins(performanceTestSourceSet)
+
+        the<JvmCompileExtension>().apply {
+            addCompilationFrom(performanceTestSourceSet)
+        }
     }
 
     private

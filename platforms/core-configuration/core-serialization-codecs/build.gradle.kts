@@ -21,7 +21,11 @@ plugins {
 description = "Configuration Cache serialization codecs for :core (and family) types"
 
 jvmCompile {
-    usesFutureStdlib = true
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 dependencies {

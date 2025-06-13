@@ -13,6 +13,10 @@ val smokeTestSourceSet = sourceSets.create("smokeTest") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
+jvmCompile {
+    addCompilationFrom(smokeTestSourceSet)
+}
+
 dependencyAnalysis {
     issues {
         ignoreSourceSet(smokeTestSourceSet.name)
