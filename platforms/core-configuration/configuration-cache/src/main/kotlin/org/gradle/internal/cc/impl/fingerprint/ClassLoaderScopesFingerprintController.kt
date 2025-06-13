@@ -26,6 +26,7 @@ import org.gradle.internal.cc.impl.serialize.InlineClassLoaderScopeSpecEncoder
 import org.gradle.internal.cc.impl.serialize.readClassPath
 import org.gradle.internal.cc.impl.serialize.writeClassPath
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
@@ -98,7 +99,7 @@ class IsolatedProjectsClassLoaderScopesFingerprintController : ClassLoaderScopes
 internal
 class ConfigurationCacheClassLoaderScopesFingerprintController(
     private val inputFileCheckerHost: ConfigurationCacheInputFileChecker.Host
-) : ClassLoaderScopesFingerprintController {
+) : ClassLoaderScopesFingerprintController, Stoppable {
 
     private
     var writingState: WritingState = NotWriting()
@@ -132,6 +133,11 @@ class ConfigurationCacheClassLoaderScopesFingerprintController(
             null -> error("Classloader scopes have not been stored to or loaded from the cache.")
             else -> SharedClassLoaderScopeSpecDecoder(scopes)
         }
+
+    override fun stop() {
+        scopeSpecs = null
+        writingState = writingState.stop()
+    }
 
     private
     fun Decoder.checkAndLoadClassLoaderScopeSpecs(): InvalidationReason? = structuredMessageOrNull {
@@ -175,6 +181,8 @@ class ConfigurationCacheClassLoaderScopesFingerprintController(
         open fun commit(stateFile: ConfigurationCacheStateFile): Committed =
             illegalStateFor("commit")
 
+        abstract fun stop(): WritingState
+
         private
         fun illegalStateFor(operation: String): Nothing =
             error("'$operation' is illegal while in '${javaClass.simpleName}' state.")
@@ -190,6 +198,9 @@ class ConfigurationCacheClassLoaderScopesFingerprintController(
                     SharedClassLoaderScopeSpecEncoder(parameters.encoderFor(spoolFile))
                 )
             }
+
+        override fun stop(): WritingState =
+            this
     }
 
     private
@@ -209,13 +220,27 @@ class ConfigurationCacheClassLoaderScopesFingerprintController(
             stateFile.moveFrom(spoolFile.file)
             return Committed(sharedClassLoaderScopeSpecEncoder.encodedScopes())
         }
+
+        override fun stop(): WritingState {
+            sharedClassLoaderScopeSpecEncoder.finish()
+            return Stopped
+        }
     }
 
     private
-    data class Committed(val encodedScopes: Map<Int, ClassLoaderScopeSpec>) : WritingState()
+    data class Committed(val encodedScopes: Map<Int, ClassLoaderScopeSpec>) : WritingState() {
+        override fun stop(): WritingState =
+            Stopped
+    }
 
     private
-    inner class SharedClassLoaderScopeSpecEncoder(val encoder: PositionAwareEncoder) : ClassLoaderScopeSpecEncoder {
+    object Stopped : WritingState() {
+        override fun stop(): WritingState =
+            this
+    }
+
+    private
+    inner class SharedClassLoaderScopeSpecEncoder(val encoder: PositionAwareEncoder) : ClassLoaderScopeSpecEncoder, Stoppable {
 
         private
         val scopeIds = IdentityHashMap<ClassLoaderScopeSpec, Int>()
@@ -233,6 +258,10 @@ class ConfigurationCacheClassLoaderScopesFingerprintController(
 
         fun finish() {
             encoder.writeSmallInt(0)
+            stop()
+        }
+
+        override fun stop() {
             (encoder as Closeable).close()
         }
 
