@@ -9,7 +9,7 @@ dependencies {
 
 abstract class GoodClasspathPrinter : DefaultTask() {
     @get:InputFiles
-    abstract val resolvedClasspath: ConfigurableFileCollection // <2>
+    abstract val classpath: ConfigurableFileCollection // <2>
 
     private fun calculateDigest(fileOrDirectory: File): Int {
         require(fileOrDirectory.exists()) { "File or directory $fileOrDirectory doesn't exist" }
@@ -19,8 +19,8 @@ abstract class GoodClasspathPrinter : DefaultTask() {
     @TaskAction
     fun run() {
         logger.lifecycle(
-            resolvedClasspath.joinToString("\n") {
-                val digest = calculateDigest(it) // <4>
+            classpath.joinToString("\n") {
+                val digest = calculateDigest(it) // <3>
                 "$it#$digest"
             }
         )
@@ -28,6 +28,6 @@ abstract class GoodClasspathPrinter : DefaultTask() {
 }
 
 tasks.register("goodClasspathPrinter", GoodClasspathPrinter::class.java) {
-    resolvedClasspath.from(configurations.named("runtimeClasspath")) // <3>
+    classpath.from(configurations.named("runtimeClasspath")) // <4>
 }
 // end::do-this[]

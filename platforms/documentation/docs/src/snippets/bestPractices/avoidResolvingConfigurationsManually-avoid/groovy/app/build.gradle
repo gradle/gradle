@@ -22,7 +22,7 @@ abstract class BadClasspathPrinter extends DefaultTask {
     void run() {
         logger.lifecycle(
             classpath.collect { file ->
-                def digest = calculateDigest(file) // <4>
+                def digest = calculateDigest(file) // <3>
                 "$file#$digest"
             }.join("\n")
         )
@@ -30,6 +30,6 @@ abstract class BadClasspathPrinter extends DefaultTask {
 }
 
 tasks.register("badClasspathPrinter", BadClasspathPrinter) {
-    classpath = configurations.named("runtimeClasspath").get().resolve() // <3>
+    classpath = configurations.named("runtimeClasspath").get().resolve() // <4>
 }
 // end::avoid-this[]

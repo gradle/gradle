@@ -20,7 +20,7 @@ abstract class BadClasspathPrinter : DefaultTask() {
     fun run() {
         logger.lifecycle(
             classpath.joinToString("\n") {
-                val digest = calculateDigest(it) // <4>
+                val digest = calculateDigest(it) // <3>
                 "$it#$digest"
             }
         )
@@ -28,6 +28,6 @@ abstract class BadClasspathPrinter : DefaultTask() {
 }
 
 tasks.register("badClasspathPrinter", BadClasspathPrinter::class) {
-    classpath = configurations.named("runtimeClasspath").get().resolve() // <3>
+    classpath = configurations.named("runtimeClasspath").get().resolve() // <4>
 }
 // end::avoid-this[]
