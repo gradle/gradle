@@ -94,7 +94,6 @@ Class <org.gradle.api.publish.maven.MavenPomLicenseSpec> is not annotated (direc
 Class <org.gradle.api.publish.maven.MavenPomMailingList> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPomMailingList.java:0)
 Class <org.gradle.api.publish.maven.MavenPomMailingListSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPomMailingListSpec.java:0)
 Class <org.gradle.api.publish.maven.MavenPomOrganization> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPomOrganization.java:0)
-Class <org.gradle.api.publish.maven.MavenPomRelocation> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPomRelocation.java:0)
 Class <org.gradle.api.publish.maven.MavenPomScm> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPomScm.java:0)
 Class <org.gradle.api.publish.maven.MavenPublication> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPublication.java:0)
 Class <org.gradle.api.publish.maven.plugins.MavenPublishPlugin$MavenPublicationFactory> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPublishPlugin.java:0)
