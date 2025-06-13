@@ -52,9 +52,6 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
         """
 
-        executer.withToolchainDetectionEnabled()
-        executer.withStackTraceChecksDisabled()
-
         when:
         fails('test')
 
@@ -133,8 +130,6 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
         """
 
-        executer.withStackTraceChecksDisabled()
-
         when:
         fails('test')
 
@@ -146,5 +141,10 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
 
         and: "No test class results created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
+    }
+
+    def setup() {
+        // To support testing on Windows, where additional (irrelevant) stack traces may be generated from worker failures
+        executer.withStackTraceChecksDisabled()
     }
 }
