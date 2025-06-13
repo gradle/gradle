@@ -454,7 +454,7 @@ As a result, you must now apply the plugin explicitly using its full ID and vers
 [source,kotlin]
 ----
 plugins {
-    id("com.gradle.develocity") version "4.0"
+    id("com.gradle.develocity") version "4.0.2"
 }
 ----
 
@@ -463,7 +463,7 @@ If you're still using the legacy name, you may apply the deprecated plugin ID to
 [source,kotlin]
 ----
 plugins {
-    id("com.gradle.enterprise") version "4.0"
+    id("com.gradle.enterprise") version "3.19.2"
 }
 ----
 
