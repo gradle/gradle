@@ -412,6 +412,29 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         assertConfigurationCacheDegradation()
     }
 
+    def "provides no extra header for link if other problems are present"() {
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+            tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+                doLast {
+                    println("Hello")
+                }
+            }
+            tasks.register("bar") { task ->
+                doLast {
+                    println(project.name)
+                }
+            }
+        """
+
+        when:
+        configurationCacheRunLenient("foo", "bar")
+
+        then:
+        assertConfigurationCacheDegradation(true)
+    }
+
     private static String taskWithInjectedDegradationController() {
         """
             abstract class DegradingTask extends DefaultTask {
@@ -421,7 +444,13 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
     }
 
-    private void assertConfigurationCacheDegradation() {
+    private void assertConfigurationCacheDegradation(boolean hasOtherProblems = false) {
+        def reportLinkPreamble = "Some tasks in this build are not compatible with the configuration cache."
+        if (hasOtherProblems) {
+            outputDoesNotContain(reportLinkPreamble)
+        } else {
+            outputContains(reportLinkPreamble)
+        }
         postBuildOutputContains("Configuration cache disabled because incompatible task")
     }
 }
