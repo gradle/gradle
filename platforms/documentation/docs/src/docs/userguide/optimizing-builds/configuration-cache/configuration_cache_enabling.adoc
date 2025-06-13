@@ -47,9 +47,7 @@ If enabled in `gradle.properties`, you can override it and disable the cache at 
 === Ignoring Configuration Cache Problems
 
 By default, Gradle fails the build if Configuration Cache problems occur.
-However, when gradually updating plugins or build logic to support the Configuration Cache, it can be useful to temporarily turn problems into warnings.
-
-NOTE: This does not guarantee that the build will succeed.
+However, when gradually updating plugins or build logic to support the Configuration Cache, it can be useful to temporarily turn problems into warnings by enabling the _warning mode_.
 
 To change this behavior at build time, use the following flag:
 
@@ -58,12 +56,23 @@ To change this behavior at build time, use the following flag:
 ❯ ./gradlew --configuration-cache-problems=warn
 ----
 
+NOTE: This does not guarantee that the build will succeed.
+
 Alternatively, configure it in `gradle.properties`:
 
 [source,properties]
+.gradle.properties
 ----
 org.gradle.configuration-cache.problems=warn
 ----
+
+[WARNING]
+====
+The warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+It will also not prevent new incompatibilities being accidentally added to your build later.
+
+Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>>.
+====
 
 [[config_cache:usage:max_problems]]
 === Allowing a Maximum Number of Problems
@@ -314,7 +323,7 @@ Starting in Gradle 8.4, these undeclared inputs are correctly tracked and now ca
 +
 To temporarily revert to the previous behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
 
-With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic. 
+With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic.
 To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
 
 1. Starting with Gradle 9.0, it is an error to use any provider, except a provider of `BuildService` returned from
