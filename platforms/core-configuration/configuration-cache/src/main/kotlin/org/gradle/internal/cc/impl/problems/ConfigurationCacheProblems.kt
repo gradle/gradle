@@ -186,7 +186,7 @@ class ConfigurationCacheProblems(
     }
 
     override fun forTask(task: Task): ProblemsListener {
-        val degradationReasons = degradationController.taskDegradationReasons[task]
+        val degradationReasons = degradationController.getDegradationReasonsForTask(task)
         return if (!degradationReasons.isNullOrEmpty()) {
             onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
             ErrorsAreProblemsProblemsListener(ProblemSeverity.SuppressedSilently)
@@ -342,7 +342,7 @@ class ConfigurationCacheProblems(
     }
 
     private fun addNotReportedDegradingTasks() {
-        degradationController.taskDegradationReasons.forEach { (task, reasons) ->
+        degradationController.visitDegradedTasks { task, reasons ->
             val trace = locationForTask(task)
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
@@ -416,16 +416,18 @@ class ConfigurationCacheProblems(
 
     private
     fun degradationSummary(): String {
-        val degradingTasks = degradationController.taskDegradationReasons.size
-        val degradingFeatures = degradationController.featureDegradationReasons
-        val featureList = degradingFeatures.map { it.incompatibleFeatureName }.joinToString().let { "($it)" }
+        var degradingTasks = 0
+        val degradingFeatures = mutableListOf<String>()
+        degradationController.visitDegradedTasks { _, _ -> degradingTasks++ }
+        degradationController.visitDegradedFeatures { feature, _ -> degradingFeatures.add(feature) }
+        val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
         return " because incompatible " +
             when {
                 degradingTasks == 1 && degradingFeatures.isEmpty() -> "task was"
                 degradingTasks > 1 && degradingFeatures.isEmpty() -> "tasks were"
-                degradingTasks == 0 && degradingFeatures.size ==  1 -> "feature ${featureList} was"
-                degradingTasks == 0 && degradingFeatures.size > 1 -> "features ${featureList} were"
-                else -> "tasks and features ${featureList} were"
+                degradingTasks == 0 && degradingFeatures.size ==  1 -> "feature ${featuresAsString} was"
+                degradingTasks == 0 && degradingFeatures.size > 1 -> "features ${featuresAsString} were"
+                else -> "tasks and features ${featuresAsString} were"
             }  + " found."
     }
 

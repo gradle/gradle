@@ -37,24 +37,23 @@ internal class DefaultConfigurationCacheDegradationController(
 
     private val logger = Logging.getLogger(DefaultConfigurationCacheDegradationController::class.java)
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
-    private val collectedDegradationReasons = mutableMapOf<DegradationContext, List<String>>()
+    private val taskDegradationReasons = mutableMapOf<Task, List<String>>()
+    private val featureDegradationReasons = mutableMapOf<String, List<String>>()
 
-    val hasDegradationReasons: Boolean by lazy { collectedDegradationReasons.isNotEmpty() }
+    val hasDegradationReasons: Boolean get() = taskDegradationReasons.isNotEmpty() || featureDegradationReasons.isNotEmpty()
 
-    val hasTaskDegradationReasons: Boolean by lazy {
-        collectedDegradationReasons.any {
-            e -> e.key is DegradationContext.Task
-        }
+    val hasTaskDegradationReasons: Boolean get() =
+        taskDegradationReasons.isNotEmpty()
+
+    fun getDegradationReasonsForTask(task: Task): List<String>? =
+        taskDegradationReasons[task]
+
+    fun visitDegradedTasks(consumer: (Task, List<String>) -> Unit) {
+        taskDegradationReasons.forEach(consumer)
     }
 
-    val taskDegradationReasons: Map<Task, List<String>> by lazy {
-        collectedDegradationReasons
-            .filter { e -> e.key is DegradationContext.Task }
-            .mapKeys { e -> (e.key as DegradationContext.Task).task }
-    }
-
-    val featureDegradationReasons: List<DegradationContext.Feature> by lazy {
-        collectedDegradationReasons.keys.filterIsInstance<DegradationContext.Feature>()
+    fun visitDegradedFeatures(consumer: (String, List<String>) -> Unit) {
+        featureDegradationReasons.forEach(consumer)
     }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
@@ -70,12 +69,12 @@ internal class DefaultConfigurationCacheDegradationController(
         if (tasksDegradationRequests.isNotEmpty()) {
             deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
                 scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
-                    val taskDegradationReasons = tasksDegradationRequests[task]
+                    val reasonsInEffect = tasksDegradationRequests[task]
                         ?.mapNotNull { evaluateDegradationReason(it) }
                         ?.sorted()
 
-                    if (!taskDegradationReasons.isNullOrEmpty()) {
-                        collectedDegradationReasons[DegradationContext.Task(task)] = taskDegradationReasons
+                    if (!reasonsInEffect.isNullOrEmpty()) {
+                        taskDegradationReasons[task] = reasonsInEffect
                     }
                 }
             }
@@ -84,7 +83,7 @@ internal class DefaultConfigurationCacheDegradationController(
 
     private fun collectFeatureDegradationReasons() {
         if (isSourceDependenciesUsed()) {
-            collectedDegradationReasons[DegradationContext.Feature("source dependencies")] = listOf("Source dependencies are not compatible yet")
+            featureDegradationReasons["source dependencies"] = listOf("Source dependencies are not compatible yet")
         }
     }
 
