@@ -21,16 +21,16 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 class TasksFromDependentProjectsTest extends AbstractProjectBuilderSpec {
 
     def context = Mock(TaskDependencyResolveContext)
-    def root = TestUtil.create(temporaryFolder).rootProject()
-    def child1 = TestUtil.createChildProject(root, "child1")
-    def child2 = TestUtil.createChildProject(root, "child2")
-    def child3 = TestUtil.createChildProject(root, "child3")
-    def child4 = TestUtil.createChildProject(root, "child4")
+    def root = ProjectBuilderTestUtil.createRootProject(temporaryFolder)
+    def child1 = ProjectBuilderTestUtil.createChildProject(root, "child1")
+    def child2 = ProjectBuilderTestUtil.createChildProject(root, "child2")
+    def child3 = ProjectBuilderTestUtil.createChildProject(root, "child3")
+    def child4 = ProjectBuilderTestUtil.createChildProject(root, "child4")
 
     def checker = Mock(TasksFromDependentProjects.TaskDependencyChecker)
 

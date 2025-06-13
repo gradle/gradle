@@ -19,16 +19,13 @@ package org.gradle.api.internal.tasks.testing.junit
 import org.gradle.api.Action
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.junit.JUnitOptions
-import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class JUnitTestFrameworkTest extends Specification {
-    private project = ProjectBuilder.builder().build()
-    Test testTask = TestUtil.createTask(Test, project)
+class JUnitTestFrameworkTest extends AbstractProjectBuilderSpec {
 
     def "can configure JUnit with an Action"() {
         when:
+        def testTask = project.tasks.create("name", Test)
         testTask.useJUnit({ JUnitOptions options ->
             options.includeCategories = ['ExcludedCategory'] as Set
         } as Action<JUnitOptions>)

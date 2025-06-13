@@ -20,14 +20,14 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 class LinkSharedLibraryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def link = TestUtil.createRootProject(tmpDir.testDirectory).tasks.create("link", LinkSharedLibrary)
+    def link = ProjectBuilderTestUtil.createRootProject(tmpDir.testDirectory).tasks.create("link", LinkSharedLibrary)
 
     def "has no default import library location when platform does not produce one"() {
         def toolChain = Stub(NativeToolChainInternal)

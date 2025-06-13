@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
@@ -34,7 +35,7 @@ import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -127,7 +128,8 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
 
     def "returns create task when defined"() {
         when:
-        final createTask = TestUtil.create(tmpDir).task(CreateStaticLibrary)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(tmpDir)
+        def createTask = project.tasks.create("name", CreateStaticLibrary)
         tasks.add(createTask)
 
         then:

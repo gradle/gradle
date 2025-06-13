@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.tasks.bundling.War
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 
@@ -78,7 +78,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(WarPlugin)
 
         when:
-        Project childProject = TestUtil.createChildProject(project, 'child')
+        Project childProject = ProjectBuilderTestUtil.createChildProject(project, 'child')
         childProject.pluginManager.apply(JavaPlugin)
 
         project.dependencies {

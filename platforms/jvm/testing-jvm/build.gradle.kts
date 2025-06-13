@@ -56,6 +56,7 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.time))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(testFixtures(projects.languageGroovy))
