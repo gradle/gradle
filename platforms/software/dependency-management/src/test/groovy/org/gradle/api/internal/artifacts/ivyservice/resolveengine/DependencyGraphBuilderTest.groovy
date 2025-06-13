@@ -1144,7 +1144,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def doesNotResolve(Map<String, ?> args = [:], TestComponent from, TestComponent to) {
         def selector = dependsOn(args, from, to)
-        0 * idResolver.resolve(selector, _, _, _, _)
+        0 * idResolver.resolve(selector, _, _, _, _, _)
         0 * metaDataResolver.resolve(to.component.id, _, _)
     }
 
@@ -1167,7 +1167,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def brokenSelector(Map<String, ?> args = [:], TestComponent from, String to) {
         def selector = dependsOn(args, from, newId("group", to, "1.0"))
-        1 * idResolver.resolve(selector, _, _, _, _) >> { ModuleComponentSelector sel, ComponentOverrideMetadata om, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result ->
+        1 * idResolver.resolve(selector, _, _, _, _, _) >> { ModuleComponentSelector sel, ComponentOverrideMetadata om, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes ->
             org.gradle.internal.Factory<String> broken = { "broken" }
             result.failed(new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), new DefaultMutableVersionConstraint("c")), broken))
         }
@@ -1204,7 +1204,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def selectorResolvesTo(ComponentSelector selector, ComponentIdentifier id, ModuleVersionIdentifier mvId) {
-        1 * idResolver.resolve(selector, _, _, _, _) >> { ComponentSelector sel, ComponentOverrideMetadata om, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result ->
+        1 * idResolver.resolve(selector, _, _, _, _, _) >> { ComponentSelector sel, ComponentOverrideMetadata om, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes ->
             result.resolved(id, mvId)
         }
     }

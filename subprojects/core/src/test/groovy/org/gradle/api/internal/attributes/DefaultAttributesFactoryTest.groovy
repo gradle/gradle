@@ -23,7 +23,8 @@ import spock.lang.Specification
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAR
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAZ
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.FOO
-import static org.gradle.api.internal.attributes.immutable.TestAttributes.OTHER_BAR
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.BOOLEAN_BAR
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.OBJECT_BAR
 
 /**
  * Unit tests for {@link DefaultAttributesFactory}.
@@ -160,7 +161,7 @@ class DefaultAttributesFactoryTest extends Specification {
 
     def "can replace attribute with same name and different type"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(BOOLEAN_BAR, true)) // Boolean-typed bar
         def set2 = factory.of(BAR, "bar2") // String-typed bar
 
         when:
@@ -187,25 +188,51 @@ class DefaultAttributesFactoryTest extends Specification {
         e.rightValue == "bar2"
     }
 
-    def "can detect incompatible attributes with different types when merging"() {
+    def "safeConcat does not permit overwriting existing attribute value"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
-        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2")) // String-typed bar
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1"))
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2"))
 
         when:
         factory.safeConcat(set1, set2)
 
         then:
         AttributeMergingException e = thrown()
-        e.attribute == OTHER_BAR
+        e.attribute == BAR
         e.leftValue == "bar1"
         e.rightValue == "bar2"
+        e.message == "An attribute named 'bar' of type 'java.lang.String' already exists in this container"
+    }
+
+    def "safeConcat can detect incompatible attributes with different types when merging"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(BOOLEAN_BAR, true)) // Boolean-typed bar
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2")) // String-typed bar
+
+        when:
+        factory.safeConcat(set1, set2)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Boolean'"
+    }
+
+    def "safeConcat can detect incompatible attributes with different types when merging; different value and different compatible types"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OBJECT_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2")) // String-typed bar
+
+        when:
+        factory.safeConcat(set1, set2)
+
+        then:
+        IllegalArgumentException e = thrown()
         e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Object'"
     }
 
-    def "can detect incompatible attributes with different types when merging; same value but different types"() {
+    def "safeConcat can detect incompatible attributes with different types when merging; same value and different compatible types"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OBJECT_BAR, "bar1")) // Object-typed bar
         def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1")) // String-typed bar
 
         when:

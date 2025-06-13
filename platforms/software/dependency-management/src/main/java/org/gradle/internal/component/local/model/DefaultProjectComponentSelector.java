@@ -175,4 +175,5 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public ProjectComponentIdentifier toIdentifier() {
         return new DefaultProjectComponentIdentifier(projectIdentity);
     }
+
 }
