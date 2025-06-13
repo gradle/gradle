@@ -53,8 +53,6 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
 
     @Override
     protected Action<String> createTestExecutor(Actor resultProcessorActor) {
-        assertTestFrameworkAvailable();
-
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         TestClassExecutionListener threadSafeTestClassListener = resultProcessorActor.getProxy(TestClassExecutionListener.class);
 

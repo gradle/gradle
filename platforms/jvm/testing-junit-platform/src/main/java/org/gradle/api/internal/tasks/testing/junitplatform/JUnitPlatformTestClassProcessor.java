@@ -91,8 +91,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     @Override
     protected Action<String> createTestExecutor(Actor resultProcessorActor) {
-        assertTestFrameworkAvailable();
-
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         junitClassLoader = Thread.currentThread().getContextClassLoader();
