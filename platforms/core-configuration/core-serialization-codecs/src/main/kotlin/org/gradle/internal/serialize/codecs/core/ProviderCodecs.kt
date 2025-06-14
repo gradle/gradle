@@ -22,6 +22,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.flow.FlowAction
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.flow.FlowProviders
+import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
@@ -369,48 +370,82 @@ class PropertyCodec(
 }
 
 
-class DirectoryPropertyCodec(
-    private val filePropertyFactory: FilePropertyFactory,
-    private val providerCodec: FixedValueReplacingProviderCodec
-) : Codec<DefaultDirectoryVar> {
-
-    override suspend fun WriteContext.encode(value: DefaultDirectoryVar) {
+/**
+ * Base class for codecs that handle file-based properties, that extend [org.gradle.api.internal.file.DefaultFilePropertyFactory.AbstractFileVar],
+ * such as [DefaultDirectoryVar] and [DefaultRegularFileVar].
+ *
+ * Responsible for encoding the property "metadata" fields (like `isDisallowChanges`), but delegates
+ * the actual value decoding and instantiation to concrete subclasses.
+ */
+abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.AbstractFileVar<*, *>> (
+    protected val filePropertyFactory: FilePropertyFactory,
+    protected val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<P> {
+    override suspend fun WriteContext.encode(value: P) {
         write(value.fileResolver)
-        write(value.fileCollectionResolver)
+        if (value.fileCollectionResolver == null) {
+            writeByte(0.toByte())
+        } else {
+            writeByte(1.toByte())
+            write(value.fileCollectionResolver)
+        }
+        writeBoolean(value.isDisallowChanges)
         providerCodec.run {
             encodeProvider(value.provider)
         }
     }
 
-    override suspend fun ReadContext.decode(): DefaultDirectoryVar {
+    override suspend fun ReadContext.decode(): P {
         val resolver = readNonNull<PathToFileResolver>()
         require(resolver is FileResolver) {
             "Expected decoded resolver to be a FileResolver, but was ${resolver::class.java.name}"
         }
-        val fileCollectionResolver = readNonNull<PathToFileResolver>()
+        val fileCollectionResolver = when (val discriminator = readByte()) {
+            0.toByte() -> null
+            1.toByte() -> readNonNull<PathToFileResolver>().uncheckedCast<PathToFileResolver>()
+            else -> error("Unsupported PathToFileResolver discriminator byte value: $discriminator")
+        }
+        val isDisallowChanges = readBoolean()
+        return restorePropertyWithValue(resolver, fileCollectionResolver).apply {
+            if (isDisallowChanges) {
+                disallowChanges()
+            }
+        }
+    }
+
+    /**
+     * Decodes the provider and creates a new [org.gradle.api.provider.Property] of type [P], setting its value
+     * by restoring the serialized value but not affecting any "metadata" fields (like `isDisallowChanges`)
+     * present in the property.
+     *
+     * @param fileResolver the [FileResolver] to use for resolving file paths
+     * @param fileCollectionResolver the [PathToFileResolver] to use for resolving file collections, or null if not applicable
+     * @return the property with the decoded provider value set
+     */
+    abstract suspend fun ReadContext.restorePropertyWithValue(fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): P
+}
+
+
+class DirectoryPropertyCodec(
+    filePropertyFactory: FilePropertyFactory,
+    providerCodec: FixedValueReplacingProviderCodec
+) : AbstractFileVarPropertyCodec<DefaultDirectoryVar>(filePropertyFactory, providerCodec) {
+    override suspend fun ReadContext.restorePropertyWithValue(fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): DefaultDirectoryVar {
         val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        return filePropertyFactory.withResolvers(resolver, fileCollectionResolver).newDirectoryProperty().value(provider) as DefaultDirectoryVar
+        val newPropFactory = filePropertyFactory.withResolvers(fileResolver, fileCollectionResolver!!)
+        return newPropFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
     }
 }
 
 
 class RegularFilePropertyCodec(
-    private val filePropertyFactory: FilePropertyFactory,
-    private val providerCodec: FixedValueReplacingProviderCodec
-) : Codec<DefaultRegularFileVar> {
-
-    override suspend fun WriteContext.encode(value: DefaultRegularFileVar) {
-        write(value.fileResolver)
-        providerCodec.run { encodeProvider(value.provider) }
-    }
-
-    override suspend fun ReadContext.decode(): DefaultRegularFileVar {
-        val resolver = readNonNull<PathToFileResolver>()
-        require(resolver is FileResolver) {
-            "Expected decoded resolver to be a FileResolver, but was ${resolver::class.java.name}"
-        }
+    filePropertyFactory: FilePropertyFactory,
+    providerCodec: FixedValueReplacingProviderCodec
+) : AbstractFileVarPropertyCodec<DefaultRegularFileVar>(filePropertyFactory, providerCodec) {
+    override suspend fun ReadContext.restorePropertyWithValue(fileResolver: FileResolver, fileCollectionResolver: PathToFileResolver?): DefaultRegularFileVar {
         val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        return filePropertyFactory.withResolver(resolver).newFileProperty().value(provider) as DefaultRegularFileVar
+        val newPropFactory = filePropertyFactory.withResolver(fileResolver)
+        return newPropFactory.newFileProperty().value(provider) as DefaultRegularFileVar
     }
 }
 
