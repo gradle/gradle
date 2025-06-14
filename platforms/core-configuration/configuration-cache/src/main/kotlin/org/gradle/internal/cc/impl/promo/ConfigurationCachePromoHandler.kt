@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.promo
 
+import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
@@ -45,7 +46,7 @@ class ConfigurationCachePromoHandler(
             return
         }
 
-        val docUrl = documentationRegistry.getDocumentationFor("configuration_cache", "config_cache:usage")
+        val docUrl = documentationRegistry.getDocumentationFor("configuration_cache_enabling")
         // TODO(mlopatkin): finalize the message
         Logging.getLogger(ConfigurationCachePromoHandler::class.java).lifecycle("Consider enabling configuration cache to speed up this build: $docUrl")
     }
@@ -59,6 +60,8 @@ class ConfigurationCachePromoHandler(
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
+
+    override fun forTask(task: Task): ProblemsListener = this
 
     override fun onExecutionTimeProblem(problem: PropertyProblem) = onProblem(problem)
 }

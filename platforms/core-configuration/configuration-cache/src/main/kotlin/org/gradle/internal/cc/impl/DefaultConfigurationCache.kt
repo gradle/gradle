@@ -43,6 +43,7 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintStartParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
@@ -239,7 +240,8 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                saveWorkGraph()
+                degradeGracefullyOr { saveWorkGraph() }
+                crossConfigurationTimeBarrier()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -270,8 +272,17 @@ class DefaultConfigurationCache internal constructor(
 
         return runWorkThatContributesToCacheEntry {
             val model = creator()
+            // Graceful degradation. We don't care about the models saving at the moment since it's happening
+            // only when Isolated Projects enabled. That's it, there is no model saving in CC + noIP mode.
             saveModel(model)
             model
+        }
+    }
+
+    private
+    fun degradeGracefullyOr(action: () -> Unit) {
+        if (!problems.shouldDegradeGracefully()) {
+            action()
         }
     }
 
@@ -340,7 +351,13 @@ class DefaultConfigurationCache internal constructor(
             val usedModels = intermediateModels.collectAccessedValues()
             val usedMetadata = projectMetadata.collectAccessedValues()
             val sideEffects = buildTreeModelSideEffects.collectSideEffects()
-            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, fileFor(StateType.Entry))
+            cacheIO.writeCacheEntryDetailsTo(
+                buildStateRegistry,
+                usedModels,
+                usedMetadata,
+                sideEffects,
+                fileFor(StateType.Entry)
+            )
         }
         updateMostRecentEntry(entryId)
     }
@@ -542,7 +559,10 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
             ?.let { entryDetails ->
                 // TODO:configuration-cache read only rootDirs at this point
-                EntrySearchResult(entryDetails.buildInvocationScopeId, checkFingerprint(candidateEntry, entryDetails.rootDirs))
+                EntrySearchResult(
+                    entryDetails.buildInvocationScopeId,
+                    checkFingerprint(candidateEntry, entryDetails.rootDirs)
+                )
             } ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
 
     private
@@ -600,8 +620,6 @@ class DefaultConfigurationCache internal constructor(
             }
             WorkGraphStoreResult(stateStoreResult.accessedFiles, stateStoreResult.value)
         }
-
-        crossConfigurationTimeBarrier()
     }
 
     private
@@ -696,19 +714,24 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }
-        cacheFingerprintController.commitFingerprintTo(fileFor(StateType.BuildFingerprint), fileFor(StateType.ProjectFingerprint))
+        cacheFingerprintController.commitFingerprintTo(
+            fileFor(StateType.BuildFingerprint),
+            fileFor(StateType.ProjectFingerprint)
+        )
     }
 
     private
     fun startCollectingCacheFingerprint() {
         cacheFingerprintController.maybeStartCollectingFingerprint(
-            entryStore.assignSpoolFile(StateType.BuildFingerprint),
-            entryStore.assignSpoolFile(StateType.ProjectFingerprint)
-        ) { stateFile ->
-            cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
-                profileNameFor(stateFile)
+            object : ConfigurationCacheFingerprintStartParameters {
+                override fun assignBuildScopedSpoolFile() = entryStore.assignSpoolFile(StateType.BuildFingerprint)
+                override fun assignProjectScopedSpoolFile() = entryStore.assignSpoolFile(StateType.ProjectFingerprint)
+                override fun writeContextForOutputStream(stateFile: ConfigurationCacheStateStore.StateFile) =
+                    cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
+                        profileNameFor(stateFile)
+                    }
             }
-        }
+        )
     }
 
     private

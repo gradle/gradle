@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.Try
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
@@ -366,6 +367,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             get() = undefined()
             set(_) {}
 
+        override val problemsListener: ProblemsListener
+            get() = undefined()
+
         override fun onProblem(problem: PropertyProblem): Unit =
             undefined()
 
@@ -485,6 +489,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override var trace: PropertyTrace
             get() = undefined()
             set(_) {}
+
+        override val problemsListener: ProblemsListener
+            get() = undefined()
 
         override fun onProblem(problem: PropertyProblem): Unit =
             undefined()

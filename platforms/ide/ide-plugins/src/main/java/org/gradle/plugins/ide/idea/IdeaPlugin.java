@@ -140,6 +140,7 @@ public abstract class IdeaPlugin extends IdePlugin {
     @Override
     protected void onApply(final Project project) {
         getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
+        getLifecycleTask().configure(withGracefulDegradation(project));
         getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
@@ -185,6 +186,7 @@ public abstract class IdeaPlugin extends IdePlugin {
                     projectTask.setDescription("Generates IDEA project file (IPR)");
                 }
             });
+            projectTask.configure(withGracefulDegradation(project));
             ideaModel.setProject(ideaProject);
 
             ideaProject.setOutputFile(new File(project.getProjectDir(), project.getName() + ".ipr"));
@@ -277,6 +279,7 @@ public abstract class IdeaPlugin extends IdePlugin {
                 task.setDescription("Generates IDEA module files (IML)");
             }
         });
+        task.configure(withGracefulDegradation(project));
         ideaModel.setModule(module);
 
         final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);

@@ -46,7 +46,7 @@ class ConfigurationCacheProblemsSummaryTest {
             subject.onProblem(buildLogicProblem("build.gradle", "another failure"), ProblemSeverity.Deferred)
         )
         assertThat(
-            subject.get().problemCauseCount,
+            subject.get().reportableProblemCauseCount,
             equalTo(2)
         )
     }

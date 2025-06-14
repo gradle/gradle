@@ -15,8 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends AbstractEclipseTestSourcesIntegrationTest {
 
     def setup() {
@@ -33,7 +31,6 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies in main source set dependency configurations are not marked with test classpath attribute"() {
         given:
         buildFile << """
@@ -49,7 +46,6 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         assertJarDependencyDoesNotHaveTestAttribute('lib-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies in test source set dependency configurations are marked with test classpath attribute"() {
         given:
         buildFile << """
@@ -65,7 +61,6 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         assertJarDependencyHasTestAttribute('lib-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies in jvm test suites are marked with test classpath attribute"() {
         buildFile.text = """
             plugins {
@@ -92,7 +87,6 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         assertJarDependencyHasTestAttribute('lib-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies declared by the jvm test suite plugin are marked with test classpath attribute"() {
         buildFile.text = """
             plugins {
@@ -119,7 +113,6 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         assertJarDependencyHasTestAttribute('junit-platform-engine')
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies in custom source set dependency configurations are marked with test classpath attribute if the source set name contains the 'test' substring"() {
         given:
         buildFile << """
@@ -139,7 +132,6 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         assertJarDependencyHasTestAttribute('lib-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies in custom source set dependency configurations are not marked with test classpath attribute if the source set name does not contain the 'test' substring"() {
         given:
         buildFile << """
@@ -159,7 +151,6 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         assertJarDependencyDoesNotHaveTestAttribute('lib-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure which source set dependency configurations contribute test dependencies to the classpath"() {
         given:
         mavenRepo.module('org', 'another').publish()
@@ -189,7 +180,6 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         assertJarDependencyDoesNotHaveTestAttribute('another-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies present in test and non-test configurations are not marked with test classpath attribute"() {
         given:
         buildFile << """

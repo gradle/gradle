@@ -334,6 +334,9 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheRun("offender")
 
         then:
+        // TODO: use `configurationCache` fixture, when https://github.com/gradle/gradle/issues/33857 is fixed
+        configurationCache.configurationCacheBuildOperations.assertStorePhaseSuccessful()
+        configurationCache.configurationCacheBuildOperations.assertLoadPhaseSkipped()
         problems.assertResultHasProblems(result) {
             withProblemsWithStackTraceCount(2)
             withProblem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
@@ -359,6 +362,8 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails(WARN_PROBLEMS_CLI_OPT, 'report')
 
         then:
+        // TODO: use `configurationCache` fixture, when https://github.com/gradle/gradle/issues/33857 is fixed
+        configurationCache.configurationCacheBuildOperations.assertStateStored()
         problems.assertResultHasProblems(failure) {
             withProblem "Task `:report` of type `org.gradle.api.DefaultTask`: invocation of 'Task.extensions' at execution time is unsupported with the configuration cache."
         }

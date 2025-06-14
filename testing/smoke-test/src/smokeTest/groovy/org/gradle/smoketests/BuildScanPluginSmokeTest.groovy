@@ -332,6 +332,12 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             systemProp.develocity.injection.init-script-name=$initScript
             systemProp.develocity.url=http://localhost:5086
             systemProp.develocity.injection-enabled=true
+
+            # since bamboo 2.3.0 and jenkins 2.15
+            systemProp.develocity-injection.develocity-plugin.version=$pluginVersion
+            systemProp.develocity-injection.init-script-name=$initScript
+            systemProp.develocity-injection.url=http://localhost:5086
+            systemProp.develocity-injection.enabled=true
         """.stripIndent()
 
         setupLocalBuildCache()

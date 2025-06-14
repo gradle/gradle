@@ -417,7 +417,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to get full insights."));
+        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to generate a Build Scan (Powered by Develocity)."));
     }
 
     private boolean isGradleEnterprisePluginApplied() {
