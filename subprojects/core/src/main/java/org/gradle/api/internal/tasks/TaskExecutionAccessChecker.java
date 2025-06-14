@@ -28,4 +28,5 @@ public interface TaskExecutionAccessChecker {
     void notifyProjectAccess(TaskInternal task);
     void notifyTaskDependenciesAccess(TaskInternal task, String invocationDescription);
     void notifyConventionAccess(TaskInternal task, String invocationDescription);
+    boolean shouldReportExecutionTimeAccess(TaskInternal task);
 }
