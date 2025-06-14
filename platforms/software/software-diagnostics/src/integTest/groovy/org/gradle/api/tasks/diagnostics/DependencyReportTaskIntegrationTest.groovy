@@ -767,7 +767,9 @@ compileClasspath - Compile classpath for source set 'main'.
 
             project(":impl") {
                 dependencies {
-                    compile group: 'org.utils', name: 'api', version: '1.3', configuration: 'compile'
+                    compile("org.utils:api:1.3") {
+                        targetConfiguration = "compile"
+                    }
                 }
 
                 configurations.compile.resolutionStrategy.dependencySubstitution {
@@ -808,7 +810,7 @@ compile
 
             project(":impl") {
                 dependencies {
-                    compile group: 'org.utils', name: 'api', version: '1.3'
+                    compile("org.utils:api:1.3")
                 }
 
                 configurations.compile.resolutionStrategy.eachDependency {
@@ -852,8 +854,8 @@ compile
 
             project(":impl") {
                 dependencies {
-                    compile group: 'org.utils', name: 'api', version: '1.3'
-                    compile group: 'org.original', name: 'original', version: '1.0'
+                    compile("org.utils:api:1.3")
+                    compile("org.original:original:1.0")
                 }
 
                 configurations.compile.resolutionStrategy.dependencySubstitution {

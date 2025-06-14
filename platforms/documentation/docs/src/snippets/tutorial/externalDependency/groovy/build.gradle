@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'commons-codec', name: 'commons-codec', version: '1.2'
+        classpath("commons-codec:commons-codec:1.2")
     }
 }
 // end::declare-classpath[]

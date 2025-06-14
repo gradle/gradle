@@ -79,7 +79,9 @@ configurations {
     }
 }
 dependencies {
-    missing group: 'group', name: 'projectA', version: '1.2', changing: true
+    missing("group:projectA:1.2") {
+        changing = true
+    }
 }
 task showMissing {
     def missing = configurations.missing

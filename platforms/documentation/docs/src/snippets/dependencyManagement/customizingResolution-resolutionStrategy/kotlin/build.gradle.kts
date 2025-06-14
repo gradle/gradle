@@ -45,7 +45,7 @@ configurations.all {
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.name == "groovy-all") {
-            useTarget(mapOf("group" to requested.group, "name" to "groovy", "version" to requested.version))
+            useTarget("${requested.group}:groovy:${requested.version}")
             because("""prefer "groovy" over "groovy-all"""")
         }
         if (requested.name == "log4j") {

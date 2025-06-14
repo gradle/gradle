@@ -363,7 +363,9 @@ dependencies {
                     }
                 }
                 dependencies {
-                    implementation(group:"org", name:"foo", configuration:"alice")
+                    implementation("org:foo") {
+                        targetConfiguration = "alice"
+                    }
                 }
             }
         """
