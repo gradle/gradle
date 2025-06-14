@@ -28,6 +28,7 @@ import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
+import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.io.safeWrap
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
@@ -105,7 +106,8 @@ class DefaultConfigurationCacheIO internal constructor(
     private val eventEmitter: BuildOperationProgressEventEmitter,
     private val classLoaderScopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-    private val instantiatorFactory: InstantiatorFactory
+    private val instantiatorFactory: InstantiatorFactory,
+    private val classLoaderScopes: ClassLoaderScopesFingerprintController
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     private
@@ -415,15 +417,13 @@ class DefaultConfigurationCacheIO internal constructor(
             ) to codecs
         }
 
-    private
-    fun encoderFor(stateType: StateType, outputStream: () -> OutputStream): PositionAwareEncoder =
+    override fun encoderFor(stateType: StateType, outputStream: () -> OutputStream): PositionAwareEncoder =
         outputStreamFor(stateType, outputStream).let { stream ->
             if (isUsingSequentialStringDeduplicationStrategy(stateType)) StringDeduplicatingKryoBackedEncoder(stream)
             else KryoBackedEncoder(stream)
         }
 
-    private
-    fun decoderFor(stateType: StateType, inputStream: () -> InputStream): Decoder =
+    override fun decoderFor(stateType: StateType, inputStream: () -> InputStream): Decoder =
         inputStreamFor(stateType, inputStream).let { stream ->
             if (isUsingSequentialStringDeduplicationStrategy(stateType)) StringDeduplicatingKryoBackedDecoder(stream)
             else KryoBackedDecoder(stream)
@@ -497,7 +497,7 @@ class DefaultConfigurationCacheIO internal constructor(
         customClassDecoder: ClassDecoder?,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        readContextFor(name, stateType, inputStream, specialDecoders)
+        readContextFor(name, stateType, inputStream, specialDecoders, customClassDecoder)
             .let { (context, codecs) ->
                 withReadContextFor(context, codecs, readOperation)
             }
@@ -609,13 +609,17 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun classEncoder() =
-        DefaultClassEncoder(classLoaderScopeRegistryListener)
+        DefaultClassEncoder(
+            classLoaderScopeRegistryListener,
+            classLoaderScopes.encoder()
+        )
 
     private
     fun classDecoder() =
         DefaultClassDecoder(
             classLoaderScopeRegistry.coreAndPluginsScope,
-            instantiatorFactory.decorateScheme().deserializationInstantiator()
+            instantiatorFactory.decorateScheme().deserializationInstantiator(),
+            scopeSpecDecoder = classLoaderScopes.decoder()
         )
 
     /**

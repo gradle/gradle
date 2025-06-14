@@ -72,7 +72,7 @@ interface ClassLoaderScopeSpecDecoder {
 
 
 internal
-class InlineClassLoaderScopeSpecEncoder : ClassLoaderScopeSpecEncoder {
+open class InlineClassLoaderScopeSpecEncoder : ClassLoaderScopeSpecEncoder {
 
     private
     val scopes = WriteIdentities()
@@ -96,10 +96,14 @@ class InlineClassLoaderScopeSpecEncoder : ClassLoaderScopeSpecEncoder {
             }
             writeString(scope.name)
             writeOrigin(scope.origin)
-            writeClassPath(scope.localClassPath)
-            writeHashCode(scope.localImplementationHash)
-            writeClassPath(scope.exportClassPath)
+            writeNullableHashCode(scope.localImplementationHash)
+            encodeClassPath(scope.localClassPath)
+            encodeClassPath(scope.exportClassPath)
         }
+    }
+
+    protected open fun Encoder.encodeClassPath(classPath: ClassPath) {
+        writeClassPath(classPath)
     }
 
     private
@@ -121,19 +125,24 @@ class InlineClassLoaderScopeSpecEncoder : ClassLoaderScopeSpecEncoder {
     }
 
     private
-    fun Encoder.writeHashCode(hashCode: HashCode?) {
+    fun Encoder.writeNullableHashCode(hashCode: HashCode?) {
         if (hashCode == null) {
             writeBoolean(false)
         } else {
             writeBoolean(true)
-            writeBinary(hashCode.toByteArray())
+            writeHashCode(hashCode)
         }
+    }
+
+    protected
+    fun Encoder.writeHashCode(hashCode: HashCode) {
+        writeBinary(hashCode.toByteArray())
     }
 }
 
 
 internal
-class InlineClassLoaderScopeSpecDecoder : ClassLoaderScopeSpecDecoder {
+open class InlineClassLoaderScopeSpecDecoder : ClassLoaderScopeSpecDecoder {
 
     private
     val scopes = ReadIdentities()
@@ -147,9 +156,9 @@ class InlineClassLoaderScopeSpecDecoder : ClassLoaderScopeSpecDecoder {
 
         val name = readString()
         val origin = readOrigin()
-        val localClassPath = readClassPath()
-        val localImplementationHash = readHashCode()
-        val exportClassPath = readClassPath()
+        val localImplementationHash = readNullableHashCode()
+        val localClassPath = decodeClassPath()
+        val exportClassPath = decodeClassPath()
 
         val newScope = ClassLoaderScopeSpec(parent, name, origin).apply {
             this.localClassPath = localClassPath
@@ -159,6 +168,9 @@ class InlineClassLoaderScopeSpecDecoder : ClassLoaderScopeSpecDecoder {
         scopes.putInstance(id, newScope)
         newScope
     }
+
+    protected open fun Decoder.decodeClassPath(): ClassPath =
+        readClassPath()
 
     private
     fun Decoder.readOrigin() = if (readBoolean()) {
@@ -172,9 +184,12 @@ class InlineClassLoaderScopeSpecDecoder : ClassLoaderScopeSpecDecoder {
     }
 
     private
-    fun Decoder.readHashCode() = if (readBoolean()) {
-        HashCode.fromBytes(readBinary())
+    fun Decoder.readNullableHashCode() = if (readBoolean()) {
+        readHashCode()
     } else {
         null
     }
+
+    protected
+    fun Decoder.readHashCode(): HashCode = HashCode.fromBytes(readBinary())
 }
