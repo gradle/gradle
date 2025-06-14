@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.base.problems
 
+import org.gradle.api.Task
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -33,6 +34,8 @@ object IgnoringProblemsListener : ProblemsListener {
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) = Unit
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
+
+    override fun forTask(task: Task): ProblemsListener = this
 
     override fun onExecutionTimeProblem(problem: PropertyProblem) = Unit
 }

@@ -1001,26 +1001,45 @@ You can see a practical example of extracting an archive file <<#sec:unpacking_a
 [[sec:reproducible_archives]]
 === Using `AbstractArchiveTask` for reproducible builds
 
-Sometimes it's desirable to recreate archives exactly the same, byte for byte, on different machines.
-You want to be sure that building an artifact from source code produces the same result no matter when and where it is built.
+It's desirable to recreate archives exactly the same, byte for byte, on different machines.
+Building an artifact from source code should produce the same result no matter when and where it is built.
 This is necessary for projects like https://reproducible-builds.org/[reproducible-builds.org].
 
-Reproducing the same byte-for-byte archive poses some challenges since the order of the files in an archive is influenced by the underlying file system.
+Reproducing the same byte-for-byte archive generally poses some challenges since the order of the files in an archive can be influenced by the underlying file system.
 Each time a ZIP, TAR, JAR, WAR or EAR is built from source, the order of the files inside the archive may change.
-Files that only have a different timestamp or permissions also causes differences in archives from build to build.
+Files on disk can also have different timestamps or permissions depending on the environment.
 
-All link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask] (e.g. Jar, Zip) tasks shipped with Gradle include support for producing reproducible archives.
+Starting with Gradle 9.0, all link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask] (e.g. `Jar`, `Zip`) tasks produce reproducible archives by default:
 
-For example, to make a `Zip` task reproducible you need to set link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:reproducibleFileOrder[Zip.isReproducibleFileOrder()] to `true` and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:preserveFileTimestamps[Zip.isPreserveFileTimestamps()] to `false`.
-Additionally, you need to set permissions explicitly, for example link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:dirPermissions[Zip.getDirPermissions()] to `755` and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:filePermissions[Zip.getFilePermissions()] to `644`.
-In order to make all archive tasks in your build reproducible, consider adding the following configuration to your build file:
+- File order in the archive is deterministic
+- Files have fixed timestamps (exact values depend on the archive type)
+- Directories have fixed permissions set to `0755`
+- Files have fixed permissions set to `0644`
+
+You can <<sec:setting_file_permissions,further customize>> the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:dirPermissions-org.gradle.api.Action-[directory permissions]
+or link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:filePermissions-org.gradle.api.Action-[file permissions]
+while keeping the archives reproducible.
+
+[[sec:revert_reproducible_archives]]
+==== Preserve file system-defined aspects
+
+If desired, you can revert individual aspects of reproducible archives.
 
 ====
-include::sample[dir="snippets/files/archives/kotlin",files="build.gradle.kts[tags=reproducible]"]
-include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=reproducible]"]
+include::sample[dir="snippets/files/archives/kotlin",files="build.gradle.kts[tags=revert-reproducible]"]
+include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=revert-reproducible]"]
 ====
+<1> Set link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:preserveFileTimestamps[`isPreserveFileTimestamps`] to `true` to use timestamp values from the file system.
+<2> Set link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:reproducibleFileOrder[`isReproducibleFileOrder`] to `false` to preserve the file order based on the file system.
+<3> Call link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:useFileSystemPermissions()[`useFileSystemPermissions()`] to preserve the permissions from the file system.
 
-Often you will want to publish an archive, so that it is usable from another project.
+In case the file system is already the source of truth for the permissions, e.g., via the version control tools, you can preserve the permissions across all archives tasks by configuring a property:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.archives.use-file-system-permissions=true
+----
 
 [[sec:unpacking_archives_example]]
 == Unpacking archives

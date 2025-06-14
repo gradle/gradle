@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Deprecated. Will be removed in Gradle 9.0. Kept for now it's subclass is used by the Kotlin plugin.
+ * Deprecated. Will be removed in Gradle 10. Kept for now it's subclass is used by the Kotlin plugin.
  */
 @Deprecated
 public abstract class AbstractExecHandleBuilder implements BaseExecSpec {

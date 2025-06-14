@@ -117,7 +117,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
-    public T setArgs(@Nullable Iterable<?> arguments) {
+    public T setArgs(Iterable<?> arguments) {
         execSpec.setArgs(arguments);
         return taskType.cast(this);
     }
@@ -125,7 +125,6 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Nullable
     @Optional
     @Input
     @Override

@@ -56,7 +56,8 @@ enum class DocumentationSection(val page: String, val anchor: String) {
     RequirementsExternalProcess("configuration_cache_requirements","config_cache:requirements:external_processes"),
     RequirementsTaskAccess("configuration_cache_requirements","config_cache:requirements:task_access"),
     RequirementsSysPropEnvVarRead("configuration_cache_requirements","config_cache:requirements:reading_sys_props_and_env_vars"),
-    RequirementsUseProjectDuringExecution("configuration_cache_requirements","config_cache:requirements:use_project_during_execution")
+    RequirementsUseProjectDuringExecution("configuration_cache_requirements","config_cache:requirements:use_project_during_execution"),
+    RequirementsGradleModelTypes("configuration_cache_requirements","config_cache:requirements:gradle_model_types"),
 }
 
 

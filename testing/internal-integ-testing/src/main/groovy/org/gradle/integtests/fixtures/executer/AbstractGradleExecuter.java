@@ -1227,7 +1227,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
-        // Having this unset is now deprecated, will default to `false` in Gradle 9.0
+        // Having this unset is now deprecated, default to `false` in Gradle 9.0.0
         // TODO remove - see https://github.com/gradle/gradle/issues/26810
         properties.put("org.gradle.kotlin.dsl.skipMetadataVersionCheck", "false");
 

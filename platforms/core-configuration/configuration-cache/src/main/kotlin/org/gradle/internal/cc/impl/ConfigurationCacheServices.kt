@@ -66,6 +66,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(DeprecatedFeaturesListener::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
+            add(DefaultConfigurationCacheDegradationController::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
@@ -78,7 +79,11 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
             add(ConfigurationCacheHost::class.java, DefaultConfigurationCacheHost::class.java)
-            add(ConfigurationCacheBuildTreeIO::class.java, ConfigurationCacheIncludedBuildIO::class.java, DefaultConfigurationCacheIO::class.java)
+            add(
+                ConfigurationCacheBuildTreeIO::class.java,
+                ConfigurationCacheIncludedBuildIO::class.java,
+                DefaultConfigurationCacheIO::class.java
+            )
         }
     }
 

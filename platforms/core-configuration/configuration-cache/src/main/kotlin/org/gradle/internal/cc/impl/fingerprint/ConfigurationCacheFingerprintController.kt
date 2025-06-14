@@ -59,7 +59,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.scripts.ScriptFileResolverListeners
-import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.internal.service.scopes.Scope
@@ -123,11 +122,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     abstract class WritingState {
 
-        open fun maybeStart(
-            buildScopedSpoolFile: StateFile,
-            projectScopedSpoolFile: StateFile,
-            writeContextForOutputStream: (StateFile) -> CloseableWriteContext
-        ): WritingState =
+        open fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState =
             illegalStateFor("start")
 
         open fun pause(): WritingState =
@@ -161,16 +156,14 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     inner class Idle : WritingState() {
-        override fun maybeStart(
-            buildScopedSpoolFile: StateFile,
-            projectScopedSpoolFile: StateFile,
-            writeContextForOutputStream: (StateFile) -> CloseableWriteContext
-        ): WritingState {
 
+        override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
+            val buildScopedFile = parameters.assignBuildScopedSpoolFile()
+            val projectScopedFile = parameters.assignProjectScopedSpoolFile()
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintWriterHost(),
-                writeContextForOutputStream(buildScopedSpoolFile),
-                writeContextForOutputStream(projectScopedSpoolFile),
+                parameters.writeContextForOutputStream(buildScopedFile),
+                parameters.writeContextForOutputStream(projectScopedFile),
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 workExecutionTracker,
@@ -179,7 +172,11 @@ class ConfigurationCacheFingerprintController internal constructor(
                 buildStateRegistry
             )
             addListener(fingerprintWriter)
-            return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
+            return Writing(
+                fingerprintWriter,
+                buildScopedFile,
+                projectScopedFile
+            )
         }
 
         override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
@@ -197,11 +194,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val buildScopedSpoolFile: StateFile,
         private val projectScopedSpoolFile: StateFile
     ) : WritingState() {
-        override fun maybeStart(
-            buildScopedSpoolFile: StateFile,
-            projectScopedSpoolFile: StateFile,
-            writeContextForOutputStream: (StateFile) -> CloseableWriteContext
-        ): WritingState {
+
+        override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
             return this
         }
 
@@ -232,11 +226,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val buildScopedSpoolFile: StateFile,
         private val projectScopedSpoolFile: StateFile
     ) : WritingState() {
-        override fun maybeStart(
-            buildScopedSpoolFile: StateFile,
-            projectScopedSpoolFile: StateFile,
-            writeContextForOutputStream: (StateFile) -> CloseableWriteContext
-        ): WritingState {
+
+        override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
             addListener(fingerprintWriter)
             // Continue with the current spool file, rather than starting a new one
             return Writing(fingerprintWriter, this.buildScopedSpoolFile, this.projectScopedSpoolFile)
@@ -262,12 +253,8 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun dispose(): WritingState {
             closeStreams()
-            if (buildScopedSpoolFile.file.exists()) {
-                Files.delete(buildScopedSpoolFile.file.toPath())
-            }
-            if (projectScopedSpoolFile.file.exists()) {
-                Files.delete(projectScopedSpoolFile.file.toPath())
-            }
+            buildScopedSpoolFile.delete()
+            projectScopedSpoolFile.delete()
             return Idle()
         }
 
@@ -314,15 +301,11 @@ class ConfigurationCacheFingerprintController internal constructor(
             controller.writingState.projectObserved(consumingProjectPath, targetProjectPath)
     }
 
-    // Start fingerprinting if not already started and not already committed
-    // This should be strict but currently this method may be called multiple times when a
+    // Start fingerprinting if not already started and not already committed,
+    // This should be strict, but currently this method may be called multiple times when a
     // build invocation both runs tasks and queries models
-    fun maybeStartCollectingFingerprint(
-        buildScopedSpoolFile: StateFile,
-        projectScopedSpoolFile: StateFile,
-        writeContextForOutputStream: (StateFile) -> CloseableWriteContext
-    ) {
-        writingState = writingState.maybeStart(buildScopedSpoolFile, projectScopedSpoolFile, writeContextForOutputStream)
+    fun maybeStartCollectingFingerprint(parameters: ConfigurationCacheFingerprintStartParameters) {
+        writingState = writingState.maybeStart(parameters)
     }
 
     fun stopCollectingFingerprint() {
@@ -533,4 +516,11 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     val rootDirectory
         get() = startParameter.rootDirectory
+
+    private
+    fun StateFile.delete() {
+        if (file.exists()) {
+            Files.delete(file.toPath())
+        }
+    }
 }

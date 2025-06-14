@@ -16,7 +16,9 @@
 package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
+import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -32,6 +34,16 @@ public abstract class AntTarget extends ConventionTask {
 
     private Target target;
     private File baseDir;
+
+    public AntTarget() {
+        getDegradationController().requireConfigurationCacheDegradation(this,
+            getProject().getProviders().provider(() -> "Task is not compatible with the Configuration Cache")
+        );
+    }
+
+    private ConfigurationCacheDegradationController getDegradationController() {
+        return ((ProjectInternal) getProject()).getServices().get(ConfigurationCacheDegradationController.class);
+    }
 
     @TaskAction
     protected void executeAntTarget() {

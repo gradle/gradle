@@ -663,7 +663,6 @@ Class <org.gradle.api.internal.tasks.testing.TestExecuter> is not annotated (dir
 Class <org.gradle.api.internal.tasks.testing.TestExecutionSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestExecutionSpec.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestFailureSerializationException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestFailureSerializationException.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestFramework> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestFramework.java:0)
-Class <org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestFrameworkDistributionModule.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestResultProcessor> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestResultProcessor.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestStartEvent> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestStartEvent.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestSuiteExecutionException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestSuiteExecutionException.java:0)

@@ -97,7 +97,7 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
 
     // TODO: write a similar test for the RegularFileProperty
     @ToBeFixedForConfigurationCache
-    @Issue("https://github.com/gradle/gradle/issues/322591")
+    @Issue("https://github.com/gradle/gradle/issues/32591")
     def "ConfigurableFileCollection files derived from directory property via #method respect execution time directory change"() {
         settingsFile """
             include("sub")
@@ -142,9 +142,7 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile """
             include("sub")
-            include("other")
         """
-        createDirs("other")
 
         buildFile "sub/build.gradle", """
             abstract class CustomTask extends DefaultTask {
@@ -187,9 +185,7 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile """
             include("sub")
-            include("other")
         """
-        createDirs("other")
 
         buildFile "sub/build.gradle", """
             abstract class CustomTask extends DefaultTask {
