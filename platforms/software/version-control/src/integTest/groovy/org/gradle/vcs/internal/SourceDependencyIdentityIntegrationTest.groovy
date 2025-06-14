@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
@@ -85,7 +84,6 @@ Required by:
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @ToBeFixedForConfigurationCache
     def "includes build identifier in task failure error message with #display"() {
         repo.file("settings.gradle") << """
             ${settings}
@@ -112,7 +110,6 @@ Required by:
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @ToBeFixedForConfigurationCache
     def "includes build identifier in dependency resolution results with #display"() {
         repo.file("a/.gitkeepdir").touch()
         repo.file("settings.gradle") << """

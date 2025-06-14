@@ -91,7 +91,6 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "source dependency VCS mappings are defined")
     fun `can use Gradle API generated extensions in scripts`() {
 
         withFile(

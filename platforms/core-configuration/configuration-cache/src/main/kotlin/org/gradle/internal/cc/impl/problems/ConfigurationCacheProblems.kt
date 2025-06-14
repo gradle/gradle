@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.problems
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
@@ -186,7 +187,7 @@ class ConfigurationCacheProblems(
     }
 
     override fun forTask(task: Task): ProblemsListener {
-        val degradationReasons = degradationController.degradationReasons[task]
+        val degradationReasons = degradationController.getDegradationReasonsForTask(task)
         return if (!degradationReasons.isNullOrEmpty()) {
             onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
             ErrorsAreProblemsProblemsListener(ProblemSeverity.SuppressedSilently)
@@ -195,7 +196,7 @@ class ConfigurationCacheProblems(
 
     fun shouldDegradeGracefully(): Boolean {
         degradationController.collectDegradationReasons()
-        return degradationController.degradationReasons.isNotEmpty()
+        return degradationController.hasDegradationReasons
     }
 
     private
@@ -323,7 +324,7 @@ class ConfigurationCacheProblems(
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(summary.totalProblemCount == 0)
-            require(!areDegradationReasonsPresent())
+            require(!areTaskDegradationReasonsPresent())
             return
         }
 
@@ -342,7 +343,7 @@ class ConfigurationCacheProblems(
     }
 
     private fun addNotReportedDegradingTasks() {
-        degradationController.degradationReasons.forEach { (task, reasons) ->
+        degradationController.visitDegradedTasks { task, reasons ->
             val trace = locationForTask(task)
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
@@ -409,12 +410,37 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun areDegradationReasonsPresent(): Boolean = degradationController.degradationReasons.isNotEmpty()
+    fun areDegradationReasonsPresent(): Boolean = degradationController.hasDegradationReasons
+
+    private
+    fun areTaskDegradationReasonsPresent(): Boolean = degradationController.hasTaskDegradationReasons
 
     private
     fun degradationSummary(): String {
-        val degradingTasks = degradationController.degradationReasons.keys
-        return " because incompatible ${if (degradingTasks.size > 1) "tasks were" else "task was"} found."
+        val degradingTaskCount = degradationController.degradedTaskCount
+        val degradingFeatures = buildList {
+            degradationController.visitDegradedFeatures { feature, _ -> add(feature) }
+        }
+        return DegradationSummary(degradingFeatures, degradingTaskCount).render()
+    }
+
+    @VisibleForTesting
+    internal
+    class DegradationSummary(private val degradingFeatures: List<String>, private val degradingTaskCount: Int) {
+        init {
+            require(degradingFeatures.isNotEmpty() || degradingTaskCount > 0)
+        }
+        fun render(): String {
+            val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
+            return " because incompatible " +
+                when {
+                    degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
+                    degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
+                    degradingTaskCount == 0 && degradingFeatures.isNotEmpty() -> "feature usage ${featuresAsString} was"
+                    degradingTaskCount == 1 -> "task and feature usage ${featuresAsString} were"
+                    else -> "tasks and feature usage ${featuresAsString} were"
+                } + " found."
+        }
     }
 
     private

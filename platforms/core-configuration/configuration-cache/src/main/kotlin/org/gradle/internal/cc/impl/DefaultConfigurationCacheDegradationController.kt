@@ -25,21 +25,38 @@ import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
-import java.util.Collections
+import org.gradle.vcs.internal.VcsMappingsStore
 import java.util.concurrent.ConcurrentHashMap
 
 @ServiceScope(BuildTree::class)
 internal class DefaultConfigurationCacheDegradationController(
     private val deferredRootBuildGradle: DeferredRootBuildGradle,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
+    private val vcsMappingsStore: VcsMappingsStore
 ) : ConfigurationCacheDegradationController {
 
     private val logger = Logging.getLogger(DefaultConfigurationCacheDegradationController::class.java)
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
-    private val collectedDegradationReasons = mutableMapOf<Task, List<String>>()
+    private val taskDegradationReasons = mutableMapOf<Task, List<String>>()
+    private val featureDegradationReasons = mutableMapOf<String, List<String>>()
 
-    val degradationReasons: Map<Task, List<String>>
-        get() = Collections.unmodifiableMap(collectedDegradationReasons)
+    val hasDegradationReasons: Boolean get() = taskDegradationReasons.isNotEmpty() || featureDegradationReasons.isNotEmpty()
+
+    val hasTaskDegradationReasons: Boolean get() =
+        taskDegradationReasons.isNotEmpty()
+
+    val degradedTaskCount: Int get() = taskDegradationReasons.size
+
+    fun getDegradationReasonsForTask(task: Task): List<String>? =
+        taskDegradationReasons[task]
+
+    fun visitDegradedTasks(consumer: (Task, List<String>) -> Unit) {
+        taskDegradationReasons.forEach(consumer)
+    }
+
+    fun visitDegradedFeatures(consumer: (String, List<String>) -> Unit) {
+        featureDegradationReasons.forEach(consumer)
+    }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         if (!configurationTimeBarrier.isAtConfigurationTime) {
@@ -50,20 +67,29 @@ internal class DefaultConfigurationCacheDegradationController(
     }
 
     fun collectDegradationReasons() {
+        collectFeatureDegradationReasons()
         if (tasksDegradationRequests.isNotEmpty()) {
             deferredRootBuildGradle.gradle.taskGraph.visitScheduledNodes { scheduledNodes, _ ->
                 scheduledNodes.filterIsInstance<TaskNode>().map { it.task }.forEach { task ->
-                    val taskDegradationReasons = tasksDegradationRequests[task]
+                    val reasonsInEffect = tasksDegradationRequests[task]
                         ?.mapNotNull { evaluateDegradationReason(it) }
                         ?.sorted()
 
-                    if (!taskDegradationReasons.isNullOrEmpty()) {
-                        collectedDegradationReasons[task] = taskDegradationReasons
+                    if (!reasonsInEffect.isNullOrEmpty()) {
+                        taskDegradationReasons[task] = reasonsInEffect
                     }
                 }
             }
         }
     }
 
+    private fun collectFeatureDegradationReasons() {
+        if (isSourceDependenciesUsed()) {
+            featureDegradationReasons["source dependencies"] = listOf("Source dependencies are not compatible yet")
+        }
+    }
+
     private fun evaluateDegradationReason(request: Provider<String>): String? = request.orNull
+
+    private fun isSourceDependenciesUsed(): Boolean = vcsMappingsStore.asResolver().hasRules()
 }

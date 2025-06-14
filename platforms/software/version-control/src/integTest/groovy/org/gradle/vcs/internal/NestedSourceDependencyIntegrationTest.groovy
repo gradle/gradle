@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.internal.TextUtil
 import org.gradle.vcs.fixtures.GitFileRepository
@@ -111,7 +110,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         fourth.commit("initial commit")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use source mappings in nested builds"() {
         given:
         settingsFile << """
@@ -143,7 +141,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use source mappings defined in nested builds"() {
         given:
         vcsMapping('org.test:first', first)
@@ -164,7 +161,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use a source mapping defined in both the parent build and a nested build"() {
         given:
         settingsFile << """
@@ -197,7 +193,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    @ToBeFixedForConfigurationCache
     def "prefers a source mapping defined in the root build to one defined in a nested build"() {
         given:
         vcsMapping('org.test:first', first)
@@ -228,7 +223,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    @ToBeFixedForConfigurationCache
     def "prefers a source mapping defined in the root build to one defined in a nested build when they differ only by plugins"() {
         given:
         def pluginBuilder = new PluginBuilder(file("plugin"))
@@ -261,7 +255,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Hello from root build's plugin")
     }
 
-    @ToBeFixedForConfigurationCache
     def "prefers a source mapping defined in the root build to one defined in a nested build when the nested build requests plugins"() {
         given:
         vcsMapping('org.test:first', first)
@@ -280,7 +273,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use a source mapping defined similarly in two nested builds"() {
         given:
         vcsMapping('org.test:first', first)
@@ -331,7 +323,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Conflicting external source dependency rules were found in nested builds for org.test:third:latest.integration")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve a mapping conflict by defining a rule in the root build"() {
         given:
         vcsMapping('org.test:first', first)
