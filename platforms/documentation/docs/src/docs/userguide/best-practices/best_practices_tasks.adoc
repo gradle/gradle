@@ -291,3 +291,33 @@ include::{snippetsPath}/bestPractices/groupTasks-do/tests/groupTasks.good.out[]
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`
+
+== Avoid using eager APIs on File Collections before Task Execution
+
+Gradle's link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`] and link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`] types extend the JDK’s `Collection<File>` interface.
+However, calling eager methods—such as `.size()`, `.isEmpty()`, `.files`, `.asPath`, or `.toList()`—on these types during the configuration phase will trigger their implicit resolution.
+
+=== Example
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/kotlin",files="build.gradle.kts[tags=bad-zipping-task]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/groovy",files="build.gradle[tags=bad-zipping-task]"]
+====
+
+<1> *Add file via plus operator*: Plus operator will force runtimeClasspath configuration to be resolved implicitly. Configuration implementation doesn't override plus operator for regular files, therefore it fallsback to eager API. Task dependencies will be lost here.
+
+==== Do This Instead
+
+To avoid issues, always defer resolution until the execution phase.
+Use APIs that support lazy evaluation.
+
+====
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/kotlin",files="build.gradle.kts[tags=good-zipping-task]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/groovy",files="build.gradle[tags=good-zipping-task]"]
+====
+
+<1> *Pass files separately*: This allows combining file collections without their implicit resolution.
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#configurations>>`
