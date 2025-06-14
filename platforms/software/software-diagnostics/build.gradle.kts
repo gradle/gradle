@@ -37,6 +37,7 @@ dependencies {
 
     implementation(projects.functional)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
     implementation(libs.groovyJson)

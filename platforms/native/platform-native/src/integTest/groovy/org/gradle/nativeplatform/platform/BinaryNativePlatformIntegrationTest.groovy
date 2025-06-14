@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.platform
 
 import net.rubygrapefruit.platform.SystemInfo
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -400,7 +399,6 @@ model {
     }
 
     @Issue("GRADLE-3499")
-    @ToBeFixedForConfigurationCache(because = ":components")
     def "can create a binary which name contains dots"() {
         when:
         buildFile << '''

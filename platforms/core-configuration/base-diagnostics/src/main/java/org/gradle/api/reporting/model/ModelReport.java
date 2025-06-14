@@ -17,7 +17,9 @@
 package org.gradle.api.reporting.model;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
 import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.Console;
@@ -57,6 +59,11 @@ public abstract class ModelReport extends DefaultTask {
 
     private boolean showHidden;
     private Format format = Format.FULL;
+
+    @Inject
+    public ModelReport() {
+        getServices().get(ConfigurationCacheDegradationController.class).requireConfigurationCacheDegradation(this, Providers.of("Task is not compatible with the Configuration Cache"));
+    }
 
     @Option(option = "showHidden", description = "Show hidden model elements.")
     public void setShowHidden(boolean showHidden) {

@@ -19,6 +19,7 @@ package org.gradle.api.reporting.model
 import com.google.common.annotations.VisibleForTesting
 
 import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 class ModelReportParser {
 
@@ -26,8 +27,8 @@ class ModelReportParser {
     public static final int FIRST_NODE_LINE_NUMBER = 4
     public static final String NODE_LEFT_PADDING = '    '
     public static final String NODE_SYMBOL = '+'
-    public static final String END_OF_REPORT_MARKER = 'BUILD SUCCESSFUL'
     public static final LinkedHashMap<String, String> NODE_ATTRIBUTES = ['Value': 'nodeValue', 'Type': 'type', 'Creator': 'creator']
+    private static final Pattern END_OF_REPORT_MARKER = ~/BUILD SUCCESSFUL|Some tasks in this build are not compatible with the configuration cache/
 
     static ParsedModelReport parse(String text) {
         validate(text)
@@ -51,7 +52,7 @@ class ModelReportParser {
         assert text: 'Report text must not be blank'
         def reportLines = text.readLines()
         assert reportLines.size() >= 5: "Should have at least 5 lines"
-        assert text.contains(END_OF_REPORT_MARKER): "Expected to find an end of report marker '${END_OF_REPORT_MARKER}'"
+        assert text.find(END_OF_REPORT_MARKER): "Expected to find an end of report marker"
     }
 
     private static String getTitle(List<String> reportLines) {
@@ -144,7 +145,7 @@ class ModelReportParser {
     }
 
     private static List<String> nodeOnlyLines(List<String> nodeLines) {
-        int successMarker = nodeLines.findIndexOf { line -> line.startsWith(END_OF_REPORT_MARKER) }
+        int successMarker = nodeLines.findIndexOf { line -> line.find(END_OF_REPORT_MARKER) }
         if (successMarker == 0) {
             return []
         }
