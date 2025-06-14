@@ -1,22 +1,20 @@
 
-> Configure project :
-Bad map
-org.gradle.usage -> java-runtime
-org.gradle.category -> library
-
 > Task :projects
 
 Projects:
 
 ------------------------------------------------------------
-Root project 'avoid-internal-avoid'
+Root project 'avoidEmptyProjects-avoid'
 ------------------------------------------------------------
 
-Root project 'avoid-internal-avoid'
-No sub-projects
+Root project 'avoidEmptyProjects-avoid'
++--- Project ':app'
+\--- Project ':subs'
+     \--- Project ':subs:web'
+          \--- Project ':subs:web:my-web-module'
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
-For example, try running gradle :tasks
+For example, try running gradle :app:tasks
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed
