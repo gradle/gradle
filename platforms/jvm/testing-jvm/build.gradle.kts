@@ -65,6 +65,8 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    testFixturesImplementation(projects.internalIntegTesting)
 }
 
 strictCompile {

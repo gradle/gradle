@@ -52,7 +52,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
     private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
-    private final Set<Throwable> unrecoverableExceptions = new HashSet<Throwable>();
+    private final Set<Throwable> unrecoverableExceptions = new HashSet<>();
 
 
     public ForkingTestClassProcessor(
@@ -115,6 +115,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         buildConfigAction.execute(builder);
 
         workerProcess = builder.build();
+
+        // If the Test Worker JVM fails to start up, an exception will be thrown when we call start()
         workerProcess.start();
 
         ObjectConnection connection = workerProcess.getConnection();

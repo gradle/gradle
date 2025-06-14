@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
@@ -49,8 +50,10 @@ public class TestMainAction implements Runnable {
     public void run() {
         TestDescriptorInternal suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName);
         resultProcessor.started(suite, new TestStartEvent(clock.getCurrentTime()));
+
         try {
             processor.startProcessing(resultProcessor);
+
             try {
                 detector.run();
             } finally {
@@ -62,6 +65,9 @@ public class TestMainAction implements Runnable {
                     }
                 });
             }
+        } catch (Throwable t) {
+            resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(t));
+            throw t;
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
