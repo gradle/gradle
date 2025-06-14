@@ -17,13 +17,13 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestNonReproducibleArchives
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.Issue
 
 import java.nio.charset.Charset
 
-@TestReproducibleArchives
+@TestNonReproducibleArchives
 class ZipIntegrationTest extends AbstractIntegrationSpec {
 
     def zip64Support() {

@@ -25,10 +25,10 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
 /**
- * A Spock extension to run tests with reproducible archives enabled.
+ * A Spock extension to run tests with non-reproducible archives.
  *
- * We currently do not have reproducible archives enabled by default.
- * We still want to test if switching them on supports all the use cases we have with the regular archive tasks.
+ * We have reproducible archives enabled by default, but we offer an option to use non-reproducible archives.
+ * We still want to test if switching them on supports all the use cases we have with the reproducible archive tasks.
  * Placing this annotation on a Spock spec or feature will run the features twice, with and without reproducible archives enabled.
  * A test it self can check via the property {@code reproducibleArchives} if reproducible archives are enabled or not.
  * This property is added at runtime via meta programming.
@@ -37,7 +37,7 @@ import java.lang.annotation.Target
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.TYPE])
-@ExtensionAnnotation(ReproducibleArchivesTestExtension)
+@ExtensionAnnotation(NonReproducibleArchivesTestExtension)
 @Inherited
-@interface TestReproducibleArchives {
+@interface TestNonReproducibleArchives {
 }
