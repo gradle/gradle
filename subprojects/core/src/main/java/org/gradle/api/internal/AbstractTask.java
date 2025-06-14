@@ -205,6 +205,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.timeout = project.getObjects().property(Duration.class);
     }
 
+    protected boolean isExecutionTimeAccess() {
+        return taskExecutionAccessChecker.shouldReportExecutionTimeAccess(this);
+    }
+
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
             extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstantiatorFactory.class).decorateLenient(services));

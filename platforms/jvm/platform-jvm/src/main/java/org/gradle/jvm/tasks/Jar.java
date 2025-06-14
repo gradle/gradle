@@ -27,16 +27,19 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
+import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -64,6 +67,25 @@ public abstract class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
         getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
+        declareGracefulDegradationCondition();
+    }
+
+    private void declareGracefulDegradationCondition() {
+        if (!isExecutionTimeAccess()) {
+            // only  access project if it is still time to request graceful degradation
+            ProjectInternal project = (ProjectInternal) getProject();
+            ConfigurationCacheDegradationController degradationController = project.getServices().get(ConfigurationCacheDegradationController.class);
+            degradationController.requireConfigurationCacheDegradation(this, usingCustomCharsetDegradationReason());
+        }
+    }
+
+    private Provider<String> usingCustomCharsetDegradationReason() {
+        return Providers.changing(() -> {
+            String charset = getManifestContentCharset();
+            return charset.equals(DefaultManifest.DEFAULT_CONTENT_CHARSET)
+                ? null
+                : "Custom charset " + charset + " was used. Only " + DefaultManifest.DEFAULT_CONTENT_CHARSET + " is supported for CC";
+        });
     }
 
     private FileTreeInternal manifestFileTree() {
