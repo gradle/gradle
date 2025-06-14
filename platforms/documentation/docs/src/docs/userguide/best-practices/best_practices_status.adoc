@@ -24,8 +24,8 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | # | Title | Section | Introduced in Gradle
 
 | 1 | <<best_practices_general.adoc#use_kotlin_dsl,Use Kotlin DSL>> | General Best Practices | 8.14
-| 2 | <<best_practices_general.adoc#use_latest_minor,Use Latest Minor Version>> | General Best Practices | 8.14
-| 3 | <<best_practices_general.adoc#apply_plugins_block,Apply plugins block>> | General Best Practices | 8.14
+| 2 | <<best_practices_general.adoc#use_latest_minor_versions,Use the Latest Minor Version of Gradle>> | General Best Practices | 8.14
+| 3 | <<best_practices_general.adoc#use_the_plugins_block,Apply Plugins Using the plugins Block>> | General Best Practices | 8.14
 | 4 | <<best_practices_general.adoc#do_not_use_internal_apis,Do Not Use Internal APIs>> | General Best Practices | 8.14
 | 5 | <<best_practices_general.adoc#modularize_builds,Modularize Your Builds>> | General Best Practices | 9.0.0
 | 6 | <<best_practices_general.adoc#no_source_in_root,Do Not Put Source Files in the Root Project>> | General Best Practices | 9.0.0
@@ -41,7 +41,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 
 | 15 | <<best_practices_tasks.adoc#avoid_depends_on,Avoid DependsOn>> | Task Best Practices | 8.14
 | 16 | <<best_practices_tasks.adoc#use_cacheability_annotations, Favor @CacheableTask and @DisableCachingByDefault over cacheIf(Spec) and doNotCacheIf(String, Spec)>> | Task Best Practices | 8.14
-| 17 | <<best_practices_tasks.adoc#group_describe,Group & Describe Tasks>> | Task Best Practices | 9.0.0
+| 17 | <<best_practices_tasks.adoc#group_describe_tasks,Group and Describe custom Tasks>> | Task Best Practices | 9.0.0
 | 18 | <<best_practices_tasks.adoc#avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>> | Task Best Practices | 9.1.0
 
 | 19 | <<best_practices_performance.adoc#use_utf8_encoding,Enable UTF‑8>> | Performance Best Practices | 9.0.0
