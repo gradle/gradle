@@ -16,7 +16,6 @@
 
 package org.gradle.swiftpm
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.vcs.fixtures.GitFileRepository
 
 
@@ -326,7 +325,6 @@ let package = Package(
         lib2Repo?.close()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "maps dependency on #src to #mapped"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))
@@ -398,7 +396,6 @@ let package = Package(
         '[1.0.0, 2.0.0)' | '"1.0.0"..<"2.0.0"'
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot map dependency #src"() {
         given:
         settingsFile << """
