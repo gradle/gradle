@@ -25,6 +25,12 @@ public enum ConsoleOutput {
      */
     Plain,
     /**
+     * Enable color output while omitting rich features such as progress bars.
+     *
+     * @since 8.7
+     */
+    PlainWithColor,
+    /**
      * Enable color and rich output when the current process is attached to a console, disable when not attached to a console.
      */
     Auto,

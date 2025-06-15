@@ -279,6 +279,32 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         addConsoleChain(getConsoleChainWithoutDynamicStdout(outputListener, true));
     }
 
+    public void addColorConsoleWithErrorOutputOnStdout(Console stdout) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
+        addConsoleChain(getConsoleChainWithoutDynamicStdout(stdoutChain, true));
+    }
+
+    public void addColorConsole(Console stdout, Console stderr) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
+        OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
+        OutputEventListener outputListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
+        addConsoleChain(getConsoleChainWithoutDynamicStdout(outputListener, true));
+    }
+
+    public void addColorConsole(Console stdout, OutputStream stderr) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
+        OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stderr)));
+        OutputEventListener outputListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
+        addConsoleChain(getConsoleChainWithoutDynamicStdout(outputListener, true));
+    }
+
+    public void addColorConsole(OutputStream stdout, Console stderr) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
+        OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
+        OutputEventListener outputListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
+        addConsoleChain(getConsoleChainWithoutDynamicStdout(outputListener, true));
+    }
+
     private OutputEventListener getConsoleChainWithDynamicStdout(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
         return throttled(
             new UserInputConsoleRenderer(
