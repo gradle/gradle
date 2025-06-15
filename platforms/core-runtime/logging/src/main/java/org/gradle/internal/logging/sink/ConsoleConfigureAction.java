@@ -43,6 +43,8 @@ public class ConsoleConfigureAction {
             configureRichConsole(renderer, consoleMetadata, stdout, stderr, true);
         } else if (consoleOutput == ConsoleOutput.Plain) {
             configurePlainConsole(renderer, consoleMetadata, stdout, stderr);
+        } else if (consoleOutput == ConsoleOutput.PlainWithColor) {
+            configurePlainWithColorConsole(renderer, consoleMetadata, stdout, stderr);
         }
     }
 
@@ -81,6 +83,23 @@ public class ConsoleConfigureAction {
             renderer.addPlainConsoleWithErrorOutputOnStdout(stdout);
         } else {
             renderer.addPlainConsole(stdout, stderr);
+        }
+    }
+
+    private static void configurePlainWithColorConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            renderer.addColorConsoleWithErrorOutputOnStdout(console);
+        } else if (consoleMetaData.isStdOut()) {
+            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            renderer.addColorConsole(console, stderr);
+        } else if (consoleMetaData.isStdErr()) {
+            Console console = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            renderer.addColorConsole(stdout, console);
+        } else {
+            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            renderer.addColorConsole(stdoutConsole, stderrConsole);
         }
     }
 

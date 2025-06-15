@@ -26,7 +26,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
-    private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
+    private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.PlainWithColor, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
 
     def setup() {
         createDirs("lib", "util", "app")
