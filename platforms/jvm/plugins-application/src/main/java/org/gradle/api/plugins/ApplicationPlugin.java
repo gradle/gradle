@@ -80,6 +80,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         addRunTask(project, mainFeature, extension);
         addCreateScriptsTask(project, mainFeature, extension);
         configureJavaCompileTask(mainFeature.getCompileJavaTask(), extension);
+        configureJarTask(mainFeature.getJarTask(), extension);
         configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
 
         DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
@@ -89,6 +90,14 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
     private void configureJavaCompileTask(TaskProvider<JavaCompile> javaCompile, JavaApplication pluginExtension) {
         javaCompile.configure(j -> j.getOptions().getJavaModuleMainClass().convention(pluginExtension.getMainClass()));
+    }
+
+    private void configureJarTask(TaskProvider<Jar> jar, JavaApplication pluginExtension) {
+        jar.configure(j -> {
+            if (pluginExtension.getMainClass().isPresent()) {
+                j.getManifest().getAttributes().put("Main-Class", pluginExtension.getMainClass().get());
+            }
+        });
     }
 
     private void configureInstallTask(ProviderFactory providers, TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
