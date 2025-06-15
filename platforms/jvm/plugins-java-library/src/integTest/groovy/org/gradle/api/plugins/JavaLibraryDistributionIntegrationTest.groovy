@@ -17,9 +17,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestNonReproducibleArchives
 
-@TestReproducibleArchives
+@TestNonReproducibleArchives
 class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
     @Override
