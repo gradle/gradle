@@ -17,12 +17,17 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
+import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 
 
 internal
 interface ConfigurationCacheFingerprintStartParameters {
+
     fun assignBuildScopedSpoolFile(): ConfigurationCacheStateStore.StateFile
     fun assignProjectScopedSpoolFile(): ConfigurationCacheStateStore.StateFile
-    fun writeContextForOutputStream(stateFile: ConfigurationCacheStateStore.StateFile): CloseableWriteContext
+    fun assignClassLoaderScopesFile(): ConfigurationCacheStateStore.StateFile
+
+    fun writerContextFor(stateFile: ConfigurationCacheStateStore.StateFile): CloseableWriteContext
+    fun encoderFor(stateFile: ConfigurationCacheStateStore.StateFile): PositionAwareEncoder
 }
