@@ -71,6 +71,7 @@ class TestMainActionTest extends Specification {
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop()
         then:
+        1 * resultProcessor.failure(!null, !null)
         1 * resultProcessor.completed(!null, !null)
 
         0 * resultProcessor._
@@ -94,6 +95,7 @@ class TestMainActionTest extends Specification {
         then:
         1 * processor.startProcessing(!null) >> { throw failure }
         then:
+        1 * resultProcessor.failure(!null, !null)
         1 * resultProcessor.completed(!null, !null)
 
         0 * resultProcessor._
@@ -121,6 +123,7 @@ class TestMainActionTest extends Specification {
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop() >> { throw failure }
         then:
+        1 * resultProcessor.failure(!null, !null)
         1 * resultProcessor.completed(!null, !null)
 
         0 * resultProcessor._
