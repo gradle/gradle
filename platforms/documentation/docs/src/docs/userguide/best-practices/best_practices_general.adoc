@@ -777,7 +777,7 @@ This is useful for organizing large builds with many projects, allowing for a cl
 For example, if the `search` project is located in `subs/features/search`, you can include it with: `include(":subs:features:search")`.
 
 However, without additional configuration, Gradle will create empty projects for each intermediate path element.
-In the example above, Gradle will create a project named `:subs`, a project named `:subs:features`, and a project named `:subs:features:search`.
+In the example above, Gradle will generate projects for `:subs`, `:subs:features`, and `:subs:features:search`.
 This probably isn't intended, as you likely only want to include the `search` project.
 Additional projects - even if empty - will slow down your build, clutter reporting, and make your build harder to understand.
 
