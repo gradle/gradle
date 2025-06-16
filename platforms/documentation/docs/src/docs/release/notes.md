@@ -168,7 +168,7 @@ Gradle provides rich APIs for plugin authors and build engineers to develop cust
 <a name="compilation-avoidance"></a>
 #### Kotlin build script compilation avoidance
 
-With this release, Gradle speeds up feedback loops when editing build logic by avoiding unnecessary recompilation of [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts.
+Gradle speeds up feedback loops when editing build logic by avoiding unnecessary recompilation of [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts.
 This reduces build times and improves developer productivity.
 
 The improvement comes from significantly better detection of ABI (Application Binary Interface) changes, made possible by using Kotlin’s built-in ABI fingerprinting instead of Gradle’s previous internal mechanism.
@@ -221,7 +221,7 @@ For more information, see the [upgrading guide section](userguide/upgrading_vers
 
 #### Detached configurations can resolve dependencies on their own project
 
-Starting with Gradle 9, [detached configurations](javadoc/org/gradle/api/artifacts/ConfigurationContainer.html#detachedConfiguration(org.gradle.api.artifacts.Dependency...) are able to resolve dependencies that reference their own project.
+[Detached configurations](javadoc/org/gradle/api/artifacts/ConfigurationContainer.html#detachedConfiguration(org.gradle.api.artifacts.Dependency...)) are able to resolve dependencies that reference their own project.
 
 To do this, Gradle introduces a new subtype of [`ComponentIdentifier`](javadoc/org/gradle/api/artifacts/component/ComponentIdentifier.html) called [`RootComponentIdentifier`](javadoc/org/gradle/api/artifacts/component/RootComponentIdentifier.html), which represents the root node of a [resolved dependency graph](userguide/graph_resolution.html#dependency_graph).
 
