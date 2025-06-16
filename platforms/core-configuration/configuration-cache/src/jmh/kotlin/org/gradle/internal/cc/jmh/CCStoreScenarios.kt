@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.jmh
 
-import com.nhaarman.mockitokotlin2.mock
+import org.mockito.kotlin.mock
 import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.configuration.problems.ProblemsListener
