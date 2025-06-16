@@ -31,4 +31,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ManagedObjectCreator {
+
+    /**
+     * The public type of the managed object created by this method.
+     * <p>
+     * If not specified, the method's return type is used.
+     */
+    Class<?> publicType() default void.class;
+
 }
