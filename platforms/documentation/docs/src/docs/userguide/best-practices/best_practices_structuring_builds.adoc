@@ -601,7 +601,7 @@ Use <<implementing_gradle_plugins_precompiled.adoc#implemention_precompiled_plug
 
 === Explanation
 
-Instead of duplicating configuration across multiple buildscripts, you can easily move common logic into a reusable convention plugin.
+Instead of duplicating configuration across multiple build scripts, you can easily move common logic into a reusable convention plugin.
 
 This approach offers several benefits:
 
