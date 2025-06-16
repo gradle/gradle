@@ -413,6 +413,22 @@ class ManagedObjectRegistryTest extends Specification {
         e.message == "Method MethodHandle()Thing for type class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest\$Thingconflicts with existing factory method MethodHandle(Class)Thing."
     }
 
+    @ManagedObjectProvider
+    static class ProviderWithoutCreators {
+
+    }
+
+    def "cannot register provider without creators"() {
+        when:
+        registryOf {
+            it.add(ProviderWithoutCreators)
+        }
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Service class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest\$ProviderWithoutCreators annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator."
+    }
+
     private static ManagedObjectRegistry registryOf(ServiceRegistrationAction action) {
         def services = ServiceRegistryBuilder.builder().provider {
             it.addProvider(new ServiceRegistrationProvider() {

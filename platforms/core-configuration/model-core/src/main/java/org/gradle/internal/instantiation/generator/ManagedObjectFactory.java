@@ -103,7 +103,7 @@ public class ManagedObjectFactory {
     private ManagedObjectRegistry getManagedObjectRegistry() {
         ManagedObjectRegistry managedObjectRegistry = (ManagedObjectRegistry) serviceLookup.find(ManagedObjectRegistry.class);
         if (managedObjectRegistry == null) {
-            throw new IllegalStateException("No managed object registry found");
+            throw new IllegalStateException("No managed object registry found. ServiceLookup: " + serviceLookup);
         }
         return managedObjectRegistry;
     }
