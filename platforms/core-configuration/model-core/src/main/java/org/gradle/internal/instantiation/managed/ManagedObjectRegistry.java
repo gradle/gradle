@@ -67,6 +67,7 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
         assert annotation == ManagedObjectProvider.class;
         Object instance = registration.getInstance();
 
+        boolean registeredCreator = false;
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         for (Method method : instance.getClass().getMethods()) {
             if (method.isAnnotationPresent(ManagedObjectCreator.class) ||
@@ -81,7 +82,12 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
 
                 validateMethod(method, handle);
                 registerFactory(handle, instance);
+                registeredCreator = true;
             }
+        }
+
+        if (!registeredCreator) {
+            throw new IllegalArgumentException("Service " + instance.getClass() + " annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator.");
         }
     }
 
@@ -152,6 +158,8 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
 
     /**
      * Create a managed object instance for a type with no arguments.
+     *
+     * @return null if no zero-argument factory is registered for the type.
      */
     @Nullable
     public <T> T newInstance(Class<T> type) {
@@ -175,6 +183,8 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
 
     /**
      * Create a managed object instance for a type with a type argument.
+     *
+     * @return null if no single-argument factory is registered for the type.
      */
     @Nullable
     public <T> T newInstance(Class<T> type, Class<?> arg1) {
@@ -198,6 +208,8 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
 
     /**
      * Create a managed object instance for a type with two type arguments.
+     *
+     * @return null if no two-argument factory is registered for the type.
      */
     @Nullable
     public <T> T newInstance(Class<T> type, Class<?> arg1, Class<?> arg2) {
