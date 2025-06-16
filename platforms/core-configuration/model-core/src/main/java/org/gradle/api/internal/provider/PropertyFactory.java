@@ -21,6 +21,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface PropertyFactory {
+
+    /**
+     * If you are calling this, you are probably doing something wrong.
+     */
+    @Deprecated
+    DefaultProperty<?> propertyWithNoType();
+
     <T> DefaultProperty<T> property(Class<T> type);
 
     <T> DefaultListProperty<T> listProperty(Class<T> elementType);
