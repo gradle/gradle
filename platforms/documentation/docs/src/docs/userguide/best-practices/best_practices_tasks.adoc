@@ -292,6 +292,7 @@ include::{snippetsPath}/bestPractices/groupTasks-do/tests/groupTasks.good.out[]
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`
 
+[[dont_resolve_configurations_before_task_execution]]
 == Don't resolve Configurations before Task Execution
 
 Resolving configurations before the task execution phase can lead to incorrect results and slower builds.
