@@ -10,7 +10,7 @@ dependencies {
 abstract class GoodClasspathPrinter extends DefaultTask {
 
     @InputFiles
-    abstract ConfigurableFileCollection getResolvedClasspath() // <2>
+    abstract ConfigurableFileCollection getClasspath() // <2>
 
     protected int calculateDigest(File fileOrDirectory) {
         if (!fileOrDirectory.exists()) {
@@ -22,8 +22,8 @@ abstract class GoodClasspathPrinter extends DefaultTask {
     @TaskAction
     void run() {
         logger.lifecycle(
-            resolvedClasspath.collect { file ->
-                def digest = calculateDigest(file) // <4>
+            classpath.collect { file ->
+                def digest = calculateDigest(file) // <3>
                 "$file#$digest"
             }.join("\n")
         )
@@ -31,6 +31,6 @@ abstract class GoodClasspathPrinter extends DefaultTask {
 }
 
 tasks.register("goodClasspathPrinter", GoodClasspathPrinter) {
-    resolvedClasspath.from(configurations.named("runtimeClasspath")) // <3>
+    classpath.from(configurations.named("runtimeClasspath")) // <4>
 }
 // end::do-this[]
