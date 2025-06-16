@@ -36,14 +36,11 @@ import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
 import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 import org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder;
-import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
@@ -51,7 +48,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
-import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -69,8 +65,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.catalog.LibrariesSourceGenerator.configureVersionCatalogError;
 import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_REGEX;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwError;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ALIAS_NOT_FINISHED;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST;
@@ -83,9 +79,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.T
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
-import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
 
@@ -211,14 +205,6 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             realizedPlugins.put(entry.getKey(), entry.getValue().get());
         }
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
-    }
-
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
-        return builder.
-            id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), "version catalog error", GradleCoreProblemGroup.versionCatalog())
-            .contextualLabel(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
-            .severity(ERROR);
     }
 
     private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, InternalProblem problem) {

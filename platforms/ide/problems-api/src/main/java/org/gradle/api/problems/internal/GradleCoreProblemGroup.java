@@ -22,7 +22,7 @@ public abstract class GradleCoreProblemGroup {
 
     private static final DefaultCompilationProblemGroup COMPILATION_PROBLEM_GROUP = new DefaultCompilationProblemGroup();
     private static final ProblemGroup DEPRECATION_PROBLEM_GROUP = ProblemGroup.create("deprecation", "Deprecation");
-    private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
+    private static final DefaultVerificationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultVerificationProblemGroup();
     private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = ProblemGroup.create("plugin-application", "Plugin application");
     private static final ProblemGroup TASK_SELECTION_PROBLEM_GROUP = ProblemGroup.create("task-selection", "Task selection");
     private static final ProblemGroup VERSION_CATALOG_PROBLEM_GROUP = ProblemGroup.create("dependency-version-catalog", "Version catalog");
@@ -38,7 +38,7 @@ public abstract class GradleCoreProblemGroup {
         return DEPRECATION_PROBLEM_GROUP;
     }
 
-    public static ValidationProblemGroup validation() {
+    public static VerficitationProblemGroup validation() {
         return VALIDATION_PROBLEM_GROUP;
     }
 
@@ -66,37 +66,53 @@ public abstract class GradleCoreProblemGroup {
         return DAEMON_TOOLCHAIN_PROBLEM_GROUP;
     }
 
-    public interface CompilationProblemGroup {
+    public interface ProblemGroupProvider {
         ProblemGroup thisGroup();
+        ProblemGroup customGroup(String id, String displayName);
+    }
+
+    public interface CompilationProblemGroup extends ProblemGroupProvider {
         ProblemGroup java();
         ProblemGroup groovy();
         ProblemGroup groovyDsl();
     }
 
-    public interface ValidationProblemGroup {
-        ProblemGroup thisGroup();
+    public interface VerficitationProblemGroup extends ProblemGroupProvider {
         ProblemGroup property();
         ProblemGroup type();
     }
 
-    public interface DaemonToolchainProblemGroup {
-        ProblemGroup thisGroup();
+    public interface DaemonToolchainProblemGroup extends ProblemGroupProvider {
         ProblemGroup configurationGeneration();
     }
 
-    private static class DefaultCompilationProblemGroup implements CompilationProblemGroup {
+    private static class DefaultProblemGroupProvider implements ProblemGroupProvider {
 
-        private final ProblemGroup thisGroup = ProblemGroup.create("compilation", "Compilation");
-        private final ProblemGroup java = ProblemGroup.create("java", "Java compilation", thisGroup);
-        private final ProblemGroup groovy = ProblemGroup.create("groovy", "Groovy compilation", thisGroup);
-        public ProblemGroup groovyDsl = ProblemGroup.create("groovy-dsl", "Groovy DSL script compilation", thisGroup);
+        final ProblemGroup thisGroup;
 
-        private DefaultCompilationProblemGroup() {
+        private DefaultProblemGroupProvider(String id, String displayName) {
+            this.thisGroup = ProblemGroup.create(id, displayName);
         }
 
         @Override
         public ProblemGroup thisGroup() {
             return thisGroup;
+        }
+
+        @Override
+        public ProblemGroup customGroup(String id, String displayName){
+            return ProblemGroup.create(id, displayName, thisGroup);
+        }
+    }
+
+    private static class DefaultCompilationProblemGroup extends DefaultProblemGroupProvider implements CompilationProblemGroup {
+
+        private final ProblemGroup java = ProblemGroup.create("java", "Java compilation", thisGroup);
+        private final ProblemGroup groovy = ProblemGroup.create("groovy", "Groovy compilation", thisGroup);
+        public ProblemGroup groovyDsl = ProblemGroup.create("groovy-dsl", "Groovy DSL script compilation", thisGroup);
+
+        private DefaultCompilationProblemGroup() {
+            super("compilation", "Compilation");
         }
 
         @Override
@@ -115,18 +131,14 @@ public abstract class GradleCoreProblemGroup {
         }
     }
 
-    private static class DefaultValidationProblemGroup implements ValidationProblemGroup {
+    private static class DefaultVerificationProblemGroup extends DefaultProblemGroupProvider implements VerficitationProblemGroup {
 
-        private final ProblemGroup thisGroup = ProblemGroup.create("validation", "Validation");
-        private final ProblemGroup property = ProblemGroup.create("property-validation", "Gradle property validation", thisGroup);
-        private final ProblemGroup type = ProblemGroup.create("type-validation", "Gradle type validation", thisGroup);
+        public static final String VERIFICATION = "verification";
+        private final ProblemGroup property = ProblemGroup.create("property-" +VERIFICATION, "Gradle property " +VERIFICATION, thisGroup);
+        private final ProblemGroup type = ProblemGroup.create("type-" +VERIFICATION, "Gradle type " + VERIFICATION, thisGroup);
 
-        private DefaultValidationProblemGroup() {
-        }
-
-        @Override
-        public ProblemGroup thisGroup() {
-            return thisGroup;
+        private DefaultVerificationProblemGroup() {
+            super(VERIFICATION, "Verification");
         }
 
         @Override
@@ -140,14 +152,12 @@ public abstract class GradleCoreProblemGroup {
         }
     }
 
-    private static class DefaultDaemonToolchainProblemGroup implements DaemonToolchainProblemGroup {
+    private static class DefaultDaemonToolchainProblemGroup extends  DefaultProblemGroupProvider implements DaemonToolchainProblemGroup {
 
-        private final ProblemGroup thisGroup = ProblemGroup.create("daemon-toolchain", "Daemon toolchain");
         private final ProblemGroup configurationGeneration = ProblemGroup.create("configuration-generation", "Gradle configuration generation", thisGroup);
 
-        @Override
-        public ProblemGroup thisGroup() {
-            return thisGroup;
+        private DefaultDaemonToolchainProblemGroup() {
+            super("daemon-toolchain", "Daemon toolchain");
         }
 
         @Override

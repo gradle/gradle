@@ -514,9 +514,9 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         throw throwError(problemsService, ERROR_HEADER, ImmutableList.of(problem));
     }
 
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
+    static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
-            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
+            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog())
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
             .severity(ERROR);
     }
