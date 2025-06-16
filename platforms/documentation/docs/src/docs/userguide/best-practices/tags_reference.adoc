@@ -23,6 +23,9 @@ Here you can find a brief explanation of all the tags used in the best practices
 [[tag:composite-builds]]
 `#composite-builds` :: Items that are related to using Gradle's <<composite_builds.adoc#defining_composite_builds,composite builds>> feature.
 
+[[tag:configurations]]
+`#configurations` :: Items that are related to using the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`] type in Gradle.
+
 [[tag:dependencies]]
 `#dependencies` :: Items that are related to <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution>> in Gradle, including declaring dependencies, dependency management, and dependency resolution.
 
