@@ -1,0 +1,17 @@
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api("org.apache.commons:commons-lang3:3.12.0")
+}
+
+// tag::do-this[]
+tasks.register("goodZippingTask", Zip) {
+    from(configurations.runtimeClasspath) // <1>
+    from(layout.projectDirectory.file("extra.txt")) // <2>
+    logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+}
+// end::do-this[]

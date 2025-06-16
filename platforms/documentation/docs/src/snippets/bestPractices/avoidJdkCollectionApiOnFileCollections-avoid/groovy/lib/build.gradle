@@ -1,0 +1,30 @@
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api("org.apache.commons:commons-lang3:3.12.0")
+}
+
+// tag::avoid-this[]
+tasks.register("badZippingTask", Zip) {
+    if (!configurations.runtimeClasspath.isEmpty()) { // <1>
+        logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+        from(configurations.runtimeClasspath)
+    }
+}
+
+tasks.register("badZippingTask2", Zip) {
+    def files = configurations.runtimeClasspath.files // <2>
+    from(files)
+    logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+}
+
+tasks.register("badZippingTask3", Zip) {
+    def files = configurations.runtimeClasspath + layout.projectDirectory.file("extra.txt") // <3>
+    from(files)
+    logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+}
+// end::avoid-this[]
