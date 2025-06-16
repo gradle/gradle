@@ -50,7 +50,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
 
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"], iterationMatcher = "assemble for non-abi change"),
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeMonolithicJavaProject"], iterationMatcher = "assemble for non-abi change with reproducible archives"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeMonolithicJavaProject"], iterationMatcher = "assemble for non-abi change with file system sensitive archives"),
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "largeJavaMultiProject")
     ])
     def "assemble for non-abi change#configurationCaching#withFileSystemSensitiveArchives"() {

@@ -910,6 +910,11 @@
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
       }
+    }, {
+      "testProject" : "largeMonolithicJavaProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
     } ]
   }, {
     "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.test for non-abi change",
