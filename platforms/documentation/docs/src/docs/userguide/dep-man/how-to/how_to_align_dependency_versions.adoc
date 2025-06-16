@@ -64,7 +64,7 @@ include::sample[dir="snippets/how-to/aligning-versions/tests",files="dependencie
 ====
 
 [[sec:align-versions-unpublished]]
-=== Option 2: Creating a Virtual Platform
+== Option 2: Creating a Virtual Platform
 
 [[sec:virtual_platform]]
 If no public BOM exists, you can create a **virtual platform**.
@@ -86,7 +86,7 @@ include::sample[dir="snippets/how-to/aligning-versions/tests",files="dependencie
 ====
 
 [[sec:native_alignment]]
-=== Option 3: Using the Java Plugin
+== Option 3: Using the Java Plugin
 
 Gradle **natively supports version alignment** using the <<java_platform_plugin.adoc#java_platform_plugin, Java Platform Plugin>>.
 
