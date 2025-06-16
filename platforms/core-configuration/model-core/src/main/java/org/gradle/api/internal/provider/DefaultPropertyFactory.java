@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultPropertyFactory implements PropertyFactory {
+
     private final PropertyHost propertyHost;
 
     public DefaultPropertyFactory(PropertyHost propertyHost) {
@@ -39,12 +40,12 @@ public class DefaultPropertyFactory implements PropertyFactory {
             // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
             // Allow this one type to be used with Property until we can fix this elsewhere
             if (!ExternalModuleDependencyBundle.class.isAssignableFrom(type)) {
-                throw new InvalidUserCodeException(invalidPropertyCreationError("List", "ListProperty"));
+                throw new InvalidUserCodeException(invalidPropertyCreationError("List<..>", "ListProperty<..>"));
             }
         } else if (Set.class.isAssignableFrom(type)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("Set", "SetProperty"));
+            throw new InvalidUserCodeException(invalidPropertyCreationError("Set<..>", "SetProperty<..>"));
         } else if (Map.class.isAssignableFrom(type)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("Map", "MapProperty"));
+            throw new InvalidUserCodeException(invalidPropertyCreationError("Map<..>", "MapProperty<..>"));
         } else if (Directory.class.isAssignableFrom(type)) {
             throw new InvalidUserCodeException(invalidPropertyCreationError("Directory", "DirectoryProperty"));
         } else if (RegularFile.class.isAssignableFrom(type)) {
@@ -55,7 +56,7 @@ public class DefaultPropertyFactory implements PropertyFactory {
     }
 
     private static String invalidPropertyCreationError(String attemptedType, String correctType) {
-        return "Cannot create a Property with type '" + attemptedType + "'. Use a '" + correctType + "' instead.";
+        return "Creating a property of type 'Property<" + attemptedType + ">' is unsupported. Use '" + correctType + "' instead.";
     }
 
     @Override
@@ -87,4 +88,5 @@ public class DefaultPropertyFactory implements PropertyFactory {
 
         return type;
     }
+
 }

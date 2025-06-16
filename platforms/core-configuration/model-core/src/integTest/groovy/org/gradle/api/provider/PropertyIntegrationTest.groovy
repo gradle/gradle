@@ -571,38 +571,25 @@ task wrongConventionRuntimeValueType {
 
     def "fails when specialized factory method is not used"() {
         buildFile << """
-            class SomeType {
-                final Property<List<String>> prop1
-                final Property<Set<String>> prop2
-                final Property<Directory> prop3
-                final Property<RegularFile> prop4
-                final Property<Map<String, String>> prop5
-
-                @javax.inject.Inject
-                SomeType(ObjectFactory objects) {
-                    $prop = objects.property($baseType)
-                }
-            }
-
-            project.objects.newInstance(SomeType)
+            objects.property($declaration)
         """
 
         when:
         fails()
 
         then:
-        failure.assertHasCause("Cannot create a Property with type '$baseType'. Use a '$properType' instead.")
+        failure.assertHasCause("Creating a property of type 'Property<$baseType>' is unsupported. Use '$properType' instead.")
 
         where:
-        prop    | baseType      | properType
-        'prop1' | 'List'        | 'ListProperty'
-        'prop2' | 'Set'         | 'SetProperty'
-        'prop3' | 'Map'         | 'MapProperty'
-        'prop4' | 'Directory'   | 'DirectoryProperty'
-        'prop5' | 'RegularFile' | 'RegularFileProperty'
+        declaration   | baseType      | properType
+        'List'        | 'List<..>'    | 'ListProperty<..>'
+        'Set'         | 'Set<..>'     | 'SetProperty<..>'
+        'Map'         | 'Map<..>'     | 'MapProperty<..>'
+        'Directory'   | 'Directory'   | 'DirectoryProperty'
+        'RegularFile' | 'RegularFile' | 'RegularFileProperty'
     }
 
-    def "fails when creating instantiating managed type without specialized property types"() {
+    def "fails when instantiating managed type without specialized property types"() {
         buildFile << """
             interface SomeType {
                 Property<$declaration> getProp()
@@ -615,13 +602,13 @@ task wrongConventionRuntimeValueType {
         fails()
 
         then:
-        failure.assertHasCause("Cannot create a Property with type '$baseType'. Use a '$properType' instead.")
+        failure.assertHasCause("Creating a property of type 'Property<$baseType>' is unsupported. Use '$properType' instead.")
 
         where:
         declaration           | baseType      | properType
-        'List<String>'        | 'List'        | 'ListProperty'
-        'Set<String>'         | 'Set'         | 'SetProperty'
-        'Map<String, String>' | 'Map'         | 'MapProperty'
+        'List<String>'        | 'List<..>'    | 'ListProperty<..>'
+        'Set<String>'         | 'Set<..>'     | 'SetProperty<..>'
+        'Map<String, String>' | 'Map<..>'     | 'MapProperty<..>'
         'Directory'           | 'Directory'   | 'DirectoryProperty'
         'RegularFile'         | 'RegularFile' | 'RegularFileProperty'
     }
