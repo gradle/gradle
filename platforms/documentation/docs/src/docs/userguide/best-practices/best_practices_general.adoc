@@ -778,12 +778,12 @@ For example, if the `search` project is located in `subs/features/search`, you c
 
 However, without additional configuration, Gradle will create empty projects for each intermediate path element.
 In the example above, Gradle will generate projects for `:subs`, `:subs:features`, and `:subs:features:search`.
-This probably isn't intended, as you likely only want to include the `search` project.
+Unless those intermediate projects are intentional, this can slow down your build, clutter reports, and make your build structure harder to understand.
 Additional projects - even if empty - will slow down your build, clutter reporting, and make your build harder to understand.
 
-To avoid this, be sure to explicitly set the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.projectDir] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module"`).
+To avoid this, be sure to explicitly set the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[`Project.projectDir`] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module")`.
 
-As ab added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
+As an added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
 
 === Example
 
@@ -816,7 +816,7 @@ As ab added benefit, this will allow you to reference the project by the shorter
     └── web/ // <3>
         ├── my-web-module/ // <4>
             ├── src/
-            └── build.gradle.kts
+            └── build.gradle
 
 ----
 =====
@@ -832,7 +832,7 @@ include::sample[dir="snippets/bestPractices/avoidEmptyProjects-avoid/groovy",fil
 ====
 
 <1> Including the `app` project located at the root of the build requires no additional configuration
-<2> Including a project named `:subs:my-web-module` located in a nested subdirectory causes Gradle to create empty projects for each element of the path
+<2> Including a project named `:subs:web:my-web-module` located in a nested subdirectory causes Gradle to create empty projects for each element of the path
 
 ====
 include::sample[dir="snippets/bestPractices/avoidEmptyProjects-avoid/tests",files="avoidEmptyProjects-avoid.out"]
@@ -855,7 +855,7 @@ include::sample[dir="snippets/bestPractices/avoidEmptyProjects-do/tests",files="
 
 The output of running the `projects` report on the above build shows that now Gradle only creates the intended projects for this build.
 
-You can also now invoke tasks on the `my-web-module` project using the shorter name `:my-web-module` like `gradle :my-web-module:build`, instead of `gradle :subs:web:my-web-module:build`.
+You can also now invoke tasks on the `my-web-module` project using the shorter name `:my-web-module` like `./gradlew :my-web-module:build`, instead of `./gradlew :subs:web:my-web-module:build`.
 
 === References
 - <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>
