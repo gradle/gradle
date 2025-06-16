@@ -41,10 +41,10 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 
-    protected boolean configureArchiveReproducibility(boolean reproducibleArchivesDisabled) {
-        if (reproducibleArchivesDisabled) {
+    protected boolean configureBuildArchives(boolean useFileSystemSensitiveArchives) {
+        if (useFileSystemSensitiveArchives) {
             runner.addBuildMutator { invocationSettings ->
-                new DisableReproducibleArchivesMutator(invocationSettings.projectDir)
+                new EnableFileSystemSensitiveArchivesMutator(invocationSettings.projectDir)
             }
         }
     }
@@ -53,15 +53,15 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
         return configurationCachingEnabled ? " with configuration caching" : ""
     }
 
-    protected static reproducibleArchivesMessage(boolean reproducibleArchivesDisabled) {
-        return reproducibleArchivesDisabled ? " with non-reproducible archives" : ""
+    protected static withFileSystemSensitiveArchives(boolean reproducibleArchivesDisabled) {
+        return reproducibleArchivesDisabled ? " with file system sensitive archives" : ""
     }
 
-    class DisableReproducibleArchivesMutator implements BuildMutator {
+    class EnableFileSystemSensitiveArchivesMutator implements BuildMutator {
 
         private final File projectDir
 
-        DisableReproducibleArchivesMutator(File projectDir) {
+        EnableFileSystemSensitiveArchivesMutator(File projectDir) {
             this.projectDir = projectDir
         }
 
@@ -70,14 +70,14 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
             def groovySettingsFile = new File(projectDir, "settings.gradle")
             def kotlinSettingsFile = new File(projectDir, "settings.gradle.kts")
             if (groovySettingsFile.exists()) {
-                disableReproducibleArchives(
+                enableFileSystemSensitiveArchives(
                     groovySettingsFile,
                     "tasks.withType(AbstractArchiveTask)",
                     "preserveFileTimestamps",
                     "reproducibleFileOrder"
                 )
             } else if (kotlinSettingsFile.exists()) {
-                disableReproducibleArchives(
+                enableFileSystemSensitiveArchives(
                     kotlinSettingsFile,
                     "tasks.withType<AbstractArchiveTask>()",
                     "isPreserveFileTimestamps",
@@ -88,7 +88,7 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
             }
         }
 
-        private void disableReproducibleArchives(File settingsFile, String withType, String preserveFileTimestamps, String reproducibleFileOrder) {
+        private void enableFileSystemSensitiveArchives(File settingsFile, String withType, String preserveFileTimestamps, String reproducibleFileOrder) {
             settingsFile << """
                 |settings.gradle.lifecycle.beforeProject {
                 |    ${withType}.configureEach {

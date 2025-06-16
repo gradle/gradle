@@ -53,7 +53,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeMonolithicJavaProject"], iterationMatcher = "assemble for non-abi change with reproducible archives"),
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "largeJavaMultiProject")
     ])
-    def "assemble for non-abi change#configurationCaching#reproducibleArchives"() {
+    def "assemble for non-abi change#configurationCaching#withFileSystemSensitiveArchives"() {
         given:
         runner.tasksToRun = ['assemble']
         runner.addBuildMutator {
@@ -61,7 +61,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
             return isGroovyProject ? new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
         }
         enableConfigurationCaching(configurationCachingEnabled)
-        configureArchiveReproducibility(reproducibleArchivesDisabled)
+        configureBuildArchives(useFileSystemSensitiveArchives)
 
         when:
         def result = runner.run()
@@ -70,10 +70,10 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        configurationCachingEnabled | configurationCaching                                     | reproducibleArchivesDisabled | reproducibleArchives
-        true                        | configurationCachingMessage(configurationCachingEnabled) | false                        | reproducibleArchivesMessage(reproducibleArchivesDisabled)
-        false                       | configurationCachingMessage(configurationCachingEnabled) | false                        | reproducibleArchivesMessage(reproducibleArchivesDisabled)
-        false                       | configurationCachingMessage(configurationCachingEnabled) | true                         | reproducibleArchivesMessage(reproducibleArchivesDisabled)
+        configurationCachingEnabled | configurationCaching                                     | useFileSystemSensitiveArchives | withFileSystemSensitiveArchives
+        true                        | configurationCachingMessage(configurationCachingEnabled) | false                          | withFileSystemSensitiveArchives(useFileSystemSensitiveArchives)
+        false                       | configurationCachingMessage(configurationCachingEnabled) | false                          | withFileSystemSensitiveArchives(useFileSystemSensitiveArchives)
+        false                       | configurationCachingMessage(configurationCachingEnabled) | true                           | withFileSystemSensitiveArchives(useFileSystemSensitiveArchives)
     }
 
     @RunFor([
