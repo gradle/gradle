@@ -1,7 +1,5 @@
 Resolved: true
-
-> Task :lib:badCountingTask2
-Count: 1
+> Task :lib:badZippingTask2
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed
