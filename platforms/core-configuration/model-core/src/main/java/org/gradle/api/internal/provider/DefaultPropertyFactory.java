@@ -35,6 +35,12 @@ public class DefaultPropertyFactory implements PropertyFactory {
     }
 
     @Override
+    @Deprecated
+    public DefaultProperty<?> propertyWithNoType() {
+        return new DefaultProperty<>(propertyHost, null);
+    }
+
+    @Override
     public <T> DefaultProperty<T> property(Class<T> type) {
         if (List.class.isAssignableFrom(type)) {
             // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
