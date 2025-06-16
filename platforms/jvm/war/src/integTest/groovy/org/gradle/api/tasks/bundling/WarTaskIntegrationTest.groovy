@@ -18,11 +18,11 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.archives.TestNonReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 
-@TestNonReproducibleArchives
+@TestFileSystemSensitiveArchives
 class WarTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def canCreateAWarArchiveWithNoWebXml() {

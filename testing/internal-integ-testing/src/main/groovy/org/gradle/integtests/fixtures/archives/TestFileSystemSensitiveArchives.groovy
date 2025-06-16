@@ -25,19 +25,17 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
 /**
- * A Spock extension to run tests with non-reproducible archives.
+ * A Spock extension to run tests the second time using file system sensitive archives.
  *
- * We have reproducible archives enabled by default, but we offer an option to use non-reproducible archives.
- * We still want to test if switching them on supports all the use cases we have with the reproducible archive tasks.
- * Placing this annotation on a Spock spec or feature will run the features twice, with and without reproducible archives enabled.
- * A test it self can check via the property {@code reproducibleArchives} if reproducible archives are enabled or not.
- * This property is added at runtime via meta programming.
+ * We have reproducible archives enabled by default, but we offer an option to use archives where metadata is read from the file system.
+ * We still want to test if switching to file system sensitive archives supports all the use cases we have with the reproducible archive tasks.
+ * Placing this annotation on a Spock spec or feature will run the features twice: with reproducible archives as default and with file system sensitive archives.
  *
- * Note that the extension adds {@code [reproducible archives]} to the method name - so tests using {@link org.gradle.integtests.fixtures.TestResources} can run into problems.
+ * Note that the extension adds {@code [with file system sensitive archives]} to the method name - so tests using {@link org.gradle.integtests.fixtures.TestResources} can run into problems.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.TYPE])
-@ExtensionAnnotation(NonReproducibleArchivesTestExtension)
+@ExtensionAnnotation(FileSystemSensitiveArchivesTestExtension)
 @Inherited
-@interface TestNonReproducibleArchives {
+@interface TestFileSystemSensitiveArchives {
 }

@@ -17,13 +17,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.archives.TestNonReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 /**
  * Tests {@link org.gradle.api.distribution.plugins.DistributionBasePlugin}
  */
-@TestNonReproducibleArchives
+@TestFileSystemSensitiveArchives
 class DistributionBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

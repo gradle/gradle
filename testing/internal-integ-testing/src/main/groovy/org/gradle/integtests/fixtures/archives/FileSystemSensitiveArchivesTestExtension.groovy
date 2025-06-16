@@ -21,11 +21,11 @@ import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.integtests.fixtures.extensions.MultiTestExtension
 
 @CompileStatic
-class NonReproducibleArchivesTestExtension extends MultiTestExtension<TestNonReproducibleArchives> {
+class FileSystemSensitiveArchivesTestExtension extends MultiTestExtension<TestFileSystemSensitiveArchives> {
 
     @Override
     protected AbstractMultiTestInterceptor makeInterceptor(Class<?> testClass) {
-        return new NonReproducibleArchivesInterceptor(testClass);
+        return new FileSystemSensitiveArchivesInterceptor(testClass);
     }
 }
 
