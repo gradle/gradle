@@ -765,7 +765,7 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy/build
 [[avoid_empty_projects]]
 == Avoid Unintentionally Creating Empty Projects
 
-When using a hierarchical directory structure to organize your Gradle projects, make sure to avoid unintentionally creating empty projects in your build.
+When using a hierarchical directory structure to organize your Gradle projects, make sure to avoid unintentionally creating empty projects.
 
 === Explanation
 
