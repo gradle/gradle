@@ -105,9 +105,9 @@ After running a build, the reason for the fallback can be found in the [Configur
 
 Additional updates for the [Configuration Cache](userguide/configuration_cache.html) include:
 
-Tasks marked as incompatible prevent cache hits in [warning mode](userguide/configuration_cache_debugging.html#enable_warning_mode), ensuring correctness. Warning mode should only be used during migration or troubleshooting. [Marking tasks as incompatible](userguide/configuration_cache_debugging.html#config_cache:task_opt_out) remains a recommended strategy for gradual adoption.
-Task execution will abort immediately when a Configuration Cache problem is encountered, avoiding undefined behavior and ensuring affected tasks are neither marked up-to-date nor cached.
-The [Configuration Cache report](userguide/configuration_cache_debugging.html#config_cache:troubleshooting) includes more detailed errors, such as serialization issues, unsafe concurrent access, and Groovy DSL closures capturing script state.
+- Tasks marked as incompatible prevent cache hits in [warning mode](userguide/configuration_cache_debugging.html#enable_warning_mode), ensuring correctness. Warning mode should only be used during migration or troubleshooting. [Marking tasks as incompatible](userguide/configuration_cache_debugging.html#config_cache:task_opt_out) remains a recommended strategy for gradual adoption.
+- Task execution will abort immediately when a Configuration Cache problem is encountered, avoiding undefined behavior and ensuring affected tasks are neither marked up-to-date nor cached.
+- The [Configuration Cache report](userguide/configuration_cache_debugging.html#config_cache:troubleshooting) includes more detailed errors, such as serialization issues, unsafe concurrent access, and Groovy DSL closures capturing script state.
 
 <a name="jvm-17"></a>
 ### Gradle requires Java Virtual Machine (JVM) version 17 or higher to run
