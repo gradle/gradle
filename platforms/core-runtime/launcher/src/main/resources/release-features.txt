@@ -2,4 +2,4 @@
  - Java 17 is the new minimum required JDK version
  - Kotlin 2.1 and Groovy 4.0 updates
  - Semantic Versioning for Gradle releases
- - Build authoring improvements
+ - Faster Kotlin DSL script compilation
