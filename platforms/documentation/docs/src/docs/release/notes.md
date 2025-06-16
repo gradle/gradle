@@ -142,30 +142,19 @@ The following operator functions in `DependencyHandlerScope` are now considered 
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
 * `NamedDomainObjectProvider<Configuration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?): ExternalModuleDependency`
 * `NamedDomainObjectProvider<Configuration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
-* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyNotation: Any): Dependency?`
-* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
-* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?): ExternalModuleDependency`
-* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
 * `<T : Any> Configuration.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
 * `<T : Any> Configuration.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
 * `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>)`
 * `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>)`
 * `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
 * `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
-* `<T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: Provider<T>)`
-* `<T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: ProviderConvertible<T>)`
-* `<T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
-* `<T : Any> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
 * `<T : Any> String.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
 * `<T : Any> String.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
 * `<T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T`
-* `<T : ModuleDependency> NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T`
 
 The following operator functions in `DependencyConstraintHandlerScope` are now considered stable:
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
-* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
-* `NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
 
 The following top-level functions in `DependencyHandlerExtensions` are now considered stable:
 * `DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
