@@ -772,7 +772,7 @@ When using a hierarchical directory structure to organize your Gradle projects, 
 When you use the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.Iterable)[`Settings.include()`] method to include a project in your Gradle settings file, you typically include projects by supplying the directory name like `include("featureA")`.
 This usage assumes that `featureA` is located at the root of your build.
 
-You can include projects located in subdirectories using hierarchical paths, with `:` as the separator. 
+You can include projects located in subdirectories using hierarchical paths, with `:` as the separator.
 This is useful for organizing large builds with many projects, allowing for a clearer structure than having all projects at the root.
 For example, if the `search` project is located in `subs/features/search`, you can include it with: `include(":subs:features:search")`.
 
@@ -841,6 +841,16 @@ include::sample[dir="snippets/bestPractices/avoidEmptyProjects-avoid/tests",file
 The output of running the `projects` report on the above build shows that Gradle created empty projects for `:subs` and `:subs:web`.
 
 ==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidEmptyProjects-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidEmptyProjects-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/avoidEmptyProjects-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
