@@ -769,7 +769,7 @@ When using a hierarchical directory structure to organize your Gradle projects, 
 
 === Explanation
 
-When you use the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.Iterable)[Settings.include()] method to include a project in your Grade settings file, you typically include projects by supplying the directory name like `include("featureA")`.
+When you use the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.Iterable)[`Settings.include()`] method to include a project in your Gradle settings file, you typically include projects by supplying the directory name like `include("featureA")`.
 This usage assumes that `featureA` is located at the root of your build.
 
 You can also include projects located in subdirectories using hierarchical paths with the `:` charactor as a separator.
