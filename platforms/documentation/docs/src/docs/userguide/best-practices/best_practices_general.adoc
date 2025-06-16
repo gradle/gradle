@@ -795,7 +795,7 @@ As ab added benefit, this will allow you to reference the project by the shorter
 ----
 ├── settings.gradle.kts
 ├── app/ // <1>
-│   ├── build.gradle
+│   ├── build.gradle.kts
 │   └── src/
 └── subs/ // <2>
     └── web/ // <3>
