@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -32,12 +31,6 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
     abstract IdeProjectFixture project(TestFile projectDir, String ideProjectName)
 
     @Issue("https://github.com/gradle/gradle/issues/5110")
-    @ToBeFixedForConfigurationCache(
-        because = "Execution of task ':buildSrc:ideaModule' caused invocation of 'Task.project' by task ':buildSrc:compileTestJava' at execution time which is unsupported with the configuration cache.",
-        bottomSpecs = [
-            "IdeaMultiBuildIntegrationTest",
-            "EclipseMultiBuildIntegrationTest"]
-    )
     def "buildSrc project can apply IDE plugin"() {
         file("buildSrc/build.gradle") << """
             apply plugin: '${pluginId}'
