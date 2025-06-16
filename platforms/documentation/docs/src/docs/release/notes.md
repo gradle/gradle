@@ -16,7 +16,7 @@ This release makes [Configuration Cache](#config-cache) the preferred execution 
 
 Gradle @version@ uses [Kotlin 2](#kotlin-2) and [Groovy 4](#groovy-4), and adopts [Semantic Versioning](#sem-ver) (SemVer) with version numbers in the format `MAJOR.MINOR.PATCH`.
 
-It also introduces several improvements for [build authors](#build-authoring), including better Kotlin DSL script compilation avoidance, updates to the Gradle API, and a new type for Dependency Graph root nodes that allows detached configurations to resolve dependencies that reference their project.
+It also introduces several improvements for [build authors](#build-authoring), including much better Kotlin DSL script compilation performance, updates to the Gradle API, and a new type for Dependency Graph root nodes that allows detached configurations to resolve dependencies that reference their project.
 
 Gradle @version@ includes numerous bug fixes and general improvements.
 As a major release, it also introduces changes to deprecated APIs and behaviors.
@@ -75,18 +75,6 @@ Gradle's [Configuration Cache](userguide/configuration_cache.html) improves buil
 The Configuration Cache is the preferred mode of execution and is enabled by default in new projects.
 While not yet required, Gradle encourages adoption by prompting users and gradually phasing out incompatible APIs to prepare for a future where it becomes the only supported mode.
 
-#### Graceful fallback from Configuration Cache mode
-
-Gradle falls back to non-Configuration Cache mode automatically when encountering unsupported features, instead of failing the build.
-
-This includes:
-
-- [Core plugins](userguide/configuration_cache.html#config_cache:plugins:core) with limited support (such as Maven Publish and Ivy Publish)
-- Incompatible plugins (such as Eclipse and IDEA)
-- Features not yet supported (such as [Source Dependencies](userguide/configuration_cache.html#config_cache:not_yet_implemented:source_dependencies))
-
-After running a build, the reason for the fallback can be found in the [Configuration Cache report](userguide/reporting_problems.html#reporting_problems).
-
 #### Prompt to enable Configuration Cache
 
 If your build has no known Configuration Cache incompatibilities but doesn't yet have the [Configuration Cache enabled](userguide/configuration_cache_enabling.html#config_cache:usage:enable), Gradle will suggest enabling it at the end of the build:
@@ -100,6 +88,18 @@ If you're not ready to invest time in this yet, you can suppress the suggestion 
 ```
 org.gradle.configuration-cache=false
 ```
+
+#### Graceful fallback from Configuration Cache mode
+
+Gradle falls back to non-Configuration Cache mode automatically when encountering unsupported features, instead of failing the build.
+
+This includes:
+
+- [Core plugins](userguide/configuration_cache.html#config_cache:plugins:core) with limited support (such as Maven Publish and Ivy Publish)
+- Unsupported or incompatible IDE plugins (such as Eclipse and IDEA)
+- Features not yet supported (such as [Source Dependencies](userguide/configuration_cache.html#config_cache:not_yet_implemented:source_dependencies))
+
+After running a build, the reason for the fallback can be found in the [Configuration Cache report](userguide/reporting_problems.html#reporting_problems).
 
 #### Other notable Configuration Cache updates
 
@@ -168,12 +168,13 @@ Gradle provides rich APIs for plugin authors and build engineers to develop cust
 <a name="compilation-avoidance"></a>
 #### Kotlin build script compilation avoidance
 
-With this release, Gradle significantly improves detection of ABI (Application Binary Interface) changes in [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts.
-Gradle uses Kotlin's built-in ABI fingerprinting instead of its previous internal mechanism.
+With this release, Gradle speeds up feedback loops when editing build logic by avoiding unnecessary recompilation of [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts.
+This reduces build times and improves developer productivity.
 
-This change brings major performance benefits, especially in builds that use inline functions, which were previously not handled efficiently.
+The improvement comes from significantly better detection of ABI (Application Binary Interface) changes, made possible by using Kotlin’s built-in ABI fingerprinting instead of Gradle’s previous internal mechanism.
+This brings major performance benefits, especially in builds that use inline functions, which were not handled efficiently before.
 
-For example, in the `gradle/gradle` project, non-ABI changes to build logic result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
+For example, in the [Gradle build](https://github.com/gradle/gradle) itself, non-ABI changes to build logic result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
 
 ![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
 
@@ -238,6 +239,8 @@ Dependency graphs resolved from detached configurations and `buildscript` config
 In partnership with JetBrains and Google, we've launched a new [Gradle Best Practices guide](userguide/best_practices.html) to help you avoid common pitfalls and write more maintainable, performant builds.
 These recommendations consolidate community knowledge and Gradle team insights into a single, growing resource.
 The current version covers best practices in dependency declarations, build structure, task authoring, and more.
+
+For more information, check out the [Gradle Best Practices](https://blog.gradle.org/gradle-best-practices) blog post.
 
 ## Promoted features
 
