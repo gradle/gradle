@@ -1023,7 +1023,7 @@ task wrongConventionRuntimeValueType {
         failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
 
         verifyAll(receivedProblem) {
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'verification:property-verification:value-not-set'
             contextualLabel == 'Type \'MyTask\' property \'strings\' doesn\'t have a configured value'
             details == 'This property isn\'t marked as optional and no value has been configured'
             solutions == [

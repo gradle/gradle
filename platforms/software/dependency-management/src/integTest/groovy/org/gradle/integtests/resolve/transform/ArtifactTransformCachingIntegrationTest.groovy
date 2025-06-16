@@ -218,7 +218,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         .includeLink()
                 }))
                 verifyAll(receivedProblem(index as Integer)) {
-                    fqid == 'validation:property-validation:cannot-write-to-reserved-location'
+                    fqid == 'verification:property-verification:cannot-write-to-reserved-location'
                     contextualLabel == "Property \'output\' points to \'${reserved.absolutePath}\' which is managed by Gradle"
                     details == 'Trying to write an output to a read-only location which is for Gradle internal use only'
                     solutions == ['Select a different output location']

@@ -699,7 +699,7 @@ task someTask(type: SomeTask) {
         })
 
         verifyAll(receivedProblem(0)) {
-            fqid == 'validation:property-validation:unexpected-input-file-type'
+            fqid == 'verification:property-verification:unexpected-input-file-type'
             contextualLabel == "Property \'input\' $fileType \'${unexpected.absolutePath}\' is not a $fileType"
             details == "Expected an input to be a $fileType but it was a ${getOppositeKind(fileType)}"
             solutions == [
@@ -740,7 +740,7 @@ task someTask(type: SomeTask) {
         })
 
         verifyAll(receivedProblem(0)) {
-            fqid == 'validation:property-validation:cannot-write-output'
+            fqid == 'verification:property-verification:cannot-write-output'
             contextualLabel == "Property \'output\' is not writable because \'${outputDir.absolutePath}\' is not a file"
             details == 'Cannot write a file to a location pointing at a directory'
             solutions == [
@@ -780,7 +780,7 @@ task someTask(type: SomeTask) {
         })
 
         verifyAll(receivedProblem(0)) {
-            fqid == 'validation:property-validation:cannot-write-output'
+            fqid == 'verification:property-verification:cannot-write-output'
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
             solutions == [ 'Make sure that the \'output\' is configured to a directory' ]
@@ -823,7 +823,7 @@ task someTask(type: SomeTask) {
         })
 
         verifyAll(receivedProblem(0)) {
-            fqid == 'validation:property-validation:cannot-write-output'
+            fqid == 'verification:property-verification:cannot-write-output'
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected the root of the file tree \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
             solutions == [ 'Make sure that the root of the file tree \'output\' is configured to a directory' ]

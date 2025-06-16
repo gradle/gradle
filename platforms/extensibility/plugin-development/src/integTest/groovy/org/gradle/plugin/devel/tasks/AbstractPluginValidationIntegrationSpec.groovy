@@ -135,7 +135,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:property-validation:missing-annotation'
+                fqid == 'verification:property-verification:missing-annotation'
                 contextualLabel == 'Type \'MyTask\' property \'badTime\' is missing an input or output annotation'
                 details == 'A property without annotation isn\'t considered during up-to-date checking'
                 solutions == [
@@ -148,7 +148,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 ]
             }
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:property-validation:missing-annotation'
+                fqid == 'verification:property-verification:missing-annotation'
                 contextualLabel == 'Type \'MyTask\' property \'oldThing\' is missing an input or output annotation'
                 details == 'A property without annotation isn\'t considered during up-to-date checking'
                 solutions == [
@@ -161,7 +161,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 ]
             }
             verifyAll(receivedProblem(2)) {
-                fqid == 'validation:property-validation:missing-annotation'
+                fqid == 'verification:property-verification:missing-annotation'
                 contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is missing an input or output annotation'
                 details == 'A property without annotation isn\'t considered during up-to-date checking'
                 solutions == [
@@ -175,7 +175,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 ]
             }
             verifyAll(receivedProblem(3)) {
-                fqid == 'validation:property-validation:missing-annotation'
+                fqid == 'verification:property-verification:missing-annotation'
                 contextualLabel == 'Type \'MyTask\' property \'ter\' is missing an input or output annotation'
                 details == 'A property without annotation isn\'t considered during up-to-date checking'
                 solutions == [
@@ -266,7 +266,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem) {
-                fqid == 'validation:property-validation:cannot-use-optional-on-primitive-types'
+                fqid == 'verification:property-verification:cannot-use-optional-on-primitive-types'
                 contextualLabel == "Type 'MyTask' property 'primitive' of type $primitiveType shouldn't be annotated with @Optional"
                 details == 'Properties of primitive type cannot be optional'
                 solutions == [
@@ -403,7 +403,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:property-validation:missing-annotation'
+                fqid == 'verification:property-verification:missing-annotation'
                 contextualLabel == 'Type \'MyTask\' property \'badTime\' is missing an input or output annotation'
                 details == 'A property without annotation isn\'t considered during up-to-date checking'
                 solutions == [
@@ -416,7 +416,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 ]
             }
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:property-validation:missing-annotation'
+                fqid == 'verification:property-verification:missing-annotation'
                 contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is missing an input or output annotation'
                 details == 'A property without annotation isn\'t considered during up-to-date checking'
                 solutions == [
@@ -560,7 +560,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem) {
-                fqid == 'validation:property-validation:mutable-type-with-setter'
+                fqid == 'verification:property-verification:mutable-type-with-setter'
                 contextualLabel == "Type \'MyTask\' property \'mutablePropertyWithSetter\' of mutable type '${testedType.replace('<String>', '')}' is writable"
                 details == "Properties of type '${testedType.replace('<String>', '')}' are already mutable"
                 solutions == [ 'Remove the \'setMutablePropertyWithSetter\' method' ]
@@ -625,7 +625,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+                fqid == 'verification:property-verification:private-getter-must-not-be-annotated'
                 contextualLabel == 'Type \'MyTask\' property \'badTime\' is private and annotated with @Input'
                 details == 'Annotations on private getters are ignored'
                 solutions == [
@@ -638,7 +638,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 ]
             }
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+                fqid == 'verification:property-verification:private-getter-must-not-be-annotated'
                 contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is private and annotated with @Input'
                 details == 'Annotations on private getters are ignored'
                 solutions == [
@@ -652,7 +652,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 ]
             }
             verifyAll(receivedProblem(2)) {
-                fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+                fqid == 'verification:property-verification:private-getter-must-not-be-annotated'
                 contextualLabel == 'Type \'MyTask\' property \'outputDir\' is private and annotated with @OutputDirectory'
                 details == 'Annotations on private getters are ignored'
                 solutions == [
@@ -792,7 +792,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:property-validation:missing-annotation'
+                fqid == 'verification:property-verification:missing-annotation'
                 contextualLabel == 'Type \'MyTask\' property \'readWrite\' is missing an input or output annotation'
                 details == 'A property without annotation isn\'t considered during up-to-date checking'
                 solutions == [
@@ -887,7 +887,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:property-validation:ignored-property-must-not-be-annotated'
+                fqid == 'verification:property-verification:ignored-property-must-not-be-annotated'
                 contextualLabel == 'Type \'MyTask\' property \'oldProperty\' annotated with @ReplacedBy should not be also annotated with @Input'
                 details == 'A property is ignored but also has input annotations'
                 solutions == [
@@ -933,7 +933,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:property-validation:conflicting-annotations'
+                fqid == 'verification:property-verification:conflicting-annotations'
                 contextualLabel == 'Type \'MyTask\' property \'file\' has conflicting type annotations declared: @InputFile, @OutputFile'
                 details == 'The different annotations have different semantics and Gradle cannot determine which one to pick'
                 solutions == [ 'Choose between one of the conflicting annotations' ]

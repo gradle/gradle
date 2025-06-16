@@ -141,7 +141,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failureDescriptionContains(missingValueMessage { type('CustomTask').property('destFile') })
 
         verifyAll(receivedProblem(0)) {
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'verification:property-verification:value-not-set'
             details == 'This property isn\'t marked as optional and no value has been configured'
             solutions == [
                 'Assign a value to \'destFile\'',
@@ -153,7 +153,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             ]
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'verification:property-verification:value-not-set'
             details == 'This property isn\'t marked as optional and no value has been configured'
             solutions == [
                 'Assign a value to \'srcFile\'',
