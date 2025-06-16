@@ -49,7 +49,6 @@ import java.util.Set;
  *
  * @since 4.0
  */
-@ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Project.class})
 public interface ObjectFactory {
     /**
@@ -211,7 +210,6 @@ public interface ObjectFactory {
      * @return The property. Never returns null.
      * @since 4.3
      */
-    @ManagedObjectCreator
     <T> Property<T> property(Class<T> valueType);
 
     /**
@@ -224,7 +222,6 @@ public interface ObjectFactory {
      * @return The property. Never returns null.
      * @since 4.3
      */
-    @ManagedObjectCreator
     <T> ListProperty<T> listProperty(Class<T> elementType);
 
     /**
@@ -237,7 +234,6 @@ public interface ObjectFactory {
      * @return The property. Never returns null.
      * @since 4.5
      */
-    @ManagedObjectCreator
     <T> SetProperty<T> setProperty(Class<T> elementType);
 
     /**
@@ -252,7 +248,6 @@ public interface ObjectFactory {
      * @return the property. Never returns null.
      * @since 5.1
      */
-    @ManagedObjectCreator
     <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 
     /**

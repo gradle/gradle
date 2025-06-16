@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.internal.instantiation.managed.ManagedObjectCreator;
+import org.gradle.internal.instantiation.managed.ManagedObjectProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+@ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface PropertyFactory {
 
@@ -28,11 +31,15 @@ public interface PropertyFactory {
     @Deprecated
     DefaultProperty<?> propertyWithNoType();
 
+    @ManagedObjectCreator
     <T> DefaultProperty<T> property(Class<T> type);
 
+    @ManagedObjectCreator
     <T> DefaultListProperty<T> listProperty(Class<T> elementType);
 
+    @ManagedObjectCreator
     <T> DefaultSetProperty<T> setProperty(Class<T> elementType);
 
+    @ManagedObjectCreator
     <V, K> DefaultMapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 }

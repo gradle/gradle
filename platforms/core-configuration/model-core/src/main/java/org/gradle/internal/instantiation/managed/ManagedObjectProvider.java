@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.model;
+package org.gradle.internal.instantiation.managed;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.model.ManagedType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -28,10 +28,7 @@ import java.lang.annotation.Target;
  * <p>
  * Methods of classes annotated with this annotation that create managed objects must
  * be annotated with {@link ManagedObjectCreator}.
- *
- * @since 9.0.0
  */
-@Incubating
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ManagedObjectProvider {

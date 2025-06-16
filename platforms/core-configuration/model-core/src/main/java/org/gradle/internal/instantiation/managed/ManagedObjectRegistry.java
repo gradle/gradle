@@ -16,8 +16,6 @@
 
 package org.gradle.internal.instantiation.managed;
 
-import org.gradle.api.model.ManagedObjectCreator;
-import org.gradle.api.model.ManagedObjectProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.AnnotatedServiceLifecycleHandler;
 import org.gradle.internal.service.scopes.Scope;
