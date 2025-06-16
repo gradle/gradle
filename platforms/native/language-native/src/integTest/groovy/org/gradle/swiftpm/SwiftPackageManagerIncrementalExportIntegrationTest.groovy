@@ -155,7 +155,6 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
-    @ToBeFixedForConfigurationCache
     def "regenerates manifest when Swift dependencies added or removed"() {
         given:
         settingsFile << """

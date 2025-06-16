@@ -64,7 +64,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         def confCacheDir = file("./app/.gradle/configuration-cache")
         confCacheDir.isDirectory()
         def confCacheFiles = confCacheDir.allDescendants().findAll { it != 'configuration-cache.lock' && it != 'gc.properties' }
-        confCacheFiles.size() == 13 // header, candidates file, 2 * fingerprint, build strings file, root build state file, root build shared objects file, included build state file, included build shared objects file, 2 * project state file, 2 * owner-less node state files
+        confCacheFiles.size() == 14 // header, candidates file, classloader scopes, 2 * fingerprint, build strings file, root build state file, root build shared objects file, included build state file, included build shared objects file, 2 * project state file, 2 * owner-less node state files
         if (!OperatingSystem.current().isWindows()) {
             confCacheFiles.forEach {
                 assert confCacheDir.file(it).mode == 384
@@ -147,7 +147,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCache.assertStateLoaded()
     }
 
-    def "reports a problem when source dependencies are present"() {
+    def "gracefully degrades to vintage when source dependencies are present"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
@@ -162,47 +162,14 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             }
         """
 
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
         and:
-        def expectedProblem = "Gradle runtime: support for source dependencies is not yet implemented with the configuration cache."
-
-        when:
-        configurationCacheFails("help")
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        when:
-        configurationCacheRunLenient("help")
-
-        then:
-        problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(2)
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        when:
-        configurationCacheFails("help")
-
-        then:
-        configurationCache.assertStateLoaded()
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        when:
-        configurationCacheRunLenient("help")
-
-        then:
-        configurationCache.assertStateLoaded()
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
+        postBuildOutputContains("Configuration cache disabled because incompatible feature usage (source dependencies) was found.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20945")

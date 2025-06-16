@@ -18,9 +18,9 @@ package org.gradle.testing.junit.platform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.testing.fixture.TestFrameworkStartupTestFixture
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
-import static org.hamcrest.CoreMatchers.containsString
 
 /**
  * Tests the state of the application classpath in the forked test process to ensure the correct
@@ -30,7 +30,7 @@ import static org.hamcrest.CoreMatchers.containsString
  * <p>This test intentionally does not extend {@link JUnitPlatformIntegrationSpec} in order to have
  * complete control over the configuration of the test setup</p>
  */
-class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
+class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec implements TestFrameworkStartupTestFixture {
 
     // The versions tested against here are intentionally different than the version of junit-platform-launcher
     // that Gradle will load from the distribution. This way, we can use the version on the application classpath
@@ -80,9 +80,11 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         fails('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureHasCause(~/Could not start Gradle Test Executor \d+: Cannot create Launcher without at least one TestEngine; consider adding an engine implementation JAR to the classpath/)
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("ExampleTest")
     }
 
     def "test classpath reflects declared dependencies"() {

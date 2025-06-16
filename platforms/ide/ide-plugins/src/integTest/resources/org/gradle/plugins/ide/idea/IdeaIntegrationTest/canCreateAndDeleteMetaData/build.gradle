@@ -34,3 +34,5 @@ cleanIdea.doLast {
     assert !file("${project.name}.ipr").isFile()
     assert file("${project.name}.iws").isFile() //we don't rid the iws file
 }
+
+cleanIdea.notCompatibleWithConfigurationCache("accesses file() from doLast action")

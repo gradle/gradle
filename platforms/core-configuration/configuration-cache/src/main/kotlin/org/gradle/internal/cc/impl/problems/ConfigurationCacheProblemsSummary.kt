@@ -190,7 +190,8 @@ class Summary(
         val documentationRegistry = DocumentationRegistry()
         return StringBuilder().apply {
             // When build degrades gracefully, we keep the console output minimal but still want to see the report link
-            if (reportableProblemCount > 0) {
+            val hasReportableProblems = reportableProblemCount > 0
+            if (hasReportableProblems) {
                 appendLine()
                 appendSummaryHeader(cacheActionText, reportableProblemCount)
                 appendLine()
@@ -209,6 +210,11 @@ class Summary(
             }
             htmlReportFile?.let {
                 appendLine()
+                if (!hasReportableProblems) {
+                    // Some tests parse this line.
+                    append("Some tasks in this build are not compatible with the configuration cache.")
+                    appendLine()
+                }
                 append(buildSummaryReportLink(it))
             }
         }.toString()
@@ -226,6 +232,7 @@ class Summary(
         cacheAction: String,
         reportableProblemCount: Int
     ) {
+        // Some tests parse this header.
         append(reportableProblemCount)
         append(if (reportableProblemCount == 1) " problem was found " else " problems were found ")
         append(cacheAction)
