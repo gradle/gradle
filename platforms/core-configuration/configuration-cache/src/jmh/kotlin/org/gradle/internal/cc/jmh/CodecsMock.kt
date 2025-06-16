@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.jmh
 
-import com.nhaarman.mockitokotlin2.mock
+import org.mockito.kotlin.mock
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
