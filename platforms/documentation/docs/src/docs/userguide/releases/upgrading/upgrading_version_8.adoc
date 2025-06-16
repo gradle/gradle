@@ -39,7 +39,7 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.0]]
 == Upgrading from 8.14 and earlier
 
-=== Language, JDK, and DSL changes
+=== Runtime requirements and DSL changes
 
 [[jvm-17]]
 ==== Java Virtual Machine (JVM) 17 or higher is required
@@ -66,10 +66,13 @@ This upgrade includes several important changes:
 
 For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21[Kotlin release notes].
 
-==== Kotlin DSL now uses the Kotlin language version 2.1
+==== Kotlin DSL and plugins use the Kotlin language version 2.1
 
-In Gradle 9, the Kotlin DSL has been upgraded to use Kotlin language version 2.1, whereas Gradle 8.x used version 1.8.
-For details, see the Kotlin 2.1 release notes.
+The Kotlin DSL has been upgraded to the latest stable link:https://kotlinlang.org/docs/whatsnew2120.html[Kotlin 2.1.x] runtime and uses Kotlin language version 2.1 across the entire toolchain.
+This marks a shift from Gradle 8.x, which embedded link:https://kotlinlang.org/docs/whatsnew20.html[Kotlin 2.0] starting in 8.11 but continued using Kotlin language version 1.8 for compatibility.
+
+This change impacts not only Kotlin DSL scripts (`.gradle.kts`) but also build logic and plugins written in Kotlin (both classic and convention plugins).
+Users should review their code for compatibility with link:https://kotlinlang.org/docs/compatibility-guide-21.html[Kotlin 2.1], as both link:https://kotlinlang.org/docs/compatibility-guide-20.html[Kotlin 2.0] and 2.1 introduced several breaking language changes.
 
 Due to changes in how the Kotlin 2 compiler handles script compilation, you can no longer refer to the script instance using labels like `this@Build_gradle`, `this@Settings_gradle`, or `this@Init_gradle`.
 If they are used to reference the DSL script target object, then use `project`, `settings`, or `gradle` instead.
@@ -81,10 +84,8 @@ Read the link:#jspecify[JSpecify section] below to learn about potential breakin
 ==== Upgrade to Groovy 4.0.27
 
 Groovy has been upgraded from version 3.0.24 to https://groovy-lang.org/changelogs/changelog-4.0.27.html[4.0.27].
-For a complete overview of changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
-
 The update to Groovy 4 comes with many breaking changes, such as the removal of legacy packages, changes in the module structure, a parser rewrite, and bytecode output changes.
-For a complete overview of these and more changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
+For a complete overview of Groovy language changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
 These changes may affect those who use Groovy directly or indirectly in Gradle, and in rare cases, users relying on transitive dependencies.
 
 ===== `is`-prefixed `Boolean` properties no longer recognized by Groovy
