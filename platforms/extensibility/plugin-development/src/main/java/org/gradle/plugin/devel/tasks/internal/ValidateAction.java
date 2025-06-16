@@ -89,7 +89,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             try {
                 //noinspection ResultOfMethodCallIgnored
                 output.createNewFile();
-                Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
+                Gson gson = VerificationProblemSerialization.createGsonBuilder().create();
                 Files.asCharSink(output, StandardCharsets.UTF_8).write(gson.toJson(problemMessages));
             } catch (IOException ex) {
                 throw new java.io.UncheckedIOException(ex);
