@@ -70,18 +70,10 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
         boolean registeredCreator = false;
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         for (Method method : instance.getClass().getMethods()) {
-            if (method.isAnnotationPresent(ManagedObjectCreator.class) ||
-                doesParentInterfaceMethodHaveAnnotation(instance.getClass(), method, ManagedObjectCreator.class)
-            ) {
-                MethodHandle handle;
-                try {
-                     handle = lookup.unreflect(method);
-                } catch (IllegalAccessException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-
-                validateMethod(method, handle);
-                registerFactory(handle, instance);
+            ManagedObjectCreator creatorAnnotation = getCreatorAnnotation(method, instance);
+            if (creatorAnnotation != null) {
+                MethodHandle handle = getBoundMethodHandle(method, lookup, instance);
+                registerFactory(creatorAnnotation, handle);
                 registeredCreator = true;
             }
         }
@@ -91,10 +83,37 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
         }
     }
 
-    public static boolean doesParentInterfaceMethodHaveAnnotation(
+    private static MethodHandle getBoundMethodHandle(Method method, MethodHandles.Lookup lookup, Object instance) {
+        MethodHandle handle;
+        try {
+             handle = lookup.unreflect(method);
+        } catch (IllegalAccessException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        if (Modifier.isStatic(method.getModifiers())) {
+            throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must not be static.");
+        }
+
+        MethodHandle boundHandle = handle.bindTo(instance);
+        validateFactoryMethod(method, boundHandle);
+        return boundHandle;
+    }
+
+    @Nullable
+    private static ManagedObjectCreator getCreatorAnnotation(Method method, Object instance) {
+        ManagedObjectCreator directAnnotation = method.getAnnotation(ManagedObjectCreator.class);
+        if (directAnnotation != null) {
+            return directAnnotation;
+        }
+        return getParentInterfaceCreatorAnnotation(instance.getClass(), method, ManagedObjectCreator.class);
+    }
+
+    @Nullable
+    public static <T extends Annotation> T getParentInterfaceCreatorAnnotation(
         Class<?> clazz,
         Method targetMethod,
-        Class<? extends Annotation> annotation
+        Class<T> annotation
     ) {
         for (Class<?> parent : clazz.getInterfaces()) {
             Method interfaceMethod = null;
@@ -103,53 +122,51 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
             } catch (NoSuchMethodException e) {
                 // Method not found in this interface, continue checking others
             }
-            if (interfaceMethod != null && interfaceMethod.isAnnotationPresent(annotation)) {
-                return true;
+            if (interfaceMethod != null) {
+                T annotationInstance = interfaceMethod.getAnnotation(annotation);
+                if (annotationInstance != null) {
+                    return annotationInstance;
+                }
             }
         }
 
-        return false;
+        return null;
     }
 
-    private void registerFactory(MethodHandle handle, Object instance) {
-        MethodType type = handle.type();
-        Class<?> returnType = type.returnType();
-        MethodHandle boundHandle = handle.bindTo(instance);
-        MethodHandle existing = factories.put(returnType, boundHandle);
+    private void registerFactory(ManagedObjectCreator creatorAnnotation, MethodHandle handle) {
+        // Use the return type of the method as the public type, unless otherwise specified.
+        Class<?> publicType = creatorAnnotation.publicType() == void.class
+            ? handle.type().returnType()
+            : creatorAnnotation.publicType();
+
+        MethodHandle existing = factories.put(publicType, handle);
 
         if (existing != null) {
             // Class#getMethods does not have a consistent order.
             // For consistency in tests, we sort the method handles in the error message.
-            List<String> sortedMethods = Stream.of(existing, boundHandle)
+            List<String> sortedMethods = Stream.of(existing, handle)
                 .map(MethodHandle::toString)
                 .sorted()
                 .collect(Collectors.toList());
 
-            throw new IllegalArgumentException("Method " + sortedMethods.get(0) + " for type " + returnType + "conflicts with existing factory method " + sortedMethods.get(1) + ".");
+            throw new IllegalArgumentException("Method " + sortedMethods.get(0) + " for type " + publicType + "conflicts with existing factory method " + sortedMethods.get(1) + ".");
         }
     }
 
-    private static void validateMethod(Method method, MethodHandle handle) {
-        if (Modifier.isStatic(method.getModifiers())) {
-            throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must not be static.");
-        }
-
+    private static void validateFactoryMethod(Method method, MethodHandle handle) {
         MethodType type = handle.type();
 
-        if (type.returnType() == void.class) {
+        Class<?> returnType = type.returnType();
+        if (returnType == void.class) {
             throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must return a value.");
         }
 
-        // The 0th parameter is the `this` receiver parameter.
-        int actualParameterCount = type.parameterCount() - 1;
-
-        if (actualParameterCount > 2) {
+        if (type.parameterCount() > 2) {
             // We only support max 2 arg factories.
             throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator has too many parameters.");
         }
 
-        for (int i = 0; i < actualParameterCount; i++) {
-            Class<?> parameterType = type.parameterType(i + 1);
+        for (Class<?> parameterType : type.parameterArray()) {
             if (parameterType != Class.class) {
                 throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must have parameters of type Class, but has parameter of type " + parameterType + ".");
             }

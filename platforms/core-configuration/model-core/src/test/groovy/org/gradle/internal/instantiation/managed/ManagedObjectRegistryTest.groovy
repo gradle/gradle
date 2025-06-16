@@ -429,6 +429,38 @@ class ManagedObjectRegistryTest extends Specification {
         e.message == "Service class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest\$ProviderWithoutCreators annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator."
     }
 
+    interface PublicThing {}
+
+    static class DefaultThing implements PublicThing {}
+
+    @ManagedObjectProvider
+    static class ProviderWithExplicitPublicType {
+
+        @ManagedObjectCreator(publicType = PublicThing.class)
+        DefaultThing createThing() {
+            return new DefaultThing()
+        }
+
+    }
+
+    def "public type can be specified for creator"() {
+        def registry = registryOf {
+            it.add(ProviderWithExplicitPublicType)
+        }
+
+        when:
+        PublicThing thing = registry.newInstance(PublicThing)
+
+        then:
+        thing instanceof DefaultThing
+
+        when:
+        DefaultThing defaultThing = registry.newInstance(DefaultThing)
+
+        then:
+        defaultThing == null
+    }
+
     private static ManagedObjectRegistry registryOf(ServiceRegistrationAction action) {
         def services = ServiceRegistryBuilder.builder().provider {
             it.addProvider(new ServiceRegistrationProvider() {
