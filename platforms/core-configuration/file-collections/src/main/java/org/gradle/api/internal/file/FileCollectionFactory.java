@@ -27,11 +27,11 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.model.ManagedObjectCreator;
-import org.gradle.api.model.ManagedObjectProvider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.instantiation.managed.ManagedObjectCreator;
+import org.gradle.internal.instantiation.managed.ManagedObjectProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
