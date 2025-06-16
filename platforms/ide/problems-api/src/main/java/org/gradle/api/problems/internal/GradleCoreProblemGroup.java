@@ -28,9 +28,9 @@ public abstract class GradleCoreProblemGroup {
     private static final ProblemGroup VERSION_CATALOG_PROBLEM_GROUP = ProblemGroup.create("dependency-version-catalog", "Version catalog");
     private static final ProblemGroup VARIANT_RESOLUTION_PROBLEM_GROUP = ProblemGroup.create("dependency-variant-resolution", "Variant resolution");
     private static final ProblemGroup CONFIGURATION_USAGE_PROBLEM_GROUP = ProblemGroup.create("configuration-usage", "Configuration usage");
-    private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
+    private static final DaemonToolchainProblemGroupProvider DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
 
-    public static CompilationProblemGroup compilation() {
+    public static CompilationProblemGroupProvider compilation() {
         return COMPILATION_PROBLEM_GROUP;
     }
 
@@ -38,7 +38,7 @@ public abstract class GradleCoreProblemGroup {
         return DEPRECATION_PROBLEM_GROUP;
     }
 
-    public static VerficitationProblemGroup validation() {
+    public static VerificationProblemGroupProvider validation() {
         return VALIDATION_PROBLEM_GROUP;
     }
 
@@ -62,7 +62,7 @@ public abstract class GradleCoreProblemGroup {
         return CONFIGURATION_USAGE_PROBLEM_GROUP;
     }
 
-    public static DaemonToolchainProblemGroup daemonToolchain() {
+    public static DaemonToolchainProblemGroupProvider daemonToolchain() {
         return DAEMON_TOOLCHAIN_PROBLEM_GROUP;
     }
 
@@ -71,18 +71,18 @@ public abstract class GradleCoreProblemGroup {
         ProblemGroup customGroup(String id, String displayName);
     }
 
-    public interface CompilationProblemGroup extends ProblemGroupProvider {
+    public interface CompilationProblemGroupProvider extends ProblemGroupProvider {
         ProblemGroup java();
         ProblemGroup groovy();
         ProblemGroup groovyDsl();
     }
 
-    public interface VerficitationProblemGroup extends ProblemGroupProvider {
+    public interface VerificationProblemGroupProvider extends ProblemGroupProvider {
         ProblemGroup property();
         ProblemGroup type();
     }
 
-    public interface DaemonToolchainProblemGroup extends ProblemGroupProvider {
+    public interface DaemonToolchainProblemGroupProvider extends ProblemGroupProvider {
         ProblemGroup configurationGeneration();
     }
 
@@ -105,7 +105,7 @@ public abstract class GradleCoreProblemGroup {
         }
     }
 
-    private static class DefaultCompilationProblemGroup extends DefaultProblemGroupProvider implements CompilationProblemGroup {
+    private static class DefaultCompilationProblemGroup extends DefaultProblemGroupProvider implements CompilationProblemGroupProvider {
 
         private final ProblemGroup java = ProblemGroup.create("java", "Java compilation", thisGroup);
         private final ProblemGroup groovy = ProblemGroup.create("groovy", "Groovy compilation", thisGroup);
@@ -131,7 +131,7 @@ public abstract class GradleCoreProblemGroup {
         }
     }
 
-    private static class DefaultVerificationProblemGroup extends DefaultProblemGroupProvider implements VerficitationProblemGroup {
+    private static class DefaultVerificationProblemGroup extends DefaultProblemGroupProvider implements VerificationProblemGroupProvider {
 
         public static final String VERIFICATION = "verification";
         private final ProblemGroup property = ProblemGroup.create("property-" +VERIFICATION, "Gradle property " +VERIFICATION, thisGroup);
@@ -152,7 +152,7 @@ public abstract class GradleCoreProblemGroup {
         }
     }
 
-    private static class DefaultDaemonToolchainProblemGroup extends  DefaultProblemGroupProvider implements DaemonToolchainProblemGroup {
+    private static class DefaultDaemonToolchainProblemGroup extends  DefaultProblemGroupProvider implements DaemonToolchainProblemGroupProvider {
 
         private final ProblemGroup configurationGeneration = ProblemGroup.create("configuration-generation", "Gradle configuration generation", thisGroup);
 

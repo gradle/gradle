@@ -548,7 +548,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
          and:
          verifyAll(receivedProblem(0)) {
-             fqid == 'validation:type-validation:not-cacheable-without-reason'
+             fqid == 'verification:type-verification:not-cacheable-without-reason'
              contextualLabel == 'Type \'MyTask\' must be annotated either with @CacheableTask or with @DisableCachingByDefault'
              details == 'The task author should make clear why a task is not cacheable'
              solutions == [
@@ -559,7 +559,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
              additionalData.asMap == [ 'typeName' : 'MyTask' ]
          }
          verifyAll(receivedProblem(1)) {
-             fqid == 'validation:type-validation:not-cacheable-without-reason'
+             fqid == 'verification:type-verification:not-cacheable-without-reason'
              contextualLabel == 'Type \'MyTransformAction\' must be annotated either with @CacheableTransform or with @DisableCachingByDefault'
              details == 'The transform action author should make clear why a transform action is not cacheable'
              solutions == [

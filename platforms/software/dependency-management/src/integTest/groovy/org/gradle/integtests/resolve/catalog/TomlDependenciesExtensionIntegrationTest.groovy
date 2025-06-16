@@ -702,7 +702,7 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
         and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:catalog-file-does-not-exist'
-            contextualLabel == 'Problem: In version catalog libs, import of external catalog file failed.'
+            definition.id.displayName == 'Problem: In version catalog libs, import of external catalog file failed.'
             details == "File \'${file('missing.toml').absolutePath}\' doesn\'t exist"
             solutions == [ 'Make sure that the catalog file \'missing.toml\' exists before importing it' ]
         }
@@ -864,7 +864,7 @@ dependencyResolutionManagement {
 
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:too-many-import-files'
-            contextualLabel == 'Problem: In version catalog testLibs, importing multiple files are not supported.'
+            definition.id.displayName == 'Problem: In version catalog testLibs, importing multiple files are not supported.'
             details == 'The import consists of multiple files'
             solutions == [ 'Only import a single file' ]
         }
@@ -892,7 +892,7 @@ dependencyResolutionManagement {
 
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:no-import-files'
-            contextualLabel == 'Problem: In version catalog testLibs, no files are resolved to be imported.'
+            definition.id.displayName == 'Problem: In version catalog testLibs, no files are resolved to be imported.'
             details == 'The imported dependency doesn\'t resolve into any file'
             solutions == [ 'Check the import statement, it should resolve into a single file' ]
         }
@@ -937,7 +937,7 @@ dependencyResolutionManagement {
 
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-version-catalog:too-many-import-invocation'
-            contextualLabel == 'Problem: In version catalog testLibs, you can only call the \'from\' method a single time.'
+            definition.id.displayName == 'Problem: In version catalog testLibs, you can only call the \'from\' method a single time.'
             details == 'The method was called more than once'
             solutions == [ 'Remove further usages of the method call' ]
         }

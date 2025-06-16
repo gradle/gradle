@@ -861,7 +861,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'validation:missing-java-toolchain-plugin'
+            fqid == 'verification:missing-java-toolchain-plugin'
             contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.'
             definition.documentationLink.url.endsWith("/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain_90")
         }
