@@ -773,7 +773,7 @@ When you use the link:{groovyDslPath}/org.gradle.api.initialization.Settings.htm
 This usage assumes that `featureA` is located at the root of your build.
 
 You can include projects located in subdirectories using hierarchical paths, with `:` as the separator. 
-This allows you to organize large builds containing many projects to improve comprehensibility, versus having all your projects live at the root of the build.
+This is useful for organizing large builds with many projects, allowing for a clearer structure than having all projects at the root.
 For instance, if project `search` was located in a subdirectory named `features`, itself located in a subdirectory named `subs`, you could call `include(":subs:features:search")` to include it.
 
 However, without further configuration, Gradle will create empty projects for every element of the path.
