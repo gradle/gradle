@@ -247,7 +247,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
         registration.add(ProblemFactory::class.java, DefaultProblemFactory::class.java)
-        registration.add(DefaultDeferredRootBuildGradle::class.java)
 
         registration.add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
         // Set up CC problem reporting pipeline and promo, based on the build configuration
@@ -287,6 +286,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             }
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
+            registration.add(DefaultDeferredRootBuildGradle::class.java)
             registration.add(ConfigurationCacheInputsListener::class.java, InstrumentedInputAccessListener::class.java)
         } else {
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
