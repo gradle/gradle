@@ -22,8 +22,9 @@ import javax.inject.Inject
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def configurationCache = newConfigurationCacheFixture()
+
     def "a task can require CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -54,7 +55,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a task can require CC degradation for multiple reasons"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -103,7 +103,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "CC problems in warning mode are not hidden by CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -140,7 +139,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a task in included build can require CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile("included/build.gradle", """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -174,7 +172,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a buildSrc internal task that requires CC degradation does not introduce root build CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         file("buildSrc/src/main/java/MyClass.java") << "class MyClass {}"
         buildFile("buildSrc/build.gradle", """
             ${taskWithInjectedDegradationController()}
@@ -202,7 +199,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "depending on a CC degrading task from included build introduces CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile("included/build.gradle", """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -245,7 +241,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a dependency task in #build build can require CC degradation for the non-root build"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile("$build/build.gradle", """
             ${taskWithInjectedDegradationController()}
 
@@ -281,7 +276,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "no CC degradation if incompatible task is not presented in the task graph"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -313,7 +307,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "ignore CC degradation requests at execution time"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -335,7 +328,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "tasks instantiated during execution have degradation requests ignored"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -419,7 +411,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
     def "CC report link is present even when no problems were reported"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -468,6 +459,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCacheRunLenient("foo", "bar")
 
         then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
         assertConfigurationCacheDegradation(true)
     }
 
