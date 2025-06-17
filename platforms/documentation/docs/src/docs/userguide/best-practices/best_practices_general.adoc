@@ -448,7 +448,7 @@ When using a hierarchical directory structure to organize your Gradle projects, 
 
 === Explanation
 
-When you use the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.Iterable)[`Settings.include()`] method to include a project in your Gradle settings file, you typically include projects by supplying the directory name like `include("featureA")`.
+When you use the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[`Settings.include()`] method to include a project in your Gradle settings file, you typically include projects by supplying the directory name like `include("featureA")`.
 This usage assumes that `featureA` is located at the root of your build.
 
 You can include projects located in subdirectories using hierarchical paths, with `:` as the separator.
@@ -460,7 +460,7 @@ In the example above, Gradle will generate projects for `:subs`, `:subs:features
 Unless those intermediate projects are intentional, this can slow down your build, clutter reports, and make your build structure harder to understand.
 Additional projects - even if empty - will slow down your build, clutter reporting, and make your build harder to understand.
 
-To avoid this, be sure to explicitly set the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[`Project.projectDir`] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module")`.
+To avoid this, be sure to explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[`Project.projectDir`] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module")`.
 
 As an added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
 

@@ -150,7 +150,7 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/groovy
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
 
 [[avoid_provider_get_outside_task_action]]
-== Do not call `get()`` on a Provider outside a Task action
+== Do not call `get()` on a Provider outside a Task action
 
 When configuring tasks and extensions do not call link:{javadocPath}/org/gradle/api/provider/Provider.html#get()[`get()`] on a provider, use link:{javadocPath}/org/gradle/api/provider/Provider.html#map(org.gradle.api.Transformer)[`map()`], or link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap(org.gradle.api.Transformer)[`flatMap()`] instead.
 

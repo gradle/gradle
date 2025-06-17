@@ -226,9 +226,9 @@ Do not put source files in your root project; instead, put them in a separate pr
 
 === Explanation
 
-The root project is a special link:{groovyDslPath}/org.gradle.api.Project.html[Project] in Gradle that serves as the entry point for your build.
+The root project is a special link:{kotlinDslPath}/gradle/org.gradle.api/-project/index.html[Project] in Gradle that serves as the entry point for your build.
 
-It is the place to configure some settings and conventions that apply globally to the entire build, that are not configured via link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings].
+It is the place to configure some settings and conventions that apply globally to the entire build, that are not configured via link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings].
 For example, you can _declare_ (but not apply) plugins here to ensure the same plugin version is consistently available across all projects and define other configurations shared by all projects within the build.
 
 NOTE: Be careful not to apply plugins unnecessarily in the root project - many plugins only affect source code and should only be applied to the projects that contain source code.
@@ -499,7 +499,7 @@ When using a hierarchical directory structure to organize your Gradle projects, 
 
 === Explanation
 
-When you use the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.Iterable)[Settings.include()] method to include a project in your Grade settings file, you typically include projects by supplying the directory name like `include("featureA")`.
+When you use the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[Settings.include()] method to include a project in your Grade settings file, you typically include projects by supplying the directory name like `include("featureA")`.
 This usage assumes that `featureA` is located at the root of your build.
 
 You can also include projects located in subdirectories using hierarchical paths with the `:` charactor as a separator.
@@ -511,7 +511,7 @@ In the example above, Gradle will create a project named `:subs`, a project name
 This probably isn't intended, as you likely only want to include the `search` project.
 Additional projects - even if empty - will slow down your build, clutter reporting, and make your build harder to understand.
 
-To avoid this, be sure to explicitly set the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.projectDir] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module"`).
+To avoid this, be sure to explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module"`).
 
 As ab added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
 
