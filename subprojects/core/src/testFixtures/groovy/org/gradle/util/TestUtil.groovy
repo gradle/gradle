@@ -190,12 +190,12 @@ class TestUtil {
             it.add(NamedObjectInstantiator)
             it.add(CollectionCallbackActionDecorator, CollectionCallbackActionDecorator.NOOP)
             it.add(MutationGuard, MutationGuards.identity())
-            it.add(DefaultDomainObjectCollectionFactory)
+            it.add(DomainObjectCollectionFactory, DefaultDomainObjectCollectionFactory)
             it.add(PropertyHost, PropertyHost.NO_OP)
             it.add(TaskDependencyFactory, DefaultTaskDependencyFactory.withNoAssociatedProject())
             it.add(DocumentationRegistry, new DocumentationRegistry())
             it.add(FileCollectionFactory, fileCollectionFactory)
-            it.add(DefaultPropertyFactory)
+            it.add(PropertyFactory, DefaultPropertyFactory)
             it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
                 ManagedObjectRegistry createManagedObjectRegistry() {
