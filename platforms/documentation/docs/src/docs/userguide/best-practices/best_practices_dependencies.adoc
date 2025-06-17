@@ -104,7 +104,7 @@ Example: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databin
 
 4. **Derive the second segment from the artifact ID**: Use a unique identifier from the artifact ID as the second segment.
 +
-Example: For `com.linecorp.armeria:armeria-grpc`, use `armeria.grpc`
+Example: For `com.linecorp.armeria:armeria-grpc`, use `armeria-grpc`
 
 5. **Avoid generic terms in the segments**: Exclude terms that are obvious or implied in the context of your project (`java`, `module`, `sdk`).
 +
