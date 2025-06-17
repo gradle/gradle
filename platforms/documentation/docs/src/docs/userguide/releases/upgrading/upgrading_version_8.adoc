@@ -297,7 +297,7 @@ These tasks are now only added to a project when a rule-based plugin is applied 
 
 === Configuration Cache changes
 
-==== Unsupported build event listeners are now configuration cache problems
+==== Unsupported build event listeners cause configuration cache problems
 
 The build event listener registration method
 link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`]
