@@ -23,12 +23,14 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails.ProjectNameAndPath;
 import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
+import java.io.Writer;
 import java.util.Set;
 
 /**
@@ -77,9 +79,16 @@ public class HtmlDependencyReporter extends ReportRenderer<ProjectsWithConfigura
     }
 
     private void generateJsFile(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, String fileName) {
-        String json = renderer.render(project, configurations);
-        String content = "var projectDependencyReport = " + json + ";";
-        GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8");
+        String prefix = "var projectDependencyReport = ";
+        File file = new File(outputDirectory, fileName);
+        IoActions.writeTextFile(file, "utf-8", new ErroringAction<Writer>() {
+            @Override
+            protected void doExecute(Writer writer) throws Exception {
+                writer.write(prefix);
+                renderer.render(project, configurations, writer);
+                writer.write(";");
+            }
+        });
     }
 
     private Transformer<String, ProjectNameAndPath> projectNamingScheme(final String extension) {

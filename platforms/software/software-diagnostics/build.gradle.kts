@@ -40,8 +40,8 @@ dependencies {
     implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
-    implementation(libs.groovyJson)
     implementation(libs.guava)
+    implementation(libs.gson)
     implementation(libs.jatl)
 
     testFixturesApi(testFixtures(projects.platformNative))
