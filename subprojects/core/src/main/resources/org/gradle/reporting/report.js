@@ -81,8 +81,8 @@
                         }, 1500);
                     })
                     .catch((err) => {
-                        alert("Failed to copy content to the clipboard. Check JavaScript console for more details.")
-                        console.error("Failed to copy: ", err);
+                        alert("Failed to copy to the clipboard: '" + err.message + "'. Check JavaScript console for more details.")
+                        console.warn("Failed to copy to the clipboard", err);
                     });
             });
         });
