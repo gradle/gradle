@@ -118,11 +118,10 @@ class JsonProjectDependencyRenderer {
      */
     public void render(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, Writer writer) throws IOException {
         JsonWriter json = new JsonWriter(writer);
-        renderProject(project, configurations, json);
+        writeProject(project, configurations, json);
     }
 
-    // Historic note: this class still uses the Groovy JsonBuilder, as it was originally developed as a Groovy class.
-    private void renderProject(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonWriter json) throws IOException {
+    private void writeProject(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonWriter json) throws IOException {
         json.beginObject();
         json.name("gradleVersion").value(GradleVersion.current().toString());
         json.name("generationDate").value(new Date().toString());
@@ -136,8 +135,8 @@ class JsonProjectDependencyRenderer {
             json.beginObject();
             json.name("name").value(configuration.getName());
             json.name("description").value(configuration.getDescription());
-            createDependencies(configuration, json);
-            createModuleInsights(configuration, json);
+            writeDependencies(configuration, json);
+            writeModuleInsights(configuration, json);
             json.endObject();
         }
         json.endArray();
@@ -145,16 +144,16 @@ class JsonProjectDependencyRenderer {
         json.endObject();
     }
 
-    private void createDependencies(ConfigurationDetails configuration, JsonWriter json) throws IOException {
+    private void writeDependencies(ConfigurationDetails configuration, JsonWriter json) throws IOException {
         if (configuration.isCanBeResolved()) {
             RenderableDependency root = new RenderableModuleResult(configuration.getResolutionResultRoot().get());
-            createDependencyChildren(root, new HashSet<>(), json, "dependencies");
+            writeDependencyChildren(root, new HashSet<>(), json, "dependencies");
         } else {
-            createDependencyChildren(configuration.getUnresolvableResult(), new HashSet<>(), json, "dependencies");
+            writeDependencyChildren(configuration.getUnresolvableResult(), new HashSet<>(), json, "dependencies");
         }
     }
 
-    private void createDependencyChildren(RenderableDependency dependency, final Set<Object> visited, JsonWriter json, String fieldName) throws IOException {
+    private void writeDependencyChildren(RenderableDependency dependency, final Set<Object> visited, JsonWriter json, String fieldName) throws IOException {
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
         json.name(fieldName);
         json.beginArray();
@@ -171,7 +170,7 @@ class JsonProjectDependencyRenderer {
             json.name("hasConflict").value(hasConflict);
             json.name("alreadyRendered").value(alreadyRendered);
             if (!alreadyRendered) {
-                createDependencyChildren(childDependency, visited, json, "children");
+                writeDependencyChildren(childDependency, visited, json, "children");
             } else {
                 json.name("children");
                 json.beginArray();
@@ -192,12 +191,12 @@ class JsonProjectDependencyRenderer {
         return null;
     }
 
-    private void createModuleInsights(final ConfigurationDetails configuration, JsonWriter json) throws IOException {
+    private void writeModuleInsights(final ConfigurationDetails configuration, JsonWriter json) throws IOException {
         json.name("moduleInsights");
         json.beginArray();
         for (ModuleIdentifier module : collectModules(configuration)) {
             json.beginObject();
-            createModuleInsight(module, configuration, json);
+            writeModuleInsight(module, configuration, json);
             json.endObject();
         }
         json.endArray();
@@ -230,13 +229,13 @@ class JsonProjectDependencyRenderer {
         }
     }
 
-    private void createModuleInsight(ModuleIdentifier module, ConfigurationDetails configuration, JsonWriter json) throws IOException {
+    private void writeModuleInsight(ModuleIdentifier module, ConfigurationDetails configuration, JsonWriter json) throws IOException {
         json.name("module").value(module.toString());
         json.name("insight");
-        createInsight(module, configuration.getName(), configuration.getResolutionResultRoot().get(), json);
+        writeInsight(module, configuration.getName(), configuration.getResolutionResultRoot().get(), json);
     }
 
-    private void createInsight(ModuleIdentifier module, String configurationName, ResolvedComponentResult incomingResolution, JsonWriter json) throws IOException {
+    private void writeInsight(ModuleIdentifier module, String configurationName, ResolvedComponentResult incomingResolution, JsonWriter json) throws IOException {
         json.beginArray();
         final Spec<DependencyResult> dependencySpec = new StrictDependencyResultSpec(module);
 
@@ -257,13 +256,13 @@ class JsonProjectDependencyRenderer {
             json.name("resolvable").value(dependency.getResolutionState().toString());
             json.name("hasConflict").value(!name.equals(dependency.getName()));
             json.name("children");
-            createInsightDependencyChildren(dependency, new HashSet<>(), configurationName, json);
+            writeInsightDependencyChildren(dependency, new HashSet<>(), configurationName, json);
             json.endObject();
         }
         json.endArray();
     }
 
-    private void createInsightDependencyChildren(RenderableDependency dependency, final Set<Object> visited, final String configurationName, JsonWriter json) throws IOException {
+    private void writeInsightDependencyChildren(RenderableDependency dependency, final Set<Object> visited, final String configurationName, JsonWriter json) throws IOException {
         json.beginArray();
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
         for (RenderableDependency childDependency : children) {
@@ -282,7 +281,7 @@ class JsonProjectDependencyRenderer {
             json.name("isLeaf").value(leaf);
             json.name("children");
             if (!alreadyRendered) {
-                createInsightDependencyChildren(childDependency, visited, configurationName, json);
+                writeInsightDependencyChildren(childDependency, visited, configurationName, json);
             } else {
                 json.beginArray();
                 json.endArray();
