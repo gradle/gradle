@@ -65,21 +65,36 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
     @Override
     public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
         assert annotation == ManagedObjectProvider.class;
+
         Object instance = registration.getInstance();
+        Class<?> instanceClass = instance.getClass();
 
         boolean registeredCreator = false;
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        for (Method method : instance.getClass().getMethods()) {
-            ManagedObjectCreator creatorAnnotation = getCreatorAnnotation(method, instance);
-            if (creatorAnnotation != null) {
-                MethodHandle handle = getBoundMethodHandle(method, lookup, instance);
-                registerFactory(creatorAnnotation, handle);
-                registeredCreator = true;
+        for (Class<?> declaredType : registration.getDeclaredTypes()) {
+            if (declaredType.isAnnotationPresent(ManagedObjectProvider.class)) {
+                for (Method declaredMethod : declaredType.getMethods()) {
+                    ManagedObjectCreator creatorAnnotation = declaredMethod.getAnnotation(ManagedObjectCreator.class);
+                    if (creatorAnnotation != null) {
+                        Method instanceMethod = getMethodInInstance(declaredMethod, instanceClass);
+                        MethodHandle handle = getBoundMethodHandle(instanceMethod, lookup, instance);
+                        registerFactory(creatorAnnotation, handle);
+                        registeredCreator = true;
+                    }
+                }
             }
         }
 
         if (!registeredCreator) {
             throw new IllegalArgumentException("Service " + instance.getClass() + " annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator.");
+        }
+    }
+
+    private static Method getMethodInInstance(Method method, Class<?> instanceClass) {
+        try {
+            return instanceClass.getMethod(method.getName(), method.getParameterTypes());
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -98,39 +113,6 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
         MethodHandle boundHandle = handle.bindTo(instance);
         validateFactoryMethod(method, boundHandle);
         return boundHandle;
-    }
-
-    @Nullable
-    private static ManagedObjectCreator getCreatorAnnotation(Method method, Object instance) {
-        ManagedObjectCreator directAnnotation = method.getAnnotation(ManagedObjectCreator.class);
-        if (directAnnotation != null) {
-            return directAnnotation;
-        }
-        return getParentInterfaceCreatorAnnotation(instance.getClass(), method, ManagedObjectCreator.class);
-    }
-
-    @Nullable
-    public static <T extends Annotation> T getParentInterfaceCreatorAnnotation(
-        Class<?> clazz,
-        Method targetMethod,
-        Class<T> annotation
-    ) {
-        for (Class<?> parent : clazz.getInterfaces()) {
-            Method interfaceMethod = null;
-            try {
-                interfaceMethod = parent.getMethod(targetMethod.getName(), targetMethod.getParameterTypes());
-            } catch (NoSuchMethodException e) {
-                // Method not found in this interface, continue checking others
-            }
-            if (interfaceMethod != null) {
-                T annotationInstance = interfaceMethod.getAnnotation(annotation);
-                if (annotationInstance != null) {
-                    return annotationInstance;
-                }
-            }
-        }
-
-        return null;
     }
 
     private void registerFactory(ManagedObjectCreator creatorAnnotation, MethodHandle handle) {
