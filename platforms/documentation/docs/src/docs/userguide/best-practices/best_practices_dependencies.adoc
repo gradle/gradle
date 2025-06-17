@@ -90,29 +90,37 @@ Adopting clear naming conventions for catalog entries ensures that developers ca
 
 The following guidelines help in naming catalog entries effectively:
 
-1. **Use dashes to separate segments**: Prefer dashes (`-`) over underscores (`_`) to separate different parts of the entry name.
+1. **Use dashes to separate segments**: Prefer hyphen/dashes (`-`) over underscores (`_`) to separate different parts of the entry name.
 +
-*Example*: For `org.apache.logging.log4j:log4j-api`, use `log4j-api`
+Example: For `org.apache.logging.log4j:log4j-api`, use `log4j-api`
 
-2. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment.
+2. **Strive to keep two segments maximum**: Try to keep it to two segments to avoid excessive nesting.
 +
-*Example*: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind`
+Example: For `io.airlift:aircompressor`, use `airlift-aircompressor`
 
-3. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
+3. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment. Do not include the top level domain in the segment (`com`, `org`, `net`, `dev`).
 +
-*Example*: For `io.ktor:ktor-client-core`, use `ktor-client-core`, not `ktor-ktor-client-core`
+Example: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind`
 
-4. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
+4. **Derive the second segment from the artifact ID**: Use a unique identifier from the artifact ID as the second segment.
 +
-*Example*: `spring-boot-starter-web` becomes `springBootStarterWeb`
+Example: For `com.linecorp.armeria:armeria-grpc`, use `armeria.grpc`
 
-5. **Avoid implicit terms**: Exclude terms that are obvious or implied in the context of your project.
+5. **Avoid generic terms in the segments**: Exclude terms that are obvious or implied in the context of your project (`java`, `module`, `sdk`).
 +
-*Example*: For `com.amazonaws:aws-java-sdk-core`, use `aws-core`, not `aws-javaSdkCore`
+Example: For `com.fasterxml.jackson.module:jackson-module-kotlin`, use `jackson-moduleKotlin`
 
-6. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
+6. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
 +
-*Example*: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
+Example: For `io.ktor:ktor-client-core`, use `ktor-client-core`, not `ktor-ktor-client-core`
+
+7. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
++
+Example: `spring-boot-starter-web` becomes `springBootStarterWeb`
+
+8. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
++
+Example: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
 
 === Example
 
