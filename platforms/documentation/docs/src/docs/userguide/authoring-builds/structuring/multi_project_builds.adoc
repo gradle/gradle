@@ -123,7 +123,7 @@ include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.
 
 Consult the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
 
-NOTE: Setting the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.projectDir] property is important when locating projects in nested subdirectories to <<best_practices_general.adoc#avoid_empty_projects,avoid unintentionally creating empty projects>>.
+NOTE: Setting the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.projectDir] property is important when locating projects in nested subdirectories to <<best_practices_structuring_builds.adoc#avoid_empty_projects,avoid unintentionally creating empty projects>>.
 
 [[include_existing_projects_only]]
 === Including projects without an existing directory
