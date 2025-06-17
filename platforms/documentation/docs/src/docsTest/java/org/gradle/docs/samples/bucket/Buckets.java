@@ -28,6 +28,7 @@ import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNo
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.DiscardingConnectionMessageRemovalOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmptyLineRemovalOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmptyLineTrimmerOutputNormalizer;
@@ -61,6 +62,7 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     EmptyLineTrimmerOutputNormalizer.class,
     RepositoryMirrorOutputNormalizer.class,
     EmptyLineRemovalOutputNormalizer.class,
+    DiscardingConnectionMessageRemovalOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,

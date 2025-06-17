@@ -153,6 +153,14 @@ Or set it in `gradle.properties`:
 org.gradle.configuration-cache.problems=warn
 ----
 
+[WARNING]
+====
+The warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+It will also not prevent new incompatibilities being accidentally added to your build later.
+
+Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>>.
+====
+
 By default, Gradle allows up to 512 warnings before failing the build.
 You can lower this limit:
 

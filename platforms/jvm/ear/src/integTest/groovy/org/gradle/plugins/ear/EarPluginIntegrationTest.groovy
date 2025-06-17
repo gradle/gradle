@@ -19,14 +19,14 @@ package org.gradle.plugins.ear
 import groovy.xml.XmlSlurper
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {

@@ -45,6 +45,7 @@ import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.junit.Assert.assertThrows
 import static org.junit.Assert.assertTrue
 
 final class ConfigurationCacheProblemsFixture {
@@ -181,6 +182,63 @@ final class ConfigurationCacheProblemsFixture {
         assertIncompatibleTasks(result.output, rootDir, spec)
     }
 
+    void assertFailureHtmlReportHasProblems(
+        ExecutionFailure failure,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertFailureHtmlReportHasProblems(failure, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertFailureHtmlReportHasProblems(
+        ExecutionFailure failure,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHtmlReportHasProblems(failure.error, newProblemsSpec(specAction))
+    }
+
+    void assertResultHtmlReportHasProblems(
+        ExecutionResult result,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertResultHtmlReportHasProblems(result, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertResultHtmlReportHasProblems(
+        ExecutionResult result,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHtmlReportHasProblems(result.output, newProblemsSpec(specAction))
+    }
+
+    void assertResultConsoleSummaryHasNoProblems(ExecutionResult result) {
+        assertThrows(AssertionFailedError) {
+            extractSummary(result.output)
+        }
+    }
+
+    void assertResultHasConsoleSummary(
+        ExecutionResult result,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertResultHasConsoleSummary(result, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertResultHasConsoleSummary(
+        ExecutionResult result,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHasConsoleSummary(result.output, newProblemsSpec(specAction))
+    }
+
+    private void assertHtmlReportHasProblems(
+        String output,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        assertProblemsHtmlReport(output, rootDir, spec)
+        assertInputs(output, rootDir, spec)
+        assertIncompatibleTasks(output, rootDir, spec)
+    }
+
     HasConfigurationCacheProblemsSpec newProblemsSpec(
         @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
@@ -271,7 +329,8 @@ final class ConfigurationCacheProblemsFixture {
             output,
             totalProblemCount,
             spec.uniqueProblems.size(),
-            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
+            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount,
+            spec.incompatibleTasks instanceof ItemSpec.ExpectingSome
         )
     }
 
@@ -329,9 +388,9 @@ final class ConfigurationCacheProblemsFixture {
             }
         }
         if (!(spec instanceof ItemSpec.IgnoreUnexpected)) {
-            assert unexpectedItems.isEmpty() : "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
+            assert unexpectedItems.isEmpty(): "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
         }
-        assert expectedItems.isEmpty() : "Expecting $expectedItems in the report, found $unexpectedItems"
+        assert expectedItems.isEmpty(): "Expecting $expectedItems in the report, found $unexpectedItems"
     }
 
     static String formatItemForAssert(Map<String, Object> item, String kind) {
@@ -356,7 +415,7 @@ final class ConfigurationCacheProblemsFixture {
             case "Field": return trace['name']
             case "InputProperty": return trace['name']
             case "OutputProperty": return trace['name']
-            // Build file 'build.gradle'
+                // Build file 'build.gradle'
             case "BuildLogic": return trace['location'].toString().capitalize()
             case "BuildLogicClass": return trace['type']
             default: return "Gradle runtime"
@@ -368,9 +427,10 @@ final class ConfigurationCacheProblemsFixture {
         String output,
         int totalProblemCount,
         int uniqueProblemCount,
-        int problemsWithStackTraceCount
+        int problemsWithStackTraceCount,
+        boolean expectIncompatibleTasks
     ) {
-        def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
+        def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0 || expectIncompatibleTasks
         def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (expectReport) {
             Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
@@ -491,7 +551,7 @@ ${text}
         return new ProblemsSummary(totalProblems, problems.size(), problems)
     }
 
-    @ToString(includeNames=true)
+    @ToString(includeNames = true)
     private static class ProblemsSummary {
         final int totalProblems
         final int uniqueProblems

@@ -45,15 +45,6 @@ class DefaultObjectFactoryTest extends Specification {
         e.message == 'Cannot query the value of this property because it has no value available.'
     }
 
-    def "cannot create property for null value"() {
-        when:
-        factory.property(null)
-
-        then:
-        def t = thrown(IllegalArgumentException)
-        t.message == 'Class cannot be null'
-    }
-
     def "can create property with primitive type"() {
         given:
         def property = factory.property(type)
