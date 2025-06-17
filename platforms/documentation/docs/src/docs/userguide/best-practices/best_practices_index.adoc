@@ -17,7 +17,11 @@
 
 The table below provides a complete list of documented Gradle Best Practices.
 
-Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build.
+****
+There are currently *19 Best Practices*.
+****
+
+Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
 
 [.table]
 |===
