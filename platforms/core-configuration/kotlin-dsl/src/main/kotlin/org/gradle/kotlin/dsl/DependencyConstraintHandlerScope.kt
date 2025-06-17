@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyConstraint
@@ -84,6 +85,7 @@ private constructor(
      * @since 8.5
      */
     @JvmName("invokeDependencyScope")
+    @Incubating
     operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint =
         constraints.add(name, dependencyConstraintNotation)
 
@@ -109,6 +111,7 @@ private constructor(
      * @since 8.5
      */
     @JvmName("invokeDependencyScope")
+    @Incubating
     operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint =
         constraints.add(name, dependencyConstraintNotation, configuration)
 

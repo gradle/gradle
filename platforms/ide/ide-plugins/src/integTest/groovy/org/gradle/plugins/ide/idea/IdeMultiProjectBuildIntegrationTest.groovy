@@ -17,13 +17,11 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIpr
 
 class IdeMultiProjectBuildIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForConfigurationCache
     def "includes module for each project in build"() {
         given:
         createDirs("api", "shared", "shared/api", "shared/model")

@@ -16,7 +16,11 @@
 
 package org.gradle.internal.cc.impl.problems
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.Task
+import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
@@ -33,6 +37,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
+import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
@@ -84,7 +89,10 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider
+    val buildNameProvider: BuildNameProvider,
+
+    private
+    val degradationController: DefaultConfigurationCacheDegradationController
 ) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
@@ -120,6 +128,9 @@ class ConfigurationCacheProblems(
                 return false
             }
             if (seenSerializationErrorOnStore) {
+                return true
+            }
+            if (areDegradationReasonsPresent()) {
                 return true
             }
             val summary = summarizer.get()
@@ -171,31 +182,35 @@ class ConfigurationCacheProblems(
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
+        onIncompatibleTask(trace, reason)
+        return ErrorsAreProblemsProblemsListener(ProblemSeverity.Suppressed)
+    }
+
+    override fun forTask(task: Task): ProblemsListener {
+        val degradationReasons = degradationController.getDegradationReasonsForTask(task)
+        return if (!degradationReasons.isNullOrEmpty()) {
+            onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
+            ErrorsAreProblemsProblemsListener(ProblemSeverity.SuppressedSilently)
+        } else this
+    }
+
+    fun shouldDegradeGracefully(): Boolean {
+        degradationController.collectDegradationReasons()
+        return degradationController.hasDegradationReasons
+    }
+
+    private
+    fun onIncompatibleTask(trace: PropertyTrace, reason: String) {
         val notSeenBefore = incompatibleTasks.add(trace)
         if (notSeenBefore) {
             // this method is invoked whenever a problem listener is needed in the context of an incompatible task,
             // report the incompatible task itself the first time only
             reportIncompatibleTask(trace, reason)
         }
-        return object : AbstractProblemsListener() {
-            override fun onProblem(problem: PropertyProblem) {
-                onProblem(problem, ProblemSeverity.Suppressed)
-            }
-
-            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-                val failure = failureFactory.create(error)
-                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
-            }
-
-            override fun onExecutionTimeProblem(problem: PropertyProblem) {
-                onProblem(problem)
-            }
-        }
     }
 
     private
     fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
-
         val problem = problemFactory
             .problem {
                 message(trace.containingUserCodeMessage)
@@ -205,7 +220,7 @@ class ConfigurationCacheProblems(
                 trace
             }
             .documentationSection(DocumentationSection.TaskOptOut).build()
-        onIncompatibleTask(problem)
+        report.onIncompatibleTask(problem)
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -267,13 +282,11 @@ class ConfigurationCacheProblems(
 
     private
     fun ProblemSeverity.toProblemSeverity() = when {
-        this == ProblemSeverity.Suppressed -> Severity.ADVICE
+        this == ProblemSeverity.Suppressed ||
+            this == ProblemSeverity.SuppressedSilently -> Severity.ADVICE
+
         isWarningMode -> Severity.WARNING
         else -> Severity.ERROR
-    }
-
-    private fun onIncompatibleTask(problem: PropertyProblem) {
-        report.onIncompatibleTask(problem)
     }
 
     override fun getId(): String {
@@ -302,25 +315,39 @@ class ConfigurationCacheProblems(
      * been reported in which case a warning is also logged with the location of the report.
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
+        addNotReportedDegradingTasks()
         val summary = summarizer.get()
-        val hasNoProblems = summary.totalProblemCount == 0
+        val hasNoProblemsForConsole = summary.reportableProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
         val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
-            require(hasNoProblems)
+            require(summary.totalProblemCount == 0)
+            require(!areTaskDegradationReasonsPresent())
             return
         }
 
         when (val failure = queryFailure(summary, htmlReportFile)) {
             null -> {
-                val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
-                val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
+                val log: (String) -> Unit = when {
+                    areDegradationReasonsPresent() -> logger::warn
+                    hasNoProblemsForConsole && !startParameter.alwaysLogReportLinkAsWarning -> logger::info
+                    else -> logger::warn
+                }
                 log(summary.textForConsole(details.cacheAction, htmlReportFile))
             }
 
             else -> validationFailures.accept(failure)
+        }
+    }
+
+    private fun addNotReportedDegradingTasks() {
+        degradationController.visitDegradedTasks { task, reasons ->
+            val trace = locationForTask(task)
+            if (!incompatibleTasks.contains(trace)) {
+                reportIncompatibleTask(trace, reasons.joinToString())
+            }
         }
     }
 
@@ -354,17 +381,18 @@ class ConfigurationCacheProblems(
 
         override fun beforeComplete() {
             val summary = summarizer.get()
-            val totalProblemCount = summary.totalProblemCount
+            val reportableProblemCount = summary.reportableProblemCount
             val deferredProblemCount = summary.deferredProblemCount
-            val hasProblems = totalProblemCount > 0
+            val hasProblems = reportableProblemCount > 0
             val discardStateDueToProblems = discardStateDueToProblems(summary)
             val hasTooManyProblems = hasTooManyProblems(summary)
-            val problemCountString = totalProblemCount.counter("problem")
+            val problemCountString = reportableProblemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
             when {
                 seenSerializationErrorOnStore && deferredProblemCount == 0 -> log("Configuration cache entry discarded due to serialization error.")
                 seenSerializationErrorOnStore -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == Store && areDegradationReasonsPresent() -> log("Configuration cache disabled${degradationSummary()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -382,6 +410,40 @@ class ConfigurationCacheProblems(
     }
 
     private
+    fun areDegradationReasonsPresent(): Boolean = degradationController.hasDegradationReasons
+
+    private
+    fun areTaskDegradationReasonsPresent(): Boolean = degradationController.hasTaskDegradationReasons
+
+    private
+    fun degradationSummary(): String {
+        val degradingTaskCount = degradationController.degradedTaskCount
+        val degradingFeatures = buildList {
+            degradationController.visitDegradedFeatures { feature, _ -> add(feature) }
+        }
+        return DegradationSummary(degradingFeatures, degradingTaskCount).render()
+    }
+
+    @VisibleForTesting
+    internal
+    class DegradationSummary(private val degradingFeatures: List<String>, private val degradingTaskCount: Int) {
+        init {
+            require(degradingFeatures.isNotEmpty() || degradingTaskCount > 0)
+        }
+        fun render(): String {
+            val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
+            return " because incompatible " +
+                when {
+                    degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
+                    degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
+                    degradingTaskCount == 0 && degradingFeatures.isNotEmpty() -> "feature usage ${featuresAsString} was"
+                    degradingTaskCount == 1 -> "task and feature usage ${featuresAsString} were"
+                    else -> "tasks and feature usage ${featuresAsString} were"
+                } + " found."
+        }
+    }
+
+    private
     fun incompatibleTasksSummary() = when {
         incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'${it.render()}'" }}."
         else -> "."
@@ -389,7 +451,8 @@ class ConfigurationCacheProblems(
 
     private
     fun discardStateDueToProblems(summary: Summary) =
-        !isWarningMode && (summary.totalProblemCount > 0 || incompatibleTasks.isNotEmpty())
+        incompatibleTasks.isNotEmpty() || areDegradationReasonsPresent() ||
+            summary.reportableProblemCount > 0 && !isWarningMode
 
     private
     fun hasTooManyProblems(summary: Summary) =
@@ -404,11 +467,32 @@ class ConfigurationCacheProblems(
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
 
     private
+    fun locationForTask(task: Task) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
+
+    private
     fun Int.counter(singular: String, plural: String = "${singular}s"): String {
         return when (this) {
             0 -> "no $plural"
             1 -> "1 $singular"
             else -> "$this $plural"
+        }
+    }
+
+    private inner class ErrorsAreProblemsProblemsListener(
+        private val problemSeverity: ProblemSeverity
+    ) : AbstractProblemsListener() {
+
+        override fun onProblem(problem: PropertyProblem) {
+            onProblem(problem, problemSeverity)
+        }
+
+        override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+            val failure = failureFactory.create(error)
+            onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+        }
+
+        override fun onExecutionTimeProblem(problem: PropertyProblem) {
+            onProblem(problem)
         }
     }
 }

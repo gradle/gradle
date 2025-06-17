@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
@@ -25,12 +25,14 @@ import org.gradle.internal.actor.ActorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractJUnitTestClassProcessor implements TestClassProcessor {
+public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFrameworkTestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
 
     private final ActorFactory actorFactory;
     private Actor resultProcessorActor;
     private Action<String> executor;
+
+    protected boolean startedProcessing;
 
     public AbstractJUnitTestClassProcessor(ActorFactory actorFactory) {
         this.actorFactory = actorFactory;
@@ -38,10 +40,14 @@ public abstract class AbstractJUnitTestClassProcessor implements TestClassProces
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
+        assertTestFrameworkAvailable();
+
         TestResultProcessor resultProcessorChain = createResultProcessorChain(resultProcessor);
         // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe
         resultProcessorActor = actorFactory.createBlockingActor(resultProcessorChain);
         executor = createTestExecutor(resultProcessorActor);
+
+        startedProcessing = true;
     }
 
     protected abstract TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor);
@@ -50,13 +56,17 @@ public abstract class AbstractJUnitTestClassProcessor implements TestClassProces
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-        LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-        executor.execute(testClass.getTestClassName());
+        if (startedProcessing) {
+            LOGGER.debug("Executing test class {}", testClass.getTestClassName());
+            executor.execute(testClass.getTestClassName());
+        }
     }
 
     @Override
     public void stop() {
-        resultProcessorActor.stop();
+        if (startedProcessing) {
+            resultProcessorActor.stop();
+        }
     }
 
     @Override

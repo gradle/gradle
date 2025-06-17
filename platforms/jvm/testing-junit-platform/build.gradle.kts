@@ -19,8 +19,6 @@ dependencies {
 
     api(libs.jspecify)
 
-
-    implementation(projects.logging)
     implementation(projects.stdlibJavaExtensions)
 
     compileOnly(libs.junitPlatform) {

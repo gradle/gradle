@@ -17,121 +17,62 @@
 package org.gradle.internal.cc.impl.serialize
 
 import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.hash.HashCode
-import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.ClassEncoder
-import org.gradle.internal.serialize.graph.ClassLoaderRole
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.WriteIdentities
-
-
-internal
-interface ScopeLookup {
-    fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
-    val knownClassLoaders: Set<ClassLoader>
-}
-
-
-internal
-data class ClassLoaderScopeSpec(
-    val parent: ClassLoaderScopeSpec?,
-    val name: String,
-    val origin: ClassLoaderScopeOrigin?
-) {
-    var localClassPath: ClassPath = ClassPath.EMPTY
-    var localImplementationHash: HashCode? = null
-    var exportClassPath: ClassPath = ClassPath.EMPTY
-
-    override fun toString(): String {
-        return if (parent != null) {
-            "$parent:$name"
-        } else {
-            name
-        }
-    }
-}
+import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 
 
 internal
 class DefaultClassEncoder(
-    private val scopeLookup: ScopeLookup
+    private val scopeLookup: ScopeLookup,
+    private val scopeSpecEncoder: ClassLoaderScopeSpecEncoder = InlineClassLoaderScopeSpecEncoder()
 ) : ClassEncoder {
 
     private
     val classes = WriteIdentities()
 
-    private
-    val scopes = WriteIdentities()
-
     override fun WriteContext.encodeClass(type: Class<*>) {
-        val id = classes.getId(type)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            val newId = classes.putInstance(type)
-            writeSmallInt(newId)
+        encodePreservingIdentityOf(classes, type) { newType ->
             // TODO:configuration-cache - should collect the details of the decoration (eg enabled annotations, etc), and also carry this information with the serialized class reference
-            val originalType = GeneratedSubclasses.unpack(type)
-            writeBoolean(originalType !== type)
+            val originalType = GeneratedSubclasses.unpack(newType)
+            writeBoolean(originalType !== newType)
             val className = originalType.name
             writeString(className)
-            val classLoader = originalType.classLoader
-            if (!writeClassLoaderScopeOf(classLoader) && classLoader != null) {
-                // Ensure class can be found in the Gradle runtime classloader since its original classloader could not be encoded.
-                ensureClassCanBeFoundInGradleRuntimeClassLoader(className, classLoader)
-            }
+            encodeClassLoaderFor(className, originalType.classLoader)
         }
     }
 
     override fun WriteContext.encodeClassLoader(classLoader: ClassLoader?) {
-        writeClassLoaderScopeOf(classLoader)
+        // TODO:configuration-cache validate classloader encoding here
+        encodeClassLoaderFor(null, classLoader)
     }
 
     private
-    fun WriteContext.writeClassLoaderScopeOf(classLoader: ClassLoader?): Boolean {
-        val scope = classLoader?.let { scopeLookup.scopeFor(it) }
-        if (scope == null) {
+    fun WriteContext.encodeClassLoaderFor(className: String?, classLoader: ClassLoader?) {
+        if (classLoader == null) {
             writeBoolean(false)
-            return false
-        } else {
-            writeBoolean(true)
-            writeScope(scope.first)
-            writeBoolean(scope.second.local)
-            return true
+            return
         }
-    }
 
-    private
-    fun WriteContext.writeScope(scope: ClassLoaderScopeSpec) {
-        val id = scopes.getId(scope)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            val newId = scopes.putInstance(scope)
-            writeSmallInt(newId)
-            if (scope.parent == null) {
-                writeBoolean(false)
-            } else {
-                writeBoolean(true)
-                writeScope(scope.parent)
+        val scopeAndRole = scopeLookup.scopeFor(classLoader)
+        if (scopeAndRole == null) {
+            writeBoolean(false)
+            if (className != null) {
+                // Ensure class can be found in the Gradle runtime classloader since its original classloader could not be encoded.
+                ensureClassCanBeFoundInGradleRuntimeClassLoader(className, classLoader)
             }
-            writeString(scope.name)
-            if (scope.origin is ClassLoaderScopeOrigin.Script) {
-                writeBoolean(true)
-                writeString(scope.origin.fileName)
-                writeString(scope.origin.longDisplayName.displayName)
-                writeString(scope.origin.shortDisplayName.displayName)
-            } else {
-                writeBoolean(false)
-            }
-            writeClassPath(scope.localClassPath)
-            writeHashCode(scope.localImplementationHash)
-            writeClassPath(scope.exportClassPath)
+            return
         }
+
+        writeBoolean(true)
+        val (scope, role) = scopeAndRole
+        scopeSpecEncoder.run {
+            encodeScope(scope)
+        }
+        writeBoolean(role.local)
     }
 
     private
@@ -154,16 +95,6 @@ class DefaultClassEncoder(
                     exception = e
                 )
             )
-        }
-    }
-
-    private
-    fun Encoder.writeHashCode(hashCode: HashCode?) {
-        if (hashCode == null) {
-            writeBoolean(false)
-        } else {
-            writeBoolean(true)
-            writeBinary(hashCode.toByteArray())
         }
     }
 }

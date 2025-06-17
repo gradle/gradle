@@ -16,7 +16,6 @@
 
 package org.gradle.swiftpm
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.vcs.fixtures.GitFileRepository
 
 
@@ -59,7 +58,6 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot map a dependency of type ")
     }
 
-    @ToBeFixedForConfigurationCache
     def "export fails when external dependency defines both branch and version constraint"() {
         given:
         buildFile << """
@@ -90,7 +88,6 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot map a dependency on dep:dep that defines both a branch (release) and a version constraint (1.0).")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for Swift component with dependencies on multiple repositories"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
@@ -207,7 +204,6 @@ let package = Package(
         lib2Repo?.close()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for Swift component with dependencies on libraries provided by included builds"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
@@ -329,7 +325,6 @@ let package = Package(
         lib2Repo?.close()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "maps dependency on #src to #mapped"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))
@@ -401,7 +396,6 @@ let package = Package(
         '[1.0.0, 2.0.0)' | '"1.0.0"..<"2.0.0"'
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot map dependency #src"() {
         given:
         settingsFile << """
@@ -443,7 +437,6 @@ let package = Package(
         '(1.0.0,2.0.0)' | _
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "maps dependency on latest.integration to master branch"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))
@@ -506,7 +499,6 @@ let package = Package(
         lib1Repo?.close()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "maps dependency on upstream branch"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))

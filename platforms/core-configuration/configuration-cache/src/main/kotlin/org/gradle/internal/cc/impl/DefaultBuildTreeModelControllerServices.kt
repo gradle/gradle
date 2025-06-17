@@ -43,7 +43,12 @@ import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
 import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
+import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheInputFileChecker
+import org.gradle.internal.cc.impl.fingerprint.DefaultConfigurationCacheInputFileCheckerHost
+import org.gradle.internal.cc.impl.fingerprint.IsolatedProjectsClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -264,6 +269,21 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
+            registration.add(
+                ConfigurationCacheInputFileChecker.Host::class.java,
+                DefaultConfigurationCacheInputFileCheckerHost::class.java
+            )
+            if (modelParameters.isIsolatedProjects) {
+                registration.add(
+                    ClassLoaderScopesFingerprintController::class.java,
+                    IsolatedProjectsClassLoaderScopesFingerprintController::class.java
+                )
+            } else {
+                registration.add(
+                    ClassLoaderScopesFingerprintController::class.java,
+                    ConfigurationCacheClassLoaderScopesFingerprintController::class.java
+                )
+            }
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
             registration.add(DefaultDeferredRootBuildGradle::class.java)

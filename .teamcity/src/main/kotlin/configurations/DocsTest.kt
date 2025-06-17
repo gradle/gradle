@@ -88,10 +88,12 @@ class DocsTest(
             arch = os.defaultArch,
             timeout = 60,
             extraParameters =
-                buildScanTagParam(docsTestType.docsTestName) +
-                    parallelizationMethod.extraBuildParameters +
-                    " -PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}" +
-                    " -PtestJavaVersion=${testJava.version.major}" +
-                    " -PtestJavaVendor=${testJava.vendor.name.lowercase()}",
+                listOf(
+                    buildScanTagParam(docsTestType.docsTestName),
+                    parallelizationMethod.extraBuildParameters,
+                    "-PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}",
+                    "-PtestJavaVersion=${testJava.version.major}",
+                    "-PtestJavaVendor=${testJava.vendor.name.lowercase()}",
+                ).joinToString(" "),
         )
     })

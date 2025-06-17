@@ -114,4 +114,14 @@ public interface TestFailureDetails {
      * @return true if this is an assumption failure
      */
     boolean isAssumptionFailure();
+
+    /**
+     * Is this a failure that prevented any tests from running, like a testing framework availability failure?
+     *
+     * @return {@code true} if this is such a failure; {@code false} otherwise
+     * @since 9.0.0
+     */
+    default boolean isStartupFailure() {
+        return false;
+    }
 }

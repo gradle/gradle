@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class EclipseCustomBuildSourceOutputTest extends AbstractEclipseIntegrationSpec {
 
@@ -33,7 +32,6 @@ class EclipseCustomBuildSourceOutputTest extends AbstractEclipseIntegrationSpec 
         file("src/test/resources").mkdirs()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure src output with 'baseSourceOutputDir'"() {
         setup:
         buildFile << """
@@ -55,7 +53,6 @@ class EclipseCustomBuildSourceOutputTest extends AbstractEclipseIntegrationSpec 
         classpath.sourceDirs[3].output == 'custom-output/test'
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure src output with default value"() {
         when:
         run 'eclipse'
