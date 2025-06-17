@@ -139,7 +139,7 @@ See link:{gradle-issues}13510[gradle/gradle#13510].
 === Source Dependencies
 
 Support for link:https://blog.gradle.org/introducing-source-dependencies[source dependencies] is not yet implemented.
-When using this feature, the build will not fail and no problems will be reported, but the configuration cache will be automatically disabled.
+When using this feature, the build will not fail, and no problems will be reported, but the Configuration Cache will be automatically disabled.
 
 See link:{gradle-issues}13506[gradle/gradle#13506].
 
