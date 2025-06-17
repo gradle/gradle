@@ -331,28 +331,28 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+                fqid == 'verification:type-verification:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask\' is incorrectly annotated with @CacheableTransform'
                 details == 'This annotation only makes sense on TransformAction types'
                 solutions == [ 'Remove the annotation' ]
                 additionalData.asMap == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+                fqid == 'verification:type-verification:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTask'
                 details == 'This annotation only makes sense on Task types'
                 solutions == [ 'Remove the annotation' ]
                 additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
             verifyAll(receivedProblem(2)) {
-                fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+                fqid == 'verification:type-verification:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTransform'
                 details == 'This annotation only makes sense on TransformAction types'
                 solutions == [ 'Remove the annotation' ]
                 additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
             verifyAll(receivedProblem(3)) {
-                fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+                fqid == 'verification:type-verification:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @DisableCachingByDefault'
                 details == 'This annotation only makes sense on Task, TransformAction types'
                 solutions == [ 'Remove the annotation' ]
@@ -711,7 +711,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                fqid == 'verification:type-verification:ignored-annotations-on-method'
                 contextualLabel == 'Type \'MyTask\' function \'notAGetter()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
@@ -721,7 +721,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                fqid == 'verification:type-verification:ignored-annotations-on-method'
                 contextualLabel == 'Type \'MyTask.Options\' function \'notANestedGetter()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
@@ -805,7 +805,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 ]
             }
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                fqid == 'verification:type-verification:ignored-annotations-on-method'
                 contextualLabel == 'Type \'MyTask\' setter \'setReadWrite()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
@@ -815,7 +815,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(2)) {
-                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                fqid == 'verification:type-verification:ignored-annotations-on-method'
                 contextualLabel == 'Type \'MyTask\' setter \'setWriteOnly()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
@@ -825,7 +825,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(3)) {
-                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                fqid == 'verification:type-verification:ignored-annotations-on-method'
                 contextualLabel == 'Type \'MyTask.Options\' setter \'setReadWrite()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
@@ -835,7 +835,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
             verifyAll(receivedProblem(4)) {
-                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                fqid == 'verification:type-verification:ignored-annotations-on-method'
                 contextualLabel == 'Type \'MyTask.Options\' setter \'setWriteOnly()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
