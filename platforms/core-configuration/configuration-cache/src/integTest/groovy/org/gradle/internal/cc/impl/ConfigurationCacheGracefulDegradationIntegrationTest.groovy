@@ -244,6 +244,42 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         assertConfigurationCacheDegradation()
     }
 
+    def "a dependency task in #build build can require CC degradation for the non-root build"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("$build/build.gradle", """
+            ${taskWithInjectedDegradationController()}
+
+            def fooTask = tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+            }
+
+            tasks.register("bar") {
+                dependsOn(fooTask)
+            }
+        """)
+        settingsFile """
+            $settingsConfiguration
+        """
+
+        when:
+        configurationCacheRun ":$build:bar"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 0
+            withIncompatibleTask(":$build:foo", "Because reasons.")
+        }
+
+        where:
+        build      | settingsConfiguration
+        "buildSrc" | ""
+        "included" | "include('included')"
+    }
+
     def "no CC degradation if incompatible task is not presented in the task graph"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
