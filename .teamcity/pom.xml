@@ -97,9 +97,6 @@
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
                 <version>3.5.0</version>
-                <configuration>
-                    <ktlintVersion>1.5.0</ktlintVersion>
-                </configuration>
                 <executions>
                     <execution>
                         <id>check</id>
