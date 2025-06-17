@@ -69,24 +69,26 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
         Object instance = registration.getInstance();
         Class<?> instanceClass = instance.getClass();
 
-        boolean registeredCreator = false;
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         for (Class<?> declaredType : registration.getDeclaredTypes()) {
             if (declaredType.isAnnotationPresent(ManagedObjectProvider.class)) {
+                boolean registeredCreator = false;
                 for (Method declaredMethod : declaredType.getMethods()) {
                     ManagedObjectCreator creatorAnnotation = declaredMethod.getAnnotation(ManagedObjectCreator.class);
                     if (creatorAnnotation != null) {
                         Method instanceMethod = getMethodInInstance(declaredMethod, instanceClass);
-                        MethodHandle handle = getBoundMethodHandle(instanceMethod, lookup, instance);
+                        MethodHandle handle = bindMethodHandle(instanceMethod, lookup, instance);
+
+                        validateFactoryMethod(instanceMethod, handle);
                         registerFactory(creatorAnnotation, handle);
+
                         registeredCreator = true;
                     }
                 }
+                if (!registeredCreator) {
+                    throw new IllegalArgumentException("Service " + declaredType + " annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator.");
+                }
             }
-        }
-
-        if (!registeredCreator) {
-            throw new IllegalArgumentException("Service " + instance.getClass() + " annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator.");
         }
     }
 
@@ -98,7 +100,7 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
         }
     }
 
-    private static MethodHandle getBoundMethodHandle(Method method, MethodHandles.Lookup lookup, Object instance) {
+    private static MethodHandle bindMethodHandle(Method method, MethodHandles.Lookup lookup, Object instance) {
         MethodHandle handle;
         try {
              handle = lookup.unreflect(method);
@@ -110,29 +112,7 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
             throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must not be static.");
         }
 
-        MethodHandle boundHandle = handle.bindTo(instance);
-        validateFactoryMethod(method, boundHandle);
-        return boundHandle;
-    }
-
-    private void registerFactory(ManagedObjectCreator creatorAnnotation, MethodHandle handle) {
-        // Use the return type of the method as the public type, unless otherwise specified.
-        Class<?> publicType = creatorAnnotation.publicType() == void.class
-            ? handle.type().returnType()
-            : creatorAnnotation.publicType();
-
-        MethodHandle existing = factories.put(publicType, handle);
-
-        if (existing != null) {
-            // Class#getMethods does not have a consistent order.
-            // For consistency in tests, we sort the method handles in the error message.
-            List<String> sortedMethods = Stream.of(existing, handle)
-                .map(MethodHandle::toString)
-                .sorted()
-                .collect(Collectors.toList());
-
-            throw new IllegalArgumentException("Method " + sortedMethods.get(0) + " for type " + publicType + "conflicts with existing factory method " + sortedMethods.get(1) + ".");
-        }
+        return handle.bindTo(instance);
     }
 
     private static void validateFactoryMethod(Method method, MethodHandle handle) {
@@ -152,6 +132,26 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
             if (parameterType != Class.class) {
                 throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must have parameters of type Class, but has parameter of type " + parameterType + ".");
             }
+        }
+    }
+
+    private void registerFactory(ManagedObjectCreator creatorAnnotation, MethodHandle handle) {
+        // Use the return type of the method as the public type, unless otherwise specified.
+        Class<?> publicType = creatorAnnotation.publicType() == void.class
+            ? handle.type().returnType()
+            : creatorAnnotation.publicType();
+
+        MethodHandle existing = factories.put(publicType, handle);
+
+        if (existing != null) {
+            // Class#getMethods does not have a consistent order.
+            // For consistency in tests, we sort the method handles in the error message.
+            List<String> sortedMethods = Stream.of(existing, handle)
+                .map(MethodHandle::toString)
+                .sorted()
+                .collect(Collectors.toList());
+
+            throw new IllegalArgumentException("Method " + sortedMethods.get(0) + " for type " + publicType + "conflicts with existing factory method " + sortedMethods.get(1) + ".");
         }
     }
 
