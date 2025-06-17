@@ -154,7 +154,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     info.getResult().getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
                 ).endElement();
 
-                htmlWriter.startElement("span").attribute("class", "code code3")
+                htmlWriter.startElement("span").attribute("class", "code")
                     .startElement("pre")
                     .characters("");
                 for (SerializableFailure failure : info.getResult().getFailures()) {
@@ -252,7 +252,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         @Override
         protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("span").attribute("class", "code code4")
+            htmlWriter.startElement("span").attribute("class", "code")
                 .startElement("pre")
                 .characters("");
             try (Reader reader = outputReader.getOutput(info.getOutputId(), destination)) {
