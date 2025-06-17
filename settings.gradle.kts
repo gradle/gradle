@@ -74,8 +74,6 @@ val core = platform("core") {
         subproject("daemon-protocol")
         subproject("daemon-services")
         subproject("daemon-server")
-        subproject("distributions-basics")
-        subproject("distributions-core")
         subproject("file-temp")
         subproject("files")
         subproject("functional")
@@ -299,6 +297,8 @@ packaging {
 
 testing {
     subproject("architecture-test")
+    subproject("distributions-basics")
+    subproject("distributions-core")
     subproject("distributions-integ-tests")
     subproject("integ-test")
     subproject("internal-architecture-testing")

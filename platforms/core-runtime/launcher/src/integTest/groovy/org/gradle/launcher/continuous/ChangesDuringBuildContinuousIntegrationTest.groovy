@@ -18,10 +18,10 @@ package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.internal.os.OperatingSystem
 
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {

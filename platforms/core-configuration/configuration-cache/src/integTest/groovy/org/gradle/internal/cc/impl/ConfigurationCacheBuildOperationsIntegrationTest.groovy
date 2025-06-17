@@ -177,7 +177,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         def cacheDir = file('lib/.gradle/configuration-cache')
         def entryDir = single(subDirsOf(cacheDir).findAll { containsFileNamed("entry.bin", it) })
         def entryFiles = entryDir.listFiles().toList()
-            .findAll { it.name !in ['entry.bin', 'buildfingerprint.bin', 'projectfingerprint.bin'] } // TODO: include fingerprints as well
+            .findAll { it.name !in ['entry.bin', 'buildfingerprint.bin', 'projectfingerprint.bin', 'classloaderscopes.bin'] } // TODO: include fingerprints as well
 
         entryFiles.size() > 0
         entryFiles.every { it.name.endsWith(".bin") } // sanity check

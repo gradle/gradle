@@ -22,6 +22,8 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableReadContext
@@ -77,6 +79,16 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         specialEncoders: SpecialEncoders = SpecialEncoders(),
         customClassEncoder: ClassEncoder? = null
     ): Pair<CloseableWriteContext, Codecs>
+
+    fun encoderFor(
+        stateType: StateType,
+        outputStream: () -> OutputStream
+    ): PositionAwareEncoder
+
+    fun decoderFor(
+        stateType: StateType,
+        inputStream: () -> InputStream
+    ): Decoder
 
     fun <R> withReadContextFor(
         stateFile: ConfigurationCacheStateFile,

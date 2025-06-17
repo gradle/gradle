@@ -19,17 +19,14 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.fixture.TestFrameworkStartupTestFixture
 import org.gradle.testing.fixture.TestNGCoverage
-import org.gradle.util.GradleVersion
-
-import static org.hamcrest.CoreMatchers.containsString
 
 /**
  * Tests behavior of different test frameworks when their required
  * runtime dependencies are not included on the test runtime classpath.
  */
-class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegrationSpec {
-
+class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegrationSpec implements TestFrameworkStartupTestFixture {
     def "junit 4 fails with sensible error message"() {
         given:
         buildFile << """
@@ -44,9 +41,9 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
 
             test.useJUnit()
-        """
 
-        executer.withToolchainDetectionEnabled()
+            ${addLoggingTestListener()}
+        """
 
         file("src/test/java/MyTest.java") << """
             public class MyTest {
@@ -58,10 +55,14 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
         when:
         fails('test')
 
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString('Failed to load JUnit 4. Please ensure that JUnit 4 is available on the test runtime classpath'))
+        then: "Test framework startup failure is reported"
+        assertTestWorkerStartedAndTestFrameworkFailedToStart()
+
+        and: "Resolutions are provided"
+        assertSuggestsInspectTaskConfiguration()
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
     }
 
     def "junit platform fails with sensible error message"() {
@@ -78,6 +79,8 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
 
             test.useJUnitPlatform()
+
+            ${addLoggingTestListener()}
         """
 
         file("src/test/java/MyTest.java") << """
@@ -87,13 +90,19 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
         """
 
+        executer.withStackTraceChecksDisabled()
+
         when:
         fails('test')
 
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString("Failed to load JUnit Platform. Please ensure that the JUnit Platform is available on the test runtime classpath. See the user guide for more details: https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#using_junit5"))
+        then: "Test framework startup failure is reported"
+        assertTestWorkerStartedAndTestFrameworkFailedToStart()
+
+        and: "Resolutions are provided"
+        assertSuggestsInspectTaskConfiguration()
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
     }
 
     def "testng fails with sensible error message"() {
@@ -110,6 +119,8 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
             }
 
             test.useTestNG()
+
+            ${addLoggingTestListener()}
         """
 
         file("src/test/java/MyTest.java") << """
@@ -122,10 +133,18 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
         when:
         fails('test')
 
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString("Failed to load TestNG. Please ensure that TestNG is available on the test runtime classpath."))
+        then: "Test framework startup failure is reported"
+        assertTestWorkerStartedAndTestFrameworkFailedToStart()
+
+        and: "Resolutions are provided"
+        assertSuggestsInspectTaskConfiguration()
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
     }
 
+    def setup() {
+        // To support testing on Windows, where additional (irrelevant) stack traces may be generated from worker failures
+        executer.withStackTraceChecksDisabled()
+    }
 }

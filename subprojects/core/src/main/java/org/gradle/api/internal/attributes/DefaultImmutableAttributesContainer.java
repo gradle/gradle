@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
@@ -129,6 +130,11 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
 
     @Override
     public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
+        throw new UnsupportedOperationException("Mutation of attributes is not allowed");
+    }
+
+    @Override
+    public AttributeContainer addAllLater(AttributeContainer other) {
         throw new UnsupportedOperationException("Mutation of attributes is not allowed");
     }
 
@@ -320,6 +326,19 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
             builder.put(attribute, Cast.uncheckedCast(getAttribute(attribute)));
         }
         return builder.build();
+    }
+
+    @Override
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries() {
+        ImmutableMap.Builder<Attribute<?>, AttributeEntry<?>> builder = ImmutableMap.builder();
+        for (Attribute<?> attribute : keySet()) {
+            builder.put(attribute, getEntry(attribute));
+        }
+        return Providers.of(builder.build());
+    }
+
+    private <T> AttributeEntry<T> getEntry(Attribute<T> key) {
+        return new AttributeEntry<>(key, getIsolatableAttribute(key));
     }
 
     @Override

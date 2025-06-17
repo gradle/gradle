@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO: Rename to ExecHandleBuilder and remove current ExecHandleBuilder in Gradle 9.0
+ * TODO: Rename to ExecHandleBuilder and remove current ExecHandleBuilder in Gradle 10
  */
 @NullMarked
 public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {

@@ -26,6 +26,7 @@ import org.gradle.internal.RenderingUtils.oxfordListOf
 import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.CheckedFingerprint
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheInputFileChecker.FileUpToDateStatus
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.core.fileSystemEntryType
@@ -48,7 +49,7 @@ typealias InvalidationReason = StructuredMessage
 internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
-    interface Host {
+    interface Host : ConfigurationCacheInputFileChecker.Host {
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
@@ -61,14 +62,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val ignoredFileSystemCheckInputs: String?
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
-        fun hashCodeAndTypeOf(file: File): Pair<HashCode, FileType>
-        fun hashCodeOf(file: File): HashCode?
         fun hashCodeOfDirectoryContent(file: File): HashCode?
-        fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
         fun isRemoteScriptUpToDate(uri: URI): Boolean
         fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
     }
+
+    private
+    val inputFileChecker = ConfigurationCacheInputFileChecker(host)
 
     suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
@@ -191,11 +192,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.InputFile -> input.run {
-                when (checkFileUpToDateStatus(file, hash)) {
-                    FileUpToDateStatus.ContentsChanged -> text("file ").reference(displayNameOf(file)).text(" has changed")
-                    FileUpToDateStatus.Removed -> text("file ").reference(displayNameOf(file)).text(" has been removed")
-                    FileUpToDateStatus.TypeChanged -> text("file ").reference(displayNameOf(file)).text(" has been replaced by a directory")
-                    FileUpToDateStatus.Unchanged -> null
+                inputFileChecker.run {
+                    check(file, hash)
                 }
             }
 
@@ -369,28 +367,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     private
     fun isFileUpToDate(file: File, originalHash: HashCode) =
-        checkFileUpToDateStatus(file, originalHash) == FileUpToDateStatus.Unchanged
-
-    private
-    enum class FileUpToDateStatus {
-        Unchanged,
-        ContentsChanged,
-        TypeChanged,
-        Removed
-    }
-
-    private
-    fun checkFileUpToDateStatus(file: File, originalHash: HashCode): FileUpToDateStatus {
-        val (snapshotHash, snapshotType) = host.hashCodeAndTypeOf(file)
-        if (snapshotHash == originalHash) {
-            return FileUpToDateStatus.Unchanged
-        }
-        return when (snapshotType) {
-            FileType.RegularFile -> FileUpToDateStatus.ContentsChanged
-            FileType.Directory -> FileUpToDateStatus.TypeChanged
-            FileType.Missing -> FileUpToDateStatus.Removed
-        }
-    }
+        inputFileChecker.checkFileUpToDateStatus(file, originalHash) == FileUpToDateStatus.Unchanged
 
     private
     fun displayNameOf(file: File) =
@@ -407,14 +384,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     fun buildLogicInputFailed(obtainedValue: ObtainedValue, failure: Throwable): InvalidationReason = StructuredMessage.forText(
         "a build logic input of type '${obtainedValue.valueSourceType.simpleName}' failed when storing the entry with $failure"
     )
-
-    /**
-     * Builds a structured message with a given [block], but if null is returned from the block, discards the message.
-     * @return built message or null if [block] returns null
-     */
-    private
-    inline fun structuredMessageOrNull(block: StructuredMessage.Builder.() -> StructuredMessage.Builder?): StructuredMessage? =
-        StructuredMessage.Builder().run { block() }?.build()
 
     private
     inline fun <T> ifOrNull(condition: Boolean, block: () -> T): T? {
