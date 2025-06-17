@@ -126,7 +126,7 @@ class ManagedObjectRegistryTest extends Specification {
     }
 
     @ManagedObjectProvider
-    static class ProvidingImplementationWithCreator {
+    static class SingleCreator {
 
         @ManagedObjectCreator
         Thing createThing() {
@@ -137,37 +137,7 @@ class ManagedObjectRegistryTest extends Specification {
 
     def "can detect providing implementations"() {
         def registry = registryOf {
-            it.add(ProvidingImplementationWithCreator)
-        }
-
-        when:
-        def instance = registry.newInstance(Thing)
-
-        then:
-        instance instanceof Thing
-    }
-
-
-    @ManagedObjectProvider
-    interface ProvidingInterfaceWithoutCreator {
-
-        Thing createThing()
-
-    }
-
-    static class ProvidingInterfaceWithoutCreatorWithCreator implements ProvidingInterfaceWithoutCreator {
-
-        @Override
-        @ManagedObjectCreator
-        Thing createThing() {
-            return new Thing()
-        }
-
-    }
-
-    def "creator annotation may be placed on implementation with provider on interface"() {
-        def registry = registryOf {
-            it.add(ProvidingInterfaceWithoutCreator, ProvidingInterfaceWithoutCreatorWithCreator)
+            it.add(SingleCreator)
         }
 
         when:
