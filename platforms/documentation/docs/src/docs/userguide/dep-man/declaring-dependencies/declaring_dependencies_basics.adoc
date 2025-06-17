@@ -36,7 +36,7 @@ include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="buil
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
 ====
 
-Gradle also supports the Map notation, where each coordinate may be declared separately:
+Gradle also supports the multi-string notation, where each coordinate may be declared separately:
 
 ====
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies-map]"]
