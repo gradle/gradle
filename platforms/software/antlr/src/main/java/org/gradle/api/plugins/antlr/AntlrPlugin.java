@@ -95,7 +95,8 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     });
 
                     // 5) Add that task's outputs to the Java source set
-                    sourceSet.getJava().srcDir(antlrTask);
+                    // TODO this is a hack until we can properly wire these together with properties
+                    sourceSet.getJava().srcDir(antlrTask.map (task -> outputDirectory));
                 }
             });
     }
