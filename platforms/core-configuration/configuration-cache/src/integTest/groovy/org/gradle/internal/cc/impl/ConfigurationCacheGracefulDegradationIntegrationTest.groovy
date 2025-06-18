@@ -269,6 +269,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             withIncompatibleTask(":$build:foo", "Because reasons.")
         }
 
+        and:
+        assertConfigurationCacheDegradation()
+
         where:
         build      | settingsConfiguration
         "buildSrc" | ""
@@ -460,6 +463,50 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertNoConfigurationCache()
+
+        and:
+        assertConfigurationCacheDegradation(true)
+    }
+
+    def "can have CC incompatible tasks and requested CC degradation in the same build"() {
+        testDirectoryProvider.suppressCleanup()
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            def fooTask = tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+            }
+
+            tasks.register("bar") {
+                dependsOn(fooTask)
+                notCompatibleWithConfigurationCache("Project access")
+                doLast {
+                    project.path
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "bar"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        result.assertTaskExecuted(":foo")
+        result.assertTaskExecuted(":bar")
+
+        and:
+        problems.assertResultHasConsoleSummary(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache")
+        }
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":bar", "Project access.")
+            withIncompatibleTask(":foo", "Because reasons.")
+        }
 
         and:
         assertConfigurationCacheDegradation(true)
