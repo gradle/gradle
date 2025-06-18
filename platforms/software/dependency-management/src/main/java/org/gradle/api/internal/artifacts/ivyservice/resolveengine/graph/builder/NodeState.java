@@ -344,13 +344,6 @@ public class NodeState implements DependencyGraphNode {
             return true;
         }
 
-        // The excludes did change. Even if our direct filtered dependencies are the same,
-        // their transitive dependencies may be affected by the new excludes. So, we
-        // always update the outgoing edges to reflect the new resolution filter.
-        for (EdgeState outgoingEdge : outgoingEdges) {
-            outgoingEdge.updateTransitiveExcludes(newResolutionFilter);
-        }
-
         // here, we need to check that applying the new resolution filter
         // we would actually exclude exactly the same dependencies as in
         // the previous visit. It is important that this is NOT a heuristic
@@ -358,7 +351,22 @@ public class NodeState implements DependencyGraphNode {
         // revisit all dependencies and possibly change the classpath order!
         List<DependencyState> oldDependencies = cachedFilteredDependencyStates;
         this.cachedFilteredDependencyStates = null; // Invalidate the cache so `dependencies` recomputes the value.
-        return dependencies(newResolutionFilter).equals(oldDependencies);
+        boolean sameDependencies = dependencies(newResolutionFilter).equals(oldDependencies);
+
+        if (sameDependencies) {
+            // The excludes did change. Even if our direct filtered dependencies are the same,
+            // their transitive dependencies may be affected by the new excludes. So, we
+            // always update the outgoing edges to reflect the new resolution filter.
+
+            // If we return true here, we will short-circuit normal dependency traversal,
+            // which usually takes care of updating the transitive excludes. Do that here
+            // instead.
+            for (EdgeState outgoingEdge : outgoingEdges) {
+                outgoingEdge.updateTransitiveExcludesAndRequeueTargetNodes(newResolutionFilter);
+            }
+        }
+
+        return sameDependencies;
     }
 
     private void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
@@ -529,7 +537,8 @@ public class NodeState implements DependencyGraphNode {
      * Creates an edge and add it to this node as an outgoing edge.
      */
     private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
-        EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
+        EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolveState));
+        dependencyEdge.updateTransitiveExcludes(resolutionFilter);
         dependencyEdge.computeSelector(); // the selector changes, if the 'versionProvidedByAncestors' state changes
         outgoingEdges.add(dependencyEdge);
         dependencyEdge.markUsed();
@@ -656,11 +665,17 @@ public class NodeState implements DependencyGraphNode {
         if (!incomingEdges.contains(dependencyEdge)) {
             incomingEdges.add(dependencyEdge);
             incomingHash += dependencyEdge.hashCode();
-            resolveState.onMoreSelected(this);
+            clearTransitiveExclusionsAndEnqueue();
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount++;
             }
         }
+    }
+
+    void clearTransitiveExclusionsAndEnqueue() {
+        cachedModuleResolutionFilter = null;
+        // TODO: We can eagerly compute the exclusions and enqueue only on change
+        resolveState.onMoreSelected(this);
     }
 
     void removeIncomingEdge(EdgeState dependencyEdge) {
@@ -1298,13 +1313,6 @@ public class NodeState implements DependencyGraphNode {
             return null;
         }
         return incomingEdges.get(0).getFrom();
-    }
-
-    public void updateTransitiveExcludes() {
-        cachedModuleResolutionFilter = null;
-        if (isSelected()) {
-            resolveState.onMoreSelected(this);
-        }
     }
 
     public Set<NodeState> getReachableNodes() {
