@@ -193,9 +193,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCache.assertStateStored()
 
         and:
-        result.assertTaskExecuted(":buildSrc:compileJava")
-        result.assertTaskExecuted(":buildSrc:foo")
-        result.assertTaskExecuted(":help")
+        executed(":buildSrc:compileJava", ":buildSrc:foo", ":help")
     }
 
     def "depending on a CC degrading task from included build introduces CC degradation"() {
@@ -268,6 +266,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             totalProblemsCount = 0
             withIncompatibleTask(":$build:foo", "Because reasons.")
         }
+
+        and:
+        assertConfigurationCacheDegradation()
 
         where:
         build      | settingsConfiguration
@@ -345,7 +346,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         outputContains("Should be configured")
-        result.assertTaskNotExecuted(":a")
+        notExecuted ":a"
     }
 
     def "user code exceptions in degradation reasons evaluation are surfaced"() {
@@ -406,7 +407,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         run ":foo"
 
         then:
-        result.assertTaskExecuted(":foo")
+        executed ":foo"
     }
 
     def "CC report link is present even when no problems were reported"() {
@@ -435,7 +436,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         }
 
         and:
-        result.assertTaskExecuted(":foo")
+        executed ":foo"
         assertConfigurationCacheDegradation()
     }
 
@@ -463,6 +464,46 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         assertConfigurationCacheDegradation(true)
+    }
+
+    def "CC incompatible tasks and requested CC degradation are correctly reported"() {
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            def fooTask = tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+            }
+
+            tasks.register("bar") {
+                dependsOn(fooTask)
+                notCompatibleWithConfigurationCache("Project access")
+                doLast {
+                    project.path
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "bar"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        assertConfigurationCacheDegradation(true)
+
+        and:
+        executed(":foo", ":bar")
+
+        and:
+        problems.assertResultHasConsoleSummary(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache")
+        }
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":bar", "Project access.")
+            withIncompatibleTask(":foo", "Because reasons.")
+        }
     }
 
     private static String taskWithInjectedDegradationController() {
