@@ -170,4 +170,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * Resets the lifecycle for this Gradle object.
      */
     void resetState();
+
+    boolean isPartOfClasspath();
+
+    void setIsPartOfClasspath(boolean isPartOfClasspath);
 }
