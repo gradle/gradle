@@ -354,8 +354,9 @@ public class NodeState implements DependencyGraphNode {
         // (it used to be) because if the filters are _equivalent_, we would
         // revisit all dependencies and possibly change the classpath order!
         boolean sameDependencies = dependencies(newResolutionFilter).equals(oldStates);
-        if (sameDependencies) {
-            // While there will be no change to this node, there might be changes to the nodes it brings as the exclude change could concern them
+        if (sameDependencies || previousTraversalExclusions != null) {
+            // If the dependencies are the same, there might be changes to the nodes it brings as the exclude change could concern them
+            // If the dependencies are different and there has been a previous traversal, we need to update the outgoing edges with the new excludes
             for (EdgeState outgoingEdge : outgoingEdges) {
                 outgoingEdge.updateTransitiveExcludes(newResolutionFilter);
             }
