@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryV
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.provider.AbstractProperty
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
@@ -346,22 +347,47 @@ class ValueSourceProviderCodec(
 }
 
 
-class PropertyCodec(
-    private val propertyFactory: PropertyFactory,
-    private val providerCodec: FixedValueReplacingProviderCodec
-) : Codec<DefaultProperty<*>> {
+abstract class AbstractPropertyCodec<P : AbstractProperty<*, *>>(
+    protected val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<P> {
+    override suspend fun WriteContext.encode(value: P) {
+        writeBoolean(value.isDisallowChanges)
+        encodeThis(value)
+    }
 
-    override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
-        encodePreservingIdentityOf(value) {
-            writeClass(value.type as Class<*>)
-            providerCodec.run { encodeProvider(value.provider) }
+    override suspend fun ReadContext.decode(): P {
+        val isDisallowChanges = readBoolean()
+        return decodeThis().apply {
+            if (isDisallowChanges) {
+                disallowChanges()
+            }
         }
     }
 
-    override suspend fun ReadContext.decode(): DefaultProperty<*> {
+    abstract suspend fun WriteContext.encodeThis(value: P)
+    abstract suspend fun ReadContext.decodeThis(): P
+}
+
+
+class PropertyCodec(
+    private val propertyFactory: PropertyFactory,
+    providerCodec: FixedValueReplacingProviderCodec
+) : AbstractPropertyCodec<DefaultProperty<*>>(providerCodec) {
+    override suspend fun WriteContext.encodeThis(value: DefaultProperty<*>) {
+        encodePreservingIdentityOf(value) {
+            writeClass(value.type)
+            providerCodec.run {
+                encodeProvider(value.provider)
+            }
+        }
+    }
+
+    override suspend fun ReadContext.decodeThis(): DefaultProperty<*> {
         return decodePreservingIdentity { id ->
             val type: Class<Any> = readClass().uncheckedCast()
-            val provider = providerCodec.run { decodeProvider() }
+            val provider = providerCodec.run {
+                decodeProvider()
+            }
             val property = propertyFactory.property(type).provider(provider)
             isolate.identities.putInstance(id, property)
             property
@@ -379,9 +405,9 @@ class PropertyCodec(
  */
 abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.AbstractFileVar<*, *>> (
     protected val filePropertyFactory: FilePropertyFactory,
-    protected val providerCodec: FixedValueReplacingProviderCodec
-) : Codec<P> {
-    override suspend fun WriteContext.encode(value: P) {
+    providerCodec: FixedValueReplacingProviderCodec
+) : AbstractPropertyCodec<P>(providerCodec) {
+    override suspend fun WriteContext.encodeThis(value: P) {
         write(value.fileResolver)
         if (value.fileCollectionResolver == null) {
             writeByte(0.toByte())
@@ -389,13 +415,12 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
             writeByte(1.toByte())
             write(value.fileCollectionResolver)
         }
-        writeBoolean(value.isDisallowChanges)
         providerCodec.run {
             encodeProvider(value.provider)
         }
     }
 
-    override suspend fun ReadContext.decode(): P {
+    override suspend fun ReadContext.decodeThis(): P {
         val resolver = readNonNull<PathToFileResolver>()
         require(resolver is FileResolver) {
             "Expected decoded resolver to be a FileResolver, but was ${resolver::class.java.name}"
@@ -405,12 +430,7 @@ abstract class AbstractFileVarPropertyCodec<P: DefaultFilePropertyFactory.Abstra
             1.toByte() -> readNonNull<PathToFileResolver>().uncheckedCast<PathToFileResolver>()
             else -> error("Unsupported PathToFileResolver discriminator byte value: $discriminator")
         }
-        val isDisallowChanges = readBoolean()
-        return restorePropertyWithValue(resolver, fileCollectionResolver).apply {
-            if (isDisallowChanges) {
-                disallowChanges()
-            }
-        }
+        return restorePropertyWithValue(resolver, fileCollectionResolver)
     }
 
     /**
@@ -452,15 +472,15 @@ class RegularFilePropertyCodec(
 
 class ListPropertyCodec(
     private val propertyFactory: PropertyFactory,
-    private val providerCodec: FixedValueReplacingProviderCodec
-) : Codec<DefaultListProperty<*>> {
+    providerCodec: FixedValueReplacingProviderCodec
+) : AbstractPropertyCodec<DefaultListProperty<*>>(providerCodec){
 
-    override suspend fun WriteContext.encode(value: DefaultListProperty<*>) {
+    override suspend fun WriteContext.encodeThis(value: DefaultListProperty<*>) {
         writeClass(value.elementType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultListProperty<*> {
+    override suspend fun ReadContext.decodeThis(): DefaultListProperty<*> {
         val type: Class<Any> = readClass().uncheckedCast()
         val value: ValueSupplier.ExecutionTimeValue<List<Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
         return propertyFactory.listProperty(type).apply {
@@ -472,15 +492,15 @@ class ListPropertyCodec(
 
 class SetPropertyCodec(
     private val propertyFactory: PropertyFactory,
-    private val providerCodec: FixedValueReplacingProviderCodec
-) : Codec<DefaultSetProperty<*>> {
+    providerCodec: FixedValueReplacingProviderCodec
+) : AbstractPropertyCodec<DefaultSetProperty<*>>(providerCodec) {
 
-    override suspend fun WriteContext.encode(value: DefaultSetProperty<*>) {
+    override suspend fun WriteContext.encodeThis(value: DefaultSetProperty<*>) {
         writeClass(value.elementType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultSetProperty<*> {
+    override suspend fun ReadContext.decodeThis(): DefaultSetProperty<*> {
         val type: Class<Any> = readClass().uncheckedCast()
         val value: ValueSupplier.ExecutionTimeValue<Set<Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
         return propertyFactory.setProperty(type).apply {
@@ -492,16 +512,16 @@ class SetPropertyCodec(
 
 class MapPropertyCodec(
     private val propertyFactory: PropertyFactory,
-    private val providerCodec: FixedValueReplacingProviderCodec
-) : Codec<DefaultMapProperty<*, *>> {
+    providerCodec: FixedValueReplacingProviderCodec
+) : AbstractPropertyCodec<DefaultMapProperty<*, *>>(providerCodec) {
 
-    override suspend fun WriteContext.encode(value: DefaultMapProperty<*, *>) {
+    override suspend fun WriteContext.encodeThis(value: DefaultMapProperty<*, *>) {
         writeClass(value.keyType)
         writeClass(value.valueType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultMapProperty<*, *> {
+    override suspend fun ReadContext.decodeThis(): DefaultMapProperty<*, *> {
         val keyType: Class<Any> = readClass().uncheckedCast()
         val valueType: Class<Any> = readClass().uncheckedCast()
         val state: ValueSupplier.ExecutionTimeValue<Map<Any, Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
