@@ -41,11 +41,11 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
     ]
 
     private static final List<String> KOTLIN_DEPENDENCY_NOTATIONS = [
-        "group = \"org\", name = \"foo\"",
-        "group = \"org\", name = \"foo\", version = \"1.0\"",
-        "group = \"org\", name = \"foo\", version = \"1.0\", configuration = \"conf\"",
-        "group = \"org\", name = \"foo\", version = \"1.0\", classifier = \"cls\"",
-        "group = \"org\", name = \"foo\", version = \"1.0\", ext = \"jar\""
+        'group = "org", name = "foo"',
+        'group = "org", name = "foo", version = "1.0"',
+        'group = "org", name = "foo", version = "1.0", configuration = "conf"',
+        'group = "org", name = "foo", version = "1.0", classifier = "cls"',
+        'group = "org", name = "foo", version = "1.0", ext = "jar"'
     ]
 
     def setup() {
@@ -706,10 +706,10 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
 
         where:
         notation << [
-            "name= \"foo\"",
-            "group= \"org\", name= \"foo\"",
-            "group= \"org\", name= \"foo\", version= \"1.0\"",
-            "name= \"foo\", version= \"1.0\"",
+            'name= "foo"',
+            'group= "org", name= "foo"',
+            'group= "org", name= "foo", version= "1.0"',
+            'name= "foo", version= "1.0"',
         ]
     }
 
