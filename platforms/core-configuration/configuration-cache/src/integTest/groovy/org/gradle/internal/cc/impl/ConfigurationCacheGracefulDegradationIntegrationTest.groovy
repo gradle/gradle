@@ -469,7 +469,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "can have CC incompatible tasks and requested CC degradation in the same build"() {
-        testDirectoryProvider.suppressCleanup()
         buildFile """
             ${taskWithInjectedDegradationController()}
 
