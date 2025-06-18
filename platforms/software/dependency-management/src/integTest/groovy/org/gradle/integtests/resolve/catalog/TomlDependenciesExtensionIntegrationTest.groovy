@@ -806,14 +806,12 @@ key2=
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-version-catalog:toml-syntax-error'
             contextualLabel == 'Unexpected end of line, expected \', ", \'\'\', """, a number, a boolean, a date/time, an array, or a table'
-            details == 'TOML syntax invalid.'
             solutions == [ 'Fix the TOML file according to the syntax described at https://toml.io' ]
             additionalData.asMap.isEmpty()
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'dependency-version-catalog:toml-syntax-error'
             contextualLabel == 'Unexpected end of line, expected \', ", \'\'\', """, a number, a boolean, a date/time, an array, or a table'
-            details == 'TOML syntax invalid.'
             solutions == [ 'Fix the TOML file according to the syntax described at https://toml.io' ]
             additionalData.asMap.isEmpty()
         }

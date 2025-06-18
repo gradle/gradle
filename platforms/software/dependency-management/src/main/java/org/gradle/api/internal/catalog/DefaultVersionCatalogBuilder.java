@@ -177,7 +177,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         if (!aliasesInProgress.isEmpty()) {
             String alias = aliasesInProgress.iterator().next();
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "dependency alias builder '" + alias + "' was not finished.", ALIAS_NOT_FINISHED)
+                configureVersionCatalogError(builder, "Alias version not provided", ALIAS_NOT_FINISHED)
+                    .contextualLabel(getProblemInVersionCatalog() + "dependency alias builder '" + alias + "' was not finished.")
                     .details("A version was not set or explicitly declared as not wanted")
                     .solution("Call `.version()` to give the alias a version")
                     .solution("Call `.withoutVersion()` to explicitly declare that the alias should not have a version")));
@@ -188,8 +189,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             for (String alias : aliases) {
                 if (!libraries.containsKey(alias)) {
                     throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                        configureVersionCatalogError(builder, getProblemInVersionCatalog() + "a bundle with name '" + bundleName + "' declares a dependency on '" + alias +
-                            "' which doesn't exist.", UNDEFINED_ALIAS_REFERENCE)
+                        configureVersionCatalogError(builder, "Declared dependency doesn't exist", UNDEFINED_ALIAS_REFERENCE)
+                            .contextualLabel(getProblemInVersionCatalog() + "a bundle with name '" + bundleName + "' declares a dependency on '" + alias + "' which doesn't exist.")
                             .details("Bundles can only contain references to existing library aliases.")
                             .solution("Make sure that the library alias '" + alias + "' is declared")
                             .solution("Remove '" + alias + "' from bundle '" + bundleName + "'.")));
@@ -282,7 +283,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "File " + modelFile.getName() + " isn't a supported", UNSUPPORTED_FILE_FORMAT)
+                configureVersionCatalogError(builder, "Module file format not supported", UNSUPPORTED_FILE_FORMAT)
+                    .contextualLabel(getProblemInVersionCatalog() + "File " + modelFile.getName() + " isn't a supported")
                     .details("Only .toml files are allowed when importing catalogs")
                     .solution("Use a TOML file instead, with the .toml extension")));
         }
@@ -349,7 +351,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]).version(coordinates[2]);
         } else {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "on alias '" + alias + "' notation '" + groupArtifactVersion + "' is not a valid dependency notation.", INVALID_DEPENDENCY_NOTATION)
+                configureVersionCatalogError(builder, "Invalid dependency notaion", INVALID_DEPENDENCY_NOTATION)
+                    .contextualLabel(getProblemInVersionCatalog() + "on alias '" + alias + "' notation '" + groupArtifactVersion + "' is not a valid dependency notation.")
                     .details("The 'to(String)' method only supports 'group:artifact:version' coordinates")
                     .solution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2")
                     .solution("Use the to(group, name) method instead")));
@@ -378,7 +381,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
                 if (normalizedAlias.equals(prefix) || normalizedAlias.startsWith(prefix + ".")) {
                     throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                        configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
+                        configureVersionCatalogError(builder, "Reserved alias name", RESERVED_ALIAS_NAME)
+                            .contextualLabel(getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.")
                             .details("Prefix for dependency shouldn't be equal to '" + prefix + "'")
                             .solution("Use a different alias which prefix is not equal to " + quotedOxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))));
                 }
@@ -398,7 +402,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     @NonNull
     private RuntimeException throwAliasCatalogException(String alias, Collection<String> reservedNames) {
         throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-            configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
+            configureVersionCatalogError(builder, "Reserved alias name", RESERVED_ALIAS_NAME)
+                .contextualLabel(getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.")
                 .details("Alias '" + alias + "' is a reserved name in Gradle which prevents generation of accessors.")
                 .solution("Use a different alias which doesn't contain " + getExcludedNames(reservedNames) + ".")));
     }
@@ -415,7 +420,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private void validateAlias(AliasType type, String value) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "invalid " + type + " alias '" + value + "'.", INVALID_ALIAS_NOTATION)
+                configureVersionCatalogError(builder, "Invalid alias", INVALID_ALIAS_NOTATION)
+                    .contextualLabel(getProblemInVersionCatalog() + "invalid " + type + " alias '" + value + "'.")
                     .details(type + " aliases must match the following regular expression: " + ALIAS_REGEX)
                     .solution("Make sure the alias matches the " + ALIAS_REGEX + " regular expression")));
         }
@@ -469,7 +475,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             VersionModel model = versionConstraints.get(versionRef);
             if (model == null) {
                 throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder -> {
-                    ProblemSpec configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                    ProblemSpec configurator = configureVersionCatalogError(builder, "Version reference doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                        .contextualLabel(getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.")
                         .details("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
                     if (!versionConstraints.keySet().isEmpty()) {
@@ -498,7 +505,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             VersionModel model = versionConstraints.get(versionRef);
             if (model == null) {
                 throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder -> {
-                    ProblemSpec configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                    ProblemSpec configurator = configureVersionCatalogError(builder, "Version Reference doesn't exist", UNDEFINED_VERSION_REFERENCE)
+                        .contextualLabel(getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.")
                         .details("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
                     if (!versionConstraints.keySet().isEmpty()) {

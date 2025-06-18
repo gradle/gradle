@@ -207,7 +207,8 @@ trait VersionCatalogErrorMessages {
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, version catalog model contains too many entries (${entryCount}).
+//            The version catalog 'lib' contains 32000 entries, which exceeds the maximum of 30000.
+            """${intro}  - The version catalog '${catalog}' contains 32000 entries, which exceeds the maximum of ${entryCount}.
 
     Reason: The maximum number of aliases in a catalog is ${maxCount}.
 

@@ -503,7 +503,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
             throw throwVersionCatalogProblemException(problemsService.getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
+                configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries.", TOO_MANY_ENTRIES)
+                    .contextualLabel("The version catalog '" + config.getName() + "' contains " + size + " entries, which exceeds the maximum of " + MAX_ENTRIES + ".")
                     .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
                     .solution("Reduce the number of aliases defined in this catalog")
                     .solution("Split the catalog into multiple catalogs")));
@@ -530,7 +531,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .map(e -> {
                 String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
                 return this.problemsService.getInternalReporter().internalCreate(builder ->
-                    configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
+                    configureVersionCatalogError(builder, "Invalid error mapping", ACCESSOR_NAME_CLASH)
+                        .contextualLabel(getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().")
                         .details("A name clash was detected")
                         .solution("Use a different alias for " + errorValues));
             })

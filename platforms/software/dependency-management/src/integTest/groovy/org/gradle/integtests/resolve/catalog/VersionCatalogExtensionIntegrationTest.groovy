@@ -121,7 +121,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:alias-not-finished'
 
-            definition.id.displayName == 'Problem: In version catalog libs, dependency alias builder \'my.great.lib\' was not finished.'
+            definition.id.displayName == 'Alias version not provided'
+            contextualLabel == 'Problem: In version catalog libs, dependency alias builder \'my.great.lib\' was not finished.'
             details == 'A version was not set or explicitly declared as not wanted'
             solutions == [
                 'Call `.version()` to give the alias a version',
@@ -1953,9 +1954,10 @@ Second: 1.1"""
         and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
+            definition.id.displayName == 'Reserved alias name'
+            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
-            solutions == [ 'Use a different alias which doesn\'t contain any of \'convention\' or \'extensions\'.' ]
+            solutions == ['Use a different alias which doesn\'t contain any of \'convention\' or \'extensions\'.']
         }
 
         where:
@@ -1994,9 +1996,10 @@ Second: 1.1"""
         and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
+            definition.id.displayName == "Reserved alias name"
+            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
-            solutions == [ 'Use a different alias which doesn\'t contain \'class\'.' ]
+            solutions == ['Use a different alias which doesn\'t contain \'class\'.']
         }
 
         where:
@@ -2035,9 +2038,10 @@ Second: 1.1"""
         and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == "Problem: In version catalog libs, alias '$reservedName' is not a valid alias."
+            definition.id.displayName == 'Reserved alias name'
+                contextualLabel == "Problem: In version catalog libs, alias '$reservedName' is not a valid alias."
             details == "Prefix for dependency shouldn\'t be equal to '$prefix'"
-            solutions == [ 'Use a different alias which prefix is not equal to \'bundles\', \'plugins\', or \'versions\'' ]
+            solutions == ['Use a different alias which prefix is not equal to \'bundles\', \'plugins\', or \'versions\'']
         }
 
         where:
