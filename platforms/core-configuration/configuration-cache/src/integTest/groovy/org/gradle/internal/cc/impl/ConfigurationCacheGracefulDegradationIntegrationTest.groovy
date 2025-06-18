@@ -193,9 +193,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCache.assertStateStored()
 
         and:
-        result.assertTaskExecuted(":buildSrc:compileJava")
-        result.assertTaskExecuted(":buildSrc:foo")
-        result.assertTaskExecuted(":help")
+        executed(":buildSrc:compileJava", ":buildSrc:foo", ":help")
     }
 
     def "depending on a CC degrading task from included build introduces CC degradation"() {
@@ -348,7 +346,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         outputContains("Should be configured")
-        result.assertTaskNotExecuted(":a")
+        notExecuted ":a"
     }
 
     def "user code exceptions in degradation reasons evaluation are surfaced"() {
@@ -409,7 +407,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         run ":foo"
 
         then:
-        result.assertTaskExecuted(":foo")
+        executed ":foo"
     }
 
     def "CC report link is present even when no problems were reported"() {
@@ -438,7 +436,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         }
 
         and:
-        result.assertTaskExecuted(":foo")
+        executed ":foo"
         assertConfigurationCacheDegradation()
     }
 
@@ -468,7 +466,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         assertConfigurationCacheDegradation(true)
     }
 
-    def "can have CC incompatible tasks and requested CC degradation in the same build"() {
+    def "CC incompatible tasks and requested CC degradation are correctly reported"() {
         buildFile """
             ${taskWithInjectedDegradationController()}
 
@@ -490,10 +488,10 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         then:
         configurationCache.assertNoConfigurationCache()
+        assertConfigurationCacheDegradation(true)
 
         and:
-        result.assertTaskExecuted(":foo")
-        result.assertTaskExecuted(":bar")
+        executed(":foo", ":bar")
 
         and:
         problems.assertResultHasConsoleSummary(result) {
@@ -506,9 +504,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             withIncompatibleTask(":bar", "Project access.")
             withIncompatibleTask(":foo", "Because reasons.")
         }
-
-        and:
-        assertConfigurationCacheDegradation(true)
     }
 
     private static String taskWithInjectedDegradationController() {
