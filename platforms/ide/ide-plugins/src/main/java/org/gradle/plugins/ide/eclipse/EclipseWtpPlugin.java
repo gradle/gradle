@@ -140,7 +140,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 task.setOutputFile(project.file(".settings/org.eclipse.wst.common.component"));
             }
         });
-        task.configure(withGracefulDegradation(project));
+        task.configure(withGracefulDegradation());
         addWorker(task, ECLIPSE_WTP_COMPONENT_TASK_NAME);
 
         ((IConventionAware) component).getConventionMapping().map("deployName", new Callable<String>() {

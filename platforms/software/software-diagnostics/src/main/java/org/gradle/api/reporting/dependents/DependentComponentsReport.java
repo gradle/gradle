@@ -20,9 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.reporting.dependents.internal.TextDependentComponentsReportRenderer;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
@@ -42,6 +40,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllComponents;
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllTestSuites;
 
@@ -58,7 +57,7 @@ public abstract class DependentComponentsReport extends DefaultTask {
 
     @Inject
     public DependentComponentsReport() {
-        getServices().get(ConfigurationCacheDegradationController.class).requireConfigurationCacheDegradation(this, Providers.of("Task is not compatible with the Configuration Cache"));
+        requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
     /**

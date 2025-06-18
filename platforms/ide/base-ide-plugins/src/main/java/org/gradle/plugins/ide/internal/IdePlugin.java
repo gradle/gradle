@@ -22,9 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -41,6 +39,9 @@ import javax.inject.Inject;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public abstract class IdePlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(IdePlugin.class);
@@ -173,13 +174,8 @@ public abstract class IdePlugin implements Plugin<Project> {
         };
     }
 
-    protected static Action<Task> withGracefulDegradation(Project project) {
-        return task -> ((ProjectInternal) project).getServices()
-            .get(ConfigurationCacheDegradationController.class)
-            .requireConfigurationCacheDegradation(
-                task,
-                project.provider(() -> "Task is not compatible with the configuration cache")
-        );
+    protected static Action<Task> withGracefulDegradation() {
+        return task -> requireDegradation(uncheckedNonnullCast(task), "Task is not compatible with the configuration cache");
     }
 
     protected void onApply(Project target) {
