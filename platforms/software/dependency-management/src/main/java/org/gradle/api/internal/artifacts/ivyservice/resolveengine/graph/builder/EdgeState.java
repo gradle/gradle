@@ -52,12 +52,15 @@ class EdgeState implements DependencyGraphEdge {
     private final List<NodeState> targetNodes = new LinkedList<>();
     private final boolean isTransitive;
     private final boolean isConstraint;
-    private final int hashCode;
 
     private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
-    private ExcludeSpec transitiveExclusions;
+
+    /**
+     * The accumulated exclusions that apply to this edge based on the path from the root
+     */
+    private @Nullable ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
@@ -65,25 +68,13 @@ class EdgeState implements DependencyGraphEdge {
     private boolean unattached;
     private boolean used;
 
-    EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
+    EdgeState(NodeState from, DependencyState dependencyState, ResolveState resolveState) {
         this.from = from;
         this.dependencyState = dependencyState;
         this.dependencyMetadata = dependencyState.getDependency();
-        // The accumulated exclusions that apply to this edge based on the path from the root
-        this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
         this.isConstraint = dependencyMetadata.isConstraint();
-        this.hashCode = computeHashCode();
-    }
-
-    private int computeHashCode() {
-        int hashCode = from.hashCode();
-        hashCode = 31 * hashCode + dependencyState.hashCode();
-        if (transitiveExclusions != null) {
-            hashCode = 31 * hashCode + transitiveExclusions.hashCode();
-        }
-        return hashCode;
     }
 
     void computeSelector() {
@@ -432,17 +423,6 @@ class EdgeState implements DependencyGraphEdge {
         return null;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return this == o;
-        // Edge states are deduplicated, this is a performance optimization
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
     DependencyState getDependencyState() {
         return dependencyState;
     }
@@ -454,8 +434,12 @@ class EdgeState implements DependencyGraphEdge {
         }
         transitiveExclusions = newResolutionFilter;
         cachedExclusions = null;
+    }
+
+    public void updateTransitiveExcludesAndRequeueTargetNodes(ExcludeSpec newResolutionFilter) {
+        updateTransitiveExcludes(newResolutionFilter);
         for (NodeState targetNode : targetNodes) {
-            targetNode.updateTransitiveExcludes();
+            targetNode.clearTransitiveExclusionsAndEnqueue();
         }
     }
 
