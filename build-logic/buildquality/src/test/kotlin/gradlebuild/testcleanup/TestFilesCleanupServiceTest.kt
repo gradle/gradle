@@ -66,9 +66,11 @@ class TestFilesCleanupServiceTest {
         }
 
         projectDir.resolve("failed-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
+        projectDir.resolve("successful-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(false)
+        projectDir.resolve("failed-report-with-leftover").mkdirs()
         projectDir.resolve("flaky-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
         projectDir.resolve("flaky-test-without-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
-        projectDir.resolve("successful-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(false)
+        projectDir.resolve("successful-report").mkdirs()
 
         projectDir.resolve("build.gradle.kts").writeText(
             """
