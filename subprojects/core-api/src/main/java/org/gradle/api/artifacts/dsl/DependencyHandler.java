@@ -129,7 +129,9 @@ import java.util.Map;
  * dependencies {
  *   // Configuring dependency to specific configuration of the module
  *   // This notation should _only_ be used for Ivy dependencies
- *   implementation(group: "org.someOrg", name: "someModule", version: "1.0", configuration: "someConf")
+ *   implementation("org.someOrg:someModule:1.0") {
+ *       targetConfiguration = "someConf"
+ *   }
  *
  *   // Configuring dependency on 'someLib' module
  *   implementation(group: 'org.myorg', name: 'someLib', version:'1.0') {
@@ -161,17 +163,11 @@ import java.util.Map;
  *
  * <h3>External dependencies</h3>
  *
- * <p>There are two notations supported for declaring a dependency on an external module.
- * One is a string notation formatted this way:</p>
+ * <p>The following notation is used to declare a dependency on an external module:</p>
  *
- * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>@<i>extension</i>"</code>
+ * <code><i>configurationName</i>("<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>@<i>extension</i>")</code>
  *
- * <p>The other is a map notation:</p>
- *
- * <code><i>configurationName</i> group: <i>group</i>, name: <i>name</i>, version: <i>version</i>, classifier:
- * <i>classifier</i>, ext: <i>extension</i></code>
- *
- * <p>In both notations, all properties, except name, are optional.</p>
+ * <p>All properties, except name, are optional.</p>
  *
  * <p>External dependencies are represented by a {@link
  * org.gradle.api.artifacts.ExternalModuleDependency}.</p>

@@ -291,10 +291,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
     }
 
     def "file can be added to existing variant"() {
-        def dependencyDeclaration = (useMaven() || gradleMetadataPublished)
-            ? "'org.test:moduleA:1.0'" // variant matching
-            : "group: 'org.test', name: 'moduleA', version: '1.0', configuration: 'runtime'" // explicit configuration selection for pure ivy
-
         given:
         repository {
             'org.test:moduleA:1.0' {
@@ -307,7 +303,11 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         when:
         buildFile << """
             dependencies {
-                conf $dependencyDeclaration
+                conf("org.test:moduleA:1.0") {
+                    if (${!useMaven() && !gradleMetadataPublished}) {
+                        targetConfiguration = "runtime" // explicit configuration selection for pure ivy
+                    }
+                }
                 components {
                     withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '') }
                 }
@@ -396,10 +396,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
     }
 
     def "cannot add file with the same name multiple times"() {
-        def dependencyDeclaration = (useMaven() || gradleMetadataPublished)
-            ? "'org.test:moduleA:1.0'" // variant matching
-            : "group: 'org.test', name: 'moduleA', version: '1.0', configuration: 'runtime'" // explicit configuration selection for pure ivy
-
         given:
         repository {
             'org.test:moduleA:1.0' {
@@ -410,7 +406,11 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         when:
         buildFile << """
             dependencies {
-                conf $dependencyDeclaration
+                conf("org.test:moduleA:1.0") {
+                    if (${!useMaven() && !gradleMetadataPublished}) {
+                        targetConfiguration = "runtime" // explicit configuration selection for pure ivy
+                    }
+                }
                 components {
                     withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '') }
                     withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', "../somewhere/some.jar") }

@@ -43,7 +43,7 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDepende
 configurations { compile }
 
 dependencies {
-    compile group: "group", name: "projectA", version: "1.+"
+    compile("group:projectA:1.+")
 }
 """
         when:
@@ -78,8 +78,8 @@ if (project.hasProperty('refreshDynamicVersions')) {
     }
 }
 dependencies {
-    compile group: "group", name: "projectA", version: "1.+"
-    compile group: "group", name: "projectB", version: "latest.integration"
+    compile("group:projectA:1.+")
+    compile("group:projectB:latest.integration")
 }
 """
         when:
@@ -154,8 +154,8 @@ repositories.all {
 }
 configurations { compile }
 dependencies {
-  compile group: "group", name: "projectA", version: "1.+"
-  compile group: "group", name: "projectB", version: "latest.integration"
+  compile("group:projectA:1.+")
+  compile("group:projectB:latest.integration")
 }
 """
 
@@ -196,7 +196,7 @@ def latestRevision = project.getProperty('latestRevision')
 configurations { compile }
 
 dependencies {
-    compile group: "group", name: "projectA", version: "latest.\${latestRevision}"
+    compile("group:projectA:latest.\${latestRevision}")
 }
 """
 
@@ -256,8 +256,8 @@ configurations {
     compile
 }
 dependencies {
-    staticVersions group: "group", name: "projectA", version: "1.1"
-    compile group: "group", name: "projectA", version: "latest.milestone"
+    staticVersions("group:projectA:1.1")
+    compile("group:projectA:latest.milestone")
 }
 task cache {
     def files = configurations.staticVersions
@@ -302,7 +302,7 @@ task cache {
         buildFile << """
     configurations { compile }
     dependencies {
-        compile group: "group", name: "projectA", version: "latest.milestone"
+        compile("group:projectA:latest.milestone")
     }
     """
 
@@ -344,7 +344,7 @@ if (project.hasProperty('addRepo2')) {
 
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "1.+"
+    compile("group:projectA:1.+")
 }
 """
 
@@ -383,7 +383,7 @@ dependencies {
         buildFile << """
     configurations { compile }
     dependencies {
-        compile group: "group", name: "projectA", version: "1.+"
+        compile("group:projectA:1.+")
     }
     """
 
@@ -419,7 +419,7 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "1.+"
+    compile("group:projectA:1.+")
 }
 """
 
@@ -450,8 +450,8 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "org.test", name: "projectA", version: "1.+"
-    compile group: "org.test", name: "projectA", version: "latest.integration"
+    compile("org.test:projectA:1.+")
+    compile("org.test:projectA:latest.integration")
 }
 """
 
@@ -477,7 +477,7 @@ dependencies {
         and:
         buildFile << """
 dependencies {
-    compile group: "org.test", name: "projectA", version: "[1.0,2.0)"
+    compile("org.test:projectA:[1.0,2.0)")
 }
 """
 
@@ -505,8 +505,8 @@ configurations {
 configurations.fresh.resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 
 dependencies {
-    fresh group: "org.test", name: "projectA", version: "1.+"
-    stale group: "org.test", name: "projectA", version: "1.+"
+    fresh("org.test:projectA:1.+")
+    stale("org.test:projectA:1.+")
 }
 
 task resolveStaleThenFresh {
@@ -552,7 +552,7 @@ task resolveStaleThenFresh {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "org.test", name: "projectA", version: "1.+"
+    compile("org.test:projectA:1.+")
 }
 """
 
@@ -585,7 +585,7 @@ dependencies {
         and:
         buildFile << """
 dependencies {
-    compile group: "org.test", name: "projectA", version: "2.+"
+    compile("org.test:projectA:2.+")
 }
 """
 
@@ -611,7 +611,7 @@ dependencies {
         and:
         buildFile << """
 dependencies {
-    compile group: "org.test", name: "projectA", version: "3.+"
+    compile("org.test:projectA:3.+")
 }
 """
 
@@ -638,7 +638,7 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "1.+"
+    compile("group:projectA:1.+")
 }
 if (project.hasProperty('noDynamicRevisionCache')) {
     configurations.all {
@@ -679,7 +679,7 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "main", version: "1.0"
+    compile("group:main:1.0")
 }
 
 if (project.hasProperty('noDynamicRevisionCache')) {
@@ -901,8 +901,8 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "main", version: "1.0"
-    compile group: "group", name: "projectA", version: "latest.integration"
+    compile("group:main:1.0")
+    compile("group:projectA:latest.integration")
 }
 configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
@@ -963,7 +963,7 @@ configurations.all {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "2.+"
+    compile("group:projectA:2.+")
 }
 """
 
@@ -1050,7 +1050,7 @@ Required by:
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "2.+"
+    compile("group:projectA:2.+")
 }
 """
 
@@ -1094,7 +1094,7 @@ Required by:
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "2.+"
+    compile("group:projectA:2.+")
 }
 """
 
@@ -1117,7 +1117,7 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "2.+"
+    compile("group:projectA:2.+")
 }
 """
 
@@ -1148,7 +1148,7 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "latest.release"
+    compile("group:projectA:latest.release")
 }
 """
 
@@ -1182,7 +1182,7 @@ Required by:
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "group", name: "projectA", version: "latest.release"
+    compile("group:projectA:latest.release")
 }
 """
 
