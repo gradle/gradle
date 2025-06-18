@@ -20,24 +20,24 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 
-class ReproducibleArchivesInterceptor extends AbstractMultiTestInterceptor {
+class FileSystemSensitiveArchivesInterceptor extends AbstractMultiTestInterceptor {
 
-    protected ReproducibleArchivesInterceptor(Class<?> target) {
+    protected FileSystemSensitiveArchivesInterceptor(Class<?> target) {
         super(target)
     }
 
     @Override
     protected void createExecutions() {
-        add(new ReproducibleArchivesExecution(false))
-        add(new ReproducibleArchivesExecution(true))
+        add(new FileSystemSensitiveArchivesExecution(false))
+        add(new FileSystemSensitiveArchivesExecution(true))
     }
 
-    private static class ReproducibleArchivesExecution extends AbstractMultiTestInterceptor.Execution {
+    private static class FileSystemSensitiveArchivesExecution extends AbstractMultiTestInterceptor.Execution {
 
-        private final boolean withReproducibleArchives
+        private final boolean withFileSystemSensitiveArchives
 
-        ReproducibleArchivesExecution(boolean withReproducibleArchives) {
-            this.withReproducibleArchives = withReproducibleArchives
+        FileSystemSensitiveArchivesExecution(boolean withFileSystemSensitiveArchives) {
+            this.withFileSystemSensitiveArchives = withFileSystemSensitiveArchives
         }
 
         @Override
@@ -47,23 +47,22 @@ class ReproducibleArchivesInterceptor extends AbstractMultiTestInterceptor {
 
         @Override
         protected String getDisplayName() {
-            return withReproducibleArchives ? "with reproducible archives" : "without reproducible archives"
+            return withFileSystemSensitiveArchives ? "with file system sensitive archives" : ""
         }
 
         protected void before(IMethodInvocation invocation) {
-            if (withReproducibleArchives) {
+            if (withFileSystemSensitiveArchives) {
                 AbstractIntegrationSpec instance = invocation.instance as AbstractIntegrationSpec
-                def initScript = instance.testDirectory.file('reproducible-archives-init.gradle')
+                def initScript = instance.testDirectory.file('file-system-sensitive-archives-init.gradle')
                 initScript.text = """
-                        rootProject { prj ->
-                            allprojects {
-                                tasks.withType(AbstractArchiveTask) {
-                                    preserveFileTimestamps = false
-                                    reproducibleFileOrder = true
-                                }
-                            }
+                    gradle.lifecycle.beforeProject {
+                        tasks.withType(AbstractArchiveTask).configureEach {
+                            preserveFileTimestamps = true
+                            reproducibleFileOrder = false
+                            useFileSystemPermissions()
                         }
-                    """.stripIndent()
+                    }
+                """.stripIndent()
                 instance.executer.beforeExecute {
                     usingInitScript(initScript)
                 }

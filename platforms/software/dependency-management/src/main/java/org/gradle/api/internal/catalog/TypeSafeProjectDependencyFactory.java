@@ -29,7 +29,7 @@ public abstract class TypeSafeProjectDependencyFactory {
     }
 
     protected ProjectDependencyInternal create(String path) {
-        return (ProjectDependencyInternal) factory.create(finder.getProject(path).getOwner());
+        return (ProjectDependencyInternal) factory.create(finder.resolveIdentityPath(path));
     }
 
     protected TypeSafeProjectDependencyFactory getFactory() {

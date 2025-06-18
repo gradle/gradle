@@ -130,9 +130,6 @@ class ConfigurationCacheProblems(
             if (seenSerializationErrorOnStore) {
                 return true
             }
-            if (areDegradationReasonsPresent()) {
-                return true
-            }
             val summary = summarizer.get()
             return discardStateDueToProblems(summary) || hasTooManyProblems(summary)
         }
@@ -430,6 +427,7 @@ class ConfigurationCacheProblems(
         init {
             require(degradingFeatures.isNotEmpty() || degradingTaskCount > 0)
         }
+
         fun render(): String {
             val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
             return " because incompatible " +

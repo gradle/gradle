@@ -22,8 +22,9 @@ import javax.inject.Inject
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def configurationCache = newConfigurationCacheFixture()
+
     def "a task can require CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -54,7 +55,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a task can require CC degradation for multiple reasons"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -103,7 +103,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "CC problems in warning mode are not hidden by CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -140,7 +139,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a task in included build can require CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile("included/build.gradle", """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -174,7 +172,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a buildSrc internal task that requires CC degradation does not introduce root build CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         file("buildSrc/src/main/java/MyClass.java") << "class MyClass {}"
         buildFile("buildSrc/build.gradle", """
             ${taskWithInjectedDegradationController()}
@@ -196,13 +193,10 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCache.assertStateStored()
 
         and:
-        result.assertTaskExecuted(":buildSrc:compileJava")
-        result.assertTaskExecuted(":buildSrc:foo")
-        result.assertTaskExecuted(":help")
+        executed(":buildSrc:compileJava", ":buildSrc:foo", ":help")
     }
 
     def "depending on a CC degrading task from included build introduces CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile("included/build.gradle", """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -244,8 +238,45 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         assertConfigurationCacheDegradation()
     }
 
+    def "a dependency task in #build build can require CC degradation for the non-root build"() {
+        buildFile("$build/build.gradle", """
+            ${taskWithInjectedDegradationController()}
+
+            def fooTask = tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+            }
+
+            tasks.register("bar") {
+                dependsOn(fooTask)
+            }
+        """)
+        settingsFile """
+            $settingsConfiguration
+        """
+
+        when:
+        configurationCacheRun ":$build:bar"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 0
+            withIncompatibleTask(":$build:foo", "Because reasons.")
+        }
+
+        and:
+        assertConfigurationCacheDegradation()
+
+        where:
+        build      | settingsConfiguration
+        "buildSrc" | ""
+        "included" | "include('included')"
+    }
+
     def "no CC degradation if incompatible task is not presented in the task graph"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -277,7 +308,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "ignore CC degradation requests at execution time"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -299,7 +329,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "tasks instantiated during execution have degradation requests ignored"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -317,7 +346,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         outputContains("Should be configured")
-        result.assertTaskNotExecuted(":a")
+        notExecuted ":a"
     }
 
     def "user code exceptions in degradation reasons evaluation are surfaced"() {
@@ -378,12 +407,11 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         run ":foo"
 
         then:
-        result.assertTaskExecuted(":foo")
+        executed ":foo"
     }
 
     def "CC report link is present even when no problems were reported"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -408,7 +436,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         }
 
         and:
-        result.assertTaskExecuted(":foo")
+        executed ":foo"
         assertConfigurationCacheDegradation()
     }
 
@@ -432,7 +460,50 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCacheRunLenient("foo", "bar")
 
         then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
         assertConfigurationCacheDegradation(true)
+    }
+
+    def "CC incompatible tasks and requested CC degradation are correctly reported"() {
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            def fooTask = tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+            }
+
+            tasks.register("bar") {
+                dependsOn(fooTask)
+                notCompatibleWithConfigurationCache("Project access")
+                doLast {
+                    project.path
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "bar"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        assertConfigurationCacheDegradation(true)
+
+        and:
+        executed(":foo", ":bar")
+
+        and:
+        problems.assertResultHasConsoleSummary(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache")
+        }
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":bar", "Project access.")
+            withIncompatibleTask(":foo", "Because reasons.")
+        }
     }
 
     private static String taskWithInjectedDegradationController() {

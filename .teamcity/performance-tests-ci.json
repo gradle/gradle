@@ -904,7 +904,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for non-abi change with reproducible archives",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for non-abi change with file system sensitive archives",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {

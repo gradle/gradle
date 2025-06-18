@@ -17,14 +17,14 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.maven.MavenPom
 
 /**
  * Tests {@link org.gradle.api.distribution.plugins.DistributionPlugin}.
  */
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
     @Override

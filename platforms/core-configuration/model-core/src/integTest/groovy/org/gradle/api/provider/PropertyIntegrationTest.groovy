@@ -571,35 +571,46 @@ task wrongConventionRuntimeValueType {
 
     def "fails when specialized factory method is not used"() {
         buildFile << """
-class SomeExtension {
-    final Property<List<String>> prop1
-    final Property<Set<String>> prop2
-    final Property<Directory> prop3
-    final Property<RegularFile> prop4
-    final Property<Map<String, String>> prop5
-
-    @javax.inject.Inject
-    SomeExtension(ObjectFactory objects) {
-        $prop = objects.property($type)
-    }
-}
-
-project.extensions.create("some", SomeExtension)
+            objects.property($declaration)
         """
 
         when:
         fails()
 
         then:
-        failure.assertHasCause("Please use the ObjectFactory.$method method to create a property of type $type$typeParam.")
+        failure.assertHasCause("Creating a property of type 'Property<$baseType>' is unsupported. Use '$properType' instead.")
 
         where:
-        prop    | method                | type          | typeParam
-        'prop1' | 'listProperty()'      | 'List'        | '<T>'
-        'prop2' | 'setProperty()'       | 'Set'         | '<T>'
-        'prop3' | 'mapProperty()'       | 'Map'         | '<K, V>'
-        'prop4' | 'directoryProperty()' | 'Directory'   | ''
-        'prop5' | 'fileProperty()'      | 'RegularFile' | ''
+        declaration   | baseType      | properType
+        'List'        | 'List<..>'    | 'ListProperty<..>'
+        'Set'         | 'Set<..>'     | 'SetProperty<..>'
+        'Map'         | 'Map<..>'     | 'MapProperty<..>'
+        'Directory'   | 'Directory'   | 'DirectoryProperty'
+        'RegularFile' | 'RegularFile' | 'RegularFileProperty'
+    }
+
+    def "fails when instantiating managed type without specialized property types"() {
+        buildFile << """
+            interface SomeType {
+                Property<$declaration> getProp()
+            }
+
+            project.objects.newInstance(SomeType).prop
+        """
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("Creating a property of type 'Property<$baseType>' is unsupported. Use '$properType' instead.")
+
+        where:
+        declaration           | baseType      | properType
+        'List<String>'        | 'List<..>'    | 'ListProperty<..>'
+        'Set<String>'         | 'Set<..>'     | 'SetProperty<..>'
+        'Map<String, String>' | 'Map<..>'     | 'MapProperty<..>'
+        'Directory'           | 'Directory'   | 'DirectoryProperty'
+        'RegularFile'         | 'RegularFile' | 'RegularFileProperty'
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)

@@ -16,7 +16,18 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class DefaultPropertyFactory implements PropertyFactory {
+
     private final PropertyHost propertyHost;
 
     public DefaultPropertyFactory(PropertyHost propertyHost) {
@@ -24,22 +35,64 @@ public class DefaultPropertyFactory implements PropertyFactory {
     }
 
     @Override
+    @Deprecated
+    public DefaultProperty<?> propertyWithNoType() {
+        return new DefaultProperty<>(propertyHost, null);
+    }
+
+    @Override
     public <T> DefaultProperty<T> property(Class<T> type) {
-        return new DefaultProperty<>(propertyHost, type);
+        if (List.class.isAssignableFrom(type)) {
+            // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
+            // Allow this one type to be used with Property until we can fix this elsewhere
+            if (!ExternalModuleDependencyBundle.class.isAssignableFrom(type)) {
+                throw new InvalidUserCodeException(invalidPropertyCreationError("List<..>", "ListProperty<..>"));
+            }
+        } else if (Set.class.isAssignableFrom(type)) {
+            throw new InvalidUserCodeException(invalidPropertyCreationError("Set<..>", "SetProperty<..>"));
+        } else if (Map.class.isAssignableFrom(type)) {
+            throw new InvalidUserCodeException(invalidPropertyCreationError("Map<..>", "MapProperty<..>"));
+        } else if (Directory.class.isAssignableFrom(type)) {
+            throw new InvalidUserCodeException(invalidPropertyCreationError("Directory", "DirectoryProperty"));
+        } else if (RegularFile.class.isAssignableFrom(type)) {
+            throw new InvalidUserCodeException(invalidPropertyCreationError("RegularFile", "RegularFileProperty"));
+        }
+
+        return new DefaultProperty<>(propertyHost, maybeAsWrapperType(type));
+    }
+
+    private static String invalidPropertyCreationError(String attemptedType, String correctType) {
+        return "Creating a property of type 'Property<" + attemptedType + ">' is unsupported. Use '" + correctType + "' instead.";
     }
 
     @Override
     public <T> DefaultListProperty<T> listProperty(Class<T> elementType) {
-        return new DefaultListProperty<>(propertyHost, elementType);
+        return new DefaultListProperty<>(propertyHost, maybeAsWrapperType(elementType));
     }
 
     @Override
     public <T> DefaultSetProperty<T> setProperty(Class<T> elementType) {
-        return new DefaultSetProperty<>(propertyHost, elementType);
+        return new DefaultSetProperty<>(propertyHost, maybeAsWrapperType(elementType));
     }
 
     @Override
     public <V, K> DefaultMapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
-        return new DefaultMapProperty<>(propertyHost, keyType, valueType);
+        return new DefaultMapProperty<>(propertyHost, maybeAsWrapperType(keyType), maybeAsWrapperType(valueType));
     }
+
+    /**
+     * Kotlin passes the Class for the primitive class instead of the boxed
+     * class. Convert to the boxed version if necessary.
+     */
+    private static <T> Class<T> maybeAsWrapperType(Class<T> type) {
+        if (type.isPrimitive()) {
+            Class<?> wrapper = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(type);
+            @SuppressWarnings("unchecked")
+            Class<T> castWrapper = (Class<T>) wrapper;
+            return castWrapper;
+        }
+
+        return type;
+    }
+
 }

@@ -1,0 +1,56 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_index]]
+= Best Practices Index
+
+The table below provides a complete list of documented Gradle Best Practices.
+
+****
+There are currently *21 Best Practices*.
+****
+
+Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
+
+[.table]
+|===
+| Title | Section | Introduced in Gradle
+
+| <<best_practices_general.adoc#use_kotlin_dsl,Use Kotlin DSL>> | General | 8.14
+| <<best_practices_general.adoc#use_latest_minor_versions,Use the Latest Minor Version of Gradle>> | General | 8.14
+| <<best_practices_general.adoc#use_the_plugins_block,Apply Plugins Using the plugins Block>> | General | 8.14
+| <<best_practices_general.adoc#do_not_use_internal_apis,Do Not Use Internal APIs>> | General | 8.14
+| <<best_practices_general.adoc#use_the_gradle_properties_file,Set build flags in gradle.properties>> | General | 9.0.0
+
+| <<best_practices_structuring_builds.adoc#modularize_builds,Modularize Your Builds>> | Structuring Builds | 9.0.0
+| <<best_practices_structuring_builds.adoc#no_source_in_root,Do Not Put Source Files in the Root Project>> | Structuring Builds | 9.0.0
+| <<best_practices_structuring_builds.adoc#favor_composite_builds,Favor build-logic Composite Builds for Build Logic>> | Structuring Builds | 9.0.0
+| <<best_practices_structuring_builds.adoc#avoid_empty_projects,Avoid Unintentionally Creating Empty Projects>> | Structuring Builds | 9.1.0
+
+| <<best_practices_dependencies.adoc#single-gav-string,Single GAV String>> | Dependencies | 8.14
+| <<best_practices_dependencies.adoc#use_version_catalogs,Use Version Catalogs to Centralize Dependency Versions>> | Dependencies | 9.0.0
+| <<best_practices_dependencies.adoc#name_version_catalog_entries,Name Version Catalog Entries Appropriately>> | Dependencies | 9.0.0
+| <<best_practices_dependencies.adoc#set_up_repositories_in_settings,Set up your Dependency Repositories in the Settings file>> | Dependencies | 9.0.0
+| <<best_practices_dependencies.adoc#dont_depend_on_kotlin_stdlib,Don’t Explicitly Depend on the Kotlin Standard Library>> | Dependencies | 9.0.0
+| <<best_practices_dependencies.adoc#avoid_duplicate_dependencies,Avoid Redundant Dependency Declarations>> | Dependencies | 9.0.0
+
+| <<best_practices_tasks.adoc#avoid_depends_on,Avoid DependsOn>> | Task | 8.14
+| <<best_practices_tasks.adoc#use_cacheability_annotations, Favor @CacheableTask and @DisableCachingByDefault over cacheIf(Spec) and doNotCacheIf(String, Spec)>> | Task | 8.14
+| <<best_practices_tasks.adoc#group_describe_tasks,Group and Describe custom Tasks>> | Task | 9.0.0
+| <<best_practices_tasks.adoc#avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>> | Task | 9.1.0
+
+| <<best_practices_performance.adoc#use_utf8_encoding,Enable UTF‑8>> | Performance | 9.0.0
+
+| <<best_practices_security.adoc#best_practices_for_security,Validate the Gradle Distribution SHA-256 Checksum>> | Security | 9.1.0
+|===

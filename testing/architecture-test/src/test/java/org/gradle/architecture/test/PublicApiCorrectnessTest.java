@@ -48,11 +48,11 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.beAbstractClass;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
-import static org.gradle.architecture.test.ArchUnitFixture.not_from_fileevents;
 import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
+import static org.gradle.architecture.test.ArchUnitFixture.not_from_fileevents;
 import static org.gradle.architecture.test.ArchUnitFixture.not_written_in_kotlin;
 import static org.gradle.architecture.test.ArchUnitFixture.overrideMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
@@ -91,6 +91,12 @@ public class PublicApiCorrectnessTest {
     public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(methods()
         .that(are(public_api_methods))
         .should(haveOnlyArgumentsOrReturnTypesThatAre(allowed_types_for_public_api))
+    );
+
+    @ArchTest
+    public static final ArchRule public_api_methods_with_closures = freeze(methods()
+        .that(are(public_api_methods))
+        .should(new ArchUnitFixture.HaveGradleTypeEquivalent())
     );
 
     @ArchTest

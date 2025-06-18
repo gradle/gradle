@@ -79,6 +79,13 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
         return this;
     }
 
+    @Override
+    public AttributeContainer addAllLater(AttributeContainer other) {
+        assertMutable();
+        delegate.addAllLater(other);
+        return this;
+    }
+
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
@@ -86,6 +93,11 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
             return null;
         }
         return delegate.getAttribute(key);
+    }
+
+    @Override
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries() {
+        return delegate.getEntries();
     }
 
     @Override

@@ -1,0 +1,46 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_for_security]]
+= Best Practices for Security
+
+[[validate_gradle_checksum]]
+== Validate the Gradle Distribution SHA-256 Checksum
+
+Set `distributionSha256Sum` in `gradle-wrapper.properties` to verify the integrity of the downloaded Gradle distribution.
+
+=== Explanation
+
+Always set the `distributionSha256Sum` property in your `gradle-wrapper.properties` file to verify the integrity of the downloaded Gradle distribution.
+This ensures the `gradle-X.X-bin.zip` file matches the official SHA-256 checksum published by Gradle, protecting your build from corruption or tampering.
+
+[source,properties]
+----
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.6-bin.zip
+distributionSha256Sum=2b3f4...sha256-here...f4511
+----
+
+This validation step enhances security by preventing the execution of compromised or incomplete Gradle distributions.
+
+The official SHA-256 checksums can be found on the link:https://gradle.org/releases/[Gradle releases page].
+
+=== References
+
+- link:https://gradle.org/releases/[Gradle Releases with Checksums]
+- <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper Reference>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
+

@@ -1,0 +1,26 @@
+// tag::provider-get-task-setup[]
+abstract class MyTask extends DefaultTask {
+    @Input
+    abstract Property<String> getMyInput()
+
+    @OutputFile
+    abstract RegularFileProperty getMyOutput()
+
+    @TaskAction
+    void doAction() {
+        def outputFile = myOutput.get().asFile
+        def outputText = myInput.get() // <1>
+        println(outputText)
+        outputFile.write(outputText)
+    }
+}
+
+Provider<String> currentEnvironment = providers.gradleProperty("currentEnvironment").orElse("234") // <2>
+// end::provider-get-task-setup[]
+
+// tag::do-this[]
+tasks.register("doThis", MyTask) {
+    myInput = currentEnvironment.map { "currentEnvironment=$it" }  // <1>
+    myOutput = layout.buildDirectory.file("output-do.txt")  // <2>
+}
+// end::do-this[]

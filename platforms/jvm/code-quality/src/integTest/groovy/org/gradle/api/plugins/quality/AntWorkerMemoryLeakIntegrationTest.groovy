@@ -78,6 +78,8 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
             case 1, 2 -> '0.24.1'
             default -> "3.6.0" + switch (groovyVersionNumber.major) {
                 case 3 -> ""
+                // Temporary override as there is no CodeNarc release for Groovy 5.0 yet
+                case 5 -> "-groovy-4.0"
                 default -> "-groovy-${groovyVersionNumber.major}.${groovyVersionNumber.minor}"
             }
         }

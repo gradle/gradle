@@ -113,7 +113,7 @@ Stacktraces are useful for diagnosing issues during a build failure. You can con
 | CLI Option | Gradle Property | Stacktrace Shown
 
 | `--stacktrace` or `-s`
-| `org.gradle.logging.stacktrace=always`
+| `org.gradle.logging.stacktrace=all`
 | Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information about what has gone wrong in _your_ code. This option renders stacktraces for deprecation warnings.
 
 | `--full-stacktrace` or `-S`

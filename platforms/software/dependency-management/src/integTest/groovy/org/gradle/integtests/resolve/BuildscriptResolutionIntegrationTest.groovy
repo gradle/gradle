@@ -64,6 +64,23 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("No variants exist")
     }
 
+    def "cannot declare project dependencies using path notation in buildscript block"() {
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath(project(path: ":bar"))
+                }
+            }
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("Project dependencies cannot be declared here.")
+    }
+
+    // This is not desired behavior.
     def "project buildscript classpath configuration can select another project"() {
         settingsFile << """
             include "first"
@@ -668,7 +685,6 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not resolve all artifacts for configuration 'classpath'")
     }
 
-    @ToBeImplemented
     def "init script resolution failure clearly indicates a project buildscript has failed"() {
         initScriptFile << """
             buildscript {
@@ -677,7 +693,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            // Force resolution. For some reason the classpath configuration is not resolved by iteslf.
+            // Force resolution. For some reason the classpath configuration is not resolved by itself.
             buildscript.configurations.classpath.files
         """
 

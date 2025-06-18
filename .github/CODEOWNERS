@@ -24,6 +24,8 @@
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
 platforms/build-infrastructure/             @gradle/bt-developer-productivity
 packaging/internal-build-reports/           @gradle/bt-developer-productivity
+testing/distributions-basics/               @gradle/bt-developer-productivity
+testing/distributions-core/                 @gradle/bt-developer-productivity
 testing/internal-architecture-testing/      @gradle/bt-developer-productivity
 testing/internal-integ-testing/             @gradle/bt-developer-productivity
 testing/internal-performance-testing/       @gradle/bt-developer-productivity

@@ -16,7 +16,7 @@
 
 package org.gradle.api.reporting.dependencies.internal;
 
-import groovy.json.JsonBuilder;
+import com.google.gson.stream.JsonWriter;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -34,17 +34,14 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleRes
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.internal.Actions;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -118,70 +115,71 @@ class JsonProjectDependencyRenderer {
      * Generates the project dependency report structure
      *
      * @param project the project for which the report must be generated
-     * @return the generated JSON, as a String
      */
-    public String render(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations) {
-        JsonBuilder json = new JsonBuilder();
-        renderProject(project, configurations, json);
-        return json.toString();
+    public void render(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, Writer writer) throws IOException {
+        JsonWriter json = new JsonWriter(writer);
+        writeProject(project, configurations, json);
     }
 
-    // Historic note: this class still uses the Groovy JsonBuilder, as it was originally developed as a Groovy class.
-    private void renderProject(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonBuilder json) {
-
-        Map<String, Object> overall = new LinkedHashMap<>();
-        overall.put("gradleVersion", GradleVersion.current().toString());
-        overall.put("generationDate", new Date().toString());
-
-        Map<String, Object> projectOut = new LinkedHashMap<>();
-        projectOut.put("name", project.getName());
-        projectOut.put("description", project.getDescription());
-        projectOut.put("configurations", createConfigurations(configurations));
-        overall.put("project", projectOut);
-
-        json.call(overall);
+    private void writeProject(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonWriter json) throws IOException {
+        json.beginObject();
+        json.name("gradleVersion").value(GradleVersion.current().toString());
+        json.name("generationDate").value(new Date().toString());
+        json.name("project");
+        json.beginObject();
+        json.name("name").value(project.getName());
+        json.name("description").value(project.getDescription());
+        json.name("configurations");
+        json.beginArray();
+        for (ConfigurationDetails configuration : configurations) {
+            json.beginObject();
+            json.name("name").value(configuration.getName());
+            json.name("description").value(configuration.getDescription());
+            writeDependencies(configuration, json);
+            writeModuleInsights(configuration, json);
+            json.endObject();
+        }
+        json.endArray();
+        json.endObject();
+        json.endObject();
     }
 
-    private List<Map<String, Object>> createConfigurations(Iterable<ConfigurationDetails> configurations) {
-        return CollectionUtils.collect(configurations, configuration -> {
-            LinkedHashMap<String, Object> map = new LinkedHashMap<>(4);
-            map.put("name", configuration.getName());
-            map.put("description", configuration.getDescription());
-            map.put("dependencies", createDependencies(configuration));
-            map.put("moduleInsights", createModuleInsights(configuration));
-            return map;
-        });
-    }
-
-    private List<Map<String, Object>> createDependencies(ConfigurationDetails configuration) {
+    private void writeDependencies(ConfigurationDetails configuration, JsonWriter json) throws IOException {
         if (configuration.isCanBeResolved()) {
             RenderableDependency root = new RenderableModuleResult(configuration.getResolutionResultRoot().get());
-            return createDependencyChildren(root, new HashSet<>());
+            writeDependencyChildren(root, new HashSet<>(), json, "dependencies");
         } else {
-            return createDependencyChildren(configuration.getUnresolvableResult(), new HashSet<>());
+            writeDependencyChildren(configuration.getUnresolvableResult(), new HashSet<>(), json, "dependencies");
         }
     }
 
-    private List<Map<String, Object>> createDependencyChildren(RenderableDependency dependency, final Set<Object> visited) {
+    private void writeDependencyChildren(RenderableDependency dependency, final Set<Object> visited, JsonWriter json, String fieldName) throws IOException {
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
-        return CollectionUtils.collect(children, childDependency -> {
+        json.name(fieldName);
+        json.beginArray();
+        for (RenderableDependency childDependency : children) {
+            json.beginObject();
             boolean alreadyVisited = !visited.add(childDependency.getId());
             boolean alreadyRendered = alreadyVisited && !childDependency.getChildren().isEmpty();
             String name = replaceArrow(childDependency.getName());
             boolean hasConflict = !name.equals(childDependency.getName());
-            LinkedHashMap<String, Object> map = new LinkedHashMap<>(6);
             ModuleIdentifier moduleIdentifier = getModuleIdentifier(childDependency);
-            map.put("module", moduleIdentifier == null ? null : moduleIdentifier.toString());
-            map.put("name", name);
-            map.put("resolvable", childDependency.getResolutionState());
-            map.put("hasConflict", hasConflict);
-            map.put("alreadyRendered", alreadyRendered);
-            map.put("children", Collections.emptyList());
+            json.name("module").value(moduleIdentifier == null ? null : moduleIdentifier.toString());
+            json.name("name").value(name);
+            json.name("resolvable").value(childDependency.getResolutionState().toString());
+            json.name("hasConflict").value(hasConflict);
+            json.name("alreadyRendered").value(alreadyRendered);
             if (!alreadyRendered) {
-                map.put("children", createDependencyChildren(childDependency, visited));
+                writeDependencyChildren(childDependency, visited, json, "children");
+            } else {
+                json.name("children");
+                json.beginArray();
+                json.endArray();
             }
-            return map;
-        });
+            json.endObject();
+
+        }
+        json.endArray();
     }
 
     @Nullable
@@ -193,9 +191,15 @@ class JsonProjectDependencyRenderer {
         return null;
     }
 
-    private List<Object> createModuleInsights(final ConfigurationDetails configuration) {
-        Iterable<ModuleIdentifier> modules = collectModules(configuration);
-        return CollectionUtils.collect(modules, moduleIdentifier -> createModuleInsight(moduleIdentifier, configuration));
+    private void writeModuleInsights(final ConfigurationDetails configuration, JsonWriter json) throws IOException {
+        json.name("moduleInsights");
+        json.beginArray();
+        for (ModuleIdentifier module : collectModules(configuration)) {
+            json.beginObject();
+            writeModuleInsight(module, configuration, json);
+            json.endObject();
+        }
+        json.endArray();
     }
 
     private Set<ModuleIdentifier> collectModules(ConfigurationDetails configuration) {
@@ -225,14 +229,14 @@ class JsonProjectDependencyRenderer {
         }
     }
 
-    private Map<String, Object> createModuleInsight(ModuleIdentifier module, ConfigurationDetails configuration) {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>(2);
-        map.put("module", module.toString());
-        map.put("insight", createInsight(module, configuration.getName(), configuration.getResolutionResultRoot().get()));
-        return map;
+    private void writeModuleInsight(ModuleIdentifier module, ConfigurationDetails configuration, JsonWriter json) throws IOException {
+        json.name("module").value(module.toString());
+        json.name("insight");
+        writeInsight(module, configuration.getName(), configuration.getResolutionResultRoot().get(), json);
     }
 
-    private List<Object> createInsight(ModuleIdentifier module, String configurationName, ResolvedComponentResult incomingResolution) {
+    private void writeInsight(ModuleIdentifier module, String configurationName, ResolvedComponentResult incomingResolution, JsonWriter json) throws IOException {
+        json.beginArray();
         final Spec<DependencyResult> dependencySpec = new StrictDependencyResultSpec(module);
 
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
@@ -243,21 +247,26 @@ class JsonProjectDependencyRenderer {
         }, new HashSet<>());
 
         Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter(versionSelectorScheme, versionComparator, versionParser).convertToRenderableItems(selectedDependencies, false);
-        return CollectionUtils.collect(sortedDeps, dependency -> {
+
+        for (RenderableDependency dependency : sortedDeps) {
+            json.beginObject();
             String name = replaceArrow(dependency.getName());
-            LinkedHashMap<String, Object> map = new LinkedHashMap<>(5);
-            map.put("name", replaceArrow(dependency.getName()));
-            map.put("description", dependency.getDescription());
-            map.put("resolvable", dependency.getResolutionState());
-            map.put("hasConflict", !name.equals(dependency.getName()));
-            map.put("children", createInsightDependencyChildren(dependency, new HashSet<>(), configurationName));
-            return map;
-        });
+            json.name("name").value(replaceArrow(dependency.getName()));
+            json.name("description").value(dependency.getDescription());
+            json.name("resolvable").value(dependency.getResolutionState().toString());
+            json.name("hasConflict").value(!name.equals(dependency.getName()));
+            json.name("children");
+            writeInsightDependencyChildren(dependency, new HashSet<>(), configurationName, json);
+            json.endObject();
+        }
+        json.endArray();
     }
 
-    private List<Object> createInsightDependencyChildren(RenderableDependency dependency, final Set<Object> visited, final String configurationName) {
+    private void writeInsightDependencyChildren(RenderableDependency dependency, final Set<Object> visited, final String configurationName, JsonWriter json) throws IOException {
+        json.beginArray();
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
-        return CollectionUtils.collect(children, childDependency -> {
+        for (RenderableDependency childDependency : children) {
+            json.beginObject();
             boolean alreadyVisited = !visited.add(childDependency.getId());
             boolean leaf = childDependency.getChildren().isEmpty();
             boolean alreadyRendered = alreadyVisited && !leaf;
@@ -265,18 +274,21 @@ class JsonProjectDependencyRenderer {
             boolean hasConflict = !childName.equals(childDependency.getName());
             String name = leaf ? configurationName : childName;
 
-            LinkedHashMap<String, Object> map = new LinkedHashMap<>(6);
-            map.put("name", name);
-            map.put("resolvable", childDependency.getResolutionState());
-            map.put("hasConflict", hasConflict);
-            map.put("alreadyRendered", alreadyRendered);
-            map.put("isLeaf", leaf);
-            map.put("children", Collections.emptyList());
+            json.name("name").value(name);
+            json.name("resolvable").value(childDependency.getResolutionState().toString());
+            json.name("hasConflict").value(hasConflict);
+            json.name("alreadyRendered").value(alreadyRendered);
+            json.name("isLeaf").value(leaf);
+            json.name("children");
             if (!alreadyRendered) {
-                map.put("children", createInsightDependencyChildren(childDependency, visited, configurationName));
+                writeInsightDependencyChildren(childDependency, visited, configurationName, json);
+            } else {
+                json.beginArray();
+                json.endArray();
             }
-            return map;
-        });
+            json.endObject();
+        }
+        json.endArray();
     }
 
     private String replaceArrow(String name) {

@@ -72,7 +72,6 @@ public class PropertyUsageArchitectureTest {
         .as("task properties");
 
     @ArchTest
-    @SuppressWarnings("deprecation")
     public static final ArchRule task_implementations_should_define_properties_as_abstract_getters = freeze(methods()
         .that(are(rich_task_property_getters))
         .should(beAbstractMethod()));

@@ -123,6 +123,8 @@ include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.
 
 Consult the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
 
+NOTE: Setting the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.projectDir] property is important when locating projects in nested subdirectories to <<best_practices_structuring_builds.adoc#avoid_empty_projects,avoid unintentionally creating empty projects>>.
+
 [[include_existing_projects_only]]
 === Including projects without an existing directory
 
@@ -152,70 +154,6 @@ project(":project-without-directory").projectDir.mkdirs()
 ----
 ======
 =====
-
-== Modifying a subproject path
-
-Let's take a hypothetical project with the following structure:
-
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-.
-├── settings.gradle.kts
-├── app/
-│   ├── build.gradle.kts
-│   └── src/
-└── subs/               // <1>
-    ├── build.gradle.kts
-    └── web             // <1>
-        └── my-web-module   // <2>
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-.
-├── settings.gradle
-├── app/
-│   ├── build.gradle
-│   └── src/
-└── subs/               // <1>
-    ├── build.gradle
-    └── web             // <1>
-        └── my-web-module   // <2>
-
-----
-=====
-<1> Gradle may see this as a subproject
-<2> Actual intended subproject
-
-If your `settings.gradle(.kts)` looks like this:
-
-[source,groovy]
-----
-include(':subs:web:my-web-module')
-----
-
-Gradle sees a subproject with a logical project name of `:subs:web:my-web-module` and two, possibly unintentional, other subprojects logically named:
-
-1. `:subs`
-2. `:subs:web`
-
-This can lead to phantom build directories, especially when using `allprojects{}` or `subproject{}`.
-
-To avoid this, you can use:
-
-[source,kotlin]
-----
-include(':my-web-module')
-project(':my-web-module').projectDir = "subs/web/my-web-module"
-----
-
-So that you only end up with a single subproject named `:my-web-module`.
-
-So, while the physical project layout is the same, the logical results are different.
 
 [[sec:naming_recommendations]]
 == Naming recommendations

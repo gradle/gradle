@@ -149,6 +149,76 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/groovy
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
 
+[[avoid_provider_get_outside_task_action]]
+== Do not call `get()` on a Provider outside a Task action
+
+When configuring tasks and extensions do not call link:{javadocPath}/org/gradle/api/provider/Provider.html#get()[`get()`] on a provider, use link:{javadocPath}/org/gradle/api/provider/Provider.html#map(org.gradle.api.Transformer)[`map()`], or link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap(org.gradle.api.Transformer)[`flatMap()`] instead.
+
+=== Explanation
+
+A provider should be evaluated as late as possible.
+Calling `get()` forces immediate evaluation, which can trigger unintended side effects, such as:
+
+- The value of the provider becomes an input to configuration, causing potential configuration cache misses.
+- The value may be evaluated too early, meaning you might not be using the final or correct value of the property. This may lead to painful and hard to debug ordering issues.
+- It breaks Gradle’s ability to build dependencies and to track task inputs and outputs, making automatic task dependency wiring impossible. See <<lazy_configuration.adoc#working_with_task_dependencies_in_lazy_properties,Working with task inputs and outputs>>
+
+It is preferable to avoid explicitly evaluating a `Provider` at all, and deferring to `map`/`flatMap` to connect `Providers` to `Providers` implicitly.
+
+=== Example
+
+Here is a task that writes an input `String` to a file:
+
+====
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-avoid/kotlin",files="build.gradle.kts[tags=provider-get-task-setup]"]
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-avoid/groovy",files="build.gradle[tags=provider-get-task-setup]"]
+====
+
+<1> Using `Provider.get()` in the task action
+<2> Gradle property that we wish to use as input
+
+==== Don't Do This
+
+You could call `get()` at configuration time to set up this task:
+
+====
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Reading the value of `currentEnvironment` at configuration time*: This value might change by the time the task start executing.
+<2> *Reading the value of `buildDirectory` at configuration time*: This value might change by the time the task start executing.
+
+==== Do This Instead
+
+Instead, you should explicitly wire task inputs and outputs like this:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidProviderGetOutsideTaskAction-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidProviderGetOutsideTaskAction-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidProviderGetOutsideTaskAction-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Using `map()` to transform `currentEnvironment`*: `map` transform runs only when the value is read.
+<2> *Using `file()` to create a new `Provider<RegularFile>`*: the value of the `buildDirectory` is only checked when the value of the provider is read.
+
+=== References
+
+- <<incremental_build.adoc#sec:task_input_output_side_effects,Task Inputs and Outputs>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
+
 [[group_describe_tasks]]
 == Group and Describe custom Tasks
 

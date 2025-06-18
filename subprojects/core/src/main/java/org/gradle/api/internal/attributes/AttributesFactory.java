@@ -20,7 +20,7 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Map;
+import java.util.Collection;
 
 // TODO: We should consider renaming every concat method here to "merge" or something,
 //       as these are not concatenation operations, and it is confusing to expect them
@@ -57,15 +57,13 @@ public interface AttributesFactory {
     <T> ImmutableAttributes of(Attribute<T> key, T value);
 
     /**
-     * Returns an attribute container that contains the values in the given map
-     * of attribute to attribute value.
-     * <p>
-     * This method is meant to be the inverse of {@link AttributeContainerInternal#asMap()}.
+     * Returns an attribute container that contains the given list of attribute entries.
      *
-     * @param attributes the attribute values the result should contain
-     * @return immutable instance containing only the specified attributes
+     * @param entries the attribute entries the result should contain.
+     *
+     * @return immutable instance containing only the specified attribute entries.
      */
-    ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes);
+    ImmutableAttributes fromEntries(Collection<AttributeEntry<?>> entries);
 
     /**
      * Merges the given attribute to the given container. Note: the container _should not_ contain the given attribute.
