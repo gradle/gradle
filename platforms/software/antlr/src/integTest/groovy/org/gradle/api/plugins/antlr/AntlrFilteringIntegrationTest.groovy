@@ -19,10 +19,10 @@ package org.gradle.api.plugins.antlr
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec {
+class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec implements AntlrDeprecationFixture{
 
     @Issue("https://github.com/gradle/gradle/issues/33180")
-    def "can filter antlr sources in a java source set"() {
+    def "can filter antlr sources in a java source set when setting package using #description"() {
         given:
         file('src/main/antlr/Hello.g4') << """
             grammar Hello;
@@ -46,8 +46,8 @@ class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.named('generateGrammarSource').configure {
-                outputDirectory = layout.buildDirectory.file("generated-src/antlr/main/com/company").get().asFile
-                arguments = ['-visitor', '-no-listener', '-package', 'com.company']
+                arguments = ['-visitor', '-no-listener']
+                ${expression}
             }
 
             tasks.register("filteredTask", SourceTask) {
@@ -58,16 +58,35 @@ class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec {
                     source.files.each { file ->
                         println(" - " + relativePath(file))
                     }
-
                 }
             }
         """
 
         when:
+        executerConfig.call(executer)
         succeeds(":filteredTask")
 
         then:
+        file("build/generated-src/antlr/main/com/company/HelloParser.java").exists()
         result.assertTaskExecuted(':generateGrammarSource')
         result.assertTaskSkipped(':filteredTask')
+
+        where:
+        description                     | expression                             | executerConfig
+        "arguments and outputDirectory" | setPackageWithArguments("com.company") | { expectPackageArgumentDeprecationWarning(it) }
+        "packageName property"          | setPackageWithProperty("com.company")  | { }
+    }
+
+    static String setPackageWithArguments(String packageName) {
+        return """
+            outputDirectory = new File(outputDirectory, '${packageName.replace('.', '/')}')
+            arguments += ['-package', '${packageName}']
+        """
+    }
+
+    static String setPackageWithProperty(String packageName) {
+        return """
+            packageName = '${packageName}'
+        """
     }
 }

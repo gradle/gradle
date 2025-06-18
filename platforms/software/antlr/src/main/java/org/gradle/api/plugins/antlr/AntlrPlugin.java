@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.antlr;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,9 +30,14 @@ import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.file.FilePathUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
 
 /**
  * A plugin for adding Antlr support to {@link org.gradle.api.plugins.JavaPlugin java projects}.
@@ -84,21 +90,56 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     final File outputDirectory = new File(outputDirectoryName);
 
                     // 4) Register a source-generating task, and
-                    TaskProvider<AntlrTask> antlrTask = project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
-                        @Override
-                        public void execute(AntlrTask antlrTask) {
-                            antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
-                            // 4.1) set up convention mapping for default sources (allows user to not have to specify)
-                            antlrTask.setSource(antlrSourceSet);
-                            antlrTask.setOutputDirectory(outputDirectory);
-                        }
+                    TaskProvider<AntlrTask> antlrTask = project.getTasks().register(taskName, AntlrTask.class, task -> {
+                        task.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
+                        // 4.1) set up convention mapping for default sources (allows user to not have to specify)
+                        task.setSource(antlrSourceSet);
+                        task.setOutputDirectory(outputDirectory);
                     });
 
                     // 5) Add that task's outputs to the Java source set
-                    // TODO this is a hack until we can properly wire these together with properties
-                    sourceSet.getJava().srcDir(antlrTask.map (task -> outputDirectory));
+                    sourceSet.getJava().srcDir(antlrTask.map(task -> {
+                        String relativeOutputDirectory = project.relativePath(task.getOutputDirectory());
+                        return project.file(deriveGeneratedSourceRootDirectory(relativeOutputDirectory, task.getArguments()));
+                    }));
                 }
             });
+    }
+
+    /**
+     * Derives the root source directory from the configuration of the Antlr task.
+     *
+     * If the package name has been added to the arguments, it is likely that the task output directory has also been adjusted to include the package structure.
+     * If so, we can derive the source directory by removing the relative package path from the output directory.  Otherwise, we assume the output directory is
+     * the root of the generated sources.
+     *
+     * This logic can be removed once we make it an error to set the package name via the arguments and require the use of the 'packageName' property instead.
+     */
+    @VisibleForTesting
+    static String deriveGeneratedSourceRootDirectory(String outputDirectoryPath, List<String> arguments) {
+        // If the package argument is present, we check if the output directory ends with the package path and remove it.
+        if (arguments.contains(PACKAGE_ARG)) {
+            int packageIndex = arguments.indexOf(PACKAGE_ARG);
+            if (packageIndex + 1 < arguments.size()) {
+                String[] packageRelativePathSegments = arguments.get(packageIndex + 1).split("\\.");
+                String[] outputDirectorySegments = FilePathUtil.getPathSegments(outputDirectoryPath);
+                int potentialPackageIndex = outputDirectorySegments.length - packageRelativePathSegments.length;
+                // Check if the output directory ends with the package path.
+                if (potentialPackageIndex > 0) {
+                    String[] lastSegments = Arrays.stream(outputDirectorySegments)
+                        .skip(potentialPackageIndex)
+                        .toArray(String[]::new);
+
+                    if (Arrays.equals(lastSegments, packageRelativePathSegments)) {
+                        // If it does, we remove the package path from the output directory.
+                        // i.e: <sourceRootDir>/<packagePath> becomes just <sourceRootDir>
+                        return String.join("/", Arrays.copyOf(outputDirectorySegments, potentialPackageIndex));
+                    }
+                }
+            }
+        }
+        // Otherwise, we assume the output directory is the root of the generated sources.
+        return outputDirectoryPath;
     }
 
     private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory) {

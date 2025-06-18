@@ -110,4 +110,25 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         def sourcesJar = project.tasks.sourcesJar
         sourcesJar.taskDependencies.getDependencies(null).contains(generateGrammarSource)
     }
+
+    def 'can derive source root directory from task configuration'() {
+        expect:
+        AntlrPlugin.deriveGeneratedSourceRootDirectory(outputDirectory, arguments) == expectedDirectory
+
+        where:
+        outputDirectory                                   | arguments                        | expectedDirectory
+        // should not change the output directory
+        'build/generated-src/antlr/main'                  | []                               | 'build/generated-src/antlr/main'
+        'build/generated-src/antlr/main'                  | ['foo.bar']                      | 'build/generated-src/antlr/main'
+        'build/generated-src/antlr/main'                  | ['-package', 'foo.bar']          | 'build/generated-src/antlr/main'
+        'build/generated-src/antlr/main/foo.bar'          | ['-package', 'foo.bar']          | 'build/generated-src/antlr/main/foo.bar'
+        'build/generated-src/antlr/main/foo'              | ['-package', 'foo.bar']          | 'build/generated-src/antlr/main/foo'
+        'build/generated-src/antlr/main/bar'              | ['-package', 'foo.bar']          | 'build/generated-src/antlr/main/bar'
+        'build/generated-src/antlr/main/foo/baz/bar'      | ['-package', 'foo.bar']          | 'build/generated-src/antlr/main/foo/baz/bar'
+        'build/generated-src/antlr/main/foo/bar'          | ['-package']                     | 'build/generated-src/antlr/main/foo/bar'
+        // should strip the package from the output directory
+        'build/generated-src/antlr/main/foo'              | ['-package', 'foo']              | 'build/generated-src/antlr/main'
+        'build/generated-src/antlr/main/foo/bar'          | ['-package', 'foo.bar']          | 'build/generated-src/antlr/main'
+        'build/generated-src/antlr/main/foo/bar/baz/fizz' | ['-package', 'foo.bar.baz.fizz'] | 'build/generated-src/antlr/main'
+    }
 }
