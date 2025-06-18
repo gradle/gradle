@@ -15,7 +15,7 @@
 [[idea_plugin]]
 = The IDEA Plugin
 
-WARNING: The IDEA Plugin is not compatible with the <<configuration_cache_status.adoc#config_cache:plugins:core,configuration cache>>.
+WARNING: The IDEA Plugin is not fully compatible with the <<configuration_cache_status.adoc#config_cache:plugins:core,Configuration Cache>>. When applied, the Configuration Cache is automatically disabled.
 
 The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[IntelliJ IDEA], thus making it possible to open the project from IDEA (`File` - `Open Project`). Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.
 
