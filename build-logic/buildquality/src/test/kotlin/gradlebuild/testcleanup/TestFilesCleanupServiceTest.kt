@@ -125,7 +125,7 @@ class TestFilesCleanupServiceTest {
                 registerTestWithLeftover()
             }
 
-            open class TestWithLeftover: AbstractTestTask() {
+            abstract class TestWithLeftover: AbstractTestTask() {
                 fun Project.touchInBuildDir(path:String) {
                     layout.buildDirectory.file(path).get().asFile.apply {
                         parentFile.mkdirs()
