@@ -301,6 +301,7 @@ When working with Gradle's file collection types, be careful to avoid triggering
 Gradle's link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`] and link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`] types extend the JDK’s `Collection<File>` interface.
 
 However, calling some available methods from this interface—such as `.size()`, `.isEmpty()`, `getFiles()`, `asPath()`, or `.toList()`—on these Gradle types will implicitly trigger resolution of their dependencies.
+The same is possible with Kotlin stdlib collection extension methods, or Groovy GDK collection extensions.
 Converting a `Configuration` to a simple `Set<File>`s will also cause the loss of any implicit task dependencies it carries.
 
 You should avoid using these methods when configuring your build and stick to the methods defined directly on the Gradle interfaces.
