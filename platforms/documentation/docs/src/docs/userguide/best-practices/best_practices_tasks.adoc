@@ -318,7 +318,7 @@ include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollectio
 ====
 
 <1> *`isEmpty()` Causes Resolution*: Many seemingly harmless Collections API methods like `isEmpty()` can cause Gradle to resolve dependencies.
-<2> *Accessing Files directlry*: Using `getFiles()` to access the files in a `Configuration` will also cause Gradle to resolve the file collection.
+<2> *Accessing Files directly*: Using `getFiles()` to access the files in a `Configuration` will also cause Gradle to resolve the file collection.
 <3> *Adding a file via plus operator*: Using the plus operator will force the `runtimeClasspath` configuration to be resolved implicitly.
 The implementation of `Configuration` doesn't override the plus operator for regular files, therefore it falls back to using the eager API, which causes resolution.
 
