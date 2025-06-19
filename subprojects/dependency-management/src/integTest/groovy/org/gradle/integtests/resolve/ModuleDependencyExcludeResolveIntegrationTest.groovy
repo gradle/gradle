@@ -600,7 +600,7 @@ task check(type: Sync) {
      *
      * Exclude is applied to configuration conf
      */
-    def "ensure renamed dependencies are exclude correctly"() {
+    def "ensure renamed dependencies are excluded correctly"() {
         given:
         buildFile << """
             dependencies {
@@ -659,6 +659,7 @@ task check(type: Sync) {
         assertResolvedFiles(resolvedJars)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/33924")
     def "node reentering the queue with a new incoming edge with fewer exclusions than all previous incoming edges properly propagates new transitive excludes"() {
         repository {
             "org.hamcrest:hamcrest-junit:2.0.0.0"()
