@@ -299,10 +299,13 @@ Resolving configurations before the task execution phase can lead to incorrect r
 
 === Explanation
 
-Calling manual resolution - either directly via the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method or indirectly via accessing the set of artifacts provided by a configuration - returns a set of files that does not preserve references to the tasks that produced those files.
-This breaks automatic task dependency wiring through task input properties.
+Resolving a configuration - either directly via calling its link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method or indirectly via accessing its set of artifacts - returns a set of files that does not preserve references to the tasks that produced those files.
 
-In addition, resolving configurations during the configuration phase can slow down the build, even when running unrelated tasks (e.g., `help`) that don't require the resolved dependencies.
+Configurations _are_ file collections and can be added to `@InputFiles` properties on other tasks.
+It is important to do this correctly to avoid breaking automatic task dependency wiring between a consumer task and any tasks that are implicitly required to produce the artifacts being consumed.
+For example, if a configuration contains a project dependency, Gradle knows that consumers of the configuration must first run any tasks that produce that project's artifacts.
+
+In addition to correctness concerns, resolving configurations during the configuration phase can slow down the build, even when running unrelated tasks (e.g., `help`) that don't require the resolved dependencies.
 
 === Example
 
