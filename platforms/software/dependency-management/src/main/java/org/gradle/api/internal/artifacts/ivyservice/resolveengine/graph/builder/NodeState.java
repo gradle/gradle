@@ -354,13 +354,10 @@ public class NodeState implements DependencyGraphNode {
         boolean sameDependencies = dependencies(newResolutionFilter).equals(oldDependencies);
 
         if (sameDependencies) {
-            // The excludes did change. Even if our direct filtered dependencies are the same,
-            // their transitive dependencies may be affected by the new excludes. So, we
-            // always update the outgoing edges to reflect the new resolution filter.
-
-            // If we return true here, we will short-circuit normal dependency traversal,
-            // which usually takes care of updating the transitive excludes. Do that here
-            // instead.
+            // If this method returns true, we are going to skip normal dependency traversal
+            // and instead short-circuit by only updating a subset of edges. Therefore, since
+            // the excludes changed, we need to update the resolution filter on our outgoing edges, as we
+            // are going to skip the normal dependency traversal logic that usually takes care of this.
             for (EdgeState outgoingEdge : outgoingEdges) {
                 outgoingEdge.updateTransitiveExcludesAndRequeueTargetNodes(newResolutionFilter);
             }

@@ -58,7 +58,7 @@ class EdgeState implements DependencyGraphEdge {
     private ImmutableAttributes cachedAttributes;
 
     /**
-     * The accumulated exclusions that apply to this edge based on the path from the root
+     * The accumulated exclusions that apply to this edge based on the paths from the root
      */
     private @Nullable ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
