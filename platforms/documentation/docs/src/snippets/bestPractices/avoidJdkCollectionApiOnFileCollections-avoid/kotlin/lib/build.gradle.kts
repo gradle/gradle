@@ -9,22 +9,39 @@ dependencies {
 }
 
 // tag::avoid-this[]
-tasks.register<Zip>("badZippingTask") {
-    if (!configurations.runtimeClasspath.get().isEmpty()) { // <1>
-        logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.get().state == RESOLVED))
-        from(configurations.runtimeClasspath)
+abstract class FileCounterTask: DefaultTask() {
+    @get:InputFiles
+    abstract val countMe: ConfigurableFileCollection
+
+    @TaskAction
+    fun countFiles() {
+        logger.lifecycle("Count: " + countMe.files.size)
     }
 }
 
-tasks.register<Zip>("badZippingTask2") {
+tasks.register<FileCounterTask>("badCountingTask") {
+    if (!configurations.runtimeClasspath.get().isEmpty()) { // <1>
+        logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.get().state == RESOLVED))
+        countMe.from(configurations.runtimeClasspath)
+    }
+}
+
+tasks.register<FileCounterTask>("badCountingTask2") {
     val files = configurations.runtimeClasspath.get().files // <2>
-    from(files)
+    countMe.from(files)
     logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.get().state == RESOLVED))
 }
 
-tasks.register<Zip>("badZippingTask3") {
+tasks.register<FileCounterTask>("badCountingTask3") {
     val files = configurations.runtimeClasspath.get() + layout.projectDirectory.file("extra.txt") // <3>
-    from(files)
+    countMe.from(files)
     logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.get().state == RESOLVED))
+}
+
+tasks.register<Zip>("badZippingTask") { // <4>
+    if (!configurations.runtimeClasspath.get().isEmpty()) {
+        logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.get().state == RESOLVED))
+        from(configurations.runtimeClasspath)
+    }
 }
 // end::avoid-this[]
