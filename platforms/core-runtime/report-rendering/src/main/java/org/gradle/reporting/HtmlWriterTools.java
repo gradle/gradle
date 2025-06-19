@@ -17,16 +17,21 @@
 package org.gradle.reporting;
 
 import org.gradle.internal.html.SimpleHtmlWriter;
+import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 
+
+/**
+ * More complex HTML generation code that doesn't belong on the {@link SimpleHtmlWriter} itself.
+ */
 @NullMarked
 public class HtmlWriterTools {
     private HtmlWriterTools() {}
 
-    public static void addClipboardCopyButton(SimpleHtmlWriter writer) throws IOException {
-        writer.startElement("button")
+    public static SimpleMarkupWriter addClipboardCopyButton(SimpleHtmlWriter writer) throws IOException {
+        return writer.startElement("button")
             .attribute("class", "clipboard-copy-btn")
             .attribute("aria-label", "Copy to clipboard")
             .characters("Copy")
