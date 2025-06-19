@@ -41,24 +41,19 @@ import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,9 +62,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -79,11 +71,11 @@ import static org.gradle.internal.FileUtils.hasExtension;
 public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
 
     private final Compiler<JavaCompileSpec> javaCompiler;
-    private final PathToFileResolver fileResolver;
+    private final ObjectFactory objectFactory;
 
-    public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler, PathToFileResolver fileResolver) {
+    public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler, ObjectFactory objectFactory) {
         this.javaCompiler = javaCompiler;
-        this.fileResolver = fileResolver;
+        this.objectFactory = objectFactory;
     }
 
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
@@ -255,18 +247,7 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
                         if (shouldProcessAnnotations) {
                             // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
                             // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
-                            File resolvedStubDir = fileResolver.resolve(stubDir);
-
-                            Set<File> stubDirSourceFiles;
-                            try (Stream<Path> stubDirFiles = Files.walk(resolvedStubDir.toPath(), FileVisitOption.FOLLOW_LINKS)) {
-                                stubDirSourceFiles = stubDirFiles.filter(Files::isRegularFile)
-                                    .map(Path::toFile)
-                                    .collect(Collectors.toSet());
-                            } catch (IOException e) {
-                                throw new UncheckedIOException("Failed to visit source files of " + resolvedStubDir, e);
-                            }
-
-                            spec.setSourceFiles(Iterables.concat(spec.getSourceFiles(), stubDirSourceFiles));
+                            spec.setSourceFiles(Iterables.concat(spec.getSourceFiles(), objectFactory.fileTree().from(stubDir)));
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.

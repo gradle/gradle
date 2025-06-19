@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import javax.inject.Inject;
@@ -30,21 +30,21 @@ import java.util.List;
  */
 public class GroovyDaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {
 
-    private final PathToFileResolver fileResolver;
     private final List<File> javaCompilerPlugins;
+    private final ObjectFactory objectFactory;
     private final InternalProblems problemsService;
 
     @Inject
-    public GroovyDaemonSideCompiler(List<File> javaCompilerPlugins, PathToFileResolver fileResolver, InternalProblems problemsService) {
-        this.fileResolver = fileResolver;
+    public GroovyDaemonSideCompiler(List<File> javaCompilerPlugins, ObjectFactory objectFactory, InternalProblems problemsService) {
         this.javaCompilerPlugins = javaCompilerPlugins;
+        this.objectFactory = objectFactory;
         this.problemsService = problemsService;
     }
 
     @Override
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins), problemsService);
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler, fileResolver);
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler, objectFactory);
         return groovyCompiler.execute(spec);
     }
 
