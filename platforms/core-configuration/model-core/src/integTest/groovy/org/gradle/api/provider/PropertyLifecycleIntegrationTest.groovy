@@ -569,7 +569,6 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
          */
         def "cannot update property marked disallowChanges"() {
             given:
-            settingsFile << "rootProject.name = 'broken'"
             buildFile """
                 class Setter extends DefaultTask {
                     @Input

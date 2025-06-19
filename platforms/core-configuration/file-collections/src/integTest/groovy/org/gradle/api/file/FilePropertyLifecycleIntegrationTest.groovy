@@ -698,7 +698,6 @@ task thing {
         def "cannot update file property marked disallowChanges"() {
             taskTypeWithOutputFileProperty()
 
-            settingsFile << "rootProject.name = 'broken'"
             buildFile """
                 tasks.register("producer", FileProducer) {
                     output = layout.buildDir.file("text.out")
@@ -722,7 +721,6 @@ task thing {
         def "cannot update directory property marked disallowChanges"() {
             taskTypeWithOutputDirectoryProperty()
 
-            settingsFile << "rootProject.name = 'broken'"
             buildFile """
                 tasks.register("producer", DirProducer) {
                     output = layout.buildDir.dir("dir.out")

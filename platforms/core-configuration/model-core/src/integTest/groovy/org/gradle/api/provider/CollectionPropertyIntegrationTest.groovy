@@ -558,7 +558,6 @@ task wrongPropertyElementTypeApi(type: MyTask) {
     static class DisallowChangesIntegrationTests extends AbstractIntegrationSpec {
         def "cannot update list property marked disallowChanges"() {
             given:
-            settingsFile << "rootProject.name = 'broken'"
             buildFile """
                 class Setter extends DefaultTask {
                     @Input
@@ -585,7 +584,6 @@ task wrongPropertyElementTypeApi(type: MyTask) {
 
         def "cannot update set property marked disallowChanges"() {
             given:
-            settingsFile << "rootProject.name = 'broken'"
             buildFile """
                 class Setter extends DefaultTask {
                     @Input
@@ -612,7 +610,6 @@ task wrongPropertyElementTypeApi(type: MyTask) {
 
         def "cannot update map property marked disallowChanges"() {
             given:
-            settingsFile << "rootProject.name = 'broken'"
             buildFile """
                 class Setter extends DefaultTask {
                     @Input
