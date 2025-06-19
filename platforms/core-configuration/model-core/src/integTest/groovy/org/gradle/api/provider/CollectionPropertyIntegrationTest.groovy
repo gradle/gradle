@@ -560,8 +560,6 @@ task wrongPropertyElementTypeApi(type: MyTask) {
             given:
             buildFile """
                 class Setter extends DefaultTask {
-                    @Input
-                    final Property<String> content = project.objects.property(String).convention("content")
                     @Internal
                     final ListProperty<String> prop = project.objects.listProperty(String)
 
@@ -572,7 +570,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
                 }
 
                 tasks.register("setter", Setter) {
-                    prop.add(content)
+                    prop.add("original content")
                     prop.disallowChanges()
                 }
             """
@@ -586,8 +584,6 @@ task wrongPropertyElementTypeApi(type: MyTask) {
             given:
             buildFile """
                 class Setter extends DefaultTask {
-                    @Input
-                    final Property<String> content = project.objects.property(String).convention("content")
                     @Internal
                     final SetProperty<String> prop = project.objects.setProperty(String)
 
@@ -598,7 +594,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
                 }
 
                 tasks.register("setter", Setter) {
-                    prop.add(content)
+                    prop.add("original content")
                     prop.disallowChanges()
                 }
             """
@@ -612,8 +608,6 @@ task wrongPropertyElementTypeApi(type: MyTask) {
             given:
             buildFile """
                 class Setter extends DefaultTask {
-                    @Input
-                    final MapProperty<String, String> content = project.objects.mapProperty(String, String).convention(["key": "value"])
                     @Internal
                     final MapProperty<String, String> prop = project.objects.mapProperty(String, String)
 
@@ -624,7 +618,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
                 }
 
                 tasks.register("setter", Setter) {
-                    prop.set(content)
+                    prop.set(["key": "value"])
                     prop.disallowChanges()
                 }
             """

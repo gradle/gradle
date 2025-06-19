@@ -571,8 +571,6 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
             given:
             buildFile """
                 class Setter extends DefaultTask {
-                    @Input
-                    final Property<String> content = project.objects.property(String).convention("content")
                     @Internal
                     final Property<String> prop = project.objects.property(String)
 
@@ -583,7 +581,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 tasks.register("setter", Setter) {
-                    prop = content
+                    prop = "original content"
                     prop.disallowChanges()
                 }
             """
