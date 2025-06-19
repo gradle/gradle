@@ -82,7 +82,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     def "exception when package is set using #description"() {
         goodGrammar()
 
-        buildFile "grammar-builder/build.gradle","""
+        buildFile "grammar-builder/build.gradle", """
             generateGrammarSource {
                 ${expression}
             }

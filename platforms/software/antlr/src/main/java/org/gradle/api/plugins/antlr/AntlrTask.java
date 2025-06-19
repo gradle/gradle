@@ -353,7 +353,7 @@ public abstract class AntlrTask extends SourceTask {
     protected abstract Deleter getDeleter();
 
     /**
-     * Sets the package to be used when generating the parser source files.  Antlr 4 only.
+     * Sets the package to be used when generating the parser source files.  Supported only when using Antlr 4.
      *
      * This will add a "-package" argument to the ANTLR command line as well as adjust the target directory to generate sources into a package-specific subdirectory of {@link #getOutputDirectory()}.
      *

@@ -110,7 +110,7 @@ assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 ### Configuration Improvements
 
 #### Simpler target package configuration for Antlr 4
-The AntlrTask class now supports setting the target package for generated code explicitly for Antlr 4.  
+The AntlrTask class now supports explicitly setting the target package for generated code when using Antlr 4.  
 Previously, setting the "-package" argument also required setting the output directory in order to generate classes into the proper package-specific directory structure.
 This release introduces a `packageName` property that allows you to set the target package without needing to also set the output directory properly.
 Setting this property will set the "-package" argument for the Antlr tool, and will also set the generated class directory to match the package.
@@ -127,7 +127,7 @@ tasks.named("generateGrammarSource").configure {
 ```
 
 #### Antlr generated sources are automatically tracked
-In previous versions of Gradle, the Antlr generated sources were added to a java source set for compilation, but if the generated sources directory was changed, this change was not reflected in the source set.  
+In previous versions of Gradle, the Antlr-generated sources were added to a java source set for compilation, but if the generated sources directory was changed, this change was not reflected in the source set.  
 This required manually updating the source set to include the new generated sources directory any time it was changed.
 In this release, the generated sources directory is automatically tracked and updates the source set accordingly.
 A task dependency is also created between the source generation task and the source set, ensuring that tasks that consume the source set as an input will automatically create a task dependency on the source generation task.
