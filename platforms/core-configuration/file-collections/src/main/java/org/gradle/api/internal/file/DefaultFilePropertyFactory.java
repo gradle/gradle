@@ -289,9 +289,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         public abstract FileResolver getFileResolver();
-
-        @Nullable
-        public abstract PathToFileResolver getFileCollectionResolver();
     }
 
     public static class DefaultRegularFileVar extends AbstractFileVar<RegularFile, RegularFileProperty> implements RegularFileProperty, Managed {
@@ -305,12 +302,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public FileResolver getFileResolver() {
             return fileResolver;
-        }
-
-        @Override
-        @Nullable
-        public PathToFileResolver getFileCollectionResolver() {
-            return null;
         }
 
         @Override
@@ -376,7 +367,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
             return resolver;
         }
 
-        @Override
         public PathToFileResolver getFileCollectionResolver() {
             return fileCollectionFactory.getResolver();
         }
