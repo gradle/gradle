@@ -58,6 +58,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -80,7 +81,6 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  */
 @CacheableTask
 public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
-    private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = getProject().getObjects().newInstance(GroovyCompileOptions.class);
@@ -91,7 +91,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     public GroovyCompile() {
         ObjectFactory objectFactory = getObjectFactory();
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
-        compileOptions.setIncremental(false);
+        compileOptions.getIncremental().convention(false);
         compileOptions.getIncrementalAfterFailure().convention(true);
         this.compileOptions = compileOptions;
 
@@ -105,15 +105,12 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
+    // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
+    // See https://github.com/gradle/gradle/pull/9513
     @Override
     @CompileClasspath
     @Incremental
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
-        // See https://github.com/gradle/gradle/pull/9513
-        return super.getClasspath();
-    }
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * The classpath containing AST transformations and their dependencies.
@@ -238,11 +235,11 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         spec.setCompileClasspath(ImmutableList.copyOf(determineGroovyCompileClasspath()));
         configureCompatibilityOptions(spec);
         spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? getProjectLayout().files() : compileOptions.getAnnotationProcessorPath()));
-        spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
+        spec.setGroovyClasspath(ImmutableList.copyOf(getGroovyClasspath().getFiles()));
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(groovyCompileOptions));
         spec.getCompileOptions().setSupportsCompilerApi(true);
-        if (getOptions().isIncremental()) {
+        if (getOptions().getIncremental().getOrElse(false)) {
             validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());
             spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
         }
@@ -330,24 +327,13 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     }
 
     /**
-     * Returns the classpath containing the version of Groovy to use for compilation.
+     * The classpath containing the version of Groovy to use for compilation.
      *
      * @return The classpath.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getGroovyClasspath() {
-        return groovyClasspath;
-    }
-
-    /**
-     * Sets the classpath containing the version of Groovy to use for compilation.
-     *
-     * @param groovyClasspath The classpath. Must not be null.
-     */
-    public void setGroovyClasspath(FileCollection groovyClasspath) {
-        this.groovyClasspath = groovyClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getGroovyClasspath();
 
     /**
      * The toolchain {@link JavaLauncher} to use for executing the Groovy compiler.

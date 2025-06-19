@@ -1,0 +1,28 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
+            "member": "Method org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getOutputDirectory()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
+            "member": "Method org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getPaths()",
+            "acceptation": "The actual Input property is getPluginClasspath",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
+            "member": "Method org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getPluginClasspath()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        }
+    ]
+}

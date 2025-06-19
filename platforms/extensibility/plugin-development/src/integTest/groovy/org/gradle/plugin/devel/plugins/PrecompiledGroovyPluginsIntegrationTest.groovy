@@ -39,8 +39,8 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         file("buildSrc/build.gradle") << """
             afterEvaluate {
-                assert gradlePlugin.plugins.foo.implementationClass == 'FooPlugin'
-                assert gradlePlugin.plugins.bar.implementationClass == 'BarPlugin'
+                assert gradlePlugin.plugins.foo.implementationClass.get() == 'FooPlugin'
+                assert gradlePlugin.plugins.bar.implementationClass.get() == 'BarPlugin'
             }
         """
 

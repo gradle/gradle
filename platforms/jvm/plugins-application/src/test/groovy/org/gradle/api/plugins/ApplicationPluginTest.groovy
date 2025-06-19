@@ -39,7 +39,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         def application = project.extensions.getByName('application')
         application instanceof JavaApplication
-        application.applicationName == project.name
+        application.applicationName.get() == project.name
         application.applicationDefaultJvmArgs == []
         application.applicationDistribution instanceof CopySpec
     }
@@ -62,9 +62,9 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
-        task.applicationName == project.application.applicationName
-        task.outputDir == project.file('build/scripts')
-        task.defaultJvmOpts == []
+        task.applicationName.get() == project.applicationName
+        task.outputDir.getAsFile().get() == project.file('build/scripts')
+        task.defaultJvmOpts.get() == []
     }
 
     def "adds distZip task to project"() {
@@ -94,7 +94,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def startScriptsTask = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScriptsTask.applicationName == 'SuperApp'
+        startScriptsTask.applicationName.get() == 'SuperApp'
 
         def installTest = project.tasks[DistributionPlugin.TASK_INSTALL_NAME]
         installTest.destinationDir == project.file("build/install/SuperApp")
@@ -111,7 +111,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScripts.executableDir == "custom_bin"
+        startScripts.executableDir.get() == "custom_bin"
     }
 
     def "applicationDefaultJvmArgs in project delegates to jvmArgs in run task"() {
@@ -120,8 +120,8 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         project.application.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
 
         then:
-        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
-        run.jvmArgs == ['-Dfoo=bar', '-Xmx500m']
+        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME] as JavaExec
+        run.jvmArgs.get() == ['-Dfoo=bar', '-Xmx500m']
     }
 
     def "applicationDefaultJvmArgs in project delegates to defaultJvmOpts in startScripts task"() {
@@ -131,7 +131,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScripts.defaultJvmOpts == ['-Dfoo=bar', '-Xmx500m']
+        startScripts.defaultJvmOpts.get() == ['-Dfoo=bar', '-Xmx500m']
     }
 
     def "module path inference is turned on for all tasks by default"() {

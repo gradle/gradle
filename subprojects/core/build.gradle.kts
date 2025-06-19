@@ -120,6 +120,7 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
+    implementation(projects.groovySupport)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
@@ -297,7 +298,7 @@ packageCycles {
 }
 
 tasks.test {
-    setForkEvery(200)
+    forkEvery = 200
 }
 
 tasks.compileTestGroovy {

@@ -132,7 +132,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     // Create a variant of the test suite to force realization of component metadata
     if (testType == TestType.INTEGRATION) {
         createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType) {
-            systemProperties["org.gradle.integtest.force.realize.metadata"] = "true"
+            systemProperty("org.gradle.integtest.force.realize.metadata", "true")
         }
     }
 }
@@ -168,10 +168,17 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         val integTest = project.the<IntegrationTestExtension>()
         project.getBucketProvider().get().bucketProvider.configureTest(this, sourceSet.name)
         description = "Runs ${testType.prefix} with $executer executer"
-        systemProperties["org.gradle.integtest.executer"] = executer
+        systemProperty("org.gradle.integtest.executer", executer)
         addDebugProperties()
         testClassesDirs = sourceSet.output.classesDirs
-        classpath = sourceSet.runtimeClasspath
+        /*
+         * The 'kotlin-daemon-client.jar' repackages 'native-platform' with all its binaries.
+         * Here we make sure it is placed at the end of the test classpath so that we do not accidentally
+         * pick parts of 'native-platform' from the 'kotlin-daemon-client.jar' when instantiating
+         * a Gradle runner.
+         */
+        classpath = sourceSet.runtimeClasspath.filter { !it.name.startsWith("kotlin-daemon-client") }
+            .plus(sourceSet.runtimeClasspath.filter { it.name.startsWith("kotlin-daemon-client") })
         extraConfig.execute(this)
         if (integTest.usesJavadocCodeSnippets.get()) {
             val samplesDir = layout.projectDirectory.dir("src/main")
@@ -194,7 +201,7 @@ fun IntegrationTest.setUpAgentIfNeeded(testType: TestType, executer: String) {
     val integtestAgentAllowed = project.providers.gradleProperty(integTestUseAgentSysPropName);
     if (integtestAgentAllowed.isPresent) {
         val shouldUseAgent = integtestAgentAllowed.get().toBoolean()
-        systemProperties[integTestUseAgentSysPropName] = shouldUseAgent.toString()
+        systemProperty(integTestUseAgentSysPropName, shouldUseAgent.toString())
     }
 }
 
@@ -202,11 +209,11 @@ fun IntegrationTest.setUpAgentIfNeeded(testType: TestType, executer: String) {
 private
 fun IntegrationTest.addDebugProperties() {
     if (project.daemonDebuggingIsEnabled) {
-        systemProperties["org.gradle.integtest.debug"] = "true"
+        systemProperty("org.gradle.integtest.debug", "true")
         testLogging.showStandardStreams = true
     }
     if (project.launcherDebuggingIsEnabled) {
-        systemProperties["org.gradle.integtest.launcher.debug"] = "true"
+        systemProperty("org.gradle.integtest.launcher.debug", "true")
         testLogging.showStandardStreams = true
     }
 }
@@ -217,9 +224,9 @@ fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
     val integTestVersionsSysProp = "org.gradle.integtest.versions"
     val testVersions = project.providers.gradleProperty("testVersions")
     if (testVersions.isPresent) {
-        systemProperties[integTestVersionsSysProp] = testVersions.get()
+        systemProperty(integTestVersionsSysProp, testVersions.get())
     } else {
-        systemProperties[integTestVersionsSysProp] = defaultVersions
+        systemProperty(integTestVersionsSysProp, defaultVersions)
     }
 }
 

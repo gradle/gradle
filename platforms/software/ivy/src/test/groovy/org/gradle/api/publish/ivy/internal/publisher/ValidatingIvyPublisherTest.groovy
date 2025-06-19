@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
-import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyModuleDescriptorSpec
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal
@@ -205,8 +204,8 @@ class ValidatingIvyPublisherTest extends Specification {
     def "reports and fails with invalid descriptor file (marker = #marker)"() {
         given:
         def projectIdentity = this.projectIdentity(coordinates.group, coordinates.name, coordinates.version)
-        def artifact = new FileBasedIvyArtifact(new File("foo.txt"), projectIdentity, TestFiles.taskDependencyFactory())
-        artifact.setConf("unknown")
+        def artifact = new FileBasedIvyArtifact(new File("foo.txt"), projectIdentity, TestFiles.taskDependencyFactory(), TestUtil.providerFactory(), TestUtil.objectFactory())
+        artifact.getConf().set("unknown")
         def descriptor = ivyDescriptor()
         descriptor.artifacts.set([artifact])
         def ivyFile = ivyFile(descriptor)
@@ -228,7 +227,7 @@ class ValidatingIvyPublisherTest extends Specification {
     def "validates artifact attributes"() {
         given:
 
-        def ivyArtifact = Stub(IvyArtifact) {
+        def ivyArtifact = Stub(NormalizedIvyArtifact) {
             getName() >> name
             getType() >> type
             getExtension() >> extension
@@ -258,7 +257,7 @@ class ValidatingIvyPublisherTest extends Specification {
     }
 
     def "cannot publish with file that is a directory"() {
-        def ivyArtifact = Mock(IvyArtifact)
+        def ivyArtifact = Mock(NormalizedIvyArtifact)
         def publication = new IvyNormalizedPublication("pub-name", coordinates, ivyFile(), [ivyArtifact] as Set)
 
         File someDir = new TestFile(testDirectoryProvider.testDirectory, "testFile")
@@ -281,14 +280,14 @@ class ValidatingIvyPublisherTest extends Specification {
 
     def "cannot publish with duplicate artifacts"() {
         given:
-        IvyArtifact artifact1 = Stub() {
+        NormalizedIvyArtifact artifact1 = Stub() {
             getName() >> "name"
             getExtension() >> "ext1"
             getType() >> "type"
             getClassifier() >> "classified"
             getFile() >> testDirectoryProvider.createFile('artifact1')
         }
-        IvyArtifact artifact2 = Stub() {
+        NormalizedIvyArtifact artifact2 = Stub() {
             getName() >> "name"
             getExtension() >> "ext1"
             getType() >> "type"
@@ -302,12 +301,12 @@ class ValidatingIvyPublisherTest extends Specification {
 
         then:
         def t = thrown InvalidIvyPublicationException
-        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical name, extension, type and classifier ('name', ext1', 'type', 'classified')."
+        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical name, extension, type and classifier ('name', 'ext1', 'type', 'classified')."
     }
 
     def "cannot publish artifact with same attributes as ivy.xml"() {
         given:
-        IvyArtifact artifact1 = Stub() {
+        NormalizedIvyArtifact artifact1 = Stub() {
             getName() >> "ivy"
             getExtension() >> "xml"
             getType() >> "xml"
@@ -321,7 +320,7 @@ class ValidatingIvyPublisherTest extends Specification {
 
         then:
         def t = thrown InvalidIvyPublicationException
-        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical name, extension, type and classifier ('ivy', xml', 'xml', 'null')."
+        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical name, extension, type and classifier ('ivy', 'xml', 'xml', 'null')."
     }
 
     private def projectIdentity(String groupId, String artifactId, String version) {

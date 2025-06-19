@@ -26,7 +26,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultTestLoggingContainerTest extends Specification {
-    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(TestUtil.instantiatorFactory().decorateLenient())
+    DefaultTestLoggingContainer container = TestUtil.newInstance(DefaultTestLoggingContainer.class)
 
     def "sets defaults for level ERROR"() {
         def logging = container.get(LogLevel.ERROR)
@@ -60,26 +60,26 @@ class DefaultTestLoggingContainerTest extends Specification {
         def logging = container.get(LogLevel.INFO)
 
         expect:
-        logging.events == [TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR] as Set
-        logging.minGranularity == -1
-        logging.maxGranularity == -1
-        logging.exceptionFormat == TestExceptionFormat.FULL
-        logging.showExceptions
-        logging.showCauses
-        logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
+        logging.events.get() == [TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR] as Set
+        logging.minGranularity.get() == -1
+        logging.maxGranularity.get() == -1
+        logging.exceptionFormat.get() == TestExceptionFormat.FULL
+        logging.showExceptions.get()
+        logging.showCauses.get()
+        logging.stackTraceFilters.get() == [TestStackTraceFilter.TRUNCATE] as Set
     }
 
     def "sets defaults for level DEBUG"() {
         def logging = container.get(LogLevel.DEBUG)
 
         expect:
-        logging.events == EnumSet.allOf(TestLogEvent)
-        logging.minGranularity == 0
-        logging.maxGranularity == -1
-        logging.exceptionFormat == TestExceptionFormat.FULL
-        logging.showExceptions
-        logging.showCauses
-        logging.stackTraceFilters == [] as Set
+        logging.events.get() == EnumSet.allOf(TestLogEvent)
+        logging.minGranularity.get() == 0
+        logging.maxGranularity.get() == -1
+        logging.exceptionFormat.get() == TestExceptionFormat.FULL
+        logging.showExceptions.get()
+        logging.showCauses.get()
+        logging.stackTraceFilters.get() == [] as Set
     }
 
     def "implicitly configures level LIFECYCLE"() {
@@ -90,7 +90,7 @@ class DefaultTestLoggingContainerTest extends Specification {
         container.showExceptions = false
 
         then:
-        !logging.showExceptions
+        !logging.showExceptions.get()
     }
 
     def "allows to explicitly configure level #level"(LogLevel level) {
@@ -105,29 +105,29 @@ class DefaultTestLoggingContainerTest extends Specification {
         })
 
         then:
-        !logging.showExceptions
+        !logging.showExceptions.get()
 
         where:
         level << LogLevel.values()
     }
 
-    private void hasUnchangedDefaults(logging) {
-        assert logging.events == [] as Set
-        assert logging.minGranularity == -1
-        assert logging.maxGranularity == -1
-        logging.exceptionFormat == TestExceptionFormat.FULL
-        logging.showExceptions
-        logging.showCauses
-        assert logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
+    private void hasUnchangedDefaults(TestLogging logging) {
+        assert logging.events.get() == [] as Set
+        assert logging.minGranularity.get() == -1
+        assert logging.maxGranularity.get() == -1
+        assert logging.exceptionFormat.get() == TestExceptionFormat.FULL
+        assert logging.showExceptions.get()
+        assert logging.showCauses.get()
+        assert logging.stackTraceFilters.get() == [TestStackTraceFilter.TRUNCATE] as Set
     }
 
     static void assertDefaultSettings(TestLogging logging) {
-        assert logging.events == [TestLogEvent.FAILED] as Set
-        assert logging.minGranularity == -1
-        assert logging.maxGranularity == -1
-        assert logging.exceptionFormat == TestExceptionFormat.SHORT
-        assert logging.showExceptions
-        assert logging.showCauses
-        assert logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
+        assert logging.events.get() == [TestLogEvent.FAILED] as Set
+        assert logging.minGranularity.get() == -1
+        assert logging.maxGranularity.get() == -1
+        assert logging.exceptionFormat.get() == TestExceptionFormat.SHORT
+        assert logging.showExceptions.get()
+        assert logging.showCauses.get()
+        assert logging.stackTraceFilters.get() == [TestStackTraceFilter.TRUNCATE] as Set
     }
 }

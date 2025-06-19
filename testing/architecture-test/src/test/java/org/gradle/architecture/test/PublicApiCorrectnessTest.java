@@ -81,6 +81,7 @@ public class PublicApiCorrectnessTest {
                 .or(type(KClass.class))
                 .or(type(KClass[].class))
                 .or(type(KProperty.class))
+                .or(type(Pair.class))
                 .or(type(Pair[].class))
                 .as("Kotlin classes")
             );

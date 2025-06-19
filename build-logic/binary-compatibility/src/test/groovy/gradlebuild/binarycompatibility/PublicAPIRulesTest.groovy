@@ -485,6 +485,7 @@ class PublicAPIRulesTest extends Specification {
             Map<String, ?> getUserData() {
                 [
                     currentVersion: '11.38',
+                    currentMasterVersion: '11.37',
                     (BinaryCompatibilityRepositorySetupRule.REPOSITORY_CONTEXT_KEY): repository
                 ]
             }

@@ -16,6 +16,7 @@
 
 // Ensure the archives produced are reproducible
 tasks.withType<AbstractArchiveTask>().configureEach {
+    // TODO: Remove "is" prefix after Gradle 9.0 is released
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
     dirPermissions { unix("0755") }

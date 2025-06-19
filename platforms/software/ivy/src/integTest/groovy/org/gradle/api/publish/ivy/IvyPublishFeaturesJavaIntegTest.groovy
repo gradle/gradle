@@ -256,10 +256,10 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
         where:
         id                                                   | optionalFeatureFileName                | classifier         | failureText
         "with the same name and an implicit classifier"      | "publishTest-1.9-optional-feature.jar" | null               | null
-        "with an arbitrary name and no classifier"           | "optional-feature-1.9.jar"             | null               | "Invalid publication 'ivy': multiple artifacts with the identical name, extension, type and classifier ('publishTest', jar', 'jar', 'null'"
+        "with an arbitrary name and no classifier"           | "optional-feature-1.9.jar"             | null               | "Invalid publication 'ivy': multiple artifacts with the identical name, extension, type and classifier ('publishTest', 'jar', 'jar', 'null'"
         "with an arbitrary name and a classifier"            | "other-1.9.jar"                        | "optional-feature" | null
         "with an arbitrary name with an implicit classifier" | "other-1.9-optional-feature.jar"       | null               | null
-        "with the same name and no classifier"               | "publishTest-1.9.jar"                  | null               | "Invalid publication 'ivy': multiple artifacts with the identical name, extension, type and classifier ('publishTest', jar', 'jar', 'null'"
+        "with the same name and no classifier"               | "publishTest-1.9-optional-feature.jar" | null               | null
         "with the same name and a classifier"                | "publishTest-1.9.jar"                  | "optional-feature" | null
 
     }

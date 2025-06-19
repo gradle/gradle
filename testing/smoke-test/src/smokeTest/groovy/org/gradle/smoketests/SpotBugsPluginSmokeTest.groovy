@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+
 import spock.lang.Issue
 
 class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
