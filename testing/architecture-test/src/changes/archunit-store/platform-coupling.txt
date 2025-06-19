@@ -12,7 +12,6 @@ Class 'org.gradle.api.internal.resources.DefaultTextResourceFactory' from platfo
 Class 'org.gradle.api.internal.resources.FileCollectionBackedTextResource' from platform 'core' imports class 'org.gradle.api.resources.ResourceException' from a forbidden platform 'software'
 Class 'org.gradle.api.internal.resources.FileCollectionBackedTextResource' from platform 'core' imports class 'org.gradle.internal.resource.ResourceExceptions' from a forbidden platform 'software'
 Class 'org.gradle.api.internal.resources.StringBackedTextResource' from platform 'core' imports class 'org.gradle.api.resources.ResourceException' from a forbidden platform 'software'
-Class 'org.gradle.api.plugins.antlr.AntlrPlugin$1$1' from platform 'software' imports class 'org.gradle.api.tasks.SourceSet' from a forbidden platform 'jvm'
 Class 'org.gradle.api.plugins.antlr.AntlrPlugin$1' from platform 'software' imports class 'org.gradle.api.internal.tasks.DefaultSourceSet' from a forbidden platform 'jvm'
 Class 'org.gradle.api.plugins.antlr.AntlrPlugin$1' from platform 'software' imports class 'org.gradle.api.tasks.SourceSet' from a forbidden platform 'jvm'
 Class 'org.gradle.api.plugins.antlr.AntlrPlugin' from platform 'software' imports class 'org.gradle.api.plugins.JavaPluginExtension' from a forbidden platform 'jvm'

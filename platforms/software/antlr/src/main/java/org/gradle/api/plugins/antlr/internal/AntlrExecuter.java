@@ -37,6 +37,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
+
 public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrExecuter.class);
@@ -63,9 +65,16 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
         throw new IllegalStateException("No Antlr implementation available");
     }
 
+    private static void errorIfPackageArgumentSet(List<String> arguments, String antlrVersion) {
+        if (arguments.contains(PACKAGE_ARG)) {
+            throw new IllegalArgumentException("The " + PACKAGE_ARG + " argument is not supported by ANTLR " + antlrVersion + ".");
+        }
+    }
+
     private static class Antlr3Tool extends AntlrTool {
         @Override
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
+            errorIfPackageArgumentSet(arguments, "3");
             final Object backedObject = loadTool("org.antlr.Tool", null);
             String[] argArray = arguments.toArray(new String[0]);
             if (inputDirectory != null) {
@@ -219,6 +228,7 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
          * */
         @Override
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
+            errorIfPackageArgumentSet(arguments, "2");
             final Object backedAntlrTool = loadTool("antlr.Tool", null);
             JavaMethod.of(backedAntlrTool, Integer.class, "doEverything", String[].class).invoke(backedAntlrTool, new Object[]{toArray(arguments)});
             return 0;
