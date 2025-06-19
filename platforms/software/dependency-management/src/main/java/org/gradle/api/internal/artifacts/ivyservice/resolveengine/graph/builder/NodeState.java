@@ -250,7 +250,7 @@ public class NodeState implements DependencyGraphNode {
             visitAllDependencies(resolutionFilter, discoveredEdges);
         } else if (previousTraversalExclusions.equals(resolutionFilter) || (doesNotHaveDependencies && !dependenciesMayChange)) {
             // The excludes did not change, or we have no dependencies at all. Skip normal visiting.
-            visitNewAndInvalidatedDependencies(discoveredEdges);
+            visitNewAndInvalidatedDependencies(resolutionFilter, discoveredEdges);
         } else if (cachedFilteredDependencyStates != null && !recomputeOutgoingDependencies(resolutionFilter)) {
             // The excludes changed, and after applying the new excludes to our outgoing dependencies, the
             // filtered dependencies did not change. We can skip normal dependency visit logic and just update the edges
@@ -260,7 +260,7 @@ public class NodeState implements DependencyGraphNode {
                 outgoingEdge.updateTransitiveExcludesAndRequeueTargetNodes(resolutionFilter);
             }
 
-            visitNewAndInvalidatedDependencies(discoveredEdges);
+            visitNewAndInvalidatedDependencies(resolutionFilter, discoveredEdges);
         } else {
             // Our transitive excludes changed, which changed which direct dependencies we are targeting.
             // Clear any old visit state and perform a full visit of our dependencies.
@@ -296,7 +296,7 @@ public class NodeState implements DependencyGraphNode {
      * Perform a partial visit of the dependencies of this node, only visiting new constraints
      * and edges that need to be recomputed.
      */
-    private void visitNewAndInvalidatedDependencies(Collection<EdgeState> discoveredEdges) {
+    private void visitNewAndInvalidatedDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges) {
         boolean visitedDependencies = false;
 
         // Visit any constraints that were previously pending, but are no longer pending.
@@ -306,7 +306,7 @@ public class NodeState implements DependencyGraphNode {
                 if (!dependencyStates.isEmpty()) {
                     for (DependencyState dependencyState : dependencyStates) {
                         dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
-                        createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false);
+                        createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, false);
                     }
                     visitedDependencies = true;
                 }
