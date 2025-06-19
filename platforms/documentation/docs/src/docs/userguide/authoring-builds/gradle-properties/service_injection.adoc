@@ -33,6 +33,7 @@ The following services are available for injection in all Gradle instantiated ob
 3. <<filesystemoperations,`FileSystemOperations`>> - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
 4. <<archiveoperations,`ArchiveOperations`>> - Allows a task to run operations on archive files such as ZIP or TAR files.
 5. <<execoperations,`ExecOperations`>> - Allows a task to run external processes with dedicated support for running external `java` programs.
+6. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
 
 === Additional services in workers
 
@@ -300,6 +301,15 @@ WARNING: This API is incubating.
 link:{javadocPath}/org/gradle/api/tasks/testing/TestEventReporterFactory.html[`TestEventReporterFactory`] is a service that provides access to the test event reporting API.
 
 You can learn more at <<test_reporting_api.adoc#test_reporting_api,Test Reporting API>>.
+
+[[dependencyfactory]]
+== `DependencyFactory`
+
+link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] is a service that provides methods for creating dependencies in a type-safe way.
+
+You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies,Implementing Binary Plugins guide>>.
+
+[[service_injection_patterns]]
 
 == Constructor injection
 
