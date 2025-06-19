@@ -9,9 +9,19 @@ dependencies {
 }
 
 // tag::do-this[]
-tasks.register<Zip>("goodZippingTask") {
-    from(configurations.runtimeClasspath) // <1>
-    from(layout.projectDirectory.file("extra.txt"))
+abstract class FileCounterTask: DefaultTask() {
+    @get:InputFiles
+    abstract val countMe: ConfigurableFileCollection
+
+    @TaskAction
+    fun countFiles() {
+        logger.lifecycle("Count: " + countMe.files.size)
+    }
+}
+
+tasks.register<FileCounterTask>("goodCountingTask") {
+    countMe.from(configurations.runtimeClasspath) // <1>
+    countMe.from(layout.projectDirectory.file("extra.txt"))
     logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.get().state == RESOLVED))
 }
 // end::do-this[]

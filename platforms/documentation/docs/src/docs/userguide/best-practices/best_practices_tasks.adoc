@@ -313,14 +313,15 @@ Be sure to check the actual behavior when using configurations in an atypical wa
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-avoid/kotlin/lib",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-avoid/groovy/lib",files="build.gradle[tags=avoid-this]"]
 ====
 
-<1> *`isEmpty()` Causes Resolution*: Many seemingly harmless Collections API methods like `isEmpty()` can cause Gradle to resolve dependencies.
+<1> *`isEmpty()` Causes Resolution*: Many seemingly harmless Collections API methods like `isEmpty()` can still cause Gradle to resolve dependencies.
 <2> *Accessing Files directly*: Using `getFiles()` to access the files in a `Configuration` will also cause Gradle to resolve the file collection.
 <3> *Adding a file via plus operator*: Using the plus operator will force the `runtimeClasspath` configuration to be resolved implicitly.
 The implementation of `Configuration` doesn't override the plus operator for regular files, therefore it falls back to using the eager API, which causes resolution.
+<4> *Be careful with indirect inputs*: Some built-in tasks, for example subtypes of `AbstractCopyTask` like `Zip`, allow adding inputs indirectly and can have the same problems.
 
 ==== Do This Instead
 
@@ -338,8 +339,8 @@ Use APIs that support lazy evaluation.
 ++++
 
 ====
-include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-do/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-do/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-do/kotlin/lib",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-do/groovy/lib",files="build.gradle[tags=do-this]"]
 ====
 
 <1> *Add configurations to Task properties or Specs directly*: This will defer resolution until the task is executed.
