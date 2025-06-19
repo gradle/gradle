@@ -87,16 +87,18 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
                 ${expression}
             }
         """
-        executerConfig.call(executer)
+        if (expectDeprecationWarning) {
+            expectPackageArgumentDeprecationWarning(executer)
+        }
 
         expect:
         fails("generateGrammarSource")
         failure.assertHasCause("The -package argument is not supported by ANTLR 3.")
 
         where:
-        description                     | expression                                    | executerConfig
-        "arguments"                     | "arguments = ['-package', 'org.acme.test']"   | { expectPackageArgumentDeprecationWarning(it) }
-        "packageName property"          | "packageName = 'org.acme.test'"               | { }
+        description                     | expression                                    | expectDeprecationWarning
+        "arguments"                     | "arguments = ['-package', 'org.acme.test']"   | true
+        "packageName property"          | "packageName = 'org.acme.test'"               | false
     }
 
     def "can change output directory and source set reflects change"() {
@@ -108,7 +110,6 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
             }
         """
 
-        when:
         expect:
         succeeds("generateGrammarSource")
 

@@ -63,7 +63,9 @@ class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec implements A
         """
 
         when:
-        executerConfig.call(executer)
+        if (expectDeprecationWarning) {
+            expectPackageArgumentDeprecationWarning(executer)
+        }
         succeeds(":filteredTask")
 
         then:
@@ -72,9 +74,9 @@ class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec implements A
         result.assertTaskSkipped(':filteredTask')
 
         where:
-        description                     | expression                             | executerConfig
-        "arguments and outputDirectory" | setPackageWithArguments("com.company") | { expectPackageArgumentDeprecationWarning(it) }
-        "packageName property"          | setPackageWithProperty("com.company")  | { }
+        description                     | expression                             | expectDeprecationWarning
+        "arguments and outputDirectory" | setPackageWithArguments("com.company") | true
+        "packageName property"          | setPackageWithProperty("com.company")  | false
     }
 
     static String setPackageWithArguments(String packageName) {

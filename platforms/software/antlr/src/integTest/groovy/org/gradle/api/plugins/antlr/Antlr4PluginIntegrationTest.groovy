@@ -81,7 +81,9 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
                 ${expression}
             }
         """
-        executerConfig.call(executer)
+        if (expectDeprecationWarning) {
+            expectPackageArgumentDeprecationWarning(executer)
+        }
 
         then:
         succeeds("generateGrammarSource")
@@ -95,9 +97,9 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         succeeds("build")
 
         where:
-        description                     | expression                               | packageDir  | executerConfig
-        "arguments"                     | "arguments += ['-package', 'org.acme']"  | "/org/acme" | { expectPackageArgumentDeprecationWarning(it) }
-        "packageName property"          | "packageName = 'org.acme'"               | ""          | { }
+        description                     | expression                               | packageDir  | expectDeprecationWarning
+        "arguments"                     | "arguments += ['-package', 'org.acme']"  | "/org/acme" | true
+        "packageName property"          | "packageName = 'org.acme'"               | ""          | false
     }
 
     def "exception when both packageName and arguments are set"() {
