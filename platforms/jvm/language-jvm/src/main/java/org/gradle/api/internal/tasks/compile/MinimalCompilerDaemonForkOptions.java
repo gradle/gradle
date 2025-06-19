@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions;
+import com.google.common.collect.ImmutableList;
+import org.jspecify.annotations.Nullable;
+
+import java.io.Serializable;
 
 /**
  * This class and its subclasses exist so that we have an isolatable instance
  * of the fork options that can be passed along with the compilation spec to a
- * worker executor.  Since {@link ProviderAwareCompilerDaemonForkOptions}
+ * worker executor.  Since {@link org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions}
  * and its subclasses can accept user-defined {@link org.gradle.process.CommandLineArgumentProvider}
  * instances, these objects may contain references to mutable objects in the
  * Gradle model or other non-isolatable objects.
@@ -31,10 +33,45 @@ import org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions;
  * arguments into {@link #jvmArgs} in order to capture the user-provided
  * command line arguments.
  */
-public class MinimalCompilerDaemonForkOptions extends BaseForkOptions {
-    public MinimalCompilerDaemonForkOptions(BaseForkOptions forkOptions) {
-        setJvmArgs(forkOptions.getJvmArgs());
-        setMemoryInitialSize(forkOptions.getMemoryInitialSize());
-        setMemoryMaximumSize(forkOptions.getMemoryMaximumSize());
+public class MinimalCompilerDaemonForkOptions implements Serializable  {
+
+    private final @Nullable String memoryInitialSize;
+    private final @Nullable String memoryMaximumSize;
+    private final ImmutableList<String> jvmArgs;
+
+    public MinimalCompilerDaemonForkOptions(
+        @Nullable String memoryInitialSize,
+        @Nullable String memoryMaximumSize,
+        ImmutableList<String> jvmArgs
+    ) {
+        this.memoryInitialSize = memoryInitialSize;
+        this.memoryMaximumSize = memoryMaximumSize;
+        this.jvmArgs = jvmArgs;
     }
+
+    /**
+     * Returns the initial heap size for the compiler process.
+     * Defaults to {@code null}, in which case the JVM's default will be used.
+     */
+    @Nullable
+    public String getMemoryInitialSize() {
+        return memoryInitialSize;
+    }
+
+    /**
+     * Returns the maximum heap size for the compiler process.
+     * Defaults to {@code null}, in which case the JVM's default will be used.
+     */
+    @Nullable
+    public String getMemoryMaximumSize() {
+        return memoryMaximumSize;
+    }
+
+    /**
+     * Returns any additional JVM arguments for the compiler process.
+     */
+    public ImmutableList<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
 }

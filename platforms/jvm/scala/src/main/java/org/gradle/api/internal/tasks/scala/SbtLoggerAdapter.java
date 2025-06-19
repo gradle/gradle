@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.Supplier;
 
 class SbtLoggerAdapter implements xsbti.Logger {
-    private static final Logger LOGGER = Logging.getLogger(ZincScalaCompilerFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZincScalaCompilerFactory.class);
 
     @Override
     public void error(Supplier<String> msg) {

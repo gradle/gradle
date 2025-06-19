@@ -17,128 +17,105 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import org.gradle.api.tasks.compile.GroovyCompileOptions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+/**
+ * Immutable, transportable options for configuring Groovy compilation,
+ * which is serialized over to Groovy compiler daemons.
+ */
 public class MinimalGroovyCompileOptions implements Serializable {
-    private boolean failOnError;
-    private boolean verbose;
-    private boolean listFiles;
-    private String encoding;
-    private boolean fork = true;
-    private boolean keepStubs;
-    private List<String> fileExtensions;
-    private MinimalGroovyCompilerDaemonForkOptions forkOptions;
-    private Map<String, Boolean> optimizationOptions;
-    private File stubDir;
-    private File configurationScript;
-    private boolean javaAnnotationProcessing;
-    private boolean parameters;
-    private Set<String> disabledGlobalASTTransformations;
 
-    public MinimalGroovyCompileOptions(GroovyCompileOptions compileOptions) {
-        this.failOnError = compileOptions.isFailOnError();
-        this.verbose = compileOptions.isVerbose();
-        this.listFiles = compileOptions.isListFiles();
-        this.encoding = compileOptions.getEncoding();
-        this.fork = compileOptions.isFork();
-        this.keepStubs = compileOptions.isKeepStubs();
-        this.fileExtensions = ImmutableList.copyOf(compileOptions.getFileExtensions());
-        this.forkOptions = new MinimalGroovyCompilerDaemonForkOptions(compileOptions.getForkOptions());
-        this.optimizationOptions = Maps.newHashMap(compileOptions.getOptimizationOptions());
-        this.stubDir = compileOptions.getStubDir();
-        this.configurationScript = compileOptions.getConfigurationScript();
-        this.javaAnnotationProcessing = compileOptions.isJavaAnnotationProcessing();
-        this.parameters = compileOptions.isParameters();
-        this.disabledGlobalASTTransformations = compileOptions.getDisabledGlobalASTTransformations().get();
+    private final boolean failOnError;
+    private final boolean verbose;
+    private final boolean listFiles;
+    private final String encoding;
+    private final boolean fork;
+    private final boolean keepStubs;
+    private final ImmutableList<String> fileExtensions;
+    private final MinimalGroovyCompilerDaemonForkOptions forkOptions;
+    private final ImmutableMap<String, Boolean> optimizationOptions;
+    private final File stubDir;
+    private final @Nullable File configurationScript;
+    private final boolean javaAnnotationProcessing;
+    private final boolean parameters;
+    private final ImmutableSet<String> disabledGlobalASTTransformations;
+
+    public MinimalGroovyCompileOptions(
+        boolean failOnError,
+        boolean verbose,
+        boolean listFiles,
+        String encoding,
+        boolean fork,
+        boolean keepStubs,
+        ImmutableList<String> fileExtensions,
+        MinimalGroovyCompilerDaemonForkOptions forkOptions,
+        ImmutableMap<String, Boolean> optimizationOptions,
+        File stubDir,
+        @Nullable File configurationScript,
+        boolean javaAnnotationProcessing,
+        boolean parameters,
+        ImmutableSet<String> disabledGlobalASTTransformations
+    ) {
+        this.failOnError = failOnError;
+        this.verbose = verbose;
+        this.listFiles = listFiles;
+        this.encoding = encoding;
+        this.fork = fork;
+        this.keepStubs = keepStubs;
+        this.fileExtensions = fileExtensions;
+        this.forkOptions = forkOptions;
+        this.optimizationOptions = optimizationOptions;
+        this.stubDir = stubDir;
+        this.configurationScript = configurationScript;
+        this.javaAnnotationProcessing = javaAnnotationProcessing;
+        this.parameters = parameters;
+        this.disabledGlobalASTTransformations = disabledGlobalASTTransformations;
     }
 
     public boolean isFailOnError() {
         return failOnError;
     }
 
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
-    }
-
     public boolean isVerbose() {
         return verbose;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
     }
 
     public boolean isListFiles() {
         return listFiles;
     }
 
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
-    }
-
     public String getEncoding() {
         return encoding;
-    }
-
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
     }
 
     public boolean isFork() {
         return fork;
     }
 
-    public void setFork(boolean fork) {
-        this.fork = fork;
-    }
-
     public boolean isKeepStubs() {
         return keepStubs;
     }
 
-    public void setKeepStubs(boolean keepStubs) {
-        this.keepStubs = keepStubs;
-    }
-
-    public List<String> getFileExtensions() {
+    public ImmutableList<String> getFileExtensions() {
         return fileExtensions;
-    }
-
-    public void setFileExtensions(List<String> fileExtensions) {
-        this.fileExtensions = fileExtensions;
     }
 
     public MinimalGroovyCompilerDaemonForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(MinimalGroovyCompilerDaemonForkOptions forkOptions) {
-        this.forkOptions = forkOptions;
-    }
-
-    @Nullable
-    public Map<String, Boolean> getOptimizationOptions() {
+    public ImmutableMap<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
-    }
-
-    public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
-        this.optimizationOptions = optimizationOptions;
     }
 
     public File getStubDir() {
         return stubDir;
-    }
-
-    public void setStubDir(File stubDir) {
-        this.stubDir = stubDir;
     }
 
     @Nullable
@@ -146,31 +123,16 @@ public class MinimalGroovyCompileOptions implements Serializable {
         return configurationScript;
     }
 
-    public void setConfigurationScript(@Nullable File configurationScript) {
-        this.configurationScript = configurationScript;
-    }
-
     public boolean isJavaAnnotationProcessing() {
         return javaAnnotationProcessing;
-    }
-
-    public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
-        this.javaAnnotationProcessing = javaAnnotationProcessing;
     }
 
     public boolean isParameters() {
         return parameters;
     }
 
-    public void setParameters(boolean parameters) {
-        this.parameters = parameters;
-    }
-
     public Set<String> getDisabledGlobalASTTransformations() {
         return disabledGlobalASTTransformations;
     }
 
-    public void setDisabledGlobalASTTransformations(Set<String> disabledGlobalASTTransformations) {
-        this.disabledGlobalASTTransformations = disabledGlobalASTTransformations;
-    }
 }

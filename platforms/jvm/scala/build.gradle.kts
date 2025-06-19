@@ -26,6 +26,7 @@ dependencies {
     api(projects.toolchainsJvmShared)
     api(projects.workers)
 
+    api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
 
@@ -41,7 +42,7 @@ dependencies {
     implementation(projects.reporting)
     implementation(projects.workerMain)
 
-    implementation(libs.guava)
+    implementation(libs.slf4jApi)
 
     compileOnly(libs.zinc) {
         // Because not needed and was vulnerable

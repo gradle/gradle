@@ -35,7 +35,6 @@ public class ElementUtils {
         return getTopLevelTypeNames(Arrays.asList(originatingElements));
     }
 
-    @SuppressWarnings("MixedMutabilityReturnType")
     public static Set<String> getTopLevelTypeNames(Collection<? extends Element> originatingElements) {
         if (originatingElements == null || originatingElements.size() == 0) {
             return Collections.emptySet();
@@ -52,7 +51,7 @@ public class ElementUtils {
                 typeNames.add(topLevelTypeName);
             }
         }
-        return typeNames;
+        return Collections.unmodifiableSet(typeNames);
     }
 
     public static String getTopLevelTypeName(Element originatingElement) {

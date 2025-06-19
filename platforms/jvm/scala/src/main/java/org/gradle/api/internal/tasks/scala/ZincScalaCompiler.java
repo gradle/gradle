@@ -19,16 +19,16 @@ package org.gradle.api.internal.tasks.scala;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.workers.internal.DefaultWorkResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sbt.internal.inc.Analysis;
 import sbt.internal.inc.IncrementalCompilerImpl;
 import sbt.internal.inc.Locate;
@@ -66,7 +66,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
-    private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZincScalaCompiler.class);
 
     private final ScalaInstance scalaInstance;
     private final ScalaCompiler scalaCompiler;
@@ -164,7 +164,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
             throw new CompilationFailedException(e);
         }
         LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
-        return WorkResults.didWork(true);
+
+        return new DefaultWorkResult(true, null);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

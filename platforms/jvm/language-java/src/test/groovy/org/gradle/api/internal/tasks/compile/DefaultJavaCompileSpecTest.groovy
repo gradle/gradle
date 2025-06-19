@@ -25,10 +25,10 @@ class DefaultJavaCompileSpecTest extends Specification {
 
     def "parses module-path from compileArgs with #description"() {
         given:
-        CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        CompileOptions options = TestUtil.newInstance(CompileOptions)
         options.compilerArgs.addAll(modulePathParameters)
         DefaultJavaCompileSpec compileSpec = new DefaultJavaCompileSpec()
-        compileSpec.setCompileOptions(options)
+        compileSpec.setCompileOptions(MinimalJavaCompileOptionsConverter.toMinimalJavaCompileOptions(options))
 
         when:
         def modulePath = compileSpec.modulePath
@@ -42,4 +42,5 @@ class DefaultJavaCompileSpecTest extends Specification {
         "--module-path <modules>" | ["--module-path", "/some/path$File.pathSeparator/some/path2"]
         "-p <modules>"            | ["-p", "/some/path$File.pathSeparator/some/path2"]
     }
+
 }

@@ -21,11 +21,10 @@ import org.gradle.api.internal.tasks.compile.ApiCompilerResult
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.api.internal.tasks.compile.TestJavaOptions
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource
 import org.gradle.api.tasks.WorkResults
-import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -59,9 +58,8 @@ class CompileTransactionTest extends Specification {
         classBackupDir = new File(transactionDir, "backup-dir")
         spec = new DefaultJavaCompileSpec()
         spec.setTempDir(temporaryFolder)
-        spec.setCompileOptions(TestUtil.newInstance(CompileOptions, TestUtil.objectFactory()))
+        spec.setCompileOptions(TestJavaOptions.of())
         spec.setDestinationDir(createNewDirectory(file("classes")))
-        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(true)
     }
 
     CompileTransaction newCompileTransaction() {
@@ -103,8 +101,11 @@ class CompileTransactionTest extends Specification {
         createNewFile(new File(headerOutput, "some-header-file.h"))
         createNewFile(new File(headerOutput, "some-header-file.class"))
         createNewFile(new File(headerOutput, "some-duplicated-file.class"))
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationOutput)
-        spec.getCompileOptions().setHeaderOutputDirectory(headerOutput)
+        spec.setCompileOptions(TestJavaOptions.of {
+            generatedSourceOutputDirectory.set(annotationOutput)
+            headerOutputDirectory.set(headerOutput)
+            incrementalAfterFailure.set(true)
+        })
         def classesToDelete = new PatternSet().include("**/*.class")
         Map<GeneratedResource.Location, PatternSet> sourcesToDelete = [:]
         sourcesToDelete[CLASS_OUTPUT] = new PatternSet().include("**/*.txt")
@@ -165,7 +166,6 @@ class CompileTransactionTest extends Specification {
     }
 
     def "files are stashed but not restored on a compile failure if incremental compilation after failure is not supported"() {
-        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false)
         def destinationDir = spec.getDestinationDir()
         new File(destinationDir, "file.txt").createNewFile()
         def pattern = new PatternSet().include("**/*.txt")
@@ -207,8 +207,10 @@ class CompileTransactionTest extends Specification {
         createNewFile(new File(headerOutput, "dir/dir/another-file.txt"))
         def pattern = new PatternSet().include("**/*.txt")
         spec.setDestinationDir(compileOutput)
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationOutput)
-        spec.getCompileOptions().setHeaderOutputDirectory(headerOutput)
+        spec.setCompileOptions(TestJavaOptions.of {
+            generatedSourceOutputDirectory.set(annotationOutput)
+            headerOutputDirectory.set(headerOutput)
+        })
 
         when:
         newCompileTransaction(pattern).execute {
@@ -255,8 +257,12 @@ class CompileTransactionTest extends Specification {
     def "stash and backup directory are generated"() {
         given:
         spec.setDestinationDir(createNewFile(file("compile")))
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(createNewFile(file("annotation")))
-        spec.getCompileOptions().setHeaderOutputDirectory(createNewFile(file("header")))
+        def annotationPath = createNewFile(file("annotation"))
+        def headerPath = createNewFile(file("header"))
+        spec.setCompileOptions(TestJavaOptions.of {
+            annotationProcessorPath = TestFiles.fileCollectionFactory().fixed(annotationPath)
+            headerOutputDirectory.set(headerPath)
+        })
 
         when:
         def directories = newCompileTransaction().execute {
@@ -271,7 +277,10 @@ class CompileTransactionTest extends Specification {
         def destinationDir = spec.getDestinationDir()
         def annotationGeneratedSourcesDir = createNewDirectory(file("generated/annotation-resources"))
         def overwrittenFile = createNewFile(new File(destinationDir, "Overwritten.class"))
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationGeneratedSourcesDir)
+        spec.setCompileOptions(TestJavaOptions.of {
+            generatedSourceOutputDirectory.set(annotationGeneratedSourcesDir)
+            incrementalAfterFailure.set(true)
+        })
 
         when:
         newCompileTransaction().execute {
@@ -290,7 +299,9 @@ class CompileTransactionTest extends Specification {
         def destinationDir = spec.getDestinationDir()
         def annotationGeneratedSourcesDir = createNewDirectory(file("generated/annotation-resources"))
         def overwrittenFile = createNewFile(new File(destinationDir, "Overwritten.class"))
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationGeneratedSourcesDir)
+        spec.setCompileOptions(TestJavaOptions.of {
+            annotationProcessorPath = TestFiles.fileCollectionFactory().fixed(annotationGeneratedSourcesDir)
+        })
 
         when:
         newCompileTransaction().execute {
@@ -307,8 +318,10 @@ class CompileTransactionTest extends Specification {
         def destinationDir = spec.getDestinationDir()
         def annotationGeneratedSourcesDir = createNewDirectory(file("generated/annotation-resources"))
         def overwrittenFile = createNewFile(new File(destinationDir, "Overwritten.class"))
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationGeneratedSourcesDir)
-        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false)
+
+        spec.setCompileOptions(TestJavaOptions.of {
+            annotationProcessorPath = TestFiles.fileCollectionFactory().fixed(annotationGeneratedSourcesDir)
+        })
 
         when:
         newCompileTransaction().execute {
@@ -349,7 +362,9 @@ class CompileTransactionTest extends Specification {
     def "class backup directory is #description when compile after failure is set to #compileAfterFailure"() {
         given:
         spec.setDestinationDir(createNewFile(file("compile")))
-        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(compileAfterFailure)
+        spec.setCompileOptions(TestJavaOptions.of {
+            incrementalAfterFailure.set(compileAfterFailure)
+        })
 
         when:
         def classBackupDir = newCompileTransaction().execute {

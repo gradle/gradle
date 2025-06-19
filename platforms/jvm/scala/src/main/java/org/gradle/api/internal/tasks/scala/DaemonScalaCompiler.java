@@ -43,6 +43,7 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerParameters;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -74,7 +75,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(T spec) {
+    protected CompilerParameters getCompilerParameters(T spec) {
         return new ScalaCompilerParameters<T>(ZincScalaCompilerFacade.class.getName(), new Object[]{hashedScalaClasspath}, spec);
     }
 
@@ -118,18 +119,5 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return gradleApiAndScalaSpec;
     }
 
-    public static class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerWorkerExecutor.CompilerParameters {
-        private final T compileSpec;
-
-        public ScalaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, T compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public T getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }
 

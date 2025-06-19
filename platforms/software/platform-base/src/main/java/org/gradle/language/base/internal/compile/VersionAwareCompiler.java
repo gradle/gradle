@@ -19,7 +19,7 @@ package org.gradle.language.base.internal.compile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.compile.CompilerVersion;
 
-public class VersionAwareCompiler<T extends CompileSpec> implements Compiler<T> {
+public class VersionAwareCompiler<T> implements Compiler<T> {
 
     private final CompilerVersion compilerVersion;
     private final Compiler<T> compiler;

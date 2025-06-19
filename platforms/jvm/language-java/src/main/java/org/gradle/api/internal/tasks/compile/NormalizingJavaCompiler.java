@@ -23,7 +23,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -46,7 +45,6 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
-        resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
         logCompilerArguments(spec);
         return delegateAndHandleErrors(spec);
@@ -61,11 +59,6 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
 
     private static boolean hasJavaExtension(@Nullable File input) {
         return hasExtension(input, ".java");
-    }
-
-    private void resolveNonStringsInCompilerArgs(JavaCompileSpec spec) {
-        // in particular, this is about GStrings
-        spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
     }
 
     private void logSourceFiles(JavaCompileSpec spec) {

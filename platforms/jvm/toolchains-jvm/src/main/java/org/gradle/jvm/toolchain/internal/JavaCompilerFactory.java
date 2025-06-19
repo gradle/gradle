@@ -17,7 +17,6 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 
 /**
@@ -25,5 +24,5 @@ import org.gradle.language.base.internal.compile.Compiler;
  */
 @ServiceScope(Scope.Project.class)
 public interface JavaCompilerFactory {
-    <T extends CompileSpec> Compiler<T> create(Class<T> type);
+    <T> Compiler<T> create(Class<T> type);
 }

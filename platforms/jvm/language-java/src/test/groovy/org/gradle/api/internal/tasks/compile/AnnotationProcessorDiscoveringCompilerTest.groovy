@@ -20,25 +20,23 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
-import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
 class AnnotationProcessorDiscoveringCompilerTest extends Specification {
-    JavaCompileSpec spec = new DefaultJavaCompileSpec().with {
-        compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
-        it
-    }
+    JavaCompileSpec spec = new DefaultJavaCompileSpec()
     AnnotationProcessorDetector detector = Stub(AnnotationProcessorDetector)
     Compiler<JavaCompileSpec> delegate = Stub(Compiler)
 
     AnnotationProcessorDiscoveringCompiler compiler = new AnnotationProcessorDiscoveringCompiler(delegate, detector)
 
     def "when neither processor path nor processor option are given, no processors are used"() {
+        spec.compileOptions = TestJavaOptions.of()
+
         when:
         compiler.execute(spec)
+
         then:
         spec.effectiveAnnotationProcessors == [] as Set
     }
@@ -51,6 +49,7 @@ class AnnotationProcessorDiscoveringCompilerTest extends Specification {
             "Foo": proc1,
             "Bar": proc2
         ]
+        spec.compileOptions = TestJavaOptions.of()
 
         when:
         compiler.execute(spec)
@@ -67,7 +66,9 @@ class AnnotationProcessorDiscoveringCompilerTest extends Specification {
             "Foo": proc1,
             "Bar": proc2
         ]
-        spec.compileOptions.compilerArgs = ["-processor", "Foo"]
+        spec.compileOptions = TestJavaOptions.of {
+            compilerArgs = ["-processor", "Foo"]
+        }
 
         when:
         compiler.execute(spec)
@@ -84,7 +85,9 @@ class AnnotationProcessorDiscoveringCompilerTest extends Specification {
             "Foo": proc1,
             "Bar": proc2
         ]
-        spec.compileOptions.compilerArgs = ["-processor", "Bar,Foo"]
+        spec.compileOptions = TestJavaOptions.of {
+            compilerArgs = ["-processor", "Bar,Foo"]
+        }
 
         when:
         compiler.execute(spec)
@@ -95,7 +98,9 @@ class AnnotationProcessorDiscoveringCompilerTest extends Specification {
 
     def "when processor option is given and no info is available on the path, assume it is non-incremental"() {
         given:
-        spec.compileOptions.compilerArgs = ["-processor", "Foo"]
+        spec.compileOptions = TestJavaOptions.of {
+            compilerArgs = ["-processor", "Foo"]
+        }
 
         when:
         compiler.execute(spec)
@@ -107,7 +112,9 @@ class AnnotationProcessorDiscoveringCompilerTest extends Specification {
     @Issue("gradle/gradle#1471")
     def "fails when -processor is the last compiler arg"() {
         given:
-        spec.compileOptions.compilerArgs = ["-Xthing", "-processor"]
+        spec.compileOptions = TestJavaOptions.of {
+            compilerArgs = ["-Xthing", "-processor"]
+        }
 
         when:
         compiler.execute(spec)
@@ -116,4 +123,5 @@ class AnnotationProcessorDiscoveringCompilerTest extends Specification {
         def e = thrown(InvalidUserDataException)
         e.message == 'No processor specified for compiler argument -processor in requested compiler args: -Xthing -processor'
     }
+
 }

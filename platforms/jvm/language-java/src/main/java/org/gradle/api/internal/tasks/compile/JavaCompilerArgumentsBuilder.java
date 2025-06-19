@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
@@ -28,6 +29,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class JavaCompilerArgumentsBuilder {
@@ -135,9 +137,11 @@ public class JavaCompilerArgumentsBuilder {
         if (forkOptions.getMemoryMaximumSize() != null) {
             args.add("-J-Xmx" + forkOptions.getMemoryMaximumSize().trim());
         }
-        if (forkOptions.getJvmArgs() != null) {
-            args.addAll(forkOptions.getJvmArgs());
-        }
+
+        forkOptions.getJvmArgs().stream()
+            .filter(Objects::nonNull)
+            .filter(string -> !StringUtils.isBlank(string))
+            .forEach(args::add);
     }
 
     private void addMainOptions(List<String> compilerArgs) {

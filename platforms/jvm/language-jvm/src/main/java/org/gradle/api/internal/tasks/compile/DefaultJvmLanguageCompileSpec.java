@@ -20,10 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.List;
 
-public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
+public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec {
     private File workingDir;
     private File tempDir;
     private List<File> classpath;

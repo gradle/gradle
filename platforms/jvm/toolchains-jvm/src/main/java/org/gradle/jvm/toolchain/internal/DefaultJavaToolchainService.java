@@ -35,7 +35,6 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     private final JavaToolchainQueryService queryService;
     private final ObjectFactory objectFactory;
-    private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
     private final BuildOperationProgressEventEmitter eventEmitter;
 
@@ -43,13 +42,11 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
     public DefaultJavaToolchainService(
         JavaToolchainQueryService queryService,
         ObjectFactory objectFactory,
-        JavaCompilerFactory compilerFactory,
         ToolchainToolFactory toolFactory,
         BuildOperationProgressEventEmitter eventEmitter
     ) {
         this.queryService = queryService;
         this.objectFactory = objectFactory;
-        this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
         this.eventEmitter = eventEmitter;
     }
@@ -63,7 +60,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
     public Provider<JavaCompiler> compilerFor(JavaToolchainSpec spec) {
         return queryService.findMatchingToolchain(spec, Sets.immutableEnumSet(JavaInstallationCapability.JAVA_COMPILER))
             .withSideEffect(toolchain -> emitEvent(toolchain, JavaTool.COMPILER))
-            .map(javaToolchain -> new DefaultToolchainJavaCompiler(javaToolchain, compilerFactory));
+            .map(DefaultToolchainJavaCompiler::new);
     }
 
     @Override
