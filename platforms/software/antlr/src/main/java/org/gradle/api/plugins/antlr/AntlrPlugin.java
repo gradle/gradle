@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.antlr;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -34,7 +33,6 @@ import org.gradle.internal.file.FilePathUtil;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
@@ -115,27 +113,13 @@ public abstract class AntlrPlugin implements Plugin<Project> {
      *
      * This logic can be removed once we make it an error to set the package name via the arguments and require the use of the 'packageName' property instead.
      */
-    @VisibleForTesting
-    static String deriveGeneratedSourceRootDirectory(String outputDirectoryPath, List<String> arguments) {
-        // If the package argument is present, we check if the output directory ends with the package path and remove it.
+    private static String deriveGeneratedSourceRootDirectory(String outputDirectoryPath, List<String> arguments) {
+        // If the package argument is present, remove the package from the path if it has been added.
         if (arguments.contains(PACKAGE_ARG)) {
             int packageIndex = arguments.indexOf(PACKAGE_ARG);
             if (packageIndex + 1 < arguments.size()) {
-                String[] packageRelativePathSegments = arguments.get(packageIndex + 1).split("\\.");
-                String[] outputDirectorySegments = FilePathUtil.getPathSegments(outputDirectoryPath);
-                int potentialPackageIndex = outputDirectorySegments.length - packageRelativePathSegments.length;
-                // Check if the output directory ends with the package path.
-                if (potentialPackageIndex > 0) {
-                    String[] lastSegments = Arrays.stream(outputDirectorySegments)
-                        .skip(potentialPackageIndex)
-                        .toArray(String[]::new);
-
-                    if (Arrays.equals(lastSegments, packageRelativePathSegments)) {
-                        // If it does, we remove the package path from the output directory.
-                        // i.e: <sourceRootDir>/<packagePath> becomes just <sourceRootDir>
-                        return String.join("/", Arrays.copyOf(outputDirectorySegments, potentialPackageIndex));
-                    }
-                }
+                String packageRelativePath = arguments.get(packageIndex + 1).replace('.', '/');
+                return FilePathUtil.maybeRemoveTrailingSegments(outputDirectoryPath, packageRelativePath);
             }
         }
         // Otherwise, we assume the output directory is the root of the generated sources.
