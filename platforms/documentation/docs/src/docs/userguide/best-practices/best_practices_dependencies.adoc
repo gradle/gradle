@@ -85,8 +85,11 @@ Consistent and descriptive names in your version catalog enhance readability and
 
 === Explanation
 
-Version catalogs provide a centralized way to manage dependencies.
-Adopting clear naming conventions for catalog entries ensures that developers can easily identify and use dependencies throughout the project.
+Version catalogs provide a centralized way to manage dependencies by mapping full dependency coordinates to concise, reusable aliases like `airlift-aircompressor`.
+Adopting clear naming conventions for those aliases ensures that developers can easily identify and use dependencies throughout the project.
+
+Aliases are typically made up of 1 to 3 segments.
+For example `org.apache.commons:commons-lang3` could be represented as `commonsLang3`, `apache-commonsLang3`, or `commons-lang3`.
 
 The following guidelines help in naming catalog entries effectively:
 
@@ -94,31 +97,27 @@ The following guidelines help in naming catalog entries effectively:
 +
 Example: For `org.apache.logging.log4j:log4j-api`, use `log4j-api`
 
-2. **Strive to keep two segments maximum**: Try to keep it to two segments to avoid excessive nesting.
+2. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment. Do not include the top level domain in the segment (`com`, `org`, `net`, `dev`).
 +
-Example: For `io.airlift:aircompressor`, use `airlift-aircompressor`
+Example: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind` or `jackson-core-databind`
 
-3. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment. Do not include the top level domain in the segment (`com`, `org`, `net`, `dev`).
-+
-Example: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind`
-
-4. **Derive the second segment from the artifact ID**: Use a unique identifier from the artifact ID as the second segment.
+3. **Derive the second segment from the artifact ID**: Use a unique identifier from the artifact ID as the second segment.
 +
 Example: For `com.linecorp.armeria:armeria-grpc`, use `armeria-grpc`
 
-5. **Avoid generic terms in the segments**: Exclude terms that are obvious or implied in the context of your project (`java`, `module`, `sdk`).
+4. **Avoid generic terms in the segments**: Exclude terms that are obvious or implied in the context of your project (`core`, `java`, `gradle`, `module`, `sdk`), especially if the term appears by itself.
 +
-Example: For `com.fasterxml.jackson.module:jackson-module-kotlin`, use `jackson-moduleKotlin`
+Example: For `com.google.googlejavaformat:google-java-format`, use `google-java-format`, not `google-java` or `java`
 
-6. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
+5. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
 +
 Example: For `io.ktor:ktor-client-core`, use `ktor-client-core`, not `ktor-ktor-client-core`
 
-7. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
+6. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
 +
 Example: `spring-boot-starter-web` becomes `springBootStarterWeb`
 
-8. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
+7. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
 +
 Example: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
 
