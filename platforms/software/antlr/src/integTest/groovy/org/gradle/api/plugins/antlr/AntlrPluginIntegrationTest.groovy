@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
@@ -95,6 +96,9 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
     @Issue('https://github.com/gradle/gradle/issues/19555')
     def "creates proper dependency wiring between generated source set and source generation task"() {
         given:
+        settingsFile << """
+            rootProject.name = 'antlr'
+        """
         buildFile << """
             apply plugin: "java"
             apply plugin: "antlr"
@@ -114,6 +118,14 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         executed(':generateGrammarSource')
+
+        and:
+        def jar = new JarTestFixture(file("build/libs/antlr-sources.jar"))
+        jar.assertContainsFile("TestGrammar.java")
+        jar.assertContainsFile("TestGrammar.g")
+        jar.assertContainsFile("TestGrammar.smap")
+        jar.assertContainsFile("TestGrammarTokenTypes.txt")
+        jar.assertContainsFile("TestGrammarTokenTypes.java")
     }
 
     private static String getTestGrammarSource() {
