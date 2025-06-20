@@ -23,10 +23,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Marks types that can be instantiated by Gradle via the managed object infrastructure.
+ * Marks Gradle-provided types that can be instantiated via the managed object infrastructure.
  * <p>
  * Types annotated with this annotation will be automatically instantiated by Gradle
- * when constructing managed objects. See the below example:
+ * when constructing managed objects. This annotation is present only on Gradle-native types
+ * and does not need to be added to custom user-instantiated types.
+ * <p>
+ * See the below example, where we inject instances of {@code ConfigurableFileCollection}
+ * and {@code RegularFileProperty}, both of which are annotated with this annotation. When
+ * {@code MyObject} is instantiated by Gradle, new instances of these two types will also be created.
  *
  * <pre class='autoTested'>
  * interface MyObject {
@@ -40,6 +45,8 @@ import java.lang.annotation.RetentionPolicy;
  * </pre>
  *
  * @since 9.0.0
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/properties_providers.html">Managed types reference</a>
  */
 @Incubating
 @Documented
