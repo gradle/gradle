@@ -32,8 +32,8 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -70,7 +70,7 @@ public class DefaultConfigurationFactory {
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
     private final DocumentationRegistry documentationRegistry;
 
     @Inject
@@ -90,7 +90,7 @@ public class DefaultConfigurationFactory {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService,
+        ProblemsInternal problemsService,
         DocumentationRegistry documentationRegistry
     ) {
         this.objectFactory = objectFactory;
@@ -261,7 +261,7 @@ public class DefaultConfigurationFactory {
         );
     }
 
-    public InternalProblems getProblems() {
+    public ProblemsInternal getProblems() {
         return problemsService;
     }
 }

@@ -38,7 +38,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultProblemBuilder implements InternalProblemBuilder {
+public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private final ProblemsInfrastructure problemsInfrastructure;
 
     private ProblemId id;
@@ -63,7 +63,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     public DefaultProblemBuilder(
-        InternalProblem problem,
+        ProblemInternal problem,
         ProblemsInfrastructure infrastructure
     ) {
         this(infrastructure);
@@ -80,7 +80,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblem build() {
+    public ProblemInternal build() {
         // id is mandatory
         if (getId() == null) {
             return invalidProblem("missing-id", "Problem id must be specified", null);
@@ -167,7 +167,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return DefaultLineInFileLocation.from(path, line);
     }
 
-    private InternalProblem invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
+    private ProblemInternal invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
         id(id, displayName, ProblemGroup.create(
             "problems-api",
             "Problems API")
@@ -197,13 +197,13 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder contextualLabel(String contextualLabel) {
+    public ProblemBuilderInternal contextualLabel(String contextualLabel) {
         this.contextualLabel = contextualLabel;
         return this;
     }
 
     @Override
-    public InternalProblemBuilder severity(Severity severity) {
+    public ProblemBuilderInternal severity(Severity severity) {
         this.severity = severity;
         return this;
     }
@@ -214,19 +214,19 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder taskLocation(String buildTreePath) {
+    public ProblemBuilderInternal taskLocation(String buildTreePath) {
         this.contextLocations.add(new DefaultTaskLocation(buildTreePath));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder fileLocation(String path) {
+    public ProblemBuilderInternal fileLocation(String path) {
         addFileLocation(DefaultFileLocation.from(path));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line) {
+    public ProblemBuilderInternal lineInFileLocation(String path, int line) {
         return addFileLocation(DefaultLineInFileLocation.from(path, line));
     }
 
@@ -245,49 +245,49 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
+    public ProblemBuilderInternal lineInFileLocation(String path, int line, int column) {
         addFileLocation(DefaultLineInFileLocation.from(path, line, column));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
+    public ProblemBuilderInternal offsetInFileLocation(String path, int offset, int length) {
         addFileLocation(DefaultOffsetInFileLocation.from(path, offset, length));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
+    public ProblemBuilderInternal lineInFileLocation(String path, int line, int column, int length) {
         addFileLocation(DefaultLineInFileLocation.from(path, line, column, length));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder stackLocation() {
+    public ProblemBuilderInternal stackLocation() {
         this.collectStackLocation = true;
         return this;
     }
 
     @Override
-    public InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics) {
+    public ProblemSpecInternal diagnostics(ProblemDiagnostics diagnostics) {
         this.diagnostics = diagnostics;
         return this;
     }
 
     @Override
-    public InternalProblemBuilder details(String details) {
+    public ProblemBuilderInternal details(String details) {
         this.details = details;
         return this;
     }
 
     @Override
-    public InternalProblemBuilder documentedAt(@Nullable DocLink doc) {
+    public ProblemBuilderInternal documentedAt(@Nullable DocLink doc) {
         this.docLink = doc;
         return this;
     }
 
     @Override
-    public InternalProblemBuilder id(ProblemId problemId) {
+    public ProblemBuilderInternal id(ProblemId problemId) {
         if (problemId instanceof DefaultProblemId) {
             this.id = problemId;
         } else {
@@ -297,7 +297,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
+    public ProblemBuilderInternal id(String name, String displayName, ProblemGroup parent) {
         this.id = ProblemId.create(name, displayName, cloneGroup(parent));
         return this;
     }
@@ -311,14 +311,14 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder documentedAt(@Nullable String url) {
+    public ProblemBuilderInternal documentedAt(@Nullable String url) {
         this.docLink = url == null ? null : new DefaultDocLink(url);
         return this;
     }
 
 
     @Override
-    public InternalProblemBuilder solution(@Nullable String solution) {
+    public ProblemBuilderInternal solution(@Nullable String solution) {
         if (this.solutions == null) {
             this.solutions = new ArrayList<String>();
         }
@@ -328,7 +328,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(Class<? extends U> specType, Action<? super U> config) {
+    public <U extends AdditionalDataSpec> ProblemBuilderInternal additionalDataInternal(Class<? extends U> specType, Action<? super U> config) {
         if (problemsInfrastructure.getAdditionalDataBuilderFactory().hasProviderForSpec(specType)) {
             AdditionalDataBuilder<? extends AdditionalData> additionalDataBuilder = problemsInfrastructure.getAdditionalDataBuilderFactory().createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDataBuilder);
@@ -340,7 +340,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config) {
+    public <T extends AdditionalData> ProblemBuilderInternal additionalData(Class<T> type, Action<? super T> config) {
         AdditionalData additionalDataInstance = createAdditionalData(type, config);
         Isolatable<AdditionalData> isolated = problemsInfrastructure.getIsolatableFactory().isolate(additionalDataInstance);
 
@@ -359,7 +359,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder withException(Throwable t) {
+    public ProblemBuilderInternal withException(Throwable t) {
         this.exception = t;
         return this;
     }

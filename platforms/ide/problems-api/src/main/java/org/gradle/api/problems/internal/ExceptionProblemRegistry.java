@@ -41,9 +41,9 @@ import java.util.Set;
 @ServiceScope(Scope.BuildSession.class)
 public class ExceptionProblemRegistry {
 
-    private final Multimap<Throwable, InternalProblem> problemsForThrowables = Multimaps.synchronizedMultimap(MultimapBuilder.linkedHashKeys().linkedHashSetValues().<Throwable, InternalProblem>build());
+    private final Multimap<Throwable, ProblemInternal> problemsForThrowables = Multimaps.synchronizedMultimap(MultimapBuilder.linkedHashKeys().linkedHashSetValues().<Throwable, ProblemInternal>build());
 
-    public void onProblem(Throwable exception, InternalProblem problem) {
+    public void onProblem(Throwable exception, ProblemInternal problem) {
         problemsForThrowables.put(exception, problem);
     }
 
@@ -57,10 +57,10 @@ public class ExceptionProblemRegistry {
      */
     private static class DefaultProblemLocator implements ProblemLocator {
 
-        private final Multimap<Throwable, InternalProblem> problemsForThrowables;
+        private final Multimap<Throwable, ProblemInternal> problemsForThrowables;
         private Multimap<String, Throwable> exceptionLookup = null;
 
-        DefaultProblemLocator(Multimap<Throwable, InternalProblem> problemsForThrowables) {
+        DefaultProblemLocator(Multimap<Throwable, ProblemInternal> problemsForThrowables) {
             this.problemsForThrowables = ImmutableMultimap.copyOf(problemsForThrowables);
         }
 
@@ -95,9 +95,9 @@ public class ExceptionProblemRegistry {
         }
 
         @Override
-        public Collection<InternalProblem> findAll(Throwable t) {
+        public Collection<ProblemInternal> findAll(Throwable t) {
             Throwable throwable = find(t);
-            return throwable == null ? ImmutableList.<InternalProblem>of() : ImmutableList.copyOf(problemsForThrowables.get(throwable));
+            return throwable == null ? ImmutableList.<ProblemInternal>of() : ImmutableList.copyOf(problemsForThrowables.get(throwable));
         }
 
         @Nullable
