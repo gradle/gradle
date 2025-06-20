@@ -63,7 +63,6 @@ dependencies {
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.asm)
-    implementation(libs.groovyJson)
     implementation(libs.jspecify)
     implementation(libs.kotlinReflect)
 

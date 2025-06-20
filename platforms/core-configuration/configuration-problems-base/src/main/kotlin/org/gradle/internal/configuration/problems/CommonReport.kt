@@ -16,7 +16,6 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
@@ -131,10 +130,6 @@ class CommonReport(
             spoolFileProvider: TemporaryFileProvider,
             private val reportFileName: String,
             val executor: ManagedExecutor,
-            /**
-             * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
-             */
-            private val groovyJsonClassLoader: ClassLoader,
             private val distinctReports: Boolean
         ) : State() {
 
@@ -149,7 +144,6 @@ class CommonReport(
 
             init {
                 executor.submit {
-                    Thread.currentThread().contextClassLoader = groovyJsonClassLoader
                     writer.beginHtmlReport()
                 }
             }
@@ -265,7 +259,6 @@ class CommonReport(
             temporaryFileProvider,
             reportFileName,
             executorFactory.create("${reportContext.capitalized()} writer", 1),
-            CharBuf::class.java.classLoader,
             distinctReports
         ).onDiagnostic(problem)
     }
