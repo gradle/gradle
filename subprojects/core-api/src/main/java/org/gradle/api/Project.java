@@ -1732,7 +1732,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param type The type of objects for the container to contain.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type);
 
     /**
@@ -1744,7 +1747,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param factory The factory to use to create object instances.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class, NamedDomainObjectFactory)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory);
 
     /**
@@ -1757,7 +1763,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param factoryClosure The closure to use to create object instances.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class, NamedDomainObjectFactory)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
 
     /**

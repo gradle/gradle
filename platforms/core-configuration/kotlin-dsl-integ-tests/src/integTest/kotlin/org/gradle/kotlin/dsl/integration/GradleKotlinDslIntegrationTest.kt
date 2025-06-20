@@ -934,7 +934,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 override fun apply(project: Project): Unit = project.run {
                     extensions.add(typeOf<MutableMap<String, String>>(), "mapOfString", mutableMapOf("foo" to "bar"))
                     extensions.add(typeOf<MutableMap<String, Int>>(), "mapOfInt", mutableMapOf("deep" to 42))
-                    extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", container(Book::class))
+                    extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", project.objects.namedDomainObjectContainer(Book::class))
                 }
             }
             """
