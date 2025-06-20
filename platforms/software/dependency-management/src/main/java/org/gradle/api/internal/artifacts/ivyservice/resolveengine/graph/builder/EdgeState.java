@@ -383,6 +383,7 @@ class EdgeState implements DependencyGraphEdge {
         return resolveState.desugarSelector(dependencyState.getRequested());
     }
 
+    @Nullable
     @Override
     public ModuleVersionResolveException getFailure() {
         if (targetNodeSelectionFailure != null) {
@@ -461,6 +462,10 @@ class EdgeState implements DependencyGraphEdge {
                 targetNodes = targetComponent.getNodes();
             }
         }
+        return targetNodes;
+    }
+
+    public List<NodeState> getTargetNodes() {
         return targetNodes;
     }
 
