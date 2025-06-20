@@ -12,7 +12,6 @@ Method <org.gradle.api.NamedDomainObjectSet.findAll(groovy.lang.Closure)> has Cl
 Method <org.gradle.api.NamedDomainObjectSet.findAll(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (NamedDomainObjectSet.java:0)
 Method <org.gradle.api.Project.buildscript(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (Project.java:0)
 Method <org.gradle.api.Project.configurations(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (Project.java:0)
-Method <org.gradle.api.Project.container(java.lang.Class, groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (Project.java:0)
 Method <org.gradle.api.Project.dependencies(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (Project.java:0)
 Method <org.gradle.api.Project.repositories(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (Project.java:0)
 Method <org.gradle.api.Script.apply(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (Script.java:0)
