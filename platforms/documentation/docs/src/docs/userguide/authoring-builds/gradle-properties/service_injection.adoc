@@ -23,27 +23,38 @@ The services are made available through _service injection_.
 [[services_for_injection]]
 == Available services
 
-The following services are available for injection:
+WARNING: You should avoid injecting types not listed below. Internal services can sometimes technically be injected, but this practice is not supported and may lead to breaking changes in the future.
+Only inject the services explicitly listed below to ensure stability and compatibility.
+
+The following services are available for injection in all Gradle instantiated objects:
 
 1. <<objectfactory,`ObjectFactory`>> - Allows model objects to be created.
-2. <<sec:projectlayout,`ProjectLayout`>> - Provides access to key project locations.
-3. <<buildlayout,`BuildLayout`>> - Provides access to important locations for a Gradle build.
-4. <<providerfactory,`ProviderFactory`>> - Creates `Provider` instances.
-5. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
-6. <<filesystemoperations,`FileSystemOperations`>> - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
-7. <<archiveoperations,`ArchiveOperations`>> - Allows a task to run operations on archive files such as ZIP or TAR files.
-8. <<execoperations,`ExecOperations`>> - Allows a task to run external processes with dedicated support for running external `java` programs.
-9. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
-10. <<testeventreporterfactory,`TestEventReporterFactory`>> - Allows a plugin to access Gradle's test events and its corresponding API.
+2. <<providerfactory,`ProviderFactory`>> - Creates `Provider` instances.
+3. <<filesystemoperations,`FileSystemOperations`>> - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
+4. <<archiveoperations,`ArchiveOperations`>> - Allows a task to run operations on archive files such as ZIP or TAR files.
+5. <<execoperations,`ExecOperations`>> - Allows a task to run external processes with dedicated support for running external `java` programs.
 
-Out of the above, `ProjectLayout` and `WorkerExecutor` services are only available for injection in project plugins.
-`BuildLayout` is only available in settings plugins and settings files.
-`ProjectLayout` is unavailable in Worker API actions.
+=== Additional services in workers
 
-While other services can technically be injected, this practice is not supported and may lead to breaking changes in the future.
-Only inject the services explicitly listed above to ensure stability and compatibility.
+The following services are available for injection in worker API actions and parameters:
 
-WARNING: You should avoid injecting types not listed above.
+1. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
+
+=== Additional services in projects
+
+The following services are available for injection in project plugins, extensions and objects created in a project:
+
+1. <<sec:projectlayout,`ProjectLayout`>> - Provides access to key project locations.
+2. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
+3. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
+4. <<testeventreporterfactory,`TestEventReporterFactory`>> - Allows a plugin to access Gradle's test events and its corresponding API.
+
+=== Additional services in settings
+
+The following services are available for injection in settings plugins, extensions and objects created in a project:
+
+1. <<buildlayout,`BuildLayout`>> - Provides access to important locations for a Gradle build.
+2. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
 
 [[objectfactory]]
 == `ObjectFactory`

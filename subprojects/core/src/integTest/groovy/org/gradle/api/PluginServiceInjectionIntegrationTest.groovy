@@ -17,14 +17,19 @@
 package org.gradle.api
 
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.file.ArchiveOperations
+import org.gradle.api.file.BuildLayout
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.tasks.testing.TestEventReporterFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.process.ExecOperations
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.workers.WorkerExecutor
 
 import javax.inject.Inject
 
@@ -170,12 +175,21 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         serviceType << [
+            // available everywhere
             ObjectFactory,
-            ProjectLayout,
             ProviderFactory,
-            ExecutionEngine,
             FileSystemOperations,
             ExecOperations,
+            ArchiveOperations,
+
+            // specific for Projects
+            ProjectLayout,
+            WorkerExecutor,
+            ToolingModelBuilderRegistry,
+            TestEventReporterFactory,
+
+            // internal services
+            ExecutionEngine,
             ConfigurationContainer, // this is a supertype of the RoleBasedConfigurationContainerInternal, we want to ensure it can still be injected without asking for the subtype
             RoleBasedConfigurationContainerInternal
         ].collect { it.name }
@@ -207,10 +221,16 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         serviceType << [
+            // available everywhere
             ObjectFactory,
             ProviderFactory,
             FileSystemOperations,
             ExecOperations,
+            ArchiveOperations,
+
+            // specific for Settings
+            BuildLayout,
+            ToolingModelBuilderRegistry,
         ].collect { it.name }
     }
 
@@ -240,10 +260,14 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         serviceType << [
+            // available everywhere
             ObjectFactory,
             ProviderFactory,
             FileSystemOperations,
             ExecOperations,
+            ArchiveOperations,
+
+            // specific for Gradle
         ].collect { it.name }
     }
 }
