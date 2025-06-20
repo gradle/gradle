@@ -32,7 +32,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 class KotlinGradleScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
-    filePathPattern.put("(?:.+\\.)?init\\.gradle\\.kts")
+    filePathPattern.put(".*/(?:.+\\.)?init\\.gradle\\.kts")
     baseClass(KotlinGradleScriptTemplate::class)
     implicitReceivers(Gradle::class)
 })
