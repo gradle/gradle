@@ -82,18 +82,42 @@ class DefaultBuildControllers implements BuildControllers {
 
     @Override
     public ExecutionResult<Void> execute() {
-        CountDownLatch complete = new CountDownLatch(controllers.size());
         Map<BuildController, ExecutionResult<Void>> results = new ConcurrentHashMap<>();
 
-        // Start work in each build
-        for (BuildController buildController : controllers.values()) {
-            buildController.startExecution(executorService, result -> {
-                results.put(buildController, result);
-                complete.countDown();
-            });
-        }
+        BuildController rootBuildController = controllers.get(DefaultBuildIdentifier.ROOT);
+        if (rootBuildController != null && rootBuildController.isDiagnostic()) {
+            if (controllers.size() > 1) {
+                CountDownLatch complete = new CountDownLatch(controllers.size() - 1);
 
-        awaitCompletion(complete);
+                // Start work in each build
+                for (BuildController buildController : controllers.values()) {
+                    if (!buildController.equals(rootBuildController)) {
+                        buildController.startExecution(executorService, result -> {
+                            results.put(buildController, result);
+                            complete.countDown();
+                        });
+                    }
+                }
+                awaitCompletion(complete);
+            }
+
+            CountDownLatch rootComplete = new CountDownLatch(1);
+            rootBuildController.startExecution(executorService, result -> {
+                results.put(rootBuildController, result);
+                rootComplete.countDown();
+            });
+            awaitCompletion(rootComplete);
+        } else {
+            CountDownLatch complete = new CountDownLatch(controllers.size());
+            // Start work in each build
+            for (BuildController buildController : controllers.values()) {
+                buildController.startExecution(executorService, result -> {
+                    results.put(buildController, result);
+                    complete.countDown();
+                });
+            }
+            awaitCompletion(complete);
+        }
 
         // Collect the failures in deterministic order
         ExecutionResult<Void> result = ExecutionResult.succeeded();
