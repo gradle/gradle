@@ -23,10 +23,8 @@ The services are made available through _service injection_.
 [[services_for_injection]]
 == Available services
 
-WARNING: You should avoid injecting types not listed below. Internal services can technically be injected, this practice is not supported and may lead to breaking changes in the future.
+WARNING: You should avoid injecting types not listed below. Internal services can sometimes technically be injected, but this practice is not supported and may lead to breaking changes in the future.
 Only inject the services explicitly listed below to ensure stability and compatibility.
-
-=== Everywhere
 
 The following services are available for injection in all Gradle instantiated objects:
 
