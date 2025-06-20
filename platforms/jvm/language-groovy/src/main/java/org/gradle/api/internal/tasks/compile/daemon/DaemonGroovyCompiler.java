@@ -20,7 +20,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
-import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
+import org.gradle.api.internal.tasks.compile.GroovyDaemonSideCompiler;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
@@ -39,6 +39,7 @@ import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.language.base.internal.compile.CompilerParameters;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -80,8 +81,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
-        return new GroovyCompilerParameters(GroovyCompilerFactory.DaemonSideCompiler.class.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
+    protected CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
+        return new GroovyCompilerParameters(GroovyDaemonSideCompiler.class.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
     }
 
     @Override
@@ -108,7 +109,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             gradleAndUserFilter.allowPackage(sharedPackage);
         }
 
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(javaOptions, groovyOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(javaOptions.getExecutable());
         int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaOptions.getExecutable());
@@ -182,17 +183,4 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         return gradleFilterSpec;
     }
 
-    public static class GroovyCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
-        private final GroovyJavaJointCompileSpec compileSpec;
-
-        public GroovyCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, GroovyJavaJointCompileSpec compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public GroovyJavaJointCompileSpec getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }

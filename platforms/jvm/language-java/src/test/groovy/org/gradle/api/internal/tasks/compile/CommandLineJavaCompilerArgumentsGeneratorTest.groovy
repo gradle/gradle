@@ -54,8 +54,11 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def sources = createFiles(numFiles)
         def classpath = createFiles(numFiles)
         def spec = new DefaultJavaCompileSpec()
-        spec.compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
-        spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
+
+        CompileOptions compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        compileOptions.forkOptions.memoryMaximumSize = "256m"
+
+        spec.compileOptions = MinimalJavaCompileOptionsConverter.toMinimalJavaCompileOptions(compileOptions)
         spec.sourceFiles = sources
         spec.compileClasspath = classpath
         spec.tempDir = tempDir.testDirectory

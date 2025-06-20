@@ -42,6 +42,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.baseServicesGroovy)
     implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
     implementation(projects.concurrent)

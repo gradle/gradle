@@ -13,10 +13,12 @@ dependencies {
     api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.files)
+    api(projects.groovyCompilerWorker)
+    api(projects.javaCompilerWorker)
+    api(projects.jvmCompilerWorker)
     api(projects.jvmServices)
     api(projects.languageJava)
     api(projects.languageJvm)
-    api(projects.platformBase)
     api(projects.problemsApi)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
@@ -29,16 +31,15 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.classloaders)
-    implementation(projects.concurrent)
-    implementation(projects.serviceLookup)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
+    implementation(libs.asm)
     implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.asm)
 
     testImplementation(projects.baseServicesGroovy)
     testImplementation(projects.internalTesting)
@@ -74,6 +75,7 @@ packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
 }
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

@@ -602,6 +602,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-compiler-worker",
+    "path": "platforms/jvm/groovy-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "guava-serialization-codecs",
     "path": "platforms/core-configuration/guava-serialization-codecs",
     "unitTests": false,
@@ -770,10 +777,24 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-compiler-worker",
+    "path": "platforms/jvm/java-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": false,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "jvm-compiler-worker",
+    "path": "platforms/jvm/jvm-compiler-worker",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -1173,6 +1194,13 @@
     "path": "platforms/jvm/scala",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "scala-compiler-worker",
+    "path": "platforms/jvm/scala-compiler-worker",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

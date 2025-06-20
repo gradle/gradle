@@ -29,14 +29,15 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions;
+import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptionsConverter;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptionsConverter;
+import org.gradle.api.internal.tasks.compile.SourceRootInferrer;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -228,7 +229,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         assert spec != null;
 
         FileTreeInternal stableSourcesAsFileTree = (FileTreeInternal) getStableSources().getAsFileTree();
-        List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots(stableSourcesAsFileTree);
+        List<File> sourceRoots = SourceRootInferrer.inferSourceRoots(stableSourcesAsFileTree);
 
         spec.setSourcesRoots(sourceRoots);
         spec.setSourceFiles(stableSourcesAsFileTree);
@@ -239,8 +240,8 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         configureCompatibilityOptions(spec);
         spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? getProjectLayout().files() : compileOptions.getAnnotationProcessorPath()));
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
-        spec.setCompileOptions(compileOptions);
-        spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(groovyCompileOptions));
+        spec.setCompileOptions(MinimalJavaCompileOptionsConverter.toMinimalJavaCompileOptions(compileOptions));
+        spec.setGroovyCompileOptions(MinimalGroovyCompileOptionsConverter.toMinimalGroovyCompileOptions(groovyCompileOptions));
         spec.getCompileOptions().setSupportsCompilerApi(true);
         if (getOptions().isIncremental()) {
             validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());

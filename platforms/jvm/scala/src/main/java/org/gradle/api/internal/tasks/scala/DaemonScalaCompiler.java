@@ -43,6 +43,7 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.language.base.internal.compile.CompilerParameters;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -74,7 +75,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(T spec) {
+    protected CompilerParameters getCompilerParameters(T spec) {
         return new ScalaCompilerParameters<T>(ZincScalaCompilerFacade.class.getName(), new Object[]{hashedScalaClasspath}, spec);
     }
 
@@ -88,7 +89,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         MinimalJavaCompilerDaemonForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
         MinimalScalaCompileOptions compileOptions = spec.getScalaCompileOptions();
         MinimalScalaCompilerDaemonForkOptions forkOptions = compileOptions.getForkOptions();
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(javaOptions, forkOptions);
         javaForkOptions.systemProperty("xsbt.skip.cp.lookup", true);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(spec.getJavaExecutable().getAbsolutePath());
@@ -102,7 +103,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
             .withClassLoaderStructure(classLoaderStructure)
-            .keepAliveMode(KeepAliveMode.valueOf(compileOptions.getKeepAliveMode().name()))
+            .keepAliveMode(KeepAliveMode.valueOf(compileOptions.getKeepAliveMode()))
             .build();
     }
 
@@ -118,18 +119,5 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return gradleApiAndScalaSpec;
     }
 
-    public static class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerWorkerExecutor.CompilerParameters {
-        private final T compileSpec;
-
-        public ScalaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, T compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public T getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }
 

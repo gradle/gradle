@@ -23,6 +23,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.language.base.internal.compile.CompilerParameters;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -49,7 +50,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(JavaCompileSpec spec) {
+    protected CompilerParameters getCompilerParameters(JavaCompileSpec spec) {
         return new JavaCompilerParameters(JdkJavaCompiler.class.getName(), new Object[]{javaCompilerFactory}, spec);
     }
 
@@ -101,17 +102,4 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             .build();
     }
 
-    public static class JavaCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
-        private final JavaCompileSpec compileSpec;
-
-        public JavaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, JavaCompileSpec compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public JavaCompileSpec getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }

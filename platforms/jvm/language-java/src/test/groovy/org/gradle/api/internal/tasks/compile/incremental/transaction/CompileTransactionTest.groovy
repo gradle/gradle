@@ -21,11 +21,10 @@ import org.gradle.api.internal.tasks.compile.ApiCompilerResult
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptions
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource
 import org.gradle.api.tasks.WorkResults
-import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -59,7 +58,7 @@ class CompileTransactionTest extends Specification {
         classBackupDir = new File(transactionDir, "backup-dir")
         spec = new DefaultJavaCompileSpec()
         spec.setTempDir(temporaryFolder)
-        spec.setCompileOptions(TestUtil.newInstance(CompileOptions, TestUtil.objectFactory()))
+        spec.setCompileOptions(new MinimalJavaCompileOptions())
         spec.setDestinationDir(createNewDirectory(file("classes")))
         spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(true)
     }
