@@ -1,82 +1,133 @@
 // tag::dos[]
 abstract class MyPluginExtensionDomainObjectSet {
     // Define a domain object set to hold strings
-    DomainObjectSet<String> myStrings = project.objects.domainObjectSet(String)
+    abstract DomainObjectSet<String> getMyStrings()
 
-    // Add some strings to the domain object set
-    void addString(String value) {
-        myStrings.add(value)
+    void myStrings(Action<? super DomainObjectSet<String>> action) {
+        action.execute(getMyStrings())
     }
 }
+
+extensions.create("dos", MyPluginExtensionDomainObjectSet)
+
+dos {
+    myStrings {
+        add("hello")
+    }
+}
+
 // end::dos[]
+
+assert dos.myStrings.size() == 1
 
 // tag::ndos[]
 // tag::ndol[]
 // tag::ndoc[]
-abstract class Person {
-    String name
+interface Person extends Named {
+    
 }
 // end::ndol[]
 // end::ndoc[]
 
 abstract class MyPluginExtensionNamedDomainObjectSet {
     // Define a named domain object set to hold Person objects
-    NamedDomainObjectSet<Person> people = project.objects.namedDomainObjectSet(Person)
+    abstract NamedDomainObjectSet<Person> getPeople()
 
-    // Add a person to the set
-    void addPerson(String name) {
-        people.create(name)
+    void people(Action<? super NamedDomainObjectSet<Person>> action) {
+        action.execute(getPeople())
+    }
+}
+extensions.create("ndos", MyPluginExtensionNamedDomainObjectSet)
+
+ndos {
+    people {
+       add(objects.newInstance(Person, "bobby"))
     }
 }
 // end::ndos[]
+
+assert ndos.people.size() == 1
 
 // tag::ndol[]
 
 abstract class MyPluginExtensionNamedDomainObjectList {
     // Define a named domain object container to hold Person objects
-    NamedDomainObjectList<Person> people = project.container(Person)
+    abstract NamedDomainObjectList<Person> getPeople()
 
-    // Add a person to the container
-    void addPerson(String name) {
-        people.create(name: name)
+    void people(Action<? super NamedDomainObjectList<Person>> action) {
+        action.execute(getPeople())
     }
 }
+
+extensions.create("ndol", MyPluginExtensionNamedDomainObjectList)
+
+ndol {
+    people {
+        add(objects.newInstance(Person, "bobby"))
+        add(objects.newInstance(Person, "hank"))
+    }
+}
+
 // end::ndol[]
+
+assert ndol.people.size() == 2
 
 // tag::ndoc[]
 
 abstract class MyPluginExtensionNamedDomainObjectContainer {
     // Define a named domain object container to hold Person objects
-    NamedDomainObjectContainer<Person> people = project.container(Person)
+    abstract NamedDomainObjectContainer<Person> getPeople()
 
-    // Add a person to the container
-    void addPerson(String name) {
-        people.create(name: name)
+    void people(Action<? super NamedDomainObjectContainer<Person>> action) {
+        action.execute(getPeople())
+    }
+}
+
+extensions.create("ndoc", MyPluginExtensionNamedDomainObjectContainer)
+
+ndoc {
+    people {
+        bobby
+        hank
+        peggy
     }
 }
 // end::ndoc[]
 
+assert ndoc.people.size() == 3
+
 // tag::epdoc[]
-abstract class Animal {
-    String name
+interface Animal extends Named {
+
 }
 
-abstract class Dog extends Animal {
-    String breed
+interface Dog extends Animal {
+    Property<String> getBreed()
 }
 
 abstract class MyPluginExtensionExtensiblePolymorphicDomainObjectContainer {
     // Define a container for animals
-    ExtensiblePolymorphicDomainObjectContainer<Animal> animals
+    abstract ExtensiblePolymorphicDomainObjectContainer<Animal> getAnimals()
 
-    MyPluginExtensionExtensiblePolymorphicDomainObjectContainer(ObjectFactory objectFactory) {
-        // Create the container
-        animals = objectFactory.polymorphicDomainObjectContainer(Animal)
-    }
-
-    // Add a dog to the container
-    void addDog(String name, String breed) {
-        animals.create(Dog, name: name, breed: breed)
+    void animals(Action<? super ExtensiblePolymorphicDomainObjectContainer<Animal>> action) {
+        action.execute(getAnimals())
     }
 }
+
+
+extensions.create("epdoc", MyPluginExtensionExtensiblePolymorphicDomainObjectContainer)
+
+// Register available types for container
+epdoc.animals.registerBinding(Dog, Dog)
+
+epdoc {
+    animals {
+        bubba(Dog) {
+            breed = "basset hound"
+        }
+    }
+}
+
 // end::epdoc[]
+
+assert epdoc.animals.size() == 1
