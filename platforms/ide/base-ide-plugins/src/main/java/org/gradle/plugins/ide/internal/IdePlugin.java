@@ -77,6 +77,15 @@ public abstract class IdePlugin implements Plugin<Project> {
         return gradleWrapperPath.or("gradle");
     }
 
+    @Deprecated
+    protected static Action<Task> withGracefulDegradation(@SuppressWarnings("unused") Project project) {
+        return withGracefulDegradation();
+    }
+
+    protected static Action<Task> withGracefulDegradation() {
+        return IdePluginHelper.withGracefulDegradation();
+    }
+
     @Override
     public void apply(Project target) {
         project = target;
