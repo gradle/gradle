@@ -6,7 +6,11 @@ plugins {
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
 jvmCompile {
-    usesJdkInternals = true
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 dependencies {

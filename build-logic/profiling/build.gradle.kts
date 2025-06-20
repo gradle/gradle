@@ -11,6 +11,7 @@ dependencies {
     implementation("gradlebuild:module-identity")
 
     implementation(projects.documentation)
+    implementation(projects.jvm)
 
     implementation("me.champeau.jmh:jmh-gradle-plugin")
 }

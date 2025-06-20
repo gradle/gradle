@@ -10,6 +10,7 @@ dependencies {
     implementation(projects.cleanup)
     implementation(projects.documentation)
     implementation(projects.integrationTesting)
+    implementation(projects.jvm)
     implementation(projects.performanceTesting)
     implementation(projects.profiling)
     implementation(projects.binaryCompatibility)
