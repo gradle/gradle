@@ -23,14 +23,17 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.ConfigurationCacheDegradation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
@@ -64,6 +67,16 @@ public abstract class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
         getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
+        ConfigurationCacheDegradation.requireDegradation(this, usingCustomCharsetDegradationReason());
+    }
+
+    private Provider<String> usingCustomCharsetDegradationReason() {
+        return new DefaultProvider<>(() -> {
+            String charset = getManifestContentCharset();
+            return charset.equals(DefaultManifest.DEFAULT_CONTENT_CHARSET)
+                ? null
+                : String.format("Custom charset '%s' was used. Only '%s' is supported with the configuration cache", charset, DefaultManifest.DEFAULT_CONTENT_CHARSET);
+        });
     }
 
     private FileTreeInternal manifestFileTree() {
