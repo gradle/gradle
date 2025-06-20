@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
@@ -31,6 +32,7 @@ import java.util.Set;
  *
  * @param <T> The type of objects in the set
  */
+@ManagedType
 public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>, DomainObjectSet<T> {
 
     /**
