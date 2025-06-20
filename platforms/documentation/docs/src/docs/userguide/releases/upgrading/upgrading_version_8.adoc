@@ -168,7 +168,7 @@ Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for det
 
 NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 6.8 and newer.
 
-==== Plugins written with the Groovy DSL require Gradle <= 7.0
+==== Plugins written with the Groovy DSL require Gradle >= 7.0
 
 Plugins authored using the Groovy DSL and built with Gradle 9.x require Gradle 7.0 or newer to run.
 This is because Gradle 7.0 introduced Groovy 3.0 support, and Gradle 9 embeds Groovy 4.0.
