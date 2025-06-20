@@ -66,12 +66,12 @@
     }
 
     function initClipboardCopyButton() {
-        document.querySelectorAll(".copy-btn").forEach((button) => {
-            const container = button.parentElement;
-            const pre = container.querySelector("pre");
+        document.querySelectorAll(".clipboard-copy-btn").forEach((button) => {
+            const copyElementId = button.getAttribute("data-copy-element-id");
+            const elementWithCodeToSelect = document.getElementById(copyElementId);
 
             button.addEventListener("click", () => {
-                const text = pre.innerText.trim();
+                const text = elementWithCodeToSelect.innerText.trim();
                 navigator.clipboard
                     .writeText(text)
                     .then(() => {

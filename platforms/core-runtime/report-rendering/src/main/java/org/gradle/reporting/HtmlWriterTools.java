@@ -30,10 +30,19 @@ import java.io.IOException;
 public class HtmlWriterTools {
     private HtmlWriterTools() {}
 
-    public static SimpleMarkupWriter addClipboardCopyButton(SimpleHtmlWriter writer) throws IOException {
+    /**
+     * Adds a clipboard copy button to the given writer.
+     *
+     * @param writer the writer to add the button to
+     * @param copyElementId the id of the element to copy from
+     * @return the writer
+     * @throws IOException if an I/O error occurs
+     */
+    public static SimpleMarkupWriter addClipboardCopyButton(SimpleHtmlWriter writer, String copyElementId) throws IOException {
         return writer.startElement("button")
             .attribute("class", "clipboard-copy-btn")
             .attribute("aria-label", "Copy to clipboard")
+            .attribute("data-copy-element-id", copyElementId)
             .characters("Copy")
             .endElement();
     }
