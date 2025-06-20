@@ -62,9 +62,9 @@ ERROR: JAVA_HOME is set to an invalid directory
 Set the JAVA_HOME variable in your environment to match the location of your Java installation:
 
 ----
-$ export JAVA_HOME=/Users/user/Library/Java/JavaVirtualMachines/corretto-11.0.22/Contents/Home
+$ export JAVA_HOME=/Users/user/Library/Java/JavaVirtualMachines/corretto-22.0.1/Contents/Home
 $ echo $JAVA_HOME
-/Users/user/Library/Java/JavaVirtualMachines/corretto-11.0.22/Contents/Home
+/Users/user/Library/Java/JavaVirtualMachines/corretto-22.0.1/Contents/Home
 ----
 
 You must ensure that a link:{jdkDownloadUrl}[Java Development Kit] version {minJdkVersion} or higher is link:https://www.java.com/en/download/help/index_installing.html[properly installed], the `JAVA_HOME` environment variable is set, and Java is added to your `PATH`.
