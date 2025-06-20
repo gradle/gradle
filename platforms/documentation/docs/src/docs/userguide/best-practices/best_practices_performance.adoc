@@ -42,3 +42,55 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 === Tags
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
+
+[[avoid_computations_in_configuration_phase]]
+== Avoid Expensive Computations in Configuration Phase
+
+Avoid expensive computations in the <<build_lifecycle.adoc#sec:build_phases,configuration phase>>, instead, move them to task actions.
+
+=== Explanation
+
+In order for Gradle to execute tasks it first needs to build the project task graph.
+As part of discovering what tasks to include in the task graph, Gradle will configure all the tasks that are directly requested, any task dependencies of the requested tasks, and also any tasks that are not lazily registered.
+This work is done in the configuration phase.
+
+Performing expensive or slow operations such as file or network I/O, or CPU-heavy calculations in the configuration phase forces these to run even when they might be unnecessary to complete the requested work of the invoked tasks.
+It is better to move these operations to task actions so that they run only when required.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> Performing heavy computation during configuration phase.
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidComputationInConfigurationPhase-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidComputationInConfigurationPhase-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> Performing heavy computation during execution phase in a task action.
+
+=== References
+
+- <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
+- <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>> >>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`
