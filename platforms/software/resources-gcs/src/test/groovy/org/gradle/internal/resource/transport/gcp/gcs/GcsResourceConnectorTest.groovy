@@ -40,7 +40,7 @@ class GcsResourceConnectorTest extends Specification {
         }
 
         when:
-        def gcsResource = new GcsResourceConnector(gcsClient).openResource(name, false)
+        def gcsResource = new GcsResourceConnector(gcsClient).openResource(name, false, null)
 
         then:
         gcsResource != null
