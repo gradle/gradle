@@ -82,6 +82,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.plugins.ide.internal.IdePluginHelper.withGracefulDegradation;
+
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task. For projects that have the Java plugin applied, the tasks receive additional Java-specific
  * configuration.

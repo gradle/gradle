@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.plugins.ide.internal.IdePluginHelper.withGracefulDegradation;
+
 /**
  * A plugin which configures the Eclipse Web Tools Platform.
  *

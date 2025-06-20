@@ -40,9 +40,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
-import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
-
 public abstract class IdePlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(IdePlugin.class);
 
@@ -172,10 +169,6 @@ public abstract class IdePlugin implements Plugin<Project> {
                 task.setDescription(description);
             }
         };
-    }
-
-    protected static Action<Task> withGracefulDegradation() {
-        return task -> requireDegradation(uncheckedNonnullCast(task), "Task is not compatible with the configuration cache");
     }
 
     protected void onApply(Project target) {

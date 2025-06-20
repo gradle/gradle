@@ -80,6 +80,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.plugins.ide.internal.IdePluginHelper.withGracefulDegradation;
+
 /**
  * <p>A plugin which generates Eclipse files.</p>
  *
