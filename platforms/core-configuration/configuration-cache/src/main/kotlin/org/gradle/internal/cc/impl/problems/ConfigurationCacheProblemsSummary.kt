@@ -212,7 +212,7 @@ class Summary(
                 appendLine()
                 if (!hasReportableProblems) {
                     // Some tests parse this line.
-                    append("Some tasks in this build are not compatible with the configuration cache.")
+                    append("Some tasks or features in this build are not compatible with the configuration cache.")
                     appendLine()
                 }
                 append(buildSummaryReportLink(it))

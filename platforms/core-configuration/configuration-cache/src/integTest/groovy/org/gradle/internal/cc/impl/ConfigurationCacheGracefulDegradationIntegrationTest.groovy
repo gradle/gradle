@@ -102,6 +102,36 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         ["-DaccessTaskProject=true", "-DaccessTaskDependencies=true"] | ["Task's project accessed!", "Task's dependencies accessed!"] | "Project access, TaskDependencies access."
     }
 
+    def "features may cause CC degradation"() {
+        settingsFile """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:sourceModule") {
+                        from(GitVersionControlSpec) {
+                            url = "some-repo"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Feature 'source dependencies' is incompatible with the configuration cache.")
+        }
+
+        and:
+        assertConfigurationCacheDegradation()
+    }
+
     def "CC problems in warning mode are not hidden by CC degradation"() {
         buildFile """
             ${taskWithInjectedDegradationController()}
@@ -516,12 +546,12 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     private void assertConfigurationCacheDegradation(boolean hasOtherProblems = false) {
-        def reportLinkPreamble = "Some tasks in this build are not compatible with the configuration cache."
+        def reportLinkPreamble = "Some tasks or features in this build are not compatible with the configuration cache."
         if (hasOtherProblems) {
             outputDoesNotContain(reportLinkPreamble)
         } else {
             outputContains(reportLinkPreamble)
         }
-        postBuildOutputContains("Configuration cache disabled because incompatible task")
+        postBuildOutputContains("Configuration cache disabled because incompatible")
     }
 }

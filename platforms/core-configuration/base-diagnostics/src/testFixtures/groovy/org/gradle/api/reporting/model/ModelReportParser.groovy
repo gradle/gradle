@@ -28,7 +28,7 @@ class ModelReportParser {
     public static final String NODE_LEFT_PADDING = '    '
     public static final String NODE_SYMBOL = '+'
     public static final LinkedHashMap<String, String> NODE_ATTRIBUTES = ['Value': 'nodeValue', 'Type': 'type', 'Creator': 'creator']
-    private static final Pattern END_OF_REPORT_MARKER = ~/BUILD SUCCESSFUL|Some tasks in this build are not compatible with the configuration cache/
+    private static final Pattern END_OF_REPORT_MARKER = ~/BUILD SUCCESSFUL|Some tasks or features in this build are not compatible with the configuration cache/
 
     static ParsedModelReport parse(String text) {
         validate(text)

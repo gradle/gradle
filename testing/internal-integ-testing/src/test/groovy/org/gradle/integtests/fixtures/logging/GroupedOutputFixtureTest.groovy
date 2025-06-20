@@ -562,6 +562,6 @@ $endMarker
         "end of build"                  | "BUILD SUCCESSFUL in 2s"
         "configuration cache problem"   | "1 problem was found storing the configuration cache."
         "configuration cache problems"  | "2 problems were found storing the configuration cache."
-        "cc-incompatible tasks summary" | "Some tasks in this build are not compatible with the configuration cache."
+        "cc-incompatible tasks summary" | "Some tasks or features in this build are not compatible with the configuration cache."
     }
 }
