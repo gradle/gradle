@@ -565,7 +565,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 class DocumentationPlugin : Plugin<Project> {
 
                     override fun apply(project: Project) {
-                        val books = project.container(Book::class, ::Book)
+                        val books = project.objects.namedDomainObjectContainer(Book::class, ::Book)
                         project.extensions.add("the books", books)
                     }
                 }
