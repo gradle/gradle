@@ -34,12 +34,13 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(projects.messaging))
     integTestImplementation(testFixtures(projects.enterpriseOperations))
     integTestImplementation(testFixtures(projects.languageJava))
     integTestImplementation(testFixtures(projects.languageJvm))
+    integTestImplementation(testFixtures(projects.messaging))
     integTestImplementation(testFixtures(projects.pluginsJavaBase))
     integTestImplementation(testFixtures(projects.pluginsJvmTestFixtures))
+    integTestImplementation(testFixtures(projects.unitTestFixtures))
     integTestImplementation(testFixtures(projects.workers))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)

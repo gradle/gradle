@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.idea
 
 import org.gradle.api.Project
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 class GenerateIdeaModuleTest extends AbstractProjectBuilderSpec {
 
@@ -25,8 +25,8 @@ class GenerateIdeaModuleTest extends AbstractProjectBuilderSpec {
     Project grandChildProject
 
     def setup() {
-        childProject = TestUtil.createChildProject(project, "child", new File("."))
-        grandChildProject = TestUtil.createChildProject(childProject, "grandChild", new File("."))
+        childProject = ProjectBuilderTestUtil.createChildProject(project, "child", new File("."))
+        grandChildProject = ProjectBuilderTestUtil.createChildProject(childProject, "grandChild", new File("."))
     }
 
     def "moduleName controls outputFile"() {

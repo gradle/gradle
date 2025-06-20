@@ -34,6 +34,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.TestUtil
 
 public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
@@ -125,7 +126,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
 
     def "creates IvyArtifact for ArchivePublishArtifact"() {
         when:
-        def rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
+        def rootProject = ProjectBuilderTestUtil.createRootProject(temporaryFolder.testDirectory)
         def archive = rootProject.task('foo', type: Zip, {})
         archive.archiveBaseName.set("base-name")
         archive.archiveExtension.set('extension')

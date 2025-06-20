@@ -17,26 +17,20 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.actor.ActorFactory
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.FixedClock
-import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Shared
-import spock.lang.Specification
 
-public class TestNGTestFrameworkTest extends Specification {
+class TestNGTestFrameworkTest extends AbstractProjectBuilderSpec {
 
-    @Shared ObjectFactory objects = TestUtil.objectFactory()
+    private Test testTask
 
-    private project = ProjectBuilder.builder().build()
-    Test testTask = TestUtil.createTask(Test, project)
-
-    void setup() {
-        project.ext.sourceCompatibility = "1.7"
+    def setup() {
+        this.testTask = project.tasks.create("test", Test)
     }
 
     void "creates test class processor"() {

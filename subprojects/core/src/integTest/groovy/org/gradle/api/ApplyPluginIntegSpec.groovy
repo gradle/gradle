@@ -19,7 +19,6 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
@@ -55,7 +54,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         file("src/test/groovy/org/acme/TestPluginSpec.groovy") << """
             import spock.lang.Specification
-            import ${ProjectBuilder.name}
+            import org.gradle.testfixtures.ProjectBuilder
             import ${Project.name}
             import org.acme.TestPlugin
 

@@ -27,7 +27,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class ObjectiveCppCompileTest extends AbstractProjectBuilderSpec {
 
@@ -39,7 +38,7 @@ class ObjectiveCppCompileTest extends AbstractProjectBuilderSpec {
     def pch = Mock(PreCompiledHeader)
 
     def setup() {
-        objCppCompile = TestUtil.createTask(ObjectiveCppCompile, project)
+        objCppCompile = project.tasks.create("name", ObjectiveCppCompile)
     }
 
     def "executes using the objCppCompiler"() {

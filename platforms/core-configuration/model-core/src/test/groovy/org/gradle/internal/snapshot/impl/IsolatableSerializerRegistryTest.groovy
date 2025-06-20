@@ -26,12 +26,15 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.state.DefaultManagedFactoryRegistry
+import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
 import org.gradle.workers.fixtures.TestManagedTypes
 import spock.lang.Specification
 
 class IsolatableSerializerRegistryTest extends Specification {
-    def managedFactoryRegistry = TestUtil.managedFactoryRegistry()
+    def managedFactoryRegistry = ProjectBuilder.builder().build().services.get(ManagedFactoryRegistry)
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
     }

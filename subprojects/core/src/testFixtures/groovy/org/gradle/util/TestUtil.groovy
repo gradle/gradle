@@ -16,7 +16,6 @@
 package org.gradle.util
 
 import org.gradle.api.Action
-import org.gradle.api.Task
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -33,8 +32,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -76,14 +73,10 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.CrossBuildSessionParameters
-import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
-import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import org.spockframework.lang.Wildcard
 
 import javax.annotation.Nullable
@@ -92,21 +85,7 @@ import java.util.function.Supplier
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
     private static InstantiatorFactory instantiatorFactory
-    private static ManagedFactoryRegistry managedFactoryRegistry
     private static ServiceRegistry services
-
-    private final File rootDir
-    private final File userHomeDir
-
-    private TestUtil(File rootDir) {
-        this(rootDir, new File(rootDir, "userHome"))
-    }
-
-    private TestUtil(File rootDir, File userHomeDir) {
-        NativeServicesTestFixture.initialize()
-        this.rootDir = rootDir
-        this.userHomeDir = userHomeDir
-    }
 
     static InstantiatorFactory instantiatorFactory() {
         if (instantiatorFactory == null) {
@@ -118,14 +97,6 @@ class TestUtil {
     static InstantiatorFactory createInstantiatorFactory(Supplier<List<InjectAnnotationHandler>> injectHandlers) {
         NativeServicesTestFixture.initialize()
         return new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), injectHandlers.get(), new OutputPropertyRoleAnnotationHandler([]))
-    }
-
-    static ManagedFactoryRegistry managedFactoryRegistry() {
-        if (managedFactoryRegistry == null) {
-            NativeServicesTestFixture.initialize()
-            managedFactoryRegistry = ProjectBuilderImpl.getGlobalServices().get(ManagedFactoryRegistry.class)
-        }
-        return managedFactoryRegistry
     }
 
     static DomainObjectCollectionFactory domainObjectCollectionFactory() {
@@ -274,58 +245,6 @@ class TestUtil {
 
     static FeaturePreviews featurePreviews() {
         return new FeaturePreviews()
-    }
-
-    static TestUtil create(File rootDir, File userHomeDir = null) {
-        return new TestUtil(rootDir, userHomeDir)
-    }
-
-    static TestUtil create(TestDirectoryProvider testDirectoryProvider) {
-        return new TestUtil(testDirectoryProvider.testDirectory)
-    }
-
-    <T extends Task> T task(Class<T> type) {
-        return createTask(type, createRootProject(this.rootDir, this.userHomeDir))
-    }
-
-    static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
-        return createTask(type, project, 'name')
-    }
-
-    static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
-        return project.services.get(TaskInstantiator).create(name, type)
-    }
-
-    static ProjectBuilder builder(File rootDir) {
-        return ProjectBuilder.builder().withProjectDir(rootDir)
-    }
-
-    static ProjectBuilder builder(TestDirectoryProvider temporaryFolder) {
-        return builder(temporaryFolder.testDirectory)
-    }
-
-    ProjectInternal rootProject() {
-        createRootProject(rootDir, userHomeDir)
-    }
-
-    static ProjectInternal createRootProject(File rootDir, File userHomeDir = null) {
-        def builder = ProjectBuilder
-            .builder()
-            .withProjectDir(rootDir)
-            .withName("test-project")
-        if (userHomeDir != null) {
-            builder.withGradleUserHomeDir(userHomeDir)
-        }
-        return builder.build()
-    }
-
-    static ProjectInternal createChildProject(ProjectInternal parent, String name, File projectDir = null) {
-        return ProjectBuilder
-            .builder()
-            .withName(name)
-            .withParent(parent)
-            .withProjectDir(projectDir)
-            .build()
     }
 
     static groovy.lang.Script createScript(String code) {

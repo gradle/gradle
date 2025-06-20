@@ -22,7 +22,7 @@ import org.gradle.api.tasks.diagnostics.PropertyReportTask
 import org.gradle.api.tasks.diagnostics.TaskReportTask
 import org.gradle.configuration.Help
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 class HelpTasksPluginSpec extends AbstractProjectBuilderSpec {
 
@@ -39,7 +39,7 @@ class HelpTasksPluginSpec extends AbstractProjectBuilderSpec {
 
     def "tasks description reflects whether project has sub-projects or not"() {
         given:
-        def child = TestUtil.createChildProject(project, "child")
+        def child = ProjectBuilderTestUtil.createChildProject(project, "child")
 
         when:
         project.pluginManager.apply(HelpTasksPlugin)

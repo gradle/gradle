@@ -21,7 +21,7 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -37,7 +37,7 @@ class GroovyBasePluginTest extends Specification {
     private ProjectInternal project
 
     def setup() {
-        project = TestUtil.create(temporaryFolder).rootProject()
+        project = ProjectBuilderTestUtil.createRootProject(temporaryFolder)
         project.pluginManager.apply(GroovyBasePlugin)
     }
 

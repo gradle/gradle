@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.execution.ProjectExecutionServices
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
@@ -35,8 +36,8 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -66,14 +67,13 @@ abstract class AbstractProjectBuilderSpec extends Specification {
 
     private ProjectInternal rootProject
     ServiceRegistry executionServices
-    def problems = TestUtil.problemsService()
 
     def setup() {
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
         // This prevents the ProjectBuilder from finding the Gradle build's root settings.gradle
         // and treating the root of the repository as the root of the build
         new File(temporaryFolder.testDirectory, "settings.gradle") << ""
-        rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
+        rootProject = ProjectBuilderTestUtil.createRootProject(temporaryFolder.testDirectory)
         executionServices = ProjectExecutionServices.create(rootProject)
     }
 
@@ -88,7 +88,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     }
 
     void execute(Task task) {
-        def workValidationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
+        def workValidationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, rootProject.services.get(InternalProblems))
         def taskExecutionContext = new DefaultTaskExecutionContext(
             new LocalTaskNode(task as TaskInternal, workValidationContext, { null }),
             DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),

@@ -38,11 +38,13 @@ dependencies {
 
     implementationResources("jquery:jquery.min:3.5.1@js")
 
-    testImplementation(projects.processServices)
     testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.processServices)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(libs.jsoup)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.jacoco))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
