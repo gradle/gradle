@@ -61,5 +61,14 @@ public interface Environment {
          * @return a map containing only the properties whose name start with the given prefix.
          */
         Map<String, String> byNamePrefix(String prefix);
+
+        /**
+         * Returns the value of the property with the given name, or {@code null} if it does not exist.
+         *
+         * @param name the property to lookup
+         * @return the property value, or {@code null} if the property does not exist
+         */
+        @Nullable
+        String get(String name);
     }
 }
