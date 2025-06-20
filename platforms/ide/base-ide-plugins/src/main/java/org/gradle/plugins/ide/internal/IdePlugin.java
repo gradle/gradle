@@ -79,10 +79,6 @@ public abstract class IdePlugin implements Plugin<Project> {
 
     @Deprecated
     protected static Action<Task> withGracefulDegradation(@SuppressWarnings("unused") Project project) {
-        return withGracefulDegradation();
-    }
-
-    protected static Action<Task> withGracefulDegradation() {
         return IdePluginHelper.withGracefulDegradation();
     }
 

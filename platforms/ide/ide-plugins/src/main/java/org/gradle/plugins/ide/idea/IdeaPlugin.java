@@ -66,6 +66,7 @@ import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.plugins.ide.internal.IdePluginHelper;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.testing.base.TestingExtension;
 
@@ -81,8 +82,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-
-import static org.gradle.plugins.ide.internal.IdePluginHelper.withGracefulDegradation;
 
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task. For projects that have the Java plugin applied, the tasks receive additional Java-specific
@@ -142,7 +141,7 @@ public abstract class IdeaPlugin extends IdePlugin {
     @Override
     protected void onApply(final Project project) {
         getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
-        getLifecycleTask().configure(withGracefulDegradation());
+        getLifecycleTask().configure(IdePluginHelper.withGracefulDegradation());
         getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
@@ -188,7 +187,7 @@ public abstract class IdeaPlugin extends IdePlugin {
                     projectTask.setDescription("Generates IDEA project file (IPR)");
                 }
             });
-            projectTask.configure(withGracefulDegradation());
+            projectTask.configure(IdePluginHelper.withGracefulDegradation());
             ideaModel.setProject(ideaProject);
 
             ideaProject.setOutputFile(new File(project.getProjectDir(), project.getName() + ".ipr"));
@@ -281,7 +280,7 @@ public abstract class IdeaPlugin extends IdePlugin {
                 task.setDescription("Generates IDEA module files (IML)");
             }
         });
-        task.configure(withGracefulDegradation());
+        task.configure(IdePluginHelper.withGracefulDegradation());
         ideaModel.setModule(module);
 
         final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);
