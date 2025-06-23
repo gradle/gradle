@@ -79,6 +79,8 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         """
         def pluginBuildScript = file("plugin/build.gradle.kts")
         pluginBuildScript.text = """
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
             plugins {
                 `kotlin-dsl`
                 `maven-publish`
@@ -90,10 +92,28 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
                 repositories { maven { url = uri("${mavenRepo.uri}") } }
             }
         """
+
+        if (distribution.version >= GradleVersion.version("8.2")) {
+            pluginBuildScript.text = """
+                import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+                ${pluginBuildScript.text}
+
+                java {
+                    targetCompatibility = JavaVersion.VERSION_1_8
+                }
+
+                tasks.withType<KotlinCompile>().configureEach {
+                    compilerOptions {
+                        jvmTarget = JvmTarget.JVM_1_8
+                    }
+                }
+            """
+        }
+
         if (kotlinVersion != null) {
             pluginBuildScript.text = """
                 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-                import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
                 ${pluginBuildScript.text}
 
