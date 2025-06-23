@@ -23,10 +23,11 @@ description = "Provides foundational types needed for building renderable report
 dependencies {
     api(projects.core)
 
+    api(libs.jspecify)
+
     implementation(projects.baseServices)
 
     implementation(libs.commonsLang)
-    implementation(libs.jspecify)
 
     testImplementation(libs.jsoup)
 }
