@@ -5,6 +5,14 @@ plugins {
 
 description = "Tooling API model builders for native builds"
 
+jvmCompile {
+    compilations {
+        named("crossVersionTest") {
+            targetJvmVersion = 8
+        }
+    }
+}
+
 dependencies {
     api(projects.serviceProvider)
     api(projects.coreApi)

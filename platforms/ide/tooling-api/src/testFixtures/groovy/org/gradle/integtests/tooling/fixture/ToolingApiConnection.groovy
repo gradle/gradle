@@ -21,9 +21,11 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ConfigurableLauncher
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.TestLauncher
 
 import static org.gradle.util.DebugUtil.DAEMON_DEBUG_PORT
@@ -101,6 +103,7 @@ class BuildActionExecuterBuilder implements BuildActionExecuter.Builder {
     private final BuildActionExecuter.Builder delegate
     private final OutputStream stderr
     private final OutputStream stdout
+    File javaHome
 
     BuildActionExecuterBuilder(BuildActionExecuter.Builder delegate, OutputStream stdout, OutputStream stderr) {
         this.delegate = delegate
@@ -122,7 +125,9 @@ class BuildActionExecuterBuilder implements BuildActionExecuter.Builder {
 
     @Override
     BuildActionExecuter<Void> build() {
-        new ToolingApiBuildActionExecuter(delegate.build(), stdout, stderr)
+        ToolingApiBuildActionExecuter toolingApiBuildActionExecuter = new ToolingApiBuildActionExecuter(delegate.build(), stdout, stderr)
+        toolingApiBuildActionExecuter.javaHome = javaHome
+        return toolingApiBuildActionExecuter
     }
 }
 
@@ -138,11 +143,13 @@ class ToolingApiConnection {
     private final ProjectConnection projectConnection
     private final OutputStream stderr
     private final OutputStream stdout
+    private final File javaHome
 
-    ToolingApiConnection(ProjectConnection projectConnection, OutputStream stdout, OutputStream stderr) {
+    ToolingApiConnection(ProjectConnection projectConnection, File javaHome, OutputStream stdout, OutputStream stderr) {
         this.stdout = stdout
         this.stderr = stderr
         this.projectConnection = projectConnection
+        this.javaHome = javaHome
         this.withTraits(ProjectConnectionTrait)
     }
 
@@ -150,23 +157,41 @@ class ToolingApiConnection {
         projectConnection."$name"(*args)
     }
 
-    BuildActionExecuter.Builder action() {
-        new BuildActionExecuterBuilder(projectConnection.action(), stdout, stderr)
+    <T> T getModel(Class<T> modelType) throws GradleConnectionException, IllegalStateException {
+        return model(modelType).get()
+    }
+
+    <T> void getModel(Class<T> modelType, ResultHandler<? super T> handler) throws IllegalStateException {
+        model(modelType).get(handler)
     }
 
     BuildLauncher newBuild() {
-        new ToolingApiBuildLauncher(projectConnection.newBuild(), stdout, stderr)
+        ToolingApiBuildLauncher launcher = new ToolingApiBuildLauncher(projectConnection.newBuild(), stdout, stderr)
+        launcher.javaHome = javaHome
+        return launcher
     }
 
     TestLauncher newTestLauncher() {
-        new ToolingApiTestLauncher(projectConnection.newTestLauncher(), stdout, stderr)
+        ToolingApiTestLauncher launcher = new ToolingApiTestLauncher(projectConnection.newTestLauncher(), stdout, stderr)
+        launcher.javaHome = javaHome
+        return launcher
     }
 
     <T> ModelBuilder<T> model(Class<T> modelType) {
-        new ToolingApiModelBuilder(projectConnection.model(modelType), stdout, stderr)
+        ToolingApiModelBuilder modelBuilder = new ToolingApiModelBuilder(projectConnection.model(modelType), stdout, stderr)
+        modelBuilder.javaHome = javaHome
+        return modelBuilder
     }
 
     <T> BuildActionExecuter<T> action(BuildAction<T> buildAction) {
-        new ToolingApiBuildActionExecuter(projectConnection.action(buildAction), stdout, stderr)
+        ToolingApiBuildActionExecuter executer = new ToolingApiBuildActionExecuter(projectConnection.action(buildAction), stdout, stderr)
+        executer.javaHome = javaHome
+        return executer
+    }
+
+    BuildActionExecuter.Builder action() {
+        BuildActionExecuterBuilder buildActionExecuterBuilder = new BuildActionExecuterBuilder(projectConnection.action(), stdout, stderr)
+        buildActionExecuterBuilder.javaHome = javaHome
+        return buildActionExecuterBuilder
     }
 }
