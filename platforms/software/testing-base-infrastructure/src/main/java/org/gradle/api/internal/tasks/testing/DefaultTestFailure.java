@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
-
 import org.jspecify.annotations.Nullable;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -84,7 +84,7 @@ public class DefaultTestFailure extends TestFailure {
     }
 
     public static TestFailure fromTestFrameworkStartupFailure(Throwable failure) {
-        TestFailureDetails details = new TestFrameworkFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
         return new DefaultTestFailure(failure, details, Collections.emptyList());
     }
 

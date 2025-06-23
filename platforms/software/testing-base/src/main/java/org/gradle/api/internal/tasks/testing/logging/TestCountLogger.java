@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.tasks.testing.TestWorkerStartupFailureException;
 import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -24,6 +27,11 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Reports a live-updating total of tests run, failed and skipped.
@@ -43,6 +51,7 @@ public class TestCountLogger implements TestListener {
     private long failedTests;
     private long skippedTests;
     private boolean hadFailures;
+    private List<TestFailure> startupFailures;
 
     public TestCountLogger(ProgressLoggerFactory factory) {
         this(factory, LoggerFactory.getLogger(TestCountLogger.class));
@@ -51,6 +60,7 @@ public class TestCountLogger implements TestListener {
     TestCountLogger(ProgressLoggerFactory factory, Logger logger) {
         this.factory = factory;
         this.logger = logger;
+        this.startupFailures = new ArrayList<>();
     }
 
     @Override
@@ -112,8 +122,15 @@ public class TestCountLogger implements TestListener {
 
             if (result.getResultType() == TestResult.ResultType.FAILURE) {
                 hadFailures = true;
+                startupFailures.addAll(result.getFailures());
             }
         } else {
+            // Looks like a test worker suite
+            if (suite.getParent().getParent() == null) {
+                if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                    startupFailures.addAll(result.getFailures());
+                }
+            }
             // Only count suites that can be attributed to a discovered class such as test class suites, explicit test suites,
             // parameterized tests, test templates, dynamic tests, etc, and ignore the "test worker" and root suites.
             if (suite.getClassName() != null) {
@@ -136,5 +153,17 @@ public class TestCountLogger implements TestListener {
      */
     public long getTotalDiscoveredItems() {
         return totalDiscoveredItems;
+    }
+
+    /**
+     * Checks if any test failures were reported during test worker startup and throws an exception if so.
+     */
+    public void assertNoStartupFailures() {
+        if (!startupFailures.isEmpty()) {
+            throw new TestWorkerStartupFailureException("Tests were not started due to a configuration problem.",
+                startupFailures.stream().map(TestFailure::getRawFailure).collect(Collectors.toList()),
+                Arrays.asList("Inspect your task configuration for errors.",
+                    "Check for missing dependencies " + new DocumentationRegistry().getDocumentationFor("upgrading_version_8", "test_framework_implementation_dependencies") + "."));
+        }
     }
 }

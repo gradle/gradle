@@ -16,32 +16,24 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * {@link GradleException} thrown when a test framework completely fails to start.
+ * Thrown when a test worker completely fails to start.
  * <p>
  * This exception is used to provide additional information about the failure, including possible resolutions.
  */
 @NullMarked
-public final class TestFrameworkStartupFailureException extends GradleException implements ResolutionProvider {
+public final class TestWorkerStartupFailureException extends DefaultMultiCauseException implements ResolutionProvider {
     private final List<String> resolutions;
 
-    public TestFrameworkStartupFailureException(TestFailure testFailure) {
-        super(testFailure.getDetails().getMessage() != null ? testFailure.getDetails().getMessage() : "", testFailure.getRawFailure());
-
-        if (testFailure.getRawFailure() instanceof ResolutionProvider && !((ResolutionProvider) testFailure.getRawFailure()).getResolutions().isEmpty()) {
-            this.resolutions = new ArrayList<>(((ResolutionProvider) testFailure.getRawFailure()).getResolutions());
-        } else {
-            this.resolutions = Collections.singletonList("Inspect your task configuration for errors.");
-        }
+    public TestWorkerStartupFailureException(String message, List<Throwable> causes, List<String> resolutions) {
+        super(message, causes);
+        this.resolutions = resolutions;
     }
 
     @Override

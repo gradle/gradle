@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.process.ProcessExecutionException;
 
 public class TestMainAction implements Runnable {
     private final Runnable detector;
@@ -65,9 +66,8 @@ public class TestMainAction implements Runnable {
                     }
                 });
             }
-        } catch (Throwable t) {
-            resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(t));
-            throw t;
+        } catch (ProcessExecutionException ex) {
+            resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(ex));
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
