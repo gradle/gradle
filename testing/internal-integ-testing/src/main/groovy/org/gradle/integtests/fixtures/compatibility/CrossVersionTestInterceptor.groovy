@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.internal.jvm.Jvm
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
@@ -46,11 +46,6 @@ class CrossVersionTestInterceptor extends AbstractCompatibilityTestInterceptor {
     }
 
     protected boolean isEnabled(GradleDistribution previousVersion) {
-        int jvmVersion = Jvm.current().javaVersionMajor
-        if (!previousVersion.daemonWorksWith(jvmVersion) || !previousVersion.clientWorksWith(jvmVersion)) {
-            return false
-        }
-
         Closure ignoreVersions = getAnnotationClosure(target, IgnoreVersions, {})
         if (ignoreVersions(previousVersion)) {
             return false
