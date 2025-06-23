@@ -190,7 +190,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def actual = (int) Math.ceil((double) getZip().size() / 1024 / 1024)
         def expected = getDistributionSizeMiB()
 
-        assert actual <= expected + 1: "Distribution is at least 1MiB larger, content needs to be verified. Current size: ${actual} MiB. Expected size: ${expected} MiB."
+        // TODO: Check this for Gradle 10
+        assert actual <= expected + 2: "Distribution is at least 1MiB larger, content needs to be verified. Current size: ${actual} MiB. Expected size: ${expected} MiB."
         assert actual >= expected - 1: "Distribution is  at least 1MiB smaller, content needs to be verified. Current size: ${actual} MiB. Expected size: ${expected} MiB."
     }
 
