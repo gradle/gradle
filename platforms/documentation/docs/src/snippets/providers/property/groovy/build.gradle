@@ -35,7 +35,7 @@ abstract class MyIntroTask extends DefaultTask {
 Provider<String> configurationProvider = project.provider { "Hello, Gradle!" }
 
 tasks.register("myIntroTask", MyIntroTask) {
-    it.setConfiguration(configurationProvider)
+    configuration = configurationProvider
 }
 // end::introduction[]
 
@@ -52,7 +52,7 @@ abstract class MyPropertyTask extends DefaultTask {
 }
 
 tasks.register('myPropertyTask', MyPropertyTask) {
-    messageProperty.set("Hello, Gradle!")
+    messageProperty.convention("Hello, Gradle!")
 }
 // end::prop-managed[]
 
@@ -72,25 +72,26 @@ tasks.register('MyProviderTask', MyProviderTask)
 
 // Named managed type
 // tag::named[]
-interface MyNamedType {
-    String getName()
+interface MyNamedType extends Named {
+
 }
 
-class MyNamedTypeImpl implements MyNamedType {
-    String name
+abstract class MyPluginExtension {
+    abstract NamedDomainObjectContainer<MyNamedType> getMyNamedContainer()
 
-    MyNamedTypeImpl(String name) {
-        this.name = name
+    void myNamedContainer(Action<? super NamedDomainObjectContainer<MyNamedType>> action) {
+        action.execute(getMyNamedContainer())
     }
 }
 
-class MyPluginExtension {
-    NamedDomainObjectContainer<MyNamedType> myNamedContainer
+extensions.create("pluginExtension", MyPluginExtension)
 
-    MyPluginExtension(Project project) {
-        myNamedContainer = project.container(MyNamedType) { name ->
-            new MyNamedTypeImpl(name)
-        }
+pluginExtension {
+    myNamedContainer {
+        myName
     }
 }
+
 // end::named[]
+
+assert pluginExtension.myNamedContainer.size() == 1

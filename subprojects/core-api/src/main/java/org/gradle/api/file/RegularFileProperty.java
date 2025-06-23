@@ -33,6 +33,9 @@ import java.io.File;
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
  *
  * @since 4.3
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#fileProperty() Create an instance of this manually.
  */
 @ManagedType
 public interface RegularFileProperty extends FileSystemLocationProperty<RegularFile> {

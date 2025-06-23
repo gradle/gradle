@@ -49,6 +49,9 @@ import java.util.Set;
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
  *
  * @since 8.6
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#dependencyCollector() Create an instance of this manually.
  */
 @ManagedType
 @NonExtensible
