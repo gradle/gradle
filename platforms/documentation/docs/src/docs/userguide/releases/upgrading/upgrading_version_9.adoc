@@ -1,0 +1,44 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_version_9]]
+
+= Upgrading your build from Gradle 9.x to the latest
+
+This chapter provides the information you need to migrate your Gradle 9.x builds to the latest Gradle release.
+For migrating from Gradle 4.x, 5.x, 6.x, 7.x, or 8.x see the <<upgrading_version_8.adoc#upgrading_version_8, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
++
+image::deprecations.png[Deprecations View of a Gradle Build Scan]
++
+This lets you see any deprecation warnings that apply to your build.
++
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins will break with this new version of Gradle because they use internal APIs that have been removed or changed.
+The previous step will help you identify potential problems by issuing deprecation warnings when a plugin tries to use a deprecated part of the API.
++
+. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_9.1]]
+== Upgrading from 9.0 and earlier
+
+=== Deprecations
+
+=== Potential breaking changes
