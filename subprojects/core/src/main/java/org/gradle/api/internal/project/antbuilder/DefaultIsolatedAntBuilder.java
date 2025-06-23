@@ -92,11 +92,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy").getClasspath());
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-ant").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-datetime").getClasspath());
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-groovydoc").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-json").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-templates").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-xml").getClasspath());
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
