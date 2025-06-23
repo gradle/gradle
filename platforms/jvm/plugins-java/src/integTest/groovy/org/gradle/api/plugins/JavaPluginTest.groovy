@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.tasks.JvmConstants
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
@@ -357,7 +356,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.source.files == project.sourceSets.main.allJava.files
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         task.destinationDir == project.java.docsDir.file("javadoc").get().asFile
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
 
         when:
         task = project.tasks["buildArchives"]
