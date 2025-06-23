@@ -23,15 +23,17 @@ class ToolingApiConnector {
     GradleConnector connector
     private final OutputStream stdout
     private final OutputStream stderr
+    private final File javaHome
 
-    ToolingApiConnector(GradleConnector connector, OutputStream stdout, OutputStream stderr) {
+    ToolingApiConnector(GradleConnector connector, File javaHome, OutputStream stdout, OutputStream stderr) {
         this.stderr = stderr
         this.stdout = stdout
         this.connector = connector
+        this.javaHome = javaHome
     }
 
     ProjectConnection connect() {
-        new ToolingApiConnection(connector.connect(), stdout, stderr) as ProjectConnection
+        new ToolingApiConnection(connector.connect(), javaHome, stdout, stderr) as ProjectConnection
     }
 
     ToolingApiConnector searchUpwards(boolean searchUpwards) {
