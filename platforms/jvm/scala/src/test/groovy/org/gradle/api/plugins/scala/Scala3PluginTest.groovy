@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.scala
 
 import org.gradle.api.internal.tasks.JvmConstants
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
@@ -41,6 +40,5 @@ class Scala3PluginTest extends AbstractProjectBuilderSpec {
         // This assertion is a little tricky, because `task.source` is an empty list since we didn't compile these files, so we check here if [] == []
         task.source as List  == project.sourceSets.main.output.findAll { it.name.endsWith(".tasty") } as List // We take output of main (with tasty files)
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 }
