@@ -92,13 +92,13 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
     private boolean daemonSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
         TargetGradleVersion gradleVersionAnnotation = testDetails.getAnnotation(TargetGradleVersion)
         Spec<GradleVersion> gradleVersionSpec = toVersionSpec(gradleVersionAnnotation)
-        gradleVersionSpec.isSatisfiedBy(this.gradleVersion) && gradle.daemonWorksWith(jvmVersion)
+        gradleVersionSpec.isSatisfiedBy(this.gradleVersion)
     }
 
     private boolean toolingApiSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
         ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
         Spec<GradleVersion> toolingVersionSpec = toVersionSpec(toolingVersionAnnotation)
-        toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion) && toolingApi.clientWorksWith(jvmVersion)
+        toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion)
     }
 
     private static Spec<GradleVersion> toVersionSpec(annotation) {
