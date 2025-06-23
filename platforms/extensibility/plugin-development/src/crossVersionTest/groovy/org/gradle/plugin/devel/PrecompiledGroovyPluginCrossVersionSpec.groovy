@@ -17,6 +17,7 @@ package org.gradle.plugin.devel
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -71,6 +72,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         result.output.contains("$PLUGIN_TASK executed")
     }
 
+    @TargetGradleVersion('>=7.3') // FIXME: does this test still make sense with Gradle 9.0.0 requiring Java 17?
     def "can not use a precompiled script plugin with Gradle earlier than 7.0"() {
         Assume.assumeTrue(previous.version >= GradleVersion.version('3.5')) // because 3.4 does not yet support pluginManagement {} block
         Assume.assumeTrue(previous.version < GradleVersion.version('7.0'))
