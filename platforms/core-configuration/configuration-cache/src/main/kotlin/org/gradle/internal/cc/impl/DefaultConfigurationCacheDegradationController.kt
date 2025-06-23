@@ -88,7 +88,7 @@ internal class DefaultConfigurationCacheDegradationController(
     private fun isSourceDependenciesUsed(): Boolean =
         vcsMappingsStore.asResolver().hasRules()
 
-    data class DegradationDecision(
+    internal data class DegradationDecision(
         private val taskDegradationReasons: Map<Task, List<String>>,
         private val featureDegradationReasons: Map<String, List<String>>
     ) {
