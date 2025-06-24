@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -60,11 +61,19 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
+            .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecation()
+            }
+            .build()
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
+            .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+            }
+            .build()
     }
 
     static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
