@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
+import org.gradle.api.internal.tasks.testing.TestWorkerFailureException
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -143,13 +145,30 @@ class TestCountLoggerTest extends Specification {
         logger.totalTests == 2
     }
 
+    def "discover worker failures"() {
+        when:
+        logger.beforeSuite(rootSuite)
+        logger.afterSuite(rootSuite, result(true, 5))
+
+        then:
+        logger.hadFailures()
+        logger.hasWorkerFailures()
+
+        when:
+        logger.handleWorkerFailures()
+        then:
+        def e = thrown(TestWorkerFailureException)
+        e.getCauses().size() == 5
+    }
+
     private test() {
         [:] as TestDescriptor
     }
 
-    private result(boolean failed = false) {
+    private result(boolean failed = false, int failureCount = 1) {
         if (failed) {
-            return new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null)
+            List<TestFailure> failures = (1..failureCount).collect {Mock(TestFailure) }
+            return new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, failures, null)
         }
         return new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 1, 1, 0, [], null)
     }

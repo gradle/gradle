@@ -529,8 +529,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     private void handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
-            testCountLogger.assertNoStartupFailures();
-            handleTestFailures();
+            if (testCountLogger.hasWorkerFailures()) {
+                testCountLogger.handleWorkerFailures();
+            } else {
+                handleTestFailures();
+            }
         } else if (testCountLogger.getTotalTests() == 0) {
             // No tests were executed, the following rules apply:
             // - If there are no filters, and no tests or test suites were discovered, fail

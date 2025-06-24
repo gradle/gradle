@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
  * <pre>
  * > :project-name:testTaskName > 6659 tests completed, 1 failed, 2 skipped
  * </pre>
+ *
+ * This logger also keeps track of whether there were any worker failures that make the overall test result incomplete.
  */
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
@@ -162,19 +164,21 @@ public class TestCountLogger implements TestListener {
     /**
      * Checks if any test failures were reported during test worker startup and throws an exception if so.
      */
-    public void assertNoStartupFailures() {
-        if (!workerFailures.isEmpty()) {
-            // TODO: We should expand this into different kinds of failures based on the situation we've detected.
-            // e.g., test workers can fail to start due to command-line misconfiguration
-            // or test workers can start, but fail to run any tests due to a bad classpath
-            // or test workers can start, run some tests and then fail due to OOM or System.exit(...)
-            //
-            // We currently treat all of these as the same kind of failure.
-            //
-            // It would be better to emit these as problems instead of packing everything into the exception.
-            throw new TestWorkerFailureException("Test process encountered an unexpected problem.",
-                workerFailures.stream().map(TestFailure::getRawFailure).collect(Collectors.toList()),
-                Collections.singletonList("Check common problems " + new DocumentationRegistry().getDocumentationFor("java_testing", "sec:java_testing_troubleshooting") + "."));
-        }
+    public boolean hasWorkerFailures() {
+        return !workerFailures.isEmpty();
+    }
+
+    public void handleWorkerFailures() {
+        // TODO: We should expand this into different kinds of failures based on the situation we've detected.
+        // e.g., test workers can fail to start due to command-line misconfiguration
+        // or test workers can start, but fail to run any tests due to a bad classpath
+        // or test workers can start, run some tests and then fail due to OOM or System.exit(...)
+        //
+        // We currently treat all of these as the same kind of failure.
+        //
+        // It would be better to emit these as problems instead of packing everything into the exception.
+        throw new TestWorkerFailureException("Test process encountered an unexpected problem.",
+            workerFailures.stream().map(TestFailure::getRawFailure).collect(Collectors.toList()),
+            Collections.singletonList("Check common problems " + new DocumentationRegistry().getDocumentationFor("java_testing", "sec:java_testing_troubleshooting") + "."));
     }
 }
