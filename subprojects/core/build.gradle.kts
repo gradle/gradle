@@ -31,6 +31,12 @@ dependencyAnalysis {
         ignoreSourceSet(testInterceptors.name)
     }
 }
+jvmCompile {
+    addCompilationFrom(testInterceptors) {
+        // By default, test interceptors compile to the same JVM version as the production code.
+        targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
+    }
+}
 
 val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())

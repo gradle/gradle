@@ -30,6 +30,14 @@ plugins {
     `java-test-fixtures`
     groovy
     id("gradlebuild.dependency-modules")
+    id("gradlebuild.jvm-compile")
+}
+
+jvmCompile {
+    addCompilationFrom(sourceSets.named("testFixtures")) {
+        // By default, test fixtures compile to the same JVM version as the production code.
+        targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
+    }
 }
 
 // The below mimics what the java-library plugin does, but creating a library of test fixtures instead.

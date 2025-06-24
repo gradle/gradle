@@ -105,16 +105,6 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 }
 
 
-@Suppress("UnusedPrivateProperty")
-internal
-fun Project.addSourceSet(testType: TestType): SourceSet {
-    val prefix = testType.prefix
-    val sourceSets = the<SourceSetContainer>()
-    val main by sourceSets.getting
-    return sourceSets.create("${prefix}Test")
-}
-
-
 internal
 fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     val prefix = testType.prefix
