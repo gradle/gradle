@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
@@ -155,7 +156,10 @@ public class MyUtil {
 """
 
         when:
-        runner(":jar").build()
+        runner(":jar")
+            // See https://github.com/bndtools/bnd/blob/86c306d06095e1b69f5d73bdb8e178a55742d1ab/gradle-plugins/biz.aQute.bnd.gradle/src/main/java/aQute/bnd/gradle/BndBuilderPlugin.java#L110
+            .expectLegacyDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+            .build()
 
         then: "version numbers exist in the manifest"
         assertJarManifestContains("Import-Package", "com.example.util;version=\"$calculatedDirectVersionRange\"")
@@ -341,7 +345,10 @@ public class MyUtil {
 """
 
         expect:
-        runner(":resolve").build()
+        runner(":resolve")
+            // See https://github.com/bndtools/bnd/blob/86c306d06095e1b69f5d73bdb8e178a55742d1ab/gradle-plugins/biz.aQute.bnd.gradle/src/main/java/aQute/bnd/gradle/BndBuilderPlugin.java#L110
+            .expectLegacyDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+            .build()
     }
 
     @ToBeFixedForConfigurationCache(because = "Bndrun task does not support configuration cache")

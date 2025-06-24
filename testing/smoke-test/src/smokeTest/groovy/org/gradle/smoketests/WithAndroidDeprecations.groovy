@@ -71,4 +71,17 @@ trait WithAndroidDeprecations {
         }
     }
 
+    void expectMultiStringNotationDeprecationIf(boolean condition) {
+        if (condition) {
+            expectMultiStringNotationDeprecation()
+        }
+    }
+
+    void expectMultiStringNotationDeprecation() {
+        // See https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/lint/AndroidLintInputs.kt;l=2849?q=AndroidLintInputs
+        runner.expectLegacyDeprecationWarning(
+            "Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation"
+        )
+    }
+
 }
