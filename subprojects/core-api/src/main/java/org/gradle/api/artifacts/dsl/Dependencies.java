@@ -26,6 +26,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -119,9 +120,18 @@ public interface Dependencies {
      * @param group the group (optional)
      * @param name the name
      * @param version the version (optional)
+     *
      * @return the new dependency
+     *
+     * @deprecated This method will be removed in Gradle 10. Use single-string notation instead.
      */
+    @Deprecated
     default ExternalModuleDependency module(@Nullable String group, String name, @Nullable String version) {
+        DeprecationLogger.deprecateBehaviour("Declaring dependencies using multi-string notation.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "dependency_multi_string_notation")
+            .nagUser();
+
         return getDependencyFactory().create(group, name, version);
     }
 
@@ -177,7 +187,10 @@ public interface Dependencies {
      *
      * @return injected service
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+     *
+     * @deprecated This method is deprecated and will be removed in Gradle 10.
      */
     @Inject
+    @Deprecated
     ObjectFactory getObjectFactory();
 }
