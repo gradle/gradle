@@ -285,64 +285,63 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
     def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV string'() {
         given:
         buildKotlinFile << """
-        plugins {
-          `java-library`
-        }
+            plugins {
+                `java-library`
+            }
 
-        ${mavenCentralRepository(GradleDsl.KOTLIN)}
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
-        dependencies {
-            // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
-            implementation("org.apache.commons:commons-lang3:3.11")
-        }
+            dependencies {
+                // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
+                implementation("org.apache.commons:commons-lang3:3.11")
+            }
 
-        testing {
-            suites {
-                val test by getting(JvmTestSuite::class) {
-                    dependencies {
-                        implementation("com.google.guava:guava:30.1.1-jre")
-                        compileOnly("javax.servlet:servlet-api:3.0-alpha-1")
-                        runtimeOnly("mysql:mysql-connector-java:8.0.26")
+            testing {
+                suites {
+                    val test by getting(JvmTestSuite::class) {
+                        dependencies {
+                            implementation("com.google.guava:guava:30.1.1-jre")
+                            compileOnly("javax.servlet:servlet-api:3.0-alpha-1")
+                            runtimeOnly("mysql:mysql-connector-java:8.0.26")
+                        }
                     }
-                }
-                val integTest by registering(JvmTestSuite::class) {
-                    // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
-                    dependencies {
-                        implementation(project())
-                        implementation("com.google.guava:guava:29.0-jre")
-                        compileOnly("javax.servlet:servlet-api:2.5")
-                        runtimeOnly("mysql:mysql-connector-java:6.0.6")
+                    val integTest by registering(JvmTestSuite::class) {
+                        // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
+                        dependencies {
+                            implementation(project())
+                            implementation("com.google.guava:guava:29.0-jre")
+                            compileOnly("javax.servlet:servlet-api:2.5")
+                            runtimeOnly("mysql:mysql-connector-java:6.0.6")
+                        }
                     }
                 }
             }
-        }
 
-        tasks.named("check") {
-            dependsOn(testing.suites.named("integTest"))
-        }
-
-        tasks.register("checkConfiguration") {
-            dependsOn("test", "integTest")
-
-            val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-            val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
-            val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-            val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
-
-            doLast {
-
-                assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
-                assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
-                assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
-                assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
-
-                assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
-                assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
-                assert(!integTestCompileClasspathFileNames.contains("mysql-connector-java-6.0.6.jar")) { "runtimeOnly dependency" }
-                assert(integTestRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-29.0-jre.jar", "mysql-connector-java-6.0.6.jar")))
-                assert(!integTestRuntimeClasspathFileNames.contains("servlet-api-2.5.jar")) { "compileOnly dependency" }
+            tasks.named("check") {
+                dependsOn(testing.suites.named("integTest"))
             }
-        }
+
+            tasks.register("checkConfiguration") {
+                dependsOn("test", "integTest")
+
+                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
+                doLast {
+                    assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
+                    assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
+                    assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
+                    assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
+
+                    assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
+                    assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
+                    assert(!integTestCompileClasspathFileNames.contains("mysql-connector-java-6.0.6.jar")) { "runtimeOnly dependency" }
+                    assert(integTestRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-29.0-jre.jar", "mysql-connector-java-6.0.6.jar")))
+                    assert(!integTestRuntimeClasspathFileNames.contains("servlet-api-2.5.jar")) { "compileOnly dependency" }
+                }
+            }
         """
 
         expect:
@@ -353,7 +352,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         given:
         buildKotlinFile << """
             plugins {
-              `java-library`
+                `java-library`
             }
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
@@ -380,134 +379,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 integTestCompileOnly("javax.servlet:servlet-api:2.5")
                 val integTestRuntimeOnly by configurations.getting
                 integTestRuntimeOnly("mysql:mysql-connector-java:6.0.6")
-            }
-
-            tasks.named("check") {
-                dependsOn(testing.suites.named("integTest"))
-            }
-
-            tasks.register("checkConfiguration") {
-                dependsOn("test", "integTest")
-
-                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
-                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
-
-                doLast {
-                    assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
-                    assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
-                    assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
-                    assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
-
-                    assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
-                    assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
-                    assert(!integTestCompileClasspathFileNames.contains("mysql-connector-java-6.0.6.jar")) { "runtimeOnly dependency" }
-                    assert(integTestRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-29.0-jre.jar", "mysql-connector-java-6.0.6.jar")))
-                    assert(!integTestRuntimeClasspathFileNames.contains("servlet-api-2.5.jar")) { "compileOnly dependency" }
-                }
-            }
-        """
-
-        expect:
-        succeeds 'checkConfiguration'
-    }
-
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using GAV named arguments'() {
-        given:
-        buildKotlinFile << """
-            plugins {
-              `java-library`
-            }
-
-            ${mavenCentralRepository(GradleDsl.KOTLIN)}
-
-            testing {
-                suites {
-                    val integTest by registering(JvmTestSuite::class)
-                }
-            }
-
-            dependencies {
-                // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
-                implementation("org.apache.commons:commons-lang3:3.11")
-
-                testImplementation(group = "com.google.guava", name = "guava", version = "30.1.1-jre")
-                testCompileOnly(group = "javax.servlet", name = "servlet-api", version = "3.0-alpha-1")
-                testRuntimeOnly(group = "mysql", name = "mysql-connector-java", version = "8.0.26")
-
-                // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
-                val integTestImplementation by configurations.getting
-                integTestImplementation(project)
-                integTestImplementation(group = "com.google.guava", name = "guava", version = "29.0-jre")
-                val integTestCompileOnly by configurations.getting
-                integTestCompileOnly(group = "javax.servlet", name = "servlet-api", version = "2.5")
-                val integTestRuntimeOnly by configurations.getting
-                integTestRuntimeOnly(group = "mysql", name = "mysql-connector-java", version = "6.0.6")
-            }
-
-            tasks.named("check") {
-                dependsOn(testing.suites.named("integTest"))
-            }
-
-            tasks.register("checkConfiguration") {
-                dependsOn("test", "integTest")
-
-                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
-                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
-
-                doLast {
-                    assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
-                    assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
-                    assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
-                    assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
-
-                    assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
-                    assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
-                    assert(!integTestCompileClasspathFileNames.contains("mysql-connector-java-6.0.6.jar")) { "runtimeOnly dependency" }
-                    assert(integTestRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-29.0-jre.jar", "mysql-connector-java-6.0.6.jar")))
-                    assert(!integTestRuntimeClasspathFileNames.contains("servlet-api-2.5.jar")) { "compileOnly dependency" }
-                }
-            }
-        """
-
-        expect:
-        succeeds 'checkConfiguration'
-    }
-
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using named args'() {
-        given:
-        buildKotlinFile << """
-            plugins {
-              `java-library`
-            }
-
-            ${mavenCentralRepository(GradleDsl.KOTLIN)}
-
-            testing {
-                suites {
-                    val integTest by registering(JvmTestSuite::class)
-                }
-            }
-
-            dependencies {
-                // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
-                implementation("org.apache.commons:commons-lang3:3.11")
-
-                testImplementation(group = "com.google.guava", name = "guava", version = "30.1.1-jre")
-                testCompileOnly(group = "javax.servlet", name = "servlet-api", version = "3.0-alpha-1")
-                testRuntimeOnly(group = "mysql", name = "mysql-connector-java", version = "8.0.26")
-
-                // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
-                val integTestImplementation by configurations.getting
-                integTestImplementation(project)
-                integTestImplementation(group = "com.google.guava", name = "guava", version = "29.0-jre")
-                val integTestCompileOnly by configurations.getting
-                integTestCompileOnly(group = "javax.servlet", name = "servlet-api", version = "2.5")
-                val integTestRuntimeOnly by configurations.getting
-                integTestRuntimeOnly(group = "mysql", name = "mysql-connector-java", version = "6.0.6")
             }
 
             tasks.named("check") {
