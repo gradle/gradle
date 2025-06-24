@@ -53,7 +53,7 @@ Gradle provides multiple mechanisms for configuring the behavior of Gradle itsel
 
 When configuring Gradle behavior, you can use these methods, but you must consider their priority.
 
-The following table lists these methods in order of highest to lowest precedence (the first one wins):
+Gradle reads `gradle.properties` configurations in the following order (highest precedence first):
 
 [%autowidth.stretch]
 |===
