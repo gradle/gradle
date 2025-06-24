@@ -21,7 +21,6 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
@@ -57,7 +56,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.model.Path;
 
 import javax.inject.Inject;
@@ -65,6 +63,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 
 /**
  * Adds the ability to publish in the Ivy format to Ivy repositories.
@@ -88,10 +87,6 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.providerFactory = providerFactory;
-    }
-
-    private ConfigurationCacheDegradationController getDegradationController(Task task) {
-        return ((ProjectInternal) task.getProject()).getServices().get(ConfigurationCacheDegradationController.class);
     }
 
     @Override
@@ -148,7 +143,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
         });
-        tasks.withType(PublishToIvyRepository.class).configureEach(t -> getDegradationController(t).requireConfigurationCacheDegradation(t, usingExplicitCredentials(t)));
+        tasks.withType(PublishToIvyRepository.class).configureEach(task -> requireDegradation(task, usingExplicitCredentials(task)));
 
         tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, task -> task.dependsOn(publishTaskName));
         tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));

@@ -22,9 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -171,15 +169,6 @@ public abstract class IdePlugin implements Plugin<Project> {
                 task.setDescription(description);
             }
         };
-    }
-
-    protected static Action<Task> withGracefulDegradation(Project project) {
-        return task -> ((ProjectInternal) project).getServices()
-            .get(ConfigurationCacheDegradationController.class)
-            .requireConfigurationCacheDegradation(
-                task,
-                project.provider(() -> "Task is not compatible with the configuration cache")
-        );
     }
 
     protected void onApply(Project target) {

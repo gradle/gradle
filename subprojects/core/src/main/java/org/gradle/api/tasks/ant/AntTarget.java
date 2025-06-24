@@ -16,15 +16,15 @@
 package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
-import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
+
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 
 /**
  * A task which executes an Ant target.
@@ -36,13 +36,7 @@ public abstract class AntTarget extends ConventionTask {
     private File baseDir;
 
     public AntTarget() {
-        getDegradationController().requireConfigurationCacheDegradation(this,
-            getProject().getProviders().provider(() -> "Task is not compatible with the Configuration Cache")
-        );
-    }
-
-    private ConfigurationCacheDegradationController getDegradationController() {
-        return ((ProjectInternal) getProject()).getServices().get(ConfigurationCacheDegradationController.class);
+        requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
     @TaskAction

@@ -17,10 +17,8 @@
 package org.gradle.api.reporting.components;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer;
 import org.gradle.api.tasks.TaskAction;
@@ -41,6 +39,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 import static org.gradle.model.internal.type.ModelTypes.modelMap;
 
 /**
@@ -63,7 +62,7 @@ public abstract class ComponentReport extends DefaultTask {
 
     @Inject
     public ComponentReport() {
-        getServices().get(ConfigurationCacheDegradationController.class).requireConfigurationCacheDegradation(this, Providers.of("Task is not compatible with the Configuration Cache"));
+        requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
     @TaskAction
