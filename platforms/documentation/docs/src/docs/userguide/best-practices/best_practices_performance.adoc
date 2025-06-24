@@ -42,3 +42,42 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 === Tags
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
+
+[[use_build_cache]]
+== Use build cache
+
+Use the build cache to save time by reusing outputs produced by other builds.
+
+=== Explanation
+
+The build cache can retrieve outputs from any earlier build, avoiding unnecessary work which has already been done during a previous run.
+
+NOTE: Enabling the build cache introduces a slight overhead, especially on "cold" builds (i.e. when populating the cache for the first time). However, enabling it brings substantial benefits in the long run.
+
+=== Example
+
+==== Don't Do This
+
+Build caching is disabled by default if not set in `gradle.properties` or through the `--build-cache` command line option.
+
+[source,properties]
+----
+# org.gradle.caching=false
+----
+
+==== Do This Instead
+
+To enable the build cache, use the `--build-cache` command line option or add the following to your `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.caching=true
+----
+
+=== References
+
+- <<build_cache.adoc#sec:build_cache_intro,Build Cache Overview>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
