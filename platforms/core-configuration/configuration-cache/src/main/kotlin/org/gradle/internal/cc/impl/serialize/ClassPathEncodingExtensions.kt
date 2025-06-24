@@ -36,35 +36,35 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
 
 
 internal
-inline fun Encoder.writeClassPath(classPath: ClassPath, writeFile: (File) -> Unit) {
+inline fun Encoder.writeClassPath(classPath: ClassPath, customWriteFile: (File) -> Unit) {
     // Ensure that the proper type is going to be restored,
     // because it is important for the equality checks.
     if (classPath is TransformedClassPath) {
         writeBoolean(true)
-        writeTransformedClassPath(classPath, writeFile)
+        writeTransformedClassPath(classPath, customWriteFile)
     } else {
         writeBoolean(false)
-        writeDefaultClassPath(classPath, writeFile)
+        writeDefaultClassPath(classPath, customWriteFile)
     }
 }
 
 
 private
-inline fun Encoder.writeDefaultClassPath(classPath: ClassPath, writeFile: (File) -> Unit) {
+inline fun Encoder.writeDefaultClassPath(classPath: ClassPath, customWriteFile: (File) -> Unit) {
     classPath.asFiles.let { files ->
         writeCollectionUnchecked(files, files.size) {
-            writeFile(it)
+            customWriteFile(it)
         }
     }
 }
 
 
 private
-inline fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath, writeFile: (File) -> Unit) {
+inline fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath, customWriteFile: (File) -> Unit) {
     classPath.asFiles.zip(classPath.asTransformedFiles).let { files ->
         writeCollectionUnchecked(files, files.size) {
-            writeFile(it.first)
-            writeFile(it.second)
+            customWriteFile(it.first)
+            customWriteFile(it.second)
         }
     }
 }
@@ -78,33 +78,33 @@ fun Decoder.readClassPath(): ClassPath =
 
 
 internal
-fun Decoder.readClassPath(readFile: Decoder.() -> File): ClassPath {
+fun Decoder.readClassPath(customReadFile: Decoder.() -> File): ClassPath {
     val isTransformed = readBoolean()
     return if (isTransformed) {
-        readTransformedClassPath(readFile)
+        readTransformedClassPath(customReadFile)
     } else {
-        readDefaultClassPath(readFile)
+        readDefaultClassPath(customReadFile)
     }
 }
 
 
 private
-inline fun Decoder.readDefaultClassPath(readFile: Decoder.() -> File): ClassPath {
+inline fun Decoder.readDefaultClassPath(customReadFile: Decoder.() -> File): ClassPath {
     val size = readSmallInt()
     val builder = DefaultClassPath.builderWithExactSize(size)
     repeat(size) {
-        builder.add(readFile())
+        builder.add(customReadFile())
     }
     return builder.build()
 }
 
 
 private
-inline fun Decoder.readTransformedClassPath(readFile: Decoder.() -> File): ClassPath {
+inline fun Decoder.readTransformedClassPath(customReadFile: Decoder.() -> File): ClassPath {
     val size = readSmallInt()
     val builder = TransformedClassPath.builderWithExactSize(size)
     repeat(size) {
-        builder.add(readFile(), readFile())
+        builder.add(customReadFile(), customReadFile())
     }
     return builder.build()
 }
