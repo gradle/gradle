@@ -218,16 +218,16 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             def input = providers.gradleProperty('inputFile').map {
                 projectDir.file(it)
             }
-            run.jvmArgumentProviders << objects.newInstance(MyApplicationJvmArguments).tap {
+            run.jvmArgumentProviders.add(objects.newInstance(MyApplicationJvmArguments).tap {
                 it.inputFile.set(input)
-            }
+            })
 
             def output = providers.gradleProperty('outputFile').map {
                 projectDir.file(it)
             }
-            run.argumentProviders << objects.newInstance(MyApplicationCommandLineArguments).tap {
+            run.argumentProviders.add(objects.newInstance(MyApplicationCommandLineArguments).tap {
                 it.outputFile.set(output)
-            }
+            })
 
         """
         inputFile.text = "first"
@@ -298,7 +298,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             def file = providers.gradleProperty('allJvmArgsFile').map {
                 layout.projectDirectory.file(it)
             }
-            file.get().getAsFile().text = tasks.run.allJvmArgs.join(",")
+            file.get().getAsFile().text = tasks.run.allJvmArgs.get().join(",")
         """
 
         when:
@@ -306,29 +306,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         allJvmArgsFile.text.contains("-Dfoo=bar")
-    }
-
-    def "setAllJvmArgs respects user added jvm args"() {
-        given:
-        def allJvmArgsFile = file("allJvmArgs.txt")
-        buildFile """
-            tasks.named("run") {
-                jvmArgs "-Dfoo=bar"
-                setAllJvmArgs(["-Dfoo=42"])
-            }
-
-            def file = providers.gradleProperty('allJvmArgsFile').map {
-                layout.projectDirectory.file(it)
-            }
-            file.get().getAsFile().text = tasks.run.allJvmArgs.join(",")
-        """
-
-        when:
-        run "run", "-PallJvmArgsFile=$allJvmArgsFile.absolutePath"
-
-        then:
-        allJvmArgsFile.text.contains("-Dfoo=42")
-        !allJvmArgsFile.text.contains("-Dfoo=bar")
     }
 
     private void assertOutputFileIs(String text) {

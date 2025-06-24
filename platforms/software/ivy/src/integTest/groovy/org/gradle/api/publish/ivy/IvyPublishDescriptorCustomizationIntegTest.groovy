@@ -119,7 +119,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         buildFile << """
             model {
                 tasks.generateDescriptorFileForIvyPublication {
-                    destination = 'generated-ivy.xml'
+                    destination = file('generated-ivy.xml')
                 }
             }
         """

@@ -105,7 +105,10 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     return;
                 }
 
-                File buildRootDir = new File(dependencyWorkingDir, spec.getRootDir());
+                // Disallow further changes to the repository spec, as it is going to be resolved.
+                spec.getRootDir().finalizeValue();
+
+                File buildRootDir = new File(dependencyWorkingDir, spec.getRootDir().get());
                 BuildDefinition buildDefinition = toBuildDefinition((AbstractVersionControlSpec) spec, buildRootDir);
                 IncludedBuildState includedBuild = buildRegistry.addImplicitIncludedBuild(buildDefinition);
 

@@ -120,6 +120,7 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
+    implementation(projects.groovySupport)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
@@ -297,10 +298,12 @@ packageCycles {
 }
 
 tasks.test {
-    setForkEvery(200)
+    forkEvery = 200
 }
 
 tasks.compileTestGroovy {
+    // TODO: Fix for Gradle 10, use groovyOptions.fork instead
+    @Suppress("DEPRECATION")
     groovyOptions.isFork = true
     groovyOptions.forkOptions.run {
         memoryInitialSize = "128M"

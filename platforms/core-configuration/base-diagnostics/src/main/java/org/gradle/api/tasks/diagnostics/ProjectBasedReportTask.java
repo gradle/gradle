@@ -39,7 +39,7 @@ public abstract class ProjectBasedReportTask extends ConventionReportTask {
     @TaskAction
     public void generate() {
         reportGenerator().generateReport(
-            new TreeSet<>(getProjects()),
+            new TreeSet<>(getProjects().get()),
             project -> {
                 generate(project);
                 logClickableOutputFileUrl();

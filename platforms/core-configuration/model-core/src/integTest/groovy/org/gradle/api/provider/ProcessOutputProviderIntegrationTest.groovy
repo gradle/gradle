@@ -17,8 +17,11 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.process.ShellScript
 import org.gradle.process.TestJavaMain
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
@@ -262,6 +265,129 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Other script output")
         result.assertTaskExecuted(":printScriptOutput")
+    }
+
+    @Requires(IntegTestPreconditions.IsConfigCached)
+    def "provider used during configuration doesn't depend on unused env variable with configuration cache"() {
+        given:
+        def configurationCache = new ConfigurationCacheFixture(this)
+        def testScript = ShellScript.builder()
+            .printEnvironmentVariable("TEST_FOO")
+            .writeTo(testDirectory, "script")
+
+        buildFile """
+            def execProvider = providers.exec {
+                ${cmdToExecConfig(*testScript.commandLine, "--some-arg")}
+            }
+
+            execProvider.result.get().assertNormalExitValue()
+            println(execProvider.standardOutput.asText.get())
+
+            task empty() {}
+        """
+
+        when:
+        result = executer.withEnvironmentVars(["TEST_BAR": "fooValue"])
+            .withTasks(":empty")
+            .run()
+
+        then:
+        outputContains("TEST_FOO=")
+        configurationCache.assertStateStored()
+
+        when:
+        result = executer.withEnvironmentVars(["TEST_BAR": "barValue"])
+            .withTasks(":empty")
+            .run()
+
+        then:
+        outputDoesNotContain("TEST_FOO=")
+        configurationCache.assertStateLoaded()
+    }
+
+    @Requires(IntegTestPreconditions.IsConfigCached)
+    def "provider used as task input doesn't invalidate configuration cache on env variable change"() {
+        given:
+        def configurationCache = new ConfigurationCacheFixture(this)
+        def testScript = ShellScript.builder()
+            .printEnvironmentVariable("TEST_FOO")
+            .writeTo(testDirectory, "script")
+
+        buildFile """
+            def execProvider = providers.exec {
+                ${cmdToExecConfig(*testScript.commandLine, "--some-arg")}
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getScriptOutput()
+                @TaskAction
+                def action() {
+                    println(scriptOutput.get())
+                }
+            }
+
+            tasks.register("printScriptOutput", MyTask) {
+                scriptOutput = execProvider.standardOutput.asText
+            }
+        """
+
+        when:
+        result = executer.withEnvironmentVars(["TEST_FOO": "fooValue"])
+            .withTasks(":printScriptOutput")
+            .run()
+
+        then:
+        outputContains("TEST_FOO=fooValue")
+        configurationCache.assertStateStored()
+
+        when:
+        result = executer.withEnvironmentVars(["TEST_FOO": "barValue"])
+            .withTasks(":printScriptOutput")
+            .run()
+
+        then:
+        outputContains("TEST_FOO=barValue")
+        configurationCache.assertStateLoaded()
+    }
+
+    @Requires(IntegTestPreconditions.IsConfigCached)
+    def "provider used during configuration doesn't depend on value of overridden env variable with configuration cache"() {
+        given:
+        def configurationCache = new ConfigurationCacheFixture(this)
+        def testScript = ShellScript.builder()
+            .printEnvironmentVariable("TEST_FOO")
+            .writeTo(testDirectory, "script")
+
+        buildFile """
+            def execProvider = providers.exec {
+                ${cmdToExecConfig(*testScript.commandLine, "--some-arg")}
+                environment("TEST_FOO", "fooValue")
+            }
+
+            execProvider.result.get().assertNormalExitValue()
+            println(execProvider.standardOutput.asText.get())
+
+            task empty() {}
+        """
+
+        when:
+        result = executer.withEnvironmentVars(["TEST_FOO": "barValue"])
+            .withTasks(":empty")
+            .run()
+
+        then:
+        outputContains("TEST_FOO=fooValue")
+        configurationCache.assertStateStored()
+
+        when:
+        result = executer.withEnvironmentVars(["TEST_FOO": "foobarValue"])
+            .withTasks(":empty")
+            .run()
+
+        then:
+        outputDoesNotContain("TEST_FOO=fooValue")
+        configurationCache.assertStateLoaded()
     }
 
     static String cmdToExecConfig(String... args) {

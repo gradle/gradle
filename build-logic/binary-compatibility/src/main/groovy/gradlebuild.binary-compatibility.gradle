@@ -179,7 +179,8 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         mainApiChangesJsonFile.asFile,
         project.isolated.rootProject.projectDirectory,
         currentUpgradedPropertiesFile.get().asFile,
-        baselineUpgradedPropertiesFile.get().asFile
+        baselineUpgradedPropertiesFile.get().asFile,
+        compatibilityBaselineVersion
     )
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }

@@ -31,13 +31,14 @@ class AntlrSpecFactoryTest extends Specification {
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
 
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> []
-        _ * task.isTrace() >> true
-        _ * task.isTraceLexer() >> true
-        _ * task.isTraceParser() >> true
-        _ * task.isTraceTreeWalker() >> true
+        _ * task.outputDirectory >> TestUtil.objectFactory().directoryProperty().tap { it.set(destFile()) }
+        _ * task.getArguments() >> TestUtil.objectFactory().listProperty(String)
+        _ * task.getTrace() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceLexer() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceParser() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceTreeWalker() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
         _ * task.getPackageName() >> TestUtil.objectFactory().property(String)
+        _ * task.getMaxHeapSize() >> TestUtil.objectFactory().property(String)
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
@@ -52,13 +53,14 @@ class AntlrSpecFactoryTest extends Specification {
         when:
         AntlrTask task = Mock()
 
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> []
-        _ * task.isTrace() >> true
-        _ * task.isTraceLexer() >> true
-        _ * task.isTraceParser() >> true
-        _ * task.isTraceTreeWalker() >> true
+        _ * task.outputDirectory >> TestUtil.objectFactory().directoryProperty().tap { it.set(destFile()) }
+        _ * task.getArguments() >> TestUtil.objectFactory().listProperty(String)
+        _ * task.getTrace() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceLexer() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceParser() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceTreeWalker() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
         _ * task.getPackageName() >> TestUtil.objectFactory().property(String)
+        _ * task.getMaxHeapSize() >> TestUtil.objectFactory().property(String)
 
         def spec = factory.create(task, [] as Set, null)
 
@@ -70,9 +72,14 @@ class AntlrSpecFactoryTest extends Specification {
         when:
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
+        _ * task.outputDirectory >> TestUtil.objectFactory().directoryProperty().tap { it.set(destFile()) }
+        _ * task.getArguments() >> TestUtil.objectFactory().listProperty(String).tap {it.set(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]) }
+        _ * task.getTrace() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceLexer() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceParser() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceTreeWalker() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
         _ * task.getPackageName() >> TestUtil.objectFactory().property(String)
+        _ * task.getMaxHeapSize() >> TestUtil.objectFactory().property(String)
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
@@ -87,13 +94,14 @@ class AntlrSpecFactoryTest extends Specification {
         when:
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
-        _ * task.isTrace() >> true
-        _ * task.isTraceLexer() >> true
-        _ * task.isTraceParser() >> true
-        _ * task.isTraceTreeWalker() >> true
+        _ * task.outputDirectory >> TestUtil.objectFactory().directoryProperty().tap { it.set(destFile()) }
+        _ * task.getArguments() >> TestUtil.objectFactory().listProperty(String).tap {it.set(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]) }
+        _ * task.getTrace() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceLexer() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceParser() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
+        _ * task.getTraceTreeWalker() >> TestUtil.objectFactory().property(Boolean).tap { it.set(true) }
         _ * task.getPackageName() >> TestUtil.objectFactory().property(String)
+        _ * task.getMaxHeapSize() >> TestUtil.objectFactory().property(String)
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
@@ -108,24 +116,34 @@ class AntlrSpecFactoryTest extends Specification {
         when:
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
-        _ * task.outputDirectory >> new File("/path/to/output")
-        _ * task.getArguments() >> []
+        _ * task.outputDirectory >> TestUtil.objectFactory().directoryProperty().tap { it.set(new File("/path/to/output")) }
+        _ * task.getArguments() >> TestUtil.objectFactory().listProperty(String)
+        _ * task.getTrace() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceLexer() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceParser() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceTreeWalker() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
         _ * task.getPackageName() >> TestUtil.objectFactory().property(String).value("com.example")
+        _ * task.getMaxHeapSize() >> TestUtil.objectFactory().property(String)
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
         then:
         spec.arguments.contains("-package")
         spec.arguments.contains("com.example")
-        spec.outputDirectory == new File("/path/to/output/com/example")
+        spec.outputDirectory == TestUtil.objectFactory().directoryProperty().tap { it.set(new File("/path/to/output/com/example")) }.getAsFile().get()
     }
 
     def "cannot add package argument when packageName is set"() {
         when:
         AntlrTask task = Mock()
-        _ * task.outputDirectory >> new File("/path/to/output")
-        _ * task.getArguments() >> ["-package", "foo.bar"]
+        _ * task.outputDirectory >> TestUtil.objectFactory().directoryProperty().tap { it.set(new File("/path/to/output")) }
+        _ * task.getArguments() >> TestUtil.objectFactory().listProperty(String).tap { it.set(["-package", "foo.bar"]) }
+        _ * task.getTrace() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceLexer() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceParser() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
+        _ * task.getTraceTreeWalker() >> TestUtil.objectFactory().property(Boolean).tap { it.set(false) }
         _ * task.getPackageName() >> TestUtil.objectFactory().property(String).value("com.example")
+        _ * task.getMaxHeapSize() >> TestUtil.objectFactory().property(String)
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
@@ -133,8 +151,6 @@ class AntlrSpecFactoryTest extends Specification {
         def e = thrown(IllegalStateException)
         e.message == "The package has been set both in the arguments (i.e. '-package') and via the 'packageName' property.  Please set the package only using the 'packageName' property."
     }
-
-
 
     private void sourceSetDirectoriesAreEmptySet() {
         1 * sourceSetDirectories.getFiles() >> []

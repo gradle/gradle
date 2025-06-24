@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
@@ -97,9 +96,6 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
     }
 
     @Inject
-    protected abstract ObjectFactory getObjectFactory();
-
-    @Inject
     protected abstract VersionSelectorScheme getVersionSelectorScheme();
 
     @Inject
@@ -131,7 +127,7 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
 
     private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails> computeProjectsWithConfigurations() {
         return ProjectsWithConfigurations.from(
-            getProjects(),
+            getProjects().get(),
             ProjectDetails::withNameAndPath,
             HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo
         );

@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc.internal
 
+import org.gradle.api.provider.ListProperty
 import org.gradle.external.javadoc.JavadocOptionFileOption
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -34,10 +35,10 @@ class JavadocOptionFileWriterTest extends Specification {
         setup:
         def tempFile = temporaryFolder.createFile("optionFile")
         def optionsMap = createOptionsMap()
+        def sourceNames = Mock(ListProperty)
         when:
         _ * optionfile.options >> optionsMap
-        _ * optionfile.getSourceNames() >> new OptionLessStringsJavadocOptionFileOption([]);
-        javadocOptionFileWriter.write(tempFile)
+        javadocOptionFileWriter.write(tempFile, sourceNames)
         then:
         tempFile.text == toPlatformLineSeparators("""-key1 'value1'
 -key2 'value2'
@@ -46,7 +47,7 @@ class JavadocOptionFileWriterTest extends Specification {
         when:
         optionsMap.put("locale", new StringJavadocOptionFileOption("locale", "alocale"));
         and:
-        javadocOptionFileWriter.write(tempFile)
+        javadocOptionFileWriter.write(tempFile, sourceNames)
         then:
         tempFile.text == toPlatformLineSeparators("""-locale 'alocale'
 -key1 'value1'

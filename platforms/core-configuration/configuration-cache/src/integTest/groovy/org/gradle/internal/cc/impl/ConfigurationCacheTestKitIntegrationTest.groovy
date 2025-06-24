@@ -174,7 +174,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             test {
                 test.extensions.getByType(JacocoTaskExtension).destinationFile = new File("$jacocoDestinationFile")
                 systemProperty "jacocoAgentJar", configurations.jacocoRuntime.singleFile.absolutePath
-                systemProperty "jacocoDestFile", test.extensions.getByType(JacocoTaskExtension).destinationFile.absolutePath
+                systemProperty "jacocoDestFile", test.extensions.getByType(JacocoTaskExtension).destinationFile.map { it.asFile.absolutePath }
             }
 
             gradlePlugin {

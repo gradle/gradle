@@ -31,14 +31,17 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NonNull;
 
 import java.nio.charset.Charset;
 
@@ -51,19 +54,19 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 public abstract class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";
-    private String manifestContentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
     private Manifest manifest;
     private final CopySpecInternal metaInf;
 
     public Jar() {
         getArchiveExtension().set(DEFAULT_EXTENSION);
-        setMetadataCharset("UTF-8");
+        getMetadataCharset().convention("UTF-8");
 
         manifest = new DefaultManifest(getFileResolver());
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
         getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
+        getManifestContentCharset().set(DefaultManifest.DEFAULT_CONTENT_CHARSET);
     }
 
     private FileTreeInternal manifestFileTree() {
@@ -88,7 +91,14 @@ public abstract class Jar extends Zip {
         } else {
             manifestInternal = new CustomManifestInternalWrapper(manifest);
         }
-        manifestInternal.setContentCharset(manifestContentCharset);
+        if (!getManifestContentCharset().isPresent()) {
+            throw new InvalidUserDataException("Charset for manifestContentCharset must not be null");
+        }
+        if (!Charset.isSupported(getManifestContentCharset().get())) {
+            throw new InvalidUserDataException(String.format("Charset for manifestContentCharset '%s' is not supported by your JVM", getManifestContentCharset().get()));
+        }
+
+        manifestInternal.setContentCharset(getManifestContentCharset().get());
         return manifestInternal;
     }
 
@@ -109,23 +119,8 @@ public abstract class Jar extends Zip {
      * @since 2.14
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getMetadataCharset() {
-        return super.getMetadataCharset();
-    }
-
-    /**
-     * The character set used to encode JAR metadata like file names.
-     * Defaults to UTF-8.
-     * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
-     *
-     * @param metadataCharset the character set used to encode JAR metadata like file names
-     * @since 2.14
-     */
-    @Override
-    public void setMetadataCharset(String metadataCharset) {
-        super.setMetadataCharset(metadataCharset);
-    }
+    @NonNull
+    public abstract Property<String> getMetadataCharset();
 
     /**
      * The character set used to encode the manifest content.
@@ -136,27 +131,8 @@ public abstract class Jar extends Zip {
      * @since 2.14
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getManifestContentCharset() {
-        return manifestContentCharset;
-    }
-
-    /**
-     * The character set used to encode the manifest content.
-     *
-     * @param manifestContentCharset the character set used to encode the manifest content
-     * @see #getManifestContentCharset()
-     * @since 2.14
-     */
-    public void setManifestContentCharset(String manifestContentCharset) {
-        if (manifestContentCharset == null) {
-            throw new InvalidUserDataException("manifestContentCharset must not be null");
-        }
-        if (!Charset.isSupported(manifestContentCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for manifestContentCharset '%s' is not supported by your JVM", manifestContentCharset));
-        }
-        this.manifestContentCharset = manifestContentCharset;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getManifestContentCharset();
 
     /**
      * Returns the manifest for this JAR archive.

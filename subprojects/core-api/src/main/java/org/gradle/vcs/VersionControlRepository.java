@@ -18,7 +18,8 @@ package org.gradle.vcs;
 
 import org.gradle.api.Action;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * Represents the details about a particular VCS repository that contains a build that produces zero or more components that can be used during dependency resolution.
@@ -36,21 +37,14 @@ public interface VersionControlRepository {
     void producesModule(String module);
 
     /**
-     * Returns the relative path to the root of the build within the repository.
+     * The relative path to the root of the build within the repository.
      *
-     * <p>Defaults to an empty relative path, meaning the root of the repository.
+     * <p>An empty string means the root of the repository (this is the default value).
      *
      * @return the root directory of the build, relative to the root of this repository.
      */
-    @ToBeReplacedByLazyProperty
-    String getRootDir();
-
-    /**
-     * Sets the relative path to the root of the build within the repository. Use an empty string to refer to the root of the repository.
-     *
-     * @param rootDir The root directory of the build, relative to the root of this repository.
-     */
-    void setRootDir(String rootDir);
+    @ReplacesEagerProperty
+    Property<String> getRootDir();
 
     /**
      * Defines the plugins to be injected into the build.

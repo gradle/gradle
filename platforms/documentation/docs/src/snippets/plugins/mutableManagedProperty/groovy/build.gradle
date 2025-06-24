@@ -1,4 +1,4 @@
 
 tasks.register('download', Download) {
-    uri = uri("https://gradle.org")
+    uri = project.uri("https://gradle.org")
 }

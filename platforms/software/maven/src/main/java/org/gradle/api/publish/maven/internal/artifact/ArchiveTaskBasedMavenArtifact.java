@@ -17,35 +17,42 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-
-import java.io.File;
 
 public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
     private final AbstractArchiveTask archiveTask;
     private final TaskDependencyInternal buildDependencies;
 
-    public ArchiveTaskBasedMavenArtifact(AbstractArchiveTask archiveTask, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public ArchiveTaskBasedMavenArtifact(
+        AbstractArchiveTask archiveTask,
+        TaskDependencyFactory taskDependencyFactory,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory
+    ) {
+        super(taskDependencyFactory, objectFactory, providerFactory);
         this.archiveTask = archiveTask;
         this.buildDependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(archiveTask));
     }
 
     @Override
-    public File getFile() {
-        return archiveTask.getArchiveFile().get().getAsFile();
+    public Provider<RegularFile> getFile() {
+        return archiveTask.getArchiveFile();
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return archiveTask.getArchiveExtension().getOrNull();
+    protected Provider<String> getDefaultExtension() {
+        return archiveTask.getArchiveExtension();
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return archiveTask.getArchiveClassifier().getOrNull();
+    protected Provider<String> getDefaultClassifier() {
+        return archiveTask.getArchiveClassifier().filter(it -> !it.isEmpty());
     }
 
     @Override

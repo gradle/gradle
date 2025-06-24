@@ -65,7 +65,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         JavaPluginHelper.getJavaComponent(project).getMainFeature().getApiConfiguration().extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
-        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.antlrClasspath.convention(antlrConfiguration));
+        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getAntlrClasspath().convention(antlrConfiguration));
 
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(
             new Action<SourceSet>() {
@@ -92,13 +92,13 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                         task.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
                         // 4.1) set up convention mapping for default sources (allows user to not have to specify)
                         task.setSource(antlrSourceSet);
-                        task.setOutputDirectory(outputDirectory);
+                        task.getOutputDirectory().set(outputDirectory);
                     });
 
                     // 5) Add that task's outputs to the Java source set
                     sourceSet.getJava().srcDir(antlrTask.map(task -> {
                         String relativeOutputDirectory = project.relativePath(task.getOutputDirectory());
-                        return project.file(deriveGeneratedSourceRootDirectory(relativeOutputDirectory, task.getArguments()));
+                        return project.file(deriveGeneratedSourceRootDirectory(relativeOutputDirectory, task.getArguments().get()));
                     }));
                 }
             });

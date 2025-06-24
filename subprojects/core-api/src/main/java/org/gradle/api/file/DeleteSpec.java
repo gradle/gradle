@@ -16,7 +16,15 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 
 /**
  * A specification for deleting files from the filesystem.
@@ -33,8 +41,11 @@ public interface DeleteSpec {
 
     /**
      * Specifies whether or not symbolic links should be followed during deletion.
-     *
-     * @param followSymlinks deletion will follow symlinks when true.
-     */
-    void setFollowSymlinks(boolean followSymlinks);
+     * @since 9.0
+     **/
+    @Input
+    @Optional
+    @Incubating
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = SETTER, name = "setFollowSymlinks", originalType = boolean.class))
+    Property<Boolean> getFollowSymlinks();
 }
