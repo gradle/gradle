@@ -2,10 +2,12 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.fixtures.Flaky
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 
 class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
@@ -41,6 +43,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4723
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
         withBuildScript(
             """
