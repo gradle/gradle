@@ -232,6 +232,13 @@ Dependency graphs resolved from detached configurations and `buildscript` config
 
 [Resolved project configurations](userguide/declaring_configurations.html) will continue to have their root component live within the project's component and identified by a [`ProjectComponentIdentifier`](javadoc/org/gradle/api/artifacts/component/ProjectComponentIdentifier.html). In future Gradle versions, all configurations, including those declared inside projects (non-detached), will be owned by a synthetic root component identified by a `RootComponentIdentifier`.
 
+#### `JAVA_HOME` environment variable is now used for toolchain auto-detection
+
+Gradle's [toolchain support](userguide/toolchains.html) allows provisioning and selection of specific JDK versions for building projects—compiling code, running tests, and even running Gradle itself.
+
+With this release, toolchain auto-detection now uses the `JAVA_HOME` environment variable as a possible source of JDK versions.
+The effect is mostly to have consistency between detected toolchains on the CLI and from IDEs, as in the later case `JAVA_HOME` was not used.
+
 <a name="documentation"></a>
 ### Documentation improvements
 
