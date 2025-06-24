@@ -80,7 +80,7 @@ abstract class JvmCompilation {
     @JvmName("associateJava")
     fun Project.associate(javaCompile: TaskProvider<JavaCompile>) {
         javaCompile.configure {
-            // Set the release flag is requested.
+            // Set the release flag if requested.
             // Otherwise, we set the source and target compatibility in the afterEvaluate below.
             options.release = useRelease().zip(targetJvmVersion) { doUseRelease, target -> if (doUseRelease) { target } else { null } }
         }

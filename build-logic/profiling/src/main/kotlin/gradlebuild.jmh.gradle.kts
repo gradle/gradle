@@ -21,7 +21,7 @@ plugins {
 }
 
 jvmCompile {
-    addCompilationFrom(sourceSets.jmh).apply {
+    addCompilationFrom(sourceSets.jmh) {
         associate(tasks.jmhCompileGeneratedClasses)
     }
 }

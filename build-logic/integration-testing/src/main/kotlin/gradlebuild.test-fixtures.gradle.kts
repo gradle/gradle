@@ -34,7 +34,7 @@ plugins {
 }
 
 jvmCompile {
-    addCompilationFrom(sourceSets.named("testFixtures")).apply {
+    addCompilationFrom(sourceSets.named("testFixtures")) {
         // By default, test fixtures compile to the same JVM version as the production code.
         targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
     }

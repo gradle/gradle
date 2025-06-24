@@ -68,7 +68,7 @@ the<JvmCompileExtension>().apply {
             targetJvmVersion = 17
         }
     }
-    addCompilationFrom(sourceSets.main).apply {
+    addCompilationFrom(sourceSets.main) {
         // For the production code, we derive the JVM version from the target runtime
         targetJvmVersion = gradleModule.targetRuntimes.computeProductionJvmTargetVersion()
     }

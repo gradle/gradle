@@ -38,9 +38,20 @@ abstract class JvmCompileExtension {
         return addCompilationFrom(sourceSet.get())
     }
 
+    fun Project.addCompilationFrom(sourceSet: NamedDomainObjectProvider<SourceSet>, configure: JvmCompilation.() -> Unit): JvmCompilation {
+        return addCompilationFrom(sourceSet.get(), configure)
+    }
+
     fun Project.addCompilationFrom(sourceSet: SourceSet): JvmCompilation {
         return compilations.create(sourceSet.name) {
             from(sourceSet)
+        }
+    }
+
+    fun Project.addCompilationFrom(sourceSet: SourceSet, configure: JvmCompilation.() -> Unit): JvmCompilation {
+        return compilations.create(sourceSet.name) {
+            from(sourceSet)
+            configure()
         }
     }
 

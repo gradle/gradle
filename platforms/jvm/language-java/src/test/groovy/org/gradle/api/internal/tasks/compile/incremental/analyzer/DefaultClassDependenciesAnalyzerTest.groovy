@@ -76,8 +76,7 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
                 AccessedFromPrivateMethodBody.name,
                 // AccessedFromPrivateClass.name, // would be in ClassAnalysis for SomeClass$Foo
                 // AccessedFromPrivateClassPublicField.name, // would be in ClassAnalysis for SomeClass$Foo
-                SomeClass.name + '$Foo',
-                // SomeClass.name + '$1' // This is only generated when compiling SomeClass with Java 8
+                SomeClass.name + '$Foo'
         ] as Set
     }
 

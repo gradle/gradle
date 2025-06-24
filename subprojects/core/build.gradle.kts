@@ -32,7 +32,7 @@ dependencyAnalysis {
     }
 }
 jvmCompile {
-    addCompilationFrom(testInterceptors).apply {
+    addCompilationFrom(testInterceptors) {
         // By default, test interceptors compile to the same JVM version as the production code.
         targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
     }
