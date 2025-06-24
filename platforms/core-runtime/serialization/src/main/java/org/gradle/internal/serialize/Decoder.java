@@ -108,7 +108,7 @@ public interface Decoder {
     String readString() throws EOFException, IOException;
 
     /**
-     * Reads a nullable string value. Can reads any value that was written using {@link Encoder#writeNullableString(CharSequence)}.
+     * Reads a nullable string value. Can read any value that was written using {@link Encoder#writeNullableString(CharSequence)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the string can be fully read.
      */
