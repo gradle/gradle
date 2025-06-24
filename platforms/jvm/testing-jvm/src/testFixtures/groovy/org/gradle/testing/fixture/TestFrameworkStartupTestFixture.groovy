@@ -39,9 +39,11 @@ trait TestFrameworkStartupTestFixture {
         assert taskOutput =~ /afterSuite Gradle Test Run $taskName \[.*\] FAILURE/
     }
 
-    void assertTestWorkerStartedAndTestFrameworkFailedToStart(String taskName = ":test") {
-        failure.assertHasDescription("Execution failed for task '$taskName'.")
-        failure.assertHasCause("Tests were not started due to a configuration problem.")
+    void assertTestWorkerStartedAndTestFrameworkFailedToStart(String taskName = ":test", int expectedWorkerFailures = 1) {
+        failure.assertHasFailure("Execution failed for task '$taskName'.") {
+            it.assertHasCauses(1 + expectedWorkerFailures)
+            it.assertHasCause("Tests were not started due to a configuration problem.")
+        }
         failure.assertThatCause(matchesRegexp(/Could not start Gradle Test Executor \d+:.*/))
 
         def taskOutput = result.groupedOutput.task(taskName).output

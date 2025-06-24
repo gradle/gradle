@@ -27,6 +27,61 @@ import org.gradle.testing.fixture.TestNGCoverage
  * runtime dependencies are not included on the test runtime classpath.
  */
 class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegrationSpec implements TestFrameworkStartupTestFixture {
+    def "sensible help message when multiple workers fail to start"() {
+        given:
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                testCompileOnly("junit:junit:${JUnitCoverage.LATEST_JUNIT4_VERSION}")
+            }
+
+            test {
+                useJUnit()
+                maxParallelForks = 2
+            }
+
+            ${addLoggingTestListener()}
+        """
+
+        file("src/test/java/MyTest.java") << """
+            public class MyTest {
+                @org.junit.Test
+                public void test() {}
+            }
+        """
+
+        file("src/test/java/MyTest2.java") << """
+            public class MyTest2 {
+                @org.junit.Test
+                public void test() {}
+            }
+        """
+
+        file("src/test/java/MyTest3.java") << """
+            public class MyTest3 {
+                @org.junit.Test
+                public void test() {}
+            }
+        """
+
+        when:
+        fails('test')
+
+        then: "Test framework startup failure is reported"
+        assertTestWorkerStartedAndTestFrameworkFailedToStart(":test", 2)
+
+        and: "Resolutions are provided"
+        assertSuggestsInspectTaskConfiguration()
+
+        and: "No test class results created"
+        new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
+    }
+
     def "junit 4 fails with sensible error message"() {
         given:
         buildFile << """
