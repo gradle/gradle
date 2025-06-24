@@ -39,13 +39,21 @@ trait GradleMetadataAwarePublishingSpec {
         if (notation instanceof CharSequence) {
             return notation
         }
+
         if (notation instanceof IvyModule) {
-            return "group: '${sq(notation.organisation)}', name: '${sq(notation.module)}', version: '${sq(notation.revision)}'"
+            return asDependency(sq(notation.organisation), sq(notation.module), sq(notation.revision))
         }
         if (notation instanceof MavenModule) {
-            return "group: '${sq(notation.groupId)}', name: '${sq(notation.artifactId)}', version: '${sq(notation.version)}'"
+            return asDependency(sq(notation.groupId), sq(notation.artifactId), sq(notation.version))
         }
         throw new UnsupportedOperationException("Unsupported dependency notation: $notation")
+    }
+
+    private static String asDependency(String group, String name, String version) {
+        if ([group, name, version].any { it.contains(':') || it.contains('@') }) {
+            return "project.services.get(DependencyFactory).create('${group}', '${name}', '${version}')"
+        }
+        return "'${group}:${name}:${version}'"
     }
 
 }

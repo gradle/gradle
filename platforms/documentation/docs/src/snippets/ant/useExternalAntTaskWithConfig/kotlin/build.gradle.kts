@@ -6,7 +6,7 @@ repositories {
 val pmd = configurations.create("pmd")
 
 dependencies {
-    pmd(group = "pmd", name = "pmd", version = "4.2.5")
+    pmd("pmd:pmd:4.2.5")
 }
 // end::define-classpath[]
 

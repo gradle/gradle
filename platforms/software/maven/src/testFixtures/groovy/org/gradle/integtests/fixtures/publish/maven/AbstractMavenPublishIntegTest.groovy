@@ -67,49 +67,39 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        def attributes = params.variant == null ?
-            "" :
+
+        String artifacts = params.additionalArtifacts.collect {
+            def tokens = it.ivyTokens
             """
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
-    }
-"""
-        String extraArtifacts = ""
-        if (params.additionalArtifacts) {
-            String artifacts = params.additionalArtifacts.collect {
-                def tokens = it.ivyTokens
-                """
-                    artifact {
-                        name = '${sq(tokens.artifact)}'
-                        classifier = '${sq(tokens.classifier)}'
-                        type = '${sq(tokens.type)}'
-                    }"""
-            }.join('\n')
-            extraArtifacts = """
-                {
-                    transitive = false
-                    $artifacts
+                artifact {
+                    name = '${sq(tokens.artifact)}'
+                    classifier = '${sq(tokens.classifier)}'
+                    type = '${sq(tokens.type)}'
                 }
             """
-        }
+        }.join('\n')
 
         String dependencyNotation = params.dependency
-        if (params.classifier) {
-            dependencyNotation = "${dependencyNotation}, classifier: '${sq(params.classifier)}'"
-        }
-        if (params.ext) {
-            dependencyNotation = "${dependencyNotation}, ext: '${sq(params.ext)}'"
-        }
 
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
         def optional = params.optionalFeatureCapabilities.collect {
-            "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
+            """
+                resolve($dependencyNotation) {
+                    capabilities {
+                        requireCapability('$it')
+                    }
+                }
+            """
         }.join('\n')
         buildFile.text = """
             apply plugin: 'java-base' // to get the standard Java library derivation strategy
             configurations {
                 resolve {
-                    ${attributes}
+                    if (${params.variant != null}) {
+                        attributes {
+                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
+                        }
+                    }
                 }
             }
             repositories {
@@ -124,8 +114,21 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
             }
 
             dependencies {
-               resolve($dependencyNotation) $extraArtifacts
-               $optional
+                resolve($dependencyNotation) {
+                    $artifacts
+                    transitive = ${params.additionalArtifacts.isEmpty()}
+                    if (${params.classifier != null || params.ext != null}) {
+                        artifact {
+                            if (${params.classifier != null}) {
+                                classifier = '${sq(params.classifier ?: "")}'
+                            }
+                            if (${params.ext != null}) {
+                                type = '${sq(params.ext ?: "")}'
+                            }
+                        }
+                    }
+                }
+                $optional
             }
 
             task resolveArtifacts(type: Sync) {
@@ -148,7 +151,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     static class ResolveParams {
         MavenModule module
         String dependency
-        List<? extends ModuleArtifact> additionalArtifacts
+        List<? extends ModuleArtifact> additionalArtifacts = []
 
         String classifier
         String ext

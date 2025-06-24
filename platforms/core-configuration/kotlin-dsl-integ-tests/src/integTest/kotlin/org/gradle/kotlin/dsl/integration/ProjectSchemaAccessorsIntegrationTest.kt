@@ -675,7 +675,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             plugins { `java-library` }
 
             dependencies {
-                compileOnly(group = "org.slf4j", name = "slf4j-api", version = "1.7.25")
+                compileOnly("org.slf4j:slf4j-api:1.7.25")
                 api("com.google.guava:guava:21.0")
                 implementation("ch.qos.logback:logback-classic:1.2.3") {
                     isTransitive = false

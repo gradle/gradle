@@ -609,8 +609,16 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
     }
 
     def "can declare dependency rules using multi-string notation"() {
+        mavenRepo.module("org", "bar", "1.0").publish()
+
         given:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
             dependencies {
                 components {
                     all {
@@ -622,19 +630,34 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                         }
                     }
                 }
+
+                implementation("org:bar:1.0")
             }
         """
 
         expect:
-        succeeds("help")
+        if (notation.contains("group")) {
+            succeeds("dependencies", "--configuration", "runtimeClasspath")
+        } else {
+            fails("dependencies", "--configuration", "runtimeClasspath") // Group is required for module component IDs
+        }
+
 
         where:
-        notation << GROOVY_DEPENDENCY_NOTATIONS
+        notation << GROOVY_CONSTRAINT_NOTATIONS
     }
 
     def "can declare constraint rules using multi-string notation"() {
+        mavenRepo.module("org", "bar", "1.0").publish()
+
         given:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
             dependencies {
                 components {
                     all {
@@ -646,14 +669,16 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                         }
                     }
                 }
+
+                implementation("org:bar:1.0")
             }
         """
 
         expect:
-        succeeds("help")
+        succeeds("dependencies", "--configuration", "runtimeClasspath")
 
         where:
-        notation << GROOVY_DEPENDENCY_NOTATIONS
+        notation << GROOVY_CONSTRAINT_NOTATIONS
     }
 
     def "can declare dependencies using multi-string notation in type-safe dependencies block"() {
@@ -666,6 +691,40 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                 dependencies {
                     implementation(module(${notation}))
                     implementation(module(${notation})) {}
+                    implementation(platform(module(${notation})))
+                    implementation(platform(module(${notation}))) {}
+                    implementation(enforcedPlatform(module(${notation})))
+                    implementation(enforcedPlatform(module(${notation}))) {}
+                }
+            }
+        """
+
+        expect:
+        succeeds("help")
+
+        where:
+        notation << [
+            "null, 'foo', null",
+            "'org', 'foo', null",
+            "'org', 'foo', '1.0'",
+            "null, 'foo', '1.0'",
+        ]
+    }
+
+    def "can declare dependencies using named multi-string notation in type-safe dependencies block"() {
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            testing.suites.test {
+                dependencies {
+                    implementation(module(${notation}))
+                    implementation(module(${notation})) {}
+                    implementation(platform(module(${notation})))
+                    implementation(platform(module(${notation}))) {}
+                    implementation(enforcedPlatform(module(${notation})))
+                    implementation(enforcedPlatform(module(${notation}))) {}
                 }
             }
         """
@@ -682,7 +741,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         ]
     }
 
-    def "can declare dependencies using multi-string notation in type-safe dependencies block in Kotlin"() {
+    def "can declare dependencies using named multi-string notation in type-safe dependencies block in Kotlin"() {
         buildKotlinFile << """
             plugins {
                 id("java-library")
@@ -692,10 +751,13 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                 dependencies {
                     implementation(module(${notation}))
                     implementation(module(${notation})) {}
+                    implementation(platform(module(${notation})))
+                    implementation(platform(module(${notation}))) {}
+                    implementation(enforcedPlatform(module(${notation})))
+                    implementation(enforcedPlatform(module(${notation}))) {}
                 }
             }
         """
-
 
         expect:
         if (notation.contains("group") && notation.contains("name") && notation.contains("version")) {
