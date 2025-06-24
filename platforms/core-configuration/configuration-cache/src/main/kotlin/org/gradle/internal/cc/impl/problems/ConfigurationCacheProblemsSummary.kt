@@ -119,7 +119,7 @@ class ConfigurationCacheProblemsSummary(
             }
             if (severity != ProblemSeverity.SuppressedSilently) {
                 val isNewCause = recordProblemCause(problem, severity)
-                if (isNewCause) {
+                if (isNewCause && severity != ProblemSeverity.Interrupting) {
                     collectOriginalException(problem)
                 }
             }
