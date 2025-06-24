@@ -44,7 +44,7 @@ class ConfigurableFileTreeCodec(
         val patterns = readNonNull<PatternSet>()
         val tree = fileCollectionFactory.withResolver(resolver).fileTree()
         tree.setDir(dir)
-        // TODO - read patterns directly into tree
+        // TODO:configuration-cache - read patterns directly into tree
         tree.patterns.copyFrom(patterns)
         return tree
     }
