@@ -38,6 +38,28 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
             .assertTestFailed("initializationError", containsString('ClassFormatError'))
     }
 
+    def "tries to execute unparseable test classes"() {
+        given:
+        file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """
+
+        when:
+        fails('test', '-x', 'compileTestJava', '--stacktrace')
+
+        then:
+        // TODO: This doesn't look like the other test frameworks
+        failure.assertHasCause("There were failing tests.")
+        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
+        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1, 0)
+    }
+
     def "test thread name is reset after test execution"() {
         when:
         buildFile << """

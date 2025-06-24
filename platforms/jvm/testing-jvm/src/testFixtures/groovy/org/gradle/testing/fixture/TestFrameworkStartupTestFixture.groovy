@@ -42,7 +42,7 @@ trait TestFrameworkStartupTestFixture {
     void assertTestWorkerStartedAndTestFrameworkFailedToStart(String taskName = ":test", int expectedWorkerFailures = 1) {
         failure.assertHasFailure("Execution failed for task '$taskName'.") {
             it.assertHasCauses(1 + expectedWorkerFailures)
-            it.assertHasCause("Tests were not started due to a configuration problem.")
+            it.assertHasCause("Test process encountered an unexpected problem.")
         }
         failure.assertThatCause(matchesRegexp(/Could not start Gradle Test Executor \d+:.*/))
 
@@ -52,8 +52,7 @@ trait TestFrameworkStartupTestFixture {
     }
 
     void assertSuggestsInspectTaskConfiguration() {
-        failure.assertHasResolution("Inspect your task configuration for errors.")
-        failure.assertHasResolution("Check for missing dependencies https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#test_framework_implementation_dependencies.")
+        failure.assertHasResolution("Check common problems https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:java_testing_troubleshooting.")
     }
 
     String addLoggingTestListener() {

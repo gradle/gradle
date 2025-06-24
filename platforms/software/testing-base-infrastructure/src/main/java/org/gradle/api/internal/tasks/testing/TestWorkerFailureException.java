@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
@@ -28,10 +27,10 @@ import java.util.List;
  * This exception is used to provide additional information about the failure, including possible resolutions.
  */
 @NullMarked
-public final class TestWorkerStartupFailureException extends DefaultMultiCauseException implements ResolutionProvider {
+public final class TestWorkerFailureException extends DefaultMultiCauseException {
     private final List<String> resolutions;
 
-    public TestWorkerStartupFailureException(String message, List<Throwable> causes, List<String> resolutions) {
+    public TestWorkerFailureException(String message, List<Throwable> causes, List<String> resolutions) {
         super(message, causes);
         this.resolutions = resolutions;
     }

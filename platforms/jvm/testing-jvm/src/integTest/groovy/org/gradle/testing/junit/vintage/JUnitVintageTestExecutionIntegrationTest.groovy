@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.vintage
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
@@ -43,5 +44,27 @@ class JUnitVintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutio
         return super.getStableEnvironmentDependencies() + """
             testImplementation 'junit:junit:${LATEST_JUNIT4_VERSION}'
         """
+    }
+
+    def "tries to execute unparseable test classes"() {
+        given:
+        file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """
+
+        when:
+        fails('test', '-x', 'compileTestJava', '--stacktrace')
+
+        then:
+        failure.assertHasCause("Test process encountered an unexpected problem.")
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
+        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1, 0)
     }
 }

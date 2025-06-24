@@ -142,7 +142,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
         then: "Task failure is reported"
 
         failure.assertHasDescription("Execution failed for task ':test'.")
-        failure.assertHasCause("Tests were not started due to a configuration problem.")
+        failure.assertHasCause("Test process encountered an unexpected problem.")
         failure.assertThatCause(matchesRegexp(/Process 'Gradle Test Executor \d+' finished with non-zero exit value 231.*/))
     }
 

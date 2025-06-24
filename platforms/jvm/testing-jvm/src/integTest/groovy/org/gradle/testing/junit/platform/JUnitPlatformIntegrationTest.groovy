@@ -368,8 +368,8 @@ public class StaticInnerTest {
         file('src/test/resources/META-INF/services/org.junit.platform.engine.TestEngine') << 'EngineFailingDiscovery'
 
         expect:
-        fails('test', *extraArgs)
-        failureCauseContains('There were failing tests.')
+        fails('test', '--stacktrace', *extraArgs)
+        failure.assertHasCause('Test process encountered an unexpected problem.')
 
         where:
         scenario       | extraArgs
