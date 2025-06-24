@@ -87,7 +87,11 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         verify(result, expectedResults)
 
         when: 'clean cached build, reusing configuration cache when enabled'
-        runnerForLocation(relocatedDir, agpVersion, "clean").build()
+        runnerForLocation(relocatedDir, agpVersion, "clean")
+            .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecation()
+            }
+            .build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
         result = buildCachedLocation(relocatedDir, agpVersion)
 

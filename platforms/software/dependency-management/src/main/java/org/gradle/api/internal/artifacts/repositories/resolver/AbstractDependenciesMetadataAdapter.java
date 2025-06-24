@@ -60,6 +60,7 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
     }
 
     @Override
+    @Deprecated
     public void add(Map<String, String> dependencyNotation) {
         doAdd(dependencyNotation, null);
     }
@@ -70,6 +71,7 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
     }
 
     @Override
+    @Deprecated
     public void add(Map<String, String> dependencyNotation, Action<? super T> configureAction) {
         doAdd(dependencyNotation, configureAction);
     }
