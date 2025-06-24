@@ -271,13 +271,13 @@ The following operator functions in [`DependencyConstraintHandlerScope`](kotlin-
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
 
-The following top-level functions in [`DependencyHandlerExtensions`](kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/index.html) are now considered stable:
+The following top-level functions in [`DependencyHandlerExtensions`](kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/index.html) are considered stable:
 * `DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
 
-The following top-level functions in [`KotlinDependencyExtensions`](kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/index.html) are now considered stable:
+The following top-level functions in [`KotlinDependencyExtensions`](kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/index.html) are considered stable:
 * `PluginDependenciesSpec.embeddedKotlin(module: String): PluginDependencySpec`
 
-The following functions are now considered stable:
+The following functions are considered stable:
 * `GroovyBuilderScope.hasProperty(name: String): Boolean`
 
 ## Fixed issues
