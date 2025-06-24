@@ -223,6 +223,7 @@ java {
 If your build uses a toolchain, ensure it matches the `JAVA_HOME` value, or at least know they differ intentionally.
 You should also check your IDE settings to make sure they match as well.
 
+[[sec:configuring_daemon_jvm]]
 == Configuring the Daemon JVM
 
 NOTE: Daemon JVM discovery and criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
