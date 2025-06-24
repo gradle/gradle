@@ -33,7 +33,6 @@ We would like to thank the following community members for their contributions t
 [FlorianMichael](https://github.com/FlorianMichael),
 [Francisco Prieto](https://github.com/priettt),
 [Gaëtan Muller](https://github.com/MGaetan89),
-[Ghost](https://github.com/ghost),
 [Jake Wharton](https://github.com/JakeWharton),
 [Kengo TODA](https://github.com/KengoTODA),
 [Kent Kaseda](https://github.com/kaseken),
