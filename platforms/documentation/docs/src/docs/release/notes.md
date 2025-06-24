@@ -16,7 +16,7 @@ This release makes [Configuration Cache](#config-cache) the preferred execution 
 
 Gradle @version@ uses [Kotlin 2](#kotlin-2) and [Groovy 4](#groovy-4), and adopts [Semantic Versioning](#sem-ver) (SemVer) with version numbers in the format `MAJOR.MINOR.PATCH`.
 
-It also introduces several improvements for [build authors](#build-authoring), including much better Kotlin DSL script compilation performance, updates to the Gradle API, and a new type for Dependency Graph root nodes that allows detached configurations to resolve dependencies that reference their project.
+It also introduces several improvements for [build authors](#build-authoring), including much better Kotlin DSL script compilation avoidance, updates to the Gradle API, reproducible archive outputs, and a new dependency graph root type that allows detached configurations to resolve project dependencies.
 
 Gradle @version@ includes numerous bug fixes and general improvements.
 As a major release, it also introduces changes to deprecated APIs and behaviors.
@@ -24,15 +24,16 @@ For details on what has been removed or updated, refer to the [Gradle 8.x upgrad
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Aaron Matthis](https://github.com/rapus95),
-[Adam S](https://github.com/aSemy),
 [Adam E](https://github.com/adam-enko),
+[Adam S](https://github.com/aSemy),
 [Björn Kautler](https://github.com/Vampire),
 [Daniel Lacasse](https://github.com/lacasseio),
-[Ghost](https://github.com/ghost),
 [Eng Zer Jun](https://github.com/Juneezee),
 [EunHyunsu](https://github.com/ehs208),
 [FlorianMichael](https://github.com/FlorianMichael),
 [Francisco Prieto](https://github.com/priettt),
+[Gaëtan Muller](https://github.com/MGaetan89),
+[Ghost](https://github.com/ghost),
 [Jake Wharton](https://github.com/JakeWharton),
 [Kengo TODA](https://github.com/KengoTODA),
 [Kent Kaseda](https://github.com/kaseken),
@@ -72,7 +73,7 @@ Gradle's [Configuration Cache](userguide/configuration_cache.html) improves buil
 
 #### Configuration Cache as the preferred execution mode
 
-The Configuration Cache is the preferred mode of execution and is enabled by default in new projects.
+The Configuration Cache is the preferred mode of execution.
 While not yet required, Gradle encourages adoption by prompting users and gradually phasing out incompatible APIs to prepare for a future where it becomes the only supported mode.
 
 #### Prompt to enable Configuration Cache
@@ -114,7 +115,8 @@ Additional updates for the [Configuration Cache](userguide/configuration_cache.h
 
 Gradle requires a Java Virtual Machine (JVM) version [17 or higher](userguide/upgrading_version_8.html#jvm-17) to start the Gradle daemon.
 
-If you need to build with older JVM versions, you can specify a separate JDK toolchain in the build definition by using [toolchains](userguide/toolchains.html).  Gradle still supports compiling, testing and running other JVM-based tools with 8 and higher.
+If you need to build with older JVM versions, you can specify a separate JDK toolchain in the build definition by using [toolchains](userguide/toolchains.html).  
+Gradle still supports compiling, testing and running other JVM-based tools with Java 8 and higher.
 
 See the [Compatibility Matrix](userguide/compatibility.html) for more information.
 
@@ -131,7 +133,7 @@ Gradle uses Kotlin for build logic, which includes:
 - Build scripts written in the Kotlin DSL (`.gradle.kts` files)
 - Plugins
 
-As a result, some behavior has changed, most notably the new [K2 compiler](#compilation-avoidance) and [JSpecify](#jspecify).
+As a result, some behavior has changed, most notably the new K2 compiler and [nullability annotations on APIs](#jspecify).
 If you're upgrading, review the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#kotlin-2) for migration details.
 
 <a name="groovy-4"></a>
@@ -143,10 +145,9 @@ This update introduces a range of new features and improvements to the Groovy la
 For a comprehensive overview of what’s new, see the [Groovy 4.0 release notes](https://groovy-lang.org/releasenotes/groovy-4.0.html) for full details.
 
 Gradle uses Groovy for build logic, which includes:
-
-- Build scripts written in the Groovy DSL (`.gradle` files)
-- Ant integration
-- Plugins
+Build scripts written in the Groovy DSL (`.gradle` files)
+Ant integration
+Plugins
 
 Some behavior has changed between Groovy 3.0 and 4.0. If you're upgrading, review the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#groovy-4) for migration details.
 
@@ -158,7 +159,7 @@ Starting with Gradle 9, all Gradle releases follow the [Semantic Versioning (Sem
 Version numbers are expressed as `MAJOR.MINOR.PATCH`, whereas previous minor releases omitted the patch segment (e.g., `8.5` instead of `8.5.0`).
 
 This change only applies to new releases and does not retroactively affect older versions or backports.
-Additionally, internal code and features marked with `@Incubating` are not considered part of the public API and may [change in minor releases](/userguide/feature_lifecycle.html#sec:incubating_state).
+Additionally, internal code and features marked with `@Incubating` are not considered part of the public API and may [change in minor releases](userguide/feature_lifecycle.html#sec:incubating_state).
 
 <a name="build-authoring"></a>
 ### Build authoring improvements
@@ -251,7 +252,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Promoted features in the Kotlin DSL
 
-The following operator functions in `DependencyHandlerScope` are now considered stable:
+The following operator functions in [`DependencyHandlerScope`](kotlin-dsl/gradle/org.gradle.kotlin.dsl/-dependency-handler-scope/index.html) are considered stable:
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency?`
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
 * `NamedDomainObjectProvider<Configuration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?): ExternalModuleDependency`
@@ -266,22 +267,18 @@ The following operator functions in `DependencyHandlerScope` are now considered 
 * `<T : Any> String.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
 * `<T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T`
 
-The following operator functions in `DependencyConstraintHandlerScope` are now considered stable:
+The following operator functions in [`DependencyConstraintHandlerScope`](kotlin-dsl/gradle/org.gradle.kotlin.dsl/-dependency-constraint-handler-scope/index.html) are considered stable:
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
 * `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
 
-The following top-level functions in `DependencyHandlerExtensions` are now considered stable:
+The following top-level functions in [`DependencyHandlerExtensions`](kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/index.html) are now considered stable:
 * `DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
 
-The following top-level functions in `KotlinDependencyExtensions` are now considered stable:
+The following top-level functions in [`KotlinDependencyExtensions`](kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/index.html) are now considered stable:
 * `PluginDependenciesSpec.embeddedKotlin(module: String): PluginDependencySpec`
 
 The following functions are now considered stable:
 * `GroovyBuilderScope.hasProperty(name: String): Boolean`
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
