@@ -59,12 +59,13 @@ To check, run `java -version`:
 
 ----
 ❯ java -version
-openjdk version "11.0.18" 2023-01-17
-OpenJDK Runtime Environment Homebrew (build 11.0.18+0)
-OpenJDK 64-Bit Server VM Homebrew (build 11.0.18+0, mixed mode)
+openjdk version "17.0.6" 2023-01-17
+OpenJDK Runtime Environment Temurin-17.0.6+10 (build 17.0.6+10)
+OpenJDK 64-Bit Server VM Temurin-17.0.6+10 (build 17.0.6+10, mixed mode)
 ----
 
-Gradle uses the JDK it finds in your path, the JDK used by your IDE, or the JDK specified by your project.
+Gradle uses the JDK it finds in your path, the JDK used by your IDE, or the <<gradle_daemon#sec:configuring_daemon_jvm,JDK specified in your project>>.
+
 In this example, the $PATH points to JDK17:
 
 ----
@@ -77,12 +78,12 @@ This is especially useful when multiple JDKs are installed:
 
 ----
 ❯ echo %JAVA_HOME%
-C:\Program Files\Java\jdk1.7.0_80
+C:\Program Files\Java\jdk17.0_6
 ----
 
 ----
 ❯ echo $JAVA_HOME
-/Library/Java/JavaVirtualMachines/jdk-16.jdk/Contents/Home
+/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
 ----
 
 Gradle supports link:https://kotlinlang.org/[Kotlin] and link:https://groovy-lang.org/[Groovy] as the main build languages.
