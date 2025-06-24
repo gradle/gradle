@@ -81,7 +81,7 @@ Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay 
 
 === References
 
-- <<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
+- <<upgrading_version_9.adoc#upgrading_version_9,Upgrade Guide>>
 
 === Tags
 
