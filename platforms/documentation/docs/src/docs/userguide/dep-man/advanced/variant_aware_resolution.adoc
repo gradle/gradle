@@ -366,6 +366,20 @@ Gradle knows the _consumer_ requires a Java 7-compatible library, but the _produ
 If the _consumer_ requested `org.gradle.jvm.version=15`, Gradle could choose either the Java 8 or Java 11 *variant*.
 Gradle would then select the highest compatible version—Java 11.
 
+[[sec:secondary-variants]]
+== Secondary Variants
+
+**Secondary variants** are *additional sets of artifacts* that a variant can expose, which do **not** participate in graph resolution.
+Instead, they are considered *only during artifact selection*.
+
+These variants:
+
+* Must be explicitly published (normally they are not published and not declared in metadata).
+* Are typically used to expose *precomputed transforms* of the main artifact like `.class` files extracted from a JAR, or the `resources` directory.
+* May be selected via an `ArtifactView` or `ArtifactResolutionQuery`, if the requested attributes match.
+
+WARNING: Secondary variants are sometimes referred to in tooling or logs, but this term is being deprecated in favor of more precise concepts like *artifact sets* or *precomputed transforms*.
+
 [[sec:variant-visual]]
 == Visualizing Variant Information
 
@@ -486,8 +500,8 @@ From this you can see the two main *variants* that are exposed by a java library
 Notice that the main difference is on the `org.gradle.usage` *attribute*, with values `java-api` and `java-runtime`.
 As they indicate, this is where the difference is made between what needs to be on the _compile_ classpath of _consumers_, versus what's needed on the _runtime_ classpath.
 
-It also shows _secondary_ *variants*, which are exclusive to Gradle projects and not published.
-For example, the secondary *variant* `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
+It also shows *secondary variants*.
+For example, the *secondary variant* `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
 
 ==== Information about invalid consumable configurations
 
