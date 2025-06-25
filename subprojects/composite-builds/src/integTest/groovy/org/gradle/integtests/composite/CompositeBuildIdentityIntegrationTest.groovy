@@ -140,10 +140,7 @@ Required by:
             def rootProvider = runtimeClasspath.incoming.resolutionResult.rootComponent
             classes.doLast {
                 def rootComponent = rootProvider.get()
-                assert rootComponent.id.build.buildPath == ':'
-                assert rootComponent.id.projectPath == ':'
-                assert rootComponent.id.projectName == 'buildA'
-                assert rootComponent.id.buildTreePath == ':'
+                assert rootComponent.id instanceof RootComponentIdentifier
 
                 def components = rootComponent.dependencies.selected
                 assert components.size() == 1

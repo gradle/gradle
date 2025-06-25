@@ -505,10 +505,9 @@ class ResolveTestFixture {
 
         /**
          * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
-         *
-         * @param projectPath The path of the project to which the graph belongs.
-         * @param moduleVersion The module version for this project.
          */
+        // TODO: Root components no longer specify a project path or unique module version.
+        // We need to remove these two parameters from all the places that call this method.
         def root(String projectPath, String moduleVersion, @DelegatesTo(NodeBuilder) Closure cl) {
             if (this.root != null) {
                 throw new IllegalStateException("Root node is already defined")

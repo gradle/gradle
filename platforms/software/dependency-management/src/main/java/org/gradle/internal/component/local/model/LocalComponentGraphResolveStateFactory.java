@@ -121,6 +121,9 @@ public class LocalComponentGraphResolveStateFactory {
     public LocalComponentGraphResolveState adhocRootComponentState(ImmutableAttributesSchema attributesSchema) {
         Module module = new AnonymousModule();
         String status = module.getStatus();
+
+        // In reality the adhoc root component does not have a module identity.
+        // Eventually we should make the module ID optional on components.
         ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
 
         long instanceId = idGenerator.nextComponentId();
