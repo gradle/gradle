@@ -197,6 +197,8 @@ abstract class AbstractUserTypeCodecTest {
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),
+        attributeDesugaring = mock(),
+        attributeSchemaFactory = mock(),
         valueSourceProviderFactory = mock(),
         calculatedValueContainerFactory = mock(),
         patternSetFactory = mock(),
@@ -209,6 +211,5 @@ abstract class AbstractUserTypeCodecTest {
         flowProviders = mock(),
         transformStepNodeFactory = mock(),
         problems = mock(),
-        attributeDesugaring = mock(),
     )
 }

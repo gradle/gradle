@@ -272,6 +272,9 @@ public abstract class JavaEcosystemSupport {
     @VisibleForTesting
     static class LibraryElementsCompatibilityRules implements AttributeCompatibilityRule<LibraryElements> {
 
+        // public constructor to make reflective initialization happy.
+        public LibraryElementsCompatibilityRules() {}
+
         @Override
         public void execute(CompatibilityCheckDetails<LibraryElements> details) {
             LibraryElements consumerValue = details.getConsumerValue();
