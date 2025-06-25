@@ -127,6 +127,12 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning(
+            "The archives configuration has been deprecated for artifact declaration. " +
+                "This will fail with an error in Gradle 10. " +
+                "Add artifacts as a direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#sec:archives-configuration"
+        )
         succeeds("assemble")
 
         executedAndNotSkipped(":jar2")

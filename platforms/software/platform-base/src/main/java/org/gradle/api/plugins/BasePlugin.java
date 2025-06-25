@@ -25,7 +25,11 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+
+import static org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
@@ -72,8 +76,16 @@ public abstract class BasePlugin implements Plugin<Project> {
         RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
         ((ProjectInternal) project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.consumableLocked(Dependency.ARCHIVES_CONFIGURATION, conf -> {
+        final Configuration archivesConfiguration = configurations.migratingLocked(ARCHIVES_CONFIGURATION, CONSUMABLE_TO_RETIRED, conf -> {
             conf.setDescription("Configuration for archive artifacts.");
+            conf.getArtifacts().whenObjectAdded(artifact -> {
+                DeprecationLogger.deprecateConfiguration(ARCHIVES_CONFIGURATION)
+                    .forArtifactDeclaration()
+                    .withAdvice("Add artifacts as a direct task dependencies of the 'assemble' task instead of declaring them in the " + ARCHIVES_CONFIGURATION + " configuration.")
+                    .willBecomeAnErrorInNextMajorGradleVersion()
+                    .withUpgradeGuideSection(9, "sec:archives-configuration")
+                    .nagUser();
+            });
         });
 
         configurations.consumableLocked(Dependency.DEFAULT_CONFIGURATION, conf -> {

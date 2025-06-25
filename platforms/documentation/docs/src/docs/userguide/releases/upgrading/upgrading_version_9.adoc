@@ -41,4 +41,23 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+[[archives-configuration]]
+==== Deprecation of the `archives` configuration
+The `archives` configuration added by the `base` plugin has been deprecated and will be removed in Gradle 10.0.0.
+Adding artifacts to the `archives` configuration will now result in a deprecation warning.
+If you want the artifact built when running the `assemble` task, you should add the artifact (or the task that produces it) as a dependency of the `assemble` task directly.
+
+.build.gradle.kts
+[source,kotlin]
+----
+val specialJar = tasks.register<Jar>("specialJar") {
+    archiveBaseName.set("special")
+    from("build/special")
+}
+
+tasks.named("assemble") {
+    dependsOn(specialJar)
+}
+----
+
 === Potential breaking changes

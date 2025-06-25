@@ -456,6 +456,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails"
+        executer.noDeprecationChecks()
         fails 'help'
 
         then:
@@ -487,6 +488,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails because the configuration is not allowed to change"
+        executer.noDeprecationChecks()
         fails 'help'
 
         then:

@@ -134,7 +134,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             version = "1.0"
 
             configurations.configureEach {
-                if (canBeConsumed)  {
+                if (canBeConsumed && name != 'archives')  {
                     attributes {
                         attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
                     }

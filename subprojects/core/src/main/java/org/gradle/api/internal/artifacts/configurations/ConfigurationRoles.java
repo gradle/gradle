@@ -45,6 +45,11 @@ public final class ConfigurationRoles {
     public static final ConfigurationRole ALL = createNonDeprecatedRole("Legacy", true, true, true);
 
     /**
+     * A configuration that is retired and not meant to be used for any purpose.  This is primarily useful in creating a migrating configuration role in {@link ConfigurationRolesForMigration}.
+     */
+    public static final ConfigurationRole NONE = createNonDeprecatedRole("Deprecated", false, false, false);
+
+    /**
      * Meant to be used only for consumption by other projects.
      */
     public static final ConfigurationRole CONSUMABLE = createNonDeprecatedRole("Consumable", true, false, false);
