@@ -231,8 +231,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.initScripts = new ArrayList<>(initScripts);
         p.includedBuilds = new ArrayList<>(includedBuilds);
-        p.dryRun = dryRun;
-        p.taskGraph = taskGraph;
         p.projectCacheDir = projectCacheDir;
         return p;
     }
@@ -271,6 +269,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.refreshKeys = refreshKeys;
         p.exportKeys = exportKeys;
         p.welcomeMessageConfiguration = welcomeMessageConfiguration;
+        p.dryRun = dryRun;
+        p.taskGraph = taskGraph;
         return p;
     }
 
