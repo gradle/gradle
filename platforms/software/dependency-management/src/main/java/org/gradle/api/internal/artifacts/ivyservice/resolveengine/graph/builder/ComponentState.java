@@ -88,7 +88,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public String toString() {
-        return id.toString();
+        return componentIdentifier.toString();
     }
 
     @Override

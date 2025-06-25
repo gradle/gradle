@@ -516,7 +516,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             root(":a", "test:a:") {
                 project(":b", "test:b:") {
                     project(":c", "test:c:") {
-                        project(":a", "test:a:")
+                        project(":a", "test:a:") {
+                            project(":b", "test:b:")
+                        }
                     }
                 }
             }

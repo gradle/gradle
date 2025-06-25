@@ -95,8 +95,8 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:foo:1.1'
-   Constraint path: 'root project :' (conf) --> 'org:foo:{strictly 1.0}' because of the following reason: version resolved in configuration ':other' by consistent resolution"""
+   Dependency path: 'root' (conf) --> 'org:foo:1.1'
+   Constraint path: 'root' (conf) --> 'org:foo:{strictly 1.0}' because of the following reason: version resolved in configuration ':other' by consistent resolution"""
     }
 
     def "first level dependency can be downgraded only if it's a preferred version"() {

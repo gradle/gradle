@@ -524,8 +524,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:foo:17'
-   Dependency path: 'root project :' (conf) --> 'project :other' (conf) --> 'org:foo:{strictly 15}'""")
+   Dependency path: 'root' (conf) --> 'org:foo:17'
+   Dependency path: 'root' (conf) --> 'project :other' (conf) --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -566,8 +566,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:foo:{strictly 17}'
-   Dependency path: 'root project :' (conf) --> 'org:foo:{strictly 15}'""")
+   Dependency path: 'root' (conf) --> 'org:foo:{strictly 17}'
+   Dependency path: 'root' (conf) --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -608,8 +608,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:foo:17'
-   Dependency path: 'root project :' (conf) --> 'org:bar:1' (runtime) --> 'org:foo:{strictly 15}'""")
+   Dependency path: 'root' (conf) --> 'org:foo:17'
+   Dependency path: 'root' (conf) --> 'org:bar:1' (runtime) --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -707,8 +707,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:foo:15'
-   Dependency path: 'root project :' (conf) --> 'org:foo:{strictly [0,1]}'""")
+   Dependency path: 'root' (conf) --> 'org:foo:15'
+   Dependency path: 'root' (conf) --> 'org:foo:{strictly [0,1]}'""")
     }
 
     void "can reject dependency versions of an external component"() {
@@ -845,8 +845,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         then:
         def selected = GradleMetadataResolveRunner.gradleMetadataPublished || GradleMetadataResolveRunner.useMaven() ? 'runtime' : 'default'
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:foo:{require 1.0; reject 1.1}'
-   Dependency path: 'root project :' (conf) --> 'org:bar:1.0' ($selected) --> 'org:foo:1.1'""")
+   Dependency path: 'root' (conf) --> 'org:foo:{require 1.0; reject 1.1}'
+   Dependency path: 'root' (conf) --> 'org:bar:1.0' ($selected) --> 'org:foo:1.1'""")
     }
 
     def "can reject a version range"() {

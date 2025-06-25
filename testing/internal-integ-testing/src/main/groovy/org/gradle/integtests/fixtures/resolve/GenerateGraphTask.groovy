@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.component.RootComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
@@ -197,6 +198,8 @@ abstract class GenerateGraphTask extends DefaultTask {
             type = "project:${Path.path(result.id.build.buildPath).append(Path.path(result.id.projectPath))}"
         } else if (result.id instanceof ModuleComponentIdentifier) {
             type = "module:${result.id.group}:${result.id.module}:${result.id.version},${result.id.moduleIdentifier.group}:${result.id.moduleIdentifier.name}"
+        } else if (result.id instanceof RootComponentIdentifier) {
+            type = "root"
         } else {
             type = "other"
         }

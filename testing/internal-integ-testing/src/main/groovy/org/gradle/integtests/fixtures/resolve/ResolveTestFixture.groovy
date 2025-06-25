@@ -513,7 +513,7 @@ class ResolveTestFixture {
             if (this.root != null) {
                 throw new IllegalStateException("Root node is already defined")
             }
-            this.root = projectNode(projectPath, moduleVersion)
+            this.root = node("root", "root", "unspecified:unspecified:unspecified")
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = this.root
             cl.call()

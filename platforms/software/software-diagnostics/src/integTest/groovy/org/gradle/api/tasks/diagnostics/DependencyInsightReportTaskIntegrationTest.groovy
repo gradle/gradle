@@ -1562,15 +1562,6 @@ org:leaf2:1.0
         then:
         outputContains """
 root project :
-  Variant runtimeClasspath:
-    | Attribute Name                 | Provided     | Requested    |
-    |--------------------------------|--------------|--------------|
-    | org.gradle.category            | library      | library      |
-    | org.gradle.dependency.bundling | external     | external     |
-    | org.gradle.jvm.environment     | standard-jvm | standard-jvm |
-    | org.gradle.jvm.version         | ${jvmVersion.padRight("java-runtime".length())} | ${jvmVersion.padRight("java-runtime".length())} |
-    | org.gradle.libraryelements     | jar          | jar          |
-    | org.gradle.usage               | java-runtime | java-runtime |
   Variant runtimeElements:
     | Attribute Name                 | Provided     | Requested    |
     |--------------------------------|--------------|--------------|
@@ -1583,6 +1574,7 @@ root project :
 
 root project :
 \\--- project :impl
+     +--- runtimeClasspath
      \\--- root project : (*)
 """
     }
@@ -2596,8 +2588,8 @@ org:bar: FAILED
    Failures:
       - Could not resolve org:bar:{reject all versions}.
           - Module 'org:bar' has been rejected:
-               Dependency path: 'root project :' (compileClasspath) --> 'org:bar:[1.0,)'
-               Constraint path: 'root project :' (compileClasspath) --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
+               Dependency path: 'root' (compileClasspath) --> 'org:bar:[1.0,)'
+               Constraint path: 'root' (compileClasspath) --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
 org:bar:{reject all versions} FAILED
 \\--- compileClasspath
@@ -2613,8 +2605,8 @@ org:foo: (by constraint) FAILED
    Failures:
       - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints:
-               Dependency path: 'root project :' (compileClasspath) --> 'org:foo:[1.0,)'
-               Constraint path: 'root project :' (compileClasspath) --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
+               Dependency path: 'root' (compileClasspath) --> 'org:foo:[1.0,)'
+               Constraint path: 'root' (compileClasspath) --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
 org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath
