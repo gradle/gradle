@@ -18,8 +18,6 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
