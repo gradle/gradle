@@ -17,7 +17,9 @@
 package org.gradle.internal.extensibility;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.ProjectBuilderTestUtil;
 import org.gradle.util.TestTask;
 import org.gradle.util.TestUtil;
 import org.junit.Before;
@@ -48,7 +50,8 @@ public class ConventionAwareHelperTest {
 
     @Before
     public void setUp() {
-        testTask = TestUtil.create(temporaryFolder).task(TestTask.class);
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(temporaryFolder);
+        testTask = project.getTasks().create("name", TestTask.class);
         conventionAware = new ConventionAwareHelper(testTask);
     }
 

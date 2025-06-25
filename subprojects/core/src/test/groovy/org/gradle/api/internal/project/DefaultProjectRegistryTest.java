@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.specs.Spec;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.TestUtil;
+import org.gradle.util.ProjectBuilderTestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,9 +56,9 @@ public class DefaultProjectRegistryTest {
     @Before
     public void setUp() {
         projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
-        rootMock = TestUtil.create(temporaryFolder).rootProject();
-        childMock = TestUtil.createChildProject(rootMock, CHILD_NAME);
-        childChildMock = TestUtil.createChildProject(childMock, CHILD_CHILD_NAME);
+        rootMock = ProjectBuilderTestUtil.createRootProject(temporaryFolder);
+        childMock = ProjectBuilderTestUtil.createChildProject(rootMock, CHILD_NAME);
+        childChildMock = ProjectBuilderTestUtil.createChildProject(childMock, CHILD_CHILD_NAME);
         projectRegistry.addProject(rootMock);
         projectRegistry.addProject(childMock);
         projectRegistry.addProject(childChildMock);
@@ -88,7 +88,7 @@ public class DefaultProjectRegistryTest {
 
     @Test
     public void cannotLocateProjectsWithAmbiguousProjectDir() {
-        ProjectInternal duplicateProjectDirProject = TestUtil.createChildProject(childMock, "childchild2", childMock.getProjectDir());
+        ProjectInternal duplicateProjectDirProject = ProjectBuilderTestUtil.createChildProject(childMock, "childchild2", childMock.getProjectDir());
         projectRegistry.addProject(duplicateProjectDirProject);
 
         try {
@@ -102,7 +102,7 @@ public class DefaultProjectRegistryTest {
     @Test
     public void accessMethodsForNonexistentsPaths() {
         projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
-        Project otherRoot = TestUtil.create(temporaryFolder.getTestDirectory()).rootProject();
+        Project otherRoot = ProjectBuilderTestUtil.createRootProject(temporaryFolder.getTestDirectory());
         assertNull(projectRegistry.getProject(otherRoot.getPath()));
         assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getAllProjects(otherRoot.getPath()));
         assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getSubProjects(otherRoot.getPath()));

@@ -28,7 +28,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.CoreMatchers.hasItems
@@ -119,7 +119,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(EarPlugin)
 
         and:
-        def childProject = TestUtil.createChildProject(project, 'child')
+        def childProject = ProjectBuilderTestUtil.createChildProject(project, 'child')
         childProject.pluginManager.apply(JavaPlugin)
 
         and:
@@ -243,7 +243,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
     def "supports renaming lib dir"() {
         given:
-        def childProject = TestUtil.createChildProject(project, 'child')
+        def childProject = ProjectBuilderTestUtil.createChildProject(project, 'child')
         childProject.file("src/main/resources").mkdirs()
         childProject.file("src/main/resources/test.txt").createNewFile()
         childProject.pluginManager.apply(JavaPlugin)
@@ -264,9 +264,9 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
     def "supports duplicate dependencies"() {
         given:
-        def pojoProject = TestUtil.createChildProject(project, 'pojo')
+        def pojoProject = ProjectBuilderTestUtil.createChildProject(project, 'pojo')
         pojoProject.pluginManager.apply(JavaPlugin)
-        def beanProject = TestUtil.createChildProject(project, 'bean')
+        def beanProject = ProjectBuilderTestUtil.createChildProject(project, 'bean')
         beanProject.pluginManager.apply(JavaPlugin)
 
         beanProject.dependencies {

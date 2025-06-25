@@ -15,14 +15,15 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal
+
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -32,7 +33,7 @@ class DefaultNativeToolChainRegistryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
-    def project = TestUtil.create(testDir).rootProject()
+    def project = ProjectBuilderTestUtil.createRootProject(testDir)
 
     def instantiator = project.services.get(Instantiator)
     def registry = instantiator.newInstance(DefaultNativeToolChainRegistry, instantiator, CollectionCallbackActionDecorator.NOOP)

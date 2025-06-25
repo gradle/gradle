@@ -26,7 +26,7 @@ import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import spock.lang.Issue
 
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -36,8 +36,8 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
     private ProjectInternal anotherChildProject
 
     def setup() {
-        childProject = TestUtil.createChildProject(project, "child")
-        anotherChildProject = TestUtil.createChildProject(project, "child2")
+        childProject = ProjectBuilderTestUtil.createChildProject(project, "child")
+        anotherChildProject = ProjectBuilderTestUtil.createChildProject(project, "child2")
     }
 
     def "adds extension to root project"() {

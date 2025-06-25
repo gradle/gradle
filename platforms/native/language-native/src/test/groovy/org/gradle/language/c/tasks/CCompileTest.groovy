@@ -27,7 +27,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class CCompileTest extends AbstractProjectBuilderSpec {
 
@@ -39,7 +38,7 @@ class CCompileTest extends AbstractProjectBuilderSpec {
     def pch = Mock(PreCompiledHeader)
 
     def setup() {
-        cCompile = TestUtil.createTask(CCompile, project)
+        cCompile = project.tasks.create("name", CCompile)
     }
 
     def "executes using the C Compiler"() {

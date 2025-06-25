@@ -81,6 +81,7 @@ dependencies {
     testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.toolchainsJvm))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testImplementation(libs.commonsIo)
     testImplementation(libs.nativePlatform) {

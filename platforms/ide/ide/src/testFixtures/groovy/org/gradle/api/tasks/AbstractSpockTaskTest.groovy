@@ -32,9 +32,9 @@ import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
+import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
@@ -43,6 +43,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.annotations.AnnotationCategory
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.TestUtil
 
 import javax.annotation.Nullable
@@ -103,9 +104,9 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def testPath() {
-        ProjectInternal childProject = TestUtil.createChildProject(project, "child")
+        ProjectInternal childProject = ProjectBuilderTestUtil.createChildProject(project, "child")
         childProject.getProjectDir().mkdirs()
-        ProjectInternal childchildProject = TestUtil.createChildProject(childProject, "childchild")
+        ProjectInternal childchildProject = ProjectBuilderTestUtil.createChildProject(childProject, "childchild")
         childchildProject.getProjectDir().mkdirs()
 
         when:

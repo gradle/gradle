@@ -22,6 +22,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.TestUtil
 
 class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
@@ -30,7 +31,7 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
     private EclipseDependenciesCreator dependenciesProvider
 
     def setup() {
-        childProject = TestUtil.createChildProject(project, "child", temporaryFolder.testDirectory.file("child"))
+        childProject = ProjectBuilderTestUtil.createChildProject(project, "child", temporaryFolder.testDirectory.file("child"))
         eclipseClasspath = TestUtil.newInstance(EclipseClasspath, project)
         dependenciesProvider = new EclipseDependenciesCreator(
             eclipseClasspath,

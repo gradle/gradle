@@ -21,12 +21,12 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.internal.WrapUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.util.TestUtil.createChildProject
+import static org.gradle.util.ProjectBuilderTestUtil.createChildProject
 
 class AbstractReportTaskTest extends Specification {
     def generator = Mock(Runnable)
@@ -35,11 +35,11 @@ class AbstractReportTaskTest extends Specification {
 
     @Rule
     public TestNameTestDirectoryProvider tmpDir = TestNameTestDirectoryProvider.newInstance(getClass())
-    private ProjectInternal project = TestUtil.create(tmpDir).rootProject()
+    private ProjectInternal project = ProjectBuilderTestUtil.createRootProject(tmpDir)
     private ProjectDetails projectDetails = ProjectDetails.of(project)
 
     def setup() throws Exception {
-        task = TestUtil.createTask(TestReportTask.class, project)
+        task = project.tasks.create("name", TestReportTask)
         task.setGenerator(generator)
         task.setRenderer(renderer)
         task.setProjects(WrapUtil.<Project>toSet(project))

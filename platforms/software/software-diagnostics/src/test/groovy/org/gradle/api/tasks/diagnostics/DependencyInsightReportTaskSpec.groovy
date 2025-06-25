@@ -20,13 +20,12 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.specs.Spec
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
     DependencyInsightReportTask task
 
     def setup() {
-        task = TestUtil.createTask(DependencyInsightReportTask, project)
+        task = project.tasks.create("name", DependencyInsightReportTask)
     }
 
     def "fails if configuration missing"() {
