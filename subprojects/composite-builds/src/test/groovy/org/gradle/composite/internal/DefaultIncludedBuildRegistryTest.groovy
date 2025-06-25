@@ -108,7 +108,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def rootBuild = registry.createRootBuild(buildDefinition)
 
         then:
-        1 * modelServices.servicesForBuild(buildDefinition, _, null) >> Mock(BuildModelControllerServices.Supplier)
+        1 * modelServices.servicesForBuild(buildDefinition, _) >> Mock(BuildModelControllerServices.Supplier)
         1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
             notifiedBuild = addedBuild
         }
@@ -324,7 +324,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def build = Stub(RootBuildState)
 
         services.add(buildController)
-        modelServices.servicesForBuild(_, _, _) >> Mock(BuildModelControllerServices.Supplier)
+        modelServices.servicesForBuild(_, _) >> Mock(BuildModelControllerServices.Supplier)
         settings.rootProject >> Stub(ProjectDescriptor) {
             getName() >> "root"
         }
