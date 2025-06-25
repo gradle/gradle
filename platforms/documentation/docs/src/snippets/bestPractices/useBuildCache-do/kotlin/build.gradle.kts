@@ -1,5 +1,5 @@
 // tag::do-this[]
 plugins {
-    id("java")
+    id("java-library")
 }
 // end::do-this[]

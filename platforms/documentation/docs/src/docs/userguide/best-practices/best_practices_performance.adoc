@@ -44,34 +44,50 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
 
 [[use_build_cache]]
-== Use build cache
+== Use the build cache
 
 Use the build cache to save time by reusing outputs produced by other builds.
 
 === Explanation
 
-The build cache can retrieve outputs from any earlier build, avoiding unnecessary work which has already been done during a previous run.
+The build cache avoids executing a task to recompute its outputs if Gradle can instead reuse those outputs from an earlier build, resulting in faster builds.
 
-NOTE: Enabling the build cache introduces a slight overhead, especially on "cold" builds (i.e. when populating the cache for the first time). However, enabling it brings substantial benefits in the long run.
+This avoids unnecessary work when a task's inputs haven't changed - since the work of producing output has already been done during a previous run - and the result will be the same.
 
 === Example
 
 ==== Don't Do This
 
-Build caching is disabled by default if not set in `gradle.properties` or through the `--build-cache` command line option.
+Build caching is disabled by default if not set:
 
-[source,properties]
-----
-# org.gradle.caching=false
-----
+====
+include::sample[dir="snippets/bestPractices/useBuildCache-avoid/kotlin",files="gradle.properties[tags=avoid-this]"]
+====
 
 ==== Do This Instead
 
-To enable the build cache, use the `--build-cache` command line option or add the following to your `gradle.properties` file:
+To enable the build cache, add the following to your `gradle.properties` file:
 
-[source,properties]
+====
+include::sample[dir="snippets/bestPractices/useBuildCache-do/kotlin",files="gradle.properties[tags=do-this]"]
+====
+When building your project for the first time, the cache will be populated with the output of the compilation.
+
+You can even issue a `gradle clean` command to remove the outputs from the build directory.
+
 ----
-org.gradle.caching=true
+> gradle clean
+:clean
+
+BUILD SUCCESSFUL
+----
+
+On subsequent builds, instead of executing the ``:compileJava` task again, the outputs of the task will be loaded from the build cache:
+
+----
+> gradle compileJava
+
+include::{snippetsPath}/bestPractices/useBuildCache-do/tests/useBuildCache-do.secondRun.out[]
 ----
 
 === References
