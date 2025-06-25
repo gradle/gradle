@@ -110,6 +110,8 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
         }
         return prs
             .filter { it.milestone?.title?.startsWith(milestone.get()) == true }
+            // Filter out the ghost user that replaces deleted users
+            .filter { it.user.login != "ghost" }
             .map { it.user.login }
             .toSet()
             .map { getUserInfo(it) }

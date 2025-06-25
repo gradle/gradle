@@ -26,11 +26,11 @@ dependencies {
     api(projects.coreApi)
     api(projects.ide)
     api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.core)
     implementation(projects.logging)
     implementation(projects.loggingApi)
-    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)
