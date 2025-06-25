@@ -149,6 +149,21 @@ android {
 }
 ```
 
+#### Introduce `Gradle#getBuildPath`
+
+This release introduces a new API on the [Gradle](javadoc/org/gradle/api/invocation/Gradle.html) type that returns the path of the build represented by the `Gradle` instance, relative to the root of the build tree.
+For the root build, this will return `:`.
+For included builds, this will return the path of the included build relative to the root build.
+
+This is the same path that is returned by `BuildIdentifier#getBuildPath`, but is now available directly on the `Gradle` instance.
+
+The following example demonstrates how to determine the path of the build which owns a given project:
+
+```kotlin
+val project: Project = getProjectInstance()
+val buildPath: String = project.gradle.buildPath
+```
+
 ### Configuration Improvements
 
 #### Simpler target package configuration for Antlr 4
