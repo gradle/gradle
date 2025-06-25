@@ -28,10 +28,6 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
 
-    @Requires(
-        value = UnitTestPreconditions.MacOs,
-        reason = "intellij-ide-starter can't download AndroidStudio distribution for Linux yet."
-    )
     def "can sync simple Android build without problems"() {
         given:
         simpleAndroidProject(AGP_VERSION)
