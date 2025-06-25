@@ -16,6 +16,7 @@
 
 package org.gradle.process;
 
+import org.gradle.internal.exceptions.Contextual;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -25,6 +26,7 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 @SuppressWarnings("deprecation")
+@Contextual
 public class ProcessExecutionException extends org.gradle.process.internal.ExecException {
 
     /**
