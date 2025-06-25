@@ -170,10 +170,10 @@ ADD RELEASE FEATURES ABOVE
 
 ### Task graph diagnostic
 
-Gradle 9.0.0 introduces a new task graph diagnostic feature to help you visualize the task execution plan without running tasks.
-You can enable it using the `--task-graph` command-line option. For example:
+A new task dependency graph is available to visualize the dependencies between tasks without executing them.
+You can enable it using the `--task-graph` option on the command line. For example:
 ```
-$ ./gradlew root r2 --task-graph
+./gradlew root r2 --task-graph
 ```
 This prints a visual representation of the task graph for the specified tasks:
 ```
@@ -191,7 +191,7 @@ Tasks graph for: root r2
 (*) - details omitted (listed previously)
 ```
 
-This feature can be useful to get a quick overview of the task graph and to understand the dependencies between tasks.
+This feature provides a quick overview of the task graph, helping users understand the dependencies between tasks without running them.
 You can iterate by diving into a subgraph by adjusting an invocation.
 
 This feature is incubating and may change in future releases.
