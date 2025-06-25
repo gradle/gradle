@@ -558,22 +558,24 @@ For information on how to determine code coverage for tests in additional source
 
 If no tests are detected, Gradle will skip the `Test` task entirely.
 
-There could be a few causes:
+This can occur for several reasons:
 
- * No test sources exist. This is normal behavior.
- * Test sources exist, but they were not compiled. The sources may be in the wrong directory or the source set may not be configured correctly.
- * No test classes are configured on the `Test` task. By default, `Test` tasks do not assume any particular path for test classes. Only the built-in task named `test` is automatically configured to use the `test` source set.
-   If you have a custom `Test` task, you need to configure the `testClassesDirs` and `classpath` properties appropriately.
+ * No test sources exist. This is expected behavior for empty test suites.
+ * Test sources exist but are not compiled. This may happen if:
+ ** The source files are located in the wrong directory.
+ ** The source set is not configured correctly.
+ * No test classes are configured on the `Test` task. By default, only the built-in `Test` task is automatically configured to use the test source set.
+   If you're using a custom `Test` task, you must manually configure both `testClassesDirs` and `classpath`.
 
-Before Gradle 9.0.0, Gradle <<upgrading_version_8#test_task_default_classpath,implicitly configured all `Test` tasks>> to use the `test` source set.
+Prior to Gradle 9.0.0, all `Test` tasks were <<upgrading_version_8#test_task_default_classpath,implicitly configured>> to use the `test` source set.
 
 === Test process fails to start or stay running
 
-The test process can fail to start if configured incorrectly.
+The test process may fail to start if configured incorrectly.
 For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start.
 
 Similarly, if a test requires changes to the environment that are not compatible with Gradle's test worker process, the test process may fail to start.
-For example, tests that rely on changing the link:{javaApi}/java/lang/SecurityManager.html[`SecurityManager`] can interfere with Gradle's internal messaging communication between the build and test process.
+For example, tests that rely on modifying the link:{javaApi}/java/lang/SecurityManager.html[`SecurityManager`] may interfere with Gradle's internal messaging communication between the build and test worker.
 
 === Test process starts but test dependencies are missing
 
@@ -586,7 +588,7 @@ For JUnit4-based tests, you need to declare a dependency on a single JUnit 4.x l
 For TestNG-based tests, you need to declare a dependency on a single TestNG library.
 For JUnit Jupiter-based tests, you need to declare dependencies on the JUnit Jupiter and JUnit platform libraries.
 
-Before Gradle 9.0.0, Gradle <<upgrading_version_8#test_framework_implementation_dependencies,leaked internal dependencies>> into the test runtime classpath which may have masked missing dependencies.
+Prior to Gradle 9.0.0, Gradle <<upgrading_version_8#test_framework_implementation_dependencies,leaked internal dependencies>> into the test runtime classpath which may have masked missing dependencies.
 
 === Test process fails with unusual exit code
 
