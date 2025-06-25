@@ -153,6 +153,18 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllC
 By filtering and resolving specific configurations, you ensure that only the relevant ones are locked, tailoring the locking process to your project's needs.
 This is especially useful in environments like native builds, where not all configurations can be resolved on a single platform.
 
+== Understanding the locking mechanism during dependency resolution
+
+When using dependency locking, Gradle enforces the locked versions as if they were declared with `strictly()`.
+
+This means:
+
+- If the declared version is **lower** than the locked version (e.g., declared `1.0.0`, locked `1.2.0`), Gradle will silently upgrade to the locked version.
+- If the declared version is **higher** than the locked version (e.g., declared `1.2.0`, locked `1.0.0`), Gradle will **fail resolution**, because the lockfile enforces `1.0.0` strictly.
+
+This can be surprising if you assume the declared version takes precedence.
+To resolve this, update the lockfile with `--write-locks`.
+
 [[sec:lock-state]]
 == Understanding lock state location and format
 
