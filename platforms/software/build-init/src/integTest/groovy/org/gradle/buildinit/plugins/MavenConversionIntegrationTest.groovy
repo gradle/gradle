@@ -22,6 +22,7 @@ import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -58,6 +59,12 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         using m2
     }
 
+    def expectDeprecationsForKotlinDslPlugin() {
+        if (scriptDsl == BuildInitDsl.KOTLIN) {
+            ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        }
+    }
+
     def "multiModule init with incubating"() {
         def dsl = dslFixtureFor(scriptDsl)
         def conventionPluginScript = targetDir.file("build-logic/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("buildlogic.java-conventions")}")
@@ -90,6 +97,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         apiSubprojectBuildFile.exists()
 
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
@@ -131,6 +139,7 @@ java {
     withJavadocJar()
 }'''))
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
@@ -141,6 +150,7 @@ java {
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'projects'
 
         then:
@@ -189,6 +199,7 @@ java {
     withJavadocJar()
 }'''))
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
@@ -199,6 +210,7 @@ java {
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'projects'
 
         then:
@@ -224,6 +236,7 @@ Root project 'webinar-parent'
         targetDir.file("webinar-war/" + dsl.buildFileName).exists()
 
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
@@ -255,6 +268,7 @@ Root project 'webinar-parent'
         targetDir.file("webinar-war/" + dsl.buildFileName).exists()
 
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
@@ -265,6 +279,7 @@ Root project 'webinar-parent'
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'projects'
 
         then:
@@ -696,6 +711,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         libRequest(repo, "org.hamcrest", "hamcrest-core", 1.3)
         libRequest(repo, "org.apache.commons", "commons-parent", 17)
 
+        expectDeprecationsForKotlinDslPlugin()
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
@@ -706,6 +722,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
+        expectDeprecationsForKotlinDslPlugin()
         run 'projects'
 
         then:

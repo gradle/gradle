@@ -112,6 +112,7 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
                 }
             """.trimIndent()
         )
+        usesKotlinDslPlugin()
 
         withFile(
             "settings.gradle.kts", """

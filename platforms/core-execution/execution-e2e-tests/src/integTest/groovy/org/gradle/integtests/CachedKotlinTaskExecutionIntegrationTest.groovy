@@ -19,6 +19,8 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -57,7 +59,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().run "customTask"
+        runWithBuildCache "customTask"
         then:
         result.assertTaskNotSkipped(":customTask")
 
@@ -66,7 +68,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        withBuildCache().run "customTask"
+        runWithBuildCache "customTask"
         then:
         result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
@@ -85,7 +87,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().run "customTask"
+        runWithBuildCache "customTask"
         then:
         result.assertTaskNotSkipped(":customTask")
         file("build/output.txt").text == "input"
@@ -94,7 +96,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customKotlinTask(" modified")
 
         cleanBuildDir()
-        withBuildCache().run "customTask"
+        runWithBuildCache "customTask"
         then:
         result.assertTaskNotSkipped(":customTask")
         file("build/output.txt").text == "input modified"
@@ -129,4 +131,8 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build").assertIsDir().deleteDir()
     }
 
+    private ExecutionResult runWithBuildCache(String... tasks) {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        return withBuildCache().run(tasks)
+    }
 }

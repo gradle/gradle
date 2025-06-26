@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import javax.inject.Inject
@@ -63,5 +64,11 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlinInterOp
                 }
             }
         """
+    }
+
+    @Override
+    AbstractPropertyLanguageInterOpIntegrationTest maybeExpectDeprecations() {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        return super.maybeExpectDeprecations()
     }
 }

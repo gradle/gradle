@@ -19,6 +19,7 @@ package org.gradle.api.provider
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @LeaksFileHandles
@@ -26,6 +27,7 @@ abstract class AbstractPropertyKotlinInterOpIntegrationTest extends AbstractProp
     def setup() {
         usesKotlin(pluginDir)
         executer.withStackTraceChecksDisabled()
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
     }
 
     @Override

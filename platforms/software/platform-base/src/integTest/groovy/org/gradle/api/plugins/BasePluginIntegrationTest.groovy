@@ -161,7 +161,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         notExecuted(":jar1", ":jar2", ":jar3")
     }
 
-    def "artifacts on legacy configurations are not built by default even if visible is set"() {
+    def "artifacts on legacy configurations are not built by default"() {
         buildFile << """
             plugins {
                 id("base")
@@ -172,11 +172,9 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 foo {
-                    visible = true
                     outgoing.artifact(tasks.jar1)
                 }
                 bar {
-                    visible = false
                     outgoing.artifact(tasks.jar2)
                 }
             }

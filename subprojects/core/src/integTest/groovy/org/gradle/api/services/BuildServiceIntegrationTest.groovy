@@ -44,6 +44,7 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
@@ -1783,6 +1784,7 @@ Hello, subproject1
         """
 
         expect:
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
         succeeds("hello")
     }
 

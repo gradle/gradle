@@ -18,6 +18,8 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -45,6 +47,12 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
         """
+    }
+
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        return super.run(tasks)
     }
 
     @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "IP enables parallel configuration")

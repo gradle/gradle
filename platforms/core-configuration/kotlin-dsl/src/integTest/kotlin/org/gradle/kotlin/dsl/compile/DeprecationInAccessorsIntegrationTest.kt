@@ -259,6 +259,7 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
         withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin())
+        usesKotlinDslPlugin()
         withFile("buildSrc/src/main/kotlin/$pluginId.gradle.kts", pluginSource)
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
@@ -261,6 +262,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             }
         }
 
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
         executer.inDirectory(file("plugin")).withTasks("jar").run()
 
         val pluginJar = file("plugin/build/libs/plugin.jar")
@@ -454,7 +456,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         )
 
         // Error message relies on Kotlin's Deprecated.HIDDEN
-        executer.noDeprecationChecks()
+        noDeprecationChecks()
         buildAndFail("classes").run {
             assertHasDescription(
                 "Execution failed for task ':compileKotlin'."
@@ -678,6 +680,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             }
         }
 
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
         build(
             existing("plugins"),
             "publish"

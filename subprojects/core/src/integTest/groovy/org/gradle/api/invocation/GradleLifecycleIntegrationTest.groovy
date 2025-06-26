@@ -17,6 +17,7 @@
 package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
 
@@ -81,6 +82,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
         }
 
         expect:
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
         configuredTaskRunsCorrectly()
     }
 

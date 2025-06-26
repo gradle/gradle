@@ -19,6 +19,7 @@ package org.gradle.api.provider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -31,6 +32,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
     abstract void pluginSetsCalculatedValuesUsingMappedProvider()
 
     abstract void pluginDefinesTask()
+
+    AbstractPropertyLanguageInterOpIntegrationTest maybeExpectDeprecations() {
+        return this
+    }
 
     def "can define property and set value from language plugin"() {
         pluginSetsValues()
@@ -137,7 +142,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
                 map = provider { [3: true] }
             }
         """
-        run("someTask")
+        maybeExpectDeprecations().run("someTask")
 
         then:
         outputContains("flag = false")
@@ -184,7 +189,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
                 map.set(provider { mapOf(3 to true) })
             }
         """
-        run("someTask")
+        maybeExpectDeprecations().run("someTask")
 
         then:
         outputContains("flag = false")

@@ -99,8 +99,6 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
             documentationRegistry,
             true
         );
-
-        setVisible(false);
     }
 
 }

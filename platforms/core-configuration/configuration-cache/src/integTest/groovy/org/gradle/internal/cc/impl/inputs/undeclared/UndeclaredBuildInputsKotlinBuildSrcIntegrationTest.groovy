@@ -17,6 +17,8 @@
 package org.gradle.internal.cc.impl.inputs.undeclared
 
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
+import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 
 class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
@@ -31,5 +33,11 @@ class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndecla
         buildFile << """
             apply plugin: SneakyPlugin
         """
+    }
+
+    @Override
+    protected AbstractConfigurationCacheIntegrationTest maybeExpectDeprecations() {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        return super.maybeExpectDeprecations()
     }
 }

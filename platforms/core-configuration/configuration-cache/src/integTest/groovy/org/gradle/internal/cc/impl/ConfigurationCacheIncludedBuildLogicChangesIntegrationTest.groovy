@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.internal.cc.impl.fixtures.BuildLogicChangeFixture
 
 class ConfigurationCacheIncludedBuildLogicChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -35,6 +36,7 @@ class ConfigurationCacheIncludedBuildLogicChangesIntegrationTest extends Abstrac
         """
 
         when:
+        maybeExpectDeprecations(fixtureSpec)
         configurationCacheRunLenient fixture.task
 
         then:
@@ -50,6 +52,7 @@ class ConfigurationCacheIncludedBuildLogicChangesIntegrationTest extends Abstrac
 
         when:
         fixture.applyChange()
+        maybeExpectDeprecations(fixtureSpec)
         configurationCacheRunLenient fixture.task
 
         then:
@@ -66,5 +69,12 @@ class ConfigurationCacheIncludedBuildLogicChangesIntegrationTest extends Abstrac
 
         where:
         fixtureSpec << BuildLogicChangeFixture.specs()
+    }
+
+    AbstractConfigurationCacheIntegrationTest maybeExpectDeprecations(BuildLogicChangeFixture.Spec fixtureSpec) {
+        if (fixtureSpec.language == BuildLogicChangeFixture.Language.KOTLIN) {
+            ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        }
+        return this
     }
 }

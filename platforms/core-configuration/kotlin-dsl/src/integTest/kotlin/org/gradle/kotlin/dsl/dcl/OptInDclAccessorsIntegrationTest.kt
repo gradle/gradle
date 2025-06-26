@@ -131,6 +131,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
             """.trimIndent()
         )
+        usesKotlinDslPlugin()
 
         withFile(
             "settings.gradle.kts", """

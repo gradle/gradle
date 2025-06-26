@@ -134,6 +134,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         lib.artifact.expectGet()
 
         then:
+
         succeeds ':checkDeps'
     }
 

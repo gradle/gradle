@@ -355,6 +355,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
             $buildSrcScript
             """
         )
+        usesKotlinDslPlugin()
 
         withFile(
             "buildSrc/src/main/kotlin/my.kt",

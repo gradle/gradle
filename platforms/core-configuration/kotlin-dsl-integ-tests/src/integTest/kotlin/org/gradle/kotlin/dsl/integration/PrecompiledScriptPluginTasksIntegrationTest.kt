@@ -58,6 +58,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             }
             """
         )
+        usesKotlinDslPlugin()
 
         withPrecompiledKotlinScript(
             "plugin-without-package.gradle.kts",
@@ -109,6 +110,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
             """
         )
+        usesKotlinDslPlugin()
 
         withFile("$firstLocation/src/main/kotlin/plugin-without-package.gradle.kts")
         withFile(
@@ -160,6 +162,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             plugins { `kotlin-dsl` }
             """
         )
+        usesKotlinDslPlugin()
 
         val fooScript = withFile("src/main/kotlin/foo.gradle.kts", "")
 
@@ -205,6 +208,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
                         }
                     """
                 )
+                usesKotlinDslPlugin()
 
                 withFile(
                     "producer/src/main/kotlin/producer-plugin.gradle.kts",

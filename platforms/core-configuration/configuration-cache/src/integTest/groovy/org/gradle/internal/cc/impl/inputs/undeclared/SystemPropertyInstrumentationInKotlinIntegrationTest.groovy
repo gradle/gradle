@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.inputs.undeclared
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 
@@ -52,6 +53,7 @@ class SystemPropertyInstrumentationInKotlinIntegrationTest extends AbstractConfi
         """)
 
         when:
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
         configurationCacheRun("-Dsome.property=some.value")
 
         then:

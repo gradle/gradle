@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.inputs.undeclared
 
 import groovy.transform.CompileStatic
 import groovy.transform.MapConstructor
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.internal.ToBeImplemented
@@ -410,6 +411,7 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
         """
 
         when:
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
         configurationCacheRun("echo", "-D${systemProperty().path}=${systemProperty().expectedValue}")
 
         then:

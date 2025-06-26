@@ -112,6 +112,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * The value of this property does not dictate in any way the "visibility" of
      * a configuration, or if it is accessible between projects.
      */
+    @Deprecated
     boolean isVisible();
 
     /**
@@ -120,6 +121,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param visible the value to set.
      */
+    @Deprecated
     Configuration setVisible(boolean visible);
 
     /**

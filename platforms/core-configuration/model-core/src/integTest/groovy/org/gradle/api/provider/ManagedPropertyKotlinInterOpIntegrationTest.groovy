@@ -19,6 +19,7 @@ package org.gradle.api.provider
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @LeaksFileHandles
@@ -58,5 +59,11 @@ class ManagedPropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlin
                 }
             }
         """
+    }
+
+    @Override
+    AbstractPropertyLanguageInterOpIntegrationTest maybeExpectDeprecations() {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        return super.maybeExpectDeprecations()
     }
 }
