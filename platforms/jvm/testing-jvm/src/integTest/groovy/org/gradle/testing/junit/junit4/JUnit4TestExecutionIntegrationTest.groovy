@@ -51,7 +51,7 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
         """
 
         when:
-        fails('test', '-x', 'compileTestJava', '--stacktrace')
+        fails('test', '-x', 'compileTestJava')
 
         then:
         // TODO: This doesn't look like the other test frameworks

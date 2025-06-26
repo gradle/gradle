@@ -59,7 +59,7 @@ class JUnitVintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutio
         """
 
         when:
-        fails('test', '-x', 'compileTestJava', '--stacktrace')
+        fails('test', '-x', 'compileTestJava')
 
         then:
         failure.assertHasCause("Test process encountered an unexpected problem.")
