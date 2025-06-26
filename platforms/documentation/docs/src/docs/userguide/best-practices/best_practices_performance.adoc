@@ -42,3 +42,20 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 === Tags
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
+
+[[use_build_cache]]
+== Use the Build Cache
+
+[[use_configuration_cache]]
+== Use the Configuration Cache
+
+Use the Configuration Cache to significantly improves build performance by caching the result of the configuration phase and reusing it in subsequent builds.
+
+=== Explanation
+
+The Configuration Cache works by saving the result of the configuration phase.
+On the next build, if nothing relevant has changed, Gradle skips configuration entirely and loads the cached task graph from disk, jumping straight to the execution phase.
+
+This can dramatically reduce build time, especially in large builds, as long as your build scripts and plugins are compatible (i.e., no dynamic or undeclared inputs).
+
+=== Example
