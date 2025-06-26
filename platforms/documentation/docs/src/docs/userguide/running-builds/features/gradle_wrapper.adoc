@@ -382,13 +382,13 @@ As with all such files, you should ensure it's trustworthy before executing it.
 
 Since the Wrapper JAR is usually checked into a project's version control system, there is the potential for a malicious actor to replace the original JAR with a modified one by submitting a pull request that only upgrades the Gradle version.
 
-To verify the integrity of the Wrapper JAR, Gradle has created a link:https://github.com/marketplace/actions/gradle-wrapper-validation[GitHub Action] that automatically checks Wrapper JARs in pull requests against a list of known good checksums.
+To verify the integrity of the Wrapper JAR, Gradle has created a link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[GitHub Action] that automatically checks Wrapper JARs in pull requests against a list of known good checksums.
 
 Gradle also publishes the link:https://gradle.org/release-checksums/[checksums of all releases] (except for version 3.3 to 4.0.2, which did not generate reproducible JARs), so you can manually verify the integrity of the Wrapper JAR.
 
 === Automatically verifying the Gradle Wrapper JAR on GitHub
 
-The link:https://github.com/marketplace/actions/gradle-wrapper-validation[GitHub Action] is released separately from Gradle, so please check its documentation for how to apply it to your project.
+The link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[GitHub Action] is released separately from Gradle, so please check its documentation for how to apply it to your project.
 
 === Manually verifying the Gradle Wrapper JAR
 
