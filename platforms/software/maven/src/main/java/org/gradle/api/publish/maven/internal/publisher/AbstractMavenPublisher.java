@@ -291,6 +291,11 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         private void publishChecksums(ExternalResourceName destination, File content) {
+            final boolean isSignatureFile = destination.getPath().endsWith(".asc");
+            if (isSignatureFile) {
+                // Skip checksums for signature files
+                return;
+            }
             publishChecksum(destination, content, Hashing.sha1());
             publishChecksum(destination, content, Hashing.md5());
             if (!ExternalResourceResolver.disableExtraChecksums()) {
