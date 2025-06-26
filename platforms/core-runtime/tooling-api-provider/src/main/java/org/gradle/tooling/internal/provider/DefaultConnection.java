@@ -77,7 +77,10 @@ public class DefaultConnection implements ConnectionVersion4,
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
 
-    private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("3.0");
+    private static final int MINIMAL_CLIENT_MAJOR_VERSION = 4;
+    private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version(MINIMAL_CLIENT_MAJOR_VERSION + ".0");
+    private static final String MIN_CLIENT_VERSION_STR = MIN_CLIENT_VERSION.getVersion();
+    public static final int GUARANTEED_TAPI_BACKWARDS_COMPATIBILITY = 5;
     private ProtocolToModelAdapter adapter;
     private BuildProcessState buildProcessState;
     private ProviderConnection connection;
@@ -210,10 +213,11 @@ public class DefaultConnection implements ConnectionVersion4,
     }
 
     private UnsupportedVersionException unsupportedConnectionException() {
-        return new UnsupportedVersionException(String.format("Support for clients using a tooling API version older than %s was removed in Gradle 5.0. %sYou should upgrade your tooling API client to version %s or later.",
-            MIN_CLIENT_VERSION.getVersion(),
+        return new UnsupportedVersionException(String.format("Support for clients using a tooling API version older than %s was removed in Gradle %d.0. %sYou should upgrade your tooling API client to version %s or later.",
+            MIN_CLIENT_VERSION_STR,
+            MINIMAL_CLIENT_MAJOR_VERSION + GUARANTEED_TAPI_BACKWARDS_COMPATIBILITY,
             createCurrentVersionMessage(),
-            MIN_CLIENT_VERSION.getVersion()));
+            MIN_CLIENT_VERSION_STR));
     }
 
     private String createCurrentVersionMessage() {
