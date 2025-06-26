@@ -51,7 +51,7 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifac
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
 ====
 
-Using `@extension` disables metadata-based resolution.
+Using `@extension` bypasses metadata-based resolution.
 Gradle will not attempt to download or interpret module metadata (e.g., `.module`, `pom.xml`, `ivy.xml`), and will treat the coordinates as a direct request for a single artifact.
 As a result, variant-aware resolution, capabilities, and transitive dependencies are all bypassed.
 If no metadata is available and the requested artifact cannot be found, the build may fail.
