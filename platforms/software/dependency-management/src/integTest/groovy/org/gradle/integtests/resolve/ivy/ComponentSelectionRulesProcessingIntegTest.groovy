@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.util.internal.ToBeImplemented
 
 class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
@@ -149,7 +150,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
 
     // Gradle metadata doesn't support parents
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-    def "parent is not affected by selection rules" () {
+    def "parent is affected by selection rule rejections" () {
         given:
         repository {
             'org:parent_dep:1.2'()
@@ -172,17 +173,13 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         }
 
         buildFile << """
-            configurations { conf }
+            configurations {
+                conf
+            }
 
-            def fired = []
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection selection ->
-                            logger.warn("fired for \${selection.candidate.module}")
-                            fired << "\${selection.candidate.module}"
-                        }
-
                         withModule('org:parent') { ComponentSelection selection ->
                             logger.warn("rejecting parent")
                             selection.reject("Rejecting parent")
@@ -192,15 +189,13 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 
             dependencies {
-                conf "org:child:1.0"
+                conf("org:child:1.0")
             }
 
-            task resolveConf {
-                def files = configurations.conf
-                def modules = provider { fired }
+            tasks.register("resolveConf") {
+                def files = configurations.conf.incoming.files
                 doLast {
-                    files.files
-                    assert modules.get().sort() == [ 'child', 'child_dep', 'parent_dep' ]
+                    println files*.name
                 }
             }
         """
@@ -208,21 +203,16 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         when:
         repositoryInteractions {
             'org:child:1.0' {
-                expectResolve()
+                expectGetMetadata()
             }
             'org:parent:1.0' {
                 expectGetMetadata()
             }
-            'org:child_dep:1.7' {
-                expectResolve()
-            }
-            'org:parent_dep:1.2' {
-                expectResolve()
-            }
         }
 
         then:
-        succeeds "resolveConf"
+        fails("resolveConf")
+        failure.assertHasCause("Could not find org:parent:1.0.")
     }
 
     // because of the IvyModuleDescriptor rule
@@ -524,5 +514,65 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         then:
         checkDependencies()
 
+    }
+
+    @ToBeImplemented("We need to improve the error message when the only candidate is rejected")
+    def "reasonable error message when a rule rejects the only candidate"() {
+        given:
+        repository {
+            id("org:foo:1.0")
+        }
+
+        buildFile << """
+            configurations {
+                conf
+            }
+
+            dependencies {
+                conf("org:foo:1.0")
+            }
+
+            if (${withRule}) {
+                configurations.conf {
+                    resolutionStrategy {
+                        componentSelection {
+                            all { ComponentSelection selection ->
+                                selection.reject("Reject everything")
+                            }
+                        }
+                    }
+                }
+            }
+
+            task resolve {
+                def root = configurations.conf.incoming.resolutionResult.rootComponent
+                doLast {
+                    root.get().dependencies.each { dep ->
+                        if (dep instanceof UnresolvedDependencyResult) {
+                            throw dep.failure
+                        }
+                    }
+                }
+            }
+        """
+
+        repositoryInteractions {
+            id("org:foo:1.0") {
+                expectGetMetadata()
+            }
+        }
+
+        expect:
+        if (withRule) {
+            fails("resolve")
+            // TODO: This error message is misleading since it says nothing about rejection.
+            //       This message implies that the dependency did not exist, not that it was rejected.
+            failure.assertHasCause("Could not find org:foo:1.0.")
+        } else {
+            succeeds("resolve") // Resolve without rule to prove that the dependency exists
+        }
+
+        where:
+        withRule << [true, false]
     }
 }

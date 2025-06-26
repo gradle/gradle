@@ -32,10 +32,10 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
 public class UserResolverChain implements ComponentResolvers {
+
     private final RepositoryChainDependencyToComponentIdResolver componentIdResolver;
     private final RepositoryChainComponentMetaDataResolver componentResolver;
     private final RepositoryChainArtifactResolver artifactResolver;
-    private final ComponentSelectionRulesInternal componentSelectionRules;
 
     public UserResolverChain(
         VersionComparator versionComparator,
@@ -49,7 +49,6 @@ public class UserResolverChain implements ComponentResolvers {
         CalculatedValueFactory calculatedValueFactory,
         CacheExpirationControl cacheExpirationControl
     ) {
-        this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, attributeSchemaServices, componentSelectionRules, consumerSchema);
         componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, versionParser, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cacheExpirationControl);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, calculatedValueFactory);
@@ -71,13 +70,10 @@ public class UserResolverChain implements ComponentResolvers {
         return artifactResolver;
     }
 
-    public ComponentSelectionRulesInternal getComponentSelectionRules() {
-        return componentSelectionRules;
-    }
-
     public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository) {
         componentIdResolver.add(repository);
         componentResolver.add(repository);
         artifactResolver.add(repository);
     }
+
 }

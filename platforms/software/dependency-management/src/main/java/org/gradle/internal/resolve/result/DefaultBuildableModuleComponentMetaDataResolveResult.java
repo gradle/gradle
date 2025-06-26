@@ -28,9 +28,9 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult<T> extends Def
 
     private void reset(State state) {
         this.state = state;
-        metaData = null;
-        failure = null;
-        authoritative = false;
+        this.metaData = null;
+        this.failure = null;
+        this.authoritative = false;
     }
 
     public void reset() {
@@ -42,7 +42,7 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult<T> extends Def
         reset(State.Resolved);
         this.failure = null;
         this.metaData = metaData;
-        authoritative = true;
+        this.authoritative = true;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult<T> extends Def
         reset(State.Missing);
         this.metaData = null;
         this.failure = null;
-        authoritative = true;
+        this.authoritative = true;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult<T> extends Def
         reset(State.Failed);
         this.metaData = null;
         this.failure = failure;
-        authoritative = true;
+        this.authoritative = true;
     }
 
     @Override
@@ -107,7 +107,7 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult<T> extends Def
     }
 
     @Override
-    public boolean shouldUseGradleMetatada() {
+    public boolean shouldUseGradleMetadata() {
         return state == State.Redirect;
     }
 

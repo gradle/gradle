@@ -38,7 +38,7 @@ import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class ComponentSelectionRulesProcessorTest extends Specification {
-    def processor = new ComponentSelectionRulesProcessor()
+
     def rules = []
     ComponentSelectionInternal componentSelection
     def metadataProvider = Mock(MetadataProvider)
@@ -453,6 +453,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def apply(def metadataProvider) {
-        processor.apply(componentSelection, rules, metadataProvider)
+        ComponentSelectionRulesProcessor.apply(componentSelection, rules, metadataProvider)
     }
+
 }

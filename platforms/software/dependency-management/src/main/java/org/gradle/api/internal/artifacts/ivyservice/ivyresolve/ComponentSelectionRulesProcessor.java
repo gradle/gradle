@@ -35,16 +35,21 @@ import java.util.List;
 public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
 
-    private final Spec<SpecRuleAction<? super ComponentSelection>> withNoInputs = element -> element.getAction().getInputTypes().isEmpty();
-    private final Spec<SpecRuleAction<? super ComponentSelection>> withInputs = Specs.negate(withNoInputs);
+    private static final Spec<SpecRuleAction<? super ComponentSelection>> WITH_NO_INPUTS = element -> element.getAction().getInputTypes().isEmpty();
+    private static final Spec<SpecRuleAction<? super ComponentSelection>> WITH_INPUTS = Specs.negate(WITH_NO_INPUTS);
 
-    void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
-        if (processRules(specRuleActions, withNoInputs, selection, metadataProvider)) {
-            processRules(specRuleActions, withInputs, selection, metadataProvider);
+    public static void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
+        if (processRules(specRuleActions, WITH_NO_INPUTS, selection, metadataProvider)) {
+            processRules(specRuleActions, WITH_INPUTS, selection, metadataProvider);
         }
     }
 
-    private boolean processRules(Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, Spec<SpecRuleAction<? super ComponentSelection>> filter, ComponentSelectionInternal selection, MetadataProvider metadataProvider) {
+    private static boolean processRules(
+        Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions,
+        Spec<SpecRuleAction<? super ComponentSelection>> filter,
+        ComponentSelectionInternal selection,
+        MetadataProvider metadataProvider
+    ) {
         for (SpecRuleAction<? super ComponentSelection> rule : specRuleActions) {
             if (filter.isSatisfiedBy(rule)) {
                 processRule(rule, selection, metadataProvider);
@@ -58,7 +63,7 @@ public class ComponentSelectionRulesProcessor {
         return true;
     }
 
-    private void processRule(SpecRuleAction<? super ComponentSelection> rule, ComponentSelection selection, MetadataProvider metadataProvider) {
+    private static void processRule(SpecRuleAction<? super ComponentSelection> rule, ComponentSelection selection, MetadataProvider metadataProvider) {
         if (!rule.getSpec().isSatisfiedBy(selection)) {
             return;
         }
@@ -83,8 +88,8 @@ public class ComponentSelectionRulesProcessor {
     }
 
     @SuppressWarnings("MixedMutabilityReturnType")
-    private List<Object> getInputValues(List<Class<?>> inputTypes, MetadataProvider metadataProvider) {
-        if (inputTypes.size() == 0) {
+    private static List<Object> getInputValues(List<Class<?>> inputTypes, MetadataProvider metadataProvider) {
+        if (inputTypes.isEmpty()) {
             return Collections.emptyList();
         }
 
