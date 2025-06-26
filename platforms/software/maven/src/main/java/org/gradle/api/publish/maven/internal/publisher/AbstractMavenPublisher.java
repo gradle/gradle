@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
@@ -214,7 +215,8 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     /**
      * Publishes artifacts for a single Maven module.
      */
-    private static class ModuleArtifactPublisher {
+    @VisibleForTesting
+    static class ModuleArtifactPublisher {
         private final NetworkOperationBackOffAndRetry<Void> networkOperationCaller = new NetworkOperationBackOffAndRetry<>();
         private final ExternalResourceRepository repository;
         private final boolean localRepo;
