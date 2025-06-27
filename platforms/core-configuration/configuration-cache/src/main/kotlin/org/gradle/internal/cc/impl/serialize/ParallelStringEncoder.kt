@@ -21,7 +21,6 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.StringEncoder
 import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
 
 
 /**
@@ -30,47 +29,48 @@ import java.util.concurrent.atomic.AtomicInteger
 internal
 class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
 
+    companion object {
+        const val NULL_STRING = 0
+        const val EMPTY_STRING = 1
+        const val FIRST_STRING_ID = 2
+    }
+
     private
     val strings = ConcurrentHashMap<String, Int>()
 
     private
-    var nextId = AtomicInteger(1)
+    var nextId = FIRST_STRING_ID // 0 => null, 1 => ""
 
     private
     val output = Output(stream)
 
     override fun writeNullableString(encoder: Encoder, string: CharSequence?) {
         if (string == null) {
-            encoder.writeSmallInt(0)
+            encoder.writeSmallInt(NULL_STRING)
         } else {
             writeString(encoder, string)
         }
     }
 
     override fun writeString(encoder: Encoder, string: CharSequence) {
-        val id = strings.computeIfAbsent(string.toString()) { key ->
-            val id = nextId.getAndIncrement()
-            doWriteString(id, key)
-            id
-        }
-        encoder.writeSmallInt(id)
+        encoder.writeSmallInt(
+            if (string.isEmpty()) EMPTY_STRING
+            else strings.computeIfAbsent(string.toString(), ::doWriteString)
+        )
     }
 
     override fun close() {
-        output.writeStringId(0) // EOF
-        output.close()
-    }
-
-    private
-    fun doWriteString(id: Int, key: String) {
         synchronized(output) {
-            output.writeStringId(id)
-            output.writeString(key)
+            output.writeString("") // EOF
+            output.close()
         }
     }
 
     private
-    fun Output.writeStringId(id: Int) {
-        writeVarInt(id, true)
-    }
+    fun doWriteString(key: String): Int =
+        synchronized(output) {
+            val id = nextId++
+            output.writeString(key)
+            id
+        }
 }
