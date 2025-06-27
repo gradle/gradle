@@ -833,7 +833,7 @@ parentFirst
         resolve.expectGraph {
             root(":", "org:test:1.3") {
                 module("org:other:1.7") {
-                    edge("org:test:1.2", "org:test:1.3")
+                    module("org:test:1.2")
                 }
             }
         }
@@ -868,7 +868,7 @@ parentFirst
         resolve.expectGraph {
             root(":", "org:test:1.3") {
                 module("org:other:1.7") {
-                    module("org:test:2.1").byConflictResolution("between versions 2.1 and 1.3")
+                    module("org:test:2.1")
                 }
             }
         }
