@@ -21,7 +21,7 @@ import org.gradle.api.problems.Severity
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
 
-    public static final String REGISTRATION_UNSUPPORTED = 'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported'
+    public static final String REGISTRATION_UNSUPPORTED = 'verification:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported'
 
     @Override
     def setup() {
@@ -112,7 +112,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
 
         then:
         verifyAll(receivedProblem) {
-            fqid == 'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache'
+            fqid == 'verification:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache'
             contextualLabel == "invocation of 'Task.project' at execution time is unsupported with the configuration cache."
             definition.severity == Severity.ADVICE
         }
