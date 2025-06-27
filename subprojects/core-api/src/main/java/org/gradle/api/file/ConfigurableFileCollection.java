@@ -55,7 +55,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      * @param paths The paths. {@code null} values are ignored.
      */
-    void setFrom(@Nullable Object @NonNull... paths);
+    void setFrom(@Nullable Object... paths);
 
     /**
      * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
