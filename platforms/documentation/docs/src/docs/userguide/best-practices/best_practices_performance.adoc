@@ -42,3 +42,47 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 === Tags
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
+
+[[avoid_computations_in_configuration_phase]]
+== Avoid Expensive Computations in Configuration Phase
+
+Avoid expensive computations in the <<build_lifecycle.adoc#sec:build_phases,configuration phase>>, instead, move them to task actions.
+
+=== Explanation
+
+In order for Gradle to execute tasks it first needs to build the project task graph. This work is done in a configuration phase of the build. Even if you run a single task, the entire task graph needs to be created.
+
+Adding expensive computations such as doing I/O, loading large files, or CPU-heavy operations in configuration phase can force these to be run when they could be avoided. It is better to move this work to task actions that would run these only when required.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1>
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidComputationInConfigurationPhase-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidComputationInConfigurationPhase-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`

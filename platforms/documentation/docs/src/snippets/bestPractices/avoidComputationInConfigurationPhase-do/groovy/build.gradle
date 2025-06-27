@@ -1,0 +1,15 @@
+// tag::do-this[]
+abstract class MyTask extends DefaultTask {
+    @TaskAction
+    void run() {
+        heavyWork() // <1>
+    }
+    void heavyWork() {
+        println("Start heavy work")
+        Thread.sleep(50)
+        println("Finish heavy work")
+    }
+}
+
+tasks.register("myTask", MyTask)
+// end::do-this[]
