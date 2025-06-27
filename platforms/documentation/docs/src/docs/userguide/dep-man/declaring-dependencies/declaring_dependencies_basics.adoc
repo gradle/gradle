@@ -37,8 +37,15 @@ include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="buil
 
 Gradle offers multiple notations for declaring module dependencies, including string notation and map notation.
 
+<<<<<<< Updated upstream
 - **String Notation:** Simplifies dependency declaration by combining the group, name, and version into a single string.
 - **Map Notation:** Allows for specifying each part of the coordinates separately.
+=======
+====
+include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies-map]"]
+include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies-map]"]
+====
+>>>>>>> Stashed changes
 
 Module dependencies use the link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html[`ExternalModuleDependency`] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] APIs.
 These APIs provide various properties and configuration methods for defining dependencies.
