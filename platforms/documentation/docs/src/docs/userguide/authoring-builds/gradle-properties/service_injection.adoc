@@ -33,7 +33,6 @@ The following services are available for injection in all Gradle instantiated ob
 3. <<filesystemoperations,`FileSystemOperations`>> - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
 4. <<archiveoperations,`ArchiveOperations`>> - Allows a task to run operations on archive files such as ZIP or TAR files.
 5. <<execoperations,`ExecOperations`>> - Allows a task to run external processes with dedicated support for running external `java` programs.
-6. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
 
 === Additional services in workers
 
@@ -49,6 +48,7 @@ The following services are available for injection in project plugins, extension
 2. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
 3. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
 4. <<testeventreporterfactory,`TestEventReporterFactory`>> - Allows a plugin to access Gradle's test events and its corresponding API.
+5. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
 
 === Additional services in settings
 
@@ -56,6 +56,7 @@ The following services are available for injection in settings plugins, extensio
 
 1. <<buildlayout,`BuildLayout`>> - Provides access to important locations for a Gradle build.
 2. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
+3. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
 
 [[objectfactory]]
 == `ObjectFactory`
