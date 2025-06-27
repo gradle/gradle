@@ -1,0 +1,7 @@
+Resolved: true
+
+> Task :lib:badCountingTask
+Count: 1
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed
