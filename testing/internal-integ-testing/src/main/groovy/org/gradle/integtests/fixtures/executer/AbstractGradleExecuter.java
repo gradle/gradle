@@ -1111,8 +1111,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         if (consoleType != null) {
-            String s = consoleType.toString();
-            allArgs.add("--console=" + s.toLowerCase(Locale.ROOT));
+            allArgs.add("--console=" + toCommandLineArgument(consoleType));
         }
 
         // Rich console output is difficult to check, so we disable warnings
@@ -1652,6 +1651,23 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean errorsShouldAppearOnStdout() {
         // If stdout and stderr are attached to the console
         return consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached();
+    }
+
+    private static String toCommandLineArgument(ConsoleOutput consoleOutput) {
+        StringBuilder commandLineArgument = new StringBuilder();
+        String name = consoleOutput.name();
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (Character.isUpperCase(c)) {
+                if (i > 0) {
+                    commandLineArgument.append('-');
+                }
+                commandLineArgument.append(Character.toLowerCase(c));
+            } else {
+                commandLineArgument.append(c);
+            }
+        }
+        return commandLineArgument.toString();
     }
 
     private class ResultCollectingHandle implements GradleHandle {
