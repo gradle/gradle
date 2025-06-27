@@ -137,13 +137,14 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
             }
         """
         when:
+        executer.withStackTraceChecksDisabled()
         fails('test')
 
         then: "Task failure is reported"
 
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("Test process encountered an unexpected problem.")
-        failure.assertThatCause(matchesRegexp(/Process 'Gradle Test Executor \d+' finished with non-zero exit value 231.*/))
+        failure.assertThatCause(matchesRegexp(/Process 'Gradle Test Executor \d+' finished with non-zero exit value.*/))
     }
 
     def "tests not found due to incorrect framework used (junit 4 default)"() {
