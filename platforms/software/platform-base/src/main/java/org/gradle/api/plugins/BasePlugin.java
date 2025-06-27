@@ -20,11 +20,14 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.DomainObjectCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
@@ -78,7 +81,8 @@ public abstract class BasePlugin implements Plugin<Project> {
 
         final Configuration archivesConfiguration = configurations.migratingLocked(ARCHIVES_CONFIGURATION, CONSUMABLE_TO_RETIRED, conf -> {
             conf.setDescription("Configuration for archive artifacts.");
-            conf.getArtifacts().whenObjectAdded(artifact -> {
+            DomainObjectCollectionInternal<PublishArtifact> artifacts = Cast.uncheckedCast(conf.getArtifacts());
+            artifacts.beforeCollectionChanges(artifact -> {
                 DeprecationLogger.deprecateConfiguration(ARCHIVES_CONFIGURATION)
                     .forArtifactDeclaration()
                     .withAdvice("Add artifacts as a direct task dependencies of the 'assemble' task instead of declaring them in the " + ARCHIVES_CONFIGURATION + " configuration.")
