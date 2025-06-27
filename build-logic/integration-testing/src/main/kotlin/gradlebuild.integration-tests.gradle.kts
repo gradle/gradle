@@ -30,7 +30,7 @@ plugins {
 }
 
 extensions.create<IntegrationTestExtension>("integTest").apply {
-    usesJavadocCodeSnippets.convention(false)
+    generateDefaultAutoTestedSamplesTest.convention(true)
     testJvmXmx.convention("512m")
 }
 

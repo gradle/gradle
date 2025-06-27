@@ -28,7 +28,7 @@ class AutoTestedSamplesUtil {
     private static final Pattern LEADING_ASTERISK_PATTERN = Pattern.compile(/(?m)^\s*?\*/)
     private static final Pattern LITERAL_PATTERN = Pattern.compile(/\{@literal ([^}]+)}/)
 
-    void findSamples(String dir, Closure runner) {
+    static void findSamples(String dir, Closure runner) {
         def sources = findDir(dir)
 
         Files.walk(Paths.get(sources))
@@ -37,33 +37,25 @@ class AutoTestedSamplesUtil {
                 String name = p.toString()
                 return name.endsWith(".java") || name.endsWith(".groovy")
             })
-        .forEach { runSamplesFromFile(it.toFile(), runner) }
+        .forEach { runSamplesFromFile(it.toFile(), it.toFile().text, runner) }
     }
 
     static String findDir(String dir) {
         def workDir = SystemProperties.instance.currentDir
         def samplesDir = new File("$workDir/$dir")
         if (samplesDir.exists()) {
-            assertDeclaredAsInput(samplesDir.absolutePath)
             return samplesDir
         }
         throw new RuntimeException("$samplesDir does not exist")
     }
 
-    static void assertDeclaredAsInput(String dir) {
-        String inputs = System.getProperty("declaredSampleInputs")
-        assert inputs: "Must declare source directory as input: 'integTest.usesJavadocCodeSnippets.set(true)'"
-        assert inputs == dir
-    }
-
-    static void runSamplesFromFile(File file, Closure runner) {
-        String text = file.text
-        def samples = SAMPLE_START.matcher(text)
+    static void runSamplesFromFile(File file, String fileContent, Closure runner) {
+        def samples = SAMPLE_START.matcher(fileContent)
         while (samples.find()) {
             def tagSuffix = samples.group(1)
             def start = samples.end()
-            def end = text.indexOf("</pre>", start)
-            def sample = text.substring(start, end)
+            def end = fileContent.indexOf("</pre>", start)
+            def sample = fileContent.substring(start, end)
             sample = LEADING_ASTERISK_PATTERN.matcher(sample).replaceAll('')
             sample = sample.replace('&lt;', '<')
             sample = sample.replace('&gt;', '>')

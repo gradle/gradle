@@ -73,7 +73,6 @@ packageCycles {
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

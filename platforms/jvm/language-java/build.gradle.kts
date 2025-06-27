@@ -129,8 +129,6 @@ packageCycles {
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
-
 tasks.javadoc {
     options {
         this as StandardJavadocDocletOptions
