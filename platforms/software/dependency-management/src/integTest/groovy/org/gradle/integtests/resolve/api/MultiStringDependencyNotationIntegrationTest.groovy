@@ -67,6 +67,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -89,6 +90,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        2.times { expectMultiStringDeprecationWarning() }
         if (!notation.contains("group") || !notation.contains("version")) {
             // We can declare these dependencies but they will fail to resolve.
             fails("help")
@@ -110,6 +112,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -130,6 +133,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        2.times { expectMultiStringDeprecationWarning() }
         succeeds("help")
 
         where:
@@ -151,6 +155,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -168,6 +173,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -190,6 +196,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         if (!notation.contains("version")) {
             // We can declare this dependency but it will fail to resolve.
             fails("help")
@@ -211,6 +218,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -231,6 +239,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -249,6 +258,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -268,6 +278,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -286,6 +297,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -304,6 +316,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -323,6 +336,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -344,6 +358,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        2.times { expectMultiStringDeprecationWarning() }
         succeeds("help")
 
         where:
@@ -361,6 +376,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -383,6 +399,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        2.times { expectMultiStringDeprecationWarning() }
         succeeds("help")
 
         where:
@@ -406,6 +423,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
 
         where:
@@ -426,6 +444,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         fails("help") // Should be success
 
         where:
@@ -448,6 +467,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         fails("help") // Should be success
 
         where:
@@ -466,6 +486,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         fails("help") // Should be success
 
         where:
@@ -489,6 +510,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         fails("help") // Should be success
 
         where:
@@ -510,6 +532,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         fails("help") // Should be success
 
         where:
@@ -532,6 +555,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         fails("help") // Should be success
 
         where:
@@ -553,6 +577,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         fails("help") // Should be success
 
         where:
@@ -574,6 +599,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         fails("help") // Should be success
 
         where:
@@ -589,6 +615,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
     }
 
@@ -605,12 +632,21 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
+        expectMultiStringDeprecationWarning()
         succeeds("help")
     }
 
     def "can declare dependency rules using multi-string notation"() {
+        mavenRepo.module("org", "bar", "1.0").publish()
+
         given:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
             dependencies {
                 components {
                     all {
@@ -622,19 +658,35 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                         }
                     }
                 }
+
+                implementation("org:bar:1.0")
             }
         """
 
         expect:
-        succeeds("help")
+        2.times { expectMultiStringDeprecationWarning() }
+        if (notation.contains("group")) {
+            succeeds("dependencies", "--configuration", "runtimeClasspath")
+        } else {
+            fails("dependencies", "--configuration", "runtimeClasspath") // Group is required for module component IDs
+        }
+
 
         where:
-        notation << GROOVY_DEPENDENCY_NOTATIONS
+        notation << GROOVY_CONSTRAINT_NOTATIONS
     }
 
     def "can declare constraint rules using multi-string notation"() {
+        mavenRepo.module("org", "bar", "1.0").publish()
+
         given:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
             dependencies {
                 components {
                     all {
@@ -646,14 +698,17 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                         }
                     }
                 }
+
+                implementation("org:bar:1.0")
             }
         """
 
         expect:
-        succeeds("help")
+        2.times { expectMultiStringDeprecationWarning() }
+        succeeds("dependencies", "--configuration", "runtimeClasspath")
 
         where:
-        notation << GROOVY_DEPENDENCY_NOTATIONS
+        notation << GROOVY_CONSTRAINT_NOTATIONS
     }
 
     def "can declare dependencies using multi-string notation in type-safe dependencies block"() {
@@ -666,11 +721,47 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                 dependencies {
                     implementation(module(${notation}))
                     implementation(module(${notation})) {}
+                    implementation(platform(module(${notation})))
+                    implementation(platform(module(${notation}))) {}
+                    implementation(enforcedPlatform(module(${notation})))
+                    implementation(enforcedPlatform(module(${notation}))) {}
                 }
             }
         """
 
         expect:
+        6.times { expectMultiStringDeprecationWarning() }
+        succeeds("help")
+
+        where:
+        notation << [
+            "null, 'foo', null",
+            "'org', 'foo', null",
+            "'org', 'foo', '1.0'",
+            "null, 'foo', '1.0'",
+        ]
+    }
+
+    def "can declare dependencies using named multi-string notation in type-safe dependencies block"() {
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            testing.suites.test {
+                dependencies {
+                    implementation(module(${notation}))
+                    implementation(module(${notation})) {}
+                    implementation(platform(module(${notation})))
+                    implementation(platform(module(${notation}))) {}
+                    implementation(enforcedPlatform(module(${notation})))
+                    implementation(enforcedPlatform(module(${notation}))) {}
+                }
+            }
+        """
+
+        expect:
+        6.times { expectMultiStringDeprecationWarning() }
         succeeds("help")
 
         where:
@@ -682,7 +773,7 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
         ]
     }
 
-    def "can declare dependencies using multi-string notation in type-safe dependencies block in Kotlin"() {
+    def "can declare dependencies using named multi-string notation in type-safe dependencies block in Kotlin"() {
         buildKotlinFile << """
             plugins {
                 id("java-library")
@@ -692,13 +783,17 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                 dependencies {
                     implementation(module(${notation}))
                     implementation(module(${notation})) {}
+                    implementation(platform(module(${notation})))
+                    implementation(platform(module(${notation}))) {}
+                    implementation(enforcedPlatform(module(${notation})))
+                    implementation(enforcedPlatform(module(${notation}))) {}
                 }
             }
         """
 
-
         expect:
         if (notation.contains("group") && notation.contains("name") && notation.contains("version")) {
+            6.times { expectMultiStringDeprecationWarning() }
             succeeds("help")
         } else {
             fails("help") // Kotlin fails unless you provide all three parts
@@ -741,5 +836,9 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
                 throw AssertionError("Expected $configuration to have $count constraints, but found \$size")
             }
         """
+    }
+
+    void expectMultiStringDeprecationWarning() {
+        executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
     }
 }

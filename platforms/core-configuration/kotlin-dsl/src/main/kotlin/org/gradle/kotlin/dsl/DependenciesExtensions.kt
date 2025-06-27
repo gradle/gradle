@@ -73,6 +73,7 @@ class DependenciesExtensions {
             implementation("org:foo:1.0") // is getImplementation().add("org:foo:1.0")
 
             // Add a dependency with explicit coordinate parameters
+            @Suppress("DEPRECATION")
             implementation(module(group = "org", name = "foo", version = "1.0")) // is getImplementation().add(module("org", "foo", "1.0"))
 
             // Add dependencies on projects
@@ -96,14 +97,13 @@ class DependenciesExtensions {
 }
 
 
-// The #module and #constraint methods here allow the usage of named arguments in Kotlin, even though the signature is overall the same as the Java method.
-
-
 /**
  * Creates a dependency based on the group, name and version (GAV) coordinates.
  *
  * @since 8.0
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use single-string notation instead")
 fun Dependencies.module(group: String?, name: String, version: String?): ExternalModuleDependency = module(group, name, version)
 
 

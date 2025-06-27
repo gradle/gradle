@@ -876,10 +876,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         where:
         format                              | platformType  | expression
         'single GAV string'                 | 'platform'            | "platform('org.example.gradle:platform')"
-        'module method'                     | 'platform'            | "platform(module('org.example.gradle', 'platform', null))"
         'referencing project.dependencies'  | 'platform'            | "project.dependencies.platform('org.example.gradle:platform')"
         'single GAV string'                 | 'enforcedPlatform'    | "enforcedPlatform('org.example.gradle:platform')"
-        'module method'                     | 'enforcedPlatform'    | "enforcedPlatform(module('org.example.gradle', 'platform', null))"
         'referencing project.dependencies'  | 'enforcedPlatform'    | "project.dependencies.enforcedPlatform('org.example.gradle:platform')"
     }
 
