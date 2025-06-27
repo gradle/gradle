@@ -53,6 +53,7 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -801,7 +802,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
      */
-    ConfigurableFileCollection files(Object... paths);
+    ConfigurableFileCollection files(@Nullable Object @NonNull... paths);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
@@ -820,7 +821,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileCollection files(Object paths, @DelegatesTo(ConfigurableFileCollection.class) Closure configureClosure);
+    ConfigurableFileCollection files(@Nullable Object paths, @DelegatesTo(ConfigurableFileCollection.class) Closure configureClosure);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
@@ -839,7 +840,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the configured file tree. Never returns null.
      * @since 3.5
      */
-    ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction);
+    ConfigurableFileCollection files(@Nullable Object paths, Action<? super ConfigurableFileCollection> configureAction);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated

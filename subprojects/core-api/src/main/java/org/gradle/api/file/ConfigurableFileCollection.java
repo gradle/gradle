@@ -21,6 +21,8 @@ import org.gradle.api.model.ManagedType;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.SupportsConvention;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -53,7 +55,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      * @param paths The paths. {@code null} values are ignored.
      */
-    void setFrom(Object... paths);
+    void setFrom(@Nullable Object @NonNull... paths);
 
     /**
      * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
