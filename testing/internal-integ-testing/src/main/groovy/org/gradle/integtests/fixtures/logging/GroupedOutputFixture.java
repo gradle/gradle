@@ -51,7 +51,7 @@ public class GroupedOutputFixture {
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
     private final static String CONFIGURATION_CACHE_PROBLEMS_FOOTER = "\\d+ (problem was|problems were) found storing the configuration cache";
-    private final static String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER = "Some tasks in this build are not compatible with the configuration cache.";
+    private final static String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache.";
     private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks?:";
 
     /**
