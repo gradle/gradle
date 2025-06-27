@@ -191,7 +191,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
             if (normalized.contains("-")) {
                 StringBuilder sb = new StringBuilder();
                 boolean capitalize = true;
-                for (char ch : normalized.toCharArray()) {
+                for (int i = 0; i < normalized.length(); i++) {
+                    char ch = normalized.charAt(i);
                     if (ch == '-') {
                         capitalize = true;
                     } else {

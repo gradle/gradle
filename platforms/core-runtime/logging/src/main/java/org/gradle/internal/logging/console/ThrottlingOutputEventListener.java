@@ -48,7 +48,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
     public ThrottlingOutputEventListener(OutputEventListener listener, Clock clock) {
-        this(listener, Integer.getInteger("org.gradle.internal.console.throttle", 100), Executors.newSingleThreadScheduledExecutor(), clock);
+        this(listener, Integer.getInteger("org.gradle.internal.console.throttle", 10), Executors.newSingleThreadScheduledExecutor(), clock); // TODO: 100
     }
 
     ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, Clock clock) {
@@ -60,16 +60,13 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     }
 
     private void scheduleUpdateNow() {
-        ScheduledFuture<?> ignored = executor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    onOutput(new UpdateNowEvent(clock.getCurrentTime()));
-                } catch (Throwable t) {
-                    // this class is used as task in a scheduled executor service, so it must not throw any throwable,
-                    // otherwise the further invocations of this task get automatically and silently cancelled
-                    LOGGER.debug("Exception while displaying output", t);
-                }
+        ScheduledFuture<?> ignored = executor.scheduleAtFixedRate(() -> {
+            try {
+                onOutput(new UpdateNowEvent(clock.getCurrentTime()));
+            } catch (Throwable t) {
+                // this class is used as task in a scheduled executor service, so it must not throw any throwable,
+                // otherwise the further invocations of this task get automatically and silently cancelled
+                LOGGER.debug("Exception while displaying output", t);
             }
         }, throttleMs, throttleMs, TimeUnit.MILLISECONDS);
     }

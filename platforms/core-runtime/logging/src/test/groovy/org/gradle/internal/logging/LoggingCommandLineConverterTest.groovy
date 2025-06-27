@@ -70,12 +70,12 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion([arg])
 
         where:
-        arg                      | consoleOutput
-        "--console=plain"        | ConsoleOutput.Plain
-        "--console=plain-with-color" | ConsoleOutput.PlainWithColor
-        "--console=auto"         | ConsoleOutput.Auto
-        "--console=AUTO"         | ConsoleOutput.Auto
-        "--console=rich"         | ConsoleOutput.Rich
+        arg                             | consoleOutput
+        "--console=plain"               | ConsoleOutput.Plain
+        "--console=plain-with-color"    | ConsoleOutput.PlainWithColor
+        "--console=auto"                | ConsoleOutput.Auto
+        "--console=AUTO"                | ConsoleOutput.Auto
+        "--console=rich"                | ConsoleOutput.Rich
     }
 
     def reportsUnknownConsoleOption() {

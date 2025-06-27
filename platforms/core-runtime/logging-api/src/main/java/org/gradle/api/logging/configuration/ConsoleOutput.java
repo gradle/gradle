@@ -24,25 +24,46 @@ public enum ConsoleOutput {
      * Disable all color and rich output. Generate plain text only.
      */
     Plain,
+
     /**
      * Enable color output while omitting rich features such as progress bars.
      *
-     * @since 8.7
+     * @since 9.1
      */
     PlainWithColor,
+
     /**
      * Enable color and rich output when the current process is attached to a console, disable when not attached to a console.
      */
     Auto,
+
     /**
      * Enable color and rich output, regardless of whether the current process is attached to a console or not.
      * When not attached to a console, the color and rich output is encoded using ANSI control characters.
      */
     Rich,
+
     /**
      * Enable color and rich output like Rich, but output more detailed message.
      *
      * @since 4.3
      */
-    Verbose
+    Verbose;
+
+    public static String toCommandLineArgument(ConsoleOutput consoleOutput) {
+        StringBuilder commandLineArgument = new StringBuilder();
+        String name = consoleOutput.name();
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (Character.isUpperCase(c)) {
+                if (i > 0) {
+                    commandLineArgument.append('-');
+                }
+                commandLineArgument.append(Character.toLowerCase(c));
+            } else {
+                commandLineArgument.append(c);
+            }
+        }
+        return commandLineArgument.toString();
+    }
 }
