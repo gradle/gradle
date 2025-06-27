@@ -44,7 +44,7 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
 
 [[use_build_cache]]
-== Use the build cache
+== Use the Build Cache
 
 Use the build cache to save time by reusing outputs produced by other builds.
 
