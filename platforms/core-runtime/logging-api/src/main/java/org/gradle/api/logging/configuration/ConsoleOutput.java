@@ -16,6 +16,8 @@
 
 package org.gradle.api.logging.configuration;
 
+import org.gradle.api.Incubating;
+
 /**
  * Specifies how to treat color and dynamic console output.
  */
@@ -28,8 +30,9 @@ public enum ConsoleOutput {
     /**
      * Enable color output while omitting rich features such as progress bars.
      *
-     * @since 9.1
+     * @since 9.1.0
      */
+    @Incubating
     PlainWithColor,
 
     /**
@@ -48,22 +51,5 @@ public enum ConsoleOutput {
      *
      * @since 4.3
      */
-    Verbose;
-
-    public static String toCommandLineArgument(ConsoleOutput consoleOutput) {
-        StringBuilder commandLineArgument = new StringBuilder();
-        String name = consoleOutput.name();
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) {
-                    commandLineArgument.append('-');
-                }
-                commandLineArgument.append(Character.toLowerCase(c));
-            } else {
-                commandLineArgument.append(c);
-            }
-        }
-        return commandLineArgument.toString();
-    }
+    Verbose
 }
