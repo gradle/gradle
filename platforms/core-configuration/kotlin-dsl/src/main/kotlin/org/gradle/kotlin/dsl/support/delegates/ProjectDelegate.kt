@@ -216,10 +216,10 @@ abstract class ProjectDelegate : Project {
     override fun files(vararg paths: Any?): ConfigurableFileCollection =
         delegate.files(*paths)
 
-    override fun files(paths: Any?, configureClosure: Closure<*>): ConfigurableFileCollection =
+    override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection =
         delegate.files(paths, configureClosure)
 
-    override fun files(paths: Any?, configureAction: Action<in ConfigurableFileCollection>): ConfigurableFileCollection =
+    override fun files(paths: Any, configureAction: Action<in ConfigurableFileCollection>): ConfigurableFileCollection =
         delegate.files(paths, configureAction)
 
     override fun hasProperty(propertyName: String): Boolean =

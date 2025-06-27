@@ -821,7 +821,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileCollection files(@Nullable Object paths, @DelegatesTo(ConfigurableFileCollection.class) Closure configureClosure);
+    ConfigurableFileCollection files(Object paths, @DelegatesTo(ConfigurableFileCollection.class) Closure configureClosure);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
@@ -840,7 +840,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the configured file tree. Never returns null.
      * @since 3.5
      */
-    ConfigurableFileCollection files(@Nullable Object paths, Action<? super ConfigurableFileCollection> configureAction);
+    ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
