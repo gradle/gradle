@@ -506,6 +506,8 @@ You can also include projects located in subdirectories using hierarchical paths
 This allows you to organize large builds containing many projects to improve comprehensibility, versus having all your projects live at the root of the build.
 For instance, if project `search` was located in a subdirectory named `features`, itself located in a subdirectory named `subs`, you could call `include(":subs:features:search")` to include it.
 
+NOTE: You should typically keep your _logical_ project paths and _physical_ project locations aligned to avoid confusion.  Don't include a project named `:subs:features:search` and locate it at `features/ui/search`, as this will lead to confusion about the location of the project.
+
 However, without further configuration, Gradle will create empty projects for every element of the path.
 In the example above, Gradle will create a project named `:subs`, a project named `:subs:features`, and a project named `:subs:features:search`.
 This probably isn't intended, as you likely only want to include the `search` project.
@@ -513,7 +515,7 @@ Additional projects - even if empty - will slow down your build, clutter reporti
 
 To avoid this, be sure to explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module"`).
 
-As ab added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
+As an added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
 
 === Example
 
