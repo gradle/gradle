@@ -46,19 +46,19 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 [[use_build_cache]]
 == Use the Build Cache
 
-Use the build cache to save time by reusing outputs produced by other builds.
+Use the Build Cache to save time by reusing outputs produced by previous builds.
 
 === Explanation
 
-The build cache avoids executing a task to recompute its outputs if Gradle can instead reuse those outputs from an earlier build, resulting in faster builds.
+The Build Cache avoids re-executing tasks when their inputs haven't changed by reusing outputs from previous builds.
 
-This avoids unnecessary work when a task's inputs haven't changed - since the work of producing output has already been done during a previous run - and the result will be the same.
+This prevents redundant work. If the inputs are the same, the outputs will be too, resulting in faster, more efficient builds.
 
 === Example
 
 ==== Don't Do This
 
-Build caching is disabled by default if not set:
+Build caching is disabled by default:
 
 ====
 include::sample[dir="snippets/bestPractices/useBuildCache-avoid/kotlin",files="gradle.properties[tags=avoid-this]"]
@@ -66,26 +66,27 @@ include::sample[dir="snippets/bestPractices/useBuildCache-avoid/kotlin",files="g
 
 ==== Do This Instead
 
-To enable the build cache, add the following to your `gradle.properties` file:
+To enable the Build Cache, add the following to your `gradle.properties` file:
 
 ====
 include::sample[dir="snippets/bestPractices/useBuildCache-do/kotlin",files="gradle.properties[tags=do-this]"]
 ====
-When building your project for the first time, the cache will be populated with the output of the compilation.
 
-You can even issue a `gradle clean` command to remove the outputs from the build directory.
+When you build your project for the first time, Gradle populates the cache with the outputs of tasks like compilation.
+
+Even if you run `./gradlew clean` to delete the build directory, Gradle can reuse cached outputs in subsequent builds.
 
 ----
-> gradle clean
+> ./gradlew clean
 :clean
 
 BUILD SUCCESSFUL
 ----
 
-On subsequent builds, instead of executing the ``:compileJava` task again, the outputs of the task will be loaded from the build cache:
+On subsequent builds, instead of executing the `:compileJava` task again, the outputs of the task will be loaded from the Build Cache:
 
 ----
-> gradle compileJava
+> ./gradlew compileJava
 
 include::{snippetsPath}/bestPractices/useBuildCache-do/tests/useBuildCache-do.secondRun.out[]
 ----
