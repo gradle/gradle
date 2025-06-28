@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -27,8 +26,8 @@ import org.gradle.internal.nativeintegration.services.NativeServices.NativeServi
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
-import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -50,7 +49,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
-    private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
     private final Set<Throwable> unrecoverableExceptions = new HashSet<>();
 
@@ -61,8 +59,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         WorkerTestClassProcessorFactory processorFactory,
         JavaForkOptions options,
         ForkedTestClasspath classpath,
-        Action<WorkerProcessBuilder> buildConfigAction,
-        DocumentationRegistry documentationRegistry
+        Action<WorkerProcessBuilder> buildConfigAction
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.workerFactory = workerFactory;
@@ -70,7 +67,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         this.options = options;
         this.classpath = classpath;
         this.buildConfigAction = buildConfigAction;
-        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -157,9 +153,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
         } catch (ProcessExecutionException e) {
             if (!stoppedNow) {
-                throw new ProcessExecutionException(e.getMessage()
-                    + "\nThis problem might be caused by incorrect test process configuration."
-                    + "\n" + documentationRegistry.getDocumentationRecommendationFor("on test execution", "java_testing", "sec:test_execution"), e.getCause());
+                throw e;
             }
         } finally {
             if (completion != null) {
