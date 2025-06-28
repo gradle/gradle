@@ -25,7 +25,7 @@ import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.PropertyValue;
@@ -47,14 +47,14 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
     private final ProjectLayout projectLayout;
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final InspectionScheme inspectionScheme;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
     public ActionBasedModelDefaultsHandler(
         SharedModelDefaults sharedModelDefaults,
         ProjectLayout projectLayout,
         SoftwareTypeRegistry softwareTypeRegistry,
         InspectionScheme inspectionScheme,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         this.sharedModelDefaults = (SharedModelDefaultsInternal) sharedModelDefaults;
         this.projectLayout = projectLayout;

@@ -51,8 +51,8 @@ import org.gradle.api.problems.internal.DefaultTaskLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.GeneralData;
-import org.gradle.api.problems.internal.InternalDocLink;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.DocLinkInternal;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -73,7 +73,7 @@ import java.util.stream.Stream;
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends InternalProblem> parseMessageList(String lines) {
+    public static List<? extends ProblemInternal> parseMessageList(String lines) {
         Gson gson = GSON_BUILDER.create();
         Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
         return gson.<List<DefaultProblem>>fromJson(lines, type);
@@ -92,7 +92,7 @@ public class ValidationProblemSerialization {
     }
 
 
-    public static Stream<String> toPlainMessage(List<? extends InternalProblem> problems) {
+    public static Stream<String> toPlainMessage(List<? extends ProblemInternal> problems) {
         return problems.stream()
             .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
@@ -399,7 +399,7 @@ public class ValidationProblemSerialization {
 
             out.beginObject();
             out.name("url").value(value.getUrl());
-            out.name("consultDocumentationMessage").value(((InternalDocLink) value).getConsultDocumentationMessage());
+            out.name("consultDocumentationMessage").value(((DocLinkInternal) value).getConsultDocumentationMessage());
             out.endObject();
         }
 
@@ -427,7 +427,7 @@ public class ValidationProblemSerialization {
 
             final String finalUrl = url;
             final String finalConsultDocumentationMessage = consultDocumentationMessage;
-            return new InternalDocLink() {
+            return new DocLinkInternal() {
                 @Override
                 public String getUrl() {
                     return finalUrl;

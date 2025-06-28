@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
@@ -222,8 +222,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
             StartParameter startParameter,
+            ProblemsInternal problemsService,
             FailureFactory failureFactory,
-            InternalProblems problemsService,
             ProblemStream problemStream,
             ExceptionProblemRegistry registry
         ) {

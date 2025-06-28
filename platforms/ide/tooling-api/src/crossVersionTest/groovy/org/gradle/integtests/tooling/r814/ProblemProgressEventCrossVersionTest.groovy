@@ -81,7 +81,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             import java.util.Collections;
             import java.io.FileWriter;
             import org.gradle.api.problems.Problems;
-            import org.gradle.api.problems.internal.InternalProblems;
+            import org.gradle.api.problems.internal.ProblemsInternal;
             import org.gradle.api.problems.ProblemId;
             import org.gradle.api.problems.ProblemGroup;
             import org.gradle.api.model.ObjectFactory;
@@ -93,7 +93,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             public abstract class ProblemWorkerAction implements WorkAction<ProblemsWorkerTaskParameter> {
 
                 @Inject
-                public abstract InternalProblems getProblems();
+                public abstract ProblemsInternal getProblems();
 
                 @Inject
                 public abstract ObjectFactory getObjectFactory();

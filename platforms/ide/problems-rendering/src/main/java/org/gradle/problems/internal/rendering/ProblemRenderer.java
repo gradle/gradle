@@ -19,7 +19,7 @@ package org.gradle.problems.internal.rendering;
 import com.google.common.base.Strings;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -40,30 +40,30 @@ public class ProblemRenderer {
         output = new PrintWriter(writer);
     }
 
-    public void render(List<InternalProblem> problems) {
+    public void render(List<ProblemInternal> problems) {
         render(output, problems);
     }
 
-    public void render(InternalProblem problem) {
+    public void render(ProblemInternal problem) {
         render(Collections.singletonList(problem));
     }
 
-    private static void render(PrintWriter output, List<InternalProblem> problems) {
+    private static void render(PrintWriter output, List<ProblemInternal> problems) {
         // Group problems by problem id
         // When generic rendering is addressed, maybe we also group by the whole problem group hierarchy
-        Map<ProblemId, List<InternalProblem>> problemIdListMap = problems.stream().collect(Collectors.groupingBy(internalProblem -> internalProblem.getDefinition().getId()));
+        Map<ProblemId, List<ProblemInternal>> problemIdListMap = problems.stream().collect(Collectors.groupingBy(problemInternal -> problemInternal.getDefinition().getId()));
         String separator = "";
-        for (Map.Entry<ProblemId, List<InternalProblem>> problemIdListEntry : problemIdListMap.entrySet()) {
+        for (Map.Entry<ProblemId, List<ProblemInternal>> problemIdListEntry : problemIdListMap.entrySet()) {
             renderProblemsById(output, problemIdListEntry.getKey(), problemIdListEntry.getValue(), separator);
             separator = "%n";
         }
     }
 
-    private static void renderProblemsById(PrintWriter output, ProblemId problemId, List<InternalProblem> problems, String separator) {
+    private static void renderProblemsById(PrintWriter output, ProblemId problemId, List<ProblemInternal> problems, String separator) {
         String sep = separator;
         boolean isJavaCompilationProblem = problemId.getGroup().equals(GradleCoreProblemGroup.compilation().java()) && !problemId.getName().equals("initialization-failed");
         if (isJavaCompilationProblem) {
-            for (InternalProblem problem : problems) {
+            for (ProblemInternal problem : problems) {
                 output.printf(sep);
                 renderJavaCompilationProblem(output, problem);
                 sep = "%n";
@@ -72,14 +72,14 @@ public class ProblemRenderer {
             output.printf(sep);
             sep = "%n";
             formatMultiline(output, problemId.getDisplayName(), 0);
-            for (InternalProblem problem : problems) {
+            for (ProblemInternal problem : problems) {
                 output.printf(sep);
                 renderProblem(output, problem);
             }
         }
     }
 
-    static void renderProblem(PrintWriter output, InternalProblem problem) {
+    static void renderProblem(PrintWriter output, ProblemInternal problem) {
         formatMultiline(output, getProblemLabel(problem), 1);
         if (problem.getDetails() != null) {
             output.printf("%n");
@@ -88,7 +88,7 @@ public class ProblemRenderer {
     }
 
     @Nullable
-    private static String getProblemLabel(InternalProblem problem) {
+    private static String getProblemLabel(ProblemInternal problem) {
         if (problem.getContextualLabel() != null) {
             return problem.getContextualLabel();
         } else if (problem.getException() != null) {
@@ -99,7 +99,7 @@ public class ProblemRenderer {
         return null;
     }
 
-    static void renderJavaCompilationProblem(PrintWriter output, InternalProblem problem) {
+    static void renderJavaCompilationProblem(PrintWriter output, ProblemInternal problem) {
         formatMultiline(output, problem.getDetails(), 0);
     }
 
