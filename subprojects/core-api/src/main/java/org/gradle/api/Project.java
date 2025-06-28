@@ -801,7 +801,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
      */
-    ConfigurableFileCollection files(Object... paths);
+    ConfigurableFileCollection files(@Nullable Object... paths);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link

@@ -213,7 +213,7 @@ abstract class ProjectDelegate : Project {
     override fun getProjectDir(): File =
         delegate.projectDir
 
-    override fun files(vararg paths: Any): ConfigurableFileCollection =
+    override fun files(vararg paths: Any?): ConfigurableFileCollection =
         delegate.files(*paths)
 
     override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection =
