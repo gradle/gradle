@@ -17,7 +17,6 @@
 
 [[modularize_builds]]
 == Modularize Your Builds
-:keywords: structuring-builds
 
 Modularize your builds by splitting your code into multiple projects.
 
@@ -220,7 +219,6 @@ include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/groovy/util-g
 
 [[no_source_in_root]]
 == Do Not Put Source Files in the Root Project
-:keywords: structuring-builds
 
 Do not put source files in your root project; instead, put them in a separate project.
 
@@ -338,7 +336,6 @@ include::sample[dir="snippets/bestPractices/noSourceInRoot-do/groovy/core",files
 
 [[favor_composite_builds]]
 == Favor `build-logic` Composite Builds for Build Logic
-:keywords: structuring-builds,composite-builds,buildSrc
 
 You should set up a <<composite_builds.adoc#defining_composite_builds,Composite Build>> (often called an "included build") to hold your build logic—including any custom plugins, convention plugins, and other build-specific customizations.
 
@@ -493,7 +490,6 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy/build
 
 [[avoid_empty_projects]]
 == Avoid Unintentionally Creating Empty Projects
-:keywords: structuring-builds
 
 When using a hierarchical directory structure to organize your Gradle projects, make sure to avoid unintentionally creating empty projects in your build.
 

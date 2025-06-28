@@ -14,7 +14,7 @@
 
 [[multi_project_builds]]
 = Multi-Project Builds
-:keywords: multi, build, project
+:keywords: multi, project, subprojects, multi-project
 
 As projects grow, it's common to split them into smaller, focused modules that are built, tested, and released together.
 Gradle supports this through multi-project builds, allowing you to organize related codebases under a single build while keeping each module logically isolated.
