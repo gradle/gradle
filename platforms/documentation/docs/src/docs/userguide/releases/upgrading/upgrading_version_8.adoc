@@ -215,6 +215,25 @@ However, these configurations were unresolvable and could lead to errors in the 
 
 As of Gradle 9, these configurations are no longer created or used by the Scala plugins.
 
+=== Settings file changes
+
+==== Project directories must exist
+
+Gradle will now fail if you include a project that does not correspond to a directory
+in the file system, or if the directory exists but is read-only.
+
+[source,text]
+----
+
+* What went wrong:
+Configuring project ':subproject1' without an existing directory is not allowed. The configured projectDirectory '.../subproject1' does not exist, can't be written to or is not a directory.
+
+* Try:
+> Make sure the project directory exists and is writable.
+----
+
+See more in <<deprecated_missing_project_directory>>.
+
 === Task changes
 
 [[validate_plugins_without_java_toolchain_90]]
