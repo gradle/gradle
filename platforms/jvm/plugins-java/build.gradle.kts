@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.core)
     implementation(projects.ivy)
     implementation(projects.languageJvm)
+    implementation(projects.logging)
     implementation(projects.maven)
     implementation(projects.modelCore)
     implementation(projects.platformBase)

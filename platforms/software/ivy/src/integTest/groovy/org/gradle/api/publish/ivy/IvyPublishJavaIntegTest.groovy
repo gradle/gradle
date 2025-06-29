@@ -146,7 +146,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             artifacts {
                 implementation extraJar
-                archives extraJar
                 it."default" extraJar
             }
 

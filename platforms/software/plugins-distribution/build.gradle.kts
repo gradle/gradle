@@ -31,6 +31,7 @@ dependencies {
 
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
+    implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.platformBase)
 
