@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.internal.logging.events.EndOutputEvent;
@@ -44,23 +43,23 @@ public class WorkInProgressRenderer implements OutputEventListener {
     private final DefaultWorkInProgressFormatter labelFormatter;
     private final ConsoleLayoutCalculator consoleLayoutCalculator;
 
-    private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
+    private final List<OutputEvent> queue = new ArrayList<>();
 
     // Track all unused labels to display future progress operation
     private final Deque<StyledLabel> unusedProgressLabels;
 
     // Track currently associated label with its progress operation
-    private final Map<OperationIdentifier, AssociationLabel> operationIdToAssignedLabels = new HashMap<OperationIdentifier, AssociationLabel>();
+    private final Map<OperationIdentifier, AssociationLabel> operationIdToAssignedLabels = new HashMap<>();
 
     // Track any progress operation that either can't be display due to label shortage or child progress operation is already been displayed
-    private final Deque<ProgressOperation> unassignedProgressOperations = new ArrayDeque<ProgressOperation>();
+    private final Deque<ProgressOperation> unassignedProgressOperations = new ArrayDeque<>();
 
     public WorkInProgressRenderer(OutputEventListener listener, BuildProgressArea progressArea, DefaultWorkInProgressFormatter labelFormatter, ConsoleLayoutCalculator consoleLayoutCalculator) {
         this.listener = listener;
         this.progressArea = progressArea;
         this.labelFormatter = labelFormatter;
         this.consoleLayoutCalculator = consoleLayoutCalculator;
-        this.unusedProgressLabels = new ArrayDeque<StyledLabel>(progressArea.getBuildProgressLabels());
+        this.unusedProgressLabels = new ArrayDeque<>(progressArea.getBuildProgressLabels());
     }
 
     @Override
@@ -78,12 +77,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
 
     // Transform ProgressCompleteEvent into their corresponding progress OperationIdentifier.
     private Set<OperationIdentifier> toOperationIdSet(Iterable<ProgressCompleteEvent> events) {
-        return Sets.newHashSet(Iterables.transform(events, new Function<ProgressCompleteEvent, OperationIdentifier>() {
-            @Override
-            public OperationIdentifier apply(ProgressCompleteEvent event) {
-                return event.getProgressOperationId();
-            }
-        }));
+        return Sets.newHashSet(Iterables.transform(events, ProgressCompleteEvent::getProgressOperationId));
     }
 
     private void resizeTo(int newBuildProgressLabelCount) {
@@ -123,6 +117,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
         // Try to use a new label
         if (unusedProgressLabels.isEmpty()) {
             unassignedProgressOperations.add(operation);
+            reportLinesNotShown();
         } else {
             attach(operation, unusedProgressLabels.pop());
         }
@@ -145,6 +140,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
             attach(operation.getParent());
         } else if (!unassignedProgressOperations.isEmpty()) {
             attach(unassignedProgressOperations.pop());
+            reportLinesNotShown();
         }
     }
 
@@ -158,6 +154,22 @@ public class WorkInProgressRenderer implements OutputEventListener {
             unusedProgressLabels.push(association.label);
         }
         unassignedProgressOperations.remove(operation);
+        reportLinesNotShown();
+    }
+
+    private void reportLinesNotShown() {
+        int linesNotShown = unassignedProgressOperations.size();
+
+        String text;
+        if (linesNotShown == 0) {
+            text = "";
+        } else if (linesNotShown == 1) {
+            text = "  (1 line not showing)";
+        } else {
+            text = "  (" + linesNotShown + " lines not showing)";
+        }
+
+        progressArea.getCursorParkLine().setText(text);
     }
 
     // Any ProgressOperation in the parent chain has a message, the operation is considered renderable.
@@ -178,7 +190,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
 
         // Skip processing of any operations that both start and complete in the queue
         Set<OperationIdentifier> completeEventOperationIds = toOperationIdSet(Iterables.filter(queue, ProgressCompleteEvent.class));
-        Set<OperationIdentifier> operationIdsToSkip = new HashSet<OperationIdentifier>();
+        Set<OperationIdentifier> operationIdsToSkip = new HashSet<>();
 
         for (OutputEvent event : queue) {
             if (event instanceof ProgressStartEvent) {
