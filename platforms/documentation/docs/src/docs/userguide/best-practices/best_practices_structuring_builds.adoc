@@ -498,20 +498,23 @@ When using a hierarchical directory structure to organize your Gradle projects, 
 When you use the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[Settings.include()] method to include a project in your Grade settings file, you typically include projects by supplying the directory name like `include("featureA")`.
 This usage assumes that `featureA` is located at the root of your build.
 
-You can also include projects located in subdirectories using hierarchical paths with the `:` charactor as a separator.
-This allows you to organize large builds containing many projects to improve comprehensibility, versus having all your projects live at the root of the build.
+You can also include projects located in deeper subdirectories by specifying the complete path to the project using the `:` charactor as a path separator.
 For instance, if project `search` was located in a subdirectory named `features`, itself located in a subdirectory named `subs`, you could call `include(":subs:features:search")` to include it.
 
-NOTE: You should typically keep your _logical_ project paths and _physical_ project locations aligned to avoid confusion.  Don't include a project named `:subs:features:search` and locate it at `features/ui/search`, as this will lead to confusion about the location of the project.
+Nesting projects under a sensible hierarchical directory structure is a common practice in Gradle builds.
+This allows you to organize large builds containing many projects to improve comprehensibility, versus having all your projects live at the root of the build.
 
 However, without further configuration, Gradle will create empty projects for every element of the path.
 In the example above, Gradle will create a project named `:subs`, a project named `:subs:features`, and a project named `:subs:features:search`.
-This probably isn't intended, as you likely only want to include the `search` project.
-Additional projects - even if empty - will slow down your build, clutter reporting, and make your build harder to understand.
+This probably isn't intended, as you likely only want to add a `search` project.
+
+Additional projects - even if empty - will clutter reporting, and make your build harder to understand.
+If plugins are applied using `allprojects { ... }` or `subprojects { ... }`, they will apply to each of these empty projects, which can have performance impacts and will further hurt comprehensibility.
 
 To avoid this, be sure to explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module"`).
+This will prevent Gradle from creating empty projects for each element of the path.
 
-As an added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
+NOTE: Always keep your _logical_ project paths and _physical_ project locations aligned to avoid confusion.  Don't include a project named `:subs:features:search` and locate it at `features/ui/search`, as this will lead to confusion about the location of the project.  For the same reason, avoid unnecessarily deep directory structures - for builds containing only a few projects, it is better to keep the structure flat by locating all projects at the root of the build and avoid the need to explicitly set `projectDir` at all.
 
 === Example
 
