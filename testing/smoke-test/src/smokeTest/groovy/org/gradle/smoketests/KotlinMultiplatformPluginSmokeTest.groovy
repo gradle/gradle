@@ -46,7 +46,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             )
             .expectDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20,
-                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as a direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
                 "https://youtrack.jetbrains.com/issue/KT-78620"
             )
             .build()
@@ -85,7 +85,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             )
             .expectDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20,
-                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as a direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
                 "https://youtrack.jetbrains.com/issue/KT-78620"
             )
             .build()
@@ -127,7 +127,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
             .expectDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20,
-                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as a direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
                 "https://youtrack.jetbrains.com/issue/KT-78620"
             )
             .build()
@@ -184,7 +184,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def testRunner = kgpRunner(false, kotlinVersionNumber, ':resolve', '--stacktrace')
             .expectDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20,
-                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as a direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
                 "https://youtrack.jetbrains.com/issue/KT-78620"
             )
         def result = testRunner.build()

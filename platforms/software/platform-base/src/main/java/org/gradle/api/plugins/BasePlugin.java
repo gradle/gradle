@@ -85,7 +85,7 @@ public abstract class BasePlugin implements Plugin<Project> {
             artifacts.beforeCollectionChanges(artifact -> {
                 DeprecationLogger.deprecateConfiguration(ARCHIVES_CONFIGURATION)
                     .forArtifactDeclaration()
-                    .withAdvice("Add artifacts as a direct task dependencies of the 'assemble' task instead of declaring them in the " + ARCHIVES_CONFIGURATION + " configuration.")
+                    .withAdvice("Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the " + ARCHIVES_CONFIGURATION + " configuration.")
                     .willBecomeAnErrorInNextMajorGradleVersion()
                     .withUpgradeGuideSection(9, "sec:archives-configuration")
                     .nagUser();
