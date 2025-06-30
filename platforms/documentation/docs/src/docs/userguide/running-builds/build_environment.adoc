@@ -167,6 +167,10 @@ org.gradle.project.myProperty='Hi, world'
 ----
 myProperty='Hi, world'
 ----
++
+The `gradle.properties` file can be located in a number of places, including `<GRADLE_USER_HOME>/gradle.properties`, `./gradle.properties` (the project root) and `<GRADLE_HOME>/gradle.properties`.
++
+If the same property is defined in multiple locations, the file’s location determines its <<#priority-table-gradle-properties,precedence>>.
 4. *Environment Variables:* You can set project properties with environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___myProperty__='Hi, world'`, then Gradle will set a `myProperty` property on your project object, with the value of `Hi, world`.
 +
 [source,text]
@@ -282,6 +286,7 @@ org.gradle.caching.debug=false
 The final configuration considered by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files.
 If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
+[[priority-table-gradle-properties]]
 [%autowidth.stretch]
 |===
 |Priority |Method |Location |Details
