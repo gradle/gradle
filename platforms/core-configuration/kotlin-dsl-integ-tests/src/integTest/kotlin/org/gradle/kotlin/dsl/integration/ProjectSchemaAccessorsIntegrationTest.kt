@@ -513,6 +513,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             $repositoriesBlock
             """
         )
+        usesKotlinDslPlugin()
     }
 
     @Test
@@ -934,6 +935,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             $repositoriesBlock
             """
         )
+        usesKotlinDslPlugin()
 
         withFile(
             "buildSrc/src/main/kotlin/foo/FooPlugin.kt",
@@ -995,6 +997,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             $repositoriesBlock
             """
         )
+        usesKotlinDslPlugin()
 
         withFile(
             "buildSrc/src/main/kotlin/plugins/MyPlugin.kt",

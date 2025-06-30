@@ -32,12 +32,16 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         return false
     }
 
+    protected AbstractConfigurationCacheIntegrationTest maybeExpectDeprecations() {
+        return this
+    }
+
     def "reports undeclared system property read using #propertyRead.groovyExpression prior to task execution from plugin"() {
         buildLogicApplication(propertyRead)
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRunLenient "thing", "-DCI=$value"
+        maybeExpectDeprecations().configurationCacheRunLenient "thing", "-DCI=$value"
 
         then:
         configurationCache.assertStateStored()
@@ -59,7 +63,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         outputContains("task = $value")
 
         when:
-        configurationCacheRun("thing", "-DCI=$newValue")
+        maybeExpectDeprecations().configurationCacheRun("thing", "-DCI=$newValue")
 
         then: 'undeclared properties are considered build inputs'
         configurationCache.assertStateStored()
@@ -88,7 +92,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("thing", "-DCI=$value")
+        maybeExpectDeprecations().configurationCacheRun("thing", "-DCI=$value")
 
         then:
         configurationCache.assertStateStored()
@@ -110,7 +114,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when:
         EnvVariableInjection.environmentVariable("CI", value).setup(this)
-        configurationCacheRunLenient "thing"
+        maybeExpectDeprecations().configurationCacheRunLenient "thing"
 
         then:
         configurationCache.assertStateStored()
@@ -133,7 +137,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when:
         EnvVariableInjection.environmentVariable("CI", newValue).setup(this)
-        configurationCacheRun("thing")
+        maybeExpectDeprecations().configurationCacheRun("thing")
 
         then: 'undeclared properties are considered build inputs'
         configurationCache.assertStateStored()
@@ -159,7 +163,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "the file system entry used in configuration does not exist"
         assert !accessedFile.exists()
-        configurationCacheRunLenient()
+        maybeExpectDeprecations().configurationCacheRunLenient()
 
         then: "the file system entry is reported as an input"
         configurationCache.assertStateStored()
@@ -177,7 +181,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "there was no file system entry at the path used in configuration and a file is created at that path"
         assert accessedFile.createNewFile()
-        configurationCacheRunLenient()
+        maybeExpectDeprecations().configurationCacheRunLenient()
 
         then: "the cache entry is invalidated and the created file is reported"
         configurationCache.assertStateStored()
@@ -194,7 +198,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         assert accessedFile.isFile()
         assert accessedFile.delete()
         assert accessedFile.mkdirs()
-        configurationCacheRunLenient()
+        maybeExpectDeprecations().configurationCacheRunLenient()
 
         then: "the cache entry is invalidated and the change of the file system entry is reported"
         configurationCache.assertStateStored()
@@ -202,7 +206,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "the file system entry used in configuration is deleted"
         assert accessedFile.deleteDir()
-        configurationCacheRunLenient()
+        maybeExpectDeprecations().configurationCacheRunLenient()
 
         then: "the cache entry is invalidated and the removal is reported"
         configurationCache.assertStateStored()
@@ -226,7 +230,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "an empty directory used in configuration is created"
         assert accessedFile.mkdirs()
-        configurationCacheRunLenient()
+        maybeExpectDeprecations().configurationCacheRunLenient()
 
         then: "it is reported as an input"
         configurationCache.assertStateStored()
@@ -243,7 +247,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "a file is created in the directory"
         assert new File(accessedFile, "test1").createNewFile()
-        configurationCacheRunLenient()
+        maybeExpectDeprecations().configurationCacheRunLenient()
 
         then: "the cache entry is invalidated and the change is reported"
         configurationCache.assertStateStored()
@@ -273,7 +277,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "the build uses a file content in configuration"
         accessedFile.text = "foo"
-        configurationCacheRunLenient()
+        maybeExpectDeprecations().configurationCacheRunLenient()
 
         then: "the file content input is reported"
         configurationCache.assertStateStored()
@@ -290,7 +294,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "the file content is modified and the build is re-run"
         accessedFile.text = "bar"
-        configurationCacheRunLenient()
+        maybeExpectDeprecations().configurationCacheRunLenient()
 
         then: "the cache entry is invalidated and the change is reported"
         configurationCache.assertStateStored()

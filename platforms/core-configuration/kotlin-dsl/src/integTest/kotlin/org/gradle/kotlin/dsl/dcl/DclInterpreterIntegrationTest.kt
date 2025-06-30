@@ -122,6 +122,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
             """.trimIndent()
         )
+        usesKotlinDslPlugin()
 
         withFile(
             "settings.gradle.kts", """

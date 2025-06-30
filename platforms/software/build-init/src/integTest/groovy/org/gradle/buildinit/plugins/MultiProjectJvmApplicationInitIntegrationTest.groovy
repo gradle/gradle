@@ -22,6 +22,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -57,6 +58,18 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
             files << file
         }
         return files
+    }
+
+    def expectDeprecationsForKotlinDslPlugin() {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+    }
+
+    def expectDeprecationsForKotlinJvmPlugin() {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+    }
+
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        return this
     }
 
     void assertBuildLogicSources(BuildInitDsl dsl, String language, TestFile buildLogicDir, String settingsFile, String buildFile, String javaMajorVersion) {
@@ -145,7 +158,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest1 extends Ab
         assertApplicationProjectsSources(buildFile, language, "org.example.", ext)
 
         when:
-        succeeds "build"
+        maybeExpectDeprecations().succeeds "build"
 
         then:
         assertTestPassed("app", "org.example.app.MessageUtilsTest", "testGetMessage")
@@ -155,7 +168,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest1 extends Ab
         assertTestPassed("list", "org.example.list.LinkedListTest", "testRemoveMissing")
 
         when:
-        succeeds "run"
+        maybeExpectDeprecations().succeeds "run"
 
         then:
         outputContains("Hello World!")
@@ -194,10 +207,10 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest2 extends Ab
         assertApplicationProjectsSources(buildFile, language, expectedPackagePrefix, ext)
 
         expect:
-        succeeds "build"
+        maybeExpectDeprecations().succeeds "build"
 
         when:
-        succeeds "run"
+        maybeExpectDeprecations().succeeds "run"
 
         then:
         outputContains("Hello World!")
@@ -245,7 +258,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest3 extends Ab
         }
 
         when:
-        succeeds "build"
+        maybeExpectDeprecations().succeeds "build"
 
         then:
         assertTestPassed("app", "org.example.app.MessageUtilsTest", "testGetMessage")
@@ -255,7 +268,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest3 extends Ab
         assertTestPassed("list", "org.example.list.LinkedListTest", "testRemoveMissing")
 
         when:
-        succeeds "run"
+        maybeExpectDeprecations().succeeds "run"
 
         then:
         outputContains("Hello World!")
@@ -310,6 +323,12 @@ class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends Abstrac
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinJvmPlugin()
+        return super.maybeExpectDeprecations()
+    }
 }
 
 @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
@@ -318,6 +337,12 @@ class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends Abstrac
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinJvmPlugin()
+        return super.maybeExpectDeprecations()
+    }
 }
 
 @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
@@ -325,6 +350,12 @@ class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends Abstrac
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
+    }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinJvmPlugin()
+        return super.maybeExpectDeprecations()
     }
 }
 
@@ -353,11 +384,23 @@ class KotlinDslMultiProjectJavaApplicationInitIntegrationTest1 extends AbstractM
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
     }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
+    }
 }
 
 class KotlinDslMultiProjectJavaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
+    }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
     }
 }
 
@@ -365,11 +408,23 @@ class KotlinDslMultiProjectJavaApplicationInitIntegrationTest3 extends AbstractM
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
     }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
+    }
 }
 
 class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
+    }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
     }
 }
 
@@ -377,11 +432,23 @@ class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest2 extends Abstrac
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
     }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
+    }
 }
 
 class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
+    }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
     }
 }
 
@@ -391,6 +458,12 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends Abstrac
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
+    }
 }
 
 @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
@@ -398,6 +471,12 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends Abstrac
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
+    }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
     }
 }
 
@@ -407,12 +486,24 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest3 extends Abstrac
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
+    }
 }
 
 @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
+    }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
     }
 }
 
@@ -421,11 +512,23 @@ class KotlinDslMultiProjectScalaApplicationInitIntegrationTest2 extends Abstract
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
     }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
+    }
 }
 
 @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
+    }
+
+    @Override
+    AbstractJvmLibraryInitIntegrationSpec maybeExpectDeprecations() {
+        expectDeprecationsForKotlinDslPlugin()
+        return super.maybeExpectDeprecations()
     }
 }

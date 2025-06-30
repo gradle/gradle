@@ -17,11 +17,14 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.support.zipTo
+import org.junit.After
 import org.junit.Before
 import java.io.File
 import java.util.Properties
@@ -44,10 +47,25 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     open val forceLocallyBuiltKotlinDslPlugins = true
 
+    private
+    var usesKotlinDslPlugin = false
+
+    private
+    var usesEmbeddedKotlinPlugin = false
+
+    private
+    var expectDeprecationChecks = true
+
     @Before
     fun injectLocallyBuiltKotlinDslPluginsRepositories() {
         if (injectLocalTestRepositories) doInjectLocallyBuiltKotlinDslPluginsRepositories()
         if (forceLocallyBuiltKotlinDslPlugins) doForceLocallyBuiltKotlinDslPlugins()
+    }
+
+    @After
+    fun resetKotlinDslPluginUsage() {
+        usesKotlinDslPlugin = false
+        usesEmbeddedKotlinPlugin = false
     }
 
     protected
@@ -235,6 +253,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
             $repositoriesBlock
             """
         )
+        usesKotlinDslPlugin()
     }
 
     protected
@@ -253,8 +272,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         withKotlinDslPluginIn(".")
 
     protected
-    fun withKotlinDslPluginIn(baseDir: String) =
-        withBuildScriptIn(baseDir, scriptWithKotlinDslPlugin())
+    fun withKotlinDslPluginIn(baseDir: String) : File {
+        usesKotlinDslPlugin()
+        return withBuildScriptIn(baseDir, scriptWithKotlinDslPlugin())
+    }
 
     protected
     fun scriptWithKotlinDslPlugin(version: String? = null): String =
@@ -329,8 +350,23 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         gradleExecuterFor(arguments, rootDir).run()
 
     protected
-    fun gradleExecuterFor(arguments: Array<out String>, rootDir: File = projectRoot) =
-        inDirectory(rootDir).withArguments(*arguments)
+    fun gradleExecuterFor(arguments: Array<out String>, rootDir: File = projectRoot): GradleExecuter {
+        setupDeprecationExpectations(arguments)
+        return inDirectory(rootDir).withArguments(*arguments)
+    }
+
+    protected
+    fun setupDeprecationExpectations(arguments: Array<out String>) {
+        if ((usesKotlinDslPlugin || usesEmbeddedKotlinPlugin) && !argumentsSuppressDeprecationWarnings(arguments) && expectDeprecationChecks) {
+            ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        }
+    }
+
+    private
+    fun argumentsSuppressDeprecationWarnings(arguments: Array<out String>) : Boolean {
+        return arguments.contains("-q") || arguments.contains("--quiet") ||
+            arguments.contains("-I")
+    }
 
     protected
     inline fun <T> withOwnGradleUserHomeDir(reason: String, block: () -> T): T {
@@ -341,5 +377,21 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
             // wait for all daemons to shut down so the test dir can be deleted
             executer.cleanup()
         }
+    }
+
+    protected
+    fun usesKotlinDslPlugin() {
+        usesKotlinDslPlugin = true
+    }
+
+    protected
+    fun usesEmbeddedKotlinPlugin() {
+        usesEmbeddedKotlinPlugin = true
+    }
+
+    protected
+    fun noDeprecationChecks() {
+        executer.noDeprecationChecks()
+        expectDeprecationChecks = false
     }
 }

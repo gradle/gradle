@@ -19,6 +19,8 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -228,5 +230,11 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                 }
             """
         }
+    }
+
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        return super.run(tasks)
     }
 }

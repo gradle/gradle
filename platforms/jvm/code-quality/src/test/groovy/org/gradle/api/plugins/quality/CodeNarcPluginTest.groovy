@@ -39,7 +39,6 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         config != null
-        !config.visible
         config.transitive
         config.description == 'The CodeNarc libraries to be used for this project.'
     }

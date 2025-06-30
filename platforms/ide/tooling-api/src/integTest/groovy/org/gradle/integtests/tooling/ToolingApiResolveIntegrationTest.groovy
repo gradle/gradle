@@ -78,7 +78,6 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
                 sources {
                     extendsFrom runtimeClasspath
                     canBeConsumed = false
-                    visible = false
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))

@@ -342,13 +342,23 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
+    @Deprecated
     public boolean isVisible() {
+        DeprecationLogger.deprecateProperty(Configuration.class, "visible")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate-visible-property")
+            .nagUser();
         return visible;
     }
 
     @Override
+    @Deprecated
     public Configuration setVisible(boolean visible) {
         validateMutation(MutationType.BASIC_STATE);
+        DeprecationLogger.deprecateProperty(Configuration.class, "visible")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate-visible-property")
+            .nagUser();
         this.visible = visible;
         return this;
     }
@@ -709,7 +719,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                         getDescription(),
                         domainObjectContext.getBuildPath().getPath(),
                         projectPathString,
-                        isVisible(),
+                        visible,
                         isTransitive(),
                         resolver.getAllRepositories()
                     ));

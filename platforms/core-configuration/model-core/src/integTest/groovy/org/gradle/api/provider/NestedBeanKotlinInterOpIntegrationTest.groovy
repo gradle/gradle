@@ -22,11 +22,13 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskAction
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 
 class NestedBeanKotlinInterOpIntegrationTest extends AbstractNestedBeanLanguageInterOpIntegrationTest {
     def setup() {
         usesKotlin(pluginDir)
         executer.withStackTraceChecksDisabled()
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
         pluginDir.file("src/main/kotlin/Params.kt") << """
             import ${Property.name}
             import ${Internal.name}

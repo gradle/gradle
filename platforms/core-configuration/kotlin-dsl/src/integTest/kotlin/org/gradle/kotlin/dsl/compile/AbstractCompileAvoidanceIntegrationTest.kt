@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.compile
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
@@ -64,6 +65,7 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
         // and not to be reused from daemon's cache from other tests when daemon is in use
         withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin())
             .bustScriptCache()
+        usesKotlinDslPlugin()
     }
 
     private
@@ -127,12 +129,14 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
     protected
     fun configureProject(vararg tasks: String): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
+        setupDeprecationExpectations(tasks)
         val output = executer.withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output)
     }
 
     protected
     fun configureProjectAndExpectCompileFailure(@Suppress("SameParameterValue") expectedFailure: String) {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
         val error = executer.runWithFailure().error
         MatcherAssert.assertThat(error, CoreMatchers.containsString(expectedFailure))
     }

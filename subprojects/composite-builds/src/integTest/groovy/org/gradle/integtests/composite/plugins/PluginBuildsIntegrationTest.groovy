@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite.plugins
 
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 
 class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
@@ -392,6 +393,9 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         """
 
         then:
+        if (dsl == 'Kotlin') {
+            ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        }
         succeeds("help")
 
         where:
@@ -614,6 +618,9 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         """
 
         when:
+        if (dsl == 'Kotlin') {
+            ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        }
         succeeds()
 
         then:

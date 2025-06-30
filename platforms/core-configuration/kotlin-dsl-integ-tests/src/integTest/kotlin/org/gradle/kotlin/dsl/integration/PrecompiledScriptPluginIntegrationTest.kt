@@ -61,6 +61,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                         $repositoriesBlock
                     """
                 )
+                usesKotlinDslPlugin()
                 withFile(
                     "src/main/kotlin/my-plugin.settings.gradle.kts",
                     """
@@ -102,6 +103,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                         $repositoriesBlock
                     """
                 )
+                usesKotlinDslPlugin()
                 withFile(
                     "src/main/kotlin/base-plugin.settings.gradle.kts",
                     """
@@ -187,6 +189,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                         }
                     """
                 )
+                usesKotlinDslPlugin()
                 withFile(
                     "src/main/kotlin/my-plugin.settings.gradle.kts",
                     """
@@ -277,6 +280,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                 compileOnly(files("${normaliseFileSeparators(pluginJarV1.absolutePath)}"))
             }
         """)
+        usesKotlinDslPlugin()
         val precompiledScript = withFile("buildSrc/src/main/kotlin/my-precompiled-script.gradle.kts", """
             plugins {
                 id("my-plugin")
