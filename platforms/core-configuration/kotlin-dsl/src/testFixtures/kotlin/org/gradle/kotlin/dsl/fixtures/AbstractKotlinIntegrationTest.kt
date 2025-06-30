@@ -63,9 +63,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     @After
-    fun resetKotlinDslPluginUsage() {
+    fun resetDeprecationFlags() {
         usesKotlinDslPlugin = false
         usesEmbeddedKotlinPlugin = false
+        expectDeprecationChecks = true
     }
 
     protected
