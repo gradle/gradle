@@ -792,7 +792,7 @@ These types are not used in Gradle's public API and as such are not useful.
 * `org.gradle.api.publish.ivy.IvyDependency`
 * `org.gradle.api.publish.maven.MavenDependency`
 
-=== Packaging and Artifact Behavior Changes
+=== Packaging and Artifact Behavior changes
 
 ==== Artifact Signing now matches OpenPGP Key Version
 
