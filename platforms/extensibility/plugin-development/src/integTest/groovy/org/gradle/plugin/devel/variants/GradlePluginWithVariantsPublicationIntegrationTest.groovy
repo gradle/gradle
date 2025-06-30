@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.variants
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
@@ -156,7 +157,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             version = "1.0"
 
             configurations.configureEach {
-                if (canBeConsumed && name != 'archives')  {
+                if (canBeConsumed && name != '${Dependency.ARCHIVES_CONFIGURATION}')  {
                     attributes {
                         attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, '1000.0'))
                     }
@@ -333,7 +334,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
 
             def color = Attribute.of("color", String)
             configurations.configureEach {
-                if (name != 'archives') {
+                if (name != '${Dependency.ARCHIVES_CONFIGURATION}') {
                     if (canBeConsumed && name.startsWith(alternate.name))  {
                         attributes {
                             attribute(color, 'green')

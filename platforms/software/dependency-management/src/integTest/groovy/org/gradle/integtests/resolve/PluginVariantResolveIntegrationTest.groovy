@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.artifacts.Dependency
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -149,7 +150,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.all {
-                if (it.canBeConsumed && it.name != 'sourcesElements' && it.name != 'archives') {
+                if (it.canBeConsumed && it.name != 'sourcesElements' && it.name != '${Dependency.ARCHIVES_CONFIGURATION}') {
                     // let's pretend it was built with a newer Java version
                     attributes {
                         // This test is not Artic Code Vault safe
