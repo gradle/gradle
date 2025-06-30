@@ -31,6 +31,8 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
+import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
@@ -71,6 +73,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
             addProvider(ConfigurationCacheReportProvider)
+            add(ConfigurationCacheCodecs::class.java, DefaultConfigurationCacheCodecs::class.java)
         }
     }
 
