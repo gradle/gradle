@@ -41,6 +41,11 @@ public final class ConfigurationRolesForMigration {
     private ConfigurationRolesForMigration() { /* Private to prevent instantiation. */ }
 
     /**
+     * A configuration that is retired and not meant to be used for any purpose.  This is primarily useful in creating a migrating configuration role in {@link ConfigurationRolesForMigration}.
+     */
+    public static final ConfigurationRole NONE = new DefaultConfigurationRole("Deprecated", false, false, false, false, false, false);
+
+    /**
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
@@ -64,18 +69,7 @@ public final class ConfigurationRolesForMigration {
     /**
      * A consumable configuration that has been deprecated and will be removed in the next major version.
      */
-    public static final ConfigurationRole CONSUMABLE_TO_RETIRED = difference(ConfigurationRoles.CONSUMABLE, ConfigurationRoles.NONE);
-
-    /**
-     * A resolvable configuration that has been deprecated and will be removed in the next major version.
-     */
-    public static final ConfigurationRole RESOLVABLE_TO_RETIRED = difference(ConfigurationRoles.RESOLVABLE, ConfigurationRoles.NONE);
-
-    /**
-     * A dependency scope configuration that has been deprecated and will be removed in the next major version.
-     */
-    public static final ConfigurationRole DEPENDENCY_SCOPE_TO_RETIRED = difference(ConfigurationRoles.DEPENDENCY_SCOPE, ConfigurationRoles.NONE);
-
+    public static final ConfigurationRole CONSUMABLE_TO_RETIRED = difference(ConfigurationRoles.CONSUMABLE, NONE);
 
     /**
      * All known migration roles.
