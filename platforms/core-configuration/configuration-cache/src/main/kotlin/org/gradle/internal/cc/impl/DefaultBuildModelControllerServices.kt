@@ -72,11 +72,11 @@ import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyL
 class DefaultBuildModelControllerServices(
     private val buildModelParameters: BuildModelParameters,
 ) : BuildModelControllerServices {
-    override fun servicesForBuild(buildDefinition: BuildDefinition, owner: BuildState, parentBuild: BuildState?): BuildModelControllerServices.Supplier {
+    override fun servicesForBuild(buildDefinition: BuildDefinition, buildState: BuildState): BuildModelControllerServices.Supplier {
         return BuildModelControllerServices.Supplier { registration, buildScopeServices ->
             registration.add(BuildDefinition::class.java, buildDefinition)
-            registration.add(BuildState::class.java, owner)
-            registration.addProvider(ServicesProvider(buildDefinition, parentBuild, buildScopeServices))
+            registration.add(BuildState::class.java, buildState)
+            registration.addProvider(ServicesProvider(buildDefinition, buildState, buildScopeServices))
             if (buildModelParameters.isConfigurationCache) {
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
                 registration.add(ConfigurationCacheEnvironment::class.java)
@@ -101,14 +101,14 @@ class DefaultBuildModelControllerServices(
     private
     class ServicesProvider(
         private val buildDefinition: BuildDefinition,
-        private val parentBuild: BuildState?,
+        private val buildState: BuildState,
         private val buildScopeServices: ServiceRegistry
     ) : ServiceRegistrationProvider {
         @Provides
         fun createGradleModel(instantiator: Instantiator, serviceRegistryFactory: ServiceRegistryFactory): GradleInternal? {
             return instantiator.newInstance(
                 DefaultGradle::class.java,
-                parentBuild,
+                buildState,
                 buildDefinition.startParameter,
                 serviceRegistryFactory
             )

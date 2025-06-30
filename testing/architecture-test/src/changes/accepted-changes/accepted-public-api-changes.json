@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.invocation.Gradle",
+            "member": "Method org.gradle.api.invocation.Gradle.getBuildPath()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        }
+    ]
 }

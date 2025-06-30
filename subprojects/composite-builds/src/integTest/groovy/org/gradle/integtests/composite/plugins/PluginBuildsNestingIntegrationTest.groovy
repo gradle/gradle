@@ -32,6 +32,9 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
             includeBuild("../${build2.buildName}")
         """
 
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
+
         then:
         succeeds()
     }
@@ -54,6 +57,9 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
         build1.settingsFile << """
             includeBuild("../${build2.buildName}")
         """
+
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
 
         then:
         succeeds()
@@ -86,6 +92,9 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
             }
         """)
 
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
+
         then:
         succeeds()
         build1.assertProjectPluginApplied()
@@ -116,6 +125,9 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
             }
         """
 
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
+
         then:
         succeeds()
         build1.assertSettingsPluginApplied()
@@ -141,6 +153,9 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
             }
             rootProject.name = "${build2.buildName}"
         """)
+
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
 
         then:
         succeeds()
@@ -170,6 +185,9 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
             }
         """
 
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
+
         then:
         fails()
         failureDescriptionContains("Plugin [id: '${build1.projectPluginId}'] was not found in any of the following sources:")
@@ -198,6 +216,9 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
             }
         """
 
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
+
         then:
         succeeds()
         build1.assertProjectPluginApplied()
@@ -221,6 +242,9 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
             }
             rootProject.name = "${build2.buildName}"
         """)
+
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
 
         then:
         fails()
@@ -254,9 +278,18 @@ class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationT
             }
         """
 
+        ensureBuildPath(build1, ":${build1.buildName}")
+        ensureBuildPath(build2, ":${build2.buildName}")
+
         then:
         succeeds()
         build1.assertSettingsPluginApplied()
         build2.assertSettingsPluginApplied()
+    }
+
+    def ensureBuildPath(PluginBuildFixture build, String expectedPath) {
+        build.buildFile << """
+            assert gradle.buildPath == "${expectedPath}"
+        """
     }
 }
