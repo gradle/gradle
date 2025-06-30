@@ -303,6 +303,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *     <li>The project is the root project of the build.</li>
      *     <li>The project is located in a nested directory and {@link #getProjectDir()} has been used after including it in order to locate it
      *     and avoid having Gradle create empty parent projects for its parent directories.</li>
+     * </ul>
      *
      * @return The parent project, or {@code null} if this is the root project or a nested project without a parent.
      */
