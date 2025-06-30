@@ -468,3 +468,61 @@ It's important to remember that Artifact Transforms:
 If there are no artifacts present in an input variant to a transform, that transform will be skipped.
 This can happen in the middle of a chain of actions, resulting in all subsequent transforms being skipped.
 ====
+
+[[sec:debugging-artifact-transforms]]
+== Debugging Artifact Transforms
+
+You can use the `artifactTransforms` task to inspect the artifact transforms registered in your build.
+This task makes it easier to debug unexpected transform behavior, understand which transforms are applied, and see how artifacts flow through your build.
+
+To generate the report, run:
+
+[source, bash]
+----
+$ ./gradlew artifactTransforms
+----
+
+This will produce output listing all registered transforms, including details such as:
+
+* The input and output artifact types for each transform
+* Attributes required for the transform to apply
+* Implementation details of custom transforms
+
+[source, text]
+----
+> Task :artifactTransforms
+
+--------------------------------------------------
+CopyTransform
+--------------------------------------------------
+Type: dagger.hilt.android.plugin.transform.CopyTransform
+Cacheable: No
+From Attributes:
+    - artifactType = android-classes
+To Attributes:
+    - artifactType = jar-for-dagger
+
+--------------------------------------------------
+CopyTransform
+--------------------------------------------------
+Type: dagger.hilt.android.plugin.transform.CopyTransform
+Cacheable: No
+From Attributes:
+    - artifactType = directory
+To Attributes:
+    - artifactType = jar-for-dagger
+
+--------------------------------------------------
+AggregatedPackagesTransform
+--------------------------------------------------
+Type: dagger.hilt.android.plugin.transform.AggregatedPackagesTransform
+Cacheable: Yes
+From Attributes:
+    - artifactType = jar-for-dagger
+To Attributes:
+    - artifactType = aggregated-jar-for-hilt
+
+Some artifact transforms are not cacheable.  This can have negative performance impacts.
+----
+
+This report is especially helpful if you encounter issues with artifact selection or resolution errors related to transforms.
