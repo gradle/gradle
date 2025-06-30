@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.testing.TestResult",
+            "member": "Method org.gradle.api.tasks.testing.TestResult.getAssumptionFailure()",
+            "acceptation": "Was always nullable, this is correctly reflecting the state of the code",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        }
+    ]
 }
