@@ -69,11 +69,11 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         delegate.whenReady(action.wrap())
     }
 
-    override fun findTask(path: String?): Task? {
+    override fun findTask(path: String): Task? {
         return delegate.findTask(path).also { task ->
             if (task == null) {
                 // check whether the path refers to a different project
-                val parentPath = path?.let(Path::path)?.parent?.path
+                val parentPath = Path.path(path).parent?.path
                 if (parentPath != referrerProject.path) {
                     // even though the task was not found, the current project is coupled with the other project:
                     // if the configuration of that project changes, the result of this call might be different
@@ -195,11 +195,11 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     // region overridden by delegation
 
-    override fun populate(plan: FinalizedExecutionPlan?) {
+    override fun populate(plan: FinalizedExecutionPlan) {
         delegate.populate(plan)
     }
 
-    override fun execute(plan: FinalizedExecutionPlan?): ExecutionResult<Void>? =
+    override fun execute(plan: FinalizedExecutionPlan): ExecutionResult<Void> =
         delegate.execute(plan)
 
     override fun visitScheduledNodes(visitor: BiConsumer<List<Node>, Set<Node>>) =
