@@ -20,7 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 
 class ConfigurationAPIDeprecationsIntegrationTest extends AbstractIntegrationSpec {
-    def "Sensible deprecation warning when isVisible() method is invoked"() {
+
+    def "sensible deprecation warning when isVisible() method is invoked"() {
         buildFile << """
             configurations {
                 foo
