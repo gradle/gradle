@@ -17,7 +17,11 @@
 
 A task represents some *independent unit of work* that a build performs, such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
 
-image::writing-tasks-1.png[]
+++++
+<p style="text-align: center;">
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/FB5muea-2Z0?si=XcoZGjrw0KD5FSIJ&rel=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</p>
+++++
 
 Before reading this chapter, it's recommended that you first read the <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<part1_gradle_init_project.adoc#part1_gradle_init,Tutorial>>.
 
