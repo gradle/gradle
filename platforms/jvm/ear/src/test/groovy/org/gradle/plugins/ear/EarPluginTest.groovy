@@ -65,14 +65,12 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def configuration = project.configurations.getByName(EarPlugin.DEPLOY_CONFIGURATION_NAME)
 
         then:
-        !configuration.visible
         !configuration.transitive
 
         when:
         configuration = project.configurations.getByName(EarPlugin.EARLIB_CONFIGURATION_NAME)
 
         then:
-        !configuration.visible
         configuration.transitive
     }
 

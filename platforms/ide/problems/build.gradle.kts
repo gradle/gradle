@@ -26,7 +26,6 @@ description = """Problem SPI implementations.
 
 
 val problemReportReportPath by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
     attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
 }

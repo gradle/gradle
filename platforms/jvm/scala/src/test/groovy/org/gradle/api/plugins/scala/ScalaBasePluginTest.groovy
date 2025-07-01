@@ -44,7 +44,6 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         configuration.extendsFrom.empty
-        !configuration.visible
         configuration.transitive
     }
 

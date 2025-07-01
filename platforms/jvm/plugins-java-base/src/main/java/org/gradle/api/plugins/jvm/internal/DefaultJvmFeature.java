@@ -332,7 +332,6 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
             ? project.getConfigurations().maybeCreateDependencyScopeLocked(configName, warnOnDuplicate)
             : project.getConfigurations().getByName(configName);
         configuration.setDescription(kind + " dependencies for the '" + name + "' feature.");
-        configuration.setVisible(false);
         return configuration;
     }
 

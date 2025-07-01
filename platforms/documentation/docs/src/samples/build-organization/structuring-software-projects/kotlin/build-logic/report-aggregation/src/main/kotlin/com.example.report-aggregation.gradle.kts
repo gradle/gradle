@@ -5,14 +5,12 @@ plugins {
 
 // Configurations to declare dependencies
 val aggregate by configurations.creating {
-    isVisible = false
     isCanBeResolved = false
     isCanBeConsumed = false
 }
 
 // Resolvable configuration to resolve the classes of all dependencies
 val classesPath by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
@@ -24,7 +22,6 @@ val classesPath by configurations.creating {
 
 // A resolvable configuration to collect source code
 val sourcesPath by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
@@ -35,7 +32,6 @@ val sourcesPath by configurations.creating {
 
 // A resolvable configuration to collect JaCoCo coverage data
 val coverageDataPath by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
