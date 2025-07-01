@@ -490,8 +490,10 @@ This will produce output listing all registered transforms, including details su
 
 This report is especially helpful if you encounter issues with artifact selection or resolution errors related to transforms.
 
-It is important to note that this task is applied to a single project.
-For example, to view transforms in the `app` subproject:
+It’s important to note that the `artifactTransforms` task operates on a single project.
+If you run it on a subproject, it will report the transforms registered only in that specific project.
+
+For example, to view the artifact transforms in the `app` subproject, you would run:
 
 [source, text]
 ----
@@ -532,7 +534,7 @@ To Attributes:
 Some artifact transforms are not cacheable.  This can have negative performance impacts.
 ----
 
-Running the task on the root project will not work:
+Because the task only inspects the current project, running it on the root project, where no transforms are registered, will produce empty output:
 
 [source, text]
 ----
