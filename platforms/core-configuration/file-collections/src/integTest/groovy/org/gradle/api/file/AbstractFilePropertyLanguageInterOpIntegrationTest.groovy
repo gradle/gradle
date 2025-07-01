@@ -29,6 +29,10 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         false
     }
 
+    AbstractFilePropertyLanguageInterOpIntegrationTest maybeExpectDeprecations() {
+        return this
+    }
+
     def "can connect task output file property to task input"() {
         pluginDefinesTask()
         taskTypeWithInputFileProperty()
@@ -41,7 +45,7 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         """
 
         when:
-        run("consumer")
+        maybeExpectDeprecations().run("consumer")
 
         then:
         result.ignoreBuildSrc.assertTasksExecuted(":producer", ":consumer")
@@ -62,7 +66,7 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         """
 
         when:
-        run("consumer")
+        maybeExpectDeprecations().run("consumer")
 
         then:
         result.ignoreBuildSrc.assertTasksExecuted(":producer", ":consumer")

@@ -100,6 +100,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
                 compilerOptions.freeCompilerArgs.addAll("-Xjsr305=strict", "-Xjspecify-annotations=strict")
             }
         """)
+        usesEmbeddedKotlinPlugin()
 
         withFile("src/main/kotlin/code.kt", """
             import org.gradle.api.*

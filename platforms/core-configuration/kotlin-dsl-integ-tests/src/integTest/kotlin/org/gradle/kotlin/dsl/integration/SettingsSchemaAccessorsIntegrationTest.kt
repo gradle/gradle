@@ -36,6 +36,7 @@ class SettingsSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 $repositoriesBlock
             """
         )
+        usesKotlinDslPlugin()
         withPluginSourceFile(
             "my/MySettingsExtension.kt",
             """

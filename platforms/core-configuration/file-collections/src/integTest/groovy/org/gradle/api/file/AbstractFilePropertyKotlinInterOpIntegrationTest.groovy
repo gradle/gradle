@@ -20,6 +20,7 @@ package org.gradle.api.file
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.OutputFile
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 
 abstract class AbstractFilePropertyKotlinInterOpIntegrationTest extends AbstractFilePropertyLanguageInterOpIntegrationTest {
     def setup() {
@@ -30,6 +31,12 @@ abstract class AbstractFilePropertyKotlinInterOpIntegrationTest extends Abstract
     abstract void taskDefinition()
 
     abstract void taskWithNestedBeanDefinition()
+
+    @Override
+    AbstractFilePropertyLanguageInterOpIntegrationTest maybeExpectDeprecations() {
+        ConfigurationAPIDeprecations.expectVisiblePropertyDeprecation(executer)
+        return super.maybeExpectDeprecations()
+    }
 
     @Override
     void pluginDefinesTask() {

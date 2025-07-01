@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 class ConfigurationAPIDeprecations {
     static void expectVisiblePropertyDeprecation(GradleExecuter executer) {
+        // See https://youtrack.jetbrains.com/issue/KT-78754
         executer.expectDocumentedDeprecationWarning(
             "The Configuration.visible property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 10. " +

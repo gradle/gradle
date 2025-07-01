@@ -114,6 +114,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
             }
         """)
+        usesKotlinDslPlugin()
         withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
         gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
@@ -137,6 +138,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         """)
         withBuildScriptIn("consumer", """plugins { id("some") }""")
 
+        resetDeprecationFlags()
         val helpResult = gradleExecuterFor(arrayOf("help"), rootDir = file("consumer"))
             .withJvm(newerJvm)
             .run()
@@ -188,6 +190,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
             }
         """)
+        usesKotlinDslPlugin()
         withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
         gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
@@ -209,6 +212,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
             }
         """)
+        resetDeprecationFlags()
         withBuildScriptIn("consumer", """plugins { id("some") }""")
 
         val helpResult = gradleExecuterFor(arrayOf("help"), rootDir = file("consumer"))

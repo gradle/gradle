@@ -105,6 +105,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
                 }
             """.trimIndent()
         )
+        usesKotlinDslPlugin()
 
         withFile(
             "settings.gradle.kts", """

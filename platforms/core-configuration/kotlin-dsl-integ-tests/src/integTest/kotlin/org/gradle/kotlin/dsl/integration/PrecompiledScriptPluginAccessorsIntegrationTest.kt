@@ -145,6 +145,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
                     }
                     """
                 )
+                usesKotlinDslPlugin()
 
                 withFile(
                     "src/main/kotlin/consumer-plugin.gradle.kts",
@@ -239,6 +240,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
             }
             """
         )
+        usesKotlinDslPlugin()
 
         withFolders {
 
