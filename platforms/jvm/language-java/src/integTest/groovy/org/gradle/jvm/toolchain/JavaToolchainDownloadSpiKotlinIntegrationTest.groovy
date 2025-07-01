@@ -62,8 +62,8 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific, nativeImageCapable=false}. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
-                   "({languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific, nativeImageCapable=false}) from 'https://exoticJavaToolchain.com/java-99', " +
-                   "due to: Could not HEAD 'https://exoticJavaToolchain.com/java-99'.).")
+                   "({languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific, nativeImageCapable=false}) from 'https://exoticJavatoolchain.invalid/java-99', " +
+                   "due to: Could not HEAD 'https://exoticJavatoolchain.invalid/java-99'.).")
     }
 
     private static String applyToolchainRegistryPlugin(String className, String code) {
@@ -94,7 +94,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
         """
             abstract class CustomToolchainResolver: JavaToolchainResolver {
                 override fun resolve(request: JavaToolchainRequest): Optional<JavaToolchainDownload> {
-                    val uri = URI.create("https://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get())
+                    val uri = URI.create("https://exoticJavatoolchain.invalid/java-" + request.getJavaToolchainSpec().getLanguageVersion().get())
                     return Optional.of(JavaToolchainDownload.fromUri(uri))
                 }
             }
