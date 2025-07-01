@@ -17,6 +17,8 @@
 package org.gradle.internal.cc.impl.serialize
 
 import com.esotericsoftware.kryo.io.Output
+import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder.Companion.EMPTY_STRING_ID
+import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder.Companion.NULL_STRING_ID
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.StringEncoder
 import java.io.OutputStream
@@ -25,13 +27,21 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Deduplicates and encodes strings to a separate stream in a thread-safe manner.
+ *
+ * The file produced is a sequence of non-empty strings, followed by an empty string that marks the end-of-file.
+ *
+ * Requests to write strings provide a client encoder and a string to write. This string encoder will do one of the following:
+ *
+ * - in case of [null][NULL_STRING_ID] or [empty strings][EMPTY_STRING_ID], simply write the corresponding special id into the client's encoder;
+ * - if the non-empty string has not been seen before, write it to this file and write the new, sequentially assigned, id for it into the client's encoder;
+ * - otherwise, the string has been written before, so just write the previously generated id for that string into the client's encoder.
  */
 internal
 class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
 
     companion object {
-        const val NULL_STRING = 0
-        const val EMPTY_STRING = 1
+        const val NULL_STRING_ID = 0
+        const val EMPTY_STRING_ID = 1
         const val FIRST_STRING_ID = 2
     }
 
@@ -46,7 +56,7 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
 
     override fun writeNullableString(encoder: Encoder, string: CharSequence?) {
         if (string == null) {
-            encoder.writeSmallInt(NULL_STRING)
+            encoder.writeSmallInt(NULL_STRING_ID)
         } else {
             writeString(encoder, string)
         }
@@ -54,7 +64,7 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
 
     override fun writeString(encoder: Encoder, string: CharSequence) {
         encoder.writeSmallInt(
-            if (string.isEmpty()) EMPTY_STRING
+            if (string.isEmpty()) EMPTY_STRING_ID
             else strings.computeIfAbsent(string.toString(), ::doWriteString)
         )
     }
@@ -67,10 +77,9 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
     }
 
     private
-    fun doWriteString(key: String): Int =
+    fun doWriteString(string: String): Int =
         synchronized(output) {
-            val id = nextId++
-            output.writeString(key)
-            id
+            output.writeString(string)
+            nextId++
         }
 }
