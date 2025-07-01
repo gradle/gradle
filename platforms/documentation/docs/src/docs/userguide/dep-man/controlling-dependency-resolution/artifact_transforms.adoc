@@ -488,9 +488,16 @@ This will produce output listing all registered transforms, including details su
 * Attributes required for the transform to apply
 * Implementation details of custom transforms
 
+This report is especially helpful if you encounter issues with artifact selection or resolution errors related to transforms.
+
+It is important to note that this task is applied to a single project.
+For example, to view transforms in the `app` subproject:
+
 [source, text]
 ----
-> Task :artifactTransforms
+$ ./gradlew :app:artifactTransforms
+
+> Task :app:artifactTransforms
 
 --------------------------------------------------
 CopyTransform
@@ -525,4 +532,13 @@ To Attributes:
 Some artifact transforms are not cacheable.  This can have negative performance impacts.
 ----
 
-This report is especially helpful if you encounter issues with artifact selection or resolution errors related to transforms.
+Running the task on the root project will not work:
+
+[source, text]
+----
+$ ./gradlew artifactTransforms
+
+> Task :artifactTransforms
+
+There are no transforms registered in root project 'gradle'.
+----
