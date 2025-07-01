@@ -16,17 +16,25 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 public class FileDependencyArtifactSet implements ArtifactSet {
     private final LocalFileDependencyMetadata fileDependency;
+    private final VariantIdentifier sourceVariantId;
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public FileDependencyArtifactSet(LocalFileDependencyMetadata fileDependency, ImmutableArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public FileDependencyArtifactSet(
+        LocalFileDependencyMetadata fileDependency,
+        VariantIdentifier sourceVariantId,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         this.fileDependency = fileDependency;
+        this.sourceVariantId = sourceVariantId;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
@@ -39,6 +47,7 @@ public class FileDependencyArtifactSet implements ArtifactSet {
         // Select the artifacts later, as this is a function of the file names and these may not be known yet because the producing tasks have not yet executed
         return new DefaultLocalFileDependencyBackedArtifactSet(
             fileDependency,
+            sourceVariantId,
             spec.getComponentFilter(),
             consumerServices.getArtifactVariantSelector(),
             artifactTypeRegistry,
