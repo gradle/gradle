@@ -49,8 +49,8 @@ testing/architecture-test/src/changes/accepted-changes/accepted-public-api-chang
 testing/architecture-test/src/changes/archunit-store/internal-api-nullability.txt           @gradle/bt-unassigned-maintainers
 
 # Core automation platform (core/configuration)
-platforms/core-configuration/               @gradle/bt-configuration
-testing/smoke-ide-test/                     @gradle/bt-configuration
+platforms/core-configuration/               @gradle/bt-cortex
+testing/smoke-ide-test/                     @gradle/bt-cortex
 
 # Core automation platform (Kotlin DSL)
 build-logic/kotlin-dsl/                                     @gradle/bt-tide
