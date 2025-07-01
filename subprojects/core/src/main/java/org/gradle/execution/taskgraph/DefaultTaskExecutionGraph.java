@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
@@ -34,9 +35,11 @@ import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Cast;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -56,7 +59,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 @SuppressWarnings("deprecation")
 @NullMarked
@@ -272,8 +274,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void visitScheduledNodes(BiConsumer<List<Node>, Set<Node>> visitor) {
-        executionPlan.getContents().getScheduledNodes().visitNodes(visitor);
+    public ScheduledWork collectScheduledWork() {
+        MutableReference<ScheduledWork> result = MutableReference.of(null);
+        executionPlan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
+            result.set(new ScheduledWork(nodes, entryNodes));
+        });
+        ScheduledWork scheduledWork = result.get();
+        Preconditions.checkState(scheduledWork != null, "No scheduled work found");
+        return scheduledWork;
     }
 
     @Override

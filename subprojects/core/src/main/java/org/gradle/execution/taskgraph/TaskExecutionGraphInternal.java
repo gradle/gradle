@@ -18,15 +18,13 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
-import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 @ServiceScope(Scope.Gradle.class)
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
@@ -61,11 +59,14 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      */
     int size();
 
+    default boolean hasScheduledWork() {
+        return size() > 0;
+    }
+
     /**
-     * Returns all the work items in this graph scheduled for execution plus all
-     * dependencies from other builds.
+     * Returns a snapshot of currently scheduled nodes.
      */
-    void visitScheduledNodes(BiConsumer<List<Node>, Set<Node>> visitor);
+    ScheduledWork collectScheduledWork();
 
     /**
      * Resets the lifecycle for this graph.
