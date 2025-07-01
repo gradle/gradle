@@ -375,7 +375,7 @@ data class CIBuildModel(
             ),
             Stage(
                 StageName.HISTORICAL_PERFORMANCE,
-                trigger = if (VersionedSettingsBranch.fromDslContext().isLegacyRelease) Trigger.NEVER else Trigger.WEEKLY,
+                trigger = if (branch.isLegacyRelease) Trigger.NEVER else Trigger.WEEKLY,
                 runsIndependent = true,
                 performanceTests =
                     listOf(
