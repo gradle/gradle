@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.NamedModuleVariantIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -30,6 +31,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleVariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.ArrayList;
@@ -41,12 +43,13 @@ import java.util.Set;
  * An immutable {@link ConfigurationMetadata} wrapper around a {@link ComponentVariant}.
  */
 class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationMetadata {
-    private final ModuleComponentIdentifier componentId;
+
+    private final ModuleVariantIdentifier id;
     private final ComponentVariant variant;
     private final List<? extends ModuleDependencyMetadata> dependencies;
 
     AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant) {
-        this.componentId = componentId;
+        this.id = new NamedModuleVariantIdentifier(componentId, variant.getName());
         this.variant = variant;
         List<GradleDependencyMetadata> dependencies = new ArrayList<>(variant.getDependencies().size());
         // Forced dependencies are only supported for enforced platforms, so it is currently hardcoded.
@@ -74,9 +77,14 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, List<? extends ModuleDependencyMetadata> dependencies) {
-        this.componentId = componentId;
+        this.id = new NamedModuleVariantIdentifier(componentId, variant.getName());
         this.variant = variant;
         this.dependencies = dependencies;
+    }
+
+    @Override
+    public ModuleVariantIdentifier getId() {
+        return id;
     }
 
     @Override
@@ -101,7 +109,7 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public DisplayName asDescribable() {
-        return Describables.of(componentId, "variant", variant.getName());
+        return Describables.of(id.getComponentId(), "variant", variant.getName());
     }
 
     @Override
@@ -131,7 +139,7 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-        return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
+        return new DefaultModuleComponentArtifactMetadata(id.getComponentId(), artifact);
     }
 
     @Override

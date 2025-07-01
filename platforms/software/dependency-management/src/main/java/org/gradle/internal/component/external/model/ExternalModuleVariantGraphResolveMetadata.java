@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.ModuleVariantIdentifier;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import java.util.List;
@@ -29,6 +30,9 @@ import java.util.List;
  * and are available as part of the metadata.
  */
 public interface ExternalModuleVariantGraphResolveMetadata extends VariantGraphResolveMetadata {
+
+    @Override
+    ModuleVariantIdentifier getId();
 
     /**
      * Get the dependencies for this variant.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.component.model;
 
-package org.gradle.api.internal.artifacts;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * An opaque identifier for a node in the dependency graph.
+ * An opaque immutable identifier for a variant of a component.
  */
-public interface NodeIdentifier {
+public interface VariantIdentifier {
+
+    /**
+     * Get the identity of the component that owns this variant.
+     */
+    ComponentIdentifier getComponentId();
+
+    /**
+     * Returns a human-readable display name for this identifier.
+     */
+    String getDisplayName();
+
 }

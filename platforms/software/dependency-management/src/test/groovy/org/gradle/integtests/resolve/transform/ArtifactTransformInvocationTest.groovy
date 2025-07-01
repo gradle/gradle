@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -32,7 +33,6 @@ import org.gradle.api.internal.artifacts.transform.TransformStepSubject
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.internal.Try
-import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -125,8 +125,9 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
         transform.isolateParametersIfNotAlready()
         def invocationFactory = project.services.get(TransformInvocationFactory)
         def inputFingerprinter = project.services.get(InputFingerprinter)
+        def artifactId = Mock(ComponentArtifactIdentifier)
         def artifact = Stub(ResolvableArtifact) {
-            getId() >> new OpaqueComponentArtifactIdentifier(inputArtifact)
+            getId() >> artifactId
         }
         def invocation = invocationFactory.createInvocation(
             transform.getTransform(),

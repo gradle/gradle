@@ -17,6 +17,7 @@
 package org.gradle.internal.resolve.resolver;
 
 import org.gradle.api.Action;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -88,9 +89,9 @@ public final class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
-        public void visitArtifact(DisplayName variantName, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+        public void visitArtifact(DisplayName variantName, VariantIdentifier sourceVariantId, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
             if (filter.test(artifact)) {
-                visitor.visitArtifact(variantName, variantAttributes, capabilities, artifact);
+                visitor.visitArtifact(variantName, sourceVariantId, variantAttributes, capabilities, artifact);
             }
         }
 

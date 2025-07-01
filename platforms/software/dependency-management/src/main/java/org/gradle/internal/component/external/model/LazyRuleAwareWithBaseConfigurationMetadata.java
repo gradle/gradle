@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -28,6 +27,7 @@ import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleVariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.jspecify.annotations.Nullable;
 
@@ -40,9 +40,9 @@ import java.util.Set;
  */
 class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationMetadata {
 
+    private final ModuleVariantIdentifier id;
     private final String name;
     private final ModuleConfigurationMetadata base;
-    private final ModuleComponentIdentifier componentId;
     private final VariantMetadataRules variantMetadataRules;
     private final AttributesFactory attributesFactory;
     private final ImmutableAttributes componentLevelAttributes;
@@ -54,17 +54,19 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private ImmutableCapabilities computedCapabilities;
     private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
 
-    LazyRuleAwareWithBaseConfigurationMetadata(String name,
-                                               @Nullable ModuleConfigurationMetadata base,
-                                               ModuleComponentIdentifier componentId,
-                                               AttributesFactory attributesFactory,
-                                               ImmutableAttributes componentLevelAttributes,
-                                               VariantMetadataRules variantMetadataRules,
-                                               ImmutableList<ExcludeMetadata> excludes,
-                                               boolean externalVariant) {
+    LazyRuleAwareWithBaseConfigurationMetadata(
+        ModuleVariantIdentifier id,
+        String name,
+        @Nullable ModuleConfigurationMetadata base,
+        AttributesFactory attributesFactory,
+        ImmutableAttributes componentLevelAttributes,
+        VariantMetadataRules variantMetadataRules,
+        ImmutableList<ExcludeMetadata> excludes,
+        boolean externalVariant
+    ) {
+        this.id = id;
         this.name = name;
         this.base = base;
-        this.componentId = componentId;
         this.variantMetadataRules = variantMetadataRules;
         this.attributesFactory = attributesFactory;
         this.componentLevelAttributes = componentLevelAttributes;
@@ -75,6 +77,11 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public ModuleVariantIdentifier getId() {
+        return id;
     }
 
     @Override
@@ -102,7 +109,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     @Override
     public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
         if (computedArtifacts == null) {
-            computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(this, base == null ? ImmutableList.of() : base.getArtifacts(), componentId);
+            computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(this, base == null ? ImmutableList.of() : base.getArtifacts(), id.getComponentId());
         }
         return computedArtifacts;
     }
@@ -122,12 +129,12 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public DisplayName asDescribable() {
-        return Describables.of(componentId, "configuration", name);
+        return Describables.of(id.getComponentId(), "configuration", name);
     }
 
     @Override
     public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-        return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
+        return new DefaultModuleComponentArtifactMetadata(id.getComponentId(), artifact);
     }
 
     @Override

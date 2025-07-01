@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.codecs.dm
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
@@ -63,7 +64,7 @@ class ArtifactCollectionCodec(
             elements.map { element ->
                 when (element) {
                     is Throwable -> artifactSetConverter.asResolvedArtifactSet(element)
-                    is FixedFileArtifactSpec -> artifactSetConverter.asResolvedArtifactSet(element.id, element.variantAttributes, element.capabilities, element.variantDisplayName, element.file)
+                    is FixedFileArtifactSpec -> artifactSetConverter.asResolvedArtifactSet(element.id, element.sourceVariantId, element.variantAttributes, element.capabilities, element.variantDisplayName, element.file)
                     is ResolvedArtifactSet -> element
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
@@ -77,6 +78,7 @@ class ArtifactCollectionCodec(
 private
 data class FixedFileArtifactSpec(
     val id: ComponentArtifactIdentifier,
+    val sourceVariantId: VariantIdentifier,
     val variantAttributes: ImmutableAttributes,
     val capabilities: ImmutableCapabilities,
     val variantDisplayName: DisplayName,
@@ -110,9 +112,15 @@ class CollectingArtifactVisitor : ArtifactVisitor {
         elements.add(failure)
     }
 
-    override fun visitArtifact(variantName: DisplayName, variantAttributes: ImmutableAttributes, capabilities: ImmutableCapabilities, artifact: ResolvableArtifact) {
+    override fun visitArtifact(
+        variantName: DisplayName,
+        sourceVariantId: VariantIdentifier,
+        variantAttributes: ImmutableAttributes,
+        capabilities: ImmutableCapabilities,
+        artifact: ResolvableArtifact
+    ) {
         if (artifacts.add(artifact)) {
-            elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, capabilities, variantName, artifact.file))
+            elements.add(FixedFileArtifactSpec(artifact.id, sourceVariantId, variantAttributes, capabilities, variantName, artifact.file))
         }
     }
 
