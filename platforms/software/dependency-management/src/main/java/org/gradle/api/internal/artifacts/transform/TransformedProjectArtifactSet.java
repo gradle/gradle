@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -38,15 +39,22 @@ import java.util.Collection;
  */
 public class TransformedProjectArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
 
+    private final VariantIdentifier sourceVariantId;
     private final ComponentVariantIdentifier targetVariant;
     private final Collection<TransformStepNode> transformedArtifacts;
 
     public TransformedProjectArtifactSet(
+        VariantIdentifier sourceVariantId,
         ComponentVariantIdentifier targetVariant,
         Collection<TransformStepNode> transformedArtifacts
     ) {
+        this.sourceVariantId = sourceVariantId;
         this.targetVariant = targetVariant;
         this.transformedArtifacts = transformedArtifacts;
+    }
+
+    public VariantIdentifier getSourceVariantId() {
+        return sourceVariantId;
     }
 
     public ComponentVariantIdentifier getTargetVariant() {
@@ -80,7 +88,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
             Try<TransformStepSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
                 for (File file : transformedSubject.get().getFiles()) {
-                    visitor.visitArtifact(displayName, targetVariant.getAttributes(), targetVariant.getCapabilities(), node.getInputArtifact().transformedTo(file));
+                    visitor.visitArtifact(displayName, sourceVariantId, targetVariant.getAttributes(), targetVariant.getCapabilities(), node.getInputArtifact().transformedTo(file));
                 }
             } else {
                 Throwable failure = transformedSubject.getFailure().get();
