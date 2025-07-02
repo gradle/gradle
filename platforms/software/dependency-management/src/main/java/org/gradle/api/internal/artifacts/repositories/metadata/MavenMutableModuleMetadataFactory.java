@@ -37,18 +37,20 @@ import java.util.List;
 @ServiceScope(Scope.BuildSession.class)
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final MavenAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
     private final ImmutableAttributesSchema schema;
 
     @Inject
-    public MavenMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                             AttributesFactory attributesFactory,
-                                             NamedObjectInstantiator objectInstantiator,
-                                             PreferJavaRuntimeVariant schema) {
+    public MavenMutableModuleMetadataFactory(
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        AttributesFactory attributesFactory,
+        NamedObjectInstantiator objectInstantiator,
+        PreferJavaRuntimeVariant schema
+    ) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.attributesFactory = attributesFactory;
         this.schema = schema.getSchema();
-        this.attributesFactory = new DefaultMavenAttributesFactory(attributesFactory, objectInstantiator);
         this.objectInstantiator = objectInstantiator;
     }
 

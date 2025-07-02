@@ -127,7 +127,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         metadata.packaging = packaging
 
         when:
-        def immutableMetadata = metadata.asImmutable().withDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance())
+        def immutableMetadata = metadata.asImmutable().withDerivationStrategy(TestUtil.newInstance(JavaEcosystemVariantDerivationStrategy))
         def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal()
         def compileConf = immutableMetadata.getConfiguration("compile")
         def runtimeConf = immutableMetadata.getConfiguration("runtime")
