@@ -23,7 +23,19 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
+import org.jspecify.annotations.Nullable;
 
+import java.util.Objects;
+
+/**
+ * Converts legacy {@link Usage} values to their modern equivalents.
+ * <p>
+ * TODO: This functionality should not be directly integrated in the attributes container, but
+ * should be handled externally. This is mostly needed to translate legacy external attributes
+ * to their modern counterparts, meaning we only need this when reading attributes from
+ * GMM. We should deprecate using the legacy usage values for all other use cases, then remove
+ * this class.
+ */
 class UsageCompatibilityHandler {
     private final IsolatableFactory isolatableFactory;
     private final NamedObjectInstantiator instantiator;
@@ -37,35 +49,48 @@ class UsageCompatibilityHandler {
         factory.assertAttributeNotAlreadyPresent(node, key);
 
         assert key.getName().equals(Usage.USAGE_ATTRIBUTE.getName()) : "Should only be invoked for 'org.gradle.usage', got '" + key.getName() + "'";
-        // Replace deprecated usage values
-        String val;
-        boolean typedUsage = false;
-        if (value instanceof CoercingStringValueSnapshot) {
-            val = ((CoercingStringValueSnapshot) value).getValue();
-        } else {
-            typedUsage = true;
-            val = value.isolate().toString();
-        }
-        // TODO Add a deprecation warning in Gradle 6.0
-        if (val.endsWith("-jars")) {
-            return doConcatWithReplacement(factory, node, key, typedUsage, val.replace("-jars", ""), LibraryElements.JAR);
-        } else if (val.endsWith("-classes")) {
-            return doConcatWithReplacement(factory, node, key, typedUsage, val.replace("-classes", ""), LibraryElements.CLASSES);
-        } else if (val.endsWith("-resources")) {
-            return doConcatWithReplacement(factory, node, key, typedUsage, val.replace("-resources", ""), LibraryElements.RESOURCES);
-        } else {
-            return factory.doConcatIsolatable(node, key, value);
-        }
 
+        if (value instanceof CoercingStringValueSnapshot) {
+            String val = ((CoercingStringValueSnapshot) value).getValue();
+            String replacementUsage = getReplacementUsage(val);
+            if (replacementUsage == null) {
+                return factory.doConcatIsolatable(node, key, value);
+            }
+
+            assert key.getType() == String.class : "Attribute type must be a String";
+            @SuppressWarnings("unchecked")
+            Attribute<String> typedAttribute = (Attribute<String>) key;
+
+            Isolatable<String> coercingStringValueSnapshot = new CoercingStringValueSnapshot(replacementUsage, instantiator);
+            ImmutableAttributes usageNode = factory.doConcatIsolatable(node, typedAttribute, coercingStringValueSnapshot);
+            return factory.doConcatIsolatable(usageNode, Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(LibraryElements.JAR, instantiator));
+        } else {
+            String val = Objects.requireNonNull(value.isolate()).toString();
+            String replacementUsage = getReplacementUsage(val);
+            if (replacementUsage == null) {
+                return factory.doConcatIsolatable(node, key, value);
+            }
+
+            assert key.getType() == Usage.class : "Attribute type must be Usage";
+            @SuppressWarnings("unchecked")
+            Attribute<Usage> typedAttribute = (Attribute<Usage>) key;
+
+            Isolatable<Usage> isolate = isolatableFactory.isolate(instantiator.named(Usage.class, replacementUsage));
+            ImmutableAttributes usageNode = factory.doConcatIsolatable(node, typedAttribute, isolate);
+            return factory.doConcatIsolatable(usageNode, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, LibraryElements.JAR)));
+        }
     }
 
-    private <T> ImmutableAttributes doConcatWithReplacement(DefaultAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, boolean typedUsage, String usage, String libraryElements) {
-        if (typedUsage) {
-            ImmutableAttributes usageNode = factory.doConcatIsolatable(node, key, isolatableFactory.isolate(instantiator.named(Usage.class, usage)));
-            return factory.doConcatIsolatable(usageNode, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, libraryElements)));
-        } else {
-            ImmutableAttributes usageNode = factory.doConcatIsolatable(node, key, new CoercingStringValueSnapshot(usage, instantiator));
-            return factory.doConcatIsolatable(usageNode, Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(libraryElements, instantiator));
+    @Nullable
+    String getReplacementUsage(String usage) {
+        if (usage.endsWith("-jars")) {
+            return usage.replace("-jars", "");
+        } else if (usage.endsWith("-classes")) {
+            return usage.replace("-classes", "");
+        } else if (usage.endsWith("-resources")) {
+            return usage.replace("-resources", "");
         }
+
+        return null;
     }
 }

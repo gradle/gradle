@@ -81,7 +81,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     /**
      * Cache of requested attribute values.
      */
-    private final Object[] requestedAttributeValues;
+    private final @Nullable Object[] requestedAttributeValues;
 
     /**
      * Cache of candidate attribute values for each requested attribute. Initialized by {@link #findCompatibleCandidates()}.
@@ -89,7 +89,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
      * @see #setCandidateValue(int, int, Object)
      * @see #getCandidateValue(int, int)
      */
-    private final Object[] candidateValues;
+    private final @Nullable Object[] candidateValues;
 
     private int candidateWithLongestMatch;
     private int lengthOfLongestMatch;
@@ -125,12 +125,12 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         return disambiguateCompatibleCandidates();
     }
 
-    private static Object[] getRequestedValues(List<Attribute<?>> requestedAttributes, ImmutableAttributes requested) {
-        Object[] requestedAttributeValues = new Object[requestedAttributes.size()];
+    private static @Nullable Object[] getRequestedValues(List<Attribute<?>> requestedAttributes, ImmutableAttributes requested) {
+        @Nullable Object[] requestedAttributeValues = new Object[requestedAttributes.size()];
         for (int a = 0; a < requestedAttributes.size(); a++) {
             Attribute<?> attribute = requestedAttributes.get(a);
-            AttributeValue<?> attributeValue = requested.findEntry(attribute);
-            requestedAttributeValues[a] = attributeValue.isPresent() ? attributeValue.get() : null;
+            AttributeValue<?> requestedEntry = requested.findEntry(attribute);
+            requestedAttributeValues[a] = requestedEntry != null ? requestedEntry.get() : null;
         }
         return requestedAttributeValues;
     }
@@ -176,21 +176,21 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private MatchResult recordAndMatchCandidateValue(int c, int a) {
         Object requestedValue = requestedAttributeValues[a];
         Attribute<?> attribute = requestedAttributes.get(a);
-        AttributeValue<?> candidateValue = candidateAttributeSets[c].findEntry(attribute.getName());
+        AttributeValue<?> candidateEntry = candidateAttributeSets[c].findEntry(attribute.getName());
 
-        if (!candidateValue.isPresent()) {
+        if (candidateEntry == null) {
             setCandidateValue(c, a, null);
             explanationBuilder.candidateAttributeMissing(candidates.get(c), attribute, requestedValue);
             return MatchResult.MISSING;
         }
 
-        Object coercedValue = candidateValue.coerce(attribute);
+        Object coercedValue = candidateEntry.coerce(attribute);
         setCandidateValue(c, a, coercedValue);
 
         if (unsafeMatchValue(attribute, requestedValue, coercedValue)) {
             return MatchResult.MATCH;
         }
-        explanationBuilder.candidateAttributeDoesNotMatch(candidates.get(c), attribute, requestedValue, candidateValue);
+        explanationBuilder.candidateAttributeDoesNotMatch(candidates.get(c), attribute, requestedValue, candidateEntry);
         return MatchResult.NO_MATCH;
     }
 
@@ -261,7 +261,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             BitSet any = new BitSet(candidateCount);
             for (int c = 0; c < candidateCount; c++) {
                 ImmutableAttributes candidateAttributeSet = candidateAttributeSets[c];
-                if (candidateAttributeSet.findEntry(extraAttribute.getName()).isPresent()) {
+                if (candidateAttributeSet.findEntry(extraAttribute.getName()) != null) {
                     any.set(c);
                 }
             }
@@ -373,7 +373,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
      *
      * @return A new set containing all compatible values for some attribute.
      */
-    private static <E> Set<E> getCandidateValues(BitSet compatible, IntFunction<E> candidateValueFetcher) {
+    private static <E> Set<E> getCandidateValues(BitSet compatible, IntFunction<@Nullable E> candidateValueFetcher) {
         // It's often the case that all the candidate values are the same. In this case, we avoid
         // the creation of a set, and just iterate until we find a different value. Then, only in
         // this case, we lazily initialize a set and collect all the candidate values.
@@ -453,10 +453,9 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         return result;
     }
 
-    @Nullable
-    private <E> E getCandidateValue(int c, Attribute<E> attribute) {
-        AttributeValue<?> attributeValue = candidateAttributeSets[c].findEntry(attribute.getName());
-        return attributeValue.isPresent() ? attributeValue.coerce(attribute) : null;
+    private <E> @Nullable E getCandidateValue(int c, Attribute<E> attribute) {
+        AttributeValue<?> attributeEntry = candidateAttributeSets[c].findEntry(attribute.getName());
+        return attributeEntry != null ? attributeEntry.coerce(attribute) : null;
     }
 
     @Nullable

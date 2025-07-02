@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -61,10 +62,10 @@ public interface AttributeMatcher {
     class MatchingDescription<T> {
         private final Attribute<T> requestedAttribute;
         private final AttributeValue<T> requestedValue;
-        private final AttributeValue<T> found;
+        private final @Nullable AttributeValue<T> found;
         private final boolean match;
 
-        public MatchingDescription(Attribute<T> requestedAttribute, AttributeValue<T> requestedValue, AttributeValue<T> found, boolean match) {
+        public MatchingDescription(Attribute<T> requestedAttribute, AttributeValue<T> requestedValue, @Nullable AttributeValue<T> found, boolean match) {
             this.requestedAttribute = requestedAttribute;
             this.requestedValue = requestedValue;
             this.found = found;
@@ -79,7 +80,7 @@ public interface AttributeMatcher {
             return requestedValue;
         }
 
-        public AttributeValue<T> getFound() {
+        public @Nullable AttributeValue<T> getFound() {
             return found;
         }
 
