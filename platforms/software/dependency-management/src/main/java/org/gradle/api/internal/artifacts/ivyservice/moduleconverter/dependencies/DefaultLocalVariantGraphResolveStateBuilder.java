@@ -30,8 +30,8 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -308,7 +308,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ImmutableList<LocalOriginDependencyMetadata> dependencies,
         ImmutableAttributes attributes
     ) {
-        AttributeValue<Category> entry = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
+        ImmutableAttributesEntry<Category> entry = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
         if (entry == null || !entry.get().getName().equals(Category.ENFORCED_PLATFORM)) {
             return dependencies;
         }

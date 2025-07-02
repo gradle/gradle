@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -51,8 +51,8 @@ public class LoggingAttributeMatchingExplanationBuilder implements AttributeMatc
     }
 
     @Override
-    public <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
-        LOGGER.debug("Candidate {} attribute {} value {} doesn't requested value {}", candidate, attribute, candidateValue, requestedValue);
+    public <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, ImmutableAttributesEntry<?> candidateEntry) {
+        LOGGER.debug("Candidate {} attribute {} entry {} doesn't requested value {}", candidate, attribute, candidateEntry, requestedValue);
     }
 
     @Override

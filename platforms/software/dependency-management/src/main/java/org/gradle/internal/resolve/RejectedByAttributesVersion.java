@@ -17,7 +17,7 @@ package org.gradle.internal.resolve;
 
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
@@ -26,7 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class RejectedByAttributesVersion extends RejectedVersion {
-    private static final Comparator<AttributeMatcher.MatchingDescription<?>> DESCRIPTION_COMPARATOR = Comparator.comparing(o -> o.getRequestedAttribute().getName());
+    private static final Comparator<AttributeMatcher.MatchingDescription<?>> DESCRIPTION_COMPARATOR = Comparator.comparing(o -> o.getRequested().getKey().getName());
     private final List<AttributeMatcher.MatchingDescription<?>> matchingDescription;
 
     public RejectedByAttributesVersion(ModuleComponentIdentifier id, List<AttributeMatcher.MatchingDescription<?>> matchingDescription) {
@@ -40,13 +40,13 @@ public class RejectedByAttributesVersion extends RejectedVersion {
         builder.node(getId().getVersion());
         builder.startChildren();
         for (AttributeMatcher.MatchingDescription<?> description : matchingDescription) {
-            builder.node("Attribute '" + description.getRequestedAttribute().getName() + "'");
+            builder.node("Attribute '" + description.getRequested().getKey().getName() + "'");
             if (description.isMatch()) {
                 builder.append(" matched. ");
             } else {
                 builder.append(" didn't match. ");
             }
-            builder.append("Requested " + prettify(description.getRequestedValue()) + ", was: " + prettify(description.getFound()));
+            builder.append("Requested " + prettify(description.getRequested()) + ", was: " + prettify(description.getFound()));
         }
         builder.endChildren();
     }
@@ -71,9 +71,9 @@ public class RejectedByAttributesVersion extends RejectedVersion {
         return getId().hashCode();
     }
 
-    private static String prettify(@Nullable AttributeValue<?> value) {
-        if (value != null) {
-            return "'" + value.get() + "'";
+    private static String prettify(@Nullable ImmutableAttributesEntry<?> entry) {
+        if (entry != null) {
+            return "'" + entry.get() + "'";
         } else {
             return "not found";
         }

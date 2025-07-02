@@ -35,9 +35,9 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenAttributesFactory;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
@@ -130,7 +130,7 @@ public class GradleModuleMetadataParser {
             return;
         }
         for (MutableComponentVariant variant : ImmutableList.copyOf(variants)) {
-            AttributeValue<String> entry = variant.getAttributes().findEntry(MavenAttributesFactory.CATEGORY_ATTRIBUTE);
+            ImmutableAttributesEntry<String> entry = variant.getAttributes().findEntry(MavenAttributesFactory.CATEGORY_ATTRIBUTE);
             if (entry != null && Category.REGULAR_PLATFORM.equals(entry.get()) && variant.getCapabilities().isEmpty()) {
                 // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
                 ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
