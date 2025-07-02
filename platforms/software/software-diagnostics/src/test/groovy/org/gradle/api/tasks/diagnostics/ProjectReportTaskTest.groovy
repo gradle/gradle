@@ -41,10 +41,12 @@ class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == '''Root project 'test-project' - this is the root project
+        output.value == '''Description: this is the root project
+
+Root project 'test-project\'
 +--- Project ':child1' - this is a subproject
-|    \\--- Project ':child1:child1'
-\\--- Project ':child2'
+|    \\--- Project ':child1:child1\'
+\\--- Project ':child2\'
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :child1:tasks
@@ -59,7 +61,9 @@ For example, try running gradle :child1:tasks
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == '''Root project 'test-project' - this is the root project
+        output.value == '''Description: this is the root project
+
+Root project 'test-project'
 No sub-projects
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
