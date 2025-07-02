@@ -361,7 +361,7 @@ include::sample[dir="snippets/bestPractices/useGavString-do/groovy",files="build
 
 
 [[use_content_filtering]]
-== Use Content Filtering when using multiple Repositories
+== Use Content Filtering with multiple Repositories
 
 When using multiple repositories in a build, use <<filtering_repository_content.adoc#repository-content-filtering,repository content filtering>> to ensure that dependencies are resolved from an appropriate repository.
 
@@ -371,16 +371,20 @@ If your build declares more than one repository, you should declare content filt
 
 Content filtering is necessary if you have a reason to restrict searching for a dependency to a particular repository, and can be a good idea even if acceptable dependency artifacts exist in multiple locations.
 
-Repositories will be searched for dependencies that pass their filters in the order they are declared.
-Often the last repository is declared without any filters in order to serve as a default repository that is queried for any dependencies that don't pass the filters present on the other repositories.
-
-You should use the <<filtering_repository_content.adoc#sec:declaring-content-repositories,exclusiveContent>> feature to restrict dependencies to a particular known repository, regardless of the presence of a "fallback" repository.
+When possible, you should use the <<filtering_repository_content.adoc#sec:declaring-content-repositories,exclusiveContent>> feature to restrict dependencies to a particular known repository.
 
 Content filtering has three main benefits:
 
 1. **Performance**, since you only query repositories for dependencies that should actually exist within them
 2. **Security**, by avoiding asking potentially every repository for every dependency (even ones they shouldn't contain), you improve resiliency to supply chain attacks by avoiding leaking information about your dependencies to other repositories, or even downloading potentially malicious artifacts
 3. **Reliability**, by avoiding searching repositories that contain invalid or incorrect metadata for particular dependencies, which could result in obtaining incorrect transitive dependencies
+
+Repositories will be searched for dependencies that pass their filters in the order they are declared.
+Often the last repository is declared without any filters in order to serve as a default _fallback repository_ that is queried for any dependencies that don't pass the filters present on the other repositories.
+
+WARNING: Carefully consider using content filtering with a fallback repository.
+This can pose a security risk, so make sure you fully trust the fallback repository.
+This setup can result in inadvertently (and silently) resolving dependencies from the fallback repository that were intended to come from filtered repositories if the dependencies were not available in those repositories.
 
 === Example
 
@@ -389,29 +393,45 @@ Content filtering has three main benefits:
 Don't add multiple repositories without content filtering:
 
 ====
-include::sample[dir="snippets/bestPractices/content-filtering-avoid/kotlin",files="settings.gradle.kts[tags=content-filtering-avoid]"]
-include::sample[dir="snippets/bestPractices/content-filtering-avoid/groovy",files="settings.gradle[tags=content-filtering-avoid]"]
+include::sample[dir="snippets/bestPractices/contentFiltering-avoid/kotlin",files="settings.gradle.kts[tags=content-filtering-avoid]"]
+include::sample[dir="snippets/bestPractices/contentFiltering-avoid/groovy",files="settings.gradle[tags=content-filtering-avoid]"]
 ====
 
 ==== Do This Instead
 
-Use exclusive content filtering to ensure that repositories are used only for the expected artifacts:
+Use content filtering to ensure that the proper repositories are searched first for the expected artifacts:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/contentFiltering-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/contentFiltering-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
-include::sample[dir="snippets/bestPractices/content-filtering-exclusive-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
-include::sample[dir="snippets/bestPractices/content-filtering-exclusive-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
+include::sample[dir="snippets/bestPractices/contentFiltering-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
+include::sample[dir="snippets/bestPractices/contentFiltering-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
 ====
 
-Alternatively, using non-exclusive content filtering along with a fallback repository is also an option.
-In most cases, it is better to use exclusive content filtering, as it ensures that dependencies _can only be found in the expected repository_.
+In many cases, it is better to use exclusive content filtering, as it ensures that dependencies _can only be found in the expected repository_.
 If they are not present there, they will not be found at all.
 
-NOTE: Without exclusive content filtering, if you don’t apply content filtering to the last declared repository, you may inadvertently resolve artifacts from it that you intended to come from other repositories in they were not available in those repositories.
-This can pose a security risk, so make sure you fully trust the fallback repository.
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/contentFilteringExclusive-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/contentFilteringExclusive-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
-include::sample[dir="snippets/bestPractices/content-filtering-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
-include::sample[dir="snippets/bestPractices/content-filtering-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
+include::sample[dir="snippets/bestPractices/contentFilteringExclusive-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
+include::sample[dir="snippets/bestPractices/contentFilteringExclusive-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
 ====
 
 === References

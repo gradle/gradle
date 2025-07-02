@@ -3,10 +3,12 @@ dependencyResolutionManagement {
     repositories {
         google {
             content {
-                // Only use this repository for the androidx.activity group
-                includeGroup "androidx.activity"
+                // Use this repository for androidx and GMS dependencies
+                includeGroupByRegex("androidx.*")
+                includeGroup("com.google.gms")
             }
         }
+        // Specify the fallback repository last
         mavenCentral()
     }
 }
