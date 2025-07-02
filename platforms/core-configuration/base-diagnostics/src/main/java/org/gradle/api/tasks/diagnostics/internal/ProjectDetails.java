@@ -19,17 +19,20 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Project;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.util.Objects;
 
 /**
  * Provides common projections for selected project properties.
  */
 public interface ProjectDetails {
-
     String getDisplayName();
 
     @Nullable
     String getDescription();
+
+    boolean isNonDefaultProjectDir();
+    String getRelativeProjectDir();
 
     static ProjectDetails of(Project project) {
         return withDisplayNameAndDescription(project);
@@ -45,11 +48,16 @@ public interface ProjectDetails {
 
     class ProjectDisplayNameAndDescription implements ProjectDetails {
         private final String displayName;
+        @Nullable
         private final String description;
+        private final String relativeProjectDirPath;
+        private final String projectLogicalPath;
 
         private ProjectDisplayNameAndDescription(Project project) {
             displayName = project.getDisplayName();
             description = project.getDescription();
+            relativeProjectDirPath = project.getRootProject().getProjectDir().toPath().relativize(project.getProjectDir().toPath()).toString();
+            projectLogicalPath = project.getBuildTreePath();
         }
 
         @Override
@@ -59,9 +67,19 @@ public interface ProjectDetails {
 
         @Nullable
         @Override
-
         public String getDescription() {
             return description;
+        }
+
+        @Override
+        public boolean isNonDefaultProjectDir() {
+            String relPathToLogicalPath = Project.PATH_SEPARATOR + relativeProjectDirPath.replace(File.separatorChar, Project.PATH_SEPARATOR.charAt(0));
+            return !projectLogicalPath.equals(relPathToLogicalPath);
+        }
+
+        @Override
+        public String getRelativeProjectDir() {
+            return relativeProjectDirPath;
         }
 
         @Override
@@ -81,6 +99,7 @@ public interface ProjectDetails {
             return Objects.equals(displayName, that.displayName) && Objects.equals(description, that.description);
         }
     }
+
     class ProjectNameAndPath extends ProjectDisplayNameAndDescription {
         private final String name;
         private final String path;

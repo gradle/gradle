@@ -21,8 +21,19 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
 
+/**
+ * Integration tests for the `:projects` task, which reports the project structure and software types.
+ * <p>
+ * This test suite covers various scenarios including:
+ * <ul>
+ *   <li>Multi-project builds with composite builds</li>
+ *   <li>Transitive composites</li>
+ *   <li>Non-standard project directories</li>
+ *   <li>Long project descriptions</li>
+ *   <li>Software types registered via declarative DSL</li>
+ * </ul>
+ */
 class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
-
     def "reports project structure with single composite"() {
         given:
         createDirs("p1", "p2", "p2/p22", "another")
@@ -32,6 +43,10 @@ include('p2')
 include('p2:p22')
 includeBuild('another')"""
         file('another/settings.gradle').touch()
+
+        buildFile """description = 'This is a test project'"""
+        groovyFile(file('p1/build.gradle'), """description = 'Initial/core project'""")
+        groovyFile(file('p2/build.gradle'), """description = 'The second feature project'""")
 
         when:
         run ":projects"
@@ -44,9 +59,11 @@ Projects:
 Root project 'my-root-project'
 ------------------------------------------------------------
 
+Description: This is a test project
+
 Root project 'my-root-project'
-+--- Project ':p1'
-\\--- Project ':p2'
++--- Project ':p1' - Initial/core project
+\\--- Project ':p2' - The second feature project
      \\--- Project ':p2:p22'
 
 Included builds:
@@ -68,6 +85,12 @@ includeBuild('another')"""
 
         then:
         outputContains """
+Projects:
+
+------------------------------------------------------------
+Root project 'my-root-project'
+------------------------------------------------------------
+
 Root project 'my-root-project'
 No sub-projects
 
@@ -102,21 +125,77 @@ includeBuild('another')"""
         outputDoesNotContain("Included builds")
     }
 
-    def "rendering long project descriptions is sensible"() {
+    def "rendering long project descriptions is done in root project"() {
         settingsFile << "rootProject.name = 'my-root-project'"
         buildFile << """
             description = '''
 this is a long description
-
-this shouldn't be visible
+that spans
+several lines
             '''
         """
         when:
         run "projects"
         then:
         outputContains """
-Root project 'my-root-project' - this is a long description...
+Projects:
+
+------------------------------------------------------------
+Root project 'my-root-project'
+------------------------------------------------------------
+
+Description: this is a long description
+that spans
+several lines
+
+Root project 'my-root-project'
 No sub-projects
+"""
+    }
+
+    def "rendering long project descriptions is not done in child projects"() {
+        settingsFile << """
+rootProject.name = 'my-root-project'
+
+include 'subA', ':subA:subB'
+"""
+        buildFile << """
+            description = '''
+this is a long description
+that spans
+several lines
+            '''
+        """
+
+        file("subA/build.gradle") << """
+            description = '''
+this is another quite long description that should be truncated and it also
+spans several lines
+just like the root project description
+            '''
+        """
+
+        file("subA/subB/build.gradle") << """
+        description = '''I only have a short description'''
+        """
+
+        when:
+        run "projects"
+        then:
+        outputContains """
+Projects:
+
+------------------------------------------------------------
+Root project 'my-root-project'
+------------------------------------------------------------
+
+Description: this is a long description
+that spans
+several lines
+
+Root project 'my-root-project'
+\\--- Project ':subA' - this is another quite long description that should be truncated and it also...
+     \\--- Project ':subA:subB' - I only have a short description
 """
     }
 
@@ -307,5 +386,80 @@ Root project 'example'
 +--- Project ':lib' (library) - Sample library project
 \\--- Project ':util' (utility) - Utilities and common code
 """)
+    }
+
+    def "reports project structure with non-standard project directories"() {
+        given:
+        createDirs("features", "core/logic", "core/transport", "server")
+        file("settings.gradle") << """
+            rootProject.name = 'my-root-project'
+
+            include(':featureX')
+            project(':featureX').projectDir = file('features/featureX')
+
+            include(":featureY")
+            project(':featureY').projectDir = file('features/featureY')
+
+            include(':common')
+            project(':common').projectDir = file('core/logic/common')
+
+            include(':transport')
+            project(':transport').projectDir = file('core/transport')
+
+            includeBuild('server')
+        """
+        file('server/settings.gradle').touch()
+
+        buildFile """description = 'This is a test project'"""
+        groovyFile(file('features/featureX/build.gradle'), """description = 'A standard feature'""")
+        groovyFile(file('features/featureY/build.gradle'),
+            """description = '''A more experimental feature that is not yet fully ready for production.
+                    Team Alpha is still actively developing this.
+                    Requires the foo module be preinstalled.'''""")
+        groovyFile(file('core/logic/common/build.gradle'), """description = 'Common logic shared across features'""")
+        groovyFile(file('core/transport/build.gradle'), """description = 'Transport layer for communication'""")
+
+        when:
+        run ":projects"
+
+        then:
+        outputContains """
+Projects:
+
+------------------------------------------------------------
+Root project 'my-root-project'
+------------------------------------------------------------
+
+Description: This is a test project
+
+Root project 'my-root-project'
++--- Project ':common' - Common logic shared across features
++--- Project ':featureX' - A standard feature
++--- Project ':featureY' - A more experimental feature that is not yet fully ready for production....
+\\--- Project ':transport' - Transport layer for communication
+
+Projects with non-standard directory locations:
+
+project ':common' - core/logic/common
+project ':featureX' - features/featureX
+project ':featureY' - features/featureY
+project ':transport' - core/transport
+
+Included builds:
+
+\\--- Included build ':server'
+"""
+    }
+
+    def "renders help message"() {
+        settingsFile << "rootProject.name = 'my-root-project'"
+
+        when:
+        run "projects"
+        then:
+        outputContains """
+To see a list of the tasks of a project, run gradle <project-path>:tasks
+For example, try running gradle :tasks
+"""
     }
 }
