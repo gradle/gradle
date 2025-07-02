@@ -197,7 +197,7 @@ include::sample[dir="snippets/bestPractices/settingsRepositories-do/groovy",file
 
 === Tags
 
-`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`, `<<tags_reference.adoc#tag:repositories,#repositories>>`
 
 [[dont_depend_on_kotlin_stdlib]]
 == Don't Explicitly Depend on the Kotlin Standard Library
@@ -363,21 +363,24 @@ include::sample[dir="snippets/bestPractices/useGavString-do/groovy",files="build
 [[use_content_filtering]]
 == Use Content Filtering when using multiple Repositories
 
-When using multiple repositories, use <<filtering_repository_content.adoc#repository-content-filtering,repository content filtering>> to ensure that dependencies are resolved from an appropriate repository.
+When using multiple repositories in a build, use <<filtering_repository_content.adoc#repository-content-filtering,repository content filtering>> to ensure that dependencies are resolved from an appropriate repository.
 
 === Explanation
 
 If your build declares more than one repository, you should declare content filters on these repositories to ensure you search for and obtain dependencies from the correct place.
-Content filtering is necessary if you have a reason to restrict searching for a dependency to a particular repository, and can be a good idea even if acceptable artifacts exist in multiple locations.
-Repository will be searched for dependencies that pass their filters in the order they are declared.
+
+Content filtering is necessary if you have a reason to restrict searching for a dependency to a particular repository, and can be a good idea even if acceptable dependency artifacts exist in multiple locations.
+
+Repositories will be searched for dependencies that pass their filters in the order they are declared.
 Often the last repository is declared without any filters in order to serve as a default repository that is queried for any dependencies that don't pass the filters present on the other repositories.
-You should also use the <<filtering_repository_content.adoc#sec:declaring-content-repositories,exclusiveContent>> feature to restrict a dependency to a certain repository regardless of declaration order.
+
+You should use the <<filtering_repository_content.adoc#sec:declaring-content-repositories,exclusiveContent>> feature to restrict dependencies to a particular known repository, regardless of the presence of a "fallback" repository.
 
 Content filtering has three main benefits:
 
-1. **Performance**, since you only query repositories for a given artifact that will actually contain it
-2. **Security**, by avoiding asking potentially every repository for every dependency (even ones they shouldn't contain), and improving resiliency to supply chain attacks by specifying exactly where to obtain each artifact
-3. **Reliability**, by avoiding searching repositories that contain invalid or incorrect metadata or artifacts for particular dependencies.
+1. **Performance**, since you only query repositories for dependencies that should actually exist within them
+2. **Security**, by avoiding asking potentially every repository for every dependency (even ones they shouldn't contain), you improve resiliency to supply chain attacks by avoiding leaking information about your dependencies to other repositories, or even downloading potentially malicious artifacts
+3. **Reliability**, by avoiding searching repositories that contain invalid or incorrect metadata for particular dependencies, which could result in obtaining incorrect transitive dependencies
 
 === Example
 
@@ -392,22 +395,29 @@ include::sample[dir="snippets/bestPractices/content-filtering-avoid/groovy",file
 
 ==== Do This Instead
 
-Use exclusive content filtering to ensure that the additional repositories are used only for the expected artifacts:
+Use exclusive content filtering to ensure that repositories are used only for the expected artifacts:
 
 ====
 include::sample[dir="snippets/bestPractices/content-filtering-exclusive-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
 include::sample[dir="snippets/bestPractices/content-filtering-exclusive-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
 ====
 
-Alternatively, using content filtering for additional repositories while having the fallback repository at the end is also a good option.
+Alternatively, using non-exclusive content filtering along with a fallback repository is also an option.
+In most cases, it is better to use exclusive content filtering, as it ensures that dependencies _can only be found in the expected repository_.
+If they are not present there, they will not be found at all.
 
-NOTE: If you don’t apply content filtering to the last declared repository, you may inadvertently resolve artifacts from it that were intended to come from earlier, trusted repositories with content filtering. This can pose a security risk, so make sure you fully trust the repository.
+NOTE: Without exclusive content filtering, if you don’t apply content filtering to the last declared repository, you may inadvertently resolve artifacts from it that you intended to come from other repositories in they were not available in those repositories.
+This can pose a security risk, so make sure you fully trust the fallback repository.
 
 ====
 include::sample[dir="snippets/bestPractices/content-filtering-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
 include::sample[dir="snippets/bestPractices/content-filtering-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
 ====
 
+=== References
+
+- <<filtering_repository_content.adoc#repository-content-filtering,Filtering Repository Content>>
+
 === Tags
 
-`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+`<<tags_reference.adoc#tag:repositories,#repositories>>`, `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
