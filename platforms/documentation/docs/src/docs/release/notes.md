@@ -75,6 +75,13 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
 <a name="build-authoring"></a>
+### CLI improvement
+
+#### Plain console with colors
+
+This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
+
+
 ### Build authoring improvements
 
 #### Introduce `AttributeContainer#addAllLater`
