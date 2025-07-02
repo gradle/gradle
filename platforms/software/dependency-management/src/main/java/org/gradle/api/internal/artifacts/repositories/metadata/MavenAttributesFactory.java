@@ -20,7 +20,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.AttributesFactory;
 
 /**
  * A specialized attributes factory for Maven metadata. The specialized methods take advantage
@@ -28,7 +27,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
  * attributes, and the same mutations to make on them, so it's more efficient to map them, than
  * recomputing each time.
  */
-public interface MavenAttributesFactory extends AttributesFactory {
+public interface MavenAttributesFactory {
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
     Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
     Attribute<String> FORMAT_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);

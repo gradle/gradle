@@ -35,6 +35,7 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -64,7 +65,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         }
         def metadata = mavenMetadataFactory.create(componentIdentifier, dependencies)
             .asImmutable()
-            .withDerivationStrategy(JavaEcosystemVariantDerivationStrategy.instance)
+            .withDerivationStrategy(TestUtil.newInstance(JavaEcosystemVariantDerivationStrategy))
             .asMutable()
         metadata
     }
