@@ -53,42 +53,55 @@ class UsageCompatibilityHandler {
         if (value instanceof CoercingStringValueSnapshot) {
             String val = ((CoercingStringValueSnapshot) value).getValue();
             String replacementUsage = getReplacementUsage(val);
-            if (replacementUsage == null) {
+            String libraryElements = getLibraryElements(val);
+            if (replacementUsage == null || libraryElements == null) {
                 return factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
             }
 
-            assert key.getType() == String.class : "Attribute type must be a String";
-            @SuppressWarnings("unchecked")
-            Attribute<String> typedAttribute = (Attribute<String>) key;
-
+            Attribute<String> typedAttribute = getAs(key, String.class);
             Isolatable<String> coercingStringValueSnapshot = new CoercingStringValueSnapshot(replacementUsage, instantiator);
             ImmutableAttributes usageNode = factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(typedAttribute, coercingStringValueSnapshot));
-            return factory.doConcatEntry(usageNode, new DefaultImmutableAttributesEntry<>(Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(LibraryElements.JAR, instantiator)));
+            return factory.doConcatEntry(usageNode, new DefaultImmutableAttributesEntry<>(Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(libraryElements, instantiator)));
         } else {
             String val = Objects.requireNonNull(value.isolate()).toString();
             String replacementUsage = getReplacementUsage(val);
-            if (replacementUsage == null) {
+            String libraryElements = getLibraryElements(val);
+            if (replacementUsage == null || libraryElements == null) {
                 return factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
             }
 
-            assert key.getType() == Usage.class : "Attribute type must be Usage";
-            @SuppressWarnings("unchecked")
-            Attribute<Usage> typedAttribute = (Attribute<Usage>) key;
-
+            Attribute<Usage> typedAttribute = getAs(key, Usage.class);
             Isolatable<Usage> isolate = isolatableFactory.isolate(instantiator.named(Usage.class, replacementUsage));
             ImmutableAttributes usageNode = factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(typedAttribute, isolate));
-            return factory.doConcatEntry(usageNode, new DefaultImmutableAttributesEntry<>(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, LibraryElements.JAR))));
+            return factory.doConcatEntry(usageNode, new DefaultImmutableAttributesEntry<>(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, libraryElements))));
         }
     }
 
-    @Nullable
-    String getReplacementUsage(String usage) {
+    @SuppressWarnings("unchecked")
+    private static <T> Attribute<T> getAs(Attribute<?> key, Class<T> type) {
+        assert key.getType() == type : "Attribute type must be a " + type;
+        return (Attribute<T>) key;
+    }
+
+    @Nullable String getReplacementUsage(String usage) {
         if (usage.endsWith("-jars")) {
             return usage.replace("-jars", "");
         } else if (usage.endsWith("-classes")) {
             return usage.replace("-classes", "");
         } else if (usage.endsWith("-resources")) {
             return usage.replace("-resources", "");
+        }
+
+        return null;
+    }
+
+    @Nullable String getLibraryElements(String usage) {
+        if (usage.endsWith("-jars")) {
+            return LibraryElements.JAR;
+        } else if (usage.endsWith("-classes")) {
+            return LibraryElements.CLASSES;
+        } else if (usage.endsWith("-resources")) {
+            return LibraryElements.RESOURCES;
         }
 
         return null;

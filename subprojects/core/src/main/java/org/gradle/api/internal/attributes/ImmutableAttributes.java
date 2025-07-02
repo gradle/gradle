@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
 import org.jspecify.annotations.Nullable;
@@ -31,22 +30,12 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      *
      * @throws IllegalStateException if this container is empty.
      */
-    ImmutableAttributesEntry<?> getFirst();
+    ImmutableAttributesEntry<?> getHead();
 
     /**
      * Get all entries in this container.
      */
     ImmutableCollection<ImmutableAttributesEntry<?>> getEntries();
-
-    /**
-     * Get all entries in this container, mapped by their attribute keys.
-     */
-    ImmutableMap<Attribute<?>, ImmutableAttributesEntry<?>> getEntriesByAttribute();
-
-    /**
-     * Get all entries in this container, mapped by their attribute key names.
-     */
-    ImmutableMap<String, ImmutableAttributesEntry<?>> getEntriesByName();
 
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
