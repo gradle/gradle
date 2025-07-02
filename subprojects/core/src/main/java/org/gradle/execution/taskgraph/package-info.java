@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NullMarked
+package org.gradle.execution.taskgraph;
 
-package org.gradle.internal.cc.impl
-
-import org.gradle.api.internal.GradleInternal
-import org.gradle.execution.plan.ScheduledWork
-import org.gradle.internal.build.BuildState
-
-
-interface VintageGradleBuild {
-    val isRootBuild: Boolean
-    val state: BuildState
-    val gradle: GradleInternal
-    val hasScheduledWork: Boolean
-    val scheduledWork: ScheduledWork
-}
+import org.jspecify.annotations.NullMarked;
