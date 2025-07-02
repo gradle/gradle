@@ -19,8 +19,8 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.InMemoryLoadingCache;
@@ -92,9 +92,9 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return true;
         }
 
-        for (AttributeValue<?> requestedEntry : requested.getEntries()) {
-            Attribute<?> attribute = requestedEntry.getAttribute();
-            AttributeValue<?> candidateEntry = candidate.findEntry(attribute.getName());
+        for (ImmutableAttributesEntry<?> requestedEntry : requested.getEntries()) {
+            Attribute<?> attribute = requestedEntry.getKey();
+            ImmutableAttributesEntry<?> candidateEntry = candidate.findEntry(attribute.getName());
 
             if (candidateEntry != null) {
                 Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
@@ -124,8 +124,8 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
          */
         default <T> boolean test(
             Attribute<T> attribute,
-            AttributeValue<?> requested,
-            AttributeValue<?> candidate
+            ImmutableAttributesEntry<?> requested,
+            ImmutableAttributesEntry<?> candidate
         ) {
             T requestedValue = requested.coerce(attribute);
             T candidateValue = candidate.coerce(attribute);
@@ -142,18 +142,18 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
         CoercingAttributeValuePredicate matches = schema::matchValue;
 
-        ImmutableCollection<AttributeValue<?>> attributes = requested.getEntries();
+        ImmutableCollection<ImmutableAttributesEntry<?>> attributes = requested.getEntries();
         List<AttributeMatcher.MatchingDescription<?>> result = new ArrayList<>(attributes.size());
-        for (AttributeValue<?> requestedEntry : attributes) {
-            Attribute<?> attribute = requestedEntry.getAttribute();
-            AttributeValue<?> candidateEntry = candidate.findEntry(attribute.getName());
+        for (ImmutableAttributesEntry<?> requestedEntry : attributes) {
+            Attribute<?> attribute = requestedEntry.getKey();
+            ImmutableAttributesEntry<?> candidateEntry = candidate.findEntry(attribute.getName());
 
             if (candidateEntry != null) {
                 Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
                 boolean match = matches.test(typedAttribute, requestedEntry, candidateEntry);
-                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedEntry, candidateEntry, match));
+                result.add(new AttributeMatcher.MatchingDescription(requestedEntry, candidateEntry, match));
             } else {
-                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedEntry, candidateEntry, false));
+                result.add(new AttributeMatcher.MatchingDescription(requestedEntry, candidateEntry, false));
             }
         }
         return result;

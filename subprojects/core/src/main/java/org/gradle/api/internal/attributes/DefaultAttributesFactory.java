@@ -83,23 +83,17 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         if (key.equals(Usage.USAGE_ATTRIBUTE) || key.getName().equals(Usage.USAGE_ATTRIBUTE.getName())) {
             return usageCompatibilityHandler.doConcat(this, node, key, value);
         } else {
-            return doConcatIsolatable(node, key, value);
+            return doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
         }
     }
 
-    private <T> ImmutableAttributes doConcatEntry(ImmutableAttributes node, AttributeValue<T> entry) {
-        Attribute<T> key = entry.getAttribute();
-        Isolatable<T> value = entry.getIsolatable();
-        return doConcatIsolatable(node, key, value);
-    }
-
-    /* package */ <T> ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
-        assertAttributeNotAlreadyPresent(node, key);
+    /* package */ <T> ImmutableAttributes doConcatEntry(ImmutableAttributes node, ImmutableAttributesEntry<T> entry) {
+        assertAttributeNotAlreadyPresent(node, entry.getKey());
 
         // Try to retrieve a cached value without locking
         ImmutableList<ImmutableAttributes> cachedChildren = children.get(node);
         if (cachedChildren != null) {
-            ImmutableAttributes child = findChild(cachedChildren, key, value);
+            ImmutableAttributes child = findChild(cachedChildren, entry);
             if (child != null) {
                 return child;
             }
@@ -109,7 +103,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         cachedChildren = children.compute(node, (k, nodeChildren) -> {
             if (nodeChildren != null) {
                 // Check if the value is already present again, now that we have the lock.
-                ImmutableAttributes child = findChild(nodeChildren, key, value);
+                ImmutableAttributes child = findChild(nodeChildren, entry);
                 if (child != null) {
                     // Somebody updated the cache before we could. Return the cache unchanged.
                     return nodeChildren;
@@ -120,24 +114,27 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
             // Nobody has tried to concat this value yet.
             // Calculate it and add it to the children.
-            ImmutableAttributes child = new DefaultImmutableAttributesContainer<>(node, key, value);
+            ImmutableAttributes child = new DefaultImmutableAttributesContainer(node, entry);
             return concatChild(nodeChildren, child);
         });
 
-        return Objects.requireNonNull(findChild(cachedChildren, key, value));
+        return Objects.requireNonNull(findChild(cachedChildren, entry));
     }
 
     private static @Nullable ImmutableAttributes findChild(
         ImmutableList<ImmutableAttributes> nodeChildren,
-        Attribute<?> key,
-        Isolatable<?> value
+        ImmutableAttributesEntry<?> entry
     ) {
         for (ImmutableAttributes child : nodeChildren) {
-            AttributeValue<?> firstEntry = child.getFirst();
-            if (firstEntry.getAttribute().equals(key) && firstEntry.getIsolatable().equals(value)) {
+            ImmutableAttributesEntry<?> firstEntry = child.getFirst();
+
+            if (firstEntry.getKey().equals(entry.getKey()) &&
+                firstEntry.getValue().equals(entry.getValue())
+            ) {
                 return child;
             }
         }
+
         return null;
     }
 
@@ -161,8 +158,8 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         }
 
         ImmutableAttributes current = primary;
-        for (AttributeValue<?> toConcat : fallback.getEntries()) {
-            if (current.findEntry(toConcat.getAttribute().getName()) == null) {
+        for (ImmutableAttributesEntry<?> toConcat : fallback.getEntries()) {
+            if (current.findEntry(toConcat.getKey().getName()) == null) {
                 current = doConcatEntry(current, toConcat);
             }
         }
@@ -180,10 +177,10 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         }
 
         ImmutableAttributes current = attributes2;
-        for (AttributeValue<?> toConcat : attributes1.getEntries()) {
-            AttributeValue<?> existing = current.findEntry(toConcat.getAttribute().getName());
+        for (ImmutableAttributesEntry<?> toConcat : attributes1.getEntries()) {
+            ImmutableAttributesEntry<?> existing = current.findEntry(toConcat.getKey().getName());
             if (existing != null && !toConcat.get().equals(existing.get())) {
-                Attribute<?> attribute = toConcat.getAttribute();
+                Attribute<?> attribute = toConcat.getKey();
                 String message = "An attribute named '" + attribute.getName() + "' of type '" + attribute.getType().getName() + "' already exists in this container";
                 throw new AttributeMergingException(attribute, toConcat.get(), existing.get(), message);
             }
@@ -229,9 +226,9 @@ public final class DefaultAttributesFactory implements AttributesFactory {
      * @throws IllegalArgumentException if attribute with same name and different type already exists
      */
     public void assertAttributeNotAlreadyPresent(ImmutableAttributes container, Attribute<?> key) {
-        AttributeValue<?> entry = container.findEntry(key.getName());
-        if (entry != null && entry.getAttribute().getType() != key.getType()) {
-            throw new IllegalArgumentException(buildSameNameDifferentTypeErrorMsg(key, entry.getAttribute()));
+        ImmutableAttributesEntry<?> entry = container.findEntry(key.getName());
+        if (entry != null && entry.getKey().getType() != key.getType()) {
+            throw new IllegalArgumentException(buildSameNameDifferentTypeErrorMsg(key, entry.getKey()));
         }
     }
 

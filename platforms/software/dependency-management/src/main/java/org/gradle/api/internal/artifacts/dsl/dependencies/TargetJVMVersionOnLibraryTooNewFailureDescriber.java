@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
@@ -44,8 +44,8 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
 
     @Override
     protected JavaVersion getJVMVersion(NoCompatibleVariantsFailure failure) {
-        AttributeValue<Integer> jvmVersionAttribute = failure.getRequestedAttributes().findEntry(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-        return JavaVersion.toVersion(jvmVersionAttribute.get());
+        ImmutableAttributesEntry<Integer> jvmVersionEntry = failure.getRequestedAttributes().findEntry(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        return JavaVersion.toVersion(jvmVersionEntry.get());
     }
 
     @Override

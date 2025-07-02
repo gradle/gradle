@@ -22,8 +22,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Cast;
@@ -115,8 +115,8 @@ public final class ResolutionCandidateAssessor {
     ) {
         if (alreadyAssessed.add(attribute.getName())) {
             String attributeName = attribute.getName();
-            AttributeValue<?> consumerEntry = requestedAttributes.findEntry(attributeName);
-            AttributeValue<?> producerEntry = candidateAttributes.findEntry(attributeName);
+            ImmutableAttributesEntry<?> consumerEntry = requestedAttributes.findEntry(attributeName);
+            ImmutableAttributesEntry<?> producerEntry = candidateAttributes.findEntry(attributeName);
 
             if (consumerEntry != null && producerEntry != null) {
                 T coercedProducer = producerEntry.coerce(attribute);

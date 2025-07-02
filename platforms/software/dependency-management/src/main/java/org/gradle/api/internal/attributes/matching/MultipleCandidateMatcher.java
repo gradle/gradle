@@ -18,8 +18,8 @@ package org.gradle.api.internal.attributes.matching;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.jspecify.annotations.Nullable;
@@ -125,7 +125,7 @@ class MultipleCandidateMatcher {
         @Nullable Object[] requestedAttributeValues = new Object[requestedAttributes.size()];
         for (int a = 0; a < requestedAttributes.size(); a++) {
             Attribute<?> attribute = requestedAttributes.get(a);
-            AttributeValue<?> requestedEntry = requested.findEntry(attribute);
+            ImmutableAttributesEntry<?> requestedEntry = requested.findEntry(attribute);
             requestedAttributeValues[a] = requestedEntry != null ? requestedEntry.get() : null;
         }
         return requestedAttributeValues;
@@ -164,7 +164,7 @@ class MultipleCandidateMatcher {
     private MatchResult recordAndMatchCandidateValue(int c, int a) {
         Object requestedValue = requestedAttributeValues[a];
         Attribute<?> attribute = requestedAttributes.get(a);
-        AttributeValue<?> candidateEntry = candidates[c].findEntry(attribute.getName());
+        ImmutableAttributesEntry<?> candidateEntry = candidates[c].findEntry(attribute.getName());
 
         if (candidateEntry == null) {
             setCandidateValue(c, a, null);
@@ -442,7 +442,7 @@ class MultipleCandidateMatcher {
     }
 
     private <E> @Nullable E getCandidateValue(int c, Attribute<E> attribute) {
-        AttributeValue<?> attributeEntry = candidates[c].findEntry(attribute.getName());
+        ImmutableAttributesEntry<?> attributeEntry = candidates[c].findEntry(attribute.getName());
         return attributeEntry != null ? attributeEntry.coerce(attribute) : null;
     }
 

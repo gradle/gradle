@@ -19,7 +19,6 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.Providers;
@@ -32,57 +31,53 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Note: The fact that this type is both a <em>container</em> and a <em>value stored in a container</em> is strange.  This is
- * probably something that ought to be addressed, this shouldn't implement {@link AttributeValue}, but it does it in order to
- * build "linked lists" of immutable containers through concatenation to save memory.
+ * The default implementation of {@link ImmutableAttributes}.
+ * <p>
+ * Most methods are strict in that they will only return an entry if its
+ * key matches the requested key's name and type. However, {@link #getAttribute(Attribute)}
+ * attempts to coerce entries with a matching name to the requested type.
  */
-public final class DefaultImmutableAttributesContainer<T> extends AbstractAttributeContainer implements ImmutableAttributes, AttributeValue<T> {
+public final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes {
 
-    // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
-    // We can afford using a hashmap here because attributes are interned, and their lifetime doesn't
-    // exceed a build
-    private final Map<Attribute<?>, Object> coercionCache = new ConcurrentHashMap<>();
-
-    private final Attribute<T> attribute;
-    private final Isolatable<T> value;
-    private final ImmutableMap<Attribute<?>, AttributeValue<?>> hierarchy;
-    private final ImmutableMap<String, AttributeValue<?>> hierarchyByName;
+    private final ImmutableAttributesEntry<?> first;
+    private final ImmutableMap<Attribute<?>, ImmutableAttributesEntry<?>> hierarchy;
+    private final ImmutableMap<String, ImmutableAttributesEntry<?>> hierarchyByName;
     private final int hashCode;
 
     // Optimize for the single entry case, makes findEntry faster
     private final @Nullable String singleEntryName;
-    private final @Nullable AttributeValue<?> singleEntryValue;
+    private final @Nullable ImmutableAttributesEntry<?> singleEntry;
 
-    DefaultImmutableAttributesContainer(ImmutableAttributes parent, Attribute<T> key, Isolatable<T> value) {
-        this.attribute = key;
-        this.value = value;
+    <T> DefaultImmutableAttributesContainer(ImmutableAttributes parent, ImmutableAttributesEntry<T> first) {
+        this.first = first;
 
-        this.hierarchy = ImmutableMap.<Attribute<?>, AttributeValue<?>>builderWithExpectedSize(parent.getEntriesByAttribute().size() + 1)
+        this.hierarchy = ImmutableMap.<Attribute<?>, ImmutableAttributesEntry<?>>builderWithExpectedSize(parent.getEntriesByAttribute().size() + 1)
             .putAll(parent.getEntriesByAttribute())
-            .put(attribute, this)
+            .put(first.getKey(), first)
             .buildKeepingLast();
 
-        this.hierarchyByName = ImmutableMap.<String, AttributeValue<?>>builderWithExpectedSize(parent.getEntriesByName().size() + 1)
+        this.hierarchyByName = ImmutableMap.<String, ImmutableAttributesEntry<?>>builderWithExpectedSize(parent.getEntriesByName().size() + 1)
             .putAll(parent.getEntriesByName())
-            .put(attribute.getName(), this)
+            .put(first.getKey().getName(), first)
             .buildKeepingLast();
 
-        int hashCode = parent.hashCode();
-        hashCode = 31 * hashCode + attribute.hashCode();
-        hashCode = 31 * hashCode + value.hashCode();
-        this.hashCode = hashCode;
+        this.hashCode = computeHashCode(parent, first);
 
         if (hierarchyByName.size() == 1) {
-            Map.Entry<String, AttributeValue<?>> entry = hierarchyByName.entrySet().iterator().next();
-            singleEntryName = entry.getKey();
-            singleEntryValue = entry.getValue();
+            singleEntry = hierarchyByName.values().iterator().next();
+            singleEntryName = singleEntry.getKey().getName();
         } else {
             singleEntryName = null;
-            singleEntryValue = null;
+            singleEntry = null;
         }
+    }
+
+    private static <T> int computeHashCode(ImmutableAttributes parent, ImmutableAttributesEntry<T> first) {
+        int hashCode = parent.hashCode();
+        hashCode = 31 * hashCode + first.hashCode();
+        return hashCode;
     }
 
     @Override
@@ -94,14 +89,14 @@ public final class DefaultImmutableAttributesContainer<T> extends AbstractAttrib
             return false;
         }
 
-        DefaultImmutableAttributesContainer<?> that = (DefaultImmutableAttributesContainer<?>) o;
+        DefaultImmutableAttributesContainer that = (DefaultImmutableAttributesContainer) o;
 
         if (hierarchy.size() != that.hierarchy.size()) {
             return false;
         }
 
-        for (Map.Entry<Attribute<?>, AttributeValue<?>> entry : hierarchy.entrySet()) {
-            if (!Objects.requireNonNull(entry.getValue().get()).equals(that.getAttribute(entry.getKey()))) {
+        for (Map.Entry<Attribute<?>, ImmutableAttributesEntry<?>> entry : hierarchy.entrySet()) {
+            if (!Objects.requireNonNull(entry.getValue().get()).equals(that.findEntry(entry.getKey()).get())) {
                 return false;
             }
         }
@@ -114,22 +109,22 @@ public final class DefaultImmutableAttributesContainer<T> extends AbstractAttrib
     }
 
     @Override
-    public AttributeValue<T> getFirst() {
-        return this;
+    public ImmutableAttributesEntry<?> getFirst() {
+        return first;
     }
 
     @Override
-    public ImmutableCollection<AttributeValue<?>> getEntries() {
+    public ImmutableCollection<ImmutableAttributesEntry<?>> getEntries() {
         return hierarchy.values();
     }
 
     @Override
-    public ImmutableMap<Attribute<?>, AttributeValue<?>> getEntriesByAttribute() {
+    public ImmutableMap<Attribute<?>, ImmutableAttributesEntry<?>> getEntriesByAttribute() {
         return hierarchy;
     }
 
     @Override
-    public ImmutableMap<String, AttributeValue<?>> getEntriesByName() {
+    public ImmutableMap<String, ImmutableAttributesEntry<?>> getEntriesByName() {
         return hierarchyByName;
     }
 
@@ -160,15 +155,15 @@ public final class DefaultImmutableAttributesContainer<T> extends AbstractAttrib
             return null;
         }
 
-        AttributeValue<?> entry = findEntry(key.getName());
+        ImmutableAttributesEntry<?> entry = findEntry(key.getName());
         if (entry == null) {
             return null;
         }
 
-        Isolatable<?> isolatable = entry.getIsolatable();
+        Isolatable<?> isolatable = entry.getValue();
         Object value = isolatable.isolate();
 
-        // TODO: Reuse the AttributeValue#coerce implementation here so we can reuse the coercion cache
+        // TODO: Reuse the AttributeValue#coerce implementation here so we can reuse its coercion cache
         // Ensure that the resulting value is of the requested type after coercion, to satisfy the promise of the method signature
         if (!isAppropriateType(value, key)) {
             value = isolatable.coerce(key.getType());
@@ -209,93 +204,31 @@ public final class DefaultImmutableAttributesContainer<T> extends AbstractAttrib
     }
 
     @Override
-    public <K> @Nullable AttributeValue<K> findEntry(Attribute<K> key) {
-        AttributeValue<?> entry = hierarchy.get(key);
+    public <K> @Nullable ImmutableAttributesEntry<K> findEntry(Attribute<K> key) {
+        ImmutableAttributesEntry<?> entry = hierarchy.get(key);
         if (entry == null) {
             return null;
         }
 
         @SuppressWarnings("unchecked")
-        AttributeValue<K> typedEntry = (AttributeValue<K>) entry;
+        ImmutableAttributesEntry<K> typedEntry = (ImmutableAttributesEntry<K>) entry;
         return typedEntry;
     }
 
     @Override
-    public @Nullable AttributeValue<?> findEntry(String name) {
+    public @Nullable ImmutableAttributesEntry<?> findEntry(String name) {
         //noinspection StringEquality
         if (singleEntryName == name) {
             // The identity check is intentional here, do not replace with .equals()
-            return singleEntryValue;
+            return singleEntry;
         }
 
         return hierarchyByName.get(name);
     }
 
     @Override
-    public Isolatable<T> getIsolatable() {
-        return value;
-    }
-
-    private @Nullable String desugar() {
-        // We support desugaring for all non-primitive types supported in GradleModuleMetadataWriter.writeAttributes(), which are:
-        // - Named
-        // - Enum
-        if (Named.class.isAssignableFrom(attribute.getType())) {
-            return ((Named) get()).getName();
-        }
-        if (Enum.class.isAssignableFrom(attribute.getType())) {
-            return ((Enum<?>) get()).name();
-        }
-        return null;
-    }
-
-    @Override
-    public <S> S coerce(Attribute<S> otherAttribute) {
-        S s = Cast.uncheckedCast(coercionCache.get(otherAttribute));
-        if (s == null) {
-            s = uncachedCoerce(otherAttribute);
-            coercionCache.put(otherAttribute, s);
-        }
-        return s;
-    }
-
-    private <S> S uncachedCoerce(Attribute<S> otherAttribute) {
-        Class<S> otherAttributeType = otherAttribute.getType();
-        // If attribute types are already compatible, go with it. There are two cases covered here:
-        // 1) Both attributes are strongly typed and match, usually the case if both are sourced from the local build
-        // 2) Both attributes are desugared, usually the case if both are sourced from published metadata
-        if (otherAttributeType.isAssignableFrom(attribute.getType())) {
-            return Cast.uncheckedCast(get());
-        }
-
-        // Attempt to coerce myself into the other attribute's type
-        // - I am desugared and the other attribute is strongly typed, usually the case if I am sourced from published metadata and the other from the local build
-        S converted = value.coerce(otherAttributeType);
-        if (converted != null) {
-            return converted;
-        } else if (otherAttributeType.isAssignableFrom(String.class)) {
-            // Attempt to desugar myself
-            // - I am strongly typed and the other is desugared, usually the case if I am sourced from the local build and the other is sourced from published metadata
-            converted = Cast.uncheckedCast(desugar());
-            if (converted != null) {
-                return converted;
-            }
-        }
-        String foundType = get().getClass().getName();
-        if (foundType.equals(otherAttributeType.getName())) {
-            foundType += " with a different ClassLoader";
-        }
-        throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), otherAttributeType.getName(), foundType));
-    }
-
-    @Override
     public boolean isEmpty() {
         return false;
-    }
-
-    @Override
-    public Attribute<T> getAttribute() {
-        return attribute;
     }
 
     @Override
@@ -311,8 +244,8 @@ public final class DefaultImmutableAttributesContainer<T> extends AbstractAttrib
     @Override
     public Map<Attribute<?>, ?> asMap() {
         ImmutableMap.Builder<Attribute<?>, Object> builder = ImmutableMap.builder();
-        for (AttributeValue<?> entry : hierarchy.values()) {
-            builder.put(entry.getAttribute(), entry.get());
+        for (ImmutableAttributesEntry<?> entry : hierarchy.values()) {
+            builder.put(entry.getKey(), entry.get());
         }
         return builder.build();
     }
@@ -320,21 +253,21 @@ public final class DefaultImmutableAttributesContainer<T> extends AbstractAttrib
     @Override
     public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntryProvider() {
         ImmutableMap.Builder<Attribute<?>, AttributeEntry<?>> builder = ImmutableMap.builder();
-        for (AttributeValue<?> entry : hierarchy.values()) {
-            builder.put(entry.getAttribute(), asEntry(entry));
+        for (ImmutableAttributesEntry<?> entry : hierarchy.values()) {
+            builder.put(entry.getKey(), asImmutableEntry(entry));
         }
         return Providers.of(builder.build());
     }
 
-    private static <E> AttributeEntry<E> asEntry(AttributeValue<E> entry) {
-        return new AttributeEntry<>(entry.getAttribute(), entry.getIsolatable());
+    private static <E> AttributeEntry<E> asImmutableEntry(ImmutableAttributesEntry<E> entry) {
+        return new AttributeEntry<>(entry.getKey(), entry.getValue());
     }
 
     @Override
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
-        for (AttributeValue<?> entry : hierarchy.values()) {
-            sorted.put(entry.getAttribute(), entry.get());
+        for (ImmutableAttributesEntry<?> entry : hierarchy.values()) {
+            sorted.put(entry.getKey(), entry.get());
         }
         return sorted.toString();
     }

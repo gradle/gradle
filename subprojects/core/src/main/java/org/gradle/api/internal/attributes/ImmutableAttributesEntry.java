@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,41 +22,38 @@ import org.gradle.internal.isolation.Isolatable;
 import java.util.Objects;
 
 /**
- * Represents an attribute entry, as found in an attribute container.
+ * An entry of an {@link ImmutableAttributes} container.
  * <p>
  * This type contains both the attribute key and the value corresponding to that key.
- * <p>
- * TODO: This type should be merged with {@link AttributeEntry}.
  *
  * @param <T> the type of the attribute
  */
-public interface AttributeValue<T> {
+public interface ImmutableAttributesEntry<T> {
 
     /**
-     * Get the value of this attribute entry.
+     * Get the entry's key.
+     */
+    Attribute<T> getKey();
+
+    /**
+     * Get the entry's value.
+     */
+    Isolatable<T> getValue();
+
+    /**
+     * Get an isolated instance of the entry's value.
      */
     default T get() {
-        return Objects.requireNonNull(getIsolatable().isolate());
+        return Objects.requireNonNull(getValue().isolate());
     }
 
     /**
-     * Get an isolatable representation of this attribute entry's value.
-     */
-    Isolatable<T> getIsolatable();
-
-    /**
-     * Coerces this entry's value to the type of the other attribute, so it can be compared
-     * to a value of that other attribute.
+     * Coerces this entry's value to the type of {@code otherAttribute}.
      *
-     * @param otherAttribute the other attribute to attempt to coerce this attribute to
+     * @param otherAttribute the other attribute to attempt to coerce this attribute to.
      *
-     * @throws IllegalArgumentException if this attribute is not compatible with the other one
+     * @throws IllegalArgumentException if this attribute is not compatible with the other one.
      */
     <S> S coerce(Attribute<S> otherAttribute);
-
-    /**
-     * Get the key of this attribute entry.
-     */
-    Attribute<T> getAttribute();
 
 }
