@@ -338,7 +338,7 @@ Enables incubating configuration-on-demand, where Gradle will attempt to configu
 +
 _Default is `false`._
 
-`org.gradle.console=(auto,plain,rich,verbose)`::
+`org.gradle.console=(auto,plain,colored,rich,verbose)`::
 Customize <<command_line_interface.adoc#sec:command_line_logging,console output>> coloring or verbosity.
 +
 _Default depends on how Gradle is invoked._

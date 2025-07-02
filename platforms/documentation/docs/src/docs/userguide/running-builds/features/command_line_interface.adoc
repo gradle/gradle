@@ -669,13 +669,15 @@ _Lifecycle_ is the default log level.
 
 You can control the use of rich output (colors and font variants) by specifying the console mode in the following ways:
 
-`-Dorg.gradle.console=(auto,plain,rich,verbose)`::
+`-Dorg.gradle.console=(auto,plain,colored,rich,verbose)`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that specifies the console mode. Different modes are described immediately below.
 
-`--console=(auto,plain,rich,verbose)`::
+`--console=(auto,plain,colored,rich,verbose)`::
 Specifies which type of console output to generate.
 +
 Set to `plain` to generate plain text only. This option disables all color and other rich output in the console output. This is the default when Gradle is _not_ attached to a terminal.
++
+Set to `colored` to generate colored output without rich status information such as progress bars.
 +
 Set to `auto` (the default) to enable color and other rich output in the console output when the build process is attached to a console or to generate plain text only when not attached to a console. _This is the default when Gradle is attached to a terminal._
 +

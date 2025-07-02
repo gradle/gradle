@@ -44,7 +44,7 @@ USAGE: gradle [option...] [task...]
 --configuration-cache-problems     Configures how the configuration cache handles problems (fail or warn). Defaults to fail.
 --configure-on-demand              Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds. [incubating]
 --no-configure-on-demand           Disables the use of configuration on demand. [incubating]
---console                          Specifies which type of console output to generate. Values are 'plain', 'auto' (default), 'rich' or 'verbose'.
+--console                          Specifies which type of console output to generate. Values are 'plain', 'colored', 'auto' (default), 'rich' or 'verbose'.
 --continue                         Continue task execution after a task failure.
 --no-continue                      Stop task execution after a task failure.
 -D, --system-prop                  Set system property of the JVM (e.g. -Dmyprop=myvalue).
