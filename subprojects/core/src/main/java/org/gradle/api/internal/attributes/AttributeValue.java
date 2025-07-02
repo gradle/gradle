@@ -17,70 +17,46 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
+import org.gradle.internal.isolation.Isolatable;
+
+import java.util.Objects;
 
 /**
- * Represents an optional attribute value, as found in an attribute container. There are 3 possible cases:
- * <ul>
- *     <li><i>present</i> is the default, and represents an attribute with an actual value</li>
- *     <li><i>missing</i> used whenever an attribute has no value.</li>
- * </ul>
- * During attribute matching, this can be used to implement various {@link org.gradle.api.attributes.AttributeMatchingStrategy strategies}.
- * @param <T> the type of the attribute
+ * Represents an attribute entry, as found in an attribute container.
+ * <p>
+ * This type contains both the attribute key and the value corresponding to that key.
+ * <p>
+ * TODO: This type should be merged with {@link AttributeEntry}.
  *
- * @since 3.3
+ * @param <T> the type of the attribute
  */
 public interface AttributeValue<T> {
-    AttributeValue<Object> MISSING = new AttributeValue<Object>() {
-        @Override
-        public boolean isPresent() {
-            return false;
-        }
-
-        @Override
-        public <S> S coerce(Attribute<S> type) {
-            throw new UnsupportedOperationException("coerce() should not be called on a missing attribute value");
-        }
-
-        @Override
-        public Object get() {
-            throw new UnsupportedOperationException("get() should not be called on a missing attribute value");
-        }
-
-        @Override
-        public Attribute<?> getAttribute() {
-            throw new UnsupportedOperationException("getAttribute() should not be called on a missing attribute value");
-        }
-    };
 
     /**
-     * Checks if this attribute value is present, defined as not {@code null} and not {@link AttributeValue#MISSING}
-     *
-     * @return {@code true} if value is present, {@code false} otherwise
+     * Get the value of this attribute entry.
      */
-    boolean isPresent();
+    default T get() {
+        return Objects.requireNonNull(getIsolatable().isolate());
+    }
 
     /**
-     * Returns the value of this attribute.
-     * <p>
-     * This should <strong>NOT</strong> be called when {@link #isPresent()} is {@code false}.
-     *
-     * @return the value of this attribute. Throws an error if called on a missing or unknown attribute value.
+     * Get an isolatable representation of this attribute entry's value.
      */
-    T get();
+    Isolatable<T> getIsolatable();
 
     /**
-     * Coerces this value to the type of the other attribute, so it can be compared
+     * Coerces this entry's value to the type of the other attribute, so it can be compared
      * to a value of that other attribute.
-     * <p>
-     * This should <strong>NOT</strong> be called when {@link #isPresent()} is {@code false}.
      *
      * @param otherAttribute the other attribute to attempt to coerce this attribute to
+     *
      * @throws IllegalArgumentException if this attribute is not compatible with the other one
      */
     <S> S coerce(Attribute<S> otherAttribute);
 
     /**
-     * Get the key corresponding to this attribute value.
+     * Get the key of this attribute entry.
      */
-    Attribute<?> getAttribute();
+    Attribute<T> getAttribute();
+
 }

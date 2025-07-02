@@ -16,11 +16,37 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
+import org.jspecify.annotations.Nullable;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
-    ImmutableAttributes EMPTY = new DefaultImmutableAttributesContainer();
+
+    ImmutableAttributes EMPTY = new EmptyImmutableAttributes();
+
+    /**
+     * Get the most recent entry in this container.
+     *
+     * @throws IllegalStateException if this container is empty.
+     */
+    AttributeValue<?> getFirst();
+
+    /**
+     * Get all entries in this container.
+     */
+    ImmutableCollection<AttributeValue<?>> getEntries();
+
+    /**
+     * Get all entries in this container, mapped by their attribute keys.
+     */
+    ImmutableMap<Attribute<?>, AttributeValue<?>> getEntriesByAttribute();
+
+    /**
+     * Get all entries in this container, mapped by their attribute key names.
+     */
+    ImmutableMap<String, AttributeValue<?>> getEntriesByName();
 
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
@@ -36,18 +62,21 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      * You should usually prefer searching by name using {@link #findEntry(String)} to avoid these sorts of issues.
      *
      * @param key the attribute to locate in this container (name <strong>and type</strong> much match)
-     * @return the value for the attribute in this container, or {@link AttributeValue#MISSING} if not present
+     *
+     * @return the value for the attribute in this container, or null if not present
      */
-    <T> AttributeValue<T> findEntry(Attribute<T> key);
+    <T> @Nullable AttributeValue<T> findEntry(Attribute<T> key);
 
     /**
      * Locates the entry for the attribute with the given name.
      *
      * @param name the name of an attribute to locate in this container
-     * @return the value for the attribute in this container, or {@link AttributeValue#MISSING} if not present
+     *
+     * @return the value for the attribute in this container, or null if not present
      */
-    AttributeValue<?> findEntry(String name);
+    @Nullable AttributeValue<?> findEntry(String name);
 
     @Override
     ImmutableSet<Attribute<?>> keySet();
+
 }

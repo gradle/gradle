@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.attributes.matching;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeValue;
@@ -92,13 +92,13 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return true;
         }
 
-        for (Attribute<?> attribute : requested.keySet()) {
-            AttributeValue<?> requestedAttributeValue = requested.findEntry(attribute);
-            AttributeValue<?> candidateAttributeValue = candidate.findEntry(attribute.getName());
+        for (AttributeValue<?> requestedEntry : requested.getEntries()) {
+            Attribute<?> attribute = requestedEntry.getAttribute();
+            AttributeValue<?> candidateEntry = candidate.findEntry(attribute.getName());
 
-            if (candidateAttributeValue.isPresent()) {
+            if (candidateEntry != null) {
                 Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
-                if (!predicate.test(typedAttribute, requestedAttributeValue, candidateAttributeValue)) {
+                if (!predicate.test(typedAttribute, requestedEntry, candidateEntry)) {
                     return false;
                 }
             }
@@ -142,17 +142,18 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
         CoercingAttributeValuePredicate matches = schema::matchValue;
 
-        ImmutableSet<Attribute<?>> attributes = requested.keySet();
+        ImmutableCollection<AttributeValue<?>> attributes = requested.getEntries();
         List<AttributeMatcher.MatchingDescription<?>> result = new ArrayList<>(attributes.size());
-        for (Attribute<?> attribute : attributes) {
-            AttributeValue<?> requestedValue = requested.findEntry(attribute);
-            AttributeValue<?> candidateValue = candidate.findEntry(attribute.getName());
-            if (candidateValue.isPresent()) {
+        for (AttributeValue<?> requestedEntry : attributes) {
+            Attribute<?> attribute = requestedEntry.getAttribute();
+            AttributeValue<?> candidateEntry = candidate.findEntry(attribute.getName());
+
+            if (candidateEntry != null) {
                 Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
-                boolean match = matches.test(typedAttribute, requestedValue, candidateValue);
-                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedValue, candidateValue, match));
+                boolean match = matches.test(typedAttribute, requestedEntry, candidateEntry);
+                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedEntry, candidateEntry, match));
             } else {
-                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedValue, candidateValue, false));
+                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedEntry, candidateEntry, false));
             }
         }
         return result;

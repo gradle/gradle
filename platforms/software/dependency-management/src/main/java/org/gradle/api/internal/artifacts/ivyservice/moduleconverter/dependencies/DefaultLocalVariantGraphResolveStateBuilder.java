@@ -308,8 +308,8 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ImmutableList<LocalOriginDependencyMetadata> dependencies,
         ImmutableAttributes attributes
     ) {
-        AttributeValue<Category> attributeValue = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
-        if (!attributeValue.isPresent() || !attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
+        AttributeValue<Category> entry = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
+        if (entry == null || !entry.get().getName().equals(Category.ENFORCED_PLATFORM)) {
             return dependencies;
         }
 
