@@ -9,17 +9,13 @@ def instrumentedRuntimeDependencies = configurations.create("instrumentedRuntime
     canBeResolved = false
 }
 
-// This configuration is used to resolve the instrumented JAR files.
-def instrumentedRuntime = configurations.create("instrumentedRuntime") {
-    canBeConsumed = false
-    canBeResolved = true
+// This resolvable configuration is used to resolve the instrumented JAR files.
+def instrumentedRuntime = configurations.resolvable("instrumentedRuntime") {
+    // Wire the dependency declarations
+    extendsFrom(instrumentedRuntimeDependencies)
 
-    // Extend from the dependency-only configuration
-    extendsFrom instrumentedRuntimeDependencies
-
-    // These attributes must match the producer's
+    // These attributes must be compatible with the producer
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, "instrumented-jar"))
     }
 }

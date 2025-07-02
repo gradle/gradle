@@ -101,20 +101,20 @@ This configuration ensures that only the correct artifacts are exposed and preve
 [[sec:setup-consumer]]
 == Step 2: Configuring the consumer project
 
-In Gradle, it's important to separate the configuration where you declare dependencies from the one you resolve artifacts.
-This avoids ambiguity, improves maintainability, and ensures compatibility with Gradle's evolving configuration model.
+In Gradle, it's important to separate the configuration where you declare dependencies from the one where you resolve artifacts.
 
 First, the consumer project creates two configurations:
 
-* `instrumentedRuntimeDependencies` is used to declare that the consumer depends on the producer's `instrumentedJars`.
-* `instrumentedRuntime` is a resolvable configuration that extends the dependency declaration and is used by the `runWithInstrumentation` task.
+* `instrumentedRuntimeDependencies` is used to declare a dependency on the producer.
+* `instrumentedRuntime` is a resolvable configuration that resolves all the dependencies declared in `instrumentedRuntimeDependencies`, including `instrumentedJars`.
 
 ====
 include::sample[dir="snippets/how-to/share-outputs/kotlin",files="consumer/build.gradle.kts[tags=custom-config]"]
 include::sample[dir="snippets/how-to/share-outputs/groovy",files="consumer/build.gradle[tags=custom-config]"]
 ====
 
-Now, the consumer project requests the instrumented JAR by defining matching attributes.
+Now, the consumer project declares a dependency on the producer and aligns its configuration with the desired variant by defining attributes.
+When the configuration is resolved, Gradle uses these attributes to select a compatible variant published by the producer.
 
 Second, a dependency is added on the producer on `instrumentedRuntimeDependencies`:
 
@@ -174,12 +174,17 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProject
 
 If the consumer fails to resolve the artifact, check:
 
-- The attributes in the consumer match those in the producer.
+- The attributes in the consumer are compatible to those in the producer.
 - The producer project properly declares the artifact.
 - There are no conflicting configurations with different attributes.
 
 [[sec:conclusion]]
 == Summary
+
+There are two perspectives to keep in mind:
+
+1. *Inside a project*: You configure configurations, which declare how your build consumes or produces artifacts.
+2. *Outside a project*: Gradle resolves variants published by other projects, selecting the best match based on compatibility with the consuming configuration’s attributes.
 
 _Variant-aware_ sharing enables clean and flexible artifact sharing between projects.
 It avoids hardcoded task dependencies and improves build maintainability.

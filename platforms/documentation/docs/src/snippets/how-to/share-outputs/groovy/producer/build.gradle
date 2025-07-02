@@ -17,22 +17,17 @@ def instrumentedJar = tasks.register("instrumentedJar", Jar) {
 // tag::custom-config[]
 configurations {
     // Create a custom consumable configuration named 'instrumentedJars'
-    // This allows other projects to depend on the instrumented JAR variant
-    create("instrumentedJars") {
-        canBeConsumed = true
-        canBeResolved = false
-
+    // This allows the producer to supply the instrumented JAR variant to other projects
+    consumable("instrumentedJars") {
         // Assign attributes so that consuming projects can match on these
         attributes {
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-            // The defining attribute
+            // The unique attribute allows targeted selection
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, "instrumented-jar"))
         }
     }
 }
 
-// Publish the custom JAR artifact to the 'instrumentedJars' configuration
+// Add the custom JAR artifact to the 'instrumentedJars' configuration
 artifacts {
     add("instrumentedJars", instrumentedJar)
 }
