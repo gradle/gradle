@@ -29,7 +29,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 
 /**
@@ -41,7 +40,7 @@ import java.util.TreeMap;
  */
 public final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes {
 
-    private final ImmutableAttributesEntry<?> first;
+    private final ImmutableAttributesEntry<?> head;
     private final ImmutableMap<Attribute<?>, ImmutableAttributesEntry<?>> hierarchy;
     private final ImmutableMap<String, ImmutableAttributesEntry<?>> hierarchyByName;
     private final int hashCode;
@@ -50,20 +49,24 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     private final @Nullable String singleEntryName;
     private final @Nullable ImmutableAttributesEntry<?> singleEntry;
 
-    <T> DefaultImmutableAttributesContainer(ImmutableAttributes parent, ImmutableAttributesEntry<T> first) {
-        this.first = first;
+    <T> DefaultImmutableAttributesContainer(ImmutableAttributes parent, ImmutableAttributesEntry<T> head) {
+        this.head = head;
 
-        this.hierarchy = ImmutableMap.<Attribute<?>, ImmutableAttributesEntry<?>>builderWithExpectedSize(parent.getEntriesByAttribute().size() + 1)
-            .putAll(parent.getEntriesByAttribute())
-            .put(first.getKey(), first)
-            .buildKeepingLast();
+        ImmutableMap.Builder<Attribute<?>, ImmutableAttributesEntry<?>> hierarchyBuilder =  ImmutableMap.builderWithExpectedSize(parent.getEntries().size() + 1);
+        ImmutableMap.Builder<String, ImmutableAttributesEntry<?>> hierarchyByNameBuilder = ImmutableMap.builderWithExpectedSize(parent.getEntries().size() + 1);
+        for (ImmutableAttributesEntry<?> entry : parent.getEntries()) {
+            hierarchyBuilder.put(entry.getKey(), entry);
+            hierarchyByNameBuilder.put(entry.getKey().getName(), entry);
+        }
+        hierarchyBuilder.put(head.getKey(), head);
+        hierarchyByNameBuilder.put(head.getKey().getName(), head);
 
-        this.hierarchyByName = ImmutableMap.<String, ImmutableAttributesEntry<?>>builderWithExpectedSize(parent.getEntriesByName().size() + 1)
-            .putAll(parent.getEntriesByName())
-            .put(first.getKey().getName(), first)
-            .buildKeepingLast();
+        this.hierarchy = hierarchyBuilder.buildKeepingLast();
+        this.hierarchyByName = hierarchyByNameBuilder.buildKeepingLast();
 
-        this.hashCode = computeHashCode(parent, first);
+        // Computing the hash code based on the parent hash code and the new entry is faster
+        // than computing it from the hierarchy map.
+        this.hashCode = computeHashCode(parent, head);
 
         if (hierarchyByName.size() == 1) {
             singleEntry = hierarchyByName.values().iterator().next();
@@ -95,8 +98,9 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
             return false;
         }
 
-        for (Map.Entry<Attribute<?>, ImmutableAttributesEntry<?>> entry : hierarchy.entrySet()) {
-            if (!Objects.requireNonNull(entry.getValue().get()).equals(that.findEntry(entry.getKey()).get())) {
+        for (ImmutableAttributesEntry<?> entry : getEntries()) {
+            ImmutableAttributesEntry<?> otherEntry = that.findEntry(entry.getKey());
+            if (otherEntry == null || !entry.get().equals(otherEntry.get())) {
                 return false;
             }
         }
@@ -109,23 +113,13 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     }
 
     @Override
-    public ImmutableAttributesEntry<?> getFirst() {
-        return first;
+    public ImmutableAttributesEntry<?> getHead() {
+        return head;
     }
 
     @Override
     public ImmutableCollection<ImmutableAttributesEntry<?>> getEntries() {
         return hierarchy.values();
-    }
-
-    @Override
-    public ImmutableMap<Attribute<?>, ImmutableAttributesEntry<?>> getEntriesByAttribute() {
-        return hierarchy;
-    }
-
-    @Override
-    public ImmutableMap<String, ImmutableAttributesEntry<?>> getEntriesByName() {
-        return hierarchyByName;
     }
 
     @Override
@@ -233,7 +227,7 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return hierarchy.containsKey(key);
+        return getAttribute(key) != null;
     }
 
     @Override
@@ -244,7 +238,7 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     @Override
     public Map<Attribute<?>, ?> asMap() {
         ImmutableMap.Builder<Attribute<?>, Object> builder = ImmutableMap.builder();
-        for (ImmutableAttributesEntry<?> entry : hierarchy.values()) {
+        for (ImmutableAttributesEntry<?> entry : getEntries()) {
             builder.put(entry.getKey(), entry.get());
         }
         return builder.build();
@@ -253,20 +247,20 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     @Override
     public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntryProvider() {
         ImmutableMap.Builder<Attribute<?>, AttributeEntry<?>> builder = ImmutableMap.builder();
-        for (ImmutableAttributesEntry<?> entry : hierarchy.values()) {
-            builder.put(entry.getKey(), asImmutableEntry(entry));
+        for (ImmutableAttributesEntry<?> entry : getEntries()) {
+            builder.put(entry.getKey(), asEntry(entry));
         }
         return Providers.of(builder.build());
     }
 
-    private static <E> AttributeEntry<E> asImmutableEntry(ImmutableAttributesEntry<E> entry) {
+    private static <E> AttributeEntry<E> asEntry(ImmutableAttributesEntry<E> entry) {
         return new AttributeEntry<>(entry.getKey(), entry.getValue());
     }
 
     @Override
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
-        for (ImmutableAttributesEntry<?> entry : hierarchy.values()) {
+        for (ImmutableAttributesEntry<?> entry : getEntries()) {
             sorted.put(entry.getKey(), entry.get());
         }
         return sorted.toString();

@@ -126,10 +126,10 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         ImmutableAttributesEntry<?> entry
     ) {
         for (ImmutableAttributes child : nodeChildren) {
-            ImmutableAttributesEntry<?> firstEntry = child.getFirst();
+            ImmutableAttributesEntry<?> headEntry = child.getHead();
 
-            if (firstEntry.getKey().equals(entry.getKey()) &&
-                firstEntry.getValue().equals(entry.getValue())
+            if (headEntry.getKey().equals(entry.getKey()) &&
+                headEntry.getValue().equals(entry.getValue())
             ) {
                 return child;
             }

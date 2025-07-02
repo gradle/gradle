@@ -1022,7 +1022,7 @@ class ResolveTestFixture {
      */
     void addDefaultVariantDerivationStrategy() {
         buildFile << """
-            allprojects { dependencies.components.variantDerivationStrategy = objects.newInstance(JavaEcosystemVariantDerivationStrategy) }
+            allprojects { dependencies.components.variantDerivationStrategy = objects.newInstance(org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy) }
         """
     }
 
