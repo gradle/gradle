@@ -251,6 +251,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
             registration.add(PublishArtifactNotationParserFactory.class);
+            registration.add(JavaEcosystemVariantDerivationStrategy.class);
         }
 
         @Provides
@@ -510,11 +511,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             AttributesFactory attributesFactory,
             IsolatableFactory isolatableFactory,
             ComponentMetadataRuleExecutor componentMetadataRuleExecutor,
-            PlatformSupport platformSupport
+            PlatformSupport platformSupport,
+            JavaEcosystemVariantDerivationStrategy javaEcosystemVariantDerivationStrategy
         ) {
             DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport);
             if (domainObjectContext.isScript()) {
-                componentMetadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
+                componentMetadataHandler.setVariantDerivationStrategy(javaEcosystemVariantDerivationStrategy);
             }
             return componentMetadataHandler;
         }
