@@ -54,7 +54,7 @@ class UsageCompatibilityHandler {
             String val = ((CoercingStringValueSnapshot) value).getValue();
             String replacementUsage = getReplacementUsage(val);
             if (replacementUsage == null) {
-                return factory.doConcatIsolatable(node, key, value);
+                return factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
             }
 
             assert key.getType() == String.class : "Attribute type must be a String";
@@ -62,13 +62,13 @@ class UsageCompatibilityHandler {
             Attribute<String> typedAttribute = (Attribute<String>) key;
 
             Isolatable<String> coercingStringValueSnapshot = new CoercingStringValueSnapshot(replacementUsage, instantiator);
-            ImmutableAttributes usageNode = factory.doConcatIsolatable(node, typedAttribute, coercingStringValueSnapshot);
-            return factory.doConcatIsolatable(usageNode, Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(LibraryElements.JAR, instantiator));
+            ImmutableAttributes usageNode = factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(typedAttribute, coercingStringValueSnapshot));
+            return factory.doConcatEntry(usageNode, new DefaultImmutableAttributesEntry<>(Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(LibraryElements.JAR, instantiator)));
         } else {
             String val = Objects.requireNonNull(value.isolate()).toString();
             String replacementUsage = getReplacementUsage(val);
             if (replacementUsage == null) {
-                return factory.doConcatIsolatable(node, key, value);
+                return factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
             }
 
             assert key.getType() == Usage.class : "Attribute type must be Usage";
@@ -76,8 +76,8 @@ class UsageCompatibilityHandler {
             Attribute<Usage> typedAttribute = (Attribute<Usage>) key;
 
             Isolatable<Usage> isolate = isolatableFactory.isolate(instantiator.named(Usage.class, replacementUsage));
-            ImmutableAttributes usageNode = factory.doConcatIsolatable(node, typedAttribute, isolate);
-            return factory.doConcatIsolatable(usageNode, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, LibraryElements.JAR)));
+            ImmutableAttributes usageNode = factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(typedAttribute, isolate));
+            return factory.doConcatEntry(usageNode, new DefaultImmutableAttributesEntry<>(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, LibraryElements.JAR))));
         }
     }
 

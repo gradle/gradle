@@ -31,22 +31,22 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      *
      * @throws IllegalStateException if this container is empty.
      */
-    AttributeValue<?> getFirst();
+    ImmutableAttributesEntry<?> getFirst();
 
     /**
      * Get all entries in this container.
      */
-    ImmutableCollection<AttributeValue<?>> getEntries();
+    ImmutableCollection<ImmutableAttributesEntry<?>> getEntries();
 
     /**
      * Get all entries in this container, mapped by their attribute keys.
      */
-    ImmutableMap<Attribute<?>, AttributeValue<?>> getEntriesByAttribute();
+    ImmutableMap<Attribute<?>, ImmutableAttributesEntry<?>> getEntriesByAttribute();
 
     /**
      * Get all entries in this container, mapped by their attribute key names.
      */
-    ImmutableMap<String, AttributeValue<?>> getEntriesByName();
+    ImmutableMap<String, ImmutableAttributesEntry<?>> getEntriesByName();
 
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
@@ -65,7 +65,7 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      *
      * @return the value for the attribute in this container, or null if not present
      */
-    <T> @Nullable AttributeValue<T> findEntry(Attribute<T> key);
+    <T> @Nullable ImmutableAttributesEntry<T> findEntry(Attribute<T> key);
 
     /**
      * Locates the entry for the attribute with the given name.
@@ -74,7 +74,8 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      *
      * @return the value for the attribute in this container, or null if not present
      */
-    @Nullable AttributeValue<?> findEntry(String name);
+    @Nullable
+    ImmutableAttributesEntry<?> findEntry(String name);
 
     @Override
     ImmutableSet<Attribute<?>> keySet();

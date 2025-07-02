@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 
 import java.util.Collection;
 
@@ -41,7 +41,7 @@ public interface AttributeMatchingExplanationBuilder {
 
     }
 
-    default <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
+    default <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, ImmutableAttributesEntry<?> candidateEntry) {
 
     }
 
