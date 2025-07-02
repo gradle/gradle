@@ -20,6 +20,7 @@ import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
+import org.gradle.util.internal.TextUtil
 
 /**
  * Integration tests for the `:projects` task, which reports the project structure and software types.
@@ -423,7 +424,7 @@ Root project 'example'
         run ":projects"
 
         then:
-        outputContains """
+        TextUtil.normaliseFileSeparators(output).contains("""
 Projects:
 
 ------------------------------------------------------------
@@ -448,7 +449,7 @@ project ':transport' - core/transport
 Included builds:
 
 \\--- Included build ':server'
-"""
+""")
     }
 
     def "renders help message"() {
