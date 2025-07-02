@@ -43,4 +43,8 @@ public class AttributeEntry<T> {
         return value;
     }
 
+    @Override
+    public String toString() {
+        return key + "=" + value;
+    }
 }
