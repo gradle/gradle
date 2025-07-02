@@ -33,7 +33,7 @@ public enum ConsoleOutput {
      * @since 9.1.0
      */
     @Incubating
-    PlainWithColor,
+    Colored,
 
     /**
      * Enable color and rich output when the current process is attached to a console, disable when not attached to a console.

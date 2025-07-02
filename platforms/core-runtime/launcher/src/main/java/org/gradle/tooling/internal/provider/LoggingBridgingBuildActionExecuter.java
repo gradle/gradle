@@ -70,7 +70,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<C
             loggingManager.attachConsole(stdOut, notNull(stdErr), ConsoleOutput.Rich);
         } else if (stdOut != null || stdErr != null) {
             loggingManager.attachConsole(notNull(stdOut), notNull(stdErr), ConsoleOutput.Plain);
-        } // TODO: any usage for PlainWithColor here?
+        } // TODO: any usage for ConsoleOutput.Colored here?
     }
 
     private OutputStream notNull(OutputStream outputStream) {

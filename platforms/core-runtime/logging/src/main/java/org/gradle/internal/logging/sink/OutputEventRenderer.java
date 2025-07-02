@@ -290,7 +290,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             getInputStandardOutputRenderer(outputListener, true)));
     }
 
-    public void addColorConsoleWithErrorOutputOnStdout(Console stdout) {
+    public void addColoredConsoleWithErrorOutputOnStdout(Console stdout) {
         OutputEventListener consoleListener = new FlushConsoleListener(stdout, new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea()));
         OutputEventListener consoleChain = throttled(
             flushing(
@@ -302,7 +302,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         addConsoleChain(consoleChain);
     }
 
-    public void addColorConsole(Console stdout, Console stderr) {
+    public void addColoredConsole(Console stdout, Console stderr) {
         OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
         OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
         OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);

@@ -43,8 +43,8 @@ public class ConsoleConfigureAction {
             configureRichConsole(renderer, consoleMetadata, stdout, stderr, true);
         } else if (consoleOutput == ConsoleOutput.Plain) {
             configurePlainConsole(renderer, consoleMetadata, stdout, stderr);
-        } else if (consoleOutput == ConsoleOutput.PlainWithColor) {
-            configurePlainWithColorConsole(renderer, consoleMetadata, stdout, stderr);
+        } else if (consoleOutput == ConsoleOutput.Colored) {
+            configureColoredConsole(renderer, consoleMetadata, stdout, stderr);
         }
     }
 
@@ -86,18 +86,18 @@ public class ConsoleConfigureAction {
         }
     }
 
-    private static void configurePlainWithColorConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+    private static void configureColoredConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
         if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
             Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
-            renderer.addColorConsoleWithErrorOutputOnStdout(console);
+            renderer.addColoredConsoleWithErrorOutputOnStdout(console);
         } else {
             // Write colored content to both stdout and stderr
             Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
             Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
-            renderer.addColorConsole(stdoutConsole, stderrConsole);
+            renderer.addColoredConsole(stdoutConsole, stderrConsole);
         }
     }
 
