@@ -47,7 +47,7 @@ import java.util.Collections;
 import java.util.List;
 
 class DefaultVersionedComponentChooser implements VersionedComponentChooser {
-    private final ComponentSelectionRulesProcessor rulesProcessor = new ComponentSelectionRulesProcessor();
+
     private final VersionComparator versionComparator;
     private final AttributeSchemaServices attributeSchemaServices;
     private final ComponentSelectionRulesInternal componentSelectionRules;
@@ -227,9 +227,9 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     @Nullable
-    private RejectedByRuleVersion isRejectedByRule(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
+    private static RejectedByRuleVersion isRejectedByRule(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier, metadataProvider);
-        rulesProcessor.apply(selection, rules, metadataProvider);
+        ComponentSelectionRulesProcessor.apply(selection, rules, metadataProvider);
         if (selection.isRejected()) {
             return new RejectedByRuleVersion(candidateIdentifier, selection.getRejectionReason());
         }
@@ -273,4 +273,5 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             found = false;
         }
     }
+
 }

@@ -49,7 +49,7 @@ public class RedirectingGradleMetadataModuleMetadataSource implements MetadataSo
     @Override
     public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         MutableModuleComponentResolveMetadata metadata = delegate.create(repositoryName, componentResolvers, moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);
-        if (result.shouldUseGradleMetatada()) {
+        if (result.shouldUseGradleMetadata()) {
             MutableModuleComponentResolveMetadata resolveMetadata = gradleModuleMetadataSource.create(repositoryName, componentResolvers, moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);
             if (resolveMetadata != null) {
                 return resolveMetadata;
