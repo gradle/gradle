@@ -23,7 +23,6 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,13 +66,7 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     protected String createHeader(ProjectDetails project) {
-        String header = StringUtils.capitalize(project.getDisplayName());
-
-        String description = project.getDescription();
-        if (GUtil.isTrue(description)) {
-            header = header + " - " + description;
-        }
-        return header;
+        return StringUtils.capitalize(project.getDisplayName());
     }
 
     @Override
