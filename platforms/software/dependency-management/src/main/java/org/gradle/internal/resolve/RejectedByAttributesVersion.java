@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -70,8 +71,8 @@ public class RejectedByAttributesVersion extends RejectedVersion {
         return getId().hashCode();
     }
 
-    private static String prettify(AttributeValue<?> value) {
-        if (value.isPresent()) {
+    private static String prettify(@Nullable AttributeValue<?> value) {
+        if (value != null) {
             return "'" + value.get() + "'";
         } else {
             return "not found";

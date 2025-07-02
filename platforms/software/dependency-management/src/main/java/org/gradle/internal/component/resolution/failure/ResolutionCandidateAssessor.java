@@ -115,19 +115,23 @@ public final class ResolutionCandidateAssessor {
     ) {
         if (alreadyAssessed.add(attribute.getName())) {
             String attributeName = attribute.getName();
-            AttributeValue<?> consumerValue = requestedAttributes.findEntry(attributeName);
-            AttributeValue<?> producerValue = candidateAttributes.findEntry(attributeName);
+            AttributeValue<?> consumerEntry = requestedAttributes.findEntry(attributeName);
+            AttributeValue<?> producerEntry = candidateAttributes.findEntry(attributeName);
 
-            if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatchingValue(attribute, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+            if (consumerEntry != null && producerEntry != null) {
+                T coercedProducer = producerEntry.coerce(attribute);
+                T coercedConsumer = consumerEntry.coerce(attribute);
+                AssessedAttribute<T> assessedAttribute = new AssessedAttribute<>(attribute, coercedConsumer, coercedProducer);
+
+                if (attributeMatcher.isMatchingValue(attribute, coercedProducer, coercedConsumer)) {
+                    compatible.add(assessedAttribute);
                 } else {
-                    incompatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+                    incompatible.add(assessedAttribute);
                 }
-            } else if (consumerValue.isPresent()) {
-                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), null));
-            } else if (producerValue.isPresent()) {
-                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerValue.get())));
+            } else if (consumerEntry != null) {
+                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerEntry.get()), null));
+            } else if (producerEntry != null) {
+                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerEntry.get())));
             }
         }
     }
