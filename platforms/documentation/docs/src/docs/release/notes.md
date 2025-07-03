@@ -139,6 +139,28 @@ This required manually updating the source set to include the new generated sour
 In this release, the generated sources directory is automatically tracked and updates the source set accordingly.
 A task dependency is also created between the source generation task and the source set, ensuring that tasks that consume the source set as an input will automatically create a task dependency on the source generation task.
 
+#### Specify the Repository in MavenPublication.distributionManagement
+
+For a Maven publication, it is now possible to specify the repository used for distribution in the published POM file.
+
+For example, to specify the GitHub Packages repository in the POM file, use this code: 
+```kotlin
+plugins {
+  id("maven-publish")
+}
+
+publications.withType<MavenPublication>().configureEach {
+  pom {
+    distributionManagement {
+      repository {
+        id = "github"
+        name = "GitHub OWNER Apache Maven Packages"
+        url = "https://maven.pkg.github.com/OWNER/REPOSITORY"
+      }
+    }
+  }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
