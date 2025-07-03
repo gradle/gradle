@@ -24,9 +24,14 @@ class TestProjectGeneratorTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
+    def config = new TestProjectGeneratorConfigurationBuilder("testProject")
+        .withSourceFiles(1)
+        .withSubProjects(10)
+        .withProjectDepth(5)
+        .create()
+
     def "generates project hierarchy with correct depth"() {
         given:
-        def config = JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_HIERARCHY.config
         def generator = new TestProjectGenerator(config)
         def outputDir = temporaryFolder.createDir("output")
 
@@ -51,7 +56,6 @@ class TestProjectGeneratorTest extends Specification {
 
     def "generates correct number of subprojects"() {
         given:
-        def config = JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_HIERARCHY.config
         def generator = new TestProjectGenerator(config)
         def outputDir = temporaryFolder.createDir("output")
 
@@ -66,7 +70,6 @@ class TestProjectGeneratorTest extends Specification {
 
     def "generates correct number of source files per project"() {
         given:
-        def config = JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_HIERARCHY.config
         def generator = new TestProjectGenerator(config)
         def outputDir = temporaryFolder.createDir("output")
 
@@ -86,7 +89,6 @@ class TestProjectGeneratorTest extends Specification {
 
     def "generates expected gradle files"() {
         given:
-        def config = JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_HIERARCHY.config
         def generator = new TestProjectGenerator(config)
         def outputDir = temporaryFolder.createDir("output")
 
@@ -99,7 +101,7 @@ class TestProjectGeneratorTest extends Specification {
         new File(rootDir, config.dsl.fileNameFor('settings')).exists()
         new File(rootDir, "gradle.properties").exists()
 
-        def subproject = new File(rootDir, "project10")
+        def subproject = new File(rootDir, "project4")
         new File(subproject, config.dsl.fileNameFor('build')).exists()
     }
 

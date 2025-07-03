@@ -33,7 +33,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
@@ -440,9 +440,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def "build other projects"() {
         given:
-        def commonProject = TestUtil.createChildProject(project, "common")
-        def middleProject = TestUtil.createChildProject(project, "middle")
-        def appProject = TestUtil.createChildProject(project, "app")
+        def commonProject = ProjectBuilderTestUtil.createChildProject(project, "common")
+        def middleProject = ProjectBuilderTestUtil.createChildProject(project, "middle")
+        def appProject = ProjectBuilderTestUtil.createChildProject(project, "app")
 
         when:
         project.pluginManager.apply(JavaPlugin)
@@ -472,9 +472,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def "build other projects with cyclic dependencies"() {
         given:
-        def commonProject = TestUtil.createChildProject(project, "common")
-        def middleProject = TestUtil.createChildProject(project, "middle")
-        def appProject = TestUtil.createChildProject(project, "app")
+        def commonProject = ProjectBuilderTestUtil.createChildProject(project, "common")
+        def middleProject = ProjectBuilderTestUtil.createChildProject(project, "middle")
+        def appProject = ProjectBuilderTestUtil.createChildProject(project, "app")
 
         when:
         project.pluginManager.apply(JavaPlugin)

@@ -48,7 +48,6 @@ import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
@@ -61,7 +60,6 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
 
     def "can apply plugin by id"() {
         given:
-        def project = TestUtil.createRootProject(null)
         project.apply plugin: 'native-component-model'
 
         expect:

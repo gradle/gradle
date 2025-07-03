@@ -20,13 +20,14 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.TestUtil
 
 class IdeaModuleTest extends AbstractProjectBuilderSpec {
     private ProjectInternal moduleProject
 
     def setup() {
-        moduleProject = TestUtil.createChildProject(project, "child", new File("."))
+        moduleProject = ProjectBuilderTestUtil.createChildProject(project, "child", new File("."))
     }
 
     def "language level is null for non java projects"() {

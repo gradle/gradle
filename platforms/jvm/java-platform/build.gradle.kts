@@ -37,14 +37,14 @@ dependencies {
 
     runtimeOnly(libs.groovy)
 
-    integTestImplementation(testFixtures(projects.dependencyManagement))
-    integTestImplementation(testFixtures(projects.resourcesHttp))
-
     testImplementation(projects.languageJava) {
         because("need to access JavaCompile task")
     }
-
     testImplementation(testFixtures(projects.core))
+
+    integTestImplementation(testFixtures(projects.dependencyManagement))
+    integTestImplementation(testFixtures(projects.resourcesHttp))
+    integTestImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

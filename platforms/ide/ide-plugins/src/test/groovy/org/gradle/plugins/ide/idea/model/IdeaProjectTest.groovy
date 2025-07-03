@@ -21,15 +21,15 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 
 class IdeaProjectTest extends AbstractProjectBuilderSpec {
     private ProjectInternal childProject
     private ProjectInternal anotherChildProject
 
     def setup() {
-        childProject = TestUtil.createChildProject(project, "child", new File("."))
-        anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
+        childProject = ProjectBuilderTestUtil.createChildProject(project, "child", new File("."))
+        anotherChildProject = ProjectBuilderTestUtil.createChildProject(project, "child2", new File("."))
     }
 
     def "location tracks change to outputFile property"() {

@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.tooling.model.gradle.BuildInvocations
-import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared
@@ -36,7 +35,7 @@ class BuildInvocationsBuilderTest extends Specification {
     @ClassRule
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     @Shared
-    def project = TestUtil.builder(temporaryFolder).withName("root").build()
+    def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).withName("root").build()
     @Shared
     def child = ProjectBuilder.builder().withName("child").withParent(project).build()
     @Shared

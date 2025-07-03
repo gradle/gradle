@@ -44,6 +44,7 @@ dependencies {
     testImplementation(projects.internalTesting)
     testImplementation(projects.resources)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testFixturesApi(testFixtures(projects.languageJvm))
     testFixturesImplementation(projects.core)

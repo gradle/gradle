@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.guava)
 
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestImplementation(testFixtures(projects.enterpriseOperations))
     integTestImplementation(testFixtures(projects.languageJava))

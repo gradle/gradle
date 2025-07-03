@@ -30,7 +30,7 @@ class AbstractTaskSpec extends AbstractProjectBuilderSpec {
     }
 
     TestTask createTask(String name) {
-        def task = TestUtil.create(temporaryFolder).createTask(TestTask, project, name)
+        def task = project.tasks.create(name, TestTask)
         assertTrue(TestTask.isAssignableFrom(task.getClass()))
         return task
     }

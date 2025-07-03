@@ -44,9 +44,10 @@ dependencies {
 
     runtimeOnly(projects.testingBase)
 
-
     testImplementation(projects.pluginsJavaBase)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.unitTestFixtures))
+
     // TODO remove this
     testImplementation(projects.pluginsJavaBase)
 

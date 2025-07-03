@@ -30,6 +30,7 @@ dependencies {
     testImplementation(projects.coreApi)
     testImplementation(projects.functional)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("DefaultPersistentDirectoryCacheTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

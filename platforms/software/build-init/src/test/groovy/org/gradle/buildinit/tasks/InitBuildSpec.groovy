@@ -18,6 +18,7 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.userinput.UserQuestions
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.BuildConverter
@@ -30,7 +31,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -57,7 +58,8 @@ class InitBuildSpec extends Specification {
 
     def setup() {
         // Don't store userHome in the default location (in the project dir), because this will cause the non-empty project dir detection to fail
-        init = TestUtil.create(testDir.testDirectory.file("project"), testDir.testDirectory.file("userHome")).task(InitBuild)
+        ProjectInternal project = ProjectBuilderTestUtil.createRootProject(testDir.testDirectory.file("project"), testDir.testDirectory.file("userHome"))
+        init = project.tasks.create("name", InitBuild)
         projectLayoutRegistry = Mock()
         defaultGenerator = Mock()
         buildConverter = Mock()

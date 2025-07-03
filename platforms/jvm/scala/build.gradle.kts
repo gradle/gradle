@@ -60,6 +60,7 @@ dependencies {
     testImplementation(testFixtures(projects.pluginsJava))
     testImplementation(testFixtures(projects.languageJvm))
     testImplementation(testFixtures(projects.languageJava))
+    testImplementation(testFixtures(projects.unitTestFixtures))
 
     integTestImplementation(projects.jvmServices)
 

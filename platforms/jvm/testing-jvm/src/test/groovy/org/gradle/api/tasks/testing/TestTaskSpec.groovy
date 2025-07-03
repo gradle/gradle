@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class TestTaskSpec extends AbstractProjectBuilderSpec {
     def testExecuter = Mock(TestExecuter)
@@ -34,7 +33,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
     private Test task
 
     def setup() {
-        task = TestUtil.create(temporaryFolder).task(Test)
+        task = project.tasks.create("name", Test)
         task.testExecuter = testExecuter
         task.binaryResultsDirectory.set(task.project.file('build/test-results'))
         task.reports.junitXml.outputLocation.set(task.project.file('build/test-results'))

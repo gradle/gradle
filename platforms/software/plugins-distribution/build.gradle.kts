@@ -41,6 +41,8 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
 
+    integTestImplementation(testFixtures(projects.unitTestFixtures))
+
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }

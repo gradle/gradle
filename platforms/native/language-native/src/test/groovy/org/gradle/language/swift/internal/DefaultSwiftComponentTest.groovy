@@ -22,7 +22,7 @@ import org.gradle.language.ComponentDependencies
 import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.ProjectBuilderTestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -33,7 +33,7 @@ import javax.inject.Inject
 class DefaultSwiftComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def project = ProjectBuilderTestUtil.createRootProject(tmpDir.testDirectory)
     DefaultSwiftComponent component
 
     def setup() {

@@ -82,7 +82,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
-    
+
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
@@ -92,26 +92,33 @@ dependencies {
     implementation(libs.httpcore)
 
     testImplementation(projects.buildCachePackaging)
-    testImplementation(projects.softwareDiagnostics)
-
     testImplementation(projects.processServices)
-    testImplementation(libs.asmUtil)
-    testImplementation(libs.commonsHttpclient)
-    testImplementation(libs.groovyXml)
-    testImplementation(libs.jsoup)
-
-    testImplementation(testFixtures(projects.serialization))
+    testImplementation(projects.softwareDiagnostics)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.resourcesHttp))
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.toolingApi))
+    testImplementation(testFixtures(projects.unitTestFixtures))
     testImplementation(testFixtures(projects.versionControl))
+    testImplementation(libs.asmUtil)
+    testImplementation(libs.commonsHttpclient)
+    testImplementation(libs.groovyXml)
+    testImplementation(libs.jsoup)
+
+    testRuntimeOnly(projects.distributionsCore) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
 
     integTestImplementation(projects.buildOption)
+    integTestImplementation(projects.launcher) {
+        because("Daemon fixtures need DaemonRegistry")
+    }
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
@@ -121,6 +128,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.signing))
     integTestImplementation(testFixtures(projects.modelReflect))
+    integTestImplementation(testFixtures(projects.unitTestFixtures))
 
     testFixturesApi(projects.baseServices) {
         because("Test fixtures export the Action class")
@@ -130,35 +138,31 @@ dependencies {
     }
 
     testFixturesApi(libs.jetty)
+    testFixturesApi(libs.testcontainersSpock) {
+        because("API because of Groovy compiler bug leaking internals")
+    }
+
     testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.jvmServices) {
+        because("Groovy compiler bug leaks internals")
+    }
+    testFixturesImplementation(projects.messaging)
+    testFixturesImplementation(projects.unitTestFixtures)
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.resourcesHttp))
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.messaging)
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(libs.inject)
+    testFixturesImplementation(libs.bouncycastlePgp)
     testFixturesImplementation(libs.groovyJson)
     testFixturesImplementation(libs.guava) {
         because("Groovy compiler reflects on private field on TextUtil")
     }
-    testFixturesImplementation(libs.bouncycastlePgp)
-    testFixturesApi(libs.testcontainersSpock) {
-        because("API because of Groovy compiler bug leaking internals")
-    }
-    testFixturesImplementation(projects.jvmServices) {
-        because("Groovy compiler bug leaks internals")
-    }
+    testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.jettyWebApp) {
         because("Groovy compiler bug leaks internals")
     }
+    testFixturesImplementation(libs.slf4jApi)
 
-    testRuntimeOnly(projects.distributionsCore) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
-    }
-    integTestImplementation(projects.launcher) {
-        because("Daemon fixtures need DaemonRegistry")
-    }
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Need access to java platforms")
     }
