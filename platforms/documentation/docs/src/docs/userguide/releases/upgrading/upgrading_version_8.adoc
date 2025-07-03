@@ -2045,7 +2045,7 @@ buildCache {
 }
 ----
 
-Add a file like this in `~/.gradle/init.d`:
+Add a file like this in `~/.gradle/init.d/cache.init.gradle.kts`:
 
 [source,kotlin]
 ----
