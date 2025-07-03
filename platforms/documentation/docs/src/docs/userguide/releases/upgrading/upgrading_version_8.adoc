@@ -14,9 +14,9 @@
 
 [[upgrading_version_8]]
 
-= Upgrading your build from Gradle 8.x to 8.14
+= Upgrading your build from Gradle 8.x to 8.14.2
 
-This chapter provides the information you need to migrate your Gradle 8.x builds to Gradle 8.14.
+This chapter provides the information you need to migrate your Gradle 8.x builds to Gradle 8.14.2.
 For migrating from Gradle 4.x, 5.x, 6.x, or 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
 
 We recommend the following steps for all users:

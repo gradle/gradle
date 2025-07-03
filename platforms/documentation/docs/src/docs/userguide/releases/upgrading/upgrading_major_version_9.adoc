@@ -14,7 +14,7 @@
 
 [[upgrading_major_version_9]]
 
-= Upgrading your build from Gradle 8.14 to 9.0.0
+= Upgrading your build from Gradle 8.14.2 to 9.0.0
 
 This chapter provides the information you need to migrate your Gradle 8.14.2 builds to the major Gradle 9.0.0.
 For migrating from Gradle 4.x, 5.x, 6.x, 7.x, or 8.x, see the <<upgrading_version_8.adoc#upgrading_version_8, older migration guide>> first.
@@ -39,7 +39,7 @@ Alternatively, you can run `gradle help --warning-mode=all` to see the deprecati
 [[jvm-17]]
 === Java Virtual Machine (JVM) 17 or higher is required
 
-Gradle 9 requires a Java Virtual Machine (JVM) version 17 or higher to run the Gradle Daemon.
+Gradle 9.0.0 requires a Java Virtual Machine (JVM) version 17 or higher to run the Gradle Daemon.
 This is a breaking change from previous versions, which supported JVM 8 and higher.
 
 Your build can still target lower JVM versions using <<toolchains.adoc#toolchains, Toolchains>> for compilation, testing and other workers (Checkstyle, Javadoc, etc).
@@ -134,7 +134,7 @@ This only applies to plugins written in Groovy 3.x, from Gradle 8.x and earlier.
 
 === Plugins written with the Kotlin DSL require Gradle >= 8.11
 
-When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins will only be usable on Gradle 8.11 or newer.
+When building and publishing plugins using the Kotlin DSL on Gradle 9.x.x, those plugins will only be usable on Gradle 8.11 or newer.
 This is because Gradle 8.11 is the first release that embeds Kotlin 2.0 or higher, which is required to interpret Kotlin metadata version 2.
 
 If you want your plugin to remain compatible with older Gradle versions, you must explicitly compile it against an earlier Kotlin version (1.x).
@@ -165,31 +165,31 @@ NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x 
 
 === Plugins written with the Groovy DSL require Gradle >= 7.0
 
-Plugins authored using the Groovy DSL and built with Gradle 9.x require Gradle 7.0 or newer to run.
+Plugins authored using the Groovy DSL and built with Gradle 9.x.x require Gradle 7.0 or newer to run.
 This is because Gradle 7.0 introduced Groovy 3.0 support, and Gradle 9 embeds Groovy 4.0.
 
-Since Gradle 9 uses Groovy 4.0 internally, plugins built with it may not behave as expected when run on older Gradle versions.
+Since Gradle 9.0.0 uses Groovy 4.0 internally, plugins built with it may not behave as expected when run on older Gradle versions.
 For best compatibility, such plugins should be used with Gradle 9.0.0 or later.
 
 NOTE: Plugins written with the Groovy DSL and published using Gradle 7.x or 8.x remain compatible with Gradle 5.0 and above.
 
 === Lowest supported Kotlin Gradle Plugin version change
 
-Starting with Gradle 9, the minimum supported Kotlin Gradle Plugin version is 2.0.0.
+Starting with Gradle 9.0.0, the minimum supported Kotlin Gradle Plugin version is 2.0.0.
 Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
 
 For Gradle 8.x, the minimum supported version was 1.6.10.
 
 === Lowest supported Android Gradle Plugin version change
 
-Starting with Gradle 9, the minimum supported Android Gradle Plugin version is 8.4.0.
+Starting with Gradle 9.0.0, the minimum supported Android Gradle Plugin version is 8.4.0.
 Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
 
 For Gradle 8.x, the minimum supported version was 7.3.0.
 
 === Lowest supported Gradle Enterprise Plugin version change
 
-Starting with Gradle 9, the minimum supported Gradle Enterprise Plugin version is 3.13.1.
+Starting with Gradle 9.0.0, the minimum supported Gradle Enterprise Plugin version is 3.13.1.
 Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
 
 Consider upgrading to the latest version of the Gradle Enterprise Plugin,
@@ -208,7 +208,7 @@ As a result, `toolChains` should now be configured directly at the top-level of 
 Previously, the Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information between projects.
 However, these configurations were unresolvable and could lead to errors in the `dependencies` report.
 
-As of Gradle 9, these configurations are no longer created or used by the Scala plugins.
+As of Gradle 9.0.0, these configurations are no longer created or used by the Scala plugins.
 
 == Settings file changes
 
@@ -235,7 +235,7 @@ See <<deprecated_missing_project_directory>> for more details.
 [[validate_plugins_without_java_toolchain_90]]
 === `ValidatePlugins` task now requires Java Toolchains
 
-In Gradle 9, using the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] task without applying the <<toolchains.adoc#toolchains,Java Toolchains>> plugin will result in an error.
+In Gradle 9.0.0, using the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] task without applying the <<toolchains.adoc#toolchains,Java Toolchains>> plugin will result in an error.
 
 To fix this, explicitly apply the `jvm-toolchains` plugin:
 
@@ -300,7 +300,7 @@ tasks.withType(AbstractTestTask).configureEach {
 
 In previous versions of Gradle, class files located outside the build directory were deleted when considered stale. This was a special case for class files registered as outputs of a source set.
 
-Because this setup is uncommon and forced Gradle to eagerly realize all compile related tasks in every build, the behavior has been removed in Gradle 9.
+Because this setup is uncommon and forced Gradle to eagerly realize all compile related tasks in every build, the behavior has been removed in Gradle 9.0.0.
 
 Gradle will continue to clean up stale outputs inside the build directory as needed.
 
@@ -320,7 +320,7 @@ Gradle has supported null safety in its public API since Gradle 5.0, allowing ea
 Previously, Gradle used annotations from the now-dormant link:https://jcp.org/en/jsr/detail?id=305[JSR-305] to indicate nullability.
 While useful, JSR-305 had limitations and is no longer actively maintained.
 
-Starting with Gradle 9, the Gradle API now uses link:https://jspecify.dev/[JSpecify] annotations.
+Starting with Gradle 9.0.0, the Gradle API now uses link:https://jspecify.dev/[JSpecify] annotations.
 JSpecify provides a modern, standardized set of annotations and semantics for nullability in Java APIs, improving support in IDEs and during compilation.
 
 Because JSpecify's semantics differ slightly from JSR-305, you might see new warnings or errors in your Kotlin or Java plugin code.
@@ -341,7 +341,7 @@ For example, you can't use `Property<String?>` anymore because the `T` in `Prope
 +
 Another example is using a function from the Gradle API that takes a `Map<String, *>` parameter ; you could pass a map with nullable values before, you can't do that anymore.
 
-NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9 as they did before.
+NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9.0.0 as they did before.
 
 === Methods on public API types made final
 
@@ -364,7 +364,7 @@ By making the description a `Property<String>`, secondary variants have a user c
 
 === New subtypes of `ComponentIdentifier` introduced
 
-Gradle 9 introduces link:{javadocPath}/org/gradle/api/artifacts/component/RootComponentIdentifier.html)[`RootComponentIdentifier`], a new subtype of link:{javadocPath}/org/gradle/api/artifacts/component/ComponentIdentifier.html)[`ComponentIdentifier`].
+Gradle 9.0.0 introduces link:{javadocPath}/org/gradle/api/artifacts/component/RootComponentIdentifier.html)[`RootComponentIdentifier`], a new subtype of link:{javadocPath}/org/gradle/api/artifacts/component/ComponentIdentifier.html)[`ComponentIdentifier`].
 
 APIs which return instances of `ComponentIdentifier` may now return identifier instances of this new type.
 For example, the link:{javadocPath}/org/gradle/api/artifacts/result/ComponentResult.html)[`ComponentResult`], link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html)[`ResolvedVariantResult`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.ViewConfiguration.html)[`ArtifactView`] APIs, among others, are affected.
@@ -376,18 +376,18 @@ Build logic should remain resilient to unknown `ComponentIdentifier` subtypes re
 
 === Artifact Signing now matches OpenPGP Key Version
 
-Starting with Gradle 9.0, the `signing` plugin produces OpenPGP signatures that match the version of the key used. This change ensures compliance with link:https://www.rfc-editor.org/rfc/rfc9580.html[RFC 9580] and introduces support for OpenPGP version 6 keys.
+Starting with Gradle 9.0.0, the `signing` plugin produces OpenPGP signatures that match the version of the key used. This change ensures compliance with link:https://www.rfc-editor.org/rfc/rfc9580.html[RFC 9580] and introduces support for OpenPGP version 6 keys.
 Previously, Gradle always generated OpenPGP version 4 signatures, regardless of the key version.
 
 === Ear and War plugins build all artifacts with `assemble`
 
-Prior to Gradle 9.0, applying multiple packaging plugins (e.g., `ear`, `war`, `java`) to the same project resulted in special behavior where only one artifact type was built during `assemble`.
+Prior to Gradle 9.0.0, applying multiple packaging plugins (e.g., `ear`, `war`, `java`) to the same project resulted in special behavior where only one artifact type was built during `assemble`.
 For example:
 
 - Applying the `ear` plugin would skip building `war` and `jar` artifacts.
 - Applying the `war` plugin would skip building the `jar`.
 
-This special handling has been removed in Gradle 9.0.
+This special handling has been removed in Gradle 9.0.0.
 Now, if multiple packaging plugins are applied, all corresponding artifacts will be built when running the `assemble` task.
 For example, a project applying the `ear`, `war`, and `java plugins` will now produce `.ear`, `.war`, and `.jar` files during `assemble`.
 
@@ -399,13 +399,13 @@ For example:
 - Applying the `ear` plugin excluded `jar` and `war` artifacts from archives.
 - Applying the `war` plugin excluded the `jar` artifact from archives.
 
-This behavior has been removed in Gradle 9.0.
+This behavior has been removed in Gradle 9.0.0.
 Now, when multiple packaging plugins are applied, all related artifacts—EAR, WAR, and JAR—are included in the `archives` configuration.
 
 === Gradle no longer implicitly builds certain artifacts during `assemble`
 
 In previous versions of Gradle, the `assemble` task would implicitly build artifacts from any configuration where the `visible` flag was not set to `false`.
-This behavior has been removed in Gradle 9.0.
+This behavior has been removed in Gradle 9.0.0.
 
 If you have a custom configuration and want its artifact to be built as part of `assemble`, you now need to explicitly declare the dependency between the artifact and the `assemble` task:
 
@@ -425,7 +425,7 @@ val special = configurations.create("special") {
     outgoing.artifact(specialJar)
 }
 
-// In Gradle 9.0, you need to add a dependency from the artifact to the assemble task
+// In Gradle 9.0.0, you need to add a dependency from the artifact to the assemble task
 tasks.named("assemble") {
     dependsOn(special.artifacts)
 }
@@ -446,7 +446,7 @@ def special = configurations.create("special") {
     outgoing.artifact(specialJar)
 }
 
-// In Gradle 9.0, you need to add a dependency from the artifact to the assemble task
+// In Gradle 9.0.0, you need to add a dependency from the artifact to the assemble task
 tasks.named("assemble") {
     dependsOn(special.artifacts)
 }
@@ -457,7 +457,7 @@ tasks.named("assemble") {
 === Gradle no longer implicitly adds certain artifacts to the `archives` configuration
 
 In previous versions of Gradle, the `archives` configuration would automatically include artifacts from any configuration where the `visible` flag was not set to `false`.
-This implicit behavior has been removed in Gradle 9.0.
+This implicit behavior has been removed in Gradle 9.0.0.
 
 To include a custom artifact in the `archives` configuration, you must now add it explicitly:
 
@@ -477,7 +477,7 @@ configurations {
         // artifact to the archives configuration
         outgoing.artifact(specialJar)
     }
-    // In Gradle 9.0, you need to explicitly add the artifact to the archives
+    // In Gradle 9.0.0, you need to explicitly add the artifact to the archives
     // configuration
     named("archives") {
         outgoing.artifact(specialJar)
@@ -500,7 +500,7 @@ configurations {
         // artifact to the archives configuration
         outgoing.artifact(specialJar)
     }
-    // In Gradle 9.0, you need to explicitly add the artifact to the archives
+    // In Gradle 9.0.0, you need to explicitly add the artifact to the archives
     // configuration
     named("archives") {
         outgoing.artifact(specialJar)
@@ -526,7 +526,7 @@ However, only providers returned from link:{javadocPath}/org/gradle/api/services
 or link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`] are currently supported when the Configuration Cache is enabled.
 
 Previously, unsupported providers were silently discarded and never received events when the configuration cache was used.
-Starting with Gradle 9, registering such providers now causes a configuration cache problem and fails the build.
+Starting with Gradle 9.0.0, registering such providers now causes a configuration cache problem and fails the build.
 
 If your build was previously working with the configuration cache (e.g., the listeners were nonessential), you can temporarily revert to the old behavior by setting:
 
@@ -545,7 +545,7 @@ Configuration Cache can also run in the <<configuration_cache_enabling.adoc#conf
 which hides problems and allows storing and loading of the cache entry, running tasks in parallel with potential issues.
 The warning mode exists as a migration and troubleshooting aid and is not intended as a persistent way of ignoring incompatibilities.
 
-Starting with Gradle 9, the presence of incompatible tasks in the work graph results in the cache entry being discarded regardless of the warning mode to ensure correctness.
+Starting with Gradle 9.0.0, the presence of incompatible tasks in the work graph results in the cache entry being discarded regardless of the warning mode to ensure correctness.
 If you relied on the warning mode previously, consider marking the offending tasks as incompatible instead.
 However, at this stage of Configuration Cache maturity and ecosystem adoption, we recommend resolving the incompatibilities instead to ensure performance benefits this feature brings.
 
@@ -584,7 +584,7 @@ Its usage should be replaced by link:{javadocPath}/org/gradle/jvm/toolchain/JvmV
 
 === Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
 
-The following source set interfaces have been removed in Gradle 9:
+The following source set interfaces have been removed in Gradle 9.0.0:
 
 - `org.gradle.api.tasks.GroovySourceSet`
 - `org.gradle.api.tasks.ScalaSourceSet`
@@ -604,7 +604,7 @@ groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
 
 === Removal of custom build layout options
 
-The ability to specify custom locations for key build files from the command line has been removed in Gradle 9.
+The ability to specify custom locations for key build files from the command line has been removed in Gradle 9.0.0.
 The following options, deprecated in Gradle 8.x, are no longer supported:
 
 * `-c`, `--settings-file` — Specify a custom location for the settings file
@@ -615,7 +615,7 @@ This means it is no longer possible to set a custom build file path via the `Gra
 
 === Removal of conventions
 
-The _"convention"_ concept—represented by the `org.gradle.api.plugins.Convention` type—has been deprecated since Gradle 8.2 and is now fully removed in Gradle 9.
+The _"convention"_ concept—represented by the `org.gradle.api.plugins.Convention` type—has been deprecated since Gradle 8.2 and is now fully removed in Gradle 9.0.0.
 
 Core Gradle plugins that previously registered deprecated conventions have been updated accordingly.
 
@@ -642,14 +642,14 @@ The table below shows which conventions have been removed and how to migrate:
 
 === Removal of `org.gradle.cache.cleanup`
 
-The `org.gradle.cache.cleanup` property, which previously allowed users to disable automatic cache cleanup, has been removed in Gradle 9.
+The `org.gradle.cache.cleanup` property, which previously allowed users to disable automatic cache cleanup, has been removed in Gradle 9.0.0.
 
 This property no longer has any effect.
 To control cache cleanup behavior in Gradle 9.0.0 and later, use an <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup,init script>> instead.
 
 === Removal of `buildCache.local.removeUnusedEntriesAfterDays`
 
-In Gradle 9, the property link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[`buildCache.local.removeUnusedEntriesAfterDays`] has been removed.
+In Gradle 9.0.0, the property link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[`buildCache.local.removeUnusedEntriesAfterDays`] has been removed.
 
 This property was previously used to configure the retention period for the local build cache.
 
@@ -690,7 +690,7 @@ Use the `testSources` and `testResources` properties instead.
 
 === Removal of Unix mode based file permissions
 
-Gradle 9 removes legacy APIs for specifying file permissions using raw Unix mode integers.
+Gradle 9.0.0 removes legacy APIs for specifying file permissions using raw Unix mode integers.
 
 A new and more expressive API for configuring file permissions was introduced in Gradle 8.3 and promoted to stable in Gradle 8.8.
 See:
@@ -709,7 +709,7 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 
 === Removal of select Groovy modules from the Gradle distribution
 
-Gradle 9 removes certain Groovy modules from its bundled distribution.
+Gradle 9.0.0 removes certain Groovy modules from its bundled distribution.
 They will no longer be available on the classpath or be available via `localGroovy`:
 
 - `groovy-test`
@@ -718,7 +718,7 @@ They will no longer be available on the classpath or be available via `localGroo
 
 === Removal of `kotlinDslPluginOptions.jvmTarget`
 
-In Gradle 9, the `kotlinDslPluginOptions.jvmTarget` property has been removed.
+In Gradle 9.0.0, the `kotlinDslPluginOptions.jvmTarget` property has been removed.
 
 This property was previously used to configure the JVM target version for code compiled with the `kotlin-dsl` plugin.
 
@@ -772,30 +772,30 @@ configurations.compileClasspath.singleFile // equivalent to configurations.compi
 
 These eager accessors were deprecated and removed from the public API in Gradle 8.0 but remained available for plugins compiled against older Gradle versions.
 
-In Gradle 9, these legacy methods have now been fully removed.
+In Gradle 9.0.0, these legacy methods have now been fully removed.
 
 === Removal of `libraries` and `bundles` from version catalogs in the `plugins {}` block in Kotlin DSL
 
 In Gradle 8.1, accessing `libraries` or `bundles` from dependency version catalogs within the `plugins {}` block of a Kotlin DSL script was deprecated.
 
-In Gradle 9, this support has been fully removed.
+In Gradle 9.0.0, this support has been fully removed.
 Attempting to reference `libraries` or `bundles` in the `plugins {}` block will now result in a build failure.
 
 === Removal of `"name"()` task reference syntax in Kotlin DSL
 
-In Gradle 9, referencing tasks or other domain objects using the `"name"()` syntax in Kotlin DSL has been removed.
+In Gradle 9.0.0, referencing tasks or other domain objects using the `"name"()` syntax in Kotlin DSL has been removed.
 
 Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
 
 === Removal of `outputFile` in `WriteProperties` task
 
-The `outputFile` property in the `WriteProperties` task has been removed in Gradle 9.
+The `outputFile` property in the `WriteProperties` task has been removed in Gradle 9.0.0.
 
 This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
 
 === Removal of `Project#exec`, `Project#javaexec`, and script-level counterparts
 
-The following helper methods for launching external processes were <<#deprecated_project_exec,deprecated in Gradle 8.11>> and have now been removed in Gradle 9:
+The following helper methods for launching external processes were <<#deprecated_project_exec,deprecated in Gradle 8.11>> and have now been removed in Gradle 9.0.0:
 
 * `org.gradle.api.Project#exec(Closure)`
 * `org.gradle.api.Project#exec(Action)`
@@ -814,7 +814,7 @@ The following helper methods for launching external processes were <<#deprecated
 
 === Removal of unused public APIs
 
-The following types have been removed in Gradle 9.0.
+The following types have been removed in Gradle 9.0.0.
 These types are not used in Gradle's public API and as such are not useful.
 
 * `org.gradle.api.artifacts.ArtifactIdentifier`
