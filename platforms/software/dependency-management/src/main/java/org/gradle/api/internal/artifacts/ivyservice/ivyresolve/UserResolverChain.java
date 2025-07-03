@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
@@ -42,7 +41,6 @@ public class UserResolverChain implements ComponentResolvers {
         VersionComparator versionComparator,
         ComponentSelectionRulesInternal componentSelectionRules,
         VersionParser versionParser,
-        AttributeContainer consumerAttributes,
         ImmutableAttributesSchema consumerSchema,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
@@ -53,7 +51,7 @@ public class UserResolverChain implements ComponentResolvers {
     ) {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, attributeSchemaServices, componentSelectionRules, consumerSchema);
-        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cacheExpirationControl);
+        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, versionParser, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cacheExpirationControl);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, calculatedValueFactory);
         artifactResolver = new RepositoryChainArtifactResolver(calculatedValueFactory);
     }

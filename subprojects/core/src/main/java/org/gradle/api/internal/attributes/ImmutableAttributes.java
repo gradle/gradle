@@ -18,7 +18,6 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
-import org.jspecify.annotations.Nullable;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
     ImmutableAttributes EMPTY = new DefaultImmutableAttributesContainer();
@@ -48,15 +47,6 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      * @return the value for the attribute in this container, or {@link AttributeValue#MISSING} if not present
      */
     AttributeValue<?> findEntry(String name);
-
-    /**
-     * Locates the {@link Attribute} with given name.
-     *
-     * @param name the name of an attribute to locate in this container
-     * @return the attribute with this name in this container; or {@code null} if not present
-     */
-    @Nullable
-    Attribute<?> findAttribute(String name);
 
     @Override
     ImmutableSet<Attribute<?>> keySet();

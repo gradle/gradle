@@ -26,7 +26,7 @@ There are many reasons to upgrade a version of a dependency:
 * *Performance improvements* make builds faster and more efficient.
 * *New features* provide additional functionality and better compatibility.
 
-== Step 1: Setting Dependency Constraints on Transitive Dependencies
+== Setting Dependency Constraints on Transitive Dependencies
 
 <<dependency_constraints.adoc#dependency-constraints,Dependency constraints>> allow you to define the **version** or **version range** of both direct dependencies and transitive dependencies.
 

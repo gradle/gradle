@@ -279,8 +279,8 @@ project.status = 'foo'
                     project.getConfigurations().configureEach(conf -> {
                         conf.defaultDependencies(deps -> {
                             DeprecationLogger.deprecate("foo")
-                                .willBecomeAnErrorInGradle10()
-                                .undocumented()
+                                .willBecomeAnErrorInNextMajorGradleVersion()
+                                .withUserManual("feature_lifecycle", "sec:deprecated")
                                 .nagUser();
                         });
                     });

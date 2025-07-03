@@ -67,5 +67,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
-
-integTest.usesJavadocCodeSnippets.set(true)

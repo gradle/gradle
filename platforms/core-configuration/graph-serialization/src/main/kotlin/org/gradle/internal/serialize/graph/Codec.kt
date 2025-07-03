@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.graph
 
 import org.gradle.api.logging.Logger
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -60,7 +61,7 @@ interface WriteContext : MutableIsolateContext, Encoder {
 
     suspend fun write(value: Any?)
 
-    suspend fun <T: Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+    suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
 
     fun writeClass(type: Class<*>)
 
@@ -109,7 +110,7 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     suspend fun read(): Any?
 
-    suspend fun <T: Any> readSharedObject(decode: suspend ReadContext.() -> T): T
+    suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T
 
     fun readClass(): Class<*>
 
@@ -167,6 +168,8 @@ interface IsolateContext {
     val isolate: Isolate
 
     val trace: PropertyTrace
+
+    val problemsListener: ProblemsListener
 
     fun onProblem(problem: PropertyProblem)
 
@@ -324,7 +327,7 @@ inline fun <T : Any> ReadContext.decodePreservingSharedIdentity(decode: ReadCont
     }
 
 
-inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, decode: ReadContext.(Int) -> T): T {
+inline fun <T, C : Decoder> C.decodePreservingIdentity(identities: ReadIdentities, decode: C.(Int) -> T): T {
     val id = readSmallInt()
     val previousValue = identities.getInstance(id)
     return when {

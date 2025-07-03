@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.plugins;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -24,17 +23,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.MissingValueException;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -50,6 +45,7 @@ import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -58,6 +54,7 @@ import javax.inject.Inject;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 
 /**
  * Adds the ability to publish in the Maven format to Maven repositories.
@@ -123,7 +120,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             createGenerateMetadataTask(tasks, publication, mavenPublications, buildDirectory);
             createGeneratePomTask(tasks, publication, buildDirectory);
             createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
-            createPublishTasksForEachMavenRepo(project, tasks, publishLifecycleTask, publication, repositories);
+            createPublishTasksForEachMavenRepo(tasks, publishLifecycleTask, publication, repositories);
         });
     }
 
@@ -131,7 +128,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         return "publishAllPublicationsTo" + capitalize(repository.getName()) + "Repository";
     }
 
-    private void createPublishTasksForEachMavenRepo(final Project project, final TaskContainer tasks, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication, final NamedDomainObjectList<MavenArtifactRepository> repositories) {
+    private void createPublishTasksForEachMavenRepo(final TaskContainer tasks, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication, final NamedDomainObjectList<MavenArtifactRepository> repositories) {
         final String publicationName = publication.getName();
         repositories.all(repository -> {
             final String repositoryName = repository.getName();
@@ -141,49 +138,20 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 publishTask.setRepository(repository);
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
-                project.getGradle().getTaskGraph().whenReady(graph -> {
-                    if (graph.hasTask(publishTask)) {
-                        validateCredentialsSetup(project, publishTask);
-                    }
-                });
             });
+            tasks.withType(PublishToMavenRepository.class).configureEach(
+                task -> requireDegradation(task, usingExplicitCredentials(task))
+            );
 
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
             tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
         });
     }
 
-    private static void validateCredentialsSetup(Project project, PublishToMavenRepository publishToMavenRepository) {
-        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) publishToMavenRepository.getRepository();
-        Credentials creds;
-        try {
-            creds = repository.getConfiguredCredentials().getOrNull();
-        } catch (Exception e) {
-            // In case of exception, we assume compatibility as this will fail later as well
-            creds = null;
-        }
-        if (creds != null && !isUsingCredentialsProvider((ProjectInternal) project, repository.getName(), creds)) {
-            publishToMavenRepository.notCompatibleWithConfigurationCache("Publishing to a repository without a credentials provider is not yet supported for the configuration cache");
-        }
-    }
-
-    private static boolean isUsingCredentialsProvider(ProjectInternal project, String identity, Credentials toCheck) {
-        ProviderFactory providerFactory = project.getServices().get(ProviderFactory.class);
-        Credentials referenceCredentials;
-        try {
-            Provider<? extends Credentials> credentialsProvider;
-            try {
-                credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
-            } catch (IllegalArgumentException e) {
-                // some possibilities are invalid repository names and invalid credential types
-                // either way, this is not the place to validate that
-                return false;
-            }
-            referenceCredentials = credentialsProvider.get();
-        } catch (MissingValueException e) {
-            return false;
-        }
-        return EqualsBuilder.reflectionEquals(toCheck, referenceCredentials);
+    private Provider<String> usingExplicitCredentials(PublishToMavenRepository task) {
+        return new DefaultProvider<>(() -> (AuthenticationSupportedInternal) task.getRepository())
+                .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
+                .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials are unsupported with the Configuration Cache");
     }
 
     private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {

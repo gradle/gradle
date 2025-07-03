@@ -38,8 +38,8 @@ To influence resolved versions, check out <<platforms.adoc#platforms,platforms>>
 Avoid declaring versions in `project.ext`, constants, or local variables:
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 Avoid misusing version catalogs for unrelated concerns:
@@ -52,12 +52,22 @@ Avoid misusing version catalogs for unrelated concerns:
 Use a centralized `libs.versions.toml` file in your `gradle/` directory:
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/kotlin",files="gradle/libs.versions.toml[]"]
 ====
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useVersionCatalogs-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useVersionCatalogs-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/do-this",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 === References
@@ -75,44 +85,61 @@ Consistent and descriptive names in your version catalog enhance readability and
 
 === Explanation
 
-Version catalogs provide a centralized way to manage dependencies.
-Adopting clear naming conventions for catalog entries ensures that developers can easily identify and use dependencies throughout the project.
+Version catalogs provide a centralized way to manage dependencies by mapping full dependency coordinates to concise, reusable aliases like `airlift-aircompressor`.
+Adopting clear naming conventions for those aliases ensures that developers can easily identify and use dependencies throughout the project.
+
+Aliases are typically made up of 1 to 3 segments.
+For example `org.apache.commons:commons-lang3` could be represented as `commonsLang3`, `apache-commonsLang3`, or `commons-lang3`.
 
 The following guidelines help in naming catalog entries effectively:
 
-1. **Use dashes to separate segments**: Prefer dashes (`-`) over underscores (`_`) to separate different parts of the entry name.
+1. **Use dashes to separate segments**: Prefer hyphen/dashes (`-`) over underscores (`_`) to separate different parts of the entry name.
 +
-*Example*: For `org.apache.logging.log4j:log4j-api`, use `log4j-api`
+Example: For `org.apache.logging.log4j:log4j-api`, use `log4j-api`
 
-2. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment.
+2. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment. Do not include the top level domain in the segment (`com`, `org`, `net`, `dev`).
 +
-*Example*: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind`
+Example: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind` or `jackson-core-databind`
 
-3. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
+3. **Derive the second segment from the artifact ID**: Use a unique identifier from the artifact ID as the second segment.
 +
-*Example*: For `io.ktor:ktor-client-core`, use `ktor-client-core`, not `ktor-ktor-client-core`
+Example: For `com.linecorp.armeria:armeria-grpc`, use `armeria-grpc`
 
-4. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
+4. **Avoid generic terms in the segments**: Exclude terms that are obvious or implied in the context of your project (`core`, `java`, `gradle`, `module`, `sdk`), especially if the term appears by itself.
 +
-*Example*: `spring-boot-starter-web` becomes `springBootStarterWeb`
+Example: For `com.google.googlejavaformat:google-java-format`, use `google-java-format`, not `google-java` or `java`
 
-5. **Avoid implicit terms**: Exclude terms that are obvious or implied in the context of your project.
+5. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
 +
-*Example*: For `com.amazonaws:aws-java-sdk-core`, use `aws-core`, not `aws-javaSdkCore`
+Example: For `io.ktor:ktor-client-core`, use `ktor-client-core`, not `ktor-ktor-client-core`
 
-6. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
+6. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
 +
-*Example*: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
+Example: `spring-boot-starter-web` becomes `springBootStarterWeb`
+
+7. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
++
+Example: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
 
 === Example
 
 ====
-include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/kotlin",files="gradle/libs.versions.toml[]"]
 ====
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/versionCatalogNaming-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/versionCatalogNaming-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
-include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/versionCatalogNaming/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 === References
@@ -145,17 +172,27 @@ NOTE: While https://github.com/gradle/gradle/issues/32443[`dependencyResolutionM
 You could set up repositories in individual `build.gradle.kts` files with:
 
 ====
-include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 ==== Do This Instead
 
 Instead, you should set them up in `settings.gradle.kts` like this:
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/settingsRepositories-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/settingsRepositories-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
-include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/kotlin",files="settings.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/groovy",files="settings.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositories-do/groovy",files="settings.gradle[tags=do-this]"]
 ====
 
 === Tags
@@ -186,6 +223,16 @@ include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/groovy",files="bu
 <1> *`stdlib` is explicitly depended upon*: This project contains an implicit dependency on the Kotlin standard library, which is required to compile its source code.
 
 ==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/kotlinStdLib-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/kotlinStdLib-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/bestPractices/kotlinStdLib-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -219,20 +266,94 @@ Duplicating dependencies in Gradle build scripts can lead to:
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin/avoid-this",files="build.gradle.kts[]"]
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/avoid-this",files="build.gradle[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-avoid/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-avoid/groovy",files="build.gradle[]"]
 ====
 
 <1> Redundant dependency in `implementation` scope.
 
 ==== Do This Instead
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDuplicateDependencies-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidDuplicateDependencies-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin/do-this",files="build.gradle.kts[]"]
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/do-this",files="build.gradle[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/groovy",files="build.gradle[]"]
 ====
 
 <1> Declare dependency once
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
+[[single-gav-string]]
+== Declare Dependencies using a single GAV (`group:artifact:version`) String
+
+When declaring dependencies without a <<version_catalogs.adoc#version-catalog,version catalog>>, prefer using the single GAV string notation `implementation("org.example:library:1.0")`.
+Avoid using the named argument notation unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
+
+TIP: The named argument and map notations may be deprecated in the future.
+
+=== Explanation
+
+All of these declarations will be treated equivalently when Gradle resolves dependencies.
+However, the single-string form is more concise, easier to read, and is widely adopted in the broader JVM ecosystem.
+
+This format is also recommended by link:https://central.sonatype.com/artifact/com.google.guava/guava[Maven Central] in its documentation and usage examples, making it the most familiar and consistent style for developers across tools.
+
+A valid reason to use named arguments format is when resolving a dependency from an Ivy repository that requires selecting a specific configuration by name.
+This syntax is only applicable for Ivy dependencies and should not be used with standard Maven modules:
+
+[source,kotlin]
+----
+// Use this syntax only for Ivy modules when a specific configuration must be selected
+dependencies {
+    implementation(group = "org.someOrg", name = "someModule", version = "1.0", configuration = "someConf")
+}
+----
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/useGavString-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useGavString-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+<1> Avoid the named argument notation when declaring dependencies
+<2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useGavString-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useGavString-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/useGavString-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useGavString-do/groovy",files="build.gradle[tags=do-this]"]
+====
+<1> Use the string notation instead when declaring dependencies
+<2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
+
+=== References
+
+- <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,Declaring Dependencies Basics>>
 
 === Tags
 

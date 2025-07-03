@@ -294,27 +294,6 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
             containsString('VM START TIME =')).get(0))))
     }
 
-    def "tries to execute unparseable test classes"() {
-        given:
-        file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
-        buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies {
-                ${testFrameworkDependencies}
-            }
-            test.${configureTestFramework}
-        """
-
-        when:
-        fails('test', '-x', 'compileTestJava')
-
-        then:
-        failureCauseContains("There were failing tests")
-        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1, 0)
-    }
-
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
         given:

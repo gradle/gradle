@@ -228,19 +228,17 @@ public class TestEventSerializer {
             }
 
             // Order is important here because a file comparison is _also_ an assertion failure
+            final TestFailureDetails details;
             if (isFileComparisonFailure) {
-                TestFailureDetails details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
             } else if (isAssertionFailure) {
-                TestFailureDetails details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
             } else if (isAssumptionFailure) {
-                TestFailureDetails details = new AssumptionFailureDetails(message, className, stacktrace);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new AssumptionFailureDetails(message, className, stacktrace);
             } else {
-                TestFailureDetails details = new DefaultTestFailureDetails(message, className, stacktrace);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new DefaultTestFailureDetails(message, className, stacktrace);
             }
+            return new DefaultTestFailure(rawFailure, details, causes);
         }
 
         /**

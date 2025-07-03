@@ -84,6 +84,13 @@ public class GroovyDependencyUtil {
      * Returns Spock coordinates based on Groovy version.
      */
     public static String spockModuleDependency(String module, VersionNumber version) {
-        return "org.spockframework:" + module + ":2.3-groovy-" + version.getMajor() + "." + version.getMinor();
+        int major = version.getMajor();
+        int minor = version.getMinor();
+        if (major > 4) {
+            // There is no Spock for Groovy 5.x yet, use 4.0 instead
+            major = 4;
+            minor = 0;
+        }
+        return "org.spockframework:" + module + ":2.3-groovy-" + major + "." + minor;
     }
 }

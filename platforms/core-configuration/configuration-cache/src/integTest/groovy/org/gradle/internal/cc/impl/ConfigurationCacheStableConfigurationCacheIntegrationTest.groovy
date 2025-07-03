@@ -44,28 +44,32 @@ class ConfigurationCacheStableConfigurationCacheIntegrationTest extends Abstract
         }
     }
 
-    def 'project access at execution time is either a problem or a deprecation'() {
+    def "project access at execution time is an interrupting problem"() {
         given:
-        buildFile '''
+        buildFile """
             tasks.register('problematic') { doLast { println project.name } }
-        '''
+        """
 
         when:
-        if (withCC) {
-            configurationCacheFails ':problematic'
-        } else {
-            executer.expectDocumentedDeprecationWarning "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10.0. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project"
-            succeeds ':problematic'
-        }
+        configurationCacheFails ':problematic'
 
         then:
-        if (withCC) {
-            problems.assertFailureHasProblems(failure) {
-                withProblem "Build file 'build.gradle': line 2: invocation of 'Task.project' at execution time is unsupported."
-            }
+        failureDescriptionStartsWith("Execution failed for task ':problematic'.")
+        failureHasCause("Invocation of 'Task.project' by task ':problematic' at execution time is unsupported with the configuration cache.")
+        problems.assertResultHasProblems(failure) {
+            withProblem "Build file 'build.gradle': line 2: invocation of 'Task.project' at execution time is unsupported with the configuration cache."
         }
+    }
 
-        where:
-        withCC << [true, false]
+    def 'project access at execution time is a deprecation when configuration cache is disabled'() {
+        given:
+        buildFile """
+            tasks.register('problematic') { doLast { println project.name } }
+        """
+
+        executer.expectDocumentedDeprecationWarning "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project"
+
+        expect:
+        succeeds ':problematic'
     }
 }

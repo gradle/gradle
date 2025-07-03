@@ -152,7 +152,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
 
         file("child1/build.gradle") << """
             dependencies {
-                conf group: 'org.test', name: 'maven', version: '1.0'
+                conf("org.test:maven:1.0")
             }
             configurations.conf.resolutionStrategy.dependencySubstitution {
                 substitute module('org.test:replaced:1.0') using project(':child2')
@@ -202,7 +202,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
 
         file("child1/build.gradle") << """
             dependencies {
-                conf group: 'org.test', name: 'maven', version: '1.0'
+                conf("org.test:maven:1.0")
             }
             configurations.conf.resolutionStrategy.dependencySubstitution {
                 substitute module('org.test:replaced:1.0') using project(':child2')

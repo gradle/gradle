@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithCppLibrary
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.vcs.fixtures.GitFileRepository
@@ -25,7 +24,6 @@ import org.gradle.vcs.fixtures.GitFileRepository
 class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def app = new SwiftAppWithCppLibrary()
 
-    @ToBeFixedForConfigurationCache(because = "source dependencies")
     def "can depend on both swift and cpp libraries from VCS"() {
         given:
         createDirs("app")

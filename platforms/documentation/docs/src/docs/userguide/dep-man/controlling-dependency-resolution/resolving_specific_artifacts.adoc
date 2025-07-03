@@ -1,0 +1,58 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[resolving-specific-artifacts]]
+= Resolving Specific Artifacts
+
+When resolving a module from a Maven or Ivy repository, Gradle looks for metadata (e.g., `.module`, `pom.xml`, `ivy.xml`) and a default artifact file (typically a JAR).
+If neither is found, the resolution fails.
+
+In some cases, you may want to override this behavior and request only a specific artifact from a module:
+
+* The module provides only a non-standard artifact (e.g., a ZIP file) with no metadata.
+* The module publishes multiple artifacts, and you only want one of them.
+* You want to avoid resolving transitive dependencies declared in metadata.
+
+Gradle supports this use case with **artifact-only notation**, where you append an `@<extension>` to the dependency coordinates.
+This instructs Gradle to resolve only the artifact with that file extension and skip metadata-based resolution entirely.
+
+WARNING: The `@<extension>` *only* works for module dependencies.
+
+For example, suppose you're building a web application and want to fetch a JavaScript library directly from a repository rather than checking it into version control.
+The link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] platform distributes many open-source JavaScript libraries this way.
+
+To download the `.js` artifact directly, use the `@js` syntax:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnly/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnly/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+====
+
+Some modules publish multiple "flavors" of the same artifact—for example, compiled classes, source code, or Javadocs.
+In JavaScript, a library may publish both an uncompressed and a minified version.
+These variants are often distinguished using a **classifier**, a common concept in Maven and Ivy.
+
+To request an artifact with a specific classifier, include it in the dependency notation.
+The following example resolves the minified version of a JQuery library using the classifier `min`:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnlyWithClassifier/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+====
+
+Using `@extension` bypasses metadata-based resolution.
+Gradle will not attempt to download or interpret module metadata (e.g., `.module`, `pom.xml`, `ivy.xml`), and will treat the coordinates as a direct request for a single artifact.
+As a result, variant-aware resolution, capabilities, and transitive dependencies are all bypassed.
+If no metadata is available and the requested artifact cannot be found, the build may fail.
+In such cases, you may need to provide module metadata using <<component_metadata_rules.adoc#component-metadata-rules,component metadata rules>>.

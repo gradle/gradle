@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.provider.Property;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * The relocation information of a Maven publication that has been moved
@@ -26,6 +27,7 @@ import org.gradle.api.provider.Property;
  * @see MavenPom
  * @see MavenPomDistributionManagement
  */
+@NullMarked
 public interface MavenPomRelocation {
 
     /**

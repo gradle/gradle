@@ -289,12 +289,12 @@ assert 'overridden value' == global
 
         executer.expectDocumentedDeprecationWarning(
             "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. Use assignment ('description = <value>') instead. " +
+                "This is scheduled to be removed in Gradle 10. Use assignment ('description = <value>') instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
         )
         executer.expectDocumentedDeprecationWarning(
             "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. Use assignment ('prop = <value>') instead. " +
+                "This is scheduled to be removed in Gradle 10. Use assignment ('prop = <value>') instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
         )
 
@@ -965,7 +965,7 @@ task print(type: MyTask) {
     private void expectTaskProjectDeprecation(int repeated = 1) {
         repeated.times {
             executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
-                "This will fail with an error in Gradle 10.0. " +
+                "This will fail with an error in Gradle 10. " +
                 "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }

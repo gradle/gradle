@@ -43,7 +43,7 @@ abstract class AbstractJUnitJnaIntegrationTest extends AbstractTestingMultiVersi
 
             dependencies {
                 ${testFrameworkDependencies}
-                testImplementation 'net.java.dev.jna:jna-platform:4.1.0'
+                testImplementation 'net.java.dev.jna:jna-platform:5.17.0'
             }
             test.${configureTestFramework}
         """.stripIndent()

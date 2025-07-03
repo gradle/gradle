@@ -55,7 +55,7 @@ abstract class SettingsScriptApi(
         if (!KotlinSettingsScript::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(SettingsScriptApi::class.java)
                 .willBeRemovedInGradle10()
-                .undocumented()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }

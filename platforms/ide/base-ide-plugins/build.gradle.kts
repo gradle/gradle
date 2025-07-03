@@ -26,6 +26,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.ide)
     api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.core)
     implementation(projects.logging)

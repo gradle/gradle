@@ -87,7 +87,7 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
         outputs.stdErr.contains("AFTER ERR")
 
         where:
-        console << [ConsoleOutput.Plain, ConsoleOutput.Rich, ConsoleOutput.Verbose]
+        console << [ConsoleOutput.Plain, ConsoleOutput.Colored, ConsoleOutput.Rich, ConsoleOutput.Verbose]
     }
 
     @ToBeFixedForConfigurationCache
@@ -143,7 +143,7 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
         outputs.stdErr.contains("AFTER ERR")
 
         where:
-        console << [ConsoleOutput.Plain, ConsoleOutput.Rich, ConsoleOutput.Verbose]
+        console << [ConsoleOutput.Plain, ConsoleOutput.Colored, ConsoleOutput.Rich, ConsoleOutput.Verbose]
     }
 
     def stripped(String output) {

@@ -22,16 +22,21 @@ tasks.register("listJars") {
 
 // tag::module-dependencies[]
 dependencies {
-    runtimeOnly(group = "org.springframework", name = "spring-core", version = "2.5")
     runtimeOnly("org.springframework:spring-aop:2.5")
     runtimeOnly("org.hibernate:hibernate:3.0.5") {
         isTransitive = true
     }
+}
+// end::module-dependencies[]
+
+// tag::module-dependencies-map[]
+dependencies {
+    runtimeOnly(group = "org.springframework", name = "spring-core", version = "2.5")
     runtimeOnly(group = "org.hibernate", name = "hibernate", version = "3.0.5") {
         isTransitive = true
     }
 }
-// end::module-dependencies[]
+// end::module-dependencies-map[]
 
 // tag::file-dependencies[]
 dependencies {

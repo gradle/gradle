@@ -74,6 +74,7 @@ public interface TestResult {
      * @since 8.14
      */
     @Incubating
+    @Nullable
     TestFailure getAssumptionFailure();
 
     /**

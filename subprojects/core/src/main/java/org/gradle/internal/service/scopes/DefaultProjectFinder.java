@@ -17,19 +17,24 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.util.Path;
 
-import java.util.function.Supplier;
-
+/**
+ * Default implementation of {@link ProjectFinder}.
+ */
 public class DefaultProjectFinder implements ProjectFinder {
-    private final Supplier<ProjectInternal> baseProjectSupplier;
 
-    public DefaultProjectFinder(Supplier<ProjectInternal> baseProjectSupplier) {
-        this.baseProjectSupplier = baseProjectSupplier;
+    private final ProjectState baseProject;
+
+    public DefaultProjectFinder(ProjectState baseProject) {
+        this.baseProject = baseProject;
     }
 
     @Override
-    public ProjectInternal getProject(String path) {
-        return baseProjectSupplier.get().project(path);
+    public Path resolveIdentityPath(String path) {
+        Path resolvedProjectPath = baseProject.getIdentity().getProjectPath().absolutePath(Path.path(path));
+        return baseProject.getOwner().calculateIdentityPathForProject(resolvedProjectPath);
     }
+
 }

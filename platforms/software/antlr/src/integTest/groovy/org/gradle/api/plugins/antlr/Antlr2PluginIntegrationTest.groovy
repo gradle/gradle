@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.antlr
 
+import org.gradle.test.fixtures.file.TestFile
+
 class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "antlr:antlr:2.7.7"
@@ -60,6 +62,46 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         assertGrammarSourceGenerated("org/acme/TestGrammar")
         assertGrammarSourceGenerated("org/acme/AnotherGrammar")
         assertGrammarSourceGenerated("UnpackagedGrammar")
+    }
+
+    def "exception when package is set using #description"() {
+        goodGrammar()
+
+        buildFile "grammar-builder/build.gradle", """
+            generateGrammarSource {
+                ${expression}
+            }
+        """
+        if (expectDeprecationWarning) {
+            expectPackageArgumentDeprecationWarning(executer)
+        }
+
+        expect:
+        fails("generateGrammarSource")
+        failure.assertHasCause("The -package argument is not supported by ANTLR 2.")
+
+        where:
+        description                     | expression                                    | expectDeprecationWarning
+        "arguments"                     | "arguments = ['-package', 'org.acme.test']"   | true
+        "packageName property"          | "packageName = 'org.acme.test'"               | false
+    }
+
+    def "can change output directory and source set reflects change"() {
+        goodGrammar()
+        goodProgram()
+        buildFile "grammar-builder/build.gradle", """
+            generateGrammarSource {
+                outputDirectory = file("build/generated/antlr/main")
+            }
+        """
+
+        expect:
+        succeeds("generateGrammarSource")
+        assertAntlrVersion(2)
+        assertGrammarSourceGenerated(file("grammar-builder/build/generated/antlr/main"), "org/acme/TestGrammar")
+        assertGrammarSourceGenerated(file("grammar-builder/build/generated/antlr/main"), "org/acme/AnotherGrammar")
+        assertGrammarSourceGenerated(file("grammar-builder/build/generated/antlr/main"), "UnpackagedGrammar")
+        succeeds("build")
     }
 
     private goodGrammar() {
@@ -160,9 +202,13 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private void assertGrammarSourceGenerated(String grammarName) {
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}.java").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}.smap").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}TokenTypes.java").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}TokenTypes.txt").exists()
+        assertGrammarSourceGenerated(file('grammar-builder/build/generated-src/antlr/main'), grammarName)
+    }
+
+    private static void assertGrammarSourceGenerated(TestFile root, String grammarName) {
+        assert root.file("${grammarName}.java").exists()
+        assert root.file("${grammarName}.smap").exists()
+        assert root.file("${grammarName}TokenTypes.java").exists()
+        assert root.file("${grammarName}TokenTypes.txt").exists()
     }
 }

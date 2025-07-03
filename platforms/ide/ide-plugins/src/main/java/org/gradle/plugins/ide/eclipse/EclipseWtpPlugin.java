@@ -40,6 +40,7 @@ import org.gradle.plugins.ide.eclipse.model.Facet;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.plugins.ide.internal.IdePluginHelper;
 import org.gradle.util.internal.RelativePathUtil;
 import org.gradle.util.internal.WrapUtil;
 
@@ -139,8 +140,8 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 task.setInputFile(project.file(".settings/org.eclipse.wst.common.component"));
                 task.setOutputFile(project.file(".settings/org.eclipse.wst.common.component"));
             }
-
         });
+        task.configure(IdePluginHelper.withGracefulDegradation());
         addWorker(task, ECLIPSE_WTP_COMPONENT_TASK_NAME);
 
         ((IConventionAware) component).getConventionMapping().map("deployName", new Callable<String>() {

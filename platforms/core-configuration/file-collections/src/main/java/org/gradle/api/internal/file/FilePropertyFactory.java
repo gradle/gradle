@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -26,4 +27,14 @@ public interface FilePropertyFactory {
     DirectoryProperty newDirectoryProperty();
 
     RegularFileProperty newFileProperty();
+
+    /**
+     * Returns a new FilePropertyFactory configured with the given file resolver and file collection resolver.
+     */
+    FilePropertyFactory withResolvers(FileResolver fileResolver, PathToFileResolver fileCollectionResolver);
+
+    /**
+     * Returns a new FilePropertyFactory configured with the given file resolver.
+     */
+    FilePropertyFactory withResolver(FileResolver fileResolver);
 }

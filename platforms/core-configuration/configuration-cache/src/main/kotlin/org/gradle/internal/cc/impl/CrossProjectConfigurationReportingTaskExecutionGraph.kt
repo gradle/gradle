@@ -25,7 +25,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.FinalizedExecutionPlan
-import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.configuration.problems.ProblemFactory
@@ -33,7 +33,6 @@ import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.util.Path
 import java.util.Objects
-import java.util.function.BiConsumer
 
 
 internal
@@ -69,11 +68,11 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         delegate.whenReady(action.wrap())
     }
 
-    override fun findTask(path: String?): Task? {
+    override fun findTask(path: String): Task? {
         return delegate.findTask(path).also { task ->
             if (task == null) {
                 // check whether the path refers to a different project
-                val parentPath = path?.let(Path::path)?.parent?.path
+                val parentPath = Path.path(path).parent?.path
                 if (parentPath != referrerProject.path) {
                     // even though the task was not found, the current project is coupled with the other project:
                     // if the configuration of that project changes, the result of this call might be different
@@ -195,15 +194,15 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     // region overridden by delegation
 
-    override fun populate(plan: FinalizedExecutionPlan?) {
+    override fun populate(plan: FinalizedExecutionPlan) {
         delegate.populate(plan)
     }
 
-    override fun execute(plan: FinalizedExecutionPlan?): ExecutionResult<Void>? =
+    override fun execute(plan: FinalizedExecutionPlan): ExecutionResult<Void> =
         delegate.execute(plan)
 
-    override fun visitScheduledNodes(visitor: BiConsumer<List<Node>, Set<Node>>) =
-        delegate.visitScheduledNodes(visitor)
+    override fun collectScheduledWork(): ScheduledWork =
+        delegate.collectScheduledWork()
 
     override fun size(): Int = delegate.size()
 

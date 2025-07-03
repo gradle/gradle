@@ -17,6 +17,9 @@
 package org.gradle.internal.cc.impl.serialize
 
 import com.esotericsoftware.kryo.io.Input
+import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder.Companion.EMPTY_STRING_ID
+import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder.Companion.FIRST_STRING_ID
+import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder.Companion.NULL_STRING_ID
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.StringDecoder
 import java.io.InputStream
@@ -61,12 +64,14 @@ class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable 
     private
     val reader = thread(isDaemon = true) {
         Input(stream).use { input ->
+            var nextId = FIRST_STRING_ID
             while (true) {
-                val id = input.readVarInt(true)
-                if (id == 0) break
-
                 val string = input.readString()
-                strings.compute(id) { _, value ->
+                if (string.isEmpty()) {
+                    // EOF
+                    break
+                }
+                strings.compute(nextId++) { _, value ->
                     when (value) {
                         is FutureString -> value.complete(string)
                         else -> require(value == null)
@@ -79,7 +84,7 @@ class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable 
 
     override fun readNullableString(decoder: Decoder): String? =
         when (val id = decoder.readSmallInt()) {
-            0 -> null
+            NULL_STRING_ID -> null
             else -> doReadString(id)
         }
 
@@ -87,11 +92,11 @@ class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable 
         doReadString(decoder.readSmallInt())
 
     private
-    fun doReadString(id: Int): String =
-        when (val it = strings.computeIfAbsent(id) { FutureString() }) {
-            is String -> it
-            is FutureString -> it.get()
-            else -> error("$it is unexpected")
+    fun doReadString(id: Int): String = if (id == EMPTY_STRING_ID) "" else
+        when (val stringOrFutureString = strings.computeIfAbsent(id) { FutureString() }) {
+            is String -> stringOrFutureString
+            is FutureString -> stringOrFutureString.get()
+            else -> error("$stringOrFutureString is unexpected")
         }
 
     override fun close() {

@@ -37,7 +37,7 @@ def someDependency = project.dependencies.create(files('foo.txt'))
 dependencies {
     conf someDependency
     conf "org.mockito:mockito-core:1.8"
-    conf group: 'org.spockframework', name: 'spock-core', version: '1.0'
+    conf("org.spockframework:spock-core:1.0")
     conf provider { "junit:junit:4.12" }
 
     conf('org.test:configured') {

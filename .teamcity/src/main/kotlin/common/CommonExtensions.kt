@@ -276,6 +276,7 @@ fun buildToolGradleParameters(
         "-Dorg.gradle.workers.max=$maxParallelForks",
         "-PmaxParallelForks=$maxParallelForks",
         PLUGINS_PORTAL_URL_OVERRIDE,
+        buildScanCustomValueParam("tcPipeline", VersionedSettingsBranch.fromDslContext().branchName),
         "-s",
         "%additional.gradle.parameters%",
         if (isContinue) "--continue" else "",

@@ -121,7 +121,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     /**
      * When the feature will be removed, and how if relevant.
      *
-     * Example: This feature will be removed in Gradle 10.0.
+     * Example: This feature will be removed in Gradle 10.
      */
     public String getRemovalDetails() {
         return removalDetails;

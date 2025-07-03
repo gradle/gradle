@@ -22,7 +22,11 @@ plugins {
 description = "Configuration Cache services supporting bean serialization"
 
 jvmCompile {
-    usesJdkInternals = true
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 dependencies {

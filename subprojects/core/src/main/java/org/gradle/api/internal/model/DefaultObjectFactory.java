@@ -18,19 +18,15 @@ package org.gradle.api.internal.model;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyCollector;
@@ -48,13 +44,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
@@ -160,67 +150,22 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
-    public <T> Property<T> property(Class<T> valueType) {
-        if (valueType == null) {
-            throw new IllegalArgumentException("Class cannot be null");
-        }
-
-        if (valueType.isPrimitive()) {
-            // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(property(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(valueType)));
-        }
-
-        if (List.class.isAssignableFrom(valueType)) {
-            // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
-            // Allow this one type to be used with Property until we can fix this elsewhere
-            if (!ExternalModuleDependencyBundle.class.isAssignableFrom(valueType)) {
-                throw new InvalidUserCodeException(invalidPropertyCreationError("listProperty()", "List<T>"));
-            }
-        } else if (Set.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("setProperty()", "Set<T>"));
-        } else if (Map.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("mapProperty()", "Map<K, V>"));
-        } else if (Directory.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("directoryProperty()", "Directory"));
-        } else if (RegularFile.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("fileProperty()", "RegularFile"));
-        }
-
-        return propertyFactory.property(valueType);
-    }
-
-    private String invalidPropertyCreationError(String correctMethodName, String propertyType) {
-        return "Please use the ObjectFactory." + correctMethodName + " method to create a property of type " + propertyType + ".";
+    public <T> Property<T> property(Class<T> type) {
+        return propertyFactory.property(type);
     }
 
     @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
-        if (elementType.isPrimitive()) {
-            // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(listProperty(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(elementType)));
-        }
         return propertyFactory.listProperty(elementType);
     }
 
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
-        if (elementType.isPrimitive()) {
-            // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(setProperty(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(elementType)));
-        }
         return propertyFactory.setProperty(elementType);
     }
 
     @Override
     public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
-        if (keyType.isPrimitive()) {
-            // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(mapProperty(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(keyType), valueType));
-        }
-        if (valueType.isPrimitive()) {
-            // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(mapProperty(keyType, AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(valueType)));
-        }
         return propertyFactory.mapProperty(keyType, valueType);
     }
 }

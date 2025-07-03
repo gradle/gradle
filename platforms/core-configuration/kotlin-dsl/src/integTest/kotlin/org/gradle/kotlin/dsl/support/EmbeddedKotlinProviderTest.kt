@@ -2,10 +2,12 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.fixtures.Flaky
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 
 class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
@@ -41,33 +43,26 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4723
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
         withBuildScript(
             """
             buildscript {
                 $repositoriesBlock
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.9.21")
-                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.9.21")
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
+                    classpath("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
                 }
             }
             plugins {
-                kotlin("jvm") version "1.9.21"
+                kotlin("jvm") version "2.0.0"
             }
             """
         )
 
-        executer.expectDocumentedDeprecationWarning(
-            "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. " +
-                "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
-        )
-
         val result = build("buildEnvironment")
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.9.21 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:2.0.0 -> $embeddedKotlinVersion"))
         }
     }
 

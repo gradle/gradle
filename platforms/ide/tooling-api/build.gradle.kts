@@ -13,8 +13,16 @@ gradleModule {
 }
 
 jvmCompile {
-    // JSpecify annotations on static inner type return types
-    usesJdkInternals = true
+    compilations {
+        named("main") {
+            // JSpecify annotations on static inner type return types
+            usesJdkInternals = true
+        }
+        named("crossVersionTest") {
+            // The TAPI tests must be able to run the TAPI client, which is still JVM 8 compatible
+            targetJvmVersion = 8
+        }
+    }
 }
 
 tasks.named<Jar>("sourcesJar") {
@@ -133,10 +141,12 @@ tasks.named("toolingApiShadedJar") {
     dependsOn(gradle.includedBuild("build-logic").task(":java-api-extractor:assemble"))
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+// AutoTestedSamplesToolingApiTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
+integTest.generateDefaultAutoTestedSamplesTest = false

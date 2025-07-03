@@ -57,8 +57,8 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         FileHasherStatistics.Collector fileHasherStatisticsCollector,
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
         BuildOperationRunner buildOperationRunner,
-        BuildActionRunner delegate,
-        InternalOptions options
+        InternalOptions options,
+        BuildActionRunner delegate
     ) {
         this.eventEmitter = eventEmitter;
         this.virtualFileSystem = virtualFileSystem;

@@ -35,6 +35,8 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.util.Locale;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
+
 /**
  * Displays some details about the configuration model of the project.
  * An instance of this type is used when you execute the {@code model} task from the command-line.
@@ -57,6 +59,11 @@ public abstract class ModelReport extends DefaultTask {
 
     private boolean showHidden;
     private Format format = Format.FULL;
+
+    @Inject
+    public ModelReport() {
+        requireDegradation(this, "Task is not compatible with the Configuration Cache");
+    }
 
     @Option(option = "showHidden", description = "Show hidden model elements.")
     public void setShowHidden(boolean showHidden) {

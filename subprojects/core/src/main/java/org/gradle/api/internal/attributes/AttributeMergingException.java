@@ -22,10 +22,6 @@ public class AttributeMergingException extends RuntimeException {
     private final Object leftValue;
     private final Object rightValue;
 
-    public AttributeMergingException(Attribute<?> attribute, Object leftValue, Object rightValue) {
-        this(attribute, leftValue, rightValue, "An attribute named '" + attribute.getName() + "' of type '" + attribute.getType().getName() + "' already exists in this container");
-    }
-
     public AttributeMergingException(Attribute<?> attribute, Object leftValue, Object rightValue, String message) {
         super(message);
         this.attribute = attribute;

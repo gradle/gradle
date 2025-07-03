@@ -17,11 +17,11 @@ class DefaultHttpCallerIntegrationTest extends Specification {
 
     def "throws exception when calling unknown host via HTTP GET"() {
         when:
-        httpCaller.get('https://www.wedonotknowyou123.com/')
+        httpCaller.get('https://www.example.invalid/')
 
         then:
         def t = thrown(HttpCallException)
-        t.message == "Failed to call URL 'https://www.wedonotknowyou123.com/' via HTTP GET"
+        t.message == "Failed to call URL 'https://www.example.invalid/' via HTTP GET"
         t.cause instanceof UnknownHostException
     }
 }

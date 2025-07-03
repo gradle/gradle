@@ -31,10 +31,6 @@ import static org.gradle.integtests.resolve.versions.AbstractVersionRangeResolve
 class ModuleDependencyExcludeResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def setup() {
         buildFile << """
-dependencies {
-    conf 'a:a:1.0'
-}
-
 task check(type: Sync) {
     from configurations.conf
     into 'libs'
@@ -73,6 +69,12 @@ task check(type: Sync) {
             'b:b:1.0' { expectResolve() }
             'c:c:1.0' { expectResolve() }
         }
+
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
 
         when:
         succeeds "checkDep"
@@ -132,6 +134,12 @@ task check(type: Sync) {
             }
         }
 
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
+
         when:
         succeedsDependencyResolution()
 
@@ -179,6 +187,12 @@ task check(type: Sync) {
             'b:b:1.0' { expectResolve() }
         }
 
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
+
         when:
         succeeds "checkDep"
 
@@ -219,6 +233,12 @@ task check(type: Sync) {
                 "${it}:${it}:1.0" { expectResolve() }
             }
         }
+
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
 
         when:
         succeedsDependencyResolution()
@@ -264,6 +284,11 @@ task check(type: Sync) {
             'b:b:1.0' { expectResolve() }
         }
 
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
 
         when:
         succeeds "checkDep"
@@ -307,6 +332,12 @@ task check(type: Sync) {
             }
         }
 
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
+
         when:
         succeedsDependencyResolution()
 
@@ -347,6 +378,12 @@ task check(type: Sync) {
             }
         }
 
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
+
         when:
         succeedsDependencyResolution()
 
@@ -377,6 +414,12 @@ task check(type: Sync) {
             'a:a:1.0' { expectResolve() }
             'b:b:1.0' { expectResolve() }
         }
+
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
 
         and: // Initial request to cache metadata
         succeeds "checkDeps"
@@ -425,6 +468,12 @@ task check(type: Sync) {
             'c:c:1.0' { expectResolve() }
             'd:d:1.0' { expectResolve() }
         }
+
+        buildFile << """
+            dependencies {
+                conf("a:a:1.0")
+            }
+        """
 
         when:
         succeeds "checkDep"
@@ -498,16 +547,13 @@ task check(type: Sync) {
         }
 
         buildFile << """
-            configurations {
-                conf.dependencies.clear()
-            }
-
             dependencies {
                 conf(platform('org.test:platform:1.0'))
                 conf 'org.test:depD:1.0'
                 conf 'org.test:depF:1.0'
             }
-"""
+        """
+
         when:
         succeeds 'checkDeps'
 
@@ -554,26 +600,30 @@ task check(type: Sync) {
      *
      * Exclude is applied to configuration conf
      */
-    def "ensure renamed dependencies are exclude correctly"() {
+    def "ensure renamed dependencies are excluded correctly"() {
         given:
         buildFile << """
-configurations {
-    conf {
-        exclude group: 'b', module: 'b'
-        resolutionStrategy {
-            dependencySubstitution {
-                all {
-                    if (it.requested instanceof ModuleComponentSelector) {
-                        if (it.requested.group == 'c' && it.requested.module == 'c') {
-                            it.useTarget group: 'b', name: 'b', version: '1.0'
+            dependencies {
+                conf("a:a:1.0")
+            }
+
+            configurations {
+                conf {
+                    exclude group: 'b', module: 'b'
+                    resolutionStrategy {
+                        dependencySubstitution {
+                            all {
+                                if (it.requested instanceof ModuleComponentSelector) {
+                                    if (it.requested.group == 'c' && it.requested.module == 'c') {
+                                        it.useTarget group: 'b', name: 'b', version: '1.0'
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-    }
-}
-"""
+        """
 
         def expectResolved = ['a', 'f', 'g']
         repository {
@@ -607,5 +657,69 @@ configurations {
         then:
         def resolvedJars = expectResolved.collect { it + '-1.0.jar' }
         assertResolvedFiles(resolvedJars)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33924")
+    def "node reentering the queue with a new incoming edge with fewer exclusions than all previous incoming edges properly propagates new transitive excludes"() {
+        repository {
+            id("org.hamcrest:hamcrest-junit:2.0.0.0")
+            id("org:ut:2.0.0-BETA-4-JAVA7") {
+                dependsOn("org.hamcrest:hamcrest-junit:2.0.0.0")
+            }
+            id("org.slf4j:slf4j-api:1.7.36")
+            id("org:engine:1.4.1") {
+                dependsOn("org.slf4j:slf4j-api:1.7.36")
+                dependsOn("org:ut:2.0.0-BETA-4-JAVA7")
+            }
+            id("data:tools:27.9.67") {
+                dependsOn("org:engine:1.4.1")
+            }
+        }
+
+        repositoryInteractions {
+            id("org.hamcrest:hamcrest-junit:2.0.0.0") {
+                expectResolve()
+            }
+            id("org:ut:2.0.0-BETA-4-JAVA7") {
+                expectResolve()
+            }
+            id("org:engine:1.4.1") {
+                expectResolve()
+            }
+            id("org.slf4j:slf4j-api:1.7.36") {
+                expectResolve()
+            }
+            id("data:tools:27.9.67") {
+                expectResolve()
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf("org:engine:1.4.1") {
+                    exclude(group: "org.slf4j", module: "*")
+                    exclude(group: "org.hamcrest", module: "*")
+                }
+                conf("data:tools:27.9.67")
+            }
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:engine:1.4.1") {
+                    module("org.slf4j:slf4j-api:1.7.36")
+                    module("org:ut:2.0.0-BETA-4-JAVA7") {
+                        module("org.hamcrest:hamcrest-junit:2.0.0.0")
+                    }
+                }
+                module("data:tools:27.9.67") {
+                    module("org:engine:1.4.1")
+                }
+            }
+        }
     }
 }

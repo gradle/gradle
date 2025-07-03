@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.MavenComponentParser
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -896,12 +896,11 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies/constraints with attributes"() {
         given:
         createDirs("utils")
         settingsFile << "include 'utils'\n"
-        file("utils/build.gradle") << '''
+        buildFile("utils/build.gradle", """
             def attr1 = Attribute.of('custom', String)
             version = '1.0'
             configurations {
@@ -912,7 +911,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                     attributes.attribute(attr1, 'bazinga')
                 }
             }
-        '''
+        """)
         createBuildScripts("""
             def attr1 = Attribute.of('custom', String)
             def attr2 = Attribute.of('nice', Boolean)
@@ -946,6 +945,14 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                         from components.java
                     }
                 }
+            }
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
+            tasks.javadoc {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
         """)
 
@@ -1001,7 +1008,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         outputContains "Maven publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bom", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'bar', '1.1')).withModuleMetadata().publish()
@@ -1019,6 +1025,14 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                         from components.java
                     }
                 }
+            }
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
+            tasks.javadoc {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
             ${mavenTestRepository()}
 """)
@@ -1318,7 +1332,7 @@ include(':platform')
   - This publication must publish at least one variant""")
     }
 
-    def createBuildScripts(def append, String plugin = 'java-library') {
+    def createBuildScripts(@GroovyBuildScriptLanguage def append, String plugin = 'java-library') {
         settingsFile << "rootProject.name = 'publishTest'"
 
         buildFile << """

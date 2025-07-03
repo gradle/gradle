@@ -51,9 +51,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        if (deprecated(alternatives)) {
-            executer.expectDeprecationWarning()
-        }
         if (forbidden(alternatives) || doesNotExist(alternatives)) {
             fails 'help'
         } else {
@@ -61,7 +58,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 8.0. Please use the $alternatives configuration instead.")
+        !deprecated(alternatives)
         !valid(alternatives)        || !output.contains("> Configure project :")
         !doesNotExist(alternatives) || errorOutput.contains("Could not find method $configuration() for arguments [some:module:1.0] on object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler")
         !forbidden(alternatives)    || failure.hasErrorOutput("Dependencies can not be declared against the `$configuration` configuration.")
@@ -109,9 +106,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        if (deprecated(alternatives)) {
-            executer.expectDeprecationWarning()
-        }
 
         executer.withArgument("--no-problems-report")
         if (forbidden(alternatives) || doesNotExist(alternatives)) {
@@ -121,7 +115,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Please use attributes to consume the ${alternatives} configuration instead.")
+        !deprecated(alternatives)
         !valid(alternatives)        || output.contains("> Task :resolve\n\n")
         !doesNotExist(alternatives) || errorOutput.contains("A dependency was declared on configuration '$configuration' of 'project :sub' but no variant with that configuration name exists.")
 
@@ -166,9 +160,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStacktraceEnabled()
-        if (deprecated(alternatives)) {
-            executer.expectDeprecationWarning()
-        }
+
         executer.withArgument("--no-problems-report")
         if (forbidden(alternatives) || doesNotExist(alternatives)) {
             fails 'resolve'
@@ -177,7 +169,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for resolution. This will fail with an error in Gradle 8.0. Please resolve the ${alternatives} configuration instead.")
+        !deprecated(alternatives)
         !valid(alternatives)        || output.contains("> Task :resolve\n\n")
         !forbidden(alternatives)    || errorOutput.contains("Resolving dependency configuration '$configuration' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '$configuration' should be resolved.")
         !doesNotExist(alternatives) || errorOutput.contains("Could not get unknown property '$configuration' for configuration container for root project 'test' of type org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer.")

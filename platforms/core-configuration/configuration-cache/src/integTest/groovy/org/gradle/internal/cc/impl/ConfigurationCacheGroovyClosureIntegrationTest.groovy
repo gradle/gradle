@@ -19,17 +19,21 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.internal.serialize.codecs.core.ClosureCodec
 
 class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "from-cache build fails when task action closure reads a project property"() {
+    def configurationCache = new ConfigurationCacheFixture(this)
+
+    def "task fails immediately when task action closure reads a project property"() {
         given:
         buildFile << """
             tasks.register("some") {
                 doFirst {
                     println(name) // task property is ok
                     println($expression)
+                    throw new IllegalStateException("UNREACHABLE")
                 }
             }
         """
@@ -41,7 +45,14 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(5)
         failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            it.assertHasCause("Invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+        }
+        outputDoesNotContain("UNREACHABLE")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedOutsideBuildFailure = true
+            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
         }
 
         where:
@@ -51,13 +62,14 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         "owner.buildDir" | _
     }
 
-    def "from-cache build fails when task action closure sets a project property"() {
+    def "task fails immediately when task action closure sets a project property"() {
         given:
         buildFile << """
             tasks.register("some") {
                 doFirst {
                     description = "broken" // task property is ok
                     $expression = 1.2
+                    throw new IllegalStateException("UNREACHABLE")
                 }
             }
         """
@@ -69,7 +81,14 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(5)
         failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            it.assertHasCause("Invocation of 'version' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+        }
+        outputDoesNotContain("UNREACHABLE")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedOutsideBuildFailure = true
+            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'version' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
         }
 
         where:
@@ -79,12 +98,13 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         "owner.version" | _
     }
 
-    def "from-cache build fails when task action closure invokes a project method"() {
+    def "task fails immediately when task action closure invokes a project method"() {
         given:
         buildFile << """
             tasks.register("some") {
                 doFirst {
                     println(file("broken"))
+                    throw new IllegalStateException("UNREACHABLE")
                 }
             }
         """
@@ -96,11 +116,18 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(4)
         failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            it.assertHasCause("Invocation of 'file' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+        }
+        outputDoesNotContain("UNREACHABLE")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedOutsideBuildFailure = true
+            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'file' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
         }
     }
 
-    def "from-cache build fails when task action nested closure reads a project property"() {
+    def "task fails immediately when task action nested closure reads a project property"() {
         given:
         buildFile << """
             tasks.register("some") {
@@ -110,6 +137,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
                         println(buildDir)
                     }
                     cl()
+                    throw new IllegalStateException("UNREACHABLE")
                 }
             }
         """
@@ -121,11 +149,18 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(6)
         failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            it.assertHasCause("Invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+        }
+        outputDoesNotContain("UNREACHABLE")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedOutsideBuildFailure = true
+            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
         }
     }
 
-    def "from-cache build fails when task action defined in settings script reads a settings property"() {
+    def "task fails immediately when task action defined in settings script reads a settings property"() {
         given:
         settingsFile << """
             gradle.rootProject {
@@ -133,6 +168,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
                     doFirst {
                         println(name) // task property is ok
                         println(rootProject)
+                        throw new IllegalStateException("UNREACHABLE")
                     }
                 }
             }
@@ -145,11 +181,18 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFileName("Settings file '$settingsFile'")
         failure.assertHasLineNumber(6)
         failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            it.assertHasCause("Invocation of 'rootProject' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+        }
+        outputDoesNotContain("UNREACHABLE")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedOutsideBuildFailure = true
+            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'rootProject' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
         }
     }
 
-    def "from-cache build fails when task action defined in init script reads a `Gradle` property"() {
+    def "task fails immediately when task action defined in init script reads a `Gradle` property"() {
         given:
         def initScript = file("init.gradle")
         initScript << """
@@ -158,11 +201,12 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
                     doFirst {
                         println(name) // task property is ok
                         println(gradleVersion)
+                        throw new IllegalStateException("UNREACHABLE")
                     }
                 }
             }
         """
-        executer.beforeExecute { withArguments("-I", initScript.absolutePath) }
+        executer.beforeExecute { withArgument("-I").withArgument(initScript.absolutePath) }
 
         when:
         configurationCacheFails ":some"
@@ -171,18 +215,25 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFileName("Initialization script '$initScript'")
         failure.assertHasLineNumber(6)
         failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            it.assertHasCause("Invocation of 'gradleVersion' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+        }
+        outputDoesNotContain("UNREACHABLE")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedOutsideBuildFailure = true
+            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'gradleVersion' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
         }
     }
 
-    def "from-cache build fails when task onlyIf closure reads a project property"() {
+    def "task fails immediately when task onlyIf closure reads a project property"() {
         given:
         buildFile << """
             tasks.register("some") {
                 onlyIf { t ->
                     println(t.name) // task property is ok
                     println(buildDir)
-                    true
+                    throw new IllegalStateException("UNREACHABLE")
                 }
                 doFirst {
                 }
@@ -195,8 +246,44 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         then:
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(5)
-        failure.assertHasFailure("Could not evaluate onlyIf predicate for task ':some'.") {
+        failure.assertHasFailure("Invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.") {
             // The cause is not reported
+        }
+        outputDoesNotContain("UNREACHABLE")
+
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedOutsideBuildFailure = true
+            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
+        }
+    }
+
+    def "in warning mode, cache entry is stored but task still fails immediately"() {
+        given:
+        buildFile << """
+            tasks.register("some") {
+                doFirst {
+                    println(buildDir)
+                    throw new IllegalStateException("UNREACHABLE")
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails ":some", "$WARN_PROBLEMS_CLI_OPT"
+
+        then:
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(4)
+        failure.assertHasFailure("Execution failed for task ':some'.") {
+            it.assertHasCause("Invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+        }
+        outputDoesNotContain("UNREACHABLE")
+
+        // TODO: use `configurationCache` fixture, when https://github.com/gradle/gradle/issues/33857 is fixed
+        configurationCache.configurationCacheBuildOperations.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withProblem("Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
     }
 

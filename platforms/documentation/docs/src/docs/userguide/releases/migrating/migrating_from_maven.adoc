@@ -47,11 +47,11 @@ TIP: Keep the old Maven build and new Gradle build side by side.
 You know the Maven build works, so you should keep it until you are confident that the Gradle build produces all the same artifacts.
 This also means that users can try the Gradle build without creating a new copy of the source tree.
 
- . link:https://scans.gradle.com[Create a build scan for the Maven build].
+ . link:https://scans.gradle.com[Create a Build Scan for the Maven build].
 +
-A build scan will make it easier to visualize what's happening in your existing Maven build.
+A Build Scan will make it easier to visualize what's happening in your existing Maven build.
 For Maven builds, you will be able to see the project structure, what plugins are being used, a timeline of the build steps, and more.
-Keep this handy so you can compare it to the Gradle build scans while converting the project.
+Keep this handy so you can compare it to the Build Scan while converting the project.
 +
 . Develop a mechanism to verify that the two builds produce the same artifacts.
 +
@@ -72,16 +72,16 @@ Most differences will be minor, but it's worth identifying them and verifying th
 This will create all the Gradle build files you need, even for <<migmvn:multimodule_builds,multi-module builds>>.
 For simpler Maven projects, the Gradle build will be ready to run!
 +
- . link:https://scans.gradle.com[Create a build scan for the Gradle build].
+ . link:https://scans.gradle.com[Create a Build Scan for the Gradle build].
 +
-A build scan will make it easier to visualize what's happening in the build.
+A Build Scan will make it easier to visualize what's happening in the build.
 For Gradle builds, you'll be able to see the project structure, the dependencies (regular and inter-project ones), what plugins are being used and the console output of the build.
 +
 Your build may fail at this point, but that's ok; the scan will still run.
-Compare the build scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
+Compare the Build Scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
 +
-We recommend that you regularly generate build scans during the migration to help you identify and troubleshoot problems.
-If you want, you can also use a Gradle build scan to identify opportunities to <<performance.adoc#performance_gradle,improve the performance of the build>>.
+We recommend that you regularly generate a Build Scan during the migration to help you identify and troubleshoot problems.
+If you want, you can also use a Build Scan to identify opportunities to <<performance.adoc#performance_gradle,improve the performance of the build>>.
 +
  . <<migmvn:migrating_deps,Verify your dependencies and fix any problems>>.
 +

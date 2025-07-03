@@ -22,16 +22,19 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.test.fixtures.Flaky
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.GFileUtils
+import org.junit.Rule
 
 @IntegrationTestTimeout(300)
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/4684")
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
     static final EXPIRATION_CHECK_FREQUENCY = 50
     public static final String EXPIRATION_EVENT = "expiration_event.txt"
+
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer(10000)
 
     def "should capture basic data via the service registry"() {
         given:
@@ -42,7 +45,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
         expect:
         buildSucceeds()
-
     }
 
     def "should capture basic data via when the daemon is running in continuous mode"() {
@@ -84,6 +86,9 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
     def "a daemon expiration listener receives expiration reasons continuous:#continuous"() {
         given:
+        server.start()
+        server.expectConcurrent("notifyOnUnhealthy", "runTask")
+
         buildFile << """
            ${imports()}
            ${registerTestExpirationStrategy()}
@@ -99,6 +104,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         } else {
             executer.withArgument('waitForExpiration')
         }
+
         executer.run()
 
         then:
@@ -110,6 +116,9 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
     def "daemon expiration listener is implicitly for the current build only"() {
         given:
+        server.start()
+        server.expectConcurrent("notifyOnUnhealthy", "runTask")
+
         buildFile << """
            ${imports()}
            ${registerTestExpirationStrategy()}
@@ -126,22 +135,23 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
         when:
         GFileUtils.forceDelete(file(EXPIRATION_EVENT))
+        server.expect("runTask")
         buildFile.text = """
            ${imports()}
            ${waitForExpirationTask()}
         """
         openJpmsModulesForConfigurationCache()
-        def waitForExpirationResult = executer.withArgument('waitForExpiration').runWithFailure()
+        executer.withArgument('waitForExpiration').run()
 
         then:
-        waitForExpirationResult.assertHasCause("Timed out waiting for expiration event")
-
-        and:
         !file(EXPIRATION_EVENT).exists()
     }
 
     def "a daemon expiration listener receives expiration reasons when daemons run in the foreground"() {
         given:
+        server.start()
+        server.expectConcurrent("notifyOnUnhealthy", "runTask")
+
         buildFile << """
            ${imports()}
            ${registerTestExpirationStrategy()}
@@ -205,19 +215,17 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
     }
 
-    static String waitForExpirationTask() {
+    String waitForExpirationTask() {
         """
         task waitForExpiration {
             doFirst {
-                if (!latch.await(2, TimeUnit.SECONDS)) {
-                    throw new GradleException("Timed out waiting for expiration event")
-                }
+                ${server.callFromTaskAction("runTask")}
             }
         }
         """
     }
 
-    static String registerExpirationListener() {
+    String registerExpirationListener() {
         """
         def daemonScanInfo = services.get(DaemonScanInfo)
 
@@ -226,7 +234,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
             public void execute(String s) {
                   println "onExpirationEvent fired with: \${s}"
                   file("${EXPIRATION_EVENT}").text = "onExpirationEvent fired with: \${s}"
-                  latch.countDown()
+                  ${server.callFromBuild("notifyOnUnhealthy")}
             }
         })
         """
@@ -264,10 +272,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         import org.gradle.launcher.daemon.context.*
         import org.gradle.launcher.daemon.server.*
         import org.gradle.launcher.daemon.server.expiry.*
-        import java.util.concurrent.CountDownLatch
-        import java.util.concurrent.TimeUnit
-
-        def latch = new CountDownLatch(1)
         """
     }
 

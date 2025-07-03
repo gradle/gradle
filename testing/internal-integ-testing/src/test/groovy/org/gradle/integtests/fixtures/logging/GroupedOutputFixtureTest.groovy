@@ -545,4 +545,23 @@ eggs
 """)
     }
     // endregion assertOutputContains
+
+    def "can parse #description as end of task output"() {
+        given:
+        def consoleOutput = """> Task :example1
+toast
+$endMarker
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        expect:
+        groupedOutput.task(":example1").output == "toast"
+        where:
+        description                     | endMarker
+        "start of another task"         | "> Task :example2"
+        "end of build"                  | "BUILD SUCCESSFUL in 2s"
+        "configuration cache problem"   | "1 problem was found storing the configuration cache."
+        "configuration cache problems"  | "2 problems were found storing the configuration cache."
+        "cc-incompatible tasks summary" | "Some tasks in this build are not compatible with the configuration cache."
+    }
 }

@@ -60,10 +60,10 @@ include::sample[dir="snippets/buildEnvironment/javaCompileOptions/groovy",files=
 
 See other examples in the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing.adoc#sec:test_execution, test execution in the Java plugin reference>>.
 
-link:https://scans.gradle.com[Build scans] will tell you information about the JVM that executed the build when you use the `--scan` option:
+A link:https://scans.gradle.com[Build Scan] will tell you information about the JVM that executed the build when you use the `--scan` option:
 
-[caption= "Build Environment in build scans",link=https://scans.gradle.com/s/sample/cpp-parallel/infrastructure]
-image::build-scan-infrastructure.png[Build Environment in Build Scan]
+[caption= "Build Environment in a Build Scan",link=https://scans.gradle.com/s/sample/cpp-parallel/infrastructure]
+image::build-scan-infrastructure.png[Build Environment in a Build Scan]
 
 [[sec:configuring_task_using_project_properties]]
 == Configuring a task using project properties

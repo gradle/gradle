@@ -271,7 +271,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
      */
     private void maybeExpectArchUnitUnsafeDeprecationWarning() {
         if (JavaVersion.current() >= JavaVersion.VERSION_24) {
-            executer.expectDeprecationWarning("WARNING: A terminally deprecated method in sun.misc.Unsafe has been called")
+            executer.expectExternalDeprecatedMessage("WARNING: A terminally deprecated method in sun.misc.Unsafe has been called")
         }
     }
 }

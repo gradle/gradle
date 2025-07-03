@@ -179,12 +179,12 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        executer.expectDeprecationWarning(
+        executer.expectExternalDeprecatedMessage(
             "e: ${clickableUrlFor(file("build.gradle.kts"))}:7:17: 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. " +
                 "The plugins {} block must not be used here. " +
                 "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
         )
-        executer.expectDeprecationWarning(
+        executer.expectExternalDeprecatedMessage(
             "                          ^ 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. " +
                 "The plugins {} block must not be used here. " +
                 "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."

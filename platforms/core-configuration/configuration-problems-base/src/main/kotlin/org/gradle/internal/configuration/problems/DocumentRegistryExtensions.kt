@@ -20,4 +20,4 @@ import org.gradle.api.internal.DocumentationRegistry
 
 
 fun DocumentationRegistry.documentationLinkFor(section: DocumentationSection) =
-    getDocumentationFor("configuration_cache", section.anchor)
+    getDocumentationFor(section.page, section.anchor)

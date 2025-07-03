@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations.logging
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -435,12 +434,11 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     }
 
     def int getNumberOfExpectedEvents() {
-        // when a java version older than 17 is used, there is an addtional event complaining about the too old java version
-        def javaWarningOffset = JavaVersion.current().majorVersion.toInteger() >= 17 ? 0 : 1
         // when configuration cache is enabled also "Configuration cache entry reused." and "Parallel Configuration Cache is an incubating feature."
-        def configCacheOffset = GradleContextualExecuter.configCache ? 2 : 0
-        // 13 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed"
-        return 14 + javaWarningOffset + configCacheOffset
+        // when CC is not enabled, "Consider enabling configuration cache to speed up this build"
+        def configCacheOffset = GradleContextualExecuter.configCache ? 2 : 1
+        // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "3 actionable tasks: 3 executed"
+        return 14 + configCacheOffset
     }
 
     private void assertNestedTaskOutputTracked(String projectPath = ':nested') {

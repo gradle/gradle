@@ -73,7 +73,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3233")
-    def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
+    def "publishes POM dependency with empty version for Gradle"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -91,7 +91,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
             }
 
             dependencies {
-                api $dependencyNotation
+                api 'group:projectA'
                 api 'group:projectB:1.0'
             }
 
@@ -117,11 +117,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         dependency.groupId == "group"
         dependency.artifactId == "projectA"
         dependency.version == ""
-
-        where:
-        versionType | dependencyNotation
-        "empty"     | "'group:projectA'"
-        "null"      | "group:'group', name:'projectA', version:null"
     }
 
     void "defaultDependencies are included in published pom file"() {

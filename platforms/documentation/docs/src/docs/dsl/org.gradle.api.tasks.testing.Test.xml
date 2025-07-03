@@ -10,11 +10,11 @@
             </thead>
             <tr>
                 <td>testClassesDirs</td>
-                <td><literal>project.sourceSets.test.output.classesDirs</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>classpath</td>
-                <td><literal>project.sourceSets.test.runtimeClasspath</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>workingDir</td>
@@ -34,7 +34,7 @@
             </tr>
             <tr>
                 <td>executable</td>
-                <td><command>java</command> command for the current JVM.</td>
+                <td><command>java</command> launcher provided by <literal>java.toolchain</literal></td>
             </tr>
             <tr>
                 <td>systemProperties</td>

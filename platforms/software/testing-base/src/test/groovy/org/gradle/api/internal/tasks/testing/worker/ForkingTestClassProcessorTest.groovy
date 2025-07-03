@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.worker
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
@@ -177,7 +176,7 @@ class ForkingTestClassProcessorTest extends Specification {
     ) {
         return new ForkingTestClassProcessor(
             workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory),
-            Stub(JavaForkOptions), classpath, Mock(Action), Mock(DocumentationRegistry)
+            Stub(JavaForkOptions), classpath, Mock(Action)
         )
     }
 }

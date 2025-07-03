@@ -379,8 +379,8 @@ configurations.compile.withDependencies {
                     project.getConfigurations().configureEach(conf -> {
                         conf.withDependencies(deps -> {
                             DeprecationLogger.deprecate("foo")
-                                .willBecomeAnErrorInGradle10()
-                                .undocumented()
+                                .willBecomeAnErrorInNextMajorGradleVersion()
+                                .withUserManual("feature_lifecycle", "sec:deprecated")
                                 .nagUser();
                         });
                     });

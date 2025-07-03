@@ -79,15 +79,19 @@ class DefaultProjectDependencyConstraintTest extends Specification {
         }
         projectState.getMutableModel() >> project
 
+        def projectStateRegistry = Mock(ProjectStateRegistry) {
+            stateFor(Path.ROOT) >> projectState
+        }
+
         def dependencyFactory = new DefaultProjectDependencyFactory(
             TestUtil.instantiatorFactory().decorateLenient(),
             new CapabilityNotationParserFactory(false).create(),
             TestUtil.objectFactory(),
             AttributeTestUtil.attributesFactory(),
-            Mock(ProjectStateRegistry)
+            projectStateRegistry
         )
 
-        def projectDependency = dependencyFactory.create(projectState)
+        def projectDependency = dependencyFactory.create(Path.ROOT)
         new DefaultProjectDependencyConstraint(projectDependency)
     }
 }

@@ -37,6 +37,10 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
 
     DependencyMetadata getDependencyMetadata();
 
+    /**
+     * Get the attributes that are specific to this edge -- the attributes from any constraint
+     * on the module that this edge points to, and any attributes attached directly to this edge.
+     */
     ImmutableAttributes getAttributes();
 
     boolean isTargetVirtualPlatform();

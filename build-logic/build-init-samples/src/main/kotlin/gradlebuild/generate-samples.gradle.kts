@@ -29,6 +29,11 @@ import org.gradle.docs.samples.Dsl
 
 plugins {
     id("org.gradle.samples")
+    id("gradlebuild.jvm-compile")
+}
+
+jvmCompile {
+    addCompilationFrom(sourceSets.docsTest)
 }
 
 val singleProjectSampleLanguages = listOf(JAVA, GROOVY, SCALA, KOTLIN, SWIFT, CPP)

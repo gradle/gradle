@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.compile
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.hamcrest.CoreMatchers.containsString
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -208,10 +209,10 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         val extDeprecationLine = "'fun Project.myExtension(configure: Action<My_plugin_gradle.DeprecatedExt>): Unit' is deprecated. Just don't."
         val taskDeprecationLine = "'val TaskContainer.myTask: TaskProvider<My_plugin_gradle.DeprecatedTask>' is deprecated. Just don't."
 
-        executer.expectDeprecationWarningWithPattern(".*?${Regex.escape("build.gradle.kts:6:9: $extDeprecationLine")}")
-        executer.expectDeprecationWarningWithPattern(".*?${Regex.escape(extDeprecationLine)}") // compiler error details
-        executer.expectDeprecationWarningWithPattern(".*?${Regex.escape("build.gradle.kts:8:13: $taskDeprecationLine")}")
-        executer.expectDeprecationWarningWithPattern(".*?${Regex.escape(taskDeprecationLine)}") // compiler error details
+        executer.expectExternalDeprecatedMessage("e: ${clickableUrlFor(file("build.gradle.kts"))}:6:9: $extDeprecationLine")
+        executer.expectExternalDeprecatedMessage("e: ${clickableUrlFor(file("build.gradle.kts"))}:8:13: $taskDeprecationLine")
+        executer.expectExternalDeprecatedMessage("                  ^ $extDeprecationLine") // compiler error details
+        executer.expectExternalDeprecatedMessage("                      ^ $taskDeprecationLine") // compiler error details
 
         buildAndFail("help").apply {
             assertThatDescription(containsString("Script compilation error"))
@@ -232,7 +233,7 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         """)
 
         repeat(2) {
-            executer.expectDeprecationWarningWithPattern(".*`My_plugin_gradle.DeprecatedExt` is deprecated as hidden.*")
+            executer.expectExternalDeprecatedMessage("     * - `My_plugin_gradle.DeprecatedExt` is deprecated as hidden")
         }
 
         build(":kotlinDslAccessorsReport").apply {

@@ -15,17 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 
+/**
+ * Resolves potentially relative string-typed project paths to build-tree project identity {@link Path}s,
+ * relative to some base project.
+ */
 @ServiceScope({Scope.Gradle.class, Scope.Project.class})
 public interface ProjectFinder {
+
     /**
-     * Locates the project with the provided path, failing if not found.
-     *
-     * @param path Can be relative or absolute
-     * @return The project belonging to the path, never null.
+     * Resolves the given string-typed project path to build-tree project identity {@link Path}.
+     * <p>
+     * The given path may be a relative path, in which case it is resolved to an absolute project path
+     * relative to this project finder's base project. Then, the absolute project path is converted to
+     * a build-tree project identity path based on the base project's owning build.
      */
-    ProjectInternal getProject(String path);
+    Path resolveIdentityPath(String path);
+
 }

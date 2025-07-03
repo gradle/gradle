@@ -184,7 +184,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
             project(":ear") {
                 apply plugin: 'ear'
                 dependencies {
-                    deploy project(path: ':war', configuration: 'archives')
+                    deploy project(path: ':war')
                 }
             }
         """

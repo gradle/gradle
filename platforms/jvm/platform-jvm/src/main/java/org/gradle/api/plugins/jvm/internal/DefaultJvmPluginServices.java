@@ -26,7 +26,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -46,17 +45,19 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     private final ObjectFactory objectFactory;
     private final ProviderFactory providerFactory;
     private final InstanceGenerator instanceGenerator;
-    private final ProjectInternal project;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmPluginServices(ObjectFactory objectFactory,
-                                    ProviderFactory providerFactory,
-                                    InstanceGenerator instanceGenerator,
-                                    ProjectInternal project) {
+    public DefaultJvmPluginServices(
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory,
+        InstanceGenerator instanceGenerator,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
         this.instanceGenerator = instanceGenerator;
-        this.project = project;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -131,7 +132,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
         DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
         if (resourcesContribution != null) {
-            variant.artifact(new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
+            variant.artifact(new LazyJavaDirectoryArtifact(taskDependencyFactory, ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
         }
         return variant;
     }
@@ -145,7 +146,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.artifactsProvider(() ->  {
             FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
             return classesDirs.getFiles().stream()
-                .map(file -> new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
+                .map(file -> new LazyJavaDirectoryArtifact(taskDependencyFactory, ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
                 .collect(Collectors.toList());
         });
         return variant;

@@ -17,9 +17,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
     @Override

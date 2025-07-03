@@ -19,23 +19,23 @@
 <div class="badge-wrapper">
     <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/b5069222-cfd0-4393-b645-7a2c713853d5/" target="_blank">
         <span class="badge-type button--blue">LEARN</span>
-        <span class="badge-text">How to Use Build Scans&nbsp;&nbsp;&nbsp;&gt;</span>
+        <span class="badge-text">How to Use a Build Scan&nbsp;&nbsp;&nbsp;&gt;</span>
     </a>
 </div>
 ++++
 
 Gradle provides multiple ways to inspect your build:
 
-1. Profile with Build Scans
+1. Profile with a Build Scan
 2. Local profile reports
 3. Low level profiling
 
 == What is a Build Scan?
 
-https://scans.gradle.com/[Build scans] are a persistent, shareable record of what happened when running a build.
+A https://scans.gradle.com/[Build Scan] is a persistent, shareable record of what happened when running a build.
 They provide detailed insights you can use to diagnose performance issues, identify build failures, and share context with your team.
 
-Build Scans are created locally but published to a secure external server managed by Gradle.
+A Build Scan is created locally but published to a secure external server managed by Gradle.
 They do not run code on your machine, and they never modify your build.
 You can choose whether to publish a scan, and each scan is assigned a unique (private-by-default) URL.
 
@@ -49,7 +49,7 @@ $ gradle build --scan
 ----
 
 For older Gradle versions, the
-https://docs.gradle.com/build-scan-plugin/#getting_set_up[Build Scan Plugin User Manual] explains how to enable Build Scans.
+https://docs.gradle.com/develocity/gradle-plugin/current/#getting_set_up[Develocity Plugin User Manual] explains how to generate a Build Scan.
 
 At the end of your build, Gradle displays a URL where you can find your Build Scan:
 
@@ -58,18 +58,18 @@ At the end of your build, Gradle displays a URL where you can find your Build Sc
 BUILD SUCCESSFUL in 2s
 4 actionable tasks: 4 executed
 
-Publishing build scan...
+Publishing Build Scan...
 https://gradle.com/s/e6ircx2wjbf7e
 ----
 
-This section explains how to profile your build with Build Scans.
+This section explains how to profile your build with a Build Scan.
 
-== 1. Profile with Build Scans
+== 1. Profile with a Build Scan
 
-The performance page can help use Build Scans to profile a build.
+The performance page can help use a Build Scan to profile a build.
 To get there, click _"Performance"_ in the left hand navigation menu or follow the "Explore performance" link on the Build Scan home page:
 
-image::performance/build-scan-home.png[title="Performance page link on build scan home page"]
+image::performance/build-scan-home.png[title="Performance page link on Build Scan home page"]
 
 The performance page shows how long it took to complete different stages of a build.
 This page shows how long it took to:
@@ -82,12 +82,12 @@ This page shows how long it took to:
 You also get details about environmental properties, such as whether a daemon was used or not.
 
 [[build-scan-performance]]
-image::performance/build-scan-performance-page.png[title="Build scan performance page"]
+image::performance/build-scan-performance-page.png[title="Build Scan performance page"]
 
 In the above Build Scan, configuration takes over 13 seconds.
 Click on the _"Configuration"_ tab to break this stage into component parts, exposing the cause of the slowness.
 
-image::performance/build-scan-configuration-breakdown.png[title="Build scan configuration breakdown"]
+image::performance/build-scan-configuration-breakdown.png[title="Build Scan configuration breakdown"]
 
 Here you can see the scripts and plugins applied to the project in descending order of how long they took to apply.
 The slowest plugin and script applications are good candidates for optimization.
@@ -100,7 +100,7 @@ You can see that subproject `:app1` applied the script once, from inside of that
 
 == 2. Profile report
 
-If you prefer not to use Build Scans, you can generate an HTML report in the
+If you prefer not to use a Build Scan, you can generate an HTML report in the
 `build/reports/profile` directory of your root project. To generate this report,
 use the `--profile` command-line option:
 
@@ -123,13 +123,13 @@ Sometimes your build can be slow even though your build scripts do everything ri
 This often comes down to inefficiencies in plugins and custom tasks or constrained resources.
 Use the https://github.com/gradle/gradle-profiler[Gradle Profiler] to find these kinds of bottlenecks.
 With the Gradle Profiler, you can define scenarios like "Running 'assemble' after making an ABI-breaking change" and run your build several times to collect profiling data.
-Use the Profiler to produce Build Scans. Or combine it with method profilers like JProfiler and YourKit.
+Use the Profiler to produce a Build Scan. Or combine it with method profilers like JProfiler and YourKit.
 These profilers can help you find inefficient algorithms in custom plugins.
 If you find that something in Gradle itself slows down your build, don't hesitate to send a profiler snapshot to performance@gradle.com.
 
 == Performance categories
 
-Both Build Scans and local profile reports break down build execution into the same categories.
+Both a Build Scan and local profile reports break down build execution into the same categories.
 The following sections explain those categories.
 
 === Startup

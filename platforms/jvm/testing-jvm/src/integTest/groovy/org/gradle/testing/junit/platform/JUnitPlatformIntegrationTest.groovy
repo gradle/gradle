@@ -369,7 +369,7 @@ public class StaticInnerTest {
 
         expect:
         fails('test', *extraArgs)
-        failureCauseContains('There were failing tests.')
+        failure.assertHasCause('Test process encountered an unexpected problem.')
 
         where:
         scenario       | extraArgs

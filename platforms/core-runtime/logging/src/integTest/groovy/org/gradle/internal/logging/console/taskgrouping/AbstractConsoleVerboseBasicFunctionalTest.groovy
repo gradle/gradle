@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunction
 
 import static org.gradle.api.logging.configuration.ConsoleOutput.Auto
 import static org.gradle.api.logging.configuration.ConsoleOutput.Plain
+import static org.gradle.api.logging.configuration.ConsoleOutput.Colored
 import static org.gradle.api.logging.configuration.ConsoleOutput.Verbose
 
 abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
@@ -27,7 +28,7 @@ abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsole
         given:
         def helloWorldMessage= 'Hello world'
         def byeWorldMessage= 'Bye world'
-        def hasSilenceTaskOutput = consoleType in [Verbose, Plain] || consoleType == Auto && !consoleAttachment.stdoutAttached
+        def hasSilenceTaskOutput = consoleType in [Verbose, Plain, Colored] || consoleType == Auto && !consoleAttachment.stdoutAttached
 
         buildFile << """
             task helloWorld {

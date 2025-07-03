@@ -35,27 +35,27 @@ class DeprecationTimeline {
     }
 
     static DeprecationTimeline willBeRemovedInVersion(GradleVersion version) {
-        return new DeprecationTimeline("This is scheduled to be removed in %s.", version);
+        return new DeprecationTimeline("This is scheduled to be removed in Gradle %s.", version);
     }
 
     static DeprecationTimeline willBecomeAnErrorInVersion(GradleVersion version) {
-        return new DeprecationTimeline("This will fail with an error in %s.", version);
+        return new DeprecationTimeline("This will fail with an error in Gradle %s.", version);
     }
 
     static DeprecationTimeline behaviourWillBeRemovedInVersion(GradleVersion version) {
-        return new DeprecationTimeline("This behavior is scheduled to be removed in %s.", version);
+        return new DeprecationTimeline("This behavior is scheduled to be removed in Gradle %s.", version);
     }
 
     static DeprecationTimeline willChangeInVersion(GradleVersion version) {
-        return new DeprecationTimeline("This will change in %s.", version);
+        return new DeprecationTimeline("This will change in Gradle %s.", version);
     }
 
     static DeprecationTimeline startingWithVersion(GradleVersion version, String message) {
-        return new DeprecationTimeline("Starting with %s, %s.", version, message);
+        return new DeprecationTimeline("Starting with Gradle %s, %s.", version, message);
     }
 
     @Override
     public String toString() {
-        return message == null ? String.format(messagePattern, targetVersion) : String.format(messagePattern, targetVersion, message);
+        return message == null ? String.format(messagePattern, targetVersion.getMajorVersion()) : String.format(messagePattern, targetVersion.getMajorVersion(), message);
     }
 }

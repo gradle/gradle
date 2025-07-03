@@ -452,7 +452,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
 
         /**
-         * This is used to generate the repository id and for reporting purposes on build scans.
+         * This is used to generate the repository id and for reporting purposes on a Build Scan.
          * Changing this means a change of repository.
          *
          * @return a list of implemented metadata sources, as strings.

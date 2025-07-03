@@ -19,7 +19,7 @@ package org.gradle.process.internal;
 /**
  * Deprecated. Use {@link ClientExecHandleBuilderFactory} instead. Kept for now since it's used by the Kotlin plugin.
  *
- * Can be merged with {@link ClientExecHandleBuilderFactory} in Gradle 9.0.
+ * Can be merged with {@link ClientExecHandleBuilderFactory} in Gradle 10.
  */
 @Deprecated
 public interface ExecHandleFactory {

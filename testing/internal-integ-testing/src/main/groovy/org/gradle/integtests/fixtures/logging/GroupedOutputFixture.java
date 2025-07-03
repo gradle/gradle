@@ -50,12 +50,24 @@ public class GroupedOutputFixture {
     private final static String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
+    private final static String CONFIGURATION_CACHE_PROBLEMS_FOOTER = "\\d+ (problem was|problems were) found storing the configuration cache";
+    private final static String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER = "Some tasks in this build are not compatible with the configuration cache.";
     private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks?:";
 
     /**
      * Various patterns to detect the end of the task output
      */
-    private final static String END_OF_GROUPED_OUTPUT = TASK_HEADER + "|" + TRANSFORM_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + ACTIONABLE_TASKS + "|\\z";
+    private final static String END_OF_GROUPED_OUTPUT = String.join("|",
+        TASK_HEADER,
+        TRANSFORM_HEADER,
+        BUILD_STATUS_FOOTER,
+        BUILD_FAILED_FOOTER,
+        EMBEDDED_BUILD_START,
+        ACTIONABLE_TASKS,
+        CONFIGURATION_CACHE_PROBLEMS_FOOTER,
+        CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER,
+        "\\z"
+    );
 
     /**
      * Pattern to extract task output.

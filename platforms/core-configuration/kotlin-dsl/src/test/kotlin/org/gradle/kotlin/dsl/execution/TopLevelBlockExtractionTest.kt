@@ -124,7 +124,7 @@ class TopLevelBlockExtractionTest {
         } catch (unexpectedBlock: UnexpectedBlockOrder) {
             assertThat(unexpectedBlock.identifier, equalTo(plugins))
             assertThat(unexpectedBlock.location, equalTo(0..9))
-            assertThat(unexpectedBlock.message, equalTo("Unexpected `plugins` block found. `plugins` can not appear before `pluginManagement`."))
+            assertThat(unexpectedBlock.message, equalTo("Unexpected `plugins` block found. `plugins` cannot appear before `pluginManagement`."))
         }
     }
 

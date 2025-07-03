@@ -40,7 +40,7 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile group: "org.test", name: "projectA", version: "[1.1]"
+    compile("org.test:projectA:[1.1]")
 }
 """
         and:
@@ -78,7 +78,7 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile group: "org.test", name: "child", version: "1.0"
+    compile("org.test:child:1.0")
 }
 """
         and:
@@ -120,7 +120,7 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile group: "org.test", name: "child", version: "1.0"
+    compile("org.test:child:1.0")
 }
 """
         and:
@@ -167,7 +167,7 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile group: "org.test", name: "child", version: "1.0"
+    compile("org.test:child:1.0")
 }
 """
         and:

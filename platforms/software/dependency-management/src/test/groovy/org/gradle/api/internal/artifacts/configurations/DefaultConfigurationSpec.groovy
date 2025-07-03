@@ -649,7 +649,7 @@ class DefaultConfigurationSpec extends Specification {
             ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE,
             ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL
+        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED
     }
 
     void "fails to copy non-resolvable configuration (#role)"() {

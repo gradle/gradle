@@ -31,7 +31,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * are <strong>not</strong> allowed to change roles. All Gradle-created configurations will be locked.
  * <p>
  * The methods on this interface are meant to be transitional, and as such all usages of this interface
- * should be migrated to the public API starting in Gradle 9.0.
+ * should eventually be migrated to the public API.
  * <p>
  * <strong>New configurations should leverage the role-based factory methods on {@link ConfigurationContainer}.</strong>
  */

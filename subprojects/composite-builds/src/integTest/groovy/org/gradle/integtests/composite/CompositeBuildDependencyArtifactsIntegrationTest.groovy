@@ -245,7 +245,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                implementation("org.test:buildB:1.0") {
+                    targetConfiguration = "other"
+                }
             }
 """
 
@@ -303,8 +305,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                implementation group: 'org.test', name: 'buildB', version: '1.0', classifier: 'my'
-                implementation(group: 'org.test', name: 'buildB', version: '1.0') {
+                implementation("org.test:buildB:1.0:my")
+                implementation("org.test:buildB:1.0") {
                     artifact {
                         name = 'another'
                         type = 'jar'
@@ -338,8 +340,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                implementation group: 'org.test', name: 'buildB', version: '1.0'
-                implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                implementation("org.test:buildB:1.0")
+                implementation("org.test:buildB:1.0") {
+                    targetConfiguration = "other"
+                }
             }
 """
 
@@ -423,8 +427,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                implementation group: 'org.test', name: 'buildB', version: '1.0'
-                implementation group: 'org.test', name: 'buildC', version: '1.0'
+                implementation("org.test:buildB:1.0")
+                implementation("org.test:buildC:1.0")
             }
 """
 
@@ -432,7 +436,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                    implementation("org.test:buildB:1.0") {
+                        targetConfiguration = "other"
+                    }
                 }
 """
         }

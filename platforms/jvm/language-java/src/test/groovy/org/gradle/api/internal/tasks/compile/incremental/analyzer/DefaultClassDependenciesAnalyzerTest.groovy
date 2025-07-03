@@ -70,13 +70,14 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
 
         then:
         analysis.accessibleClassDependencies == [AccessedFromPackagePrivateField.name] as Set
-        analysis.privateClassDependencies == [AccessedFromPrivateField.name,
-                                              AccessedFromPrivateMethod.name,
-                                              AccessedFromPrivateMethodBody.name,
-                                              // AccessedFromPrivateClass.name, // would be in ClassAnalysis for SomeClass$Foo
-                                              // AccessedFromPrivateClassPublicField.name, // would be in ClassAnalysis for SomeClass$Foo
-                                              SomeClass.name + '$Foo',
-                                              SomeClass.name + '$1'] as Set
+        analysis.privateClassDependencies == [
+            AccessedFromPrivateField.name,
+                AccessedFromPrivateMethod.name,
+                AccessedFromPrivateMethodBody.name,
+                // AccessedFromPrivateClass.name, // would be in ClassAnalysis for SomeClass$Foo
+                // AccessedFromPrivateClassPublicField.name, // would be in ClassAnalysis for SomeClass$Foo
+                SomeClass.name + '$Foo'
+        ] as Set
     }
 
     def "knows basic class dependencies of a groovy class"() {

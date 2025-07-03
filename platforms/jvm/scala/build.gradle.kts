@@ -97,7 +97,6 @@ packageCycles {
     excludePatterns.add("org/gradle/language/scala/tasks/*")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

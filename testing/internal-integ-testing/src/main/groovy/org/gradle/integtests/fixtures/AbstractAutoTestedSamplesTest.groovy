@@ -19,12 +19,9 @@ package org.gradle.integtests.fixtures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
-
-    def util = new AutoTestedSamplesUtil()
-
-    void runSamplesFrom(String dir) {
-        // make sure all project directories exist
-        def settingsEvaluatedHook = file("settingsEvaluatedHook.gradle") << """
+    // make sure all project directories exist
+    File createSettingsEvaluatedHook() {
+        file("settingsEvaluatedHook.gradle") << """
             def collectChildren(def obj) {
                 [obj] + obj.getChildren().collectMany { collectChildren(it) }
             }
@@ -34,25 +31,41 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
                 }
             }
         """
-        util.findSamples(dir) { file, sample, tagSuffix ->
-            println "Found sample: ${sample.split("\n")[0]} (...) in $file"
-            if (tagSuffix.contains('WithoutCC') && GradleContextualExecuter.configCache) {
-                println 'Skipping sample tagged WithoutCC'
-                return
-            }
-            def buildFile = testFile('build.gradle')
-            def settingsFile = testFile('settings.gradle')
-            def fileToTest = tagSuffix.contains('Settings') ? settingsFile : buildFile
-            if (tagSuffix.contains('WithDeprecations')) {
-                executer.noDeprecationChecks()
-            }
-            fileToTest.text = sample
-            executer
-                .withTasks('help')
-                .withArguments("--stacktrace", "--init-script", settingsEvaluatedHook.absolutePath)
-            beforeSample(file, tagSuffix)
-            executer.run()
-            fileToTest.delete()
+    }
+
+    void runSample(File file, String sample, String tagSuffix, File settingsEvaluatedHook) {
+        println "Found sample: ${sample.split("\n")[0]} (...) in $file"
+        if (tagSuffix.contains('WithoutCC') && GradleContextualExecuter.configCache) {
+            println 'Skipping sample tagged WithoutCC'
+            return
+        }
+        def buildFile = testFile('build.gradle')
+        def settingsFile = testFile('settings.gradle')
+        def fileToTest = tagSuffix.contains('Settings') ? settingsFile : buildFile
+        if (tagSuffix.contains('WithDeprecations')) {
+            executer.noDeprecationChecks()
+        }
+        fileToTest.text = sample
+        executer
+            .withTasks('help')
+            .withArguments("--stacktrace", "--init-script", settingsEvaluatedHook.absolutePath)
+        beforeSample(file, tagSuffix)
+        executer.run()
+        fileToTest.delete()
+    }
+
+    void runSamplesFromFile(File f, String fileContent) {
+        def settingsEvaluatedHook = createSettingsEvaluatedHook()
+        AutoTestedSamplesUtil.runSamplesFromFile(f, fileContent) { file, sample, tagSuffix ->
+            runSample(file, sample, tagSuffix, settingsEvaluatedHook)
+        }
+    }
+
+    void runSamplesFrom(String dir) {
+        def settingsEvaluatedHook = createSettingsEvaluatedHook()
+
+        AutoTestedSamplesUtil.findSamples(dir) { file, sample, tagSuffix ->
+            runSample(file, sample, tagSuffix, settingsEvaluatedHook)
         }
     }
 

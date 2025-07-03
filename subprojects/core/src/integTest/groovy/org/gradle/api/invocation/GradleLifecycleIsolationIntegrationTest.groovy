@@ -17,8 +17,8 @@
 package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.ToBeImplemented
 import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.util.internal.ToBeImplemented
 
 class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -170,7 +170,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("No signature of method: org.gradle.api.Project.printInfo() is applicable for argument types: () values: []")
+        failure.assertHasCause("No signature of method: org.gradle.api.initialization.Settings.printInfo() is applicable for argument types: () values: [")
 
 //        outputContains("project name = root")
 //        outputContains("project name = a")

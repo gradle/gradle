@@ -20,9 +20,9 @@ For migrating from Gradle 5.x or earlier, complete the <<upgrading_version_5.ado
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
+. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
-image::deprecations.png[Deprecations View of a Gradle Build Scan]
+image::deprecations.png[Deprecations View in a Build Scan]
 +
 This is so that you can see any deprecation warnings that apply to your build.
 +

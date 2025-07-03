@@ -1556,7 +1556,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the dependency factory. Never returns null.
      * @since 7.6
      */
-    @Incubating
     DependencyFactory getDependencyFactory();
 
     /**

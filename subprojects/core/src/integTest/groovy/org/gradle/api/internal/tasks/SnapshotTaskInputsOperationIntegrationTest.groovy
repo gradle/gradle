@@ -69,7 +69,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         settingsFile << """
-            services.get($GradleEnterprisePluginManager.name).registerAdapter([buildFinished: {}, shouldSaveToConfigurationCache: { false }] as $GradleEnterprisePluginAdapter.name)
+            services.get($GradleEnterprisePluginManager.name).registerAdapter([buildFinished: { a, b -> }, shouldSaveToConfigurationCache: { false }] as $GradleEnterprisePluginAdapter.name)
         """
 
         buildFile << customTaskCode('foo', 'bar')
@@ -576,7 +576,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         disableProblemsApiCheck()
         createDir('foo')
         expect:
-        executer.expectDocumentedDeprecationWarning("Setting normalizer of type 'CustomFileNormalizer' on property 'inputDir'. This behavior has been deprecated. This will fail with an error in Gradle 10.0.")
+        executer.expectDocumentedDeprecationWarning("Setting normalizer of type 'CustomFileNormalizer' on property 'inputDir'. This behavior has been deprecated. This will fail with an error in Gradle 10.")
         succeeds("customTask")
     }
 

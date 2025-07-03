@@ -17,7 +17,10 @@
 package org.gradle.internal.problems.failure;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.internal.exceptions.CompilationFailedIndicator;
 
+import java.util.Collections;
 import java.util.List;
 
 class DefaultFailure implements Failure {
@@ -27,13 +30,15 @@ class DefaultFailure implements Failure {
     private final List<StackTraceRelevance> frameRelevance;
     private final List<Failure> suppressed;
     private final List<Failure> causes;
+    private final List<InternalProblem> problems;
 
     public DefaultFailure(
         Throwable original,
         List<StackTraceElement> stackTrace,
         List<StackTraceRelevance> frameRelevance,
         List<Failure> suppressed,
-        List<Failure> causes
+        List<Failure> causes,
+        List<InternalProblem> problems
     ) {
         if (stackTrace.size() != frameRelevance.size()) {
             throw new IllegalArgumentException("stackTrace and frameRelevance must have the same size.");
@@ -44,6 +49,7 @@ class DefaultFailure implements Failure {
         this.frameRelevance = ImmutableList.copyOf(frameRelevance);
         this.suppressed = ImmutableList.copyOf(suppressed);
         this.causes = ImmutableList.copyOf(causes);
+        this.problems = ImmutableList.copyOf(problems);
     }
 
     @Override
@@ -54,6 +60,12 @@ class DefaultFailure implements Failure {
     @Override
     public String getHeader() {
         return original.toString();
+    }
+
+    @Override
+    public String getMessage() {
+        // TODO: Remove this when we handle problems uniformly and don't do the compilation failure as a special case
+        return (original instanceof CompilationFailedIndicator) ? ((CompilationFailedIndicator) original).getShortMessage() : original.getMessage();
     }
 
     @Override
@@ -77,6 +89,16 @@ class DefaultFailure implements Failure {
     }
 
     @Override
+    public List<InternalProblem> getProblems() {
+        return problems;
+    }
+
+    @Override
+    public Throwable getOriginal() {
+        return original;
+    }
+
+    @Override
     public int indexOfStackFrame(int fromIndex, StackFramePredicate predicate) {
         int size = stackTrace.size();
         for (int i = fromIndex; i < size; i++) {
@@ -86,4 +108,17 @@ class DefaultFailure implements Failure {
         }
         return -1;
     }
+
+    @Override
+    public Failure withoutProblems() {
+        return new DefaultFailure(
+            original,
+            stackTrace,
+            frameRelevance,
+            suppressed,
+            causes,
+            Collections.emptyList()
+        );
+    }
+
 }

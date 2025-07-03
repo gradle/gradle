@@ -50,7 +50,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-@Deprecated("Will be removed in Gradle 10.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class KotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
 ) : @Suppress("deprecation") SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {

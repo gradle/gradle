@@ -42,7 +42,7 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << plugin.plugins()
     }
 
-    def "detects that the build scan plugin has been [applied=#applied]"() {
+    def "detects that the Develocity plugin has been [applied=#applied]"() {
         given:
         if (applied) {
             applyPlugin()

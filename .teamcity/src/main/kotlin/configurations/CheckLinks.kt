@@ -17,6 +17,10 @@ class CheckLinks(
             model,
             this,
             ":docs:checkLinks",
-            extraParameters = buildScanTagParam("CheckLinks") + " " + "-Porg.gradle.java.installations.auto-download=false",
+            extraParameters =
+                listOf(
+                    buildScanTagParam("CheckLinks"),
+                    "-Porg.gradle.java.installations.auto-download=false",
+                ).joinToString(""),
         )
     })

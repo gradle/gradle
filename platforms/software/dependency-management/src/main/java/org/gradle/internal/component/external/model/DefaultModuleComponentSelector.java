@@ -31,6 +31,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -38,7 +39,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultModuleComponentSelector implements ModuleComponentSelector {
+public class DefaultModuleComponentSelector implements ModuleComponentSelector, ComponentSelectorInternal {
+
     private final ModuleIdentifier moduleIdentifier;
     private final ImmutableVersionConstraint versionConstraint;
     private final ImmutableAttributes attributes;
@@ -130,7 +132,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     @Override
-    public AttributeContainer getAttributes() {
+    public ImmutableAttributes getAttributes() {
         return attributes;
     }
 
@@ -218,4 +220,5 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
             ImmutableSet.copyOf(capabilitySelectors)
         );
     }
+
 }

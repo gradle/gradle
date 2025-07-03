@@ -813,9 +813,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 allowAll()
             }
         }
-        if (forceNotation.contains("force = ")) {
-            executer.expectDeprecationWarning()
-        }
         run ':checkDeps'
 
         then:
@@ -880,9 +877,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             "com.amazonaws:aws-java-sdk-core:1.11.438" {
                 allowAll()
             }
-        }
-        if (forceNotation.contains("force =")) {
-            executer.expectDeprecationWarning()
         }
 
         run ':checkDeps'

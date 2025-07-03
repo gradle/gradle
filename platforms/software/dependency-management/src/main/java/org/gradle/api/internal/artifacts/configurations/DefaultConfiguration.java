@@ -1109,9 +1109,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     /**
      * Instead of copying a configuration's roles outright, we allow copied configurations
      * to assume any role. However, any roles which were previously disabled will become
-     * deprecated in the copied configuration. In 9.0, we will update this to copy
-     * roles and deprecations without modification. Or, better yet, we will remove support
-     * for copying configurations altogether.
+     * deprecated in the copied configuration.
      *
      * This means the copy created is <strong>NOT</strong> a strictly identical copy of the original, as the role
      * will be not only a different instance, but also may return different deprecation values.
@@ -1458,7 +1456,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         boolean extraWarningsEnabled = Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled");
 
         if (redundantChange) {
-            // Remove this condition in Gradle 9.x and warn on every redundant change, in Gradle 10.0 this should fail.
+            // Remove this condition in Gradle 9.x and warn on every redundant change, in Gradle 10 this should fail.
             if (extraWarningsEnabled) {
                 warnAboutChangingUsage(methodName, newValue);
             }
@@ -1467,7 +1465,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // This is an actual change, and permitting it is not desired behavior, but we haven't deprecated
                 // changing detached confs usages to false as of 9.0, so we have to permit even these non-redundant changes,
                 // but we can at least warn if the flag is set.
-                // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10.0 this should fail.
+                // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10 this should fail.
                 if (extraWarningsEnabled) {
                     warnAboutChangingUsage(methodName, newValue);
                 }

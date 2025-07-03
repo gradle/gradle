@@ -53,6 +53,7 @@ allprojects {
                 assert !file(".project").exists()
                 assert !file('.settings').exists() || file('.settings').listFiles().length == 0
             }
+            cleanEclipse.notCompatibleWithConfigurationCache("accesses file() from doLast action")
         }
     }
 }

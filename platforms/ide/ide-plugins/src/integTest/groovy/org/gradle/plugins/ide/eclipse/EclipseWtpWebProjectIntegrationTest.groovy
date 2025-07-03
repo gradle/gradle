@@ -17,10 +17,8 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
-    @ToBeFixedForConfigurationCache
     def "generates configuration files for a web project"() {
         file('src/main/java').mkdirs()
         file('src/main/resources').mkdirs()

@@ -72,6 +72,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheProblemsOption(),
         new ConfigurationCacheOption(),
         new ConfigurationCacheIgnoreInputsDuringStore(),
+        new ConfigurationCacheIgnoreUnsupportedBuildEventsListeners(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
@@ -338,7 +339,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String LONG_OPTION = "scan";
 
         public BuildScanOption() {
-            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)", "Disables the creation of a build scan. For more information about build scans, please visit https://gradle.com/build-scans."));
+            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION,
+                "Generate a Build Scan (Powered by Develocity).\n" +
+                    "                                   Build Scan and Develocity are registered trademarks of Gradle, Inc.\n" +
+                    "                                   For more information, please visit https://gradle.com/develocity/product/build-scan/.",
+                "Disables the creation of a Build Scan."));
         }
 
         @Override
@@ -527,6 +532,25 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheIgnoreInputsDuringStore(value);
+        }
+    }
+
+    /**
+     * Suppresses Configuration Cache problems for unsupported listeners registered in {@code BuildEventsListenersRegistry}.
+     *
+     * @since 9.0.0
+     */
+    public static class ConfigurationCacheIgnoreUnsupportedBuildEventsListeners extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners";
+
+        public ConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(value);
         }
     }
 

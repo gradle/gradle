@@ -112,7 +112,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withBuildScript("""plugins { id("some") }""")
 
         expectConfigurationCacheRequestedDeprecation()
-        executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
+        executer.expectExternalDeprecatedMessage("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
 
         build("help").apply {
             assertThat(output, containsString("some!"))
@@ -141,7 +141,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     fun expectConfigurationCacheRequestedDeprecation() {
         executer.expectDocumentedDeprecationWarning(
             "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. " +
+                "This is scheduled to be removed in Gradle 10. " +
                 "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. Consult the upgrading guide for further information:" +
                 " https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested"
         )

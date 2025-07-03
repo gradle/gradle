@@ -506,7 +506,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The 'feat' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
+        executer.expectDocumentedDeprecationWarning("The 'feat' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         run 'test'
 
         then:
@@ -579,7 +579,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The 'main' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
+        executer.expectDocumentedDeprecationWarning("The 'main' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         succeeds 'dependencies'
 
         then:
@@ -616,7 +616,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The 'feature' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
+        executer.expectDocumentedDeprecationWarning("The 'feature' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         succeeds 'dependencies'
 
         then:
@@ -643,7 +643,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The 'main' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10.0. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
+        executer.expectDocumentedDeprecationWarning("The 'main' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
         run 'dependencies'
 
         then:

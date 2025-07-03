@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -27,7 +26,6 @@ import org.junit.Rule
 class CompositeBuildParallelIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
-    @ToBeFixedForConfigurationCache
     def "builds IDE metadata artifacts in parallel"() {
         given:
         server.start()

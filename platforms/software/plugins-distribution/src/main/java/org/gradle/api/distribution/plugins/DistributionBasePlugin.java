@@ -38,6 +38,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.TextUtil;
 
@@ -125,8 +126,10 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
 
         // Build zips and tars by default when running the build-wide assemble task.
         PublishArtifactSet archivesArtifacts = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts();
-        archivesArtifacts.add(new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
-        archivesArtifacts.add(new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+        DeprecationLogger.whileDisabled(() -> {
+            archivesArtifacts.add(new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+            archivesArtifacts.add(new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+        });
     }
 
     /**

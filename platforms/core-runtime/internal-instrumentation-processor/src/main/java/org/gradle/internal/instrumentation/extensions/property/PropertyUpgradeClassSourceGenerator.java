@@ -221,7 +221,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 String simpleClassName = className.substring(className.lastIndexOf(".") + 1);
                 deprecationBuilder = CodeBlock.builder()
                     .add("$T.deprecate($S)\n", DEPRECATION_LOGGER.asClassName(), String.format("The usage of %s.%s", simpleClassName, deprecatedPropertyName))
-                    .add(".withContext($S)\n", String.format("Property '%s' was removed and this compatibility shim will be removed in Gradle 10.0. Please use '%s' property instead.", deprecatedPropertyName, newPropertyName))
+                    .add(".withContext($S)\n", String.format("Property '%s' was removed and this compatibility shim will be removed in Gradle 10. Please use '%s' property instead.", deprecatedPropertyName, newPropertyName))
                     .add(".willBecomeAnErrorInGradle10()\n");
                 break;
             case UNSPECIFIED:

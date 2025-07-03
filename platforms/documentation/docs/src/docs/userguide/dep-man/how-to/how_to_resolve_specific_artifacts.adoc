@@ -41,6 +41,8 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifac
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnly/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
 ====
 
+WARNING: Declaring dependencies with a custom extension (e.g. `@zip`, `@jar`, or `@custom`) disables metadata resolution. Gradle treats this as a request for a specific artifact, skipping variant-aware resolution and component metadata. You may need to provide metadata with a custom <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>>.
+
 == Step 2: Resolving an Artifact with a Classifier
 
 Some libraries provide multiple variations or **flavors** of an artifact.

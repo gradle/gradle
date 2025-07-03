@@ -165,7 +165,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
             attributes.put("javadocReferenceUrl", "https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html");
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
-            attributes.put("minJdkVersion", "8");
+            attributes.put("minJdkVersion", "17");
 
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");

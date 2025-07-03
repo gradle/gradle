@@ -51,7 +51,7 @@ The basics covers:
 <<task_basics.adoc#task_basics,Part 7.>> Tasks Basics +
 <<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins Basics +
 <<gradle_optimizations.adoc#gradle_optimizations,Part 9.>> Incremental Builds and Build Caching Basics +
-<<build_scans.adoc#build_scans,Part 10.>> Build Scans +
+<<build_scans.adoc#build_scans,Part 10.>> Build Scan +
 
 [[getting_started]]
 == 2. Gradle Tutorial

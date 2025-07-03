@@ -67,5 +67,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true

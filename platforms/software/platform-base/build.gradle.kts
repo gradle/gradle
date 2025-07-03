@@ -44,8 +44,6 @@ packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
-
 description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""
 tasks.isolatedProjectsIntegTest {
     enabled = false

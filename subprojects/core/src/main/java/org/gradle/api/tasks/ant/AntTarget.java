@@ -24,6 +24,8 @@ import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
+
 /**
  * A task which executes an Ant target.
  */
@@ -32,6 +34,10 @@ public abstract class AntTarget extends ConventionTask {
 
     private Target target;
     private File baseDir;
+
+    public AntTarget() {
+        requireDegradation(this, "Task is not compatible with the Configuration Cache");
+    }
 
     @TaskAction
     protected void executeAntTarget() {

@@ -39,6 +39,8 @@ import japicmp.model.JApiMethod
 private
 typealias PredicateVisitor = GenericVisitorAdapter<Boolean, Unit?>
 
+private
+typealias SinceVisitor = GenericVisitorAdapter<SinceTagStatus, Unit?>
 
 internal
 object JavaSourceQueries {
@@ -56,15 +58,15 @@ object JavaSourceQueries {
             }
         )
 
-    fun isSince(version: String, member: JApiCompatibility): JavaSourceQuery<Boolean> =
+    fun getSince(member: JApiCompatibility): JavaSourceQuery<SinceTagStatus> =
         member.jApiClass.simpleName.let { declaringClassSimpleName ->
             JavaSourceQuery(
-                false,
+                SinceTagStatus.Missing,
                 when (member) {
-                    is JApiClass -> isSinceJavaClassVisitorFor(declaringClassSimpleName, version)
-                    is JApiField -> isSinceJavaFieldVisitorFor(member, version)
-                    is JApiConstructor -> isSinceJavaConstructorVisitorFor(declaringClassSimpleName, version)
-                    is JApiMethod -> isSinceJavaMethodVisitorFor(declaringClassSimpleName, member, version)
+                    is JApiClass -> getSinceJavaClassVisitorFor(declaringClassSimpleName)
+                    is JApiField -> getSinceJavaFieldVisitorFor(member)
+                    is JApiConstructor -> getSinceJavaConstructorVisitorFor(declaringClassSimpleName)
+                    is JApiMethod -> getSinceJavaMethodVisitorFor(declaringClassSimpleName, member)
                     else -> error("Unsupported japicmp member type ${member::class}")
                 }
             )
@@ -78,69 +80,62 @@ val MethodDeclaration.hasOverrideAnnotation: Boolean
 
 
 private
-fun isSinceJavaClassVisitorFor(classSimpleName: String, version: String) =
-    object : PredicateVisitor() {
+fun getSinceJavaClassVisitorFor(classSimpleName: String) =
+    object : SinceVisitor() {
 
-        override fun visit(declaration: ClassOrInterfaceDeclaration, arg: Unit?): Boolean? =
-            if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
-            else super.visit(declaration, arg)
+        override fun visit(declaration: ClassOrInterfaceDeclaration, arg: Unit?): SinceTagStatus? =
+            declaration.getSinceIfMatchesName(classSimpleName) ?: super.visit(declaration, arg)
 
-        override fun visit(declaration: AnnotationDeclaration, arg: Unit?): Boolean? =
-            if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
-            else super.visit(declaration, arg)
+        override fun visit(declaration: AnnotationDeclaration, arg: Unit?): SinceTagStatus? =
+            declaration.getSinceIfMatchesName(classSimpleName) ?: super.visit(declaration, arg)
 
-        override fun visit(declaration: EnumDeclaration, arg: Unit?): Boolean? =
-            if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
-            else super.visit(declaration, arg)
+        override fun visit(declaration: EnumDeclaration, arg: Unit?): SinceTagStatus? =
+            declaration.getSinceIfMatchesName(classSimpleName) ?: super.visit(declaration, arg)
     }
 
 
 private
-fun isSinceJavaFieldVisitorFor(field: JApiField, version: String) =
-    object : PredicateVisitor() {
+fun getSinceJavaFieldVisitorFor(field: JApiField) =
+    object : SinceVisitor() {
 
-        override fun visit(declaration: FieldDeclaration, arg: Unit?): Boolean? =
-            if (matchesName(declaration.fieldName, field.name) && declaration.isSince(version)) true
-            else null
+        override fun visit(declaration: FieldDeclaration, arg: Unit?): SinceTagStatus? =
+            declaration.takeIf { matchesName(it.fieldName, field.name) }?.getSince()?.let { SinceTagStatus.Present(it) }
 
-        override fun visit(declaration: EnumConstantDeclaration, arg: Unit?): Boolean? =
-            if (declaration.matchesNameAndIsSince(field.name, version)) true
-            else null
+        override fun visit(declaration: EnumConstantDeclaration, arg: Unit?): SinceTagStatus? =
+            declaration.getSinceIfMatchesName(field.name)
     }
 
 
 private
-fun isSinceJavaConstructorVisitorFor(classSimpleName: String, version: String) =
-    object : PredicateVisitor() {
+fun getSinceJavaConstructorVisitorFor(classSimpleName: String) =
+    object : SinceVisitor() {
 
-        override fun visit(declaration: ConstructorDeclaration, arg: Unit?): Boolean? =
-            if (declaration.matchesNameAndIsSince(classSimpleName, version)) true
-            else super.visit(declaration, arg)
+        override fun visit(declaration: ConstructorDeclaration, arg: Unit?): SinceTagStatus? =
+            declaration.getSinceIfMatchesName(classSimpleName) ?: super.visit(declaration, arg)
     }
 
 
 private
-fun isSinceJavaMethodVisitorFor(classSimpleName: String, method: JApiMethod, version: String) =
-    object : PredicateVisitor() {
+fun getSinceJavaMethodVisitorFor(classSimpleName: String, method: JApiMethod) =
+    object : SinceVisitor() {
 
-        override fun visit(declaration: AnnotationMemberDeclaration, arg: Unit?): Boolean? =
-            if (declaration.matchesNameAndIsSince(method.name, version)) true
-            else super.visit(declaration, arg)
+        override fun visit(declaration: AnnotationMemberDeclaration, arg: Unit?): SinceTagStatus? =
+            declaration.getSinceIfMatchesName(method.name) ?: super.visit(declaration, arg)
 
-        override fun visit(declaration: MethodDeclaration, arg: Unit?): Boolean? =
-            if (declaration.matchesNameAndIsSince(method.name, version)) true
-            else null
+        override fun visit(declaration: MethodDeclaration, arg: Unit?): SinceTagStatus? =
+            declaration.getSinceIfMatchesName(method.name)
 
-        override fun visit(declaration: EnumDeclaration, arg: Unit?): Boolean? {
-            return if (declaration.matchesName(classSimpleName) && method.isEnumImplicitMethod()) true
-            else super.visit(declaration, arg)
+        override fun visit(declaration: EnumDeclaration, arg: Unit?): SinceTagStatus? {
+            return if (declaration.matchesName(classSimpleName) && method.isEnumImplicitMethod()) {
+                SinceTagStatus.NotNeeded
+            } else super.visit(declaration, arg)
         }
     }
 
 
 private
-fun <T> T.matchesNameAndIsSince(candidateName: String, version: String): Boolean where T : BodyDeclaration<*>, T : NodeWithSimpleName<*> =
-    takeIf { it.matchesName(candidateName) }?.isSince(version) == true
+fun <T> T.getSinceIfMatchesName(candidateName: String): SinceTagStatus? where T : BodyDeclaration<*>, T : NodeWithSimpleName<*> =
+    takeIf { it.matchesName(candidateName) }?.getSince()?.let { SinceTagStatus.Present(it) }
 
 
 private
@@ -152,10 +147,14 @@ private
 fun matchesName(name: String, candidateName: String) =
     name == candidateName.replace(".*\\$".toRegex(), "") // strip outer class names
 
+private
+val SINCE_REGEX = Regex("""@since ([^\s]+)""")
 
 private
-fun BodyDeclaration<*>.isSince(version: String): Boolean =
-    comment?.orElse(null)?.content?.contains("@since $version") == true
+fun BodyDeclaration<*>.getSince(): String? =
+    comment?.orElse(null)?.content?.let { content ->
+        SINCE_REGEX.find(content)?.groupValues?.get(1)
+    }
 
 
 private

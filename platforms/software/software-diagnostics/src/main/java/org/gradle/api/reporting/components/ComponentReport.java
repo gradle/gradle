@@ -39,6 +39,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 import static org.gradle.model.internal.type.ModelTypes.modelMap;
 
 /**
@@ -58,6 +59,11 @@ public abstract class ComponentReport extends DefaultTask {
 
     @Inject
     protected abstract TypeAwareBinaryRenderer getBinaryRenderer();
+
+    @Inject
+    public ComponentReport() {
+        requireDegradation(this, "Task is not compatible with the Configuration Cache");
+    }
 
     @TaskAction
     public void report() {

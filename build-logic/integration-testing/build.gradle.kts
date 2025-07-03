@@ -19,6 +19,7 @@ dependencies {
 
     implementation(projects.cleanup)
     implementation(projects.dependencyModules)
+    implementation(projects.jvm)
 
     testImplementation("junit:junit")
 }

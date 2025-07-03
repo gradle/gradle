@@ -215,8 +215,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             repositories {
                 maven {
                     name = 'custom repo'
-                    url = 'http://foo.com'
-                    artifactUrls 'http://foo.com/artifacts1'
+                    url = 'http://example.com'
+                    artifactUrls 'http://example.com/artifacts1'
                     metadataSources { gradleMetadata(); artifact() }
                     credentials {
                         username = 'user'
@@ -244,8 +244,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name == 'custom repo'
             type == 'MAVEN'
             properties.size() == 5
-            properties.URL == 'http://foo.com'
-            properties.ARTIFACT_URLS == ['http://foo.com/artifacts1']
+            properties.URL == 'http://example.com'
+            properties.ARTIFACT_URLS == ['http://example.com/artifacts1']
             properties.METADATA_SOURCES == ['gradleMetadata', 'artifact']
             properties.AUTHENTICATED == true
             properties.'AUTHENTICATION_SCHEMES' == ['DigestAuthentication']

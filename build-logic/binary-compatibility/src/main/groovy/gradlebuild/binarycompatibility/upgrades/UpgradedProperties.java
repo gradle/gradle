@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule.SINCE_ERROR_MESSAGE;
+import static gradlebuild.binarycompatibility.rules.SinceAnnotationRule.SINCE_ERROR_MESSAGE;
 import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_INTERFACE;
 import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
 import static japicmp.model.JApiCompatibilityChange.METHOD_NEW_DEFAULT;

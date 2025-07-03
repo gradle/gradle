@@ -24,6 +24,8 @@
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
 platforms/build-infrastructure/             @gradle/bt-developer-productivity
 packaging/internal-build-reports/           @gradle/bt-developer-productivity
+testing/distributions-basics/               @gradle/bt-developer-productivity
+testing/distributions-core/                 @gradle/bt-developer-productivity
 testing/internal-architecture-testing/      @gradle/bt-developer-productivity
 testing/internal-integ-testing/             @gradle/bt-developer-productivity
 testing/internal-performance-testing/       @gradle/bt-developer-productivity
@@ -47,27 +49,27 @@ testing/architecture-test/src/changes/accepted-changes/accepted-public-api-chang
 testing/architecture-test/src/changes/archunit-store/internal-api-nullability.txt           @gradle/bt-unassigned-maintainers
 
 # Core automation platform (core/configuration)
-platforms/core-configuration/               @gradle/bt-configuration
-testing/smoke-ide-test/                     @gradle/bt-configuration
+platforms/core-configuration/               @gradle/bt-cortex
+testing/smoke-ide-test/                     @gradle/bt-cortex
 
 # Core automation platform (Kotlin DSL)
-build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
-build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl/                    @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-dsl-maintainers
+build-logic/kotlin-dsl/                                     @gradle/bt-tide
+build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl/                    @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-tide
 
 # Core automation platform (Declarative DSL)
-platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-core/                  @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-internal-utils/        @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-gradle
+platforms/core-configuration/declarative-dsl-core/                  @gradle/bt-declarative-gradle
+platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-declarative-gradle
+platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-gradle
+platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-gradle
+platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-gradle
+platforms/core-configuration/declarative-dsl-internal-utils/        @gradle/bt-declarative-gradle
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
@@ -112,11 +114,11 @@ platforms/extensibility/        @gradle/bt-extensibility-maintainers
 platforms/native/                   @gradle/bt-native-maintainers
 
 # IDE Experience team
-platforms/ide/                    @gradle/bt-ide-experience
+platforms/ide/                    @gradle/bt-tide
 # Eventually be moved to the core platform.
 # Currently heavily developed by the bt-ide-experience team.
-platforms/ide/problems/           @gradle/bt-ide-experience
-platforms/ide/ide-native/         @gradle/bt-ide-experience @gradle/bt-native-maintainers
+platforms/ide/problems/           @gradle/bt-tide
+platforms/ide/ide-native/         @gradle/bt-tide @gradle/bt-native-maintainers
 
 # Documentation
 platforms/documentation/docs/src/docs/                                                        @gradle/bt-docs-reviewers
@@ -125,9 +127,9 @@ platforms/documentation/docs/src/docs-asciidoctor-extensions-base/              
 platforms/documentation/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-docs-reviewers
 platforms/documentation/samples/                                                       	      @gradle/bt-docs-reviewers
 
-platforms/documentation/docs/src/snippets/kotlinDsl/                                                @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
-platforms/documentation/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
-platforms/documentation/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
+platforms/documentation/docs/src/snippets/kotlinDsl/                                                @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-docs-reviewers @gradle/bt-tide
 
 platforms/documentation/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-docs-reviewers @gradle/bt-jvm

@@ -256,14 +256,20 @@ fun Decoder.readStringsSet(): Set<String> =
     }
 
 
-inline fun <T> WriteContext.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
-    val size = collection.size
+inline fun <T, C : Encoder> C.writeCollectionUnchecked(collection: Collection<T>, size: Int, writeElement: (T) -> Unit): Int {
     writeSmallInt(size)
     var totalWritten = 0
     for (element in collection) {
         writeElement(element)
         ++totalWritten
     }
+    return totalWritten
+}
+
+
+inline fun <T> WriteContext.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
+    val size = collection.size
+    val totalWritten = writeCollectionUnchecked(collection, size, writeElement)
     if (size != totalWritten) {
         reportCollectionWriteFailure("collection", size, totalWritten, collection.size)
     }
@@ -354,7 +360,7 @@ fun WriteContext.reportCollectionWriteFailure(collectionKind: String, size: Int,
     onError(ConcurrentModificationException("Collection corrupted or changed while iterating")) {
         text("The $collectionKind size() is $size, but $totalWritten entries were available when iterating over it. ")
         if (sizeAfterIteration != size) {
-            text("The size changed to ${sizeAfterIteration} after iterating.")
+            text("The size changed to $sizeAfterIteration after iterating.")
         } else {
             text("The $collectionKind is likely broken or corrupted because of a data race.")
         }

@@ -113,8 +113,8 @@ class ConfigurationCacheStartParameter internal constructor(
     val isDebug: Boolean
         get() = startParameter.isConfigurationCacheDebug
 
-    val failOnProblems: Boolean
-        get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.FAIL
+    val isWarningMode: Boolean
+        get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.WARN
 
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache

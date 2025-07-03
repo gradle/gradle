@@ -18,7 +18,7 @@ Directories are common in the case of inter-project dependencies to avoid the co
 [[sub:terminology_build]]
 Build::
 A build is the aggregate of the atomic pieces of work performed by Gradle.
-It is made up of <<sub:terminology_project,projects>> and those projects have a collection of <<sub:terminology_task, tasks>>.
+It is made up of <<#sub:terminology_project,projects>> and those projects have a collection of <<#sub:terminology_task, tasks>>.
 +
 A build usually has an outcome of SUCCESS or FAILURE.
 +
@@ -32,16 +32,16 @@ A link:https://gradle.com/develocity/product/build-scan[Build Scan] is a service
 Build Script::
 A `build.gradle` script.
 +
-The existence of a build script, along with an entry in the <<sub:terminology_settings_script,settings script>> (other than for the root build script, which requires no entry), is what defines a Gradle <<sub:terminology_module,module>>.
+The existence of a build script, along with an entry in the <<#sub:terminology_settings_script,settings script>> (other than for the root build script, which requires no entry), is what defines a Gradle <<#sub:terminology_module,module>>.
 
 == C
 
 [[sub:terminology_capability]]
 Capability::
 A capability identifies a feature offered by one or multiple components.
-A capability is identified by coordinates similar to the coordinates used for <<sub:terminology_module_version, module versions>>.
+A capability is identified by coordinates similar to the coordinates used for <<#sub:terminology_module_version, module versions>>.
 By default, each module version offers a capability that matches its coordinates, such as `com.google:guava:18.0`.
-Capabilities can be used to express that a component provides multiple <<sub:terminology_feature_variant, feature variants>> or that two different components implement the same feature (and thus cannot be used together).
+Capabilities can be used to express that a component provides multiple <<#sub:terminology_feature_variant, feature variants>> or that two different components implement the same feature (and thus cannot be used together).
 For more details, see the section on <<component_capabilities.adoc#sec:declaring-component-capabilities, capabilities>>.
 
 [[sub:terminology_component]]
@@ -71,17 +71,17 @@ NOTE: The word "configuration" is an overloaded term that has a different meanin
 
 [[sub:terminology_configuration_phase]]
 Configuration Phase::
-A Gradle build is composed of two primary phases, the configuration phase (not to be confused with <<sub:terminology_configuration>> instances) and the <<sub:terminology_execution_phase,execution phase>>.
+A Gradle build is composed of two primary phases, the configuration phase (not to be confused with <<#sub:terminology_configuration>> instances) and the <<#sub:terminology_execution_phase,execution phase>>.
 +
 The configuration phase happens first and is single-threaded.
 
 [[sub:terminology_convention_plugin]]
 Convention Plugin::
-A <<sub:terminology_plugin>> built on top of an <<sub:terminology_ecosystem_plugin,ecosystem plugin>>, which applies common _conventions_ to the build script that uses the plugin.
+A <<#sub:terminology_plugin,plugin>> built on top of an <<#sub:terminology_ecosystem_plugin,ecosystem plugin>>, which applies common _conventions_ to the build script that uses the plugin.
 
 [[sub:terminology_cross_configuration]]
 Cross-Configuration::
-See <<sub:terminology_cross_project_configuration,Cross-Project Configuration>>.
+See <<#sub:terminology_cross_project_configuration,Cross-Project Configuration>>.
 
 [[sub:terminology_cross_project_configuration]]
 Cross-Project Configuration::
@@ -163,7 +163,7 @@ For more information, see the sections on <<dependency_constraints.adoc#dependen
 
 [[sub:terminology_eager]]
 Eager::
-Many Gradle APIs come in two forms: `eager` and <<sub:terminology_lazy,`lazy`>>.
+Many Gradle APIs come in two forms: `eager` and <<#sub:terminology_lazy,`lazy`>>.
 The difference lies in when values are calculated or resolved.
 +
 Eager means immediate.
@@ -182,14 +182,14 @@ val myValue = layout.buildDirectory.file("output.txt")
 
 [[sub:terminology_ecosystem_plugin]]
 Ecosystem Plugin::
-A <<sub:terminology_plugin>> responsible for building a language, such as Java (`java` and `java-library`), Groovy, Scala, Android, Kotlin, etc.
+A <<#sub:terminology_plugin,plugin>> responsible for building a language, such as Java (`java` and `java-library`), Groovy, Scala, Android, Kotlin, etc.
 Many plugins are maintained by Gradle and are part of the Gradle distribution.
 
 [[sub:terminology_execution_phase]]
 Execution phase::
 The second primary phase of a Gradle build, the execution phase happens after the
-<<sub:terminology_configuration_phase,configuration phase>> is complete.
-This is where all <<sub:terminology_task,tasks>> actions are executed.
+<<#sub:terminology_configuration_phase,configuration phase>> is complete.
+This is where all <<#sub:terminology_task,tasks>> actions are executed.
 +
 This phase has multiple levels of parallelism.
 
@@ -215,7 +215,7 @@ When invoked, the Gradle build executes a set of tasks based on the defined buil
 
 [[sub:terminology_incremental_builds]]
 Incremental Builds::
-An incremental build executes only the <<sub:terminology_task,tasks>> that are necessary.
+An incremental build executes only the <<#sub:terminology_task,tasks>> that are necessary.
 If we run any source code, Gradle first checks if that source code has gone through any previous execution.
 If the code has some changes, it will then be executed, but if there are no changes, then it will skip the execution of that code.
 
@@ -231,7 +231,7 @@ An init or initialization script, is backed by an instance of the `Gradle` type.
 
 [[sub:terminology_lazy]]
 Lazy::
-Many Gradle APIs come in two forms: <<sub:terminology_eager,`eager`>> and `lazy`.
+Many Gradle APIs come in two forms: <<#sub:terminology_eager,`eager`>> and `lazy`.
 The difference lies in when values are calculated or resolved.
 +
 Lazy means deferred.
@@ -259,8 +259,8 @@ Many other repositories exists like (the now defunct) https://jfrog.com/blog/int
 [[sub:terminology_module]]
 Module::
 A piece of software that evolves over time e.g., link:https://github.com/google/guava[Google Guava].
-Every module has a name. Each module release is optimally represented by a <<sub:terminology_module_version, module version>>.
-For convenient consumption, modules can be hosted in a <<sub:terminology_repository, repository>>.
+Every module has a name. Each module release is optimally represented by a <<#sub:terminology_module_version, module version>>.
+For convenient consumption, modules can be hosted in a <<#sub:terminology_repository, repository>>.
 
 [[sub:terminology_module_metadata]]
 Module Metadata::
@@ -299,20 +299,20 @@ NOTE: Maven's BOM (bill-of-material) is a popular platform that <<platforms.adoc
 Plugin::
 Gradle is built on a plugin system.
 Gradle itself is primarily composed of infrastructure, such as a sophisticated dependency resolution engine, common to all project types.
-The rest of its functionality comes from plugins, including "core" plugins distributed with Gradle itself, third-party plugins, and <<sub:terminology_script_plugin,script plugins>> in a given build.
+The rest of its functionality comes from plugins, including "core" plugins distributed with Gradle itself, third-party plugins, and <<#sub:terminology_script_plugin,script plugins>> in a given build.
 
 There are three _kinds_ of plugin, based on the context in which they are applied:
 
-. Project plugins that implement `Plugin<Project>`, applied in <<sub:terminology_build_script,build scripts>>.
-. Settings plugins that implement `Plugin<Settings>`, applied in <<sub:terminology_settings_script,settings scripts>>.
-. Init (Gradle) plugins that implement `Plugin<Gradle>`, applied in <<sub:terminology_init_script,init scripts>>.
+. Project plugins that implement `Plugin<Project>`, applied in <<#sub:terminology_build_script,build scripts>>.
+. Settings plugins that implement `Plugin<Settings>`, applied in <<#sub:terminology_settings_script,settings scripts>>.
+. Init (Gradle) plugins that implement `Plugin<Gradle>`, applied in <<#sub:terminology_init_script,init scripts>>.
 
-Plugins may be _implemented_ as so-called binary plugins (that is, by explicitly implementing one of the specific generic interfaces described above), or as <<sub:terminology_precompiled_script_plugin,precompiled script plugins>>.
+Plugins may be _implemented_ as so-called binary plugins (that is, by explicitly implementing one of the specific generic interfaces described above), or as <<#sub:terminology_precompiled_script_plugin,precompiled script plugins>>.
 This distinction is merely an implementation detail.
 
 [[sub:terminology_precompiled_script_plugin]]
 Precompiled Script Plugin::
-Equivalent to a <<sub:terminology_plugin,plugin>>, but written such that it looks like a build script, precompiled script plugins can be written in Groovy or Kotlin by applying the `groovy-gradle-plugin` or `kotlin-dsl` plugin, respectively.
+Equivalent to a <<#sub:terminology_plugin,plugin>>, but written such that it looks like a build script, precompiled script plugins can be written in Groovy or Kotlin by applying the `groovy-gradle-plugin` or `kotlin-dsl` plugin, respectively.
 
 [[sub:terminology_project]]
 Project::
@@ -346,21 +346,21 @@ For more information, see the section on <<resolution_rules.adoc#using-resolutio
 
 [[sub:terminology_script_plugin]]
 Script Plugin::
-A Gradle script that can be applied to other Gradle scripts, including <<sub:terminology_build_script,build scripts>>,
-<<sub:terminology_settings_script,settings scripts>>, and <<sub:terminology_init_script,init scripts>>.
+A Gradle script that can be applied to other Gradle scripts, including <<#sub:terminology_build_script,build scripts>>,
+<<#sub:terminology_settings_script,settings scripts>>, and <<#sub:terminology_init_script,init scripts>>.
 It can be written in Groovy or Kotlin, and applied to other scripts via the `apply` method.
-Depending on the type of script they are applied to, they're backed by either a <<sub:terminology_project,`Project`>> instance, a <<sub:terminology_settings_script,`Settings`>> instance, or a <<sub:terminology_init_script,`Gradle`>> instance.
+Depending on the type of script they are applied to, they're backed by either a <<#sub:terminology_project,`Project`>> instance, a <<#sub:terminology_settings_script,`Settings`>> instance, or a <<#sub:terminology_init_script,`Gradle`>> instance.
 
 [[sub:terminology_settings_script]]
 Settings Script::
 A `settings.gradle(.kts)` script.
-A settings script has a large number of responsibilities, but one of the most important is declaring the set of <<sub:terminology_project,projects>> that are part of the build, via `include :project`.
+A settings script has a large number of responsibilities, but one of the most important is declaring the set of <<#sub:terminology_project,projects>> that are part of the build, via `include :project`.
 
 == T
 
 [[sub:terminology_task]]
 Task::
-Each <<sub:terminology_project,projects>> is made up of one or more tasks.
+Each <<#sub:terminology_project,projects>> is made up of one or more tasks.
 Each task ought to be atomic (but often isn't), with inputs and outputs.
 Gradle executes tasks to perform its work.
 +
@@ -384,7 +384,7 @@ The version selection for transitive dependencies can be influenced by declaring
 Variant (of a component)::
 Each <<#sub:terminology_component, component>> consists of one or more variants.
 A variant consists of a set of artifacts and defines a set of dependencies.
-It is identified by a set of <<sub:terminology_attribute,attributes>> and <<sub:terminology_capability,capabilities>>.
+It is identified by a set of <<#sub:terminology_attribute,attributes>> and <<#sub:terminology_capability,capabilities>>.
 +
 Gradle's dependency resolution is variant-aware and selects one or more variants of each component after a component (i.e., one version of a module) has been selected.
 It may also fail if the variant selection result is ambiguous, meaning that Gradle does not have enough information to select one of multiple mutual exclusive variants.

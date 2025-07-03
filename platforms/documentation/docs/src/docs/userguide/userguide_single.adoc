@@ -44,7 +44,7 @@ include::feature_lifecycle.adoc[leveloffset=+2]
 
 == UPGRADING
 
-include::upgrading_version_8.adoc[leveloffset=+2]
+include::upgrading_version_9.adoc[leveloffset=+2]
 
 [[part:running_builds]]
 == **RUNNING GRADLE BUILDS**

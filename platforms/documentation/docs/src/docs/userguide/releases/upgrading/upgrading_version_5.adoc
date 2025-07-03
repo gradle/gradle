@@ -20,9 +20,9 @@ For migrating from Gradle 4.x, complete the <<upgrading_version_4.adoc#upgrading
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
+. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
-image::deprecations.png[Deprecations View of a Gradle Build Scan]
+image::deprecations.png[Deprecations View in a Build Scan]
 +
 This is so that you can see any deprecation warnings that apply to your build.
 +
@@ -68,7 +68,7 @@ Use '--warning-mode all' to show the individual deprecation warnings.
 See https://docs.gradle.org/6.0/userguide/command_line_interface.html#sec:command_line_warnings
 ```
 
-The deprecation warnings show up in https://scans.gradle.com/s/txrptciitl2ha/deprecations[build scans] for every build, regardless of the command-line switches used.
+The deprecation warnings show up in a https://scans.gradle.com/s/txrptciitl2ha/deprecations[Build Scan] for every build, regardless of the command-line switches used.
 
 When the build is executed with `--warning-mode all`, the individual warnings will be shown:
 
@@ -153,9 +153,9 @@ Some of these plugins may have replacements on the https://plugins.gradle.org/[P
 
 Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
-==== Build scan plugin 2.x is no longer supported
+==== Build Scan plugin 2.x is no longer supported
 
-For Gradle 6, usage of the build scan plugin must be replaced with the Develocity plugin.
+For Gradle 6, usage of the Build Scan plugin must be replaced with the Develocity plugin.
 This also requires changing how the plugin is applied.
 Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.
 
@@ -437,7 +437,7 @@ There are a number of community-provided plugins for sending out notifications a
 ==== The Compare Gradle Builds plugin has been removed
 
 The deprecated Compare Gradle Builds plugin has been removed.
-Please use https://scans.gradle.com/[build scans] for build analysis and comparison.
+Please use a https://scans.gradle.com/[Build Scan] for build analysis and comparison.
 
 ==== The Play plugins have been removed
 
@@ -624,7 +624,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
-link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
+A link:https://gradle.com/develocity/product/build-scan[Build Scan] shows much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
 
 === Potential breaking changes
 

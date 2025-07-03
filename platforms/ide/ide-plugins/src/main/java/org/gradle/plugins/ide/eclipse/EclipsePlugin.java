@@ -64,6 +64,7 @@ import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.plugins.ide.internal.IdePluginHelper;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
@@ -117,6 +118,7 @@ public abstract class EclipsePlugin extends IdePlugin {
     @Override
     protected void onApply(Project project) {
         getLifecycleTask().configure(withDescription("Generates all Eclipse files."));
+        getLifecycleTask().configure(IdePluginHelper.withGracefulDegradation());
         getCleanTask().configure(withDescription("Cleans all Eclipse files."));
 
         EclipseModel model = project.getExtensions().create("eclipse", EclipseModel.class, project);
@@ -240,6 +242,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                         task.setOutputFile(project.file(".classpath"));
                     }
                 });
+                task.configure(IdePluginHelper.withGracefulDegradation());
                 addWorker(task, ECLIPSE_CP_TASK_NAME);
 
                 XmlTransformer xmlTransformer = new XmlTransformer();

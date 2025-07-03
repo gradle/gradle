@@ -18,7 +18,6 @@ package org.gradle.integtests.samples.antmigration
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
@@ -28,7 +27,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("antMigration/importBuild")
-    @ToBeFixedForConfigurationCache
     def "can import an Ant build and reconfigure its tasks (#dsl)"() {
         given: "A sample project with an Ant build"
         def dslDir = sample.dir.file(dsl)
@@ -83,7 +81,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("antMigration/multiProject")
-    @ToBeFixedForConfigurationCache
     def "can link projects in a multi-project build via task dependencies (#dsl)"() {
         given: "A sample multi-project build"
         def dslDir = sample.dir.file(dsl)

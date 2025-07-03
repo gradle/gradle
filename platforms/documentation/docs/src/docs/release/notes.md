@@ -14,9 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-Gradle 9.0 has many bug fixes and other general improvements. As a major version, this release also has changes to deprecated APIs and behavior. Consult the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html) for guidance on removed APIs and behavior.
-
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -25,63 +23,128 @@ Include only their name, impactful features should be called out separately belo
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-[Victor Merkulov](https://github.com/urdak)
-
-Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
-```
+```text
 ./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
 ```
 
-See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
+See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
-### Kotlin build script compilation avoidance
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-With this release, the mechanism for detecting ABI (Application Binary Interface) changes in [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts has been significantly improved. 
-Gradle now relies on the Kotlin distribution’s own ABI fingerprinting instead of its previous internal mechanism.
+<!--
 
-The biggest advantage of the new mechanism is the ability to work in the presence of inline functions, something that Gradle wasn't handling efficiently until now.
-This results in substantial performance gains depending on your build and the changes made to the build logic.
+================== TEMPLATE ==============================
 
-For example, in the `gradle/gradle` project, non-ABI changes to build logic now result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
+<a name="FILL-IN-KEY-AREA"></a>
+### FILL-IN-KEY-AREA improvements
 
-![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
+<<<FILL IN CONTEXT FOR KEY AREA>>>
+Example:
+> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
+> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
+> nothing that affects the build configuration has changed.
 
-### Kotlin 2 TO DO
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves
+> EXPLAIN how the new release addresses that problem or use case
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
+> LINK to the full documentation for more details
 
-### Groovy 4 TO DO
+To embed videos, use the macros below.
+You can extract the URL from YouTube by clicking the "Share" button.
+For Wistia, contact Gradle's Video Team.
+@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
+@wistia(Summary,a5izazvgit)@
 
-### SemVer TO DO
+================== END TEMPLATE ==========================
 
-<a name="config-cache"></a>
-### Configuration Cache improvements
 
-Gradle's [Configuration Cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase.
-Gradle uses the Configuration Cache to reload a saved configuration when nothing that affects the build configuration has changed.
+==========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-#### CC TO DO
-
-Check out the link:https://blog.gradle.org/road-to-configuration-cache[blog post] to learn more.
 
 <a name="build-authoring"></a>
+### CLI improvement
+
+#### Plain console with colors
+
+This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
+
+
 ### Build authoring improvements
 
-Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
+#### Introduce `AttributeContainer#addAllLater`
 
-#### Gradle API now uses JSpecify Nullability Annotations
+This release introduces a new API on `AttributeContainer` allowing all attributes from one attribute container to be lazily added to another.
 
-Since Gradle 5.0 we've been using annotations from the dormant and unfinished JSR-305 to make the nullness of type usages explicit for the Gradle API.
-Starting with Gradle 9.0, the Gradle API is annotated using JSpecify instead.
+Consider the following example demonstrating the new API's behavior:
 
-For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_version_8.html).
+```kotlin
+val color = Attribute.of("color", String::class.java)
+val shape = Attribute.of("shape", String::class.java)
+
+val foo = configurations.create("foo").attributes
+foo.attribute(color, "green")
+
+val bar = configurations.create("bar").attributes
+bar.attribute(color, "red")
+bar.attribute(shape, "square")
+assert(bar.getAttribute(color) == "red")    // `color` is originally red
+
+bar.addAllLater(foo)
+assert(bar.getAttribute(color) == "green")  // `color` gets overwritten
+assert(bar.getAttribute(shape) == "square") // `shape` does not
+
+foo.attribute(color, "purple")
+bar.getAttribute(color) == "purple"         // addAllLater is lazy
+
+bar.attribute(color, "orange")
+assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
+assert(bar.getAttribute(shape) == "square") // `shape` remains the same
+```
+
+### Configuration Improvements
+
+#### Simpler target package configuration for Antlr 4
+The AntlrTask class now supports explicitly setting the target package for generated code when using Antlr 4.
+Previously, setting the "-package" argument also required setting the output directory in order to generate classes into the proper package-specific directory structure.
+This release introduces a `packageName` property that allows you to set the target package without needing to also set the output directory properly.
+Setting this property will set the "-package" argument for the Antlr tool, and will also set the generated class directory to match the package.
+
+Explicitly setting the "-package" argument is now deprecated, and will become an error in Gradle 10.
+
+This option is not available for versions before Antlr 4 and will result in an error if this property is set.
+
+```kotlin
+tasks.named("generateGrammarSource").configure {
+    // Set the target package for generated code
+    packageName = "com.example.generated"
+}
+```
+
+#### Antlr generated sources are automatically tracked
+In previous versions of Gradle, the Antlr-generated sources were added to a java source set for compilation, but if the generated sources directory was changed, this change was not reflected in the source set.
+This required manually updating the source set to include the new generated sources directory any time it was changed.
+In this release, the generated sources directory is automatically tracked and updates the source set accordingly.
+A task dependency is also created between the source generation task and the source set, ensuring that tasks that consume the source set as an input will automatically create a task dependency on the source generation task.
+
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
 
 ## Promoted features
 
@@ -90,11 +153,7 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-### Problems API TO DO
-
-<!--
-### Example promoted
--->
+* [`getDependencyFactory()`](javadoc/org/gradle/api/Project.html) in `Project`
 
 ## Fixed issues
 

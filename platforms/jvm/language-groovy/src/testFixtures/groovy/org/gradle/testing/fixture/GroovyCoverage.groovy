@@ -24,8 +24,8 @@ import org.gradle.util.internal.VersionNumber
 
 class GroovyCoverage {
     // NOTE: Update compatibility.adoc when adding new versions of Groovy
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.24', '4.0.26']
-    private static final String[] FUTURE = []
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.25', '4.0.27']
+    private static final String[] FUTURE = ["5.0.0-beta-1"]
 
     static final Set<String> SUPPORTED_BY_JDK
     static final Map<String, Jvm> ALL_VERSIONS_JVMS
@@ -68,7 +68,7 @@ class GroovyCoverage {
      * Computes the Java version that corresponds to the Java bytecode version actually produced by the Groovy compiler.
      */
     static JavaVersion getEffectiveTarget(VersionNumber groovyVersion, JavaVersion target) {
-        if (groovyVersion.major == 4) {
+        if (groovyVersion.major >= 4) {
             return target
         } else if (groovyVersion.major == 3) {
             // If Groovy 3 does not support the requested target version, it silently falls back to an internal default
@@ -92,13 +92,17 @@ class GroovyCoverage {
     private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
         def allVersions = allVersions()
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            return VersionCoverage.versionsAtLeast(allVersions, '3.0.24')
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
+            return VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             // Latest 3.0.x patches support Java 15+
             return VersionCoverage.versionsAtLeast(allVersions, '3.0.0')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_14)) {
             return VersionCoverage.versionsBetweenInclusive(allVersions, '2.2.2', '2.5.10')
+        } else if (javaVersion < JavaVersion.VERSION_11) {
+            // 5.0.0 requires Java 11+
+            // Using 4.99.99 as a placeholder because beta versions aren't properly handled by VersionCoverage
+            return VersionCoverage.versionsBelow(allVersions, "4.99.99")
         } else {
             return allVersions
         }

@@ -63,7 +63,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             contextualLocations.size() == 1
             this.with(contextualLocations[0].fileLocation) {
                 path == this.buildFile.absolutePath
-                line == 13
+                line == ProblemsServiceIntegrationTest.PROBLEM_LOCATION_LINE
                 column == null
                 length == null
             }
@@ -104,7 +104,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             this.with(originLocations[0]) {
                 this.with(fileLocation) {
                     path == this.buildFile.absolutePath
-                    line == 13
+                    line == ProblemsServiceIntegrationTest.PROBLEM_LOCATION_LINE
                     column == null
                     length == null
                 }
@@ -251,7 +251,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             this.with(contextualLocations[0]) {
                 this.with(fileLocation) {
                     path == test.file('included/sub1/build.gradle').absolutePath
-                    line == 13
+                    line == ProblemsServiceIntegrationTest.PROBLEM_LOCATION_LINE
                     column == null
                     length == null
                 }

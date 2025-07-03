@@ -122,11 +122,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public Path calculateIdentityPathForProject(Path projectPath) {
-        return getIdentityPath().append(projectPath);
-    }
-
-    @Override
     public Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions() {
         return buildDefinition.getDependencySubstitutions();
     }

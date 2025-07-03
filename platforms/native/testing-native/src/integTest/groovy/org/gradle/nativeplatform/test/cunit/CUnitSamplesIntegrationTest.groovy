@@ -18,7 +18,6 @@
 package org.gradle.nativeplatform.test.cunit
 
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -39,7 +38,6 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
     }
 
-    @ToBeFixedForConfigurationCache(because = ":components")
     def "cunit components"() {
         given:
         sample cunit

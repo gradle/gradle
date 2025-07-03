@@ -173,8 +173,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22618")
-    @Ignore("This relies on being able to reliably detect unsafe credentials")
-    def "cannot use unsafe credentials provider with configuration cache"() {
+    def "using unsafe credentials provider with configuration cache falls back into vintage"() {
         def username = "someuser"
         def password = "somepassword"
         def repositoryName = "testMavenRepo"
@@ -183,20 +182,24 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
 
         when:
         prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheFails(*(projectConfig.tasks))
+        configurationCacheRun(*(projectConfig.tasks))
         server.resetExpectations()
 
         then:
-        configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded")
-        failure.assertHasFailures(1)
-        failure.assertHasDescription("Configuration cache problems found in this build")
-        failure.assertHasCause("Credential values found in configuration for: repository testMavenRepo")
+        configurationCache.assertNoConfigurationCache()
+        output.contains("Configuration cache disabled because incompatible task was found.")
     }
 
+    /*
+     For credentials provided using credential providers, the repository name is used as the identity
+     of the provider. Credential provider identities must be made exclusively of letters and digits.
+     So, when using credential providers with repositories, the repository name must also be a valid
+     provider identity.
+
+     However, for inlined/unsafe credentials, since providers are not used, we should not impose such limitations.
+     */
     @Issue("https://github.com/gradle/gradle/issues/22618")
-    @Ignore("This relies on being able to reliably detect unsafe credentials")
-    def "cannot use identity-incompatible repository name credentials provider with configuration cache"() {
+    def "can use identity-incompatible repository name credentials provider as that falls back to vintage"() {
         def username = "someuser"
         def password = "somepassword"
         def repositoryName = "repo-with-invalid-identity-name"
@@ -205,15 +208,12 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
 
         when:
         prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheFails(*(projectConfig.tasks))
+        configurationCacheRun(*(projectConfig.tasks))
         server.resetExpectations()
 
         then:
-        configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded")
-        failure.assertHasFailures(1)
-        failure.assertHasDescription("Configuration cache problems found in this build")
-        failure.assertHasCause("Credential values found in configuration for: repository repo-with-invalid-identity-name")
+        configurationCache.assertNoConfigurationCache()
+        output.contains("Configuration cache disabled because incompatible task was found.")
     }
 
     def "can publish maven publication metadata to local repository"() {
@@ -295,7 +295,6 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
     }
 
     private ProjectConfiguration configureProject(String username, String password, String repositoryName, boolean inlinedCredentials) {
-        assert !inlinedCredentials : "Inlined credentials are not supported with the configuration cache"
         with (server) {
             requireAuthentication(username, password)
             // or else insecure protocol enforcement is skipped

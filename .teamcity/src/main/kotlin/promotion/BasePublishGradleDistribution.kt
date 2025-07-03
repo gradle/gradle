@@ -37,7 +37,7 @@ abstract class BasePublishGradleDistribution(
             """
             **/build/git-checkout/platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
             **/build/distributions/*.zip => promote-build-distributions
-            **/build/website-checkout/data/releases.xml
+            **/build/releases-data-checkout/data/releases.xml
             **/build/git-checkout/build/reports/integTest/** => distribution-tests
             **/smoke-tests/build/reports/tests/** => post-smoke-tests
             **/build/version-info.properties => version-info.properties

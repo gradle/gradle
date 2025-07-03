@@ -16,7 +16,10 @@
 
 package org.gradle.build.event;
 
+import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildServiceRegistration;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.tooling.events.OperationCompletionListener;
 
 /**
@@ -28,16 +31,22 @@ import org.gradle.tooling.events.OperationCompletionListener;
  */
 public interface BuildEventsListenerRegistry {
     /**
-     * Subscribes the given listener to the finish events for tasks, if not already subscribed. The listener receives a {@link org.gradle.tooling.events.task.TaskFinishEvent} as each task completes.
+     * Subscribes the listener provided by {@code listenerProvider} to the finish events for tasks, if not already subscribed.
+     * The listener receives a {@link org.gradle.tooling.events.task.TaskFinishEvent} as each task completes.
      *
-     * <p>The events are delivered to the listener one at a time, so the implementation does not need to be thread-safe. Also, events are delivered to the listener concurrently with
+     * <p>The events are delivered to the listener one at a time, so the implementation does not need to support concurrent notifications. Also, events are delivered to the listener concurrently with
      * task execution and other work, so event handling does not block task execution. This means that a task finish event is delivered to the listener some time "soon" after the task
      * has completed. The events contain timestamps to allow you collect timing information.
      * </p>
      *
      * <p>The listener is automatically unsubscribed when the build finishes.</p>
      *
-     * @param listener The listener to receive events. This must be a {@link org.gradle.api.services.BuildService} instance, see {@link org.gradle.api.services.BuildServiceRegistry}.
+     * <p>In order to support Configuration Cache, the {@code listenerProvider} must be a provider returned <b>directly</b> from
+     * {@link BuildServiceRegistry#registerIfAbsent(String, Class, Action)} or {@link BuildServiceRegistration#getService()}
+     * </p>
+     *
+     * @param listenerProvider The provider of listener to receive events.
+     * The implementation of the listener must be a {@link org.gradle.api.services.BuildService} instance, see {@link BuildServiceRegistry}.
      */
-    void onTaskCompletion(Provider<? extends OperationCompletionListener> listener);
+    void onTaskCompletion(Provider<? extends OperationCompletionListener> listenerProvider);
 }

@@ -21,6 +21,12 @@ image::gradle-basic-1.png[]
 
 == Core concepts
 
+++++
+<p style="text-align: center;">
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/Vw39uWQ08Go?si=Qt7qceGy2EDgkU0a&rel=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</p>
+++++
+
 === Projects:
 
 - A Gradle *project* is a piece of software that can be built, such as an application or a library.

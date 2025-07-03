@@ -45,6 +45,11 @@ public interface AttributeValue<T> {
         public Object get() {
             throw new UnsupportedOperationException("get() should not be called on a missing attribute value");
         }
+
+        @Override
+        public Attribute<?> getAttribute() {
+            throw new UnsupportedOperationException("getAttribute() should not be called on a missing attribute value");
+        }
     };
 
     /**
@@ -73,4 +78,9 @@ public interface AttributeValue<T> {
      * @throws IllegalArgumentException if this attribute is not compatible with the other one
      */
     <S> S coerce(Attribute<S> otherAttribute);
+
+    /**
+     * Get the key corresponding to this attribute value.
+     */
+    Attribute<?> getAttribute();
 }

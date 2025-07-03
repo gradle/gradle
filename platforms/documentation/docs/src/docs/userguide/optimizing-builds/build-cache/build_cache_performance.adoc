@@ -46,7 +46,7 @@ This can happen if you have tasks in your build that are configured to produce t
 Normally, your _fully cached_ build should be significantly faster than the `clean` build: this is the theoretical limit of how much time using the build cache can save on your particular build.
 You usually don't get the achievable performance gains on the first try, see <<build_cache_debugging.adoc#finding_problems,finding problems with task output caching>>.
 As your build logic is evolving and changing it is also important to make sure that the cache effectiveness is not regressing.
-Build scans provide a detailed performance breakdown which show you how effectively your build is using the build cache:
+A Build Scan provides a detailed performance breakdown which show you how effectively your build is using the build cache:
 
 [.screenshot]
 image::build-cache/performance-task-execution.png[]
@@ -96,9 +96,9 @@ A rise in the hit rate there probably indicates better usage by developers:
 [.screenshot]
 image::build-cache/cache-admin-hit-rate.png[build cache hit rate]
 
-== Analyzing performance in build scans
+== Analyzing performance in Build Scan
 
-Build scans provide a summary of all cache operations for a build via the _"Build cache"_ section of the _"Performance"_ page.
+A Build Scan provides a summary of all cache operations for a build via the _"Build cache"_ section of the _"Performance"_ page.
 
 [.screenshot]
 image::build-cache/build-cache-performance.png[build cache performance]

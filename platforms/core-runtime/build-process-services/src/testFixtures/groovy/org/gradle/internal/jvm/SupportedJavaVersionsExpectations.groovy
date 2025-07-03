@@ -39,7 +39,7 @@ class SupportedJavaVersionsExpectations {
         int currentMajorGradleVersion = gradleVersion.getMajorVersion()
 
         "Executing Gradle on JVM versions ${futureMinimumDaemonJavaVersion - 1} and lower has been deprecated. " +
-            "This will fail with an error in Gradle ${currentMajorGradleVersion + 1}.0. " +
+            "This will fail with an error in Gradle ${currentMajorGradleVersion + 1}. " +
             "Use JVM ${futureMinimumDaemonJavaVersion} or greater to execute Gradle. " +
             "Projects can continue to use older JVM versions via toolchains. " +
             "Consult the upgrading guide for further information: " +

@@ -335,11 +335,12 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertHasDescription("Configuration cache state could not be cached:")
+            // graceful degradation causes early evaluation of credential providers (and build failure at configuration time)
+            failure.assertHasDescription("Identity may contain only letters and digits, received: incompatible_repo_name")
         } else {
             failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToIncompatible_repo_nameRepository'.")
+            failure.assertHasCause("Identity may contain only letters and digits, received: incompatible_repo_name")
         }
-        failure.assertHasCause("Identity may contain only letters and digits, received: incompatible_repo_name")
     }
 
     def "can publish to authenticated repository using inlined credentials"() {
@@ -360,7 +361,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         module.assertPublishedAsJavaModule()
         if (GradleContextualExecuter.isConfigCache()) {
-            postBuildOutputContains("Configuration cache entry discarded")
+            postBuildOutputContains("Configuration cache disabled because incompatible task was found.")
         }
     }
 
@@ -385,7 +386,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         module.assertPublishedAsJavaModule()
         if (GradleContextualExecuter.isConfigCache()) {
-            postBuildOutputContains("Configuration cache entry discarded")
+            postBuildOutputContains("Configuration cache disabled because incompatible task was found.")
         }
     }
 

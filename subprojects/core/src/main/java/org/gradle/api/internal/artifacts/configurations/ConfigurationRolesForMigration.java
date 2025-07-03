@@ -41,6 +41,11 @@ public final class ConfigurationRolesForMigration {
     private ConfigurationRolesForMigration() { /* Private to prevent instantiation. */ }
 
     /**
+     * A configuration that is retired and not meant to be used for any purpose.  This is primarily useful in creating a migrating configuration role in {@link ConfigurationRolesForMigration}.
+     */
+    public static final ConfigurationRole NONE = new DefaultConfigurationRole("Deprecated", false, false, false, false, false, false);
+
+    /**
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
@@ -62,12 +67,18 @@ public final class ConfigurationRolesForMigration {
     public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.ALL, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
 
     /**
+     * A consumable configuration that has been deprecated and will be removed in the next major version.
+     */
+    public static final ConfigurationRole CONSUMABLE_TO_RETIRED = difference(ConfigurationRoles.CONSUMABLE, NONE);
+
+    /**
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
         RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
         RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE,
-        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
+        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+        CONSUMABLE_TO_RETIRED
     );
 
     /**
@@ -86,7 +97,7 @@ public final class ConfigurationRolesForMigration {
 
         /*
          * Since we're assuming strictly narrowing usage from a non-deprecated initial role, for each usage we want this migration
-         * role to deprecate a usage iff that usage will change from allowed -> disallowed when migrating from the initial role to the
+         * role to deprecate a usage if that usage will change from allowed -> disallowed when migrating from the initial role to the
          * eventual role.
          */
         boolean consumptionDeprecated = initialRole.isConsumable() && !eventualRole.isConsumable();

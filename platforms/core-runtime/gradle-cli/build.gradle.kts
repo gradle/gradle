@@ -49,6 +49,7 @@ dependencies {
     implementation(projects.fileCollections)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.native)
+    implementation(projects.problemsApi)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)

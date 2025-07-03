@@ -53,7 +53,7 @@ fun checkCleanDirWindows(
     dir: String,
     exitOnFailure: Boolean = true,
 ) = """
-    
+
     IF exist $dir (
         TREE $dir
         RMDIR /S /Q $dir

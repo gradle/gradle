@@ -55,7 +55,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         fails(':app:test')
 
         and:
-        failure.assertHasCause("There were failing tests.")
+        failure.assertHasCause("Test process encountered an unexpected problem.")
         def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
         testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("A problem occurred starting process"))
     }
@@ -80,7 +80,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         fails(':app:test')
 
         and:
-        failure.assertHasCause("There were failing tests.")
+        failure.assertHasCause("Test process encountered an unexpected problem.")
         def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
         testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("finished with non-zero exit value"))
         if (OperatingSystem.current().isMacOsX()) {

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 public class AntlrSpec implements Serializable {
+    public final static String PACKAGE_ARG = "-package";
 
     private List<String> arguments;
     private Set<File> inputDirectories;

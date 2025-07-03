@@ -178,7 +178,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
 
-    private int expectedGenericDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
@@ -260,7 +259,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         commandLineJvmOpts.clear();
         buildJvmOpts.clear();
         useOnlyRequestedJvmOpts = false;
-        expectedGenericDeprecationWarnings = 0;
         expectedDeprecationWarnings.clear();
         stackTraceChecksOn = true;
         jdkWarningChecksOn = false;
@@ -390,9 +388,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         executer.noExtraLogging();
 
-        if (expectedGenericDeprecationWarnings > 0) {
-            executer.expectDeprecationWarnings(expectedGenericDeprecationWarnings);
-        }
         expectedDeprecationWarnings.forEach(executer::expectDeprecationWarning);
         if (!eagerClassLoaderCreationChecksOn) {
             executer.withEagerClassLoaderCreationCheckDisabled();
@@ -1116,8 +1111,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         if (consoleType != null) {
-            String s = consoleType.toString();
-            allArgs.add("--console=" + s.toLowerCase(Locale.ROOT));
+            allArgs.add("--console=" + consoleType.toString().toLowerCase(Locale.ROOT));
         }
 
         // Rich console output is difficult to check, so we disable warnings
@@ -1232,7 +1226,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
-        // Having this unset is now deprecated, will default to `false` in Gradle 9.0
+        // Having this unset is now deprecated, default to `false` in Gradle 9.0.0
         // TODO remove - see https://github.com/gradle/gradle/issues/26810
         properties.put("org.gradle.kotlin.dsl.skipMetadataVersionCheck", "false");
 
@@ -1372,7 +1366,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         return new ResultAssertion(
-            expectedGenericDeprecationWarnings,
             expectedDeprecationWarnings,
             maybeExpectedDeprecationWarnings,
             !stackTraceChecksOn,
@@ -1389,16 +1382,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter expectDeprecationWarning() {
-        return expectDeprecationWarnings(1);
-    }
-
-    @Override
-    public GradleExecuter expectDeprecationWarnings(int count) {
-        Preconditions.checkState(expectedGenericDeprecationWarnings == 0, "expected deprecation count is already set for this execution");
-        Preconditions.checkArgument(count > 0, "expected deprecation count must be positive");
-        expectedGenericDeprecationWarnings = count;
-        return this;
+    public GradleExecuter expectExternalDeprecatedMessage(String warning) {
+        return expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(warning));
     }
 
     @Override
@@ -1409,7 +1394,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+        return expectExternalDeprecatedMessage(normalizeDocumentationLink(warning));
     }
 
     private String normalizeDocumentationLink(String warning) {

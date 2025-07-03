@@ -26,6 +26,8 @@ import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReporti
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
+    public static final int PROBLEM_LOCATION_LINE = 23
+
     def setup() {
         enableProblemsApiCheck()
     }
@@ -51,7 +53,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             with(oneLocation(StackTraceLocation).fileLocation) {
                 length == -1
                 column == -1
-                line == 13
+                line == PROBLEM_LOCATION_LINE
                 path == buildFile.absolutePath
             }
             with(oneLocation(TaskLocation)) {
@@ -79,7 +81,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         executer.expectDocumentedDeprecationWarning(
             "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. Use assignment ('description = <value>') instead. " +
+                "This is scheduled to be removed in Gradle 10. Use assignment ('description = <value>') instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
         )
 
@@ -124,7 +126,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 with(fileLocation as LineInFileLocation) {
                     length == -1
                     column == -1
-                    line == 13
+                    line == PROBLEM_LOCATION_LINE
                     path == buildFile.absolutePath
                 }
                 stackTrace.find { it.className == 'ProblemReportingTask' && it.methodName == 'run' }
@@ -314,7 +316,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             with(oneLocation(StackTraceLocation).fileLocation as LineInFileLocation) {
                 length == -1
                 column == -1
-                line == 13
+                line == PROBLEM_LOCATION_LINE
                 path == buildFile.absolutePath
             }
         }

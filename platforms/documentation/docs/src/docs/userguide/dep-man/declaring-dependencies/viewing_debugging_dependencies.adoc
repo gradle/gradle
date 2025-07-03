@@ -208,7 +208,7 @@ May be followed by a `because` text.
 If multiple selection reasons exist, the insight report lists all of them.
 
 [[sec:dependencies-build-scans]]
-== Get a holistic view using Build Scans
+== Get a holistic view using Build Scan
 
 The dependency tree in a link:https://scans.gradle.com/[Build Scan] shows information about conflicts.
 

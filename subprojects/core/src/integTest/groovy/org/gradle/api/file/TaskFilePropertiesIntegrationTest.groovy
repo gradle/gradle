@@ -153,7 +153,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile('a/build.gradle', '''
             configurations.create("compile")
-            dependencies { compile project(path: ':b', configuration: 'archives') }
+            dependencies { compile project(path: ':b', configuration: 'producer') }
 
             task doStuff(type: InputTask) {
                 src = configurations.compile + fileTree('src/java')
@@ -179,12 +179,12 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 create("deps")
-                archives {
+                consumable("producer") {
                     extendsFrom deps
+                    outgoing.artifact(otherJar)
                 }
             }
             dependencies { deps files('b.jar') { builtBy jar } }
-            artifacts { archives otherJar }
         ''')
 
         when:

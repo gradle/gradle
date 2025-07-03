@@ -18,7 +18,7 @@ package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec implements AntlrDeprecationFixture {
 
     def setup() {
         // So we can assert on which version of ANTLR is used at runtime

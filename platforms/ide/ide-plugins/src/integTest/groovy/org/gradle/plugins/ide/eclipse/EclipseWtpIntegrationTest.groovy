@@ -15,14 +15,12 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Test
 import spock.lang.Issue
 
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     @Issue("GRADLE-1415")
-    @ToBeFixedForConfigurationCache
     void canUseSelfResolvingFiles() {
         def buildFile = """
 apply plugin: "war"
@@ -46,7 +44,6 @@ dependencies {
 
     @Test
     @Issue("GRADLE-2526")
-    @ToBeFixedForConfigurationCache
     void overwritesDependentModules() {
         generateEclipseFilesForWebProject()
         def projectModules = parseComponentFile(project: "web")
@@ -66,7 +63,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "respects dependency substitution rules"() {
         // given:
         mavenRepo.module("gradle", "foo").publish()
@@ -110,7 +106,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "included build"() {
         // given:
         createRootProject()

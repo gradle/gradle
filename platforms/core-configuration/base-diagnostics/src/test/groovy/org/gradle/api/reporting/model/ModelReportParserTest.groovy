@@ -51,7 +51,7 @@ BUILD SUCCESSFUsL
 """)
         then:
         def ex = thrown(AssertionError)
-        ex.message.startsWith "Expected to find an end of report marker '${ModelReportParser.END_OF_REPORT_MARKER}'"
+        ex.message.startsWith "Expected to find an end of report marker"
     }
 
     def "fails when missing the header marker"() {
@@ -198,5 +198,35 @@ BUILD SUCCESSFUL
 
         expect:
         modelReport.reportNode.'**'.primaryCredentials.@username == ['uname']
+    }
+
+    def "can parse end of report marker from #description build"() {
+        setup:
+        def modelReport = ModelReportParser.parse(""":model
+
+---------
+My Report
+---------
+
+1
+2
+3
+
+$marker
+""")
+
+        expect:
+        modelReport.nodeOnlyLines == ["1", "2", "3"]
+
+        where:
+        [marker, description] << [
+            ["BUILD SUCCESSFUL in 1s", "vintage"],
+            [
+                """Some tasks in this build are not compatible with the configuration cache.
+See the complete report at file:///root/build/reports/configuration-cache/hash1/hash2/configuration-cache-report.html
+BUILD SUCCESSFUL in 1s""",
+                "configuration cache"
+            ]
+        ]
     }
 }
