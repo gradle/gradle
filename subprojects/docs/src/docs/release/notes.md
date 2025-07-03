@@ -4,7 +4,7 @@ This is the sixth patch release for Gradle 7.6.
 
 Issues fixed in this release:
 
-* TODO
+* [#34109](https://github.com/gradle/gradle/issues/34109) [Backport 7.x] Missing dependency even if all paths do not exclude it
 
 Issues fixed in the fifth patch release:
 
