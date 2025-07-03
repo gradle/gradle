@@ -187,7 +187,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
     }
 
-    static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
+    public static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
 
         public AbstractFileVar(PropertyHost host, Class<T> type) {
             super(host, type);
@@ -287,6 +287,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
                 }
             };
         }
+
+        public abstract FileResolver getFileResolver();
     }
 
     public static class DefaultRegularFileVar extends AbstractFileVar<RegularFile, RegularFileProperty> implements RegularFileProperty, Managed {
@@ -297,7 +299,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
             this.fileResolver = fileResolver;
         }
 
-        public PathToFileResolver getFileResolver() {
+        @Override
+        public FileResolver getFileResolver() {
             return fileResolver;
         }
 
@@ -359,6 +362,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
             return fileCollectionFactory.resolving(this).getAsFileTree();
         }
 
+        @Override
         public FileResolver getFileResolver() {
             return resolver;
         }
