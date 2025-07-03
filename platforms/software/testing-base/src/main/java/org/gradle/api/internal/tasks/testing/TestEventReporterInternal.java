@@ -16,32 +16,24 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.TestEventReporter;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
-import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
 
-/**
- * Shared interface between legacy/JVM and generic test report generators.
- */
 @NullMarked
-public interface TestReportGenerator {
+public interface TestEventReporterInternal extends TestEventReporter {
     /**
-     * A test report generator that does nothing.
-     */
-    TestReportGenerator NO_OP = resultsDirectories -> null;
-
-    /**
-     * Generate a report from the test results in the given results directories, if there are any.
+     * Emit a failure event for the test. May not be called before {@link #started(Instant)}.
      *
      * <p>
-     * Results are placed in the given report directory.
+     * This allows passing the raw {@link org.gradle.api.tasks.testing.TestFailure TestFailures} to the reporter.
      * </p>
      *
-     * @param resultsDirectories the directories containing the test results
-     * @return the path to the main file/directory of the generated report, or {@code null} if no report was generated
+     * @param endTime the time the test completed
+     * @param failures the list of failures
      */
-    @Nullable
-    Path generate(List<Path> resultsDirectories);
+    void failed(Instant endTime, List<TestFailure> failures);
 }
