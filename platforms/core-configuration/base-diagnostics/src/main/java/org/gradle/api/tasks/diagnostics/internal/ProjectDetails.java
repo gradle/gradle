@@ -84,7 +84,7 @@ public interface ProjectDetails {
 
         @Override
         public int hashCode() {
-            return Objects.hash(displayName, description);
+            return Objects.hash(displayName, description, relativeProjectDirPath, projectLogicalPath);
         }
 
         @Override
@@ -96,7 +96,9 @@ public interface ProjectDetails {
                 return false;
             }
             ProjectDisplayNameAndDescription that = (ProjectDisplayNameAndDescription) obj;
-            return Objects.equals(displayName, that.displayName) && Objects.equals(description, that.description);
+            return Objects.equals(displayName, that.displayName) && Objects.equals(description, that.description)
+                && Objects.equals(relativeProjectDirPath, that.relativeProjectDirPath)
+                && Objects.equals(projectLogicalPath, that.projectLogicalPath);
         }
     }
 
