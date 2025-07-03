@@ -14,9 +14,9 @@
 
 [[upgrading_version_8]]
 
-= Upgrading your build from Gradle 8.x to 8.14.2
+= Upgrading your build from Gradle 8.x to 8.14
 
-This chapter provides the information you need to migrate your Gradle 8.x builds to Gradle 8.14.2.
+This chapter provides the information you need to migrate your Gradle 8.x builds to Gradle 8.14.
 For migrating from Gradle 4.x, 5.x, 6.x, or 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
 
 We recommend the following steps for all users:
@@ -33,7 +33,7 @@ Alternatively, you can run `gradle help --warning-mode=all` to see the deprecati
 Some plugins will break with this new version of Gradle because they use internal APIs that have been removed or changed.
 The previous step will help you identify potential problems by issuing deprecation warnings when a plugin tries to use a deprecated part of the API.
 +
-. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Run `gradle wrapper --gradle-version 8.14` to update the project to 8.14.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_8.14]]
