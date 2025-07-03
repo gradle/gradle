@@ -798,10 +798,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <p>This method can also be used to create an empty collection, which can later be mutated to add elements.</p>
      *
-     * @param paths The paths to the files. May be empty.
+     * @param paths The paths to the files. May be empty. {@code null} values are ignored.
      * @return The file collection. Never returns null.
      */
-    ConfigurableFileCollection files(Object... paths);
+    ConfigurableFileCollection files(@Nullable Object... paths);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
