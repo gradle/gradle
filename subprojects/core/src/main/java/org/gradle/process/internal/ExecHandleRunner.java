@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import net.rubygrapefruit.platform.ProcessLauncher;
+import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationRef;
@@ -117,6 +118,12 @@ public class ExecHandleRunner implements Runnable {
         try {
             if (aborted) {
                 throw new IllegalStateException("Process has already been aborted");
+            }
+            if (!execHandle.getDirectory().exists()) {
+                throw new GradleException(String.format("Working directory '%s' does not exist.", execHandle.getDirectory()));
+            }
+            if (!execHandle.getDirectory().isDirectory()) {
+                throw new GradleException(String.format("Working directory '%s' is not a directory.", execHandle.getDirectory()));
             }
             ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
             Process process = processLauncher.start(processBuilder);
