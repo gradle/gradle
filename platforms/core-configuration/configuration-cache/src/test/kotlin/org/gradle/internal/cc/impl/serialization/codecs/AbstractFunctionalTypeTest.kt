@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -37,9 +38,12 @@ abstract class AbstractFunctionalTypeTest : AbstractUserTypeCodecTest() {
     protected
     fun <T : Any> assertEagerEvaluationOf(eager: T, extract: T.() -> Any?) {
         Runtime.value = "before"
-        val value = configurationCacheRoundtripOf(eager)
+        val bytes = writeToByteArray(eager, userTypesCodec())
 
         Runtime.value = "after"
+        val value = readFromByteArray(bytes, userTypesCodec())!!
+            .uncheckedCast<T>()
+
         assertThat(
             extract(value),
             equalTo("before")

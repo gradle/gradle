@@ -173,7 +173,7 @@ abstract class AbstractUserTypeCodecTest {
         }
     }
 
-    private
+    protected
     fun userTypesCodec() = codecs().userTypesCodec()
 
     internal
