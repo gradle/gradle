@@ -136,7 +136,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @return this
      */
-    JavaExecSpec classpath(Object... paths);
+    JavaExecSpec classpath(@Nullable Object... paths);
 
     /**
      * Returns the classpath for executing the main class.

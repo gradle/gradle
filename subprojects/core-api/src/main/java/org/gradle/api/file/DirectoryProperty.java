@@ -120,5 +120,5 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      * @return The file collection.
      * @since 6.0
      */
-    FileCollection files(Object... paths);
+    FileCollection files(@Nullable Object... paths);
 }

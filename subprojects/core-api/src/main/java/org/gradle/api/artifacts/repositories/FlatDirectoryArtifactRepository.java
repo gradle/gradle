@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.util.Set;
 
@@ -60,7 +62,7 @@ public interface FlatDirectoryArtifactRepository extends ArtifactRepository {
      *
      * @param dirs the directories.
      */
-    void dirs(Object... dirs);
+    void dirs(@Nullable Object... dirs);
 
     /**
      * Sets the directories where this repository will look for artifacts.

@@ -33,6 +33,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.ActionConfiguration",
+            "member": "Method org.gradle.api.ActionConfiguration.getParams()",
+            "acceptation": "Actually returns null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.api.AntBuilder",
             "member": "Method org.gradle.api.AntBuilder.getProperties()",
             "acceptation": "Values of returned map can be null",
