@@ -1046,7 +1046,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
-    boolean delete(Object... paths);
+    boolean delete(@Nullable Object... paths);
 
     /**
      * Deletes the specified files.  The given action is used to configure a {@link DeleteSpec}, which is then used to

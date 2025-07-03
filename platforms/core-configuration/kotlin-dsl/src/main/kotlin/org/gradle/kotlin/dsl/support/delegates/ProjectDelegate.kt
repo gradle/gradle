@@ -418,7 +418,7 @@ abstract class ProjectDelegate : Project {
     override fun tarTree(tarPath: Any): FileTree =
         delegate.tarTree(tarPath)
 
-    override fun delete(vararg paths: Any): Boolean =
+    override fun delete(vararg paths: Any?): Boolean =
         delegate.delete(*paths)
 
     override fun delete(action: Action<in DeleteSpec>): WorkResult =
