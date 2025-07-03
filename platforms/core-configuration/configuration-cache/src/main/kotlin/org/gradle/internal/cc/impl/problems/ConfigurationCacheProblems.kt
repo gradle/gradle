@@ -220,6 +220,17 @@ class ConfigurationCacheProblems(
         report.onIncompatibleTask(problem)
     }
 
+    private
+    fun reportDegradingFeature(feature: String) {
+        val problem = problemFactory
+            .problem {
+                // for now, we don't expect interesting information from degrading features, so only the feature name is displayed
+                text("Feature '$feature' is incompatible with the configuration cache.")
+            }
+            .build()
+        report.onProblem(problem)
+    }
+
     override fun onProblem(problem: PropertyProblem) {
         onProblem(problem, ProblemSeverity.Deferred)
     }
@@ -313,6 +324,7 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         addNotReportedDegradingTasks()
+        addDegradingFeatures()
         val summary = summarizer.get()
         val hasNoProblemsForConsole = summary.reportableProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
@@ -345,6 +357,13 @@ class ConfigurationCacheProblems(
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
             }
+        }
+    }
+
+    private
+    fun addDegradingFeatures() {
+        degradationController.visitDegradedFeatures { feature, _ ->
+            reportDegradingFeature(feature)
         }
     }
 
