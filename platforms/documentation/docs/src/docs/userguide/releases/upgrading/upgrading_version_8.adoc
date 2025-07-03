@@ -490,6 +490,10 @@ For example, you can't use `Property<String?>` anymore because the `T` in `Prope
 +
 Another example is using a function from the Gradle API that takes a `Map<String, *>` parameter ; you could pass a map with nullable values before, you can't do that anymore.
 
+- Functions of the Gradle API that take varargs are now strict with regards to elements nullability.
++
+For example, functions of the Gradle API that take varargs with non-nullable elements only were accepting null elements in previous Gradle versions and will now fail to compile.
+
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9 as they did before.
 
 ==== Methods on public API types made final
