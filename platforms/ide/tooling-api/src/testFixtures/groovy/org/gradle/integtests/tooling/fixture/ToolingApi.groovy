@@ -46,6 +46,7 @@ class ToolingApi implements TestRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
 
     private GradleDistribution dist
+    private boolean enableParallel
     private TestDirectoryProvider testWorkDirProvider
     private TestFile gradleUserHomeDir
     private TestFile daemonBaseDir
@@ -75,6 +76,10 @@ class ToolingApi implements TestRule {
         this.dist = dist
     }
 
+    void setEnableParallel(boolean enableParallel) {
+        this.enableParallel = enableParallel
+    }
+
     /**
      * Specifies that the test use its own Gradle user home dir and daemon registry.
      */
@@ -88,6 +93,9 @@ class ToolingApi implements TestRule {
             .withDaemonBaseDir(daemonBaseDir)
         if (requiresDaemon) {
             executer.requireDaemon()
+        }
+        if (enableParallel) {
+            executer.withArgument("--parallel")
         }
         return executer
     }

@@ -74,10 +74,14 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
     }
 
     private static String displayName(GradleVersion version) {
-        if (version == INSTALLATION_GRADLE_VERSION) {
+        if (isGradleVersionCurrent(version)) {
             return "current"
         }
         return version.version
+    }
+
+    private static isGradleVersionCurrent(GradleVersion version) {
+        version == INSTALLATION_GRADLE_VERSION
     }
 
     @Override
@@ -117,6 +121,8 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     protected void before(IMethodInvocation invocation) {
-        ((ToolingApiSpecification) invocation.getInstance()).setTargetDist(gradle)
+        def specification = (ToolingApiSpecification) invocation.getInstance()
+        specification.setTargetDist(gradle)
+        specification.isCurrentToCurrent = isGradleVersionCurrent(toolingApiVersion) && isGradleVersionCurrent(gradleVersion)
     }
 }

@@ -120,6 +120,11 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         toolingApi.setDist(targetGradleDistribution)
     }
 
+    void setIsCurrentToCurrent(boolean isCurrentToCurrent) {
+        // Does not actually set a value, but configures further options
+        toolingApi.enableParallel = isCurrentToCurrent
+    }
+
     GradleDistribution getTargetDist() {
         if (targetGradleDistribution == null) {
             throw new IllegalStateException("targetDist is not yet set by the testing framework")
