@@ -1461,7 +1461,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 warnAboutChangingUsage(methodName, newValue);
             }
         } else {
-            if (isDetachedConfiguration() && !newValue) {
+            if (isDetached && !newValue) {
                 // This is an actual change, and permitting it is not desired behavior, but we haven't deprecated
                 // changing detached confs usages to false as of 9.0, so we have to permit even these non-redundant changes,
                 // but we can at least warn if the flag is set.
@@ -1490,11 +1490,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             spec.contextualLabel(ex.getMessage());
             spec.severity(Severity.ERROR);
         });
-    }
-
-    @Override
-    public boolean isDetachedConfiguration() {
-        return isDetached;
     }
 
     @SuppressWarnings("deprecation")
@@ -1628,7 +1623,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private void assertNotDetachedExtensionDoingExtending(Iterable<Configuration> extendsFrom) {
-        if (isDetachedConfiguration()) {
+        if (isDetached) {
             String summarizedExtensionTargets = StreamSupport.stream(extendsFrom.spliterator(), false)
                 .map(ConfigurationInternal.class::cast)
                 .map(ConfigurationInternal::getDisplayName)

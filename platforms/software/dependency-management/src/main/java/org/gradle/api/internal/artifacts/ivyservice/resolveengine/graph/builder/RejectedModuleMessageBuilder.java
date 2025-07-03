@@ -52,7 +52,7 @@ class RejectedModuleMessageBuilder {
     private void renderEdges(StringBuilder sb, Set<EdgeState> incomingEdges) {
         for (EdgeState incomingEdge : incomingEdges) {
             SelectorState selector = incomingEdge.getSelector();
-            for (String path : MessageBuilderHelper.pathTo(incomingEdge, false)) {
+            for (String path : MessageBuilderHelper.formattedPathsTo(incomingEdge)) {
                 sb.append("   ").append(path);
                 sb.append(" --> ");
                 renderSelector(sb, selector);

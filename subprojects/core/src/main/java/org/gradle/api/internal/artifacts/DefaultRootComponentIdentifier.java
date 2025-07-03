@@ -42,6 +42,11 @@ public class DefaultRootComponentIdentifier implements RootComponentIdentifier {
     }
 
     @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
