@@ -422,7 +422,7 @@ Root project 'example'
         run ":projects"
 
         then:
-        TextUtil.normaliseFileSeparators(output).contains("""
+        TextUtil.normaliseFileSeparators(output).contains(TextUtil.normaliseFileSeparators("""
 Projects:
 
 ------------------------------------------------------------
@@ -447,7 +447,7 @@ project ':transport' - core/transport
 Included builds:
 
 \\--- Included build ':server'
-""")
+"""))
     }
 
     def "renders help message"() {
