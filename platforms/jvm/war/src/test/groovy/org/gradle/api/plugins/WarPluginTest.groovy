@@ -74,6 +74,8 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "depends on runtime config"() {
+        TestUtil.initDeprecationLogger("because archives configuration is deprecated")
+
         given:
         project.pluginManager.apply(WarPlugin)
 
