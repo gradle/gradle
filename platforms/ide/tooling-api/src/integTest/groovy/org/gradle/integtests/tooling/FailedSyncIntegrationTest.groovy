@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiBackedGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpec
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 // TODO: wrong package/project, just using for convenience
 
@@ -48,6 +49,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
+        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:

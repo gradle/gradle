@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.tooling
 
+
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
 
@@ -26,7 +28,9 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
     public MyCustomModel execute(BuildController controller) {
         GradleBuild build = controller.getModel(GradleBuild.class);
 
-//            IdeaProject ideaProject = controller.getModel(IdeaProject.class);
+//        KotlinDslScriptModel dslScriptModel = controller.getModel(KotlinDslScriptModel.class);
+        KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
+
 
         def paths = build.projects.collect{project ->
             project.buildTreePath
@@ -38,9 +42,12 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
         def identifier = build.projects.collect{project ->
             project.projectIdentifier
         }
+
+        buildScriptModel.scriptModels.keySet().each { paths.add(it.toString())}
+//        buildScriptModel.classPath.each{ paths << it.toString() }
         // Build your custom model
         return new MyCustomModel(
-            null,
+            buildScriptModel.scriptModels,
             identifier,
             paths
 //                rootProject.getName(),
