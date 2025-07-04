@@ -189,7 +189,7 @@ include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build
 include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=repo]"]
 ====
 
-In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbrains.kotlin.jvm`) will be downloaded from the link:https://repo.maven.apache.org/maven2/[Maven Central Repository].
+In the example, the `guava` library will be downloaded from the link:https://repo.maven.apache.org/maven2/[Maven Central Repository].
 
 === 3. Add dependencies
 
