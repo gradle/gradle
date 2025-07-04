@@ -65,11 +65,24 @@ public class ExecHandleRunner implements Runnable {
             if (process != null) {
                 streamsHandler.disconnect();
                 LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
-                process.destroy();
+                destroyProcessTree();
             }
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * Destroys the process of this runner and its known (grand)children.
+     * Falls back to only destroying the main process if the code runs on Java 8 or lower, which is the Gradle 8 or lower behavior.
+     */
+    private void destroyProcessTree() {
+        try {
+            process.descendants().forEach(java.lang.ProcessHandle::destroy);
+        } catch (NoSuchMethodError e) {
+            LOGGER.debug("Did not destroy the child processes. This is only supported with Java 9+.");
+        }
+        process.destroy();
     }
 
     @Override
