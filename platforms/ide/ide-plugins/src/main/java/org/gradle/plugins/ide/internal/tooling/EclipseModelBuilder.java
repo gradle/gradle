@@ -212,8 +212,8 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         eclipseProjects.add(eclipseProject);
     }
 
-    private void populate(Project project) {
-        ((ProjectInternal) project).getModel().applyToMutableState(state -> {
+    private void populate(Project p) {
+        ((ProjectInternal) p).getOwner().applyToMutableState(project -> {
             EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
 
             boolean projectDependenciesOnly = this.projectDependenciesOnly;
@@ -243,7 +243,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
         });
 
-        for (Project childProject : getChildProjectsForInternalUse(project)) {
+        for (Project childProject : getChildProjectsForInternalUse(p)) {
             populate(childProject);
         }
     }

@@ -31,7 +31,7 @@ public class ParameterizedLoadCompositeEclipseModels<T> implements BuildAction<C
     private final EclipseWorkspace workspace;
     private final Class<T> modelClass;
 
-    ParameterizedLoadCompositeEclipseModels(EclipseWorkspace workspace, Class<T> modelClass) {
+    public ParameterizedLoadCompositeEclipseModels(EclipseWorkspace workspace, Class<T> modelClass) {
         this.workspace = workspace;
         this.modelClass = modelClass;
     }

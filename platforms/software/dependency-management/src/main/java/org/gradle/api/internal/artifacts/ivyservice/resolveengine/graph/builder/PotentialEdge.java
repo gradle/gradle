@@ -57,7 +57,8 @@ class PotentialEdge {
         if (exclusions == null) {
             exclusions = resolveState.getModuleExclusions().nothing();
         }
-        EdgeState edge = new EdgeState(from, dependencyState, exclusions, resolveState);
+        EdgeState edge = new EdgeState(from, dependencyState, resolveState);
+        edge.updateTransitiveExcludes(exclusions);
         edge.computeSelector();
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);
