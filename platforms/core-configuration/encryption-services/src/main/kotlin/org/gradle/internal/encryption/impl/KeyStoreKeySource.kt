@@ -31,6 +31,7 @@ internal
 class KeyStoreKeySource(
     val encryptionAlgorithm: String,
     val customKeyStoreDir: File?,
+    val customKeyStoreType: String?,
     val keyAlias: String,
     val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     val fileSystem: FileSystem
@@ -41,12 +42,12 @@ class KeyStoreKeySource(
 
     private
     val keyStore by lazy {
-        KeyStore.getInstance(KEYSTORE_TYPE)
+        KeyStore.getInstance(customKeyStoreType ?: DEFAULT_KEYSTORE_TYPE)
     }
 
     override val sourceDescription: String
-        get() = customKeyStoreDir?.let { "custom Java keystore at $it" }
-            ?: "default Gradle configuration cache keystore"
+        get() = customKeyStoreDir?.let { "custom Java keystore (${keyStore.type}) at $it" }
+            ?: "default Gradle configuration cache keystore (${keyStore.type})"
 
     private
     fun createKeyStoreAndGenerateKey(keyStoreFile: File): SecretKey {
@@ -123,8 +124,8 @@ class KeyStoreKeySource(
         File(baseDir, "gradle.keystore")
 
     companion object {
-        // JKS does not support non-PrivateKeys
-        const val KEYSTORE_TYPE = "pkcs12"
+        // neither JKS nor DKS support symmetric keys
+        private val DEFAULT_KEYSTORE_TYPE = KeyStore.getDefaultType().takeIf { it != "jks" && it != "dks" } ?: "pkcs12"
         private val KEYSTORE_PASSWORD = charArrayOf('c', 'c')
         // Keystore should only be readable by owner
         private val KEYSTORE_FILE_PERMISSIONS = "0600".toInt(8)

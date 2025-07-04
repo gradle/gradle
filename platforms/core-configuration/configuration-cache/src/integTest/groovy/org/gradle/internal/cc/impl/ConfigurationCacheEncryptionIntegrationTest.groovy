@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.spockframework.lang.Wildcard
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
@@ -52,11 +53,14 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         encryptionKeyAsBase64 = Base64.encoder.encodeToString(encryptionKeyText.getBytes(StandardCharsets.UTF_8))
     }
 
-    def "configuration cache can be loaded without errors from #source using #encryptionTransformation"() {
+    def "configuration cache can be loaded without errors from #source using #encryptionTransformation and #keystoreType"() {
         given:
         def additionalOpts = [
             "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionTransformation}"
         ]
+        if (keystoreType != Wildcard.INSTANCE) {
+            additionalOpts << "-Dorg.gradle.configuration-cache.internal.key-store-type=${keystoreType}"
+        }
         def configurationCache = newConfigurationCacheFixture()
         runWithEncryption(source, ["help"], additionalOpts)
 
@@ -67,11 +71,13 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         configurationCache.assertStateLoaded()
 
         where:
-        encryptionTransformation | source
-        "AES/CTR/NoPadding"      | EncryptionKind.KEYSTORE
-        "AES/CTR/NoPadding"      | EncryptionKind.ENV_VAR
-        "AES/GCM/NoPadding"      | EncryptionKind.KEYSTORE
-        "AES/GCM/NoPadding"      | EncryptionKind.ENV_VAR
+        encryptionTransformation | keystoreType |   source
+        "AES/CTR/NoPadding"      | _            | EncryptionKind.KEYSTORE
+        "AES/CTR/NoPadding"      | "jceks"      | EncryptionKind.KEYSTORE
+        "AES/CTR/NoPadding"      | _            | EncryptionKind.ENV_VAR
+        "AES/GCM/NoPadding"      | _            | EncryptionKind.KEYSTORE
+        "AES/GCM/NoPadding"      | "jceks"      | EncryptionKind.KEYSTORE
+        "AES/GCM/NoPadding"      | _            | EncryptionKind.ENV_VAR
     }
 
     def "configuration cache encryption enablement is #enabled if kind=#kind"() {
@@ -155,15 +161,6 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         EncryptionKind.ENV_VAR  | true    | false
     }
 
-    private boolean isFoundInDirectory(File startDir, byte[] toFind) {
-        try (Stream<Path> tree = Files.walk(startDir.toPath(), FileVisitOption.FOLLOW_LINKS)) {
-            return tree.filter { it.toFile().file }
-                .anyMatch {
-                    isSubArray(Files.readAllBytes(it), toFind)
-                }
-        }
-    }
-
     def "new configuration cache entry if keystore is not found"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -186,7 +183,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         and:
         def keyStoreFile = findRequiredKeystoreFile()
 
-        KeyStore ks = KeyStore.getInstance(KeyStoreKeySource.KEYSTORE_TYPE)
+        KeyStore ks = KeyStore.getInstance(KeyStoreKeySource.DEFAULT_KEYSTORE_TYPE)
         keyStoreFile.withInputStream { ks.load(it, new char[]{'c', 'c'}) }
         ks.deleteEntry("gradle-secret")
         keyStoreFile.withOutputStream { ks.store(it, new char[]{'c', 'c'}) }
@@ -214,37 +211,6 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         cleanup:
         fs.chmod(keyStoreDir, 0666)
-    }
-
-    void runWithEncryption(
-        EncryptionKind kind = EncryptionKind.KEYSTORE,
-        List<String> tasks = ["help"],
-        List<String> additionalArgs = [],
-        Map<String, String> envVars = [:],
-        Closure<Void> runner = this::configurationCacheRun
-    ) {
-        def allArgs = tasks + getEncryptionOptions(kind) + additionalArgs + ["-s"]
-        // envVars overrides encryption env vars
-        def allVars = getEncryptionEnvVars(kind) + envVars
-        executer.withEnvironmentVars(allVars)
-        runner(*allArgs)
-    }
-
-    private List<String> getEncryptionOptions(EncryptionKind kind = EncryptionKind.KEYSTORE) {
-        switch (kind) {
-            case EncryptionKind.KEYSTORE:
-                return [
-                    "-Dorg.gradle.configuration-cache.internal.key-store-dir=${keyStoreDir}",
-                ]
-            case EncryptionKind.ENV_VAR:
-                // the env var is all that is required
-                return []
-            default:
-                // NONE
-                return [
-                    "-Dorg.gradle.configuration-cache.internal.encryption=false"
-                ]
-        }
     }
 
     def "build fails if key is provided via env var but invalid"() {
@@ -305,6 +271,75 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateStored()
+    }
+
+    def "encryption service honors default keystore type"() {
+        def defaultKeystoreType = KeyStore.defaultType
+        buildFile """
+        def encryptionService = services.get(org.gradle.internal.encryption.EncryptionConfiguration)
+        // ensure encryption service is triggered
+        assert encryptionService.encrypting
+        """
+        when:
+        run("help", "-i")
+
+        then:
+        outputContains("Encryption key source: default Gradle configuration cache keystore (${defaultKeystoreType})")
+    }
+
+    def "encryption service honors explicitly defined keystore type"() {
+        buildFile """
+        def encryptionService = services.get(org.gradle.internal.encryption.EncryptionConfiguration)
+        assert encryptionService.encrypting
+        """
+        file "security.properties" << """
+        keystore.type=jks
+        """
+        when:
+        run("help", "-i", "-Dorg.gradle.configuration-cache.internal.key-store-type=dks")
+
+        then:
+        outputContains("Encryption key source: default Gradle configuration cache keystore (dks)")
+    }
+
+    private boolean isFoundInDirectory(File startDir, byte[] toFind) {
+        try (Stream<Path> tree = Files.walk(startDir.toPath(), FileVisitOption.FOLLOW_LINKS)) {
+            return tree.filter { it.toFile().file }
+                .anyMatch {
+                    isSubArray(Files.readAllBytes(it), toFind)
+                }
+        }
+    }
+
+    private void runWithEncryption(
+        EncryptionKind kind = EncryptionKind.KEYSTORE,
+        List<String> tasks = ["help"],
+        List<String> additionalArgs = [],
+        Map<String, String> envVars = [:],
+        Closure<Void> runner = this::configurationCacheRun
+    ) {
+        def allArgs = tasks + getEncryptionOptions(kind) + additionalArgs + ["-s"]
+        // envVars overrides encryption env vars
+        def allVars = getEncryptionEnvVars(kind) + envVars
+        executer.withEnvironmentVars(allVars)
+        runner(*allArgs)
+    }
+
+    private List<String> getEncryptionOptions(EncryptionKind kind = EncryptionKind.KEYSTORE) {
+        switch (kind) {
+            case EncryptionKind.KEYSTORE:
+                return [
+                    "-Dorg.gradle.configuration-cache.internal.key-store-dir=${keyStoreDir}",
+                ]
+            case EncryptionKind.ENV_VAR:
+                // the env var is all that is required
+                return []
+            default:
+                // NONE
+                return [
+                    "-Dorg.gradle.configuration-cache.internal.encryption=false"
+                ]
+        }
     }
 
     private Map<String, String> getEncryptionEnvVars(EncryptionKind kind = EncryptionKind.KEYSTORE) {
