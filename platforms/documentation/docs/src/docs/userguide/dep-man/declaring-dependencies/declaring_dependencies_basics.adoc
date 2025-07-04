@@ -29,7 +29,8 @@ There are three main types of dependencies in Gradle:
 
 Module dependencies are the most common dependencies.
 They refer to a dependency that is identified by module coordinates (group, name, and version).
-Module dependencies are declared using the String notation, where the group, name, and version are joined into a single string:
+
+Module dependencies are declared using the single-string notation, where the group, name, and version are joined into a single string:
 
 ====
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
@@ -41,6 +42,8 @@ Gradle also supports the multi-string notation, where each coordinate may be dec
 ====
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies-map]"]
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies-map]"]
+
+NOTE: The multi-string notation for module dependencies has been deprecated and will not be supported starting in Gradle 10. Use the single-string notation instead.
 
 Module dependencies use the link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html[`ExternalModuleDependency`] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] APIs.
 These APIs provide various properties and configuration methods for defining dependencies.

@@ -41,6 +41,9 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
 
         when:
         def result = runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
+            .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecation()
+            }
             .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
             .build()
 
@@ -120,6 +123,9 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner
+            .deprecations(SantaTrackerDeprecations) {
+                expectMultiStringNotationDeprecation()
+            }
             .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
             .buildAndFail()
 
@@ -136,6 +142,9 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         result = runner.withArguments(runner.arguments + "--continue")
+            .deprecations(SantaTrackerDeprecations) {
+                expectMultiStringNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+            }
             .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
             .buildAndFail()
 
