@@ -1,8 +1,12 @@
-// tag::instrumentedjar-task[]
+// tag::java-lib[]
 plugins {
     id("java-library")
 }
+// end::java-lib[]
 
+// tag::instrumentedjar-task[]
+// Register a custom JAR task that packages the output of the 'main' source set.
+// This JAR will have a classifier of 'instrumented' to distinguish it from the default artifact.
 val instrumentedJar by tasks.registering(Jar::class) {
     archiveClassifier.set("instrumented")
     from(sourceSets.main.get().output)
@@ -12,17 +16,18 @@ val instrumentedJar by tasks.registering(Jar::class) {
 
 // tag::custom-config[]
 configurations {
-    create("instrumentedJars") {
-        isCanBeConsumed = true
-        isCanBeResolved = false
+    // Create a custom consumable configuration named 'instrumentedJars'
+    // This allows the producer to supply the instrumented JAR variant to other projects
+    consumable("instrumentedJars") {
+        // Assign attributes so that consuming projects can match on these
         attributes {
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            // The unique attribute allows targeted selection
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("instrumented-jar"))
         }
     }
 }
 
+// Add the custom JAR artifact to the 'instrumentedJars' configuration
 artifacts {
     add("instrumentedJars", instrumentedJar)
 }
