@@ -62,7 +62,6 @@ class TextReportRendererSpec extends Specification {
 
         and:
         1 * project.displayName >> "root project 'test'"
-        1 * project.description >> null
     }
 
     def "write subproject header"() {
@@ -80,11 +79,10 @@ class TextReportRendererSpec extends Specification {
         containsLine(textOutput.toString(), "Project ':subproject'")
 
         and:
-        1 * subproject.description >> null
         1 * subproject.displayName >> "project ':subproject'"
     }
 
-    def "includes project description in header"() {
+    def "does not include project description in header"() {
         given:
         def project = Mock(ProjectDetails)
         TestStyledTextOutput textOutput = new TestStyledTextOutput()
@@ -96,10 +94,10 @@ class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Root project 'test' - this is the root project")
+        containsLine(textOutput.toString(), "Root project 'test'")
 
         and:
         1 * project.displayName >> "root project 'test'"
-        1 * project.getDescription() >> "this is the root project"
+        0 * project.getDescription()
     }
 }
