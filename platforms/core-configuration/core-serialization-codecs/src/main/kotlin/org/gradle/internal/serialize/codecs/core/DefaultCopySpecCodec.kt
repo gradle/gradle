@@ -37,6 +37,7 @@ import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeEnum
 
@@ -45,8 +46,7 @@ class DefaultCopySpecCodec(
     private val patternSetFactory: PatternSetFactory,
     private val fileCollectionFactory: FileCollectionFactory,
     private val propertyFactory: PropertyFactory,
-    private val instantiator: Instantiator,
-    private val fileSystemOperations: FileSystemOperations
+    private val instantiator: Instantiator
 ) : Codec<DefaultCopySpec> {
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
@@ -83,6 +83,7 @@ class DefaultCopySpecCodec(
             copySpec.includeEmptyDirs = includeEmptyDirs
             copySpec.isCaseSensitive = isCaseSensitive
             copySpec.filteringCharset = filteringCharset
+            val fileSystemOperations = isolate.owner.serviceOf<FileSystemOperations>()
             if (dirMode != null) {
                 copySpec.dirPermissions.set(fileSystemOperations.permissions(dirMode))
             }

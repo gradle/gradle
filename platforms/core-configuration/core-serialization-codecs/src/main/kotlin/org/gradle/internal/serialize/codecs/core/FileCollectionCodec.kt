@@ -44,6 +44,7 @@ import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.writeCollection
 import java.io.File
 import kotlin.jvm.optionals.getOrNull
@@ -73,7 +74,8 @@ class FileCollectionCodec(
 
     private
     suspend fun WriteContext.encodeViaCollectingVisitor(value: FileCollectionInternal) {
-        val visitor = CollectingVisitor()
+        val fileResolver = isolate.owner.serviceOf<PathToFileResolver>()
+        val visitor = CollectingVisitor(fileResolver)
         value.visitStructure(visitor)
         writeCollection(visitor.elements)
     }
@@ -140,7 +142,7 @@ abstract class AbstractVisitor : FileCollectionStructureVisitor {
 
 
 private
-class CollectingVisitor : AbstractVisitor() {
+class CollectingVisitor(private val fileResolver: PathToFileResolver) : AbstractVisitor() {
     val elements: MutableSet<Any> = mutableSetOf()
 
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
@@ -199,7 +201,14 @@ class CollectingVisitor : AbstractVisitor() {
     }
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: MutableIterable<File>) {
-        elements.addAll(contents)
+        for (file in contents) {
+            if (file.isAbsolute) {
+                elements.add(file)
+            } else {
+                // TODO: use source's resolver instead
+                elements.add(fileResolver.resolve(file))
+            }
+        }
     }
 }
 

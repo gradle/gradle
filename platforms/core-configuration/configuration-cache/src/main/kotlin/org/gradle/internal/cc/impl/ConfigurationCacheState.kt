@@ -59,7 +59,7 @@ import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.base.services.ProjectRefResolver
-import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.internal.configuration.problems.PropertyProblem
@@ -176,7 +176,7 @@ interface ConfigurationCacheStateFile {
 @Suppress("LargeClass")
 internal
 class ConfigurationCacheState(
-    private val codecs: Codecs,
+    private val codecs: ConfigurationCacheCodecs,
     private val stateFile: ConfigurationCacheStateFile,
     private val contextSource: IsolateContextSource,
     private val eventEmitter: BuildOperationProgressEventEmitter,
