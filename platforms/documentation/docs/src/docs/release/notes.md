@@ -14,7 +14,7 @@ Gradle @version@ is the third patch release for Gradle 8.14 (released [@releaseD
 
 It fixes the following issues:
 
-* TODO
+* [#33943](https://github.com/gradle/gradle/issues/33943) [Backport] Missing dependency even if all paths do not exclude it
 
 Issues fixed in the second patch release:
 
