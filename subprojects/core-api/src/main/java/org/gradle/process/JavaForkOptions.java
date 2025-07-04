@@ -198,7 +198,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param classpath The classpath.
      * @return this
      */
-    JavaForkOptions bootstrapClasspath(Object... classpath);
+    JavaForkOptions bootstrapClasspath(@Nullable Object... classpath);
 
     /**
      * Returns true if assertions are enabled for the process.

@@ -59,11 +59,6 @@ For more, see the <<#minimum_daemon_jvm_version,Running Gradle on older JVMs>> s
 
 Gradle now embeds Kotlin 2.1.21, upgrading from the previously embedded version 2.0.21.
 
-This upgrade includes several important changes:
-
-* Support for Kotlin language versions 1.4 and 1.5 has been removed.
-* Kotlin language version 1.7 is now deprecated.
-
 For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21[Kotlin release notes].
 
 ==== Kotlin DSL and plugins use the Kotlin language version 2.1
@@ -77,6 +72,11 @@ Users should review their code for compatibility with link:https://kotlinlang.or
 Due to changes in how the Kotlin 2 compiler handles script compilation, you can no longer refer to the script instance using labels like `this@Build_gradle`, `this@Settings_gradle`, or `this@Init_gradle`.
 If they are used to reference the DSL script target object, then use `project`, `settings`, or `gradle` instead.
 If they are used to reference a top-level symbol that happens to have the same name as a nested symbol, then use a different name, possibly by adding an intermediary variable.
+
+This upgrade also includes several important changes for build-logic and plugin authors:
+
+* Support for Kotlin language versions 1.4 and 1.5 has been removed.
+* Kotlin language version 1.7 is now deprecated.
 
 Read the link:#jspecify[JSpecify section] below to learn about potential breaking changes in Kotlin build logic code related to nullability.
 
@@ -489,6 +489,10 @@ For example if you have a Kotlin extension function on `Provider<T>` whose signa
 For example, you can't use `Property<String?>` anymore because the `T` in `Property<T>` is not nullable.
 +
 Another example is using a function from the Gradle API that takes a `Map<String, *>` parameter ; you could pass a map with nullable values before, you can't do that anymore.
+
+- Functions of the Gradle API that take varargs are now strict with regards to elements nullability.
++
+For example, functions of the Gradle API that take varargs with non-nullable elements only were accepting null elements in previous Gradle versions and will now fail to compile.
 
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9 as they did before.
 
