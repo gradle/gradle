@@ -213,7 +213,7 @@ abstract class ProjectDelegate : Project {
     override fun getProjectDir(): File =
         delegate.projectDir
 
-    override fun files(vararg paths: Any): ConfigurableFileCollection =
+    override fun files(vararg paths: Any?): ConfigurableFileCollection =
         delegate.files(*paths)
 
     override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection =
@@ -418,7 +418,7 @@ abstract class ProjectDelegate : Project {
     override fun tarTree(tarPath: Any): FileTree =
         delegate.tarTree(tarPath)
 
-    override fun delete(vararg paths: Any): Boolean =
+    override fun delete(vararg paths: Any?): Boolean =
         delegate.delete(*paths)
 
     override fun delete(action: Action<in DeleteSpec>): WorkResult =

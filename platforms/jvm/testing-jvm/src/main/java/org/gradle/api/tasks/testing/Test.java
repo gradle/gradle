@@ -344,7 +344,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test bootstrapClasspath(Object... classpath) {
+    public Test bootstrapClasspath(@Nullable Object... classpath) {
         forkOptions.bootstrapClasspath(classpath);
         return this;
     }
