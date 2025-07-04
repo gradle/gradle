@@ -46,6 +46,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
     val awsS3Sts = "com.amazonaws:aws-java-sdk-sts"
+    val awsS3Sso = "com.amazonaws:aws-java-sdk-sso"
+    val awsS3SsoOidc = "com.amazonaws:aws-java-sdk-ssooidc"
     val bouncycastlePgp = "org.bouncycastle:bcpg-jdk18on"
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
@@ -238,6 +240,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         awsS3Kms to License.Apache2,
         awsS3S3 to License.Apache2,
         awsS3Sts to License.Apache2,
+        awsS3Sso to License.Apache2,
+        awsS3SsoOidc to License.Apache2,
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bouncycastleUtil to License.MIT,
