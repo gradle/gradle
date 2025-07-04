@@ -197,7 +197,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
     val jtar = "org.kamranzafar:jtar"
-    val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+    val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
     val littleproxy = "xyz.rogfam:littleproxy"
     val mina = "org.apache.mina:mina-core"

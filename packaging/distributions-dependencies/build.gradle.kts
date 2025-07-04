@@ -208,8 +208,8 @@ dependencies {
         api(libs.jettyUtil)             { version { strictly(jettyVersion) }}
         api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
         api(libs.jtar)                  { version { strictly("2.3") }}
-        api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
-        api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.2") }}
+        api(libs.kotlinCoroutines)      { version { strictly("1.10.2") }}
+        api(libs.kotlinCoroutinesDebug) { version { strictly("1.10.2") }}
         api(libs.kotlinJvmAbiGenEmbeddable) { version { strictly(libs.kotlinVersion) }}
         api(libs.kotlinxSerializationCore)   { version { strictly("1.6.2") }}
         api(libs.kotlinxSerializationJson)   { version { strictly("1.6.2") }}
