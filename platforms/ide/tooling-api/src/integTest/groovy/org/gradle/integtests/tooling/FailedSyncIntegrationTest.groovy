@@ -72,6 +72,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
+        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:

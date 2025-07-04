@@ -43,7 +43,7 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
             project.projectIdentifier
         }
 
-        buildScriptModel.scriptModels.keySet().each { paths.add(it.toString())}
+//        buildScriptModel.scriptModels.keySet().each { paths.add(it.toString())}
 //        buildScriptModel.classPath.each{ paths << it.toString() }
         // Build your custom model
         return new MyCustomModel(
