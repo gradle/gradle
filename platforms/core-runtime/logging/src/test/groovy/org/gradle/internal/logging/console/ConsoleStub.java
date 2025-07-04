@@ -22,7 +22,7 @@ import java.util.List;
 
 public class ConsoleStub implements Console {
     private final TestableBuildOutputTextArea buildOutputArea = new TestableBuildOutputTextArea();
-    private final TestableRedrawableLabel statusBar = new TestableRedrawableLabel("wrong"); // TODO
+    private final TestableRedrawableLabel statusBar = new TestableRedrawableLabel("-1");
     private final TestableRedrawableLabel progressBar = new TestableRedrawableLabel("0");
     private final TestableBuildProgressTextArea buildProgressArea = new TestableBuildProgressTextArea();
 
@@ -44,6 +44,7 @@ public class ConsoleStub implements Console {
     @Override
     public void flush() {
         progressBar.redraw(null);
+        statusBar.redraw(null);
         buildProgressArea.redraw();
     }
 
@@ -75,8 +76,8 @@ public class ConsoleStub implements Console {
     protected class TestableBuildProgressTextArea extends TestStyledTextOutput implements BuildProgressArea {
         boolean visible;
         int buildProgressLabelCount;
-        private final List<TestableRedrawableLabel> testableLabels = new ArrayList<TestableRedrawableLabel>();
-        private final List<StyledLabel> buildProgressLabels = new ArrayList<StyledLabel>();
+        private final List<TestableRedrawableLabel> testableLabels = new ArrayList<>();
+        private final List<StyledLabel> buildProgressLabels = new ArrayList<>();
 
         @Override
         public StyledLabel getProgressBar() {
