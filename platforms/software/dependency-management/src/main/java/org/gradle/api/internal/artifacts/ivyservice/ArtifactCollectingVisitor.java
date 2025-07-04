@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -45,7 +46,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(DisplayName variantName, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+    public void visitArtifact(DisplayName variantName, VariantIdentifier sourceVariantId, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
         this.artifacts.add(artifact.toPublicView());
     }
 

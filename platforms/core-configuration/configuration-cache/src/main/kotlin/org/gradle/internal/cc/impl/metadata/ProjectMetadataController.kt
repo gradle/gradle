@@ -40,6 +40,7 @@ import org.gradle.internal.component.local.model.LocalVariantMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.ValueCalculator
@@ -89,6 +90,7 @@ class ProjectMetadataController(
 
     private
     suspend fun WriteContext.writeVariant(variant: LocalVariantGraphResolveState) {
+        write(variant.metadata.id)
         writeString(variant.name)
         write(variant.attributes)
         writeDependencies(variant.dependencies)
@@ -131,7 +133,7 @@ class ProjectMetadataController(
                     ImmutableAttributesSchema.EMPTY
                 )
 
-                val variants = readVariants(id, ownerService())
+                val variants = readVariants(ownerService())
 
                 resolveStateFactory.realizedStateFor(
                     metadata,
@@ -142,14 +144,15 @@ class ProjectMetadataController(
     }
 
     private
-    suspend fun ReadContext.readVariants(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): List<LocalVariantGraphResolveState> {
+    suspend fun ReadContext.readVariants(factory: CalculatedValueContainerFactory): List<LocalVariantGraphResolveState> {
         return readList {
-            readVariant(componentId, factory)
+            readVariant(factory)
         }
     }
 
     private
-    suspend fun ReadContext.readVariant(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): LocalVariantGraphResolveState {
+    suspend fun ReadContext.readVariant(factory: CalculatedValueContainerFactory): LocalVariantGraphResolveState {
+        val id = readNonNull<VariantIdentifier>()
         val variantName = readString()
         val attributes = readNonNull<ImmutableAttributes>()
         val dependencies = readDependencies()
@@ -160,6 +163,7 @@ class ProjectMetadataController(
         )
 
         val metadata = DefaultLocalVariantGraphResolveMetadata(
+            id,
             variantName,
             true,
             attributes,
@@ -168,7 +172,6 @@ class ProjectMetadataController(
         )
 
         return resolveStateFactory.realizedVariantStateFor(
-            componentId,
             metadata,
             dependencyMetadata,
             variants

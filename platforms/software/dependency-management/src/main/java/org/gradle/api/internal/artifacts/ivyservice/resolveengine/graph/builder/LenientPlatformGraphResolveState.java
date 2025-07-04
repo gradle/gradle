@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
@@ -48,6 +49,7 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.Nullable;
@@ -191,10 +193,12 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 component.getMetadata().getModuleVersionId()
             );
 
+            String name = Dependency.DEFAULT_CONFIGURATION;
+            NamedVariantIdentifier id = new NamedVariantIdentifier(component.getMetadata().getId(), name);
             return new LenientPlatformVariantGraphResolveState(
                 component.idGenerator.nextVariantId(),
                 component.getMetadata().getId(),
-                new LenientPlatformVariantGraphResolveMetadata(Dependency.DEFAULT_CONFIGURATION, false, dependencyFactory)
+                new LenientPlatformVariantGraphResolveMetadata(id, name, false, dependencyFactory)
             );
         }
 
@@ -214,10 +218,12 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 platformId
             );
 
+            String name = Dependency.DEFAULT_CONFIGURATION;
+            NamedVariantIdentifier id = new NamedVariantIdentifier(component.getMetadata().getId(), name);
             return new LenientPlatformVariantGraphResolveState(
                 component.idGenerator.nextVariantId(),
                 component.getMetadata().getId(),
-                new LenientPlatformVariantGraphResolveMetadata(Dependency.DEFAULT_CONFIGURATION, true, dependencyFactory)
+                new LenientPlatformVariantGraphResolveMetadata(id, name, true, dependencyFactory)
             );
         }
 
@@ -228,15 +234,18 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
      */
     private static class LenientPlatformVariantGraphResolveMetadata implements VariantGraphResolveMetadata {
 
+        private final VariantIdentifier id;
         private final String name;
         private final boolean transitive;
         private final VariantDependencyFactory dependencyFactory;
 
         public LenientPlatformVariantGraphResolveMetadata(
+            VariantIdentifier id,
             String name,
             boolean transitive,
             VariantDependencyFactory dependencyFactory
         ) {
+            this.id = id;
             this.name = name;
             this.transitive = transitive;
             this.dependencyFactory = dependencyFactory;
@@ -245,6 +254,11 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public VariantIdentifier getId() {
+            return id;
         }
 
         @Override

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -40,6 +41,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
+    def sourceVariantId = Stub(VariantIdentifier)
     def source = Stub(CalculatedValue) {
         isFinalized() >> true
         getValue() >> Try.successful(file)
@@ -58,7 +60,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         artifacts.size() == 1
-        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, ImmutableCapabilities.EMPTY, artifact) }
+        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, sourceVariantId, null, ImmutableCapabilities.EMPTY, artifact) }
         0 * _
 
         when:
@@ -77,7 +79,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         artifacts.size() == 1
-        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, ImmutableCapabilities.EMPTY, artifact) }
+        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, sourceVariantId, null, ImmutableCapabilities.EMPTY, artifact) }
         0 * _
 
         when:
