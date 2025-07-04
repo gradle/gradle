@@ -178,7 +178,7 @@ trait ToolingApiSpec {
 
             class MyModelBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
-                    return modelName == "${SomeToolingModel.class.name}"
+                    return modelName == "${ org.gradle.integtests.tooling.fixture.SomeToolingModel.class.name}"
                 }
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")

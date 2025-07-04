@@ -16,8 +16,8 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.integtests.tooling.fixture.SomeToolingModel
 import org.gradle.internal.cc.impl.fixtures.CustomModel
-import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
