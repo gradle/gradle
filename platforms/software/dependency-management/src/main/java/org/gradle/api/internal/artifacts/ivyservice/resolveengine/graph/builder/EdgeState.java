@@ -59,7 +59,6 @@ class EdgeState implements DependencyGraphEdge {
     private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
 
-
     /**
      * The accumulated exclusions that apply to this edge based on the paths from the root
      */
