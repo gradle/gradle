@@ -57,7 +57,7 @@ import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
-import org.jetbrains.kotlin.config.JvmTarget.JVM_23
+import org.jetbrains.kotlin.config.JvmTarget.JVM_24
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
@@ -426,10 +426,10 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
 @VisibleForTesting
 internal
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 23
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 24
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JVM_23
+        else JVM_24
 }
 
 
@@ -441,7 +441,7 @@ fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOpt
         AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
         AnalysisFlags.skipPrereleaseCheck to true,
         AnalysisFlags.allowUnstableDependencies to true,
-        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ALL,
+        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
         JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
             jsr305 = Jsr305Settings(globalLevel = ReportLevel.STRICT, migrationLevel = ReportLevel.STRICT),
             getReportLevelForAnnotation = { ReportLevel.STRICT }
