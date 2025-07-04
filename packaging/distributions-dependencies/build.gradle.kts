@@ -211,8 +211,8 @@ dependencies {
         api(libs.kotlinCoroutines)      { version { strictly("1.10.2") }}
         api(libs.kotlinCoroutinesDebug) { version { strictly("1.10.2") }}
         api(libs.kotlinJvmAbiGenEmbeddable) { version { strictly(libs.kotlinVersion) }}
-        api(libs.kotlinxSerializationCore)   { version { strictly("1.6.2") }}
-        api(libs.kotlinxSerializationJson)   { version { strictly("1.6.2") }}
+        api(libs.kotlinxSerializationCore)   { version { strictly("1.9.0") }}
+        api(libs.kotlinxSerializationJson)   { version { strictly("1.9.0") }}
         api(libs.littleproxy)           { version { strictly("2.0.5") }}
         api(libs.maven3ResolverProvider){ version { strictly(mavenVersion) }}
         api(libs.mavenResolverApi)              { version { strictly(mavenResolverVersion) }}
