@@ -72,6 +72,3 @@ packageCycles {
     excludePatterns.add("org/gradle/internal/featurelifecycle/**")
     excludePatterns.add("org/gradle/util/**")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

@@ -68,6 +68,3 @@ val reportResources = tasks.register<Copy>("reportResources") {
 sourceSets.main {
     output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

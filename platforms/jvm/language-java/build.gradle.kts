@@ -140,6 +140,3 @@ tasks.javadoc {
         )
     }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

@@ -97,6 +97,3 @@ packageCycles {
     excludePatterns.add("org/gradle/language/scala/tasks/*")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

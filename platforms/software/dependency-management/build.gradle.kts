@@ -82,7 +82,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
-    
+
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
@@ -181,7 +181,4 @@ tasks.clean {
             include("**/read-only-cache/**")
         }.visit { this.file.setWritable(true) }
     }
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -36,6 +36,3 @@ dependencies {
         because("Uses application plugin.")
     }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

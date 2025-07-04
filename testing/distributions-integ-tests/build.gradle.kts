@@ -31,6 +31,3 @@ tasks.forkingIntegTest {
     systemProperty("gradleBuildBranch", lazy(buildBranch::get))
     systemProperty("gradleBuildCommitId", lazy(buildCommitId::get))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

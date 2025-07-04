@@ -50,6 +50,3 @@ dependencies {
     integTestImplementation(projects.launcher)
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

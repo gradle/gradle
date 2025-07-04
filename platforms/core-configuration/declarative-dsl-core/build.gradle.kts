@@ -38,6 +38,3 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

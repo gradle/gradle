@@ -88,6 +88,3 @@ tasks.jar {
 
     from(files(provider{ flamegraph.map { zipTree(it) } }))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

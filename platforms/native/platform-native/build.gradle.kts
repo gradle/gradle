@@ -88,6 +88,3 @@ packageCycles {
     excludePatterns.add("org/gradle/nativeplatform/toolchain/internal/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
