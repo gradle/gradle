@@ -46,6 +46,3 @@ dependencies {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

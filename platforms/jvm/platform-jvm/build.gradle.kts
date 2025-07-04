@@ -58,6 +58,3 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

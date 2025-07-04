@@ -64,9 +64,6 @@ packageCycles {
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
 
 // TODO: Base services should not be responsible for generating the build receipt.
 //       Perhaps :api-metadata is a better fit

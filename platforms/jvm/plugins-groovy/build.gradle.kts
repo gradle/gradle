@@ -47,6 +47,3 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
