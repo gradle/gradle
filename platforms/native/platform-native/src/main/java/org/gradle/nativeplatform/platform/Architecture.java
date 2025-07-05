@@ -55,6 +55,11 @@ import org.gradle.internal.HasInternalProtocol;
  *         <td>"arm", "arm-v7", "armv7", "arm32"</td>
  *         <td>"aarch64", "arm64", "arm-v8"</td>
  *     </tr>
+ *     <tr>
+ *         <td>MCST e2k (Elbrus-2000)</td>
+ *         <td>N/A</td>
+ *         <td>"e2k"</td>
+ *     </tr>
  * </table>
  */
 @HasInternalProtocol
