@@ -29,14 +29,15 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions;
+import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptionsConverter;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptionsConverter;
+import org.gradle.api.internal.tasks.compile.SourceRootInferrer;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -134,15 +135,8 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         checkGroovyClasspathIsNonEmpty();
         warnIfCompileAvoidanceEnabled();
         GroovyJavaJointCompileSpec spec = createSpec();
-        maybeDisableIncrementalCompilationAfterFailure(spec);
         WorkResult result = createCompiler(spec, inputChanges).execute(spec);
         setDidWork(result.getDidWork());
-    }
-
-    private void maybeDisableIncrementalCompilationAfterFailure(GroovyJavaJointCompileSpec spec) {
-        if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
-            spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
-        }
     }
 
     /**
@@ -228,7 +222,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         assert spec != null;
 
         FileTreeInternal stableSourcesAsFileTree = (FileTreeInternal) getStableSources().getAsFileTree();
-        List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots(stableSourcesAsFileTree);
+        List<File> sourceRoots = SourceRootInferrer.inferSourceRoots(stableSourcesAsFileTree);
 
         spec.setSourcesRoots(sourceRoots);
         spec.setSourceFiles(stableSourcesAsFileTree);
@@ -239,21 +233,26 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         configureCompatibilityOptions(spec);
         spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? getProjectLayout().files() : compileOptions.getAnnotationProcessorPath()));
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
-        spec.setCompileOptions(compileOptions);
-        spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(groovyCompileOptions));
-        spec.getCompileOptions().setSupportsCompilerApi(true);
-        if (getOptions().isIncremental()) {
-            validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());
-            spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
-        }
-        if (spec.getGroovyCompileOptions().getStubDir() == null) {
-            File dir = new File(getTemporaryDir(), "groovy-java-stubs");
-            GFileUtils.mkdirs(dir);
-            spec.getGroovyCompileOptions().setStubDir(dir);
-        }
 
         String executable = getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath();
-        spec.getCompileOptions().getForkOptions().setExecutable(executable);
+        compileOptions.getForkOptions().setExecutable(executable);
+        if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
+            compileOptions.getIncrementalAfterFailure().set(false);
+        }
+        spec.setCompileOptions(MinimalJavaCompileOptionsConverter.toMinimalJavaCompileOptions(compileOptions));
+
+        if (groovyCompileOptions.getStubDir() == null) {
+            File dir = new File(getTemporaryDir(), "groovy-java-stubs");
+            GFileUtils.mkdirs(dir);
+            groovyCompileOptions.setStubDir(dir);
+        }
+        spec.setGroovyCompileOptions(MinimalGroovyCompileOptionsConverter.toMinimalGroovyCompileOptions(groovyCompileOptions));
+
+        spec.setSupportsCompilerApi(true);
+        if (getOptions().isIncremental()) {
+            validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());
+            spec.setPreviousCompilationDataFile(getPreviousCompilationData());
+        }
 
         return spec;
     }

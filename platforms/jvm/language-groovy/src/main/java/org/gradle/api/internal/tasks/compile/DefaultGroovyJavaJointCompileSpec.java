@@ -44,6 +44,6 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
 
     @Override
     public boolean incrementalCompilationEnabled() {
-        return getCompileOptions().getPreviousCompilationDataFile() != null;
+        return getPreviousCompilationDataFile() != null;
     }
 }

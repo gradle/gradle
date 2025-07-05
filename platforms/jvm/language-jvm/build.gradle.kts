@@ -24,6 +24,7 @@ dependencies {
     api(projects.workers)
 
     api(libs.groovy)
+    api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
 
@@ -33,7 +34,6 @@ dependencies {
     implementation(projects.testSuitesBase)
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
 
     testImplementation(projects.native)
     testImplementation(projects.resources)

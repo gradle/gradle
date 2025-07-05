@@ -176,7 +176,6 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return independentClasses;
     }
 
-    @SuppressWarnings("MixedMutabilityReturnType")
     private static Set<String> collectIndependentClassesForSourcePath(String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> classNames = sourceFileClassNameConverter.getClassNames(sourcePath);
         if (classNames.size() <= 1) {
@@ -189,7 +188,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
                 newClasses.add(className);
             }
         }
-        return newClasses;
+        return Collections.unmodifiableSet(newClasses);
     }
 
     private static void processTypesToReprocess(Set<String> typesToReprocess, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {

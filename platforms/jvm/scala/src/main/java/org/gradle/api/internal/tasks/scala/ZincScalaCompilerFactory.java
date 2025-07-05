@@ -17,8 +17,6 @@
 package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -28,6 +26,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sbt.internal.inc.AnalyzingCompiler;
 import sbt.internal.inc.AnalyzingCompiler$;
 import sbt.internal.inc.RawCompiler;
@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
 public class ZincScalaCompilerFactory {
-    private static final Logger LOGGER = Logging.getLogger(ZincScalaCompilerFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZincScalaCompilerFactory.class);
     private static final int CLASSLOADER_CACHE_SIZE = 4;
     private static final int COMPILER_CLASSLOADER_CACHE_SIZE = 4;
     private static final String SCALA_3_COMPILER_ID = "scala3-compiler_3";
