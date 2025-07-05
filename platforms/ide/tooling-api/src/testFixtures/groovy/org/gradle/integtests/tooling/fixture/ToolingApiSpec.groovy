@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.fixtures
+package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.SelfType
 import org.apache.tools.ant.util.TeeOutputStream
@@ -178,7 +178,7 @@ trait ToolingApiSpec {
 
             class MyModelBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
-                    return modelName == "${SomeToolingModel.class.name}"
+                    return modelName == "${ org.gradle.integtests.tooling.fixture.SomeToolingModel.class.name}"
                 }
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
