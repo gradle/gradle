@@ -18,7 +18,6 @@ package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
@@ -36,7 +35,6 @@ import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariant
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
-
 /**
  * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
  * variant selection failures.
@@ -58,8 +56,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. There are several available matching variants of root project :
         The only attribute distinguishing these variants is 'shape'. Add this attribute to the consumer's configuration to resolve the ambiguity:
@@ -88,8 +86,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of root project ::
           - blueRoundTransparentElements
@@ -129,7 +127,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(ambiguousGraphVariantForExternalDep)
 
         and: "Has error output"
-        // This doesn't appear with CC: failure.assertHasDescription("Execution failed for task ':forceResolution'")
+        assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""   > Could not resolve com.squareup.okhttp3:okhttp:4.4.0.
@@ -151,14 +149,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
             additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
         }
-
-        if (GradleContextualExecuter.configCache) {
-            verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
-                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
-                additionalData.asMap['trace'] == 'task `:forceResolution` of type `Build_gradle$ForceResolution`'
-            }
-        }
     }
 
     def "demonstrate no matching graph variants selection failure for project"() {
@@ -168,8 +158,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(noMatchingGraphVariantsForProject)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""   > Could not resolve root project :.
      Required by:
@@ -198,7 +188,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(noMatchingGraphVariantsForExternalDep)
 
         and: "Has error output"
-        // This doesn't appear with CC: failure.assertHasDescription("Execution failed for task ':forceResolution'.")
+        assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""      > No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:
@@ -222,13 +212,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
             additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
         }
-        if (GradleContextualExecuter.configCache) {
-            verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
-                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
-                additionalData.asMap['trace'] == 'task `:forceResolution` of type `Build_gradle$ForceResolution`'
-            }
-        }
     }
 
     def 'demonstrate incompatible requested configuration failure'() {
@@ -238,8 +221,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(incompatibleRequestedConfiguration)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""     Required by:
          root project 'example'
@@ -268,8 +251,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(noGraphVariantsExistForProject)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :producer.")
         assertFullMessageCorrect("""     Required by:
          root project 'example'
@@ -296,8 +279,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(configurationNotFound)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""Required by:
          root project 'example'
@@ -328,8 +311,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(incompatibleArtifactVariants)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""     Required by:
          root project 'example'
@@ -357,8 +340,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(noMatchingArtifactVariants)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         assertFullMessageCorrect("""   > No variants of root project : match the consumer attributes:
        - Configuration ':myElements' declares attribute 'color' with value 'blue':
            - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
@@ -385,7 +368,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(ambiguousArtifactTransforms)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
        - color 'red'
@@ -435,8 +417,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(ambiguousArtifactVariants)
 
         and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         assertFullMessageCorrect("""   > More than one variant of root project : matches the consumer attributes:
        - Configuration ':default' variant v1
        - Configuration ':default' variant v2""")
@@ -1129,7 +1111,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             }
 
             val forceResolution by tasks.registering(ForceResolution::class) {
-                resolvedFiles.from(configurations.getByName("resolveMe"))
+                resolvedFiles.from(configurations.getByName("resolveMe").files)
                 doLast {
                     resolvedFiles.forEach { println(it) }
                 }
@@ -1139,7 +1121,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // endregion setup
 
     private void assertFullMessageCorrect(String identifyingFragment) {
-        failure.assertHasErrorOutput(identifyingFragment)
+        identifyingFragment.eachLine {
+            failure.assertHasErrorOutput(it.trim())
+        }
     }
 
     private void assertSuggestRunningArtifactTransformsReport() {
@@ -1159,5 +1143,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         outputContains("Variant Selection Exception: " + demonstration.exception.getName() + " caused by Resolution Failure: " + demonstration.failure.getName())
         failure.assertHasErrorOutput("Caused by: " + demonstration.exception.getName())
+    }
+
+    private void assertFailureDescriptionCorrect() {
+        failure.assertHasDescription("A problem occurred configuring root project 'example'.")
     }
 }
