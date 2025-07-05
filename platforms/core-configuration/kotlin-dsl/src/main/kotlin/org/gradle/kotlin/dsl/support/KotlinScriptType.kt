@@ -28,6 +28,7 @@ enum class KotlinScriptType {
 }
 
 
+@ConsistentCopyVisibility
 data class KotlinScriptTypeMatch private constructor(
     val scriptType: KotlinScriptType,
     val match: Match

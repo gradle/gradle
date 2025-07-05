@@ -16,20 +16,20 @@
 
 package gradlebuild.binarycompatibility.metadata
 
-import kotlinx.metadata.KmClass
-import kotlinx.metadata.KmConstructor
-import kotlinx.metadata.KmFunction
-import kotlinx.metadata.KmPackage
-import kotlinx.metadata.KmProperty
-import kotlinx.metadata.KmPropertyAccessorAttributes
-import kotlinx.metadata.Visibility
-import kotlinx.metadata.jvm.KotlinClassMetadata
-import kotlinx.metadata.jvm.fieldSignature
-import kotlinx.metadata.jvm.getterSignature
-import kotlinx.metadata.jvm.setterSignature
-import kotlinx.metadata.jvm.signature
-import kotlinx.metadata.visibility
 import java.util.function.Supplier
+import kotlin.metadata.KmClass
+import kotlin.metadata.KmConstructor
+import kotlin.metadata.KmFunction
+import kotlin.metadata.KmPackage
+import kotlin.metadata.KmProperty
+import kotlin.metadata.KmPropertyAccessorAttributes
+import kotlin.metadata.Visibility
+import kotlin.metadata.jvm.KotlinClassMetadata
+import kotlin.metadata.jvm.fieldSignature
+import kotlin.metadata.jvm.getterSignature
+import kotlin.metadata.jvm.setterSignature
+import kotlin.metadata.jvm.signature
+import kotlin.metadata.visibility
 
 
 internal

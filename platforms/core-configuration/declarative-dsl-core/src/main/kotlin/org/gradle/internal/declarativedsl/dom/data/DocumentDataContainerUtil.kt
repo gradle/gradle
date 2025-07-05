@@ -33,7 +33,7 @@ fun <D, C : NodeData<D>> C.collectToNodeMap(document: DeclarativeDocument): Map<
     }
 
 
-fun <D, C> C.collectToMap(document: DeclarativeDocument): Map<DeclarativeDocument.Node, D> where C : NodeData<out D>, C : ValueData<out D> =
+fun <D, C> C.collectToMap(document: DeclarativeDocument): Map<DeclarativeDocument.Node, D> where C : NodeData<D>, C : ValueData<D> =
     buildMap {
         fun visit(node: DeclarativeDocument.Node) {
             put(node, data(node))

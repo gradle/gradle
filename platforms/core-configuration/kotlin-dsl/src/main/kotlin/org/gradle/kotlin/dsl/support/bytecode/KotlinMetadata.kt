@@ -16,36 +16,6 @@
 
 package org.gradle.kotlin.dsl.support.bytecode
 
-import kotlinx.metadata.KmClassifier
-import kotlinx.metadata.KmFunction
-import kotlinx.metadata.KmPackage
-import kotlinx.metadata.KmProperty
-import kotlinx.metadata.KmPropertyAccessorAttributes
-import kotlinx.metadata.KmType
-import kotlinx.metadata.KmTypeParameter
-import kotlinx.metadata.KmTypeProjection
-import kotlinx.metadata.KmValueParameter
-import kotlinx.metadata.KmVariance
-import kotlinx.metadata.MemberKind
-import kotlinx.metadata.Visibility
-import kotlinx.metadata.declaresDefaultValue
-import kotlinx.metadata.hasAnnotations
-import kotlinx.metadata.isInline
-import kotlinx.metadata.isNotDefault
-import kotlinx.metadata.isNullable
-import kotlinx.metadata.jvm.JvmMetadataVersion
-import kotlinx.metadata.jvm.JvmMethodSignature
-import kotlinx.metadata.jvm.KmModule
-import kotlinx.metadata.jvm.KmPackageParts
-import kotlinx.metadata.jvm.KotlinClassMetadata
-import kotlinx.metadata.jvm.KotlinModuleMetadata
-import kotlinx.metadata.jvm.UnstableMetadataApi
-import kotlinx.metadata.jvm.getterSignature
-import kotlinx.metadata.jvm.moduleName
-import kotlinx.metadata.jvm.signature
-import kotlinx.metadata.jvm.syntheticMethodForAnnotations
-import kotlinx.metadata.kind
-import kotlinx.metadata.visibility
 import org.gradle.kotlin.dsl.accessors.ExtensionSpec
 import org.gradle.kotlin.dsl.accessors.accessorDescriptorFor
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
@@ -54,6 +24,36 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import java.io.File
+import kotlin.metadata.KmClassifier
+import kotlin.metadata.KmFunction
+import kotlin.metadata.KmPackage
+import kotlin.metadata.KmProperty
+import kotlin.metadata.KmPropertyAccessorAttributes
+import kotlin.metadata.KmType
+import kotlin.metadata.KmTypeParameter
+import kotlin.metadata.KmTypeProjection
+import kotlin.metadata.KmValueParameter
+import kotlin.metadata.KmVariance
+import kotlin.metadata.MemberKind
+import kotlin.metadata.Visibility
+import kotlin.metadata.declaresDefaultValue
+import kotlin.metadata.isInline
+import kotlin.metadata.isNotDefault
+import kotlin.metadata.isNullable
+import kotlin.metadata.jvm.JvmMetadataVersion
+import kotlin.metadata.jvm.JvmMethodSignature
+import kotlin.metadata.jvm.KmModule
+import kotlin.metadata.jvm.KmPackageParts
+import kotlin.metadata.jvm.KotlinClassMetadata
+import kotlin.metadata.jvm.KotlinModuleMetadata
+import kotlin.metadata.jvm.UnstableMetadataApi
+import kotlin.metadata.jvm.getterSignature
+import kotlin.metadata.jvm.hasAnnotationsInBytecode
+import kotlin.metadata.jvm.moduleName
+import kotlin.metadata.jvm.signature
+import kotlin.metadata.jvm.syntheticMethodForAnnotations
+import kotlin.metadata.kind
+import kotlin.metadata.visibility
 
 
 internal
@@ -343,5 +343,5 @@ val publicFunctionAttributes: KmFunction.() -> Unit = {
 internal
 val publicFunctionWithAnnotationsAttributes: KmFunction.() -> Unit = {
     publicFunctionAttributes(this)
-    hasAnnotations = true
+    hasAnnotationsInBytecode = true
 }

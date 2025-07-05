@@ -127,12 +127,14 @@ abstract class GradleDelegate : Gradle {
     override fun projectsEvaluated(action: Action<in Gradle>) =
         delegate.projectsEvaluated(action)
 
-    @Suppress("DEPRECATION")
+    @Deprecated("This method is not supported when configuration caching is enabled.")
     override fun buildFinished(closure: Closure<Any>) =
+        @Suppress("DEPRECATION")
         delegate.buildFinished(closure)
 
-    @Suppress("DEPRECATION")
+    @Deprecated("This method is not supported when configuration caching is enabled.")
     override fun buildFinished(action: Action<in BuildResult>) =
+        @Suppress("DEPRECATION")
         delegate.buildFinished(action)
 
     override fun addBuildListener(buildListener: BuildListener) =
@@ -144,9 +146,9 @@ abstract class GradleDelegate : Gradle {
     override fun removeListener(listener: Any) =
         delegate.removeListener(listener)
 
-    @Suppress("DEPRECATION")
     @Deprecated("Will be removed in Gradle 10. Logging customization through listeners is no longer supported.")
     override fun useLogger(logger: Any) =
+        @Suppress("DEPRECATION")
         delegate.useLogger(logger)
 
     override fun getGradle(): Gradle =

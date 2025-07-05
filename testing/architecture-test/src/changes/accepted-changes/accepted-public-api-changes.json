@@ -3801,8 +3801,9 @@
         {
             "type": "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
             "member": "Class org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "Upgrade to Kotlin 2.2.0",
             "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.access$getFileOperations(org.gradle.kotlin.dsl.support.DefaultKotlinScript)",
                 "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
                 "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
             ]
@@ -3810,8 +3811,9 @@
         {
             "type": "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
             "member": "Class org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "Upgrade to Kotlin 2.2.0",
             "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.access$getFileOperations(org.gradle.kotlin.dsl.support.DefaultKotlinScript)",
                 "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
                 "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
             ]
@@ -3835,8 +3837,9 @@
         {
             "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
             "member": "Class org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
-            "acceptation": "Remove deprecated method",
+            "acceptation": "Upgrade to Kotlin 2.2.0",
             "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.access$getFileOperations(org.gradle.kotlin.dsl.support.DefaultKotlinScript)",
                 "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
                 "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
             ]
@@ -3871,6 +3874,22 @@
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.access$getDelegate$p(org.gradle.kotlin.dsl.ScriptHandlerScope)",
+            "acceptation": "Upgrade to Kotlin 2.2.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getDependencies()",
+            "acceptation": "Upgrade to Kotlin 2.2.0",
+            "changes": [
+                "Method return type has changed"
             ]
         },
         {

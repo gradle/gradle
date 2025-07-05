@@ -44,10 +44,10 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         pluginAppliedWith(current)
     }
 
-    def "can access extensions with Gradle 8.11+ from plugin built with current Gradle version"() {
+    def "can access extensions with Gradle 9.0.0+ from plugin built with current Gradle version"() {
 
-        // 8.11 is the first version that embeds Kotlin 2.0 and can execute code compiled for Kotlin 2.0
-        assumeTrue(previous.version >= GradleVersion.version('8.11'))
+        // 9.0.0 is the first version that embeds Kotlin 2.2 and can execute code compiled for Kotlin 2.2
+        assumeTrue(previous.version >= GradleVersion.version('9.0.0'))
 
         when:
         pluginBuiltWith(current)
@@ -56,15 +56,22 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
         pluginAppliedWith(previous)
     }
 
-    def "can access extensions with Gradle 6.8+ from plugin built with current Gradle version targeting Kotlin 1.7"() {
+    def "can access extensions with Gradle #minGradle+ from plugin built with current Gradle version targeting Kotlin #kotlinLanguageVersion"() {
 
-        assumeTrue(previous.version >= GradleVersion.version('6.8'))
+        assumeTrue(previous.version >= GradleVersion.version(minGradle))
 
         when:
-        pluginBuiltWith(current, "KOTLIN_1_7")
+        pluginBuiltWith(current, "KOTLIN_${kotlinLanguageVersion.replace(".", "_")}")
 
         then:
         pluginAppliedWith(previous)
+
+        where:
+        minGradle | kotlinLanguageVersion
+        "6.8"     | "1.8"
+        "6.8"     | "1.9"
+        "6.8"     | "2.0"
+        "8.11"    | "2.1"
     }
 
     private void pluginBuiltWith(GradleDistribution distribution, String kotlinVersion = null) {

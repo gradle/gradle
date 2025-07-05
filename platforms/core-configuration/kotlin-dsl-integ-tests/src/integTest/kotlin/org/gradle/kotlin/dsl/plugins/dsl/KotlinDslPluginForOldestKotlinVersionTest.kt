@@ -28,7 +28,7 @@ import org.junit.Test
  */
 class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest() {
 
-    private val oldestKotlinLanguageVersion = "1.6"
+    private val oldestKotlinLanguageVersion = "1.8"
 
     @Test
     @Requires(

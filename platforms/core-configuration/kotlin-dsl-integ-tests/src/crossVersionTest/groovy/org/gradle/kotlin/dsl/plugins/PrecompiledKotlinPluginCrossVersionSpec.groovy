@@ -62,10 +62,10 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         assertSuccess(result)
     }
 
-    def "precompiled Kotlin plugins built with current Gradle version can be used with Gradle 8.11+"() {
+    def "precompiled Kotlin plugins built with current Gradle version can be used with Gradle 9.0.0+"() {
 
-        // 8.11 is the first version that embeds Kotlin 2.0 and can execute code compiled for Kotlin 2.0
-        assumeTrue(previous.version >= GradleVersion.version('8.11'))
+        // 9.0.0 is the first version that embeds Kotlin 2.2 and can execute code compiled for Kotlin 2.2
+        assumeTrue(previous.version >= GradleVersion.version('9.0.0'))
 
         given:
         precompiledKotlinPluginsBuiltWith(current)
@@ -77,18 +77,25 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         assertSuccess(result)
     }
 
-    def "precompiled Kotlin plugins built with current Gradle version can be used with Gradle 6.8+ targeting Kotlin 1.7"() {
+    def "precompiled Kotlin plugins built with current Gradle version can be used with Gradle #minGradle+ targeting Kotlin #kotlinLanguageVersion"() {
 
-        assumeTrue(previous.version >= GradleVersion.version('6.8'))
+        assumeTrue(previous.version >= GradleVersion.version(minGradle))
 
         given:
-        precompiledKotlinPluginsBuiltWith(current, "KOTLIN_1_7")
+        precompiledKotlinPluginsBuiltWith(current, "KOTLIN_${kotlinLanguageVersion.replace(".", "_")}")
 
         when:
         def result = pluginsAppliedWith(previous).run()
 
         then:
         assertSuccess(result)
+
+        where:
+        minGradle | kotlinLanguageVersion
+        "6.8"     | "1.8"
+        "6.8"     | "1.9"
+        "6.8"     | "2.0"
+        "8.11"    | "2.1"
     }
 
     private void precompiledKotlinPluginsBuiltWith(GradleDistribution distribution, String kotlinVersion = null) {

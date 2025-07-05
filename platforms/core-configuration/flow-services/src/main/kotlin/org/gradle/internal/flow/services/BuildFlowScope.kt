@@ -113,6 +113,7 @@ open class BuildFlowScope @Inject internal constructor(
         state = state.load(memento)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun buildFinished(result: BuildResult) {
         setBuildWorkResult(result.failure)
         schedulePendingActions()

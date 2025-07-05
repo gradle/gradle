@@ -26,7 +26,7 @@ class RandomInputParsingTest(
             val inputDirectory = this::class.java.getResource("random")?.file?.let { File(it) } ?: error("missing input folder")
             inputDirectory.walk().forEach {
                 if (it.isFile) {
-                    parameters.add(arrayOf(it.relativeTo(inputDirectory).toString(), it))
+                    parameters.add(arrayOf<Any>(it.relativeTo(inputDirectory).toString(), it))
                 }
             }
 

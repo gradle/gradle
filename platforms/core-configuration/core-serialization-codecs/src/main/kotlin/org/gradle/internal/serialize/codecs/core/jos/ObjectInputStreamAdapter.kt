@@ -107,6 +107,7 @@ class ObjectInputStreamAdapter(
 
     override fun read(buf: ByteArray, off: Int, len: Int): Int = inputStream.read(buf, off, len)
 
+    @Deprecated("Deprecated in Java")
     override fun readLine(): String = unsupported("ObjectInputStream.readLine")
 
     override fun readFully(buf: ByteArray) = unsupported("ObjectInputStream.readFully")

@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.KmType
 import org.gradle.api.Project
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -44,6 +43,7 @@ import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import java.io.File
 import javax.inject.Inject
+import kotlin.metadata.KmType
 
 
 /**
