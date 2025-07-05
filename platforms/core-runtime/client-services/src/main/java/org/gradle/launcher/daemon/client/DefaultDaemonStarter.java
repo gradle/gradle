@@ -155,7 +155,16 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add("-cp");
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
 
+        // TODO: remove in Gradle 10
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
+            // NOTE: DeprecationLogger is not initialized yet, so we cannot use it here.
+            LOGGER.warn(
+                "The org.gradle.daemon.debug launcher system property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10. " +
+                    "Please use the org.gradle.debug daemon system property instead. " +
+                    "For more information, please refer to https://docs.gradle.org/{}/userguide/command_line_interface.html#sec:command_line_debugging in the Gradle documentation.",
+                GradleVersion.current().getVersion()
+            );
             daemonArgs.add(JvmOptions.getDebugArgument(true, true, "5005"));
         }
 
