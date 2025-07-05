@@ -29,7 +29,6 @@ configurations {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
         }
-        isVisible = false
     }
 }
 

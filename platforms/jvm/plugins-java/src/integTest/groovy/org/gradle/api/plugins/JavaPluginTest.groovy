@@ -51,7 +51,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         implementation.extendsFrom == toSet()
-        !implementation.visible
         !implementation.canBeConsumed
         !implementation.canBeResolved
 
@@ -60,7 +59,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         runtimeOnly.transitive
-        !runtimeOnly.visible
         !runtimeOnly.canBeConsumed
         !runtimeOnly.canBeResolved
         runtimeOnly.extendsFrom == [] as Set
@@ -70,7 +68,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         runtimeElements.transitive
-        !runtimeElements.visible
         runtimeElements.canBeConsumed
         !runtimeElements.canBeResolved
         runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
@@ -80,7 +77,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         runtimeClasspath.transitive
-        !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
         runtimeClasspath.extendsFrom == [runtimeOnly, implementation] as Set
@@ -90,7 +86,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         compileOnly.extendsFrom == [] as Set
-        !compileOnly.visible
         !compileOnly.canBeConsumed
         !compileOnly.canBeResolved
         compileOnly.transitive
@@ -100,7 +95,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         compileClasspath.extendsFrom == toSet(compileOnly, implementation)
-        !compileClasspath.visible
         compileClasspath.transitive
 
         when:
@@ -108,7 +102,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         annotationProcessor.extendsFrom == [] as Set
-        !annotationProcessor.visible
         annotationProcessor.transitive
         !annotationProcessor.canBeConsumed
         annotationProcessor.canBeResolved
@@ -118,7 +111,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testImplementation.extendsFrom == toSet(implementation)
-        !testImplementation.visible
         testImplementation.transitive
 
         when:
@@ -126,7 +118,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testRuntimeOnly.transitive
-        !testRuntimeOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
         testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
@@ -136,7 +127,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testCompileOnly.extendsFrom == toSet()
-        !testCompileOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
         testCompileOnly.transitive
@@ -146,7 +136,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
-        !testCompileClasspath.visible
         testCompileClasspath.transitive
 
         when:
@@ -154,7 +143,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testAnnotationProcessor.extendsFrom == [] as Set
-        !testAnnotationProcessor.visible
         testAnnotationProcessor.transitive
         !testAnnotationProcessor.canBeConsumed
         testAnnotationProcessor.canBeResolved
@@ -164,7 +152,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testRuntimeClasspath.extendsFrom == toSet(testRuntimeOnly, testImplementation)
-        !testRuntimeClasspath.visible
         testRuntimeClasspath.transitive
         !testRuntimeClasspath.canBeConsumed
         testRuntimeClasspath.canBeResolved
@@ -173,7 +160,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def apiElements = project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
 
         then:
-        !apiElements.visible
         apiElements.extendsFrom == [] as Set
         apiElements.canBeConsumed
         !apiElements.canBeResolved

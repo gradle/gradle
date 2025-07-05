@@ -47,7 +47,6 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         implementation.extendsFrom == [] as Set
-        !implementation.visible
         !implementation.canBeConsumed
         !implementation.canBeResolved
     }

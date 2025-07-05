@@ -5,14 +5,12 @@ plugins {
 
 // Configurations to declare dependencies
 def aggregate = configurations.create('aggregate') {
-    visible = false
     canBeResolved = false
     canBeConsumed = false
 }
 
 // Resolvable configuration to resolve the classes of all dependencies
 def classesPath = configurations.create('classesPath') {
-    visible = false
     canBeConsumed = false
     extendsFrom(aggregate)
     attributes {
@@ -24,7 +22,6 @@ def classesPath = configurations.create('classesPath') {
 
 // A resolvable configuration to collect source code
 def sourcesPath = configurations.create('sourcesPath') {
-    visible = false
     canBeConsumed = false
     extendsFrom(aggregate)
     attributes {
@@ -35,7 +32,6 @@ def sourcesPath = configurations.create('sourcesPath') {
 
 // A resolvable configuration to collect JaCoCo coverage data
 def coverageDataPath = configurations.create('coverageDataPath') {
-    visible = false
     canBeConsumed = false
     extendsFrom(aggregate)
     attributes {
