@@ -56,6 +56,7 @@ import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
 import gradlebuild.basics.BuildParams.SKIP_BUILD_LOGIC_TESTS
 import gradlebuild.basics.BuildParams.STUDIO_HOME
+import gradlebuild.basics.BuildParams.TEAMCITY_PARALLEL_TESTS_BATCH
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_DOGFOODING_TAG
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_PARTITION_SIZE
@@ -124,6 +125,7 @@ object BuildParams {
     const val RERUN_ALL_TESTS = "rerunAllTests"
     const val SKIP_BUILD_LOGIC_TESTS = "skipBuildLogicTests"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
+    const val TEAMCITY_PARALLEL_TESTS_BATCH = "teamCityParallelTestsBatch"
     const val TEST_DISTRIBUTION_DOGFOODING_TAG = "testDistributionDogfoodingTag"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
     const val TEST_DISTRIBUTION_PARTITION_SIZE = "testDistributionPartitionSizeInSeconds"
@@ -339,6 +341,25 @@ val Project.gradleInstallPath: Provider<String>
 val Project.rerunAllTests: Provider<Boolean>
     get() = gradleProperty(RERUN_ALL_TESTS).map { true }.orElse(false)
 
+// It could be lik "1/1" (for initial run) or "1/3", "2/3", "3/3" for batched run.
+// Return null if anything goes wrong.
+private
+fun Project.parseTeamCityBatchInfo(): Pair<Int, Int>? {
+    val batchProperty = gradleProperty(TEAMCITY_PARALLEL_TESTS_BATCH).orNull
+    return if (batchProperty?.matches("\\d+/\\d+".toRegex()) == true) {
+        val current = batchProperty.substringBefore("/").toInt()
+        val total = batchProperty.substringAfter("/").toInt()
+        current to total
+    } else {
+        null
+    }
+}
+
+val Project.teamCityParallelTestsCurrentBatch: Int?
+    get() = parseTeamCityBatchInfo()?.first
+
+val Project.teamCityParallelTestsTotalBatches: Int?
+    get() = parseTeamCityBatchInfo()?.second
 
 val Project.testJavaVendor: Provider<JvmVendorSpec>
     get() = propertyFromAnySource(TEST_JAVA_VENDOR).map { vendorName -> VENDOR_MAPPING.getOrElse(vendorName) { -> JvmVendorSpec.matching(vendorName) } }

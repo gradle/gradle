@@ -3,6 +3,8 @@ import gradlebuild.basics.googleApisJs
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.integrationtests.model.GradleDistribution
+import gradlebuild.basics.teamCityParallelTestsCurrentBatch
+import gradlebuild.basics.teamCityParallelTestsTotalBatches
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
@@ -597,6 +599,10 @@ tasks.named<Wrapper>("generateWrapperForSamples") {
 // TODO: The rich console to plain text is flaky
 tasks.named("checkAsciidoctorSampleContents") {
     enabled = false
+}
+
+tasks.named("checkSamples") {
+    enabled = (project.teamCityParallelTestsTotalBatches == null) || (project.teamCityParallelTestsTotalBatches != null && teamCityParallelTestsCurrentBatch == 1)
 }
 
 // exclude (unused and non-existing) wrapper of development Gradle version, as well as README, because the timestamp in the Gradle version break the cache
