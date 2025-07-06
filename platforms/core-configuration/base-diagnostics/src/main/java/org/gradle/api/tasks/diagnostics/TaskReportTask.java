@@ -62,6 +62,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
     private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
     private String group;
     private List<String> groups;
+    private boolean includeSubprojects = false;
     private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
     private transient TaskReportRenderer renderer;
 
@@ -93,6 +94,25 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @ToBeReplacedByLazyProperty
     public boolean isDetail() {
         return detail;
+    }
+
+    /**
+     * Sets whether to include tasks from subprojects.
+     *
+     * This property can be set via command-line option '--include-subprojects'.
+     */
+    @Option(option = "include-subprojects", description = "Include tasks from subprojects.")
+    public void setIncludeSubprojects(boolean includeSubprojects) {
+        this.includeSubprojects = includeSubprojects;
+    }
+
+    /**
+     * Returns whether to include tasks from subprojects.
+     */
+    @Console
+    @ToBeReplacedByLazyProperty
+    public boolean isIncludeSubprojects() {
+        return includeSubprojects;
     }
 
     /**
@@ -244,14 +264,16 @@ public abstract class TaskReportTask extends ConventionReportTask {
     }
 
     private DefaultGroupTaskReportModel taskReportModelFor(Project project, boolean detail) {
-        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup(), getDisplayGroups());
+        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail && !isIncludeSubprojects(), detail, getDisplayGroup(), getDisplayGroups());
         final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
         final SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
         aggregateModel.add(projectTaskModel);
 
-        for (final Project subproject : project.getSubprojects()) {
-            aggregateModel.add(buildTaskReportModelFor(taskDetailsFactory, subproject));
+        if (isIncludeSubprojects()) {
+            for (final Project subproject : project.getSubprojects()) {
+                aggregateModel.add(buildTaskReportModelFor(taskDetailsFactory, subproject));
+            }
         }
 
         aggregateModel.build();

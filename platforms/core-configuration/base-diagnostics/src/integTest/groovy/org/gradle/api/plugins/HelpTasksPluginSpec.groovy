@@ -46,7 +46,7 @@ class HelpTasksPluginSpec extends AbstractProjectBuilderSpec {
         child.pluginManager.apply(HelpTasksPlugin)
 
         then:
-        project.tasks[ProjectInternal.TASKS_TASK].description == "Displays the tasks runnable from root project 'test-project' (some of the displayed tasks may belong to subprojects)."
+        project.tasks[ProjectInternal.TASKS_TASK].description == "Displays the tasks runnable from root project 'test-project'. Use --include-subprojects to include tasks from subprojects."
         child.tasks[ProjectInternal.TASKS_TASK].description == "Displays the tasks runnable from project ':child'."
     }
 
