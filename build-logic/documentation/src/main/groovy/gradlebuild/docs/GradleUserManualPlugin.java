@@ -172,6 +172,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
+            attributes.put("gradleVersion90", "9.0.0");
+            attributes.put("gradleVersion8", "8.14.3");
+            attributes.put("gradleVersion80", "8.0.2");
             attributes.put("snippetsPath", "snippets");
             // Make sure the 'raw' location of the samples is available in all AsciidoctorTasks to access files with expected outputs in the 'tests' folder for inclusion in READMEs
             attributes.put("samplesPath", extension.getUserManual().getStagingRoot().dir("raw/samples").get().getAsFile());

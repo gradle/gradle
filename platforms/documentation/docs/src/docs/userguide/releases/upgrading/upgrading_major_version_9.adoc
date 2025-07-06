@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Gradle, Inc.
+// Copyright (C) 2025 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 
 [[upgrading_major_version_9]]
 
-= Upgrading your build from Gradle 8.14.3 to 9.0.0
+= Upgrading to Gradle 9.0.0
 
-This chapter provides the information you need to migrate your Gradle 8.14.3 builds to the major Gradle 9.0.0.
-For migrating from Gradle 4.x, 5.x, 6.x, 7.x, or 8.x, see the <<upgrading_version_8.adoc#upgrading_version_8, older migration guide>> first.
+This chapter provides the information you need to migrate your Gradle {gradleVersion8} builds to Gradle {gradleVersion90}.
+For migrating within Gradle 8.x, see the <<upgrading_version_8.adoc#upgrading_version_8, older migration guide>> first.
 
 We recommend the following steps for all users:
 
@@ -30,7 +30,10 @@ This lets you see any deprecation warnings that apply to your build.
 Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
 +
-. Run `gradle wrapper --gradle-version 9.0.0` to update the project to 9.0.0.
+Some plugins may break with a new major version of Gradle, as these releases can remove public APIs.
+Using the latest version of a plugin increases the likelihood that it is already compatible with the new major Gradle version.
++
+. Run `gradle wrapper --gradle-version {gradleVersion90}` to update the project to {gradleVersion90}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_major_9]]
