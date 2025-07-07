@@ -15,10 +15,14 @@
  */
 package org.gradle.ide.sync
 
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.process.internal.DefaultClientExecHandleBuilder
+import org.gradle.process.internal.ExecHandleState
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,6 +33,7 @@ import spock.lang.Timeout
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.Executors
 
 /**
  * Tests that runs a project import to IDE, with an provisioning of the desired version.
@@ -103,22 +108,30 @@ abstract class AbstractIdeSyncTest extends Specification {
         def ideHomeOption = "--ide-home=$ideHome"
         def ideOption = "--ide=$ide"
 
-        def syncProcessBuilder = new ProcessBuilder(findIdeStarter().toString(), gradleDistOption, projectOption, ideHomeOption, ideOption)
-            .directory(testDirectory)
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
-            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+        DefaultClientExecHandleBuilder builder = new DefaultClientExecHandleBuilder(
+            TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), new DefaultBuildCancellationToken()
+        )
 
-        syncProcessBuilder.environment().put("JAVA_HOME", AvailableJavaHomes.jdk17.javaHome.absolutePath)
+        builder
+            .setExecutable(findIdeStarter().toString())
+            .args(gradleDistOption, projectOption, ideHomeOption, ideOption)
+            .setWorkingDir(testDirectory)
+            .setStandardOutput(System.out)
+            .setErrorOutput(System.err)
+            .environment("JAVA_HOME", AvailableJavaHomes.jdk17.javaHome.absolutePath)
 
-        def syncProcess = syncProcessBuilder.start()
-        Runtime.getRuntime().addShutdownHook {
-            try {
-                syncProcess.destroy();
-            } catch (Exception e) {
-                e.printStackTrace();
+        System.err.println("Running IDE sync with: ${builder.commandLine.join(' ')}")
+        def handle = builder.build().start()
+        if (handle.state == ExecHandleState.STARTED) {
+            Runtime.getRuntime().addShutdownHook {
+                if (handle.state == ExecHandleState.STARTED) {
+                    handle.abort()
+                }
             }
         }
-        assert syncProcess.waitFor() == 0
+        def result = handle.waitForFinish()
+        System.err.println("IDE sync process finished: $result")
+        result.rethrowFailure().assertNormalExitValue()
     }
 
     private static Path findIdeStarter() {

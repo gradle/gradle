@@ -27,7 +27,6 @@ dependencyAnalysis {
 
 addDependenciesAndConfigurations("smokeIde")
 
-val smokeIdeTestImplementation: Configuration by configurations
 val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
 val ideStarter by configurations.creating {
     isVisible = false
@@ -44,7 +43,7 @@ plugins.withType<IdeaPlugin> {
 }
 
 tasks {
-    val unzipIdeStarter by registering(ProcessResources::class) {
+    val unzipIdeStarter by registering(Sync::class) {
         from(zipTree(ideStarter.elements.map { it.single() }))
         into(layout.buildDirectory.dir("ideStarter"))
     }
@@ -54,7 +53,7 @@ tasks {
         ref = buildCommitId
     }
 
-    val shrinkGradle by registering(Copy::class) {
+    val shrinkGradle by registering(Sync::class) {
         from(fetchGradle.map { it.outputDirectory }) {
             exclude("subprojects/*/*/src/**")
             filesMatching("platforms/*/*/src/**") {
