@@ -44,6 +44,7 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -57,7 +58,6 @@ import spock.lang.Issue
 
 import javax.inject.Inject
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.hamcrest.CoreMatchers.containsString
 
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -94,7 +94,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
-                "This will fail with an error in Gradle 9.0. " +
+                "This will fail with an error in Gradle 10. " +
                 "Declare the association between the task by declaring the consuming property as a '@ServiceReference'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
         )
@@ -104,7 +104,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/97")
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31128")
     def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -143,7 +143,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
-                "This will fail with an error in Gradle 9.0. " +
+                "This will fail with an error in Gradle 10. " +
                 "Declare the association between the task by declaring the consuming property as a '@ServiceReference'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
         )
@@ -153,7 +153,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/156")
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31128")
     def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -220,7 +220,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
-                "This will fail with an error in Gradle 9.0. " +
+                "This will fail with an error in Gradle 10. " +
                 "Declare the association between the task by declaring the consuming property as a '@ServiceReference'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
         )
@@ -355,7 +355,7 @@ service: closed with value 11
         ""        | "SubCountingService"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "CC doesn't restore service reference properly")
     def "cannot inject shared build service without a name when multiple services exist"() {
         given:
         serviceImplementation()
@@ -464,7 +464,6 @@ service: closed with value 10001
         """
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "injection by name works at configuration time"() {
         given:
         serviceImplementation()
@@ -486,15 +485,30 @@ service: closed with value 10001
 
         then:
         outputDoesNotContain "'Task#usesService'"
-        outputContains """
-> Configure project :
-service: created with value = 10
-service: value is 11
+        if (GradleContextualExecuter.configCache) {
+            // Service lifecycle is different with CC
+            outputContains """
+                > Configure project :
+                service: created with value = 10
+                service: value is 11
+                service: closed with value 11
 
-> Task :named
-service: value is 12
-service: closed with value 12
-        """
+                > Task :named
+                service: created with value = 10
+                service: value is 11
+                service: closed with value 11
+            """.stripIndent(true)
+        } else {
+            outputContains """
+                > Configure project :
+                service: created with value = 10
+                service: value is 11
+
+                > Task :named
+                service: value is 12
+                service: closed with value 12
+            """.stripIndent(true)
+        }
     }
 
     def "injection by name fails validation if required service is not found, even if not used"() {

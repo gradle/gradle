@@ -21,8 +21,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.security.internal.PGPUtils;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
@@ -85,6 +85,8 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
                 break;
             case MISSING_KEY:
                 sb.append("but it wasn't found in any key server so it couldn't be verified");
+                break;
+            default:
                 break;
         }
     }

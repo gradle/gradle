@@ -16,24 +16,24 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
-import com.nhaarman.mockitokotlin2.mock
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
+import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.FlushableEncoder
-import org.gradle.internal.serialize.beans.services.BeanConstructors
-import org.gradle.internal.serialize.beans.services.DefaultBeanStateReaderLookup
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
+import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
-import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
@@ -43,9 +43,9 @@ import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
@@ -63,6 +63,14 @@ abstract class AbstractUserTypeCodecTest {
                 object : AbstractProblemsListener() {
                     override fun onProblem(problem: PropertyProblem) {
                         problems += problem
+                    }
+
+                    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                        onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
+                    }
+
+                    override fun onExecutionTimeProblem(problem: PropertyProblem) {
+                        onProblem(problem)
                     }
                 }
             )
@@ -155,6 +163,14 @@ abstract class AbstractUserTypeCodecTest {
         override fun onProblem(problem: PropertyProblem) {
             println(problem)
         }
+
+        override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+            throw ConfigurationCacheError(StructuredMessage.build(message).render(), error)
+        }
+
+        override fun onExecutionTimeProblem(problem: PropertyProblem) {
+            onProblem(problem)
+        }
     }
 
     private
@@ -196,11 +212,3 @@ abstract class AbstractUserTypeCodecTest {
         attributeDesugaring = mock(),
     )
 }
-
-
-internal
-fun beanStateReaderLookupForTesting(): BeanStateReaderLookup =
-    DefaultBeanStateReaderLookup(
-        BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
-        TestUtil.instantiatorFactory()
-    )

@@ -17,10 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
-import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 import static org.gradle.util.internal.GUtil.loadProperties
 
 class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -28,7 +25,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task props(type: WriteProperties) {
-                outputFile = file("output.properties")
+                destinationFile = file("output.properties")
             }
         """
 
@@ -43,7 +40,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task props(type: WriteProperties) {
                 comment = "Line comment"
-                outputFile = file("output.properties")
+                destinationFile = file("output.properties")
             }
         """
 
@@ -56,41 +53,29 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private runProps() {
-        result = expectOutputDeprecation(executer.withTasks("props")).run()
+        succeeds "props"
     }
-
-    private expectOutputDeprecation(GradleExecuter runWithTasks) {
-        runWithTasks.expectDocumentedDeprecationWarning("The WriteProperties.outputFile property has been deprecated. This is scheduled to be removed in Gradle 9.0." +
-            " Please use the destinationFile property instead. " +
-            String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.WriteProperties.html#org.gradle.api.tasks.WriteProperties:outputFile"))
-    }
-
     def "simple properties are written sorted alphabetically with #outputProprertyName"() {
         given:
         buildFile << """
             task props(type: WriteProperties) {
                 properties = [one: "1", two: "2", three: "three"]
                 comment = "Line comment"
-                $outputProprertyName = file("${outputProprertyName}.properties")
+                destinationFile = file("destinationFile.properties")
             }
         """
 
         when:
 
-        validation.curry(this).run()
+        runProps()
 
         then:
-        file("${outputProprertyName}.properties").text == normalize("""
+        file("destinationFile.properties").text == normalize("""
             #Line comment
             one=1
             three=three
             two=2
             """)
-
-        where:
-        outputProprertyName | validation
-        "destinationFile"   | { s -> s.succeeds "props" }
-        "outputFile"        | { s -> s.runProps() }
     }
 
     def "unicode characters are escaped when #description"() {
@@ -100,7 +85,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 properties = [név: "Rezső"]
                 comment = "Eső leső"
                 $encoding
-                outputFile = file("output.properties")
+                destinationFile = file("output.properties")
             }
         """
 
@@ -125,7 +110,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 properties = [név: "Rezső"]
                 encoding = "utf-8"
                 comment = "Eső leső"
-                outputFile = file("output.properties")
+                destinationFile = file("output.properties")
             }
         """
 
@@ -146,7 +131,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 properties = [one: "1", two: "2", three: "three"]
                 comment = "Line comment"
                 lineSeparator = "EOL"
-                outputFile = file("output.properties")
+                destinationFile = file("output.properties")
             }
         """
 
@@ -182,7 +167,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task props(type: WriteProperties) {
                 property "provided", provider { "42" }
-                outputFile = file("output.properties")
+                destinationFile = file("output.properties")
             }
         """
         when:

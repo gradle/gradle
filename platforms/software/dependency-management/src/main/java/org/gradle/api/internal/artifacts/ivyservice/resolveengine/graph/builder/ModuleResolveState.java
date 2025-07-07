@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -38,10 +37,10 @@ import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -77,7 +76,7 @@ public class ModuleResolveState implements CandidateModule {
     private ComponentState selected;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
 
-    private AttributeMergingException attributeMergingError;
+    private @Nullable AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
     private boolean overriddenSelection;
     private Set<VirtualPlatformState> platformOwners;
@@ -137,6 +136,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     @Override
+    @SuppressWarnings("MixedMutabilityReturnType")
     public Collection<ComponentState> getVersions() {
         if (this.versions.isEmpty()) {
             return Collections.emptyList();
@@ -345,15 +345,11 @@ public class ModuleResolveState implements CandidateModule {
         return unattachedEdges;
     }
 
-    ImmutableAttributes mergedConstraintsAttributes(AttributeContainer append) throws AttributeMergingException {
+    ImmutableAttributes getMergedConstraintAttributes() {
         if (attributeMergingError != null) {
             throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
         }
-        ImmutableAttributes attributes = ((AttributeContainerInternal) append).asImmutable();
-        if (mergedConstraintAttributes.isEmpty()) {
-            return attributes;
-        }
-        return attributesFactory.safeConcat(mergedConstraintAttributes.asImmutable(), attributes);
+        return mergedConstraintAttributes;
     }
 
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {

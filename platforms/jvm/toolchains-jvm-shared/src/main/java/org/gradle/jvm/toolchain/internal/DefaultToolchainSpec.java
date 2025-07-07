@@ -18,12 +18,11 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Objects;
 
@@ -122,14 +121,6 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     @SuppressWarnings("deprecation")
     @Override
     public boolean isValid() {
-        if (getVendor().getOrNull() == JvmVendorSpec.IBM_SEMERU) {
-            // https://github.com/gradle/gradle/issues/23155
-            // This should make the spec invalid when the enum gets removed
-            DeprecationLogger.deprecateBehaviour("Requesting JVM vendor IBM_SEMERU.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "ibm_semeru_should_not_be_used")
-                .nagUser();
-        }
         return getLanguageVersion().isPresent() || isSecondaryPropertiesUnchanged();
     }
 

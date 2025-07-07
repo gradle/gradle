@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -30,14 +31,15 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public abstract class AbstractCaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
@@ -58,13 +60,23 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        BeforeExecutionState beforeExecutionState = context.shouldCaptureBeforeExecutionState()
-            ? captureExecutionState(work, context)
-            : null;
+        BeforeExecutionState beforeExecutionState;
+        if (context.shouldCaptureBeforeExecutionState()) {
+            beforeExecutionState = captureExecutionState(work, context);
+        } else {
+            beforeExecutionState = null;
+            // We still need to visit the inputs to ensure that the dependencies are validated
+            work.visitRegularInputs(new UnitOfWork.InputVisitor() {
+                @Override
+                public void visitInputFileProperty(String propertyName, InputBehavior behavior, UnitOfWork.InputFileValueSupplier value) {
+                    ((FileCollectionInternal) value.getFiles()).visitStructure(work.getInputDependencyChecker(context.getValidationContext()));
+                }
+            });
+        }
         return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState));
     }
 
-    @Nonnull
+    @NonNull
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = captureOutputSnapshots(work, context);
@@ -111,7 +123,8 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
             previousInputFileFingerprints,
             context.getInputProperties(),
             context.getInputFileProperties(),
-            work::visitRegularInputs
+            work::visitRegularInputs,
+            work.getInputDependencyChecker(context.getValidationContext())
         );
 
         return new DefaultBeforeExecutionState(
@@ -135,16 +148,12 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
 
         @Override
         public void visitImplementation(Class<?> implementation) {
-            visitImplementation(ImplementationSnapshot.of(implementation, classLoaderHierarchyHasher));
+            this.implementation = ImplementationSnapshot.of(implementation, classLoaderHierarchyHasher);
         }
 
         @Override
-        public void visitImplementation(ImplementationSnapshot implementation) {
-            if (this.implementation == null) {
-                this.implementation = implementation;
-            } else {
-                this.additionalImplementations.add(implementation);
-            }
+        public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
+            this.additionalImplementations.add(implementation);
         }
 
         public ImplementationSnapshot getImplementation() {

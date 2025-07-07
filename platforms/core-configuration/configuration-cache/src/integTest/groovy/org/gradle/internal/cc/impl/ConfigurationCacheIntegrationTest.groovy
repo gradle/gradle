@@ -413,27 +413,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputContains("isConfigurationCacheRequested=true")
     }
 
-    def "internal load-after-store flag is deprecated"() {
-        def configurationCache = newConfigurationCacheFixture()
-
-        when:
-        executer.expectDeprecationWarning("The org.gradle.configuration-cache.internal.load-after-store system property has been deprecated." +
-            " Starting with Gradle 9.0, it will not be possible to disable load-after-store behavior of Configuration Cache." +
-            " The behavior is enabled by default. Avoid using the internal flag.")
-
-        configurationCacheRun "help", "-Dorg.gradle.configuration-cache.internal.load-after-store=$load"
-
-        then:
-        configurationCache.assertStateStored(load)
-
-        where:
-        load << [true, false]
-    }
-
     private def expectStartParameterIsConfigurationCacheRequestedWarning() {
         executer.expectDocumentedDeprecationWarning(
             "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. " +
+                "This is scheduled to be removed in Gradle 10. " +
                 "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",

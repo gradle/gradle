@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Set the DEVELOCITY_ACCESS_KEY so that Gradle Build Scans are generated
+  # Set the DEVELOCITY_ACCESS_KEY so that a Build Scan is generated
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
   # Enable debug for the `gradle-build-action` cache operations
   GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
@@ -52,6 +52,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew compileAll -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: build-receipt.properties
           path: platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
@@ -82,6 +83,12 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
+      - name: Upload Compatibility Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-compatibility-report
+          path: testing/architecture-test/build/reports/binary-compatibility/report.html
 
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"

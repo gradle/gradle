@@ -36,11 +36,10 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.List;
-import java.util.Optional;
 
-public class DefaultVariant implements ConfigurationVariantInternal {
+public abstract class DefaultVariant implements ConfigurationVariantInternal {
 
     private final String name;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
@@ -50,8 +49,8 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     private final PublishArtifactSet artifacts;
 
     private Factory<List<PublishArtifact>> lazyArtifacts;
-    @Nullable private String description;
 
+    @Inject
     public DefaultVariant(
         Describable parentDisplayName,
         String name,
@@ -68,16 +67,6 @@ public class DefaultVariant implements ConfigurationVariantInternal {
         this.displayName = Describables.of(parentDisplayName, "variant", name);
         this.attributes = new FreezableAttributeContainer(attributesFactory.mutable(parentAttributes), displayName);
         this.artifacts = new DefaultPublishArtifactSet(displayName, domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Override
-    public Optional<String> getDescription() {
-        return Optional.ofNullable(description);
     }
 
     @Override

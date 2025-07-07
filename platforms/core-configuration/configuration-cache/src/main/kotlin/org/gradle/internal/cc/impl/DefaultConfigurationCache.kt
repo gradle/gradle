@@ -33,6 +33,7 @@ import org.gradle.configurationcache.withModelStoreOperation
 import org.gradle.configurationcache.withWorkGraphLoadOperation
 import org.gradle.configurationcache.withWorkGraphStoreOperation
 import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
@@ -42,7 +43,10 @@ import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
+import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintStartParameters
+import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
@@ -82,13 +86,14 @@ class DefaultConfigurationCache internal constructor(
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheRepository: ConfigurationCacheRepository,
-    private val instrumentedInputAccessListener: InstrumentedInputAccessListener,
+    private val inputsAccessListener: ConfigurationCacheInputsListener,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
     private val buildStateRegistry: BuildStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
+    private val classLoaderScopes: ClassLoaderScopesFingerprintController,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
@@ -239,7 +244,9 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                saveWorkGraph()
+                val rootBuild = buildStateRegistry.rootBuild
+                degradeGracefullyOr { saveWorkGraph(rootBuild) }
+                crossConfigurationTimeBarrier()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -270,8 +277,17 @@ class DefaultConfigurationCache internal constructor(
 
         return runWorkThatContributesToCacheEntry {
             val model = creator()
+            // Graceful degradation. We don't care about the models saving at the moment since it's happening
+            // only when Isolated Projects enabled. That's it, there is no model saving in CC + noIP mode.
             saveModel(model)
             model
+        }
+    }
+
+    private
+    fun degradeGracefullyOr(action: () -> Unit) {
+        if (!problems.shouldDegradeGracefully()) {
+            action()
         }
     }
 
@@ -340,7 +356,14 @@ class DefaultConfigurationCache internal constructor(
             val usedModels = intermediateModels.collectAccessedValues()
             val usedMetadata = projectMetadata.collectAccessedValues()
             val sideEffects = buildTreeModelSideEffects.collectSideEffects()
-            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, fileFor(StateType.Entry))
+            cacheIO.writeCacheEntryDetailsTo(
+                buildStateRegistry,
+                usedModels,
+                usedMetadata,
+                sideEffects,
+                fileFor(StateType.Entry)
+            )
+            classLoaderScopes.commit(fileFor(StateType.ClassLoaderScopes))
         }
         updateMostRecentEntry(entryId)
     }
@@ -542,7 +565,10 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
             ?.let { entryDetails ->
                 // TODO:configuration-cache read only rootDirs at this point
-                EntrySearchResult(entryDetails.buildInvocationScopeId, checkFingerprint(candidateEntry, entryDetails.rootDirs))
+                EntrySearchResult(
+                    entryDetails.buildInvocationScopeId,
+                    checkFingerprint(candidateEntry, entryDetails.rootDirs)
+                )
             } ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
 
     private
@@ -558,14 +584,30 @@ class DefaultConfigurationCache internal constructor(
     private
     fun prepareForWork() {
         prepareConfigurationTimeBarrier()
-        startCollectingCacheFingerprint()
-        InstrumentedInputs.setListener(instrumentedInputAccessListener)
+        val parameters = fingerprintStartParameters()
+        classLoaderScopes.prepareForWriting(parameters)
+        cacheFingerprintController.maybeStartCollectingFingerprint(parameters)
+        InstrumentedInputs.setListener(inputsAccessListener)
     }
 
     private
     fun doneWithWork() {
         InstrumentedInputs.discardListener()
         cacheFingerprintController.stopCollectingFingerprint()
+    }
+
+    private
+    fun fingerprintStartParameters(): ConfigurationCacheFingerprintStartParameters = object : ConfigurationCacheFingerprintStartParameters {
+        override fun assignBuildScopedSpoolFile() = entryStore.assignSpoolFile(StateType.BuildFingerprint)
+        override fun assignProjectScopedSpoolFile() = entryStore.assignSpoolFile(StateType.ProjectFingerprint)
+        override fun assignClassLoaderScopesFile() = entryStore.assignSpoolFile(StateType.ClassLoaderScopes)
+        override fun writerContextFor(stateFile: ConfigurationCacheStateStore.StateFile) =
+            cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
+                profileNameFor(stateFile)
+            }
+
+        override fun encoderFor(stateFile: ConfigurationCacheStateStore.StateFile) =
+            cacheIO.encoderFor(stateFile.stateType, stateFile.file::outputStream)
     }
 
     private
@@ -587,7 +629,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun saveWorkGraph() {
+    fun saveWorkGraph(rootBuild: BuildState) {
         cacheEntryRequiresCommit = true
 
         if (startParameter.isIgnoreInputsDuringStore) {
@@ -596,12 +638,10 @@ class DefaultConfigurationCache internal constructor(
 
         buildOperationRunner.withWorkGraphStoreOperation(cacheKey.string) {
             val stateStoreResult = runAndStore(stateType = StateType.Work) { stateFile: ConfigurationCacheStateFile ->
-                writeConfigurationCacheState(stateFile)
+                writeConfigurationCacheState(rootBuild, stateFile)
             }
             WorkGraphStoreResult(stateStoreResult.accessedFiles, stateStoreResult.value)
         }
-
-        crossConfigurationTimeBarrier()
     }
 
     private
@@ -618,7 +658,7 @@ class DefaultConfigurationCache internal constructor(
                 storeFailure
             } catch (error: Exception) {
                 // Invalidate state on serialization errors
-                problems.failingBuildDueToSerializationError()
+                problems.onStoreSerializationError()
                 throw error
             }
         }
@@ -683,8 +723,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        cacheIO.writeRootBuildStateTo(stateFile)
+    fun writeConfigurationCacheState(rootBuild: BuildState, stateFile: ConfigurationCacheStateFile) =
+        cacheIO.writeRootBuildStateTo(rootBuild, stateFile)
 
     private
     fun ConfigurationCacheRepository.Layout.writeConfigurationCacheFingerprint(reusedProjects: Set<Path>) {
@@ -696,19 +736,10 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }
-        cacheFingerprintController.commitFingerprintTo(fileFor(StateType.BuildFingerprint), fileFor(StateType.ProjectFingerprint))
-    }
-
-    private
-    fun startCollectingCacheFingerprint() {
-        cacheFingerprintController.maybeStartCollectingFingerprint(
-            entryStore.assignSpoolFile(StateType.BuildFingerprint),
-            entryStore.assignSpoolFile(StateType.ProjectFingerprint)
-        ) { stateFile ->
-            cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
-                profileNameFor(stateFile)
-            }
-        }
+        cacheFingerprintController.commitFingerprintTo(
+            fileFor(StateType.BuildFingerprint),
+            fileFor(StateType.ProjectFingerprint)
+        )
     }
 
     private
@@ -736,6 +767,11 @@ class DefaultConfigurationCache internal constructor(
         // without violating file system invariants.
         registerWatchableBuildDirectories(rootDirs)
 
+        val classLoaderScopesInvalidationReason = checkClassLoaderScopes()
+        if (classLoaderScopesInvalidationReason != null) {
+            return CheckedFingerprint.Invalid(buildPath(), classLoaderScopesInvalidationReason)
+        }
+
         loadGradleProperties()
 
         return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
@@ -747,6 +783,14 @@ class DefaultConfigurationCache internal constructor(
             }
         }
     }
+
+    private
+    fun ConfigurationCacheRepository.Layout.checkClassLoaderScopes(): InvalidationReason? =
+        fileFor(StateType.ClassLoaderScopes).let { stateFile ->
+            classLoaderScopes.checkClassLoaderScopes {
+                cacheIO.decoderFor(stateFile.stateType, stateFile::inputStream)
+            }
+        }
 
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprintAgainstLoadedProperties(

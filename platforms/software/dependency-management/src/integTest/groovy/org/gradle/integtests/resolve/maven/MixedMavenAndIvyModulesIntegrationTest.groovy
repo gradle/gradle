@@ -113,7 +113,7 @@ dependencies {
 
         buildFile << """
 dependencies {
-    conf group: 'org.test', name: 'maven', version: '1.0'
+    conf("org.test:maven:1.0")
 }
 """
         expect:
@@ -189,7 +189,7 @@ dependencies {
 
         buildFile << """
 dependencies {
-    conf group: 'org.test', name: 'ivy', version: '1.0'
+    conf("org.test:ivy:1.0")
 }
 """
         expect:
@@ -236,7 +236,7 @@ dependencies {
 
         buildFile << """
 dependencies {
-    conf group: 'org.test', name: 'maven', version: '1.0'
+    conf("org.test:maven:1.0")
 }
 configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
 """
@@ -283,7 +283,7 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
 
         buildFile << """
 dependencies {
-    conf group: 'org.test', name: 'maven', version: '1.0'
+    conf("org.test:maven:1.0")
 }
 """
         expect:
@@ -315,7 +315,7 @@ dependencies {
 
         buildFile << """
 dependencies {
-    conf group: 'org.test', name: 'm4', version: '1.0'
+    conf("org.test:m4:1.0")
 }
 """
         expect:

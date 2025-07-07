@@ -27,14 +27,14 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.versionedcache.UnusedVersionsCacheCleanup;
-import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.time.TimestampSuppliers;
+import org.gradle.internal.versionedcache.UnusedVersionsCacheCleanup;
+import org.gradle.internal.versionedcache.UsedGradleVersions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
 import java.util.function.Supplier;

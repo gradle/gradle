@@ -15,10 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class EclipseWtpEarAndWebAndEjbProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
-    @ToBeFixedForConfigurationCache
     def "generates configuration files for an ear project and ejb and web projects it bundles"() {
         createDirs("ear", "web", "java")
         settingsFile << "include 'ear', 'web', 'java'"
@@ -38,7 +35,7 @@ project(':ear') {
 
     dependencies {
         deploy project(':java')
-        deploy project(path: ':web', configuration: 'archives')
+        deploy project(path: ':web')
     }
 }
 project(':web') {

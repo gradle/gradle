@@ -18,7 +18,8 @@ dependencies {
 
     api(libs.inject)
 
-    implementation(libs.commonsLang3)
+    implementation(libs.commonsLang)
+    implementation(libs.jspecify)
 
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))

@@ -20,15 +20,19 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.DomainObjectCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+
+import static org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
@@ -43,22 +47,11 @@ public abstract class BasePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
-
         BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
-
-        addConvention(project, baseExtension);
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);
         configureConfigurations(project);
-    }
-
-    @SuppressWarnings("deprecation")
-    private void addConvention(Project project, BasePluginExtension baseExtension) {
-        BasePluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultBasePluginConvention.class, baseExtension);
-        DeprecationLogger.whileDisabled(() -> {
-            project.getConvention().getPlugins().put("base", new NaggingBasePluginConvention(convention));
-        });
     }
 
     private void configureExtension(Project project, BasePluginExtension extension) {
@@ -86,19 +79,22 @@ public abstract class BasePlugin implements Plugin<Project> {
         RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
         ((ProjectInternal) project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.maybeCreateConsumableUnlocked(Dependency.ARCHIVES_CONFIGURATION)
-            .setDescription("Configuration for archive artifacts.");
+        final Configuration archivesConfiguration = configurations.migratingLocked(ARCHIVES_CONFIGURATION, CONSUMABLE_TO_RETIRED, conf -> {
+            conf.setDescription("Configuration for archive artifacts.");
+            DomainObjectCollectionInternal<PublishArtifact> artifacts = Cast.uncheckedCast(conf.getArtifacts());
+            artifacts.beforeCollectionChanges(artifact -> {
+                DeprecationLogger.deprecateConfiguration(ARCHIVES_CONFIGURATION)
+                    .forArtifactDeclaration()
+                    .withAdvice("Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the " + ARCHIVES_CONFIGURATION + " configuration.")
+                    .willBecomeAnErrorInNextMajorGradleVersion()
+                    .withUpgradeGuideSection(9, "sec:archives-configuration")
+                    .nagUser();
+            });
+        });
 
-        configurations.maybeCreateConsumableUnlocked(Dependency.DEFAULT_CONFIGURATION)
-            .setDescription("Configuration for default artifacts.");
-
-        // TODO #15639: Deprecate DefaultArtifactPublicationSet and the `archives` configuration
-        project.getExtensions().create(
-            "defaultArtifacts",
-            DefaultArtifactPublicationSet.class,
-            configurations,
-            Dependency.ARCHIVES_CONFIGURATION
-        );
+        configurations.consumableLocked(Dependency.DEFAULT_CONFIGURATION, conf -> {
+            conf.setDescription("Configuration for default artifacts.");
+        });
 
         project.getTasks().named(ASSEMBLE_TASK_NAME, task ->
             task.dependsOn(archivesConfiguration.getAllArtifacts().getBuildDependencies())

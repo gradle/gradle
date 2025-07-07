@@ -22,11 +22,12 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -133,6 +134,11 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     }
 
     @Override
+    public AttributeContainer addAllLater(AttributeContainer other) {
+        throw new UnsupportedOperationException("Mutation of attributes is not allowed");
+    }
+
+    @Override
     @Nullable
     public <T> T getAttribute(Attribute<T> key) {
         if (!isValidAttributeRequest(key)) {
@@ -216,13 +222,6 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
         return attributes == null ? MISSING : attributes;
     }
 
-    @Override
-    @Nullable
-    public Attribute<?> findAttribute(String name) {
-        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(name);
-        return attributes == null ? null : attributes.attribute;
-    }
-
     @SuppressWarnings("DataFlowIssue")
     @Override
     public Object get() {
@@ -303,6 +302,11 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     }
 
     @Override
+    public Attribute<?> getAttribute() {
+        return attribute;
+    }
+
+    @Override
     public boolean contains(Attribute<?> key) {
         return hierarchy.containsKey(key);
     }
@@ -320,6 +324,19 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
             builder.put(attribute, Cast.uncheckedCast(getAttribute(attribute)));
         }
         return builder.build();
+    }
+
+    @Override
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries() {
+        ImmutableMap.Builder<Attribute<?>, AttributeEntry<?>> builder = ImmutableMap.builder();
+        for (Attribute<?> attribute : keySet()) {
+            builder.put(attribute, getEntry(attribute));
+        }
+        return Providers.of(builder.build());
+    }
+
+    private <T> AttributeEntry<T> getEntry(Attribute<T> key) {
+        return new AttributeEntry<>(key, getIsolatableAttribute(key));
     }
 
     @Override

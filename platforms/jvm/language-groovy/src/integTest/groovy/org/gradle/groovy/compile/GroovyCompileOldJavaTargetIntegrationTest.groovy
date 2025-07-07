@@ -20,11 +20,14 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
 class GroovyCompileOldJavaTargetIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "can compile source to Java target #javaVersion"() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
 

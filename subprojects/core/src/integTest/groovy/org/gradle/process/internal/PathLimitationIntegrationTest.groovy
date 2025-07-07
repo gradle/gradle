@@ -16,10 +16,11 @@
 
 package org.gradle.process.internal
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.Action
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.jvm.Jvm
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext
@@ -126,7 +127,7 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
             try {
                 proc.start();
                 assertFalse(startFails);
-            } catch (ExecException e) {
+            } catch (ProcessExecutionException e) {
                 e.printStackTrace()
                 assertTrue(startFails);
                 return;
@@ -142,7 +143,7 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
             try {
                 proc.waitForStop();
                 assertFalse("Expected process to fail", stopFails);
-            } catch (ExecException e) {
+            } catch (ProcessExecutionException e) {
                 assertTrue("Unexpected failure in worker process", stopFails);
             }
         }

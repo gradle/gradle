@@ -28,8 +28,8 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
  *
- * TODO: We should remove setters and have abstract getters in Gradle 9.0 and configure builder in execute() method.
+ * TODO: We should remove setters and have abstract getters in Gradle 10 and configure builder in execute() method.
  */
 public class DefaultJavaExecAction implements JavaExecAction {
 
@@ -182,23 +182,23 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return javaExecHandleBuilder.getSystemProperties();
     }
 
     @Override
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaExecHandleBuilder.setSystemProperties(properties);
     }
 
     @Override
-    public JavaForkOptions systemProperties(Map<String, ?> properties) {
+    public JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaExecHandleBuilder.systemProperties(properties);
         return this;
     }
 
     @Override
-    public JavaForkOptions systemProperty(String name, Object value) {
+    public JavaForkOptions systemProperty(String name, @Nullable Object value) {
         javaExecHandleBuilder.systemProperty(name, value);
         return this;
     }

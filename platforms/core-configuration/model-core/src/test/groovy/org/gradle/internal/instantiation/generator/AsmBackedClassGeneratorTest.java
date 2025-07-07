@@ -18,7 +18,6 @@ package org.gradle.internal.instantiation.generator;
 import com.google.common.base.Joiner;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
-import groovy.lang.GroovySystem;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
@@ -34,12 +33,10 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.ListProperty;
@@ -52,6 +49,7 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
+import org.gradle.internal.extensibility.DefaultExtensionContainer;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
@@ -66,7 +64,6 @@ import org.gradle.internal.state.OwnerAware;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
-import org.gradle.util.internal.VersionNumber;
 import org.junit.Rule;
 import org.junit.Test;
 import spock.lang.Issue;
@@ -747,13 +744,7 @@ public class AsmBackedClassGeneratorTest {
         });
 
         assertThat(bean.getMixedB(), equalTo(true));
-        boolean isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.getVersion()).getMajor() >= 4;
-        if (isAtLeastGroovy4) {
-            // Since Groovy 4 is-getters for non-boolean properties are not supported
-            assertThat(bean.isMixedB(), equalTo(null));
-        } else {
-            assertThat(bean.isMixedB(), equalTo(Boolean.TRUE));
-        }
+        assertThat(bean.isMixedB(), equalTo(Boolean.TRUE));
     }
 
     @Test
@@ -849,7 +840,6 @@ public class AsmBackedClassGeneratorTest {
         NotExtensibleBean bean = newInstance(NotExtensibleBean.class);
         assertFalse(bean instanceof ExtensionContainer);
         assertFalse(bean instanceof IConventionAware);
-        assertFalse(bean instanceof HasConvention);
 
         // Check dynamic object behaviour still works
         assertTrue(bean instanceof DynamicObjectAware);
@@ -871,38 +861,8 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
         DynamicObjectAwareBean bean = newInstance(DynamicObjectAwareBean.class);
-        assertThat(bean.getConvention(), sameInstance(bean.conv));
-        assertThat(bean.getAsDynamicObject(), sameInstance(bean.conv.getExtensionsAsDynamicObject()));
-    }
-
-    @Test
-    public void canAddDynamicPropertiesAndMethodsToJavaObject() throws Exception {
-        Bean bean = newInstance(Bean.class);
-        DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
-        ConventionObject conventionObject = new ConventionObject();
-        new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
-
-        call("{ it.conventionProperty = 'value' }", bean);
-        assertThat(conventionObject.getConventionProperty(), equalTo("value"));
-        assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
-        assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
-        assertThat(call("{ it.conventionMethod('value') }", bean), equalTo((Object) "[value]"));
-        assertThat(call("{ it.invokeMethod('conventionMethod', 'value') }", bean), equalTo((Object) "[value]"));
-    }
-
-    @Test
-    public void canAddDynamicPropertiesAndMethodsToGroovyObject() throws Exception {
-        TestDecoratedGroovyBean bean = newInstance(TestDecoratedGroovyBean.class);
-        DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
-        ConventionObject conventionObject = new ConventionObject();
-        new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
-
-        call("{ it.conventionProperty = 'value' }", bean);
-        assertThat(conventionObject.getConventionProperty(), equalTo("value"));
-        assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
-        assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
-        assertThat(call("{ it.conventionMethod('value') }", bean), equalTo((Object) "[value]"));
-        assertThat(call("{ it.invokeMethod('conventionMethod', 'value') }", bean), equalTo((Object) "[value]"));
+        assertThat(bean.getExtensions(), sameInstance(bean.conv));
+        assertThat(bean.getAsDynamicObject(), sameInstance(((DefaultExtensionContainer)bean.getExtensions()).getExtensionsAsDynamicObject()));
     }
 
     @Test
@@ -949,6 +909,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void mixesInSetValueMethodForSingleValuedProperty() throws Exception {
+        TestUtil.initDeprecationLogger("because space assignment is used");
         BeanWithVariousGettersAndSetters bean = newInstance(BeanWithVariousGettersAndSetters.class);
 
         call("{ it.prop 'value'}", bean);
@@ -978,6 +939,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotUseConventionValueOnceSetValueMethodHasBeenCalled() throws Exception {
+        TestUtil.initDeprecationLogger("because space assignment is used");
+
         Bean bean = newInstance(Bean.class);
         IConventionAware conventionAware = (IConventionAware) bean;
         conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
@@ -1051,6 +1014,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void addsInsteadOfOverridesSetValueMethodIfOnlyMultiArgMethods() throws Exception {
+        TestUtil.initDeprecationLogger("because space assignment is used");
+
         BeanWithMultiArgDslMethods bean = newInstance(BeanWithMultiArgDslMethods.class);
         // this method should have been added to the class
         call("{ it.prop 'value'}", bean);
@@ -1091,7 +1056,6 @@ public class AsmBackedClassGeneratorTest {
         assertEquals(Bean.class, dslObject.getImplementationType());
         assertEquals(typeOf(Bean.class), dslObject.getPublicType());
         assertNotNull(dslObject.getConventionMapping());
-        assertNotNull(dslObject.getConvention());
         assertNotNull(dslObject.getExtensions());
         assertNotNull(dslObject.getAsDynamicObject());
     }
@@ -1478,13 +1442,6 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class ConventionAwareBean extends Bean implements IConventionAware, ConventionMapping {
-        public Convention getConvention() {
-            throw new UnsupportedOperationException();
-        }
-
-        public void setConvention(Convention convention) {
-            throw new UnsupportedOperationException();
-        }
 
         public MappedProperty map(String propertyName, Closure value) {
             throw new UnsupportedOperationException();
@@ -1511,6 +1468,7 @@ public class AsmBackedClassGeneratorTest {
             return getConventionValue(actualValue, propertyName);
         }
 
+        @Override
         public ConventionMapping getConventionMapping() {
             return this;
         }
@@ -1521,18 +1479,14 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        Convention conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorateLenient()).getConvention();
-
-        public Convention getConvention() {
-            return conv;
-        }
+        ExtensionContainer conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorateLenient()).getExtensions();
 
         public ExtensionContainer getExtensions() {
             return conv;
         }
 
         public DynamicObject getAsDynamicObject() {
-            return conv.getExtensionsAsDynamicObject();
+            return ((DefaultExtensionContainer) conv).getExtensionsAsDynamicObject();
         }
     }
 

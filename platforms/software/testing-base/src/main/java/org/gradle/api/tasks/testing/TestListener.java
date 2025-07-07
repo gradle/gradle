@@ -28,6 +28,15 @@ import org.gradle.internal.service.scopes.Scope;
  * Interface for listening to test execution.  The intent is to be
  * framework agnostic.  Currently this interface can support feedback
  * from JUnit and TestNG tests.
+ * <p>
+ * Note that the {@link #beforeSuite(TestDescriptor)} method will be called
+ * at 3 different times:
+ * <ol>
+ *     <li>Before the test task executes any tests</li>
+ *     <li>Each time a test worker is started before it executes any tests</li>
+ *     <li>Before <strong>each</strong> "test suite" as defined by the testing framework is executed
+ *     (for JVM, this typically means prior to every test class)</li>
+ * </ol>
  */
 @EventScope(Scope.Build.class)
 @DeprecatedInGradleScope

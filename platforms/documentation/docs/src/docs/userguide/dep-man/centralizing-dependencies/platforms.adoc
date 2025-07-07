@@ -53,21 +53,12 @@ If <<dependency_versions.adoc#sec:strict-version,strict version>> enforcement is
 
 In Java projects, the `java-platform` plugin combined with <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> can be used to create a platform:
 
-[source,kotlin]
-----
-plugins {
-    id("java-platform")
-}
+====
+include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="build.gradle.kts[tags=full-platform]"]
+include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=full-platform]"]
+====
 
-dependencies {
-    constraints {
-        api("com.google.guava:guava:30.1-jre")
-        api("org.apache.commons:commons-lang3:3.12.0")
-    }
-}
-----
-
-This defines a custom platform with specific versions of `guava` and `commons-lang3` that can be applied in other projects.
+This defines a custom platform with specific versions of `commons-httpclient` and `commons-lang3` that can be applied in other projects.
 
 [[sec:bom-import]]
 == Importing a platform

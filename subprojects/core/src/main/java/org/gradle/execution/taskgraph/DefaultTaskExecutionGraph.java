@@ -16,11 +16,11 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
@@ -35,9 +35,11 @@ import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Cast;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -49,17 +51,17 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.Path;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 @SuppressWarnings("deprecation")
-@NonNullApi
+@NullMarked
 public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
 
@@ -272,8 +274,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void visitScheduledNodes(BiConsumer<List<Node>, Set<Node>> visitor) {
-        executionPlan.getContents().getScheduledNodes().visitNodes(visitor);
+    public ScheduledWork collectScheduledWork() {
+        MutableReference<ScheduledWork> result = MutableReference.of(null);
+        executionPlan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
+            result.set(new ScheduledWork(nodes, entryNodes));
+        });
+        ScheduledWork scheduledWork = result.get();
+        Preconditions.checkState(scheduledWork != null, "No scheduled work found");
+        return scheduledWork;
     }
 
     @Override

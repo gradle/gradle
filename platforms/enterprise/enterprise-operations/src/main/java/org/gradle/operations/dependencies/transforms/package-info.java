@@ -17,5 +17,7 @@
 /**
  * Build operations and data types for artifact transforms.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.operations.dependencies.transforms;
+
+import org.jspecify.annotations.NullMarked;

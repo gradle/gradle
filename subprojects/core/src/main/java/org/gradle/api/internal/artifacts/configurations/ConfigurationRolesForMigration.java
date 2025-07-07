@@ -26,52 +26,59 @@ import java.util.Set;
  * and a future role which will replace it in the next major Gradle version. These roles represent a narrowing migration
  * from one role to another by marking usages which are present in the current role but not present in the eventual role
  * as deprecated.
- *
- * <p>The roles here are all meant to be temporary roles used for migration only, to be removed in Gradle 9.0.</p>
- *
- * <p>This is meant to only support <strong>narrowing migrations</strong>, that restrict usage that was previously
+ * <p>
+ * The roles here are meant to be a temporary roles used for migration only.
+ * Upon major version releases, configurations in a migration role should be updated
+ * to their destination role.
+ * after Detached Configurations are no longer a special case.
+ * <p>
+ * This is meant to only support <strong>narrowing migrations</strong>, that restrict usage that was previously
  * allowed. The migrations should transition from a role defined in {@link ConfigurationRoles} to another
  * role defined in {@link ConfigurationRoles}. This is <strong>not</strong> meant to support general-case
  * migrations from any usage pattern to any other.</p>
  */
 public final class ConfigurationRolesForMigration {
-
-    private ConfigurationRolesForMigration() {
-        // Private to prevent instantiation.
-    }
+    private ConfigurationRolesForMigration() { /* Private to prevent instantiation. */ }
 
     /**
-     * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
+     * A configuration that is retired and not meant to be used for any purpose.  This is primarily useful in creating a migrating configuration role in {@link ConfigurationRolesForMigration}.
      */
-    @Deprecated
-    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.ALL, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
-
-    /**
-     * A legacy configuration that will become a consumable configuration in the next major version.
-     */
-    @SuppressWarnings("deprecation")
-    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE);
+    public static final ConfigurationRole NONE = new DefaultConfigurationRole("Deprecated", false, false, false, false, false, false);
 
     /**
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
     public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE);
 
     /**
-     * A consumable dependency scope that will become a consumable configuration in the next major version.
+     * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
-    @SuppressWarnings("deprecation")
-    public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRoles.CONSUMABLE);
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.DEPENDENCY_SCOPE);
+
+    /**
+     * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.ALL, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
+
+    /**
+     * A consumable configuration that has been deprecated and will be removed in the next major version.
+     */
+    public static final ConfigurationRole CONSUMABLE_TO_RETIRED = difference(ConfigurationRoles.CONSUMABLE, NONE);
 
     /**
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
-        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
-        LEGACY_TO_CONSUMABLE,
         RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
-        CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
+        RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE,
+        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+        CONSUMABLE_TO_RETIRED
     );
 
     /**
@@ -90,7 +97,7 @@ public final class ConfigurationRolesForMigration {
 
         /*
          * Since we're assuming strictly narrowing usage from a non-deprecated initial role, for each usage we want this migration
-         * role to deprecate a usage iff that usage will change from allowed -> disallowed when migrating from the initial role to the
+         * role to deprecate a usage if that usage will change from allowed -> disallowed when migrating from the initial role to the
          * eventual role.
          */
         boolean consumptionDeprecated = initialRole.isConsumable() && !eventualRole.isConsumable();

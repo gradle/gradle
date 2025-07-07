@@ -17,7 +17,7 @@ dependencies {
 
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
-    implementation(libs.jsr305)
+    implementation(libs.jspecify)
 
     testImplementation(projects.fileCollections)
     testImplementation(projects.processServices)

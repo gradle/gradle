@@ -42,12 +42,18 @@ The items in this guide are meant to be _brief_, _understandable_, and _actionab
 - After reading, they should understand why a particular approach is beneficial or problematic and where to find further reference material.
 - Recommendations should be widely applicable to _many_ or _most_ typical builds and should provide specific, concrete advice.
 
+== Index
+
+To view all Gradle Best Practices at a glance, along with the Gradle version they were introduced in, visit the <<best_practices_index.adoc#best_practices_index,Index Page>>.
+
 == Best Practices
 
 - <<best_practices_general.adoc#best_practices_general,General Best Practices>>
+- <<best_practices_structuring_builds.adoc#best_practices_structuring_builds,Best Practices for Structuring Builds>>
 - <<best_practices_dependencies.adoc#best_practices_for_dependencies,Best Practices for Dependencies>>
 - <<best_practices_tasks.adoc#best_practices_for_tasks,Best Practices for Tasks>>
 - <<best_practices_performance.adoc#best_practices_for_performance,Best Practices for Performance>>
+- <<best_practices_security.adoc#best_practices_for_security,Best Practices for Security>>
 
 == Other Advice
 

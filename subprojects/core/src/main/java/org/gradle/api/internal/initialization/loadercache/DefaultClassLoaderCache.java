@@ -30,10 +30,10 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.session.BuildSessionLifecycleListener;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -56,12 +56,12 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, FilteringClassLoader.@Nullable Spec filterSpec) {
         return get(id, classPath, parent, filterSpec, null);
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash) {
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, FilteringClassLoader.@Nullable Spec filterSpec, @Nullable HashCode implementationHash) {
         return doGet(id, classPath, parent, filterSpec, implementationHash, this::createClassLoader);
     }
 
@@ -70,7 +70,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
         return doGet(id, classPath, parent, null, implementationHash, spec -> factoryFunction.apply(spec.parent));
     }
 
-    private ClassLoader doGet(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash, Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {
+    private ClassLoader doGet(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, FilteringClassLoader.@Nullable Spec filterSpec, @Nullable HashCode implementationHash, Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {
         if (implementationHash == null) {
             implementationHash = classpathHasher.hash(classPath);
         }

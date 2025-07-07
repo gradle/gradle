@@ -16,7 +16,7 @@
 
 package org.gradle.operations.dependencies.configurations;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Identifies a configuration.

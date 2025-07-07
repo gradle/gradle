@@ -20,10 +20,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 /**
  * Assertions over the output of certain command line invocations.
  */
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class CommandLineOutputIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
     def setup() {
         // forces the tests to fork and not run in-process

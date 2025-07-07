@@ -18,32 +18,26 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomRelocation;
+import org.gradle.api.publish.maven.MavenPomDeploymentRepository;
 
 import javax.inject.Inject;
 
-public class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagementInternal {
+public abstract class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagementInternal {
 
     private final ObjectFactory objectFactory;
-    private final Property<String> downloadUrl;
     private MavenPomRelocation relocation;
+    private MavenPomDeploymentRepository repository;
 
     @Inject
     public DefaultMavenPomDistributionManagement(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        downloadUrl = objectFactory.property(String.class);
-    }
-
-    @Override
-    public Property<String> getDownloadUrl() {
-        return downloadUrl;
     }
 
     @Override
     public void relocation(Action<? super MavenPomRelocation> action) {
         if (relocation == null) {
-            relocation = objectFactory.newInstance(DefaultMavenPomRelocation.class, objectFactory);
+            relocation = objectFactory.newInstance(MavenPomRelocation.class);
         }
         action.execute(relocation);
     }
@@ -51,6 +45,19 @@ public class DefaultMavenPomDistributionManagement implements MavenPomDistributi
     @Override
     public MavenPomRelocation getRelocation() {
         return relocation;
+    }
+
+    @Override
+    public void repository(Action<? super MavenPomDeploymentRepository> action) {
+        if (repository == null) {
+            repository = objectFactory.newInstance(MavenPomDeploymentRepository.class);
+        }
+        action.execute(repository);
+    }
+
+    @Override
+    public MavenPomDeploymentRepository getRepository() {
+        return repository;
     }
 
 }

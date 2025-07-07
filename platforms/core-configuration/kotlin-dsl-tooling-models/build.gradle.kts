@@ -5,7 +5,7 @@ plugins {
 description = "Kotlin DSL Tooling Models for IDEs"
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
 }
 
 // Kotlin DSL tooling models should not be part of the public API

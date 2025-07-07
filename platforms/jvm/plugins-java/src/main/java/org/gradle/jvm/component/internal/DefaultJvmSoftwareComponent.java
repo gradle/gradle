@@ -17,7 +17,7 @@
 package org.gradle.jvm.component.internal;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -38,13 +38,13 @@ import javax.inject.Inject;
  * a means of querying all variants of all features.
  */
 public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
-    private final RoleBasedConfigurationContainerInternal configurations;
+    private final ConfigurationContainer configurations;
 
     @Inject
     public DefaultJvmSoftwareComponent(
         String componentName,
         ObjectFactory objectFactory,
-        RoleBasedConfigurationContainerInternal configurations
+        ConfigurationContainer configurations
     ) {
         super(componentName, objectFactory);
         this.configurations = configurations;
@@ -57,26 +57,36 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
 
     @Override
     public void withJavadocJar() {
-        JvmFeatureInternal feature = getMainFeature();
+        // TODO: This should probably apply to all features and not just the main feature or this
+        // should be configurable at the feature level instead of the project level.
+        // The original implementation only applied to the main feature.
+        getFeatures().all(feature -> {
+            if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
+                feature.withJavadocJar();
 
-        feature.withJavadocJar();
-
-        Configuration javadocElements = feature.getJavadocElementsConfiguration();
-        if (!isRegisteredAsLegacyVariant(javadocElements)) {
-            addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
-        }
+                Configuration javadocElements = feature.getJavadocElementsConfiguration();
+                if (!isRegisteredAsLegacyVariant(javadocElements)) {
+                    addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
+                }
+            }
+        });
     }
 
     @Override
     public void withSourcesJar() {
-        JvmFeatureInternal feature = getMainFeature();
+        // TODO: This should probably apply to all features and not just the main feature or this
+        // should be configurable at the feature level instead of the project level.
+        // The original implementation only applied to the main feature.
+        getFeatures().all(feature -> {
+            if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
+                feature.withSourcesJar();
 
-        feature.withSourcesJar();
-
-        Configuration sourcesElements = feature.getSourcesElementsConfiguration();
-        if (!isRegisteredAsLegacyVariant(sourcesElements)) {
-            addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
-        }
+                Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+                if (!isRegisteredAsLegacyVariant(sourcesElements)) {
+                    addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
+                }
+            }
+        });
     }
 
     @Override

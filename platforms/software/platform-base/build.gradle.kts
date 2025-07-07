@@ -2,12 +2,6 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-errorprone {
-    disabledChecks.addAll(
-        "MixedMutabilityReturnType", // 1 occurrences
-        "ModifiedButNotUsed", // 1 occurrences
-    )
-}
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceLookup)
@@ -20,7 +14,7 @@ dependencies {
     api(projects.modelCore)
 
     api(libs.guava)
-    api(libs.inject)
+    api(libs.jspecify)
     api(libs.jsr305)
 
     implementation(projects.dependencyManagement)
@@ -49,8 +43,6 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/**")
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""
 tasks.isolatedProjectsIntegTest {

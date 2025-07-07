@@ -40,8 +40,9 @@ dependencies {
     api(projects.resources)
     api(projects.toolchainsJvmShared)
 
-    api(libs.kotlinStdlib)
     api(libs.inject)
+    api(libs.jspecify)
+    api(libs.kotlinStdlib)
 
     implementation(projects.baseDiagnostics)
     implementation(projects.fileTemp)
@@ -72,7 +73,6 @@ packageCycles {
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

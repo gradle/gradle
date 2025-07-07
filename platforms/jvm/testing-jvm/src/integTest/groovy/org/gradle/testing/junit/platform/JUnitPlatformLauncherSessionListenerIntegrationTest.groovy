@@ -18,6 +18,7 @@ package org.gradle.testing.junit.platform
 
 import spock.lang.Issue
 
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 
 /**
@@ -30,17 +31,17 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
      * which introduced a {@code LauncherSessionListener} onto the test classpath when using the {@code org.jetbrains.intellij} plugin.
      */
     @Issue("https://github.com/gradle/gradle/issues/22333")
-    def "LauncherSessionListeners are automatically loaded from the test classpath when listener does not provide junit platform launcher dependency"() {
+    def "LauncherSessionListeners can be implemented and are loaded by junit"() {
         settingsFile << "include 'other'"
         file("other/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
 
             dependencies {
-                compileOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
+                implementation("org.junit.platform:junit-platform-launcher:1.10.0")
             }
         """
         file("other/src/main/java/com/example/MyLauncherSessionListener.java") << """
@@ -62,15 +63,15 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
 
         buildFile.text = """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation project(':other')
-                testCompileOnly 'org.junit.jupiter:junit-jupiter:5.10.0'
-                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+                testImplementation("org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}")
+
+                testRuntimeOnly(project(':other'))
             }
 
             test {
@@ -88,19 +89,11 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The automatic loading of test framework implementation dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Declare the desired test framework directly on the test suite or explicitly declare the test framework implementation dependencies on the test's runtime classpath. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_framework_implementation_dependencies")
         succeeds "test"
 
         then:
         outputContains("Session opened")
         outputContains("Session closed")
-
-        when:
-        succeeds "dependencies", "--configuration", "testRuntimeClasspath"
-
-        then:
-        // Sanity check in case future versions for some reason include a launcher
-        outputDoesNotContain("junit-platform-launcher")
     }
 
     def "creates LauncherSession before loading test classes"() {

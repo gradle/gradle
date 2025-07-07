@@ -38,6 +38,11 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.test.precondition.Requires;
 import org.gradle.test.precondition.TestPrecondition;
 import org.gradle.util.EmptyStatement;
@@ -46,9 +51,14 @@ import org.gradle.util.SetSystemProperties;
 import org.gradle.util.TestClassLoader;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -72,6 +82,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.stream.Collectors.toSet;
 
+@NullMarked
 public interface ArchUnitFixture {
     DescribedPredicate<JavaClass> classes_not_written_in_kotlin = resideOutsideOfPackages(
         "org.gradle.internal.cc..",
@@ -84,6 +95,8 @@ public interface ArchUnitFixture {
         "org.gradle.internal.serialize.beans..",
         "org.gradle.internal.serialize.codecs..",
         "org.gradle.internal.serialize.graph..",
+        "org.gradle.internal.isolate.graph..",
+        "org.gradle.internal.isolate.actions..",
         "org.gradle.kotlin..",
         "org.gradle.internal.declarativedsl..",
         "org.gradle.declarative.dsl..",
@@ -100,6 +113,12 @@ public interface ArchUnitFixture {
     DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(classes_not_written_in_kotlin)
         .as("written in Java or Groovy");
 
+    DescribedPredicate<JavaMember> not_from_fileevents = declaredIn(resideOutsideOfPackages("org.gradle.fileevents.."))
+        .as("not from fileevents");
+
+    DescribedPredicate<JavaClass> not_from_fileevents_classes = resideOutsideOfPackages("org.gradle.fileevents..")
+        .as("not from fileevents");
+
     DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
         .and(not(not_written_in_kotlin))
         .and(modifier(PUBLIC))
@@ -110,6 +129,19 @@ public interface ArchUnitFixture {
         .and(modifier(PUBLIC))
         .and(not(kotlin_internal_methods))
         .as("public API methods");
+
+    DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
+        @Override
+        public boolean test(JavaMethod input) {
+            PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
+            if (accessorType == PropertyAccessorType.IS_GETTER) {
+                // PropertyAccessorType.IS_GETTER doesn't handle names that start with is
+                // but are not getters, e.g. issueManagement is detected as IS_GETTER
+                return !Character.isLowerCase(input.getName().charAt(2));
+            }
+            return accessorType == PropertyAccessorType.GET_GETTER;
+        }
+    };
 
     static ArchRule freeze(ArchRule rule) {
         return new FreezeInstructionsPrintingArchRule(FreezingArchRule.freeze(rule));
@@ -166,7 +198,7 @@ public interface ArchUnitFixture {
         };
     }
 
-    static ArchCondition<JavaClass> beAbstract() {
+    static ArchCondition<JavaClass> beAbstractClass() {
         return new ArchCondition<JavaClass>("be abstract") {
             @Override
             public void check(JavaClass input, ConditionEvents events) {
@@ -174,6 +206,19 @@ public interface ArchUnitFixture {
                     events.add(new SimpleConditionEvent(input, true, input.getFullName() + " is abstract"));
                 } else {
                     events.add(new SimpleConditionEvent(input, false, input.getFullName() + " is not abstract"));
+                }
+            }
+        };
+    }
+
+    static ArchCondition<JavaMethod> beAbstractMethod() {
+        return new ArchCondition<JavaMethod>("be abstract") {
+            @Override
+            public void check(JavaMethod method, ConditionEvents events) {
+                if (method.getModifiers().contains(JavaModifier.ABSTRACT)) {
+                    events.add(new SimpleConditionEvent(method, true, method.getDescription() + " is abstract"));
+                } else {
+                    events.add(new SimpleConditionEvent(method, false, method.getDescription() + " is not abstract"));
                 }
             }
         };
@@ -224,12 +269,17 @@ public interface ArchUnitFixture {
         return name + "(" + Arrays.stream(parameterTypes).map(Class::getSimpleName).collect(Collectors.joining()) + ")";
     }
 
-    static ArchCondition<JavaMethod> useJavaxAnnotationNullable() {
-        return new ArchCondition<JavaMethod>("use javax.annotation.Nullable") {
+    static ArchCondition<JavaMethod> useJSpecifyNullable() {
+        return new ArchCondition<JavaMethod>("use org.jspecify.annotations.Nullable") {
             @Override
             public void check(JavaMethod method, ConditionEvents events) {
+                Method reflected = safeReflect(method);
+
                 // Check if method return type is annotated with the wrong Nullable
-                if (!method.isAnnotatedWith(Nullable.class)) {
+                if (
+                    !method.isAnnotatedWith(Nullable.class) &&
+                        (reflected == null || reflected.getAnnotatedReturnType().getAnnotation(Nullable.class) == null)
+                ) {
                     Set<JavaAnnotation<JavaMethod>> annotations = method.getAnnotations();
                     Set<JavaAnnotation<JavaMethod>> nullableAnnotations = extractPossibleNullable(annotations);
                     if (!nullableAnnotations.isEmpty()) {
@@ -240,8 +290,12 @@ public interface ArchUnitFixture {
                 }
 
                 // Check if the method's parameters are annotated with the wrong Nullable
-                for (JavaParameter parameter : method.getParameters()) {
-                    if (!parameter.isAnnotatedWith(Nullable.class)) {
+                for (int idx = 0; idx < method.getParameters().size(); idx++) {
+                    JavaParameter parameter = method.getParameters().get(idx);
+                    if (
+                        !parameter.isAnnotatedWith(Nullable.class) &&
+                            (reflected == null || reflected.getAnnotatedParameterTypes()[idx].getAnnotation(Nullable.class) == null)
+                    ) {
                         Set<JavaAnnotation<JavaParameter>> annotations = parameter.getAnnotations();
                         Set<JavaAnnotation<JavaParameter>> nullableAnnotations = extractPossibleNullable(annotations);
                         if (!nullableAnnotations.isEmpty()) {
@@ -281,6 +335,52 @@ public interface ArchUnitFixture {
      */
     static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
         return new AnnotatedOrInPackageAnnotatedPredicate(annotationType);
+    }
+
+    class HaveGradleTypeEquivalent extends ArchCondition<JavaMethod> {
+        public HaveGradleTypeEquivalent() {
+            super("have Gradle equivalent to Closure taking method");
+        }
+
+        @Override
+        public void check(JavaMethod method, ConditionEvents events) {
+            if (method.isAnnotatedWith(Deprecated.class)) {
+                // Skip deprecated methods
+                events.add(new SimpleConditionEvent(method, true, method.getDescription() + " is deprecated, skipping"));
+                return;
+            }
+            List<JavaParameter> parameters = method.getParameters();
+            if (!parameters.isEmpty()) {
+                JavaParameter lastParameter = parameters.get(parameters.size() - 1);
+                // Closure taking method
+                if (lastParameter.getRawType().isEquivalentTo(Closure.class)) {
+                    // No other methods with the same name and parameters take a Gradle type instead of a Closure
+                    List<JavaMethod> similarMethods = findSimilarMethods(method);
+                    if (similarMethods.stream().noneMatch(m -> {
+                        List<JavaParameter> similarParameters = m.getParameters();
+                        JavaParameter last = similarParameters.get(similarParameters.size() - 1);
+                        return last.getRawType().isEquivalentTo(Action.class) || last.getRawType().isEquivalentTo(Spec.class) || last.getRawType().isEquivalentTo(Transformer.class);
+                    })) {
+                        // missing
+                        String message = String.format("%s has Closure but does not have equivalent Gradle type method in %s",
+                            method.getDescription(),
+                            method.getSourceCodeLocation());
+                        events.add(new SimpleConditionEvent(method, false, message));
+                    }
+                }
+            }
+            events.add(new SimpleConditionEvent(method, true, ""));
+        }
+
+        private static List<JavaMethod> findSimilarMethods(JavaMethod method) {
+            // This is taking a shortcut and assuming that we do not have multiple methods with the same name and number of parameters taking Closure
+            // with _different_ parameter types other than the Closure.
+            return method.getOwner().getAllMethods().stream()
+                .filter(m -> m != method
+                        && m.getName().equals(method.getName())
+                        && m.getParameters().size() == method.getParameters().size())
+                .collect(Collectors.toList());
+        }
     }
 
     class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
@@ -349,13 +449,18 @@ public interface ArchUnitFixture {
         private static final PackageMatchers INCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.includes")));
         private static final PackageMatchers EXCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.excludes")));
 
+        public static boolean test(String packageName) {
+            return INCLUDES.test(packageName) && !EXCLUDES.test(packageName);
+        }
+
         public InGradlePublicApiPackages() {
             super("in Gradle public API packages");
         }
 
         @Override
         public boolean test(JavaClass input) {
-            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName());
+            String packageName = input.getPackageName();
+            return test(packageName);
         }
 
         private static Set<String> parsePackageMatcher(String packageList) {
@@ -461,7 +566,46 @@ public interface ArchUnitFixture {
 
         @Override
         public boolean test(JavaClass input) {
-            return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
+            try {
+                // Try to use reflection in order to find `TYPE_USE` annotations
+                // See https://github.com/TNG/ArchUnit/issues/1382
+                Class<?> clazz = input.reflect();
+                return clazz.getAnnotation(annotationType) != null || clazz.getPackage().getAnnotation(annotationType) != null;
+            } catch (NoClassDefFoundError e) {
+                // Fall back to ArchUnit query
+                return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
+            }
         }
+    }
+
+    @Nullable
+    static Method safeReflect(JavaMethod method) {
+        try {
+            return method.reflect();
+        } catch (NoClassDefFoundError | Exception e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    static Class<?> safeReflect(JavaClass javaClass) {
+        try {
+            return javaClass.reflect();
+        } catch (NoClassDefFoundError | Exception e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    static Path getClassFile(JavaClass javaClass) {
+        Class<?> reflectedClass = safeReflect(javaClass);
+        if (reflectedClass == null) {
+            return null;
+        }
+        CodeSource codeSource = reflectedClass.getProtectionDomain().getCodeSource();
+        if (codeSource == null) {
+            return null;
+        }
+        return Paths.get(codeSource.getLocation().getPath());
     }
 }

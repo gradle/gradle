@@ -25,8 +25,8 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -42,14 +42,14 @@ public interface JavaForkOptions extends ProcessForkOptions {
      */
     @Input
     @ToBeReplacedByLazyProperty
-    Map<String, Object> getSystemProperties();
+    Map<String, @Nullable Object> getSystemProperties();
 
     /**
      * Sets the system properties to use for the process.
      *
      * @param properties The system properties. Must not be null.
      */
-    void setSystemProperties(Map<String, ?> properties);
+    void setSystemProperties(Map<String, ? extends @Nullable Object> properties);
 
     /**
      * Adds some system properties to use for the process.
@@ -57,7 +57,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param properties The system properties. Must not be null.
      * @return this
      */
-    JavaForkOptions systemProperties(Map<String, ?> properties);
+    JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties);
 
     /**
      * Adds a system property to use for the process.
@@ -66,7 +66,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param value The value for the property. May be null.
      * @return this
      */
-    JavaForkOptions systemProperty(String name, Object value);
+    JavaForkOptions systemProperty(String name, @Nullable Object value);
 
     /**
      * Returns the default character encoding to use.
@@ -198,7 +198,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param classpath The classpath.
      * @return this
      */
-    JavaForkOptions bootstrapClasspath(Object... classpath);
+    JavaForkOptions bootstrapClasspath(@Nullable Object... classpath);
 
     /**
      * Returns true if assertions are enabled for the process.

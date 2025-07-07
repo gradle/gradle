@@ -17,8 +17,7 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The result of attempting to resolve a component id to the meta-data for the component.

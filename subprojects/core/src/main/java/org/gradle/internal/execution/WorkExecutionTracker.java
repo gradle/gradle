@@ -40,9 +40,9 @@ public interface WorkExecutionTracker {
     Optional<TaskInternal> getCurrentTask(OperationIdentifier id);
 
     /**
-     * Checks if the current thread is executing a {@link org.gradle.api.artifacts.transform.TransformAction}.
+     * Checks if the current thread is executing a Task or a {@link org.gradle.api.artifacts.transform.TransformAction}.
      *
-     * @return {@code true} if the current thread is executing a transform action
+     * @return {@code true} if the current thread is executing a task or a transform action
      */
-    boolean isExecutingTransformAction();
+    boolean isExecutingTaskOrTransformAction();
 }

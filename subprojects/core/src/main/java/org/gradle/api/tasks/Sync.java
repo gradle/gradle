@@ -121,7 +121,6 @@ public abstract class Sync extends AbstractCopyTask {
      * Returns the filter that defines which files to preserve in the destination directory.
      *
      * @return the filter defining the files to preserve
-     *
      * @see #getDestinationDir()
      */
     @Internal
@@ -135,7 +134,6 @@ public abstract class Sync extends AbstractCopyTask {
      *
      * @param action Action for configuring the preserve filter
      * @return this
-     *
      * @see #getDestinationDir()
      */
     public Sync preserve(Action<? super PatternFilterable> action) {
@@ -144,7 +142,5 @@ public abstract class Sync extends AbstractCopyTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 }

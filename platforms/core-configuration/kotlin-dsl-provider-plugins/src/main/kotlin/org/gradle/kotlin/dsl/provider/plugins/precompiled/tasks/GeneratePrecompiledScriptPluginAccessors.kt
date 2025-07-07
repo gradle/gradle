@@ -41,7 +41,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -90,10 +89,6 @@ import java.io.PrintStream
 import java.net.URLClassLoader
 import java.nio.file.Files
 import javax.inject.Inject
-
-
-internal
-const val STRICT_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
 
 
 @CacheableTask
@@ -147,19 +142,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     internal
     val scriptFiles: Provider<Set<File>>
         get() = scriptPluginFilesOf(plugins)
-
-    @get:Input
-    @Deprecated("Will be removed in Gradle 9.0")
-    abstract val strict: Property<Boolean>
-
-    init {
-        outputs.doNotCacheIf(
-            "Generated accessors can only be cached in strict mode."
-        ) {
-            @Suppress("DEPRECATION")
-            !strict.get()
-        }
-    }
 
     /**
      *  ## Computation and sharing of type-safe accessors
@@ -400,9 +382,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     startParameter.gradleHomeDir,
                     startParameter.gradleUserHomeDir,
                     projectDir,
-                    projectDir,
-                    null,
-                    null
+                    projectDir
                 ),
                 startParameter.isOffline,
             )
@@ -493,9 +473,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String, error: Throwable) {
-        @Suppress("DEPRECATION")
-        if (strict.get()) throw PrecompiledScriptException(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
-        else logger.warn(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
+        throw PrecompiledScriptException(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
     }
 
     private

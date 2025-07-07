@@ -20,25 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildSrcLocationIntegrationTest extends AbstractIntegrationSpec {
 
-    def "buildSrc directory is always relative to settings dir"() {
-        when:
-        file("buildSrc/src/main/groovy/Thing.groovy") << "class Thing {}"
-        settingsFile << """
-            rootProject.projectDir = new File(rootDir, 'root')
-        """
-
-        def movedBuildScript = file("root/build.gradle") << ""
-
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        args('help', "-b", movedBuildScript.absolutePath, "-c", settingsFile.absolutePath)
-
-        succeeds("help")
-
-        then:
-        executed(":buildSrc:compileGroovy")
-    }
-
     def "buildSrc without settings file can execute standalone"() {
         given:
         settingsFile << "throw new GradleException('this should not be evaluated')"

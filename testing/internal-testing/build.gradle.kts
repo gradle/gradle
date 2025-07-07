@@ -4,6 +4,15 @@ plugins {
 
 description = "Collection of test fixtures for both unit tests and integration tests, internal use only"
 
+jvmCompile {
+    compilations {
+        named("main") {
+            // These test fixtures are used by the tooling API tests, which still run on JVM 8
+            targetJvmVersion = 8
+        }
+    }
+}
+
 sourceSets {
     main {
         // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
@@ -21,7 +30,7 @@ dependencies {
     api(libs.groovy)
     api(libs.groovyXml)
     api(libs.hamcrest)
-    api(libs.hamcrestCore)
+    api(libs.jsr305)
     api(libs.junit)
     api(libs.junit5JupiterApi)
     api(libs.spock)
@@ -29,6 +38,7 @@ dependencies {
 
     implementation(projects.baseAsm)
     implementation(projects.buildOperations)
+    implementation(projects.buildProcessServices)
     implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.serialization)
@@ -40,7 +50,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.jsoup)
-    implementation(libs.jsr305)
     implementation(libs.kotlinCompilerEmbeddable)
     implementation(libs.slf4jApi)
     implementation(libs.testcontainers)

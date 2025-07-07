@@ -21,13 +21,15 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.List;
 
 @ServiceScope(Scope.BuildTree.class)
 public class GradleEnterprisePluginManager {
@@ -35,11 +37,11 @@ public class GradleEnterprisePluginManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleEnterprisePluginManager.class);
 
     @VisibleForTesting
-    public static final String NO_SCAN_PLUGIN_MSG = "An internal error occurred that prevented a build scan from being created.\n" +
+    public static final String NO_SCAN_PLUGIN_MSG = "An internal error occurred that prevented a Build Scan from being created.\n" +
         "Please report this via https://github.com/gradle/gradle/issues";
 
     public static final String OLD_SCAN_PLUGIN_VERSION_MESSAGE =
-        "The build scan plugin is not compatible with this version of Gradle.\n"
+        "The Develocity plugin is not compatible with this version of Gradle.\n"
             + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.";
 
     @Nullable
@@ -71,9 +73,9 @@ public class GradleEnterprisePluginManager {
         return adapter != null;
     }
 
-    public void buildFinished(@Nullable Throwable buildFailure) {
+    public void buildFinished(@Nullable Throwable buildFailure, @Nullable List<Failure> richBuildFailures) {
         if (adapter != null) {
-            adapter.buildFinished(buildFailure);
+            adapter.buildFinished(buildFailure, richBuildFailures);
         }
     }
 
@@ -88,7 +90,7 @@ public class GradleEnterprisePluginManager {
             if (requested) {
                 gradle.addListener(new InternalBuildAdapter() {
                     @Override
-                    public void settingsEvaluated(@Nonnull Settings settings) {
+                    public void settingsEvaluated(@NonNull Settings settings) {
                         if (!isPresent() && !unsupported) {
                             LOGGER.warn(NO_SCAN_PLUGIN_MSG);
                         }

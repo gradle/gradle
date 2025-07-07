@@ -264,7 +264,7 @@ class ConfigurationCacheFingerprintWriter(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
+    fun isExecutingWork() = workExecutionTracker.isExecutingTaskOrTransformAction
 
     override fun fileObserved(file: File) {
         fileObserved(file, null)
@@ -406,7 +406,7 @@ class ConfigurationCacheFingerprintWriter(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>
     ) {
-        obtainedValue.value.failure.ifPresent { exception ->
+        obtainedValue.value.failure.ifPresent { exception: Throwable ->
             host.reportProblem(exception) {
                 text("failed to compute value with custom source ")
                 reference(obtainedValue.valueSourceType)
@@ -443,7 +443,7 @@ class ConfigurationCacheFingerprintWriter(
 
             is SystemPropertiesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addSystemPropertiesPrefixedByToFingerprint(prefix, obtainedValue.value.get().uncheckedCast())
+                addSystemPropertiesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
                 reportUniqueSystemPropertiesPrefixedByInput(prefix)
             }
 
@@ -453,7 +453,7 @@ class ConfigurationCacheFingerprintWriter(
 
             is EnvironmentVariablesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addEnvVariablesPrefixedByToFingerprint(prefix, obtainedValue.value.get().uncheckedCast())
+                addEnvVariablesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
                 reportUniqueEnvironmentVariablesPrefixedByInput(prefix)
             }
 
@@ -545,7 +545,9 @@ class ConfigurationCacheFingerprintWriter(
 
     fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T {
         val previous = projectForThread.get()
-        val projectSink = sinksForProject.computeIfAbsent(project.buildTreePath) { ProjectScopedSink(host, project, projectScopedWriter) }
+        val projectSink = sinksForProject.computeIfAbsent(project.buildTreePath) {
+            ProjectScopedSink(host, project, projectScopedWriter)
+        }
         projectForThread.set(projectSink)
         try {
             return action()
@@ -891,11 +893,18 @@ class ConfigurationCacheFingerprintWriter(
         project: ProjectIdentity,
         private val writer: ScopedFingerprintWriter<ProjectSpecificFingerprint>
     ) : Sink(host) {
+
         private
         val projectIdentityPath = project.buildTreePath
 
         init {
-            writer.write(ProjectSpecificFingerprint.ProjectIdentity(project.buildTreePath, Path.path(project.buildIdentifier.buildPath), project.projectPath))
+            writer.write(
+                ProjectSpecificFingerprint.ProjectIdentity(
+                    project.buildTreePath,
+                    Path.path(project.buildIdentifier.buildPath),
+                    project.projectPath
+                )
+            )
         }
 
         override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {

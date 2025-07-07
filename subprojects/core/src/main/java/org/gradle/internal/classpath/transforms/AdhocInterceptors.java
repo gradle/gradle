@@ -18,16 +18,16 @@ package org.gradle.internal.classpath.transforms;
 
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
+import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -131,8 +131,13 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
 
+    private final ConventionInterceptors conventionInterceptors = new ConventionInterceptors();
+
     @Override
     public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name, String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+        if(conventionInterceptors.visitMethodInsn(mv, className, opcode, owner, name, descriptor, isInterface, readMethodNode)) {
+            return true;
+        }
         switch (opcode) {
             case Opcodes.INVOKESTATIC:
                 return visitINVOKESTATIC(mv, className, owner, name, descriptor);

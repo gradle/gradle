@@ -20,8 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A factory for creating {@link Action}s from CLI commands.

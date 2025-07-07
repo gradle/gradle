@@ -17,14 +17,12 @@
 package org.gradle.plugins.ide.tooling.r211
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaProject
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
 
-@TargetGradleVersion(">=3.0")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -33,7 +31,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "java source settings are null for non java modules"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2'"
+        includeProjects("root","child1", "child2")
         buildFile << """
             apply plugin: 'idea'
             idea {
@@ -57,7 +55,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "can retrieve project and module language level for multi project build"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        includeProjects("root","child1", "child2", "child3")
         buildFile << """
             apply plugin: 'idea'
 
@@ -106,7 +104,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
     def "module java sdk overwrite always null"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        includeProjects("root","child1", "child2", "child3")
         buildFile << """
             allprojects {
                 apply plugin:'java'
@@ -131,7 +129,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
     def "can query target bytecode version for idea project and modules"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        includeProjects("root","child1", "child2", "child3")
         buildFile << """
             allprojects {
                 apply plugin:'java'
@@ -154,7 +152,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
     def "can have different target bytecode version among modules"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', ':child2:child3', 'child4'"
+        includeProjects("root","child1", "child2:child3", "child4")
         buildFile << """
             apply plugin:'java'
             ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}

@@ -17,5 +17,7 @@
 /**
  * Classes for controlling dependency resolution caching.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.api.internal.artifacts.cache;
+
+import org.jspecify.annotations.NullMarked;

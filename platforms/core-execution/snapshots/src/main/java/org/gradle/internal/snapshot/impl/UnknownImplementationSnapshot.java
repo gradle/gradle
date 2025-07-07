@@ -18,8 +18,8 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 public class UnknownImplementationSnapshot extends ImplementationSnapshot {

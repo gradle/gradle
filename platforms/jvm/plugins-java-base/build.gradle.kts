@@ -27,8 +27,6 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
@@ -37,11 +35,13 @@ dependencies {
     api(projects.languageJvm)
     api(projects.modelCore)
     api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvmShared)
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
@@ -55,7 +55,6 @@ dependencies {
     implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
 
     testImplementation(testFixtures(projects.core))
 
@@ -68,5 +67,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
-
-integTest.usesJavadocCodeSnippets.set(true)

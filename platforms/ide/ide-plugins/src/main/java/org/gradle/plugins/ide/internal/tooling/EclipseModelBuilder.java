@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
@@ -212,8 +212,8 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         eclipseProjects.add(eclipseProject);
     }
 
-    private void populate(Project project) {
-        ((ProjectInternal) project).getModel().applyToMutableState(state -> {
+    private void populate(Project p) {
+        ((ProjectInternal) p).getOwner().applyToMutableState(project -> {
             EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
 
             boolean projectDependenciesOnly = this.projectDependenciesOnly;
@@ -243,7 +243,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
         });
 
-        for (Project childProject : getChildProjectsForInternalUse(project)) {
+        for (Project childProject : getChildProjectsForInternalUse(p)) {
             populate(childProject);
         }
     }
@@ -417,6 +417,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         return gradle.getParent();
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<String> calculateReservedProjectNames(ProjectInternal rootProject, EclipseRuntime parameter) {
         if (parameter == null) {
             return Collections.emptyList();

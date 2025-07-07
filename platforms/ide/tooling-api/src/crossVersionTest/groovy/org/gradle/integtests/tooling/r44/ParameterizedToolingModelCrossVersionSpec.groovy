@@ -148,7 +148,7 @@ class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification 
         model.getParameterValue() == "noParameter"
     }
 
-    @TargetGradleVersion(">=3.0 <4.4")
+    @TargetGradleVersion(">=4.0 <4.4")
     def "error when get model with parameters for old gradle versions"() {
         def handler = Mock(ResultHandler)
         def version = targetDist.version.version

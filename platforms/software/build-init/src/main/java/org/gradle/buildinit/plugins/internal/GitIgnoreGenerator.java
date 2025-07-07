@@ -17,7 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,7 +50,7 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
                     StreamSupport.stream(it, false).forEach(e -> withSeparator(withComment(e)).forEach(writer::println));
                 }
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }
@@ -61,7 +61,7 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
             try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))){
                 result.removeAll(reader.lines().filter(it -> result.contains(it)).collect(Collectors.toSet()));
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return result;

@@ -41,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
@@ -53,8 +54,8 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Comparator;
@@ -79,6 +80,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ComponentMetaDataResolver metaDataResolver;
     private final Deque<NodeState> queue;
     private final ConflictResolution conflictResolution;
+    private final ImmutableAttributes consumerAttributes;
     private final ImmutableAttributesSchema consumerSchema;
     private final ModuleExclusions moduleExclusions;
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
@@ -142,6 +144,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
         ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getModuleVersionId();
         ComponentIdentifier rootComponentId = rootComponentState.getId();
+        this.consumerAttributes = rootVariant.getAttributes();
         this.consumerSchema = rootComponentState.getMetadata().getAttributesSchema();
 
         int graphSize = estimateGraphSize(rootVariant);
@@ -268,6 +271,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         if (node.enqueue()) {
             queue.addFirst(node);
         }
+    }
+
+    public ImmutableAttributes getConsumerAttributes() {
+        return consumerAttributes;
     }
 
     public ImmutableAttributesSchema getConsumerSchema() {

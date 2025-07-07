@@ -14,7 +14,7 @@
 
 [[multi_project_builds]]
 = Multi-Project Builds
-:keywords: multi, build, project
+:keywords: multi, project, subprojects, multi-project
 
 As projects grow, it's common to split them into smaller, focused modules that are built, tested, and released together.
 Gradle supports this through multi-project builds, allowing you to organize related codebases under a single build while keeping each module logically isolated.
@@ -123,69 +123,37 @@ include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.
 
 Consult the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
 
-== Modifying a subproject path
+NOTE: Setting the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.projectDir] property is important when locating projects in nested subdirectories to <<best_practices_structuring_builds.adoc#avoid_empty_projects,avoid unintentionally creating empty projects>>.
 
-Let's take a hypothetical project with the following structure:
+[[include_existing_projects_only]]
+=== Including projects without an existing directory
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-.
-├── settings.gradle.kts
-├── app/
-│   ├── build.gradle.kts
-│   └── src/
-└── subs/               // <1>
-    ├── build.gradle.kts
-    └── web             // <1>
-        └── my-web-module   // <2>
-----
+When you include a subproject in your `settings.gradle(.kts)` file, Gradle expects that the associated directory for that project exists and is writable.
+
+WARNING: Starting with **Gradle 9.0**, this is enforced strictly: **If a project directory is missing or read-only, the build will fail.** This replaces earlier behavior where Gradle would silently allow missing project directories.
+
+Here's how you can create a missing directory at configuration time:
+
 =====
 [.multi-language-sample]
-=====
-[source, groovy]
-----
-.
-├── settings.gradle
-├── app/
-│   ├── build.gradle
-│   └── src/
-└── subs/               // <1>
-    ├── build.gradle
-    └── web             // <1>
-        └── my-web-module   // <2>
-
-----
-=====
-<1> Gradle may see this as a subproject
-<2> Actual intended subproject
-
-If your `settings.gradle(.kts)` looks like this:
-
-[source,groovy]
-----
-include(':subs:web:my-web-module')
-----
-
-Gradle sees a subproject with a logical project name of `:subs:web:my-web-module` and two, possibly unintentional, other subprojects logically named:
-
-1. `:subs`
-2. `:subs:web`
-
-This can lead to phantom build directories, especially when using `allprojects{}` or `subproject{}`.
-
-To avoid this, you can use:
-
+======
+.settings.gradle.kts
 [source,kotlin]
 ----
-include(':my-web-module')
-project(':my-web-module').projectDir = "subs/web/my-web-module"
+include("project-without-directory")
+project(":project-without-directory").projectDir.mkdirs()
 ----
-
-So that you only end up with a single subproject named `:my-web-module`.
-
-So, while the physical project layout is the same, the logical results are different.
+======
+[.multi-language-sample]
+======
+.settings.gradle
+[source,groovy]
+----
+include 'project-without-directory'
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+=====
 
 [[sec:naming_recommendations]]
 == Naming recommendations
@@ -202,7 +170,7 @@ However, it’s an unnecessary extra effort for the developers to track which pr
 All letters are lowercase, and words are separated with a dash (`-`) character.
 
 3. *Define the root project name in the settings file*:
-The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scans.
+The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scan.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
 The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).
 

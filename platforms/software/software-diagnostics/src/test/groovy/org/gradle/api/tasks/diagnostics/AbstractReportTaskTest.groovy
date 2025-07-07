@@ -95,7 +95,7 @@ class AbstractReportTaskTest extends Specification {
     }
 
     @SuppressWarnings('GrDeprecatedAPIUsage')
-    static class TestReportTask extends AbstractReportTask {
+    static abstract class TestReportTask extends AbstractReportTask {
         private Runnable generator
         private ReportRenderer renderer
 

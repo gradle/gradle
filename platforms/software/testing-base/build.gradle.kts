@@ -9,13 +9,6 @@ testing-related abstract base types and interfaces for things like Test tasks, l
 This project is a implementation dependency of many other testing-related subprojects in the Gradle build.
 """
 
-errorprone {
-    disabledChecks.addAll(
-        "InlineMeInliner", // 2 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -23,7 +16,6 @@ dependencies {
     api(projects.coreApi)
     api(projects.enterpriseLogging)
     api(projects.stdlibJavaExtensions)
-    api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
@@ -37,9 +29,10 @@ dependencies {
 
     api(libs.groovy)
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.logging)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
     implementation(projects.files)
@@ -84,7 +77,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

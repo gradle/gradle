@@ -15,6 +15,7 @@
  */
 
 /**
- * The ApplicationPlugin and supporting classes.
+ * The standard {@link org.gradle.api.Plugin} implementations.
  */
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.plugins;

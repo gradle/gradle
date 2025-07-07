@@ -159,7 +159,7 @@ fun BuildType.applyDefaultSettings(
         if (this@applyDefaultSettings.type != BuildTypeSettings.Type.COMPOSITE) {
             executionTimeoutMin = timeout
         }
-        testFailure = false
+        testFailure = true
         supportTestRetry = true
         add {
             failOnText {
@@ -276,6 +276,7 @@ fun buildToolGradleParameters(
         "-Dorg.gradle.workers.max=$maxParallelForks",
         "-PmaxParallelForks=$maxParallelForks",
         PLUGINS_PORTAL_URL_OVERRIDE,
+        buildScanCustomValueParam("tcPipeline", VersionedSettingsBranch.fromDslContext().branchName),
         "-s",
         "%additional.gradle.parameters%",
         if (isContinue) "--continue" else "",

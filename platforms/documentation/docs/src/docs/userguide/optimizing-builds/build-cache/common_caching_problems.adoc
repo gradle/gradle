@@ -173,7 +173,7 @@ include::sample[dir="snippets/buildCache/configure-task/kotlin",files="build.gra
 include::sample[dir="snippets/buildCache/configure-task/groovy",files="build.gradle[tags=configureTask]"]
 ====
 
-WARNING: Note that configuring a task from other task is not supported when using the <<configuration_cache.adoc#config_cache:requirements:task_access,configuration cache>>.
+WARNING: Note that configuring a task from other task is not supported when using the <<configuration_cache_requirements.adoc#config_cache:requirements:task_access,configuration cache>>.
 
 [[logic_based_on_task_outcome]]
 === Build logic based on the outcome of a task
@@ -233,9 +233,8 @@ A task depending on this task output would then not be able to load outputs from
 As described in the <<build_cache_concepts.adoc#stable_task_inputs,stable task inputs section>>, you can either make the task outputs repeatable or use input normalization.
 You already learned about the possibilities with <<build_cache_concepts.adoc#filter_runtime_classpath,configurable input normalization>>.
 
-Gradle includes some support for creating repeatable output for archive tasks.
-For tar and zip files Gradle can be configured to create <<working_with_files.adoc#sec:reproducible_archives,reproducible archives>>.
-This is done by configuring e.g. the `Zip` task via the following snippet.
+Tasks that produce archives (`tar`, `zip`) are <<working_with_files.adoc#sec:reproducible_archives,reproducible>> by default, starting with Gradle 9.0.
+For earlier Gradle versions or if you want explicit configuration, you can make archives reproducible configuring a task in the following way:
 
 ====
 include::sample[dir="snippets/buildCache/reproducible-archives/kotlin",files="build.gradle.kts[]"]

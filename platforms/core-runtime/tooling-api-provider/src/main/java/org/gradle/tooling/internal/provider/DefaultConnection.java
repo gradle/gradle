@@ -22,7 +22,6 @@ import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
@@ -30,6 +29,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.internal.protocol.BuildParameters;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.ConfigurableConnection;
@@ -59,13 +59,18 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.IncubationLogger;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Implements the provider side of the tooling API.
+ *
+ * @see org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader
+ */
 @SuppressWarnings("deprecation")
 public class DefaultConnection implements ConnectionVersion4,
     ConfigurableConnection, InternalCancellableConnection, InternalParameterAcceptingConnection,
@@ -73,7 +78,8 @@ public class DefaultConnection implements ConnectionVersion4,
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
 
-    private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("3.0");
+    private static final String MIN_CLIENT_VERSION_STR = DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION.getVersion();
+    public static final int GUARANTEED_TAPI_BACKWARDS_COMPATIBILITY = 5;
     private ProtocolToModelAdapter adapter;
     private BuildProcessState buildProcessState;
     private ProviderConnection connection;
@@ -92,7 +98,6 @@ public class DefaultConnection implements ConnectionVersion4,
      */
     @Override
     public void configure(ConnectionParameters parameters) {
-        assertUsingSupportedJavaVersion();
         ProviderConnectionParameters providerConnectionParameters = new ProtocolToModelAdapter().adapt(ProviderConnectionParameters.class, parameters);
         File gradleUserHomeDir = providerConnectionParameters.getGradleUserHomeDir(null);
         if (gradleUserHomeDir == null) {
@@ -101,14 +106,6 @@ public class DefaultConnection implements ConnectionVersion4,
         initializeServices(gradleUserHomeDir);
         consumerVersion = GradleVersion.version(providerConnectionParameters.getConsumerVersion());
         connection.configure(providerConnectionParameters, consumerVersion);
-    }
-
-    private void assertUsingSupportedJavaVersion() {
-        try {
-            UnsupportedJavaRuntimeException.assertUsingSupportedDaemonVersion();
-        } catch (IllegalArgumentException e) {
-            LOGGER.warn(e.getMessage());
-        }
     }
 
     private void initializeServices(File gradleUserHomeDir) {
@@ -205,7 +202,6 @@ public class DefaultConnection implements ConnectionVersion4,
 
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
-        assertUsingSupportedJavaVersion();
 
         checkUnsupportedTapiVersion();
         ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
@@ -216,10 +212,11 @@ public class DefaultConnection implements ConnectionVersion4,
     }
 
     private UnsupportedVersionException unsupportedConnectionException() {
-        return new UnsupportedVersionException(String.format("Support for clients using a tooling API version older than %s was removed in Gradle 5.0. %sYou should upgrade your tooling API client to version %s or later.",
-            MIN_CLIENT_VERSION.getVersion(),
+        return new UnsupportedVersionException(String.format("Support for clients using a tooling API version older than %s was removed in Gradle %d.0. %sYou should upgrade your tooling API client to version %s or later.",
+            MIN_CLIENT_VERSION_STR,
+            DefaultGradleConnector.MINIMAL_CLIENT_MAJOR_VERSION + GUARANTEED_TAPI_BACKWARDS_COMPATIBILITY,
             createCurrentVersionMessage(),
-            MIN_CLIENT_VERSION.getVersion()));
+            MIN_CLIENT_VERSION_STR));
     }
 
     private String createCurrentVersionMessage() {
@@ -232,7 +229,7 @@ public class DefaultConnection implements ConnectionVersion4,
     }
 
     private void checkUnsupportedTapiVersion() {
-        if (consumerVersion == null || consumerVersion.compareTo(MIN_CLIENT_VERSION) < 0) {
+        if (consumerVersion == null || consumerVersion.compareTo(DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
             throw unsupportedConnectionException();
         }
     }

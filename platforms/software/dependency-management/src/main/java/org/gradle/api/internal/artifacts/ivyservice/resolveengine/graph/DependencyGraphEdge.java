@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.DependencyMetadata;
-
-import javax.annotation.Nullable;
 
 /**
  * A {@link ResolvedGraphDependency} that is used during the resolution of the dependency graph.
@@ -40,13 +37,11 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
 
     DependencyMetadata getDependencyMetadata();
 
-    ImmutableAttributes getAttributes();
-
     /**
-     * The original dependency instance declared in the build script, if any.
+     * Get the attributes that are specific to this edge -- the attributes from any constraint
+     * on the module that this edge points to, and any attributes attached directly to this edge.
      */
-    @Nullable
-    Dependency getOriginalDependency();
+    ImmutableAttributes getAttributes();
 
     boolean isTargetVirtualPlatform();
 

@@ -17,9 +17,9 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import net.rubygrapefruit.platform.SystemInfo;
-import org.gradle.api.NonNullApi;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.util.Arrays;
@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@NonNullApi
+@NullMarked
 public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSdkInstall {
     private final File binDir;
     private final SystemInfo systemInfo;

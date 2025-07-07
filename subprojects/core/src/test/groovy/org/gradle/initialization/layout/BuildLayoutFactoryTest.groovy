@@ -145,32 +145,6 @@ class BuildLayoutFactoryTest extends Specification {
         layout.buildDefinitionMissing
     }
 
-    def "can override build layout by specifying the settings file to #overrideSettingsFilename with existing #settingsFilename"() {
-        given:
-        def locator = buildLayoutFactoryFor()
-
-        and:
-        def currentDir = tmpDir.createDir("current")
-        currentDir.createFile(settingsFilename)
-        def rootDir = tmpDir.createDir("root")
-        def settingsFile = rootDir.createFile(overrideSettingsFilename)
-        def startParameter = new StartParameterInternal()
-        startParameter.currentDir = currentDir
-        startParameter.settingsFile = settingsFile
-        def config = new BuildLayoutConfiguration(startParameter)
-
-        expect:
-        def layout = locator.getLayoutFor(config)
-        layout.rootDirectory == rootDir
-        layout.settingsDir == rootDir
-        layout.settingsFile == settingsFile
-        !layout.buildDefinitionMissing
-
-        where:
-        settingsFilename << TEST_CASES
-        overrideSettingsFilename = "some-$settingsFilename"
-    }
-
     def "can override build layout by specifying an empty settings script with existing #settingsFilename"() {
         given:
         def locator = buildLayoutFactoryFor()
@@ -180,7 +154,6 @@ class BuildLayoutFactoryTest extends Specification {
         currentDir.createFile(settingsFilename)
         def startParameter = new StartParameterInternal()
         startParameter.currentDir = currentDir
-        startParameter.settingsFile = null
         def config = new BuildLayoutConfiguration(startParameter)
 
         expect:

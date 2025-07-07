@@ -1,3 +1,6 @@
+import gradlebuild.basics.buildCommitId
+import gradlebuild.identity.tasks.BuildReceipt
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.jmh")
@@ -5,29 +8,19 @@ plugins {
 
 description = "A set of generic services and utilities."
 
-gradlebuildJava.usedInWorkers()
-
-/**
- * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well
- */
-tasks.named<JavaCompile>("compileTestJava") {
-    options.release = 8
-}
-afterEvaluate {
-    tasks.named<GroovyCompile>("compileTestGroovy") {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
     }
 }
 
-/**
- * Use Java 8 compatibility for JMH benchmarks
- */
-tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
-    options.release = 8
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
-
-moduleIdentity.createBuildReceipt()
 
 dependencies {
     api(projects.buildOperations)
@@ -37,8 +30,9 @@ dependencies {
     api(projects.hashing)
     api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
+
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.guava)
 
     implementation(projects.time)
@@ -46,6 +40,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     integTestImplementation(projects.logging)
@@ -68,6 +63,23 @@ packageCycles {
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+// TODO: Base services should not be responsible for generating the build receipt.
+//       Perhaps :api-metadata is a better fit
+val createBuildReceipt by tasks.registering(BuildReceipt::class) {
+    this.version = gradleModule.identity.version.map { it.version }
+    this.baseVersion = gradleModule.identity.version.map { it.baseVersion.version }
+    this.snapshot = gradleModule.identity.snapshot
+    this.promotionBuild = gradleModule.identity.promotionBuild
+    this.buildTimestampFrom(gradleModule.identity.buildTimestamp)
+    this.commitId = project.buildCommitId
+    this.receiptFolder = project.layout.buildDirectory.dir("generated-resources/build-receipt")
+}
+
+tasks.named<Jar>("jar").configure {
+    from(createBuildReceipt.map { it.receiptFolder })
 }

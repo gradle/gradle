@@ -1,21 +1,11 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.KStubbing
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -23,10 +13,20 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
+import org.gradle.util.Path
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.mockito.kotlin.KStubbing
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import spock.lang.Issue
 
 
@@ -147,16 +147,16 @@ class DependencyHandlerExtensionsTest {
             events.add("added")
             dependency
         }
-        val project: Project = mock()
-        whenever(dependency.dependencyProject).thenReturn(project)
+        val projectPath: Path = Path.path(":project")
+        whenever(dependency.path).thenReturn(projectPath.path)
 
         dependencies {
 
             "configuration"(project(path = ":project", configuration = "default")) {
                 events.add("configured")
                 assertThat(
-                    dependencyProject,
-                    sameInstance(project)
+                    path,
+                    sameInstance(projectPath.path)
                 )
             }
         }
@@ -198,65 +198,6 @@ class DependencyHandlerExtensionsTest {
         }
 
         verify(dependencyHandler).add("c", "notation")
-    }
-
-    @Test
-    @Suppress("DEPRECATION")
-    fun `client module configuration`() {
-
-        val clientModule = mock<org.gradle.api.artifacts.ClientModule> {
-            on { isTransitive = any() }.thenAnswer { it.mock }
-        }
-
-        val commonsCliDependency = mock<ExternalModuleDependency>(name = "commonsCliDependency")
-
-        val antModule = mock<org.gradle.api.artifacts.ClientModule>(name = "antModule")
-        val antLauncherDependency = mock<ExternalModuleDependency>(name = "antLauncherDependency")
-        val antJUnitDependency = mock<ExternalModuleDependency>(name = "antJUnitDependency")
-
-        val dependencies = newDependencyHandlerMock {
-            on { module("org.codehaus.groovy:groovy:2.4.7") } doReturn clientModule
-
-            on { create("commons-cli:commons-cli:1.0") } doReturn commonsCliDependency
-
-            val antModuleNotation = mapOf("group" to "org.apache.ant", "name" to "ant", "version" to "1.9.6")
-            on { module(antModuleNotation) } doReturn antModule
-            on { create("org.apache.ant:ant-launcher:1.9.6@jar") } doReturn antLauncherDependency
-            on { create("org.apache.ant:ant-junit:1.9.6") } doReturn antJUnitDependency
-
-            on { add("runtime", clientModule) } doReturn clientModule
-        }
-
-        dependencies.apply {
-            val groovy = module("org.codehaus.groovy:groovy:2.4.7") {
-
-                // Configures the module itself
-                isTransitive = false
-
-                dependency("commons-cli:commons-cli:1.0") {
-                    // Configures the external module dependency
-                    isTransitive = false
-                }
-
-                module(group = "org.apache.ant", name = "ant", version = "1.9.6") {
-                    // Configures the inner module dependencies
-                    dependencies(
-                        "org.apache.ant:ant-launcher:1.9.6@jar",
-                        "org.apache.ant:ant-junit:1.9.6"
-                    )
-                }
-            }
-            add("runtime", groovy)
-        }
-
-        verify(clientModule).isTransitive = false
-        verify(clientModule).addDependency(commonsCliDependency)
-        verify(clientModule).addDependency(antModule)
-
-        verify(commonsCliDependency).isTransitive = false
-
-        verify(antModule).addDependency(antLauncherDependency)
-        verify(antModule).addDependency(antJUnitDependency)
     }
 
     @Test

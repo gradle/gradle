@@ -45,10 +45,10 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
-            with(definition) {
+            this.with(definition) {
                 name == 'type'
                 displayName == 'label'
-                with(group) {
+                this.with(group) {
                     displayName == 'group label'
                     name == 'generic'
                     parent == null
@@ -61,9 +61,9 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             details == null
             originLocations.empty
             contextualLocations.size() == 1
-            with(contextualLocations[0].fileLocation) {
+            this.with(contextualLocations[0].fileLocation) {
                 path == this.buildFile.absolutePath
-                line == 13
+                line == ProblemsServiceIntegrationTest.PROBLEM_LOCATION_LINE
                 column == null
                 length == null
             }
@@ -86,10 +86,10 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
-            with(definition) {
+            this.with(definition) {
                 name == 'type'
                 displayName == 'label'
-                with(group) {
+                this.with(group) {
                     displayName == 'group label'
                     name == 'generic'
                     parent == null
@@ -101,10 +101,10 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             solutions == []
             details == null
             originLocations.size() == 1
-            with(originLocations[0]) {
-                with(fileLocation) {
+            this.with(originLocations[0]) {
+                this.with(fileLocation) {
                     path == this.buildFile.absolutePath
-                    line == 13
+                    line == ProblemsServiceIntegrationTest.PROBLEM_LOCATION_LINE
                     column == null
                     length == null
                 }
@@ -150,19 +150,19 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
-            with(definition) {
+            this.with(definition) {
                 name == 'type'
                 displayName == 'label'
-                with(group) {
+                this.with(group) {
                     displayName == 'problem group label'
                     name == 'problem group'
-                    with(parent) {
+                    this.with(parent) {
                         displayName == 'parent group label'
                         name == 'parent'
                         parent == null
                     }
                 }
-                with(documentationLink) {
+                this.with(documentationLink) {
                     url == 'https://example.org/doc'
                 }
             }
@@ -171,40 +171,40 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             solutions == ['solution 1', 'solution 2']
             details == 'problem details'
             originLocations.size() == 6
-            with(originLocations[0]) {
+            this.with(originLocations[0]) {
                 path == location0
                 !containsKey('line')
                 displayName == "file '${location0}'"
             }
-            with(originLocations[1]) {
+            this.with(originLocations[1]) {
                 path == location1
                 line == 25
                 column == null
                 length == null
                 displayName == "file '${location1}:25'"
             }
-            with(originLocations[2]) {
+            this.with(originLocations[2]) {
                 path == location2
                 line == 35
                 column == 4
                 length == null
                 displayName == "file '${location2}:35:4'"
             }
-            with(originLocations[3]) {
+            this.with(originLocations[3]) {
                 path == location3
                 line == 45
                 column == 7
                 length == 10
                 displayName == "file '${location3}:45:7:10'"
             }
-            with(originLocations[4]) {
+            this.with(originLocations[4]) {
                 path == location4
                 offset == 55
                 length == 20
                 displayName == "offset in file '${location4}:55:20'"
             }
             contextualLocations.empty
-            with(failure) {
+            this.with(failure) {
                 message == 'problem exception'
                 stackTrace.startsWith('java.lang.IllegalArgumentException: problem exception')
             }
@@ -229,12 +229,13 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         run(":included:sub1:reportProblem")
 
         then:
+        def test = this
         def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
-            with(definition) {
+            this.with(definition) {
                 name == 'type'
                 displayName == 'label'
-                with(group) {
+                this.with(group) {
                     displayName == 'group label'
                     name == 'generic'
                     parent == null
@@ -247,10 +248,10 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             details == null
             originLocations.empty
             contextualLocations.size() == 1
-            with(contextualLocations[0]) {
-                with(fileLocation) {
-                    path == this.file('included/sub1/build.gradle').absolutePath
-                    line == 13
+            this.with(contextualLocations[0]) {
+                this.with(fileLocation) {
+                    path == test.file('included/sub1/build.gradle').absolutePath
+                    line == ProblemsServiceIntegrationTest.PROBLEM_LOCATION_LINE
                     column == null
                     length == null
                 }

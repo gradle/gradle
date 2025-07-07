@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -23,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
-@NonNullApi
+@org.jspecify.annotations.NullMarked
 public class TestRetryShieldingTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor delegate;
 

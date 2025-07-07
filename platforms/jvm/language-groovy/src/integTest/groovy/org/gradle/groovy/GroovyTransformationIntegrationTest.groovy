@@ -19,16 +19,27 @@ package org.gradle.groovy
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.GroovyCoverage
+import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
 @TargetCoverage({ GroovyCoverage.SUPPORTS_DISABLING_AST_TRANSFORMATIONS })
 @Issue('https://github.com/gradle/gradle/issues/1031')
-class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec {
+class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
+    Jvm supportedJvm
 
     def setup() {
+        supportedJvm = GroovyCoverage.ALL_VERSIONS_JVMS[version]
+        Assume.assumeNotNull(supportedJvm)
+
+        executer.beforeExecute {
+            withInstallations(supportedJvm)
+        }
+
         buildFile << """
             plugins {
                 id("groovy")
@@ -39,6 +50,8 @@ class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec {
             dependencies {
                 implementation "${groovyModuleDependency("groovy", versionNumber)}"
             }
+
+            ${javaPluginToolchainVersion(supportedJvm)}
         """
     }
 

@@ -15,12 +15,11 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public interface ToolRegistry {
     @Nullable
     GccCommandLineToolConfigurationInternal getTool(ToolType toolType);

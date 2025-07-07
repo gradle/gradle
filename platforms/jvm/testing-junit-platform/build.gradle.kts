@@ -11,15 +11,22 @@ We make sure to include this subproject as a runtime dependency in :distribution
 """
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.testingBaseInfrastructure)
     api(projects.time)
     api(projects.baseServices)
     api(projects.messaging)
     api(projects.testingJvmInfrastructure)
 
-    api(libs.junitPlatform)
-    api(libs.junitPlatformEngine)
+    api(libs.jspecify)
+
+    implementation(projects.stdlibJavaExtensions)
+
+    compileOnly(libs.junitPlatform) {
+        because("The actual version is provided by the user on the testRuntimeClasspath")
+    }
+    compileOnly(libs.junitPlatformEngine) {
+        because("The actual version is provided by the user on the testRuntimeClasspath")
+    }
 
     implementation(libs.jsr305)
 }

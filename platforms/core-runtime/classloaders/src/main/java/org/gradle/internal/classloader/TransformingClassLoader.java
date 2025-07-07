@@ -17,11 +17,11 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.io.ByteStreams;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.internal.classpath.ClassPath;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -84,8 +84,7 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
         return defineClass(name, bytes, 0, bytes.length, codeSource);
     }
 
-    @Nullable
-    protected byte[] generateMissingClass(String name) {
+    protected byte @Nullable [] generateMissingClass(String name) {
         return null;
     }
 

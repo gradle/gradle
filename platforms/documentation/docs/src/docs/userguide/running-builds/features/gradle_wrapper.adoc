@@ -90,12 +90,17 @@ All of those aspects are configurable at the time of generating the Wrapper file
 The Gradle version used for downloading and executing the Wrapper.
 The resulting distribution URL is validated before it is written to the properties file.
 +
+For Gradle versions starting with major version 9, the version can be specified using only the major or minor version number.
+In such cases, the latest normal release matching that major or minor version will be used.
+For example, `9` resolves to the latest `9.x.y` release, and `9.1` resolves to the latest `9.1.x` release.
++
 The following labels are allowed:
 +
 * `link:https://gradle.org/releases[latest]`
 * `link:https://gradle.org/release-candidate[release-candidate]`
-* `link:https://gradle.org/nightly[nightly]`
+* `link:https://services.gradle.org/versions/milestone[release-milestone]`
 * `link:https://gradle.org/release-nightly[release-nightly]`
+* `link:https://gradle.org/nightly[nightly]`
 
 `--distribution-type`::
 The Gradle distribution type used for the Wrapper.
@@ -215,7 +220,7 @@ $ gradlew.bat build
 include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
-If the Gradle distribution is unavailable on the machine, the Wrapper will download it and store it in the local file system.
+If the Gradle distribution was not provisioned to `GRADLE_USER_HOME` before, the Wrapper will download it and store it in `GRADLE_USER_HOME`.
 Any subsequent build invocation will reuse the existing local distribution as long as the distribution URL in the Gradle properties doesn't change.
 
 NOTE: The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.
@@ -377,13 +382,13 @@ As with all such files, you should ensure it's trustworthy before executing it.
 
 Since the Wrapper JAR is usually checked into a project's version control system, there is the potential for a malicious actor to replace the original JAR with a modified one by submitting a pull request that only upgrades the Gradle version.
 
-To verify the integrity of the Wrapper JAR, Gradle has created a link:https://github.com/marketplace/actions/gradle-wrapper-validation[GitHub Action] that automatically checks Wrapper JARs in pull requests against a list of known good checksums.
+To verify the integrity of the Wrapper JAR, Gradle has created a link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[GitHub Action] that automatically checks Wrapper JARs in pull requests against a list of known good checksums.
 
 Gradle also publishes the link:https://gradle.org/release-checksums/[checksums of all releases] (except for version 3.3 to 4.0.2, which did not generate reproducible JARs), so you can manually verify the integrity of the Wrapper JAR.
 
 === Automatically verifying the Gradle Wrapper JAR on GitHub
 
-The link:https://github.com/marketplace/actions/gradle-wrapper-validation[GitHub Action] is released separately from Gradle, so please check its documentation for how to apply it to your project.
+The link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[GitHub Action] is released separately from Gradle, so please check its documentation for how to apply it to your project.
 
 === Manually verifying the Gradle Wrapper JAR
 

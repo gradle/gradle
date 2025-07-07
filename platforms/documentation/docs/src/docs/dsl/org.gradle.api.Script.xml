@@ -68,12 +68,6 @@
             <tr>
                 <td>delete</td>
             </tr>
-            <tr>
-                <td>javaexec</td>
-            </tr>
-            <tr>
-                <td>exec</td>
-            </tr>
         </table>
     </section>
 </section>

@@ -17,7 +17,6 @@
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
@@ -26,9 +25,13 @@ plugins {
     java
     id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
+    id("gradlebuild.jvm-compile")
 }
 
-val sourceSet = addSourceSet(TestType.CROSSVERSION)
+val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
+jvmCompile {
+    addCompilationFrom(sourceSet)
+}
 addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
 createQuickFeedbackTasks()
 createAggregateTasks(sourceSet)
@@ -43,7 +46,7 @@ fun configureTestFixturesForCrossVersionTests() {
         }
     }
 }
-val releasedVersions = moduleIdentity.releasedVersions.orNull
+val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
 fun createQuickFeedbackTasks() {
     val testType = TestType.CROSSVERSION
@@ -78,7 +81,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
-    val releasedVersions = moduleIdentity.releasedVersions.orNull
+    val releasedVersions = gradleModule.identity.releasedVersions.orNull
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"

@@ -17,13 +17,11 @@
 package org.gradle.plugins.ide.tooling.r210
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 
-@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup(){
@@ -90,10 +88,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        createDirs("subproject-a", "subproject-b", "subproject-c")
-        settingsFile << """
-            include 'subproject-a', 'subproject-b', 'subproject-c'
-        """
+        includeProjects("subproject-a", "subproject-b", "subproject-c")
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)

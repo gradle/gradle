@@ -20,6 +20,11 @@ import org.gradle.api.provider.Property
 
 
 abstract class IntegrationTestExtension {
-    abstract val usesJavadocCodeSnippets: Property<Boolean>
+    /**
+     * If enabled, there will be a `GenerateAutoTestedSamplesTestTask` task
+     * that generates a subclass of `AbstractAutoTestedSamplesTest` to
+     * test all snippets embedded in javadoc with `class='autoTested'`.
+     */
+    abstract val generateDefaultAutoTestedSamplesTest: Property<Boolean>
     abstract val testJvmXmx: Property<String>
 }

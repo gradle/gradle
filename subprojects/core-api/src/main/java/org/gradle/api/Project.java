@@ -53,11 +53,8 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaExecSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -152,9 +149,6 @@ import java.util.concurrent.Callable;
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
  *
- * <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
- * to a project through the project's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
- *
  * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
  * property.</li>
@@ -205,9 +199,6 @@ import java.util.concurrent.Callable;
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
  * a closure or {@link org.gradle.api.Action} as a parameter.</li>
- *
- * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and method to
- * a project through the project's {@link org.gradle.api.plugins.Convention} object.</li>
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
  * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
@@ -407,9 +398,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <ol>
      *
      * <li>The project object itself.  For example, the <code>rootDir</code> project property.</li>
-     *
-     * <li>The project's {@link org.gradle.api.plugins.Convention} object.  For example, the <code>srcRootName</code> java plugin
-     * property.</li>
      *
      * <li>The project's extra properties.</li>
      *
@@ -810,10 +798,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <p>This method can also be used to create an empty collection, which can later be mutated to add elements.</p>
      *
-     * @param paths The paths to the files. May be empty.
+     * @param paths The paths to the files. May be empty. {@code null} values are ignored.
      * @return The file collection. Never returns null.
      */
-    ConfigurableFileCollection files(Object... paths);
+    ConfigurableFileCollection files(@Nullable Object... paths);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
@@ -1018,7 +1006,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
+    <T> Provider<T> provider(Callable<? extends @Nullable T> value);
 
     /**
      * Provides access to methods to create various kinds of {@link Provider} instances.
@@ -1058,7 +1046,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
-    boolean delete(Object... paths);
+    boolean delete(@Nullable Object... paths);
 
     /**
      * Deletes the specified files.  The given action is used to configure a {@link DeleteSpec}, which is then used to
@@ -1075,52 +1063,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return {@link WorkResult} that can be used to check if delete did any work.
      */
     WorkResult delete(Action<? super DeleteSpec> action);
-
-    /**
-     * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.
-     *
-     * @param closure The closure for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
-
-    /**
-     * Executes an external Java process.
-     * <p>
-     * The given action configures a {@link org.gradle.process.JavaExecSpec}, which is used to launch the process.
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param action The action for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult javaexec(Action<? super JavaExecSpec> action);
-
-    /**
-     * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
-     *
-     * @param closure The closure for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
-
-    /**
-     * Executes an external command.
-     * <p>
-     * The given action configures a {@link org.gradle.process.ExecSpec}, which is used to launch the process.
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param action The action for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult exec(Action<? super ExecSpec> action);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
@@ -1306,18 +1248,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link org.gradle.api.plugins.Convention} for this project.</p> <p>You can access this property in your build file
-     * using <code>convention</code>. You can also access the properties and methods of the convention object
-     * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
-     *
-     * @return The <code>Convention</code>. Never returns null.
-     * @see ExtensionAware#getExtensions()
-     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
-     */
-    @Deprecated
-    org.gradle.api.plugins.Convention getConvention();
-
-    /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>
      *
      * @param otherProject The project to compare the nesting level with.
@@ -1444,7 +1374,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return A map from property name to value.
      */
-    Map<String, ?> getProperties();
+    Map<String, ? extends @Nullable Object> getProperties();
 
     /**
      * <p>Returns the value of the given property.  This method locates a property as follows:</p>
@@ -1626,7 +1556,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the dependency factory. Never returns null.
      * @since 7.6
      */
-    @Incubating
     DependencyFactory getDependencyFactory();
 
     /**

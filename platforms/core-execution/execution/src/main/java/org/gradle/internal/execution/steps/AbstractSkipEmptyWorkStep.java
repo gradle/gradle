@@ -18,29 +18,34 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.function.Predicate;
 
 public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> implements Step<C, CachingResult> {
+    private final ExecutionProblemHandler problemHandler;
     private final WorkInputListeners workInputListeners;
     protected final Step<? super C, ? extends CachingResult> delegate;
 
     protected AbstractSkipEmptyWorkStep(
+        ExecutionProblemHandler problemHandler,
         WorkInputListeners workInputListeners,
         Step<? super C, ? extends CachingResult> delegate
     ) {
+        this.problemHandler = problemHandler;
         this.workInputListeners = workInputListeners;
         this.delegate = delegate;
     }
@@ -104,15 +109,21 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
                         visitor.visitInputFileProperty(propertyName, behavior, value);
                     }
                 }
-            }));
+            }),
+            work.getInputDependencyChecker(context.getValidationContext()));
     }
 
     abstract protected ImmutableSortedMap<String, ValueSnapshot> getKnownInputProperties(C context);
 
     abstract protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getKnownInputFileProperties(C context);
 
-    @Nonnull
+    @NonNull
     private CachingResult skipExecutionWithEmptySources(UnitOfWork work, C context) {
+        // Make sure we check for missing dependencies even if we skip executing the work
+        WorkValidationContext validationContext = context.getValidationContext();
+        work.checkOutputDependencies(validationContext);
+        problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
+
         CachingResult result = performSkip(work, context);
         broadcastWorkInputs(work, true);
         return result;

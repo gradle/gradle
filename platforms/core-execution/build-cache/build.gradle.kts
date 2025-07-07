@@ -16,7 +16,7 @@ dependencies {
     api(projects.hashing)
     api(projects.snapshots)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     api(projects.stdlibJavaExtensions)
     implementation(libs.commonsIo)

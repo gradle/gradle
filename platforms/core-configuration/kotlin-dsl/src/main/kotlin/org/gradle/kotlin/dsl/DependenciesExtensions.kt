@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-@file:Incubating
 @file:Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 
 package org.gradle.kotlin.dsl

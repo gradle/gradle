@@ -22,8 +22,8 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.internal.Describables;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -43,9 +43,7 @@ public abstract class SingleDirectoryReport extends SimpleReport implements Dire
     }
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     @Override
     public File getEntryPoint() {

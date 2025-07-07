@@ -19,83 +19,40 @@ package org.gradle.internal.scan.config
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.UnsupportedBuildScanPluginVersionException
 import spock.lang.Specification
-import spock.util.environment.RestoreSystemProperties
 
 class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
-    boolean scanEnabled
-    boolean scanDisabled
-
-    def "conveys configuration"() {
+    def "fails if plugin is not aware of unsupported mechanism"() {
         when:
-        scanEnabled = true
-
-        then:
-        with(config()) {
-            enabled
-            !disabled
-            unsupportedMessage == null
-        }
-
-        when:
-        scanEnabled = true
-
-        then:
-        with(config()) {
-            enabled
-            !disabled
-            unsupportedMessage == null
-        }
-
-        when:
-        scanEnabled = false
-        scanDisabled = true
-
-        then:
-        with(config()) {
-            !enabled
-            disabled
-        }
-    }
-
-    @RestoreSystemProperties
-    def "can convey unsupported"() {
-        when:
-        System.setProperty(LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE, "true")
-
-        then:
-        with(config()) {
-            !enabled
-            !disabled
-            unsupportedMessage == LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
-        }
-
-        when:
-        scanEnabled = true
-
-        then:
-        with(config()) {
-            enabled
-            !disabled
-            unsupportedMessage == LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
-        }
-    }
-
-    def "fails if plugin version is not supported"() {
-        when:
-        // 1.16 is older than BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION, hence not supported
-        config("1.16")
+        // Earliest plugin version that does not cause an exception is 3.0
+        config("2.4.2")
 
         then:
         thrown(UnsupportedBuildScanPluginVersionException)
     }
 
-    LegacyGradleEnterprisePluginCheckInService manager() {
+    def "conveys unsupported without failing"() {
+        expect:
+        with(config("3.13")) {
+            unsupportedMessage == "Gradle Enterprise plugin 3.13 has been disabled as it is incompatible with this version of Gradle. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality."
+        }
+    }
+
+    BuildScanConfig config(String versionNumber, boolean scanEnabled = false, boolean scanDisabled = false) {
+        def manager = service(scanEnabled, scanDisabled)
+        manager.collect(new BuildScanPluginMetadata() {
+            @Override
+            String getVersion() {
+                versionNumber
+            }
+        })
+    }
+
+    LegacyGradleEnterprisePluginCheckInService service(boolean scanEnabled, boolean scanDisabled) {
         def gradle = Mock(GradleInternal) {
             getStartParameter() >> Mock(StartParameterInternal) {
                 isBuildScan() >> scanEnabled
@@ -106,19 +63,8 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
         new LegacyGradleEnterprisePluginCheckInService(
             gradle,
-            Stub(BuildModelParameters),
             new GradleEnterprisePluginManager(),
             BuildType.TASKS
         )
-    }
-
-    BuildScanConfig config(String versionNumber = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) {
-        def manager = manager()
-        manager.collect(new BuildScanPluginMetadata() {
-            @Override
-            String getVersion() {
-                versionNumber
-            }
-        })
     }
 }

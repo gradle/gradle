@@ -19,7 +19,6 @@ package org.gradle.internal.instantiation.generator
 import com.google.common.base.Function
 import org.gradle.api.Action
 import org.gradle.api.NonExtensible
-import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
@@ -35,7 +34,10 @@ import java.util.function.BiFunction
 
 import static AsmBackedClassGeneratorTest.Bean
 import static AsmBackedClassGeneratorTest.InterfaceBean
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.FinalReadOnlyNonManagedPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.UsesToStringInConstructor
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
@@ -300,13 +302,13 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         i.enumProperty == TestEnum.DEF
 
         when:
-        i.enumProperty "abc"
+        i.enumProperty = "abc"
 
         then:
         i.enumProperty == TestEnum.ABC
 
         when:
-        i.enumProperty "foo"
+        i.enumProperty = "foo"
 
         then:
         thrown IllegalArgumentException
@@ -382,14 +384,13 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         def i = create(NonExtensibleObject)
 
         when:
-        i.testEnum "ABC"
+        i.testEnum = "ABC"
 
         then:
         i.testEnum == TestEnum.ABC
 
         !(TestEnum instanceof ExtensionAware)
         !(TestEnum instanceof IConventionAware)
-        !(TestEnum instanceof HasConvention)
 
         when:
         i.ext.foo = "bar"

@@ -18,37 +18,41 @@ package org.gradle.api.tasks.wrapper
 
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
-import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.gradle.test.fixtures.server.http.BlockingHttpsServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
+import org.junit.Rule
+import spock.util.environment.RestoreSystemProperties
 
+@RestoreSystemProperties
 class WrapperTest extends AbstractTaskTest {
-    private static final String RELEASE = "7.6"
-    private static final String RELEASE_CANDIDATE = "7.7-rc-5"
-    private static final String NIGHTLY = "8.1-20221207164726+0000"
-    private static final String RELEASE_NIGHTLY = "8.0-20221207164726+0000"
     private static final String TARGET_WRAPPER_FINAL = "gradle/wrapper"
+
+    @Rule
+    BlockingHttpsServer server = new BlockingHttpsServer()
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
+    TestKeyStore keyStore
+
     private Wrapper wrapper
     private TestFile expectedTargetWrapperJar
     private File expectedTargetWrapperProperties
 
-    def createVersionTextResource(String version) {
-        wrapper.getProject().getResources().text.fromString("""{ "version" : "${version}" }""")
-    }
-
     def setup() {
-        wrapper = createTask(Wrapper.class)
+        keyStore = TestKeyStore.init(resources.dir)
+        server.configure(keyStore)
+        server.start()
+        System.setProperty("org.gradle.internal.services.base.url", getBaseUrl())
+        keyStore.getTrustStoreSettings().forEach { key, value -> System.setProperty(key, value)}
 
-        def latest = createVersionTextResource(RELEASE)
-        def releaseCandidate = createVersionTextResource(RELEASE_CANDIDATE)
-        def nightly = createVersionTextResource(NIGHTLY)
-        def releaseNightly = createVersionTextResource(RELEASE_NIGHTLY)
-        wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly))
-        wrapper.setGradleVersion("1.0")
+        wrapper = createTask(Wrapper.class)
+        wrapper.setGradleVersion("8.0")
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
                 TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
         expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
@@ -56,6 +60,10 @@ class WrapperTest extends AbstractTaskTest {
         new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
         wrapper.setDistributionPath("somepath")
         wrapper.setDistributionSha256Sum("somehash")
+    }
+
+    def cleanup() {
+        server.stop()
     }
 
     Wrapper getTask() {
@@ -103,21 +111,27 @@ class WrapperTest extends AbstractTaskTest {
     }
 
     def "downloads for '#version' from repository "() {
+        given:
+        if (request != null) {
+            server.expect(server.get(request).send(reply))
+        }
+
         when:
         wrapper.setGradleVersion(version)
 
         then:
-        "https://services.gradle.org/distributions$snapshot/gradle-$out-bin.zip" == wrapper.getDistributionUrl()
+        wrapper.getDistributionUrl() == getBaseUrl() + downloadUrlSuffix
 
         where:
-        version                     | out                         | snapshot
-        "1.0-milestone-1"           | "1.0-milestone-1"           | ""
-        "0.9.1-20101224110000+1100" | "0.9.1-20101224110000+1100" | "-snapshots"
-        "0.9.1"                     | "0.9.1"                     | ""
-        "latest"                    | RELEASE                     | ""
-        "release-candidate"         | RELEASE_CANDIDATE           | ""
-        "nightly"                   | NIGHTLY                     | "-snapshots"
-        "release-nightly"           | RELEASE_NIGHTLY             | "-snapshots"
+        version                     | request                       | reply                                              | downloadUrlSuffix
+        "8.13"                      | null                          | null                                               | "/distributions/gradle-8.13-bin.zip"
+        "7.6-milestone-1"           | null                          | null                                               | "/distributions/gradle-7.6-milestone-1-bin.zip"
+        "9.9.1-20101224110000+1100" | null                          | null                                               | "/distributions-snapshots/gradle-9.9.1-20101224110000+1100-bin.zip"
+        "latest"                    | "/versions/current"           | """{ "version" : "8.14.1" }"""                     | "/distributions/gradle-8.14.1-bin.zip"
+        "release-candidate"         | "/versions/release-candidate" | """{ "version" : "9.0-RC-1"}"""                    | "/distributions/gradle-9.0-RC-1-bin.zip"
+        "release-milestone"         | "/versions/milestone"         | """{ "version" : "9.0.0-milestone-9" }"""          | "/distributions/gradle-9.0.0-milestone-9-bin.zip"
+        "release-nightly"           | "/versions/release-nightly"   | """{ "version" : "8.14.1-20250522010941+0000" }""" | "/distributions-snapshots/gradle-8.14.1-20250522010941+0000-bin.zip"
+        "nightly"                   | "/versions/nightly"           | """{ "version" : "9.0.0-20250603003140+0000" }"""  | "/distributions-snapshots/gradle-9.0.0-20250603003140+0000-bin.zip"
     }
 
     def "uses explicitly defined distribution url"() {
@@ -153,15 +167,18 @@ class WrapperTest extends AbstractTaskTest {
         !wrapper.getValidateDistributionUrl().get()
     }
 
-    def "execute with non extant wrapper jar parent directory"() {
+    def "execute with non-existent wrapper jar parent directory"() {
+        given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
         when:
-        def unjarDir = temporaryFolder.createDir("unjar")
+        def decompressDir = temporaryFolder.createDir("decompress")
         execute(wrapper)
-        expectedTargetWrapperJar.unzipToWithoutCheckingParentDirs(unjarDir)
+        expectedTargetWrapperJar.unzipToWithoutCheckingParentDirs(decompressDir)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
-        unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
+        decompressDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().toString()
@@ -172,6 +189,7 @@ class WrapperTest extends AbstractTaskTest {
 
     def "execute with networkTimeout set"() {
         given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
         wrapper.setNetworkTimeout(6000)
 
         when:
@@ -203,6 +221,8 @@ class WrapperTest extends AbstractTaskTest {
 
     def "execute with extant wrapper jar parent directory and extant wrapper jar"() {
         given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
         def jarDir = new File(getProject().getProjectDir(), "lib")
         jarDir.mkdirs()
         def parentFile = expectedTargetWrapperJar.getParentFile()
@@ -229,6 +249,8 @@ class WrapperTest extends AbstractTaskTest {
 
     def "distributionUrl should not contain small dotless I letter when locale has small dotless I letter"() {
         given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
         Locale originalLocale = Locale.getDefault()
         Locale.setDefault(new Locale("tr","TR"))
 
@@ -237,9 +259,13 @@ class WrapperTest extends AbstractTaskTest {
         String distributionUrl = wrapper.getDistributionUrl()
 
         then:
-        distributionUrl.contains("\u0131") == false
+        !distributionUrl.contains("\u0131")
 
         cleanup:
         Locale.setDefault(originalLocale)
+    }
+
+    private String getBaseUrl() {
+        server.uri.toString()
     }
 }

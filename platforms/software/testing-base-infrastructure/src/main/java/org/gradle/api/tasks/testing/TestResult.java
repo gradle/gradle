@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -74,6 +74,7 @@ public interface TestResult {
      * @since 8.14
      */
     @Incubating
+    @Nullable
     TestFailure getAssumptionFailure();
 
     /**

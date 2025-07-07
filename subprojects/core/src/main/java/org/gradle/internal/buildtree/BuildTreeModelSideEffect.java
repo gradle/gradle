@@ -16,7 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 
@@ -28,7 +28,7 @@ import java.io.Serializable;
  *
  * @see BuildTreeModelSideEffectExecutor
  */
-@NonNullApi
+@NullMarked
 public interface BuildTreeModelSideEffect extends Serializable {
 
     void runSideEffect();

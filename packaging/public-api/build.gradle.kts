@@ -32,6 +32,7 @@ dependencies {
     externalApi(libs.inject)
     // Moslty used for nullability annotations
     externalApi(libs.jsr305)
+    externalApi(libs.jspecify)
     // We use this to annotate type parameters as @Nullable
     externalApi(libs.jetbrainsAnnotations)
     // SLF4J logging is part of our public API
@@ -45,7 +46,7 @@ val testRepoLocation = layout.buildDirectory.dir("repos/test")
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            artifactId = moduleIdentity.baseName.get()
+            artifactId = gradleModule.identity.baseName.get()
 
             from(components["gradleApi"])
 
@@ -56,7 +57,7 @@ publishing {
             }
 
             pom {
-                name = moduleIdentity.baseName.map { "${project.group}:$it"}
+                name = gradleModule.identity.baseName.map { "${project.group}:$it"}
             }
         }
     }
@@ -89,7 +90,7 @@ signing {
 configurations {
     gradleApiElements {
         outgoing {
-            capability("$group:${moduleIdentity.baseName.get()}-internal:$version")
+            capability(gradleModule.identity.baseName.map { "$group:$it-internal:$version" })
         }
     }
 }

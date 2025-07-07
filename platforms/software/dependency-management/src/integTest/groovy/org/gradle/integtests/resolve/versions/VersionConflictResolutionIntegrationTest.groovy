@@ -997,7 +997,7 @@ parentFirst
         fails "resolve"
 
         then:
-        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("root project : > org:d:1.0")
+        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("root project 'test' > org:d:1.0")
     }
 
     def "chooses highest version that is included in both ranges"() {
@@ -2533,9 +2533,7 @@ parentFirst
         resolve.expectGraph {
             root(":", ":test:") {
                 module("com.netflix.eureka:eureka-client:2.0.1") {
-                    module("com.netflix.netflix-commons:netflix-eventbus:0.3.0") {
-                        module("com.netflix.archaius:archaius-core:0.3.3")
-                    }
+                    module("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
                 }
                 project(":indirect", "test:indirect:1.0") {
                     module("org.springframework.cloud:spring-cloud-netflix-dependencies:4.1.0") {

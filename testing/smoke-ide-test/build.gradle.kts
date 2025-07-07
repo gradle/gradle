@@ -12,6 +12,16 @@ val smokeIdeTestSourceSet = sourceSets.create("smokeIdeTest") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
+jvmCompile {
+    addCompilationFrom(smokeIdeTestSourceSet)
+}
+
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(smokeIdeTestSourceSet.name)
+    }
+}
+
 addDependenciesAndConfigurations("smokeIde")
 
 val smokeIdeTestImplementation: Configuration by configurations

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 /**
  * The archive bundling {@link org.gradle.api.Task} implementations.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

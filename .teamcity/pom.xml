@@ -97,9 +97,6 @@
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
                 <version>3.5.0</version>
-                <configuration>
-                    <ktlintVersion>1.5.0</ktlintVersion>
-                </configuration>
                 <executions>
                     <execution>
                         <id>check</id>
@@ -191,6 +188,11 @@
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.1</version>
         </dependency>
     </dependencies>
 </project>

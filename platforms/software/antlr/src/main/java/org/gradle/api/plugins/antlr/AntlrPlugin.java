@@ -19,26 +19,29 @@ package org.gradle.api.plugins.antlr;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
-import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.file.FilePathUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
+
+import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
 
 /**
  * A plugin for adding Antlr support to {@link org.gradle.api.plugins.JavaPlugin java projects}.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/antlr_plugin.html">ANTLR plugin reference</a>
  */
-@SuppressWarnings("JavadocReference")
 public abstract class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
     private final ObjectFactory objectFactory;
@@ -55,16 +58,14 @@ public abstract class AntlrPlugin implements Plugin<Project> {
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
-        final Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeUnlocked(ANTLR_CONFIGURATION_NAME)
-            .setVisible(false);
+        Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeLocked(ANTLR_CONFIGURATION_NAME, conf -> {
+            conf.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
+        });
 
-        antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
-
-        Configuration apiConfiguration = project.getConfigurations().getByName(JvmConstants.API_CONFIGURATION_NAME);
-        apiConfiguration.extendsFrom(antlrConfiguration);
+        JavaPluginHelper.getJavaComponent(project).getMainFeature().getApiConfiguration().extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
-        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));
+        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.antlrClasspath.convention(antlrConfiguration));
 
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(
             new Action<SourceSet>() {
@@ -82,30 +83,47 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     //    naming conventions via call to sourceSet.getTaskName()
                     final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
 
-                    // 3) Set up the Antlr output directory (adding to javac inputs!)
+                    // 3) Set up the Antlr output directory
                     final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
                     final File outputDirectory = new File(outputDirectoryName);
-                    sourceSet.getJava().srcDir(outputDirectory);
 
-                    project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
-                        @Override
-                        public void execute(AntlrTask antlrTask) {
-                            antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
-                            // 4) set up convention mapping for default sources (allows user to not have to specify)
-                            antlrTask.setSource(antlrSourceSet);
-                            antlrTask.setOutputDirectory(outputDirectory);
-                        }
+                    // 4) Register a source-generating task, and
+                    TaskProvider<AntlrTask> antlrTask = project.getTasks().register(taskName, AntlrTask.class, task -> {
+                        task.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
+                        // 4.1) set up convention mapping for default sources (allows user to not have to specify)
+                        task.setSource(antlrSourceSet);
+                        task.setOutputDirectory(outputDirectory);
                     });
 
-                    // 5) register fact that antlr should be run before compiling
-                    project.getTasks().named(sourceSet.getCompileJavaTaskName(), new Action<Task>() {
-                        @Override
-                        public void execute(Task task) {
-                            task.dependsOn(taskName);
-                        }
-                    });
+                    // 5) Add that task's outputs to the Java source set
+                    sourceSet.getJava().srcDir(antlrTask.map(task -> {
+                        String relativeOutputDirectory = project.relativePath(task.getOutputDirectory());
+                        return project.file(deriveGeneratedSourceRootDirectory(relativeOutputDirectory, task.getArguments()));
+                    }));
                 }
             });
+    }
+
+    /**
+     * Derives the root source directory from the configuration of the Antlr task.
+     *
+     * If the package name has been added to the arguments, it is likely that the task output directory has also been adjusted to include the package structure.
+     * If so, we can derive the source directory by removing the relative package path from the output directory.  Otherwise, we assume the output directory is
+     * the root of the generated sources.
+     *
+     * This logic can be removed once we make it an error to set the package name via the arguments and require the use of the 'packageName' property instead.
+     */
+    private static String deriveGeneratedSourceRootDirectory(String outputDirectoryPath, List<String> arguments) {
+        // If the package argument is present, remove the package from the path if it has been added.
+        if (arguments.contains(PACKAGE_ARG)) {
+            int packageIndex = arguments.indexOf(PACKAGE_ARG);
+            if (packageIndex + 1 < arguments.size()) {
+                String packageRelativePath = arguments.get(packageIndex + 1).replace('.', '/');
+                return FilePathUtil.maybeRemoveTrailingSegments(outputDirectoryPath, packageRelativePath);
+            }
+        }
+        // Otherwise, we assume the output directory is the root of the generated sources.
+        return outputDirectoryPath;
     }
 
     private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory) {

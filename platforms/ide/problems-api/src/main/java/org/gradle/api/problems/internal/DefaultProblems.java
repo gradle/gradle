@@ -21,14 +21,10 @@ import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
-
-@ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
     private final CurrentBuildOperationRef currentBuildOperationRef;
@@ -61,7 +57,7 @@ public class DefaultProblems implements InternalProblems {
     public ProblemReporter getReporter() {
         return createReporter();
     }
-    @Nonnull
+    @NonNull
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
             problemSummarizer,

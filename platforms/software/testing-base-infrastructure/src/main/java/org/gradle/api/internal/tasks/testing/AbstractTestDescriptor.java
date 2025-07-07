@@ -17,14 +17,13 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @UsedByScanPlugin("test-distribution")
-@NonNullApi
+@NullMarked
 public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     private final Object id;
     private final String name;
@@ -52,7 +51,7 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     /**
      * Returns the method name for this test, if any.
      * It should be in TestDescriptor, but moved here for backward compatibility
-     *  TODO: move it to TestDescriptor interface with 9.0
+     *  TODO: move it to TestDescriptor interface in Gradle 10
      *
      * @return The method name. May return null.
      * @since 8.8

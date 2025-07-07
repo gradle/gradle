@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -29,7 +28,6 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    @ToBeFixedForConfigurationCache
     void enablesCustomizationsOnNewModel() {
         //given
         testResources.dir.create {
@@ -116,7 +114,6 @@ idea {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/6547")
-    @ToBeFixedForConfigurationCache
     void "omit resource declaration if directory is also a source directory"() {
         //given
         testResources.dir.create {
@@ -162,7 +159,6 @@ sourceSets {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void plusMinusConfigurationsWorkFineForSelfResolvingFileDependencies() {
         //when
         runTask 'idea', '''
@@ -201,7 +197,6 @@ idea {
 
     @Issue("GRADLE-3101")
     @Test
-    @ToBeFixedForConfigurationCache
     void scopesCustomizedUsingPlusEqualOperator() {
         //when
         runTask 'idea', '''
@@ -229,7 +224,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void allowsReconfiguringBeforeOrAfterMerging() {
         //given
         def existingIml = file('root.iml')
@@ -270,7 +264,6 @@ idea {
 
     @Issue("GRADLE-1504")
     @Test
-    @ToBeFixedForConfigurationCache
     void shouldNotPutSourceSetsOutputDirOnClasspath() {
         //when
         runTask 'idea', '''
@@ -303,7 +296,6 @@ sourceSets.test.output.dir "$buildDir/ws/test"
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void theBuiltByTaskBeExecuted() {
         //when
         def result = runIdeaTask('''
@@ -321,7 +313,6 @@ task generateForTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void enablesTogglingJavadocAndSourcesOff() {
         //given
         def repoDir = file("repo")
@@ -356,7 +347,6 @@ idea.module {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "respects external dependencies order"() {
         //given
         def repoDir = file("repo")
@@ -387,7 +377,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "respects local dependencies order"() {
         //given
         file('artifact1.jar').createNewFile()
@@ -413,7 +402,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "works with artifacts without group and version"() {
         //given
         testFile('repo/hibernate-core.jar').createFile()
@@ -438,7 +426,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
         def repoDir = file("repo")
@@ -479,7 +466,6 @@ project(':impl') {
 
     @Issue("GRADLE-2017")
     @Test
-    @ToBeFixedForConfigurationCache
     void "create external dependency in more scopes when needed"() {
         //given
         def repoDir = file("repo")
@@ -510,7 +496,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "custom configuration is added to all specified scopes considering IDEA scope inclusion"() {
         //given
         def repoDir = file("repo")
@@ -548,7 +533,6 @@ idea {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "custom configuration can be added to TEST and RUNTIME"() {
         //given
         def repoDir = file("repo")
@@ -588,7 +572,6 @@ idea {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "no libraries generated without java plugin"() {
         //given
         def repoDir = file("repo")
@@ -618,7 +601,6 @@ dependencies {
 
     @Test
     @Issue("GRADLE-1945")
-    @ToBeFixedForConfigurationCache
     void unresolvedDependenciesAreLogged() {
         //given
         def module = mavenRepo.module('myGroup', 'existing-artifact', '1.0')
@@ -639,12 +621,11 @@ configurations {
 }
 
 dependencies {
-    myPlusConfig group: 'myGroup', name: 'missing-extra-artifact', version: '1.0'
-    myPlusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
-    myMinusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
-    runtimeOnly group: 'myGroup', name: 'missing-artifact', version: '1.0'
-    implementation group: 'myGroup', name: 'existing-artifact', version: '1.0'
-
+    myPlusConfig("myGroup:missing-extra-artifact:1.0")
+    myPlusConfig("myGroup:filtered-artifact:1.0")
+    myMinusConfig("myGroup:filtered-artifact:1.0")
+    runtimeOnly("myGroup:missing-artifact:1.0")
+    implementation("myGroup:existing-artifact:1.0")
     idea {
         module {
             scopes.COMPILE.plus += [ configurations.myPlusConfig ]
@@ -660,7 +641,6 @@ Could not resolve: myGroup:missing-artifact:1.0
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "compile only dependencies handled correctly"() {
         // given
         def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
@@ -694,7 +674,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "test compile only dependencies mapped to IDEA scopes"() {
         // given
         def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
@@ -725,7 +704,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library requested for compile and compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
@@ -755,7 +733,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library requested for runtime and compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
@@ -785,7 +762,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library requested for test-compile and test-compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
@@ -814,7 +790,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "providedCompile dependencies are added to PROVIDED only"() {
         // given
         mavenRepo.module('org.gradle.test', 'foo', '1.0').publish()
@@ -840,7 +815,6 @@ dependencies {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "providedRuntime dependencies are added to PROVIDED only"() {
         // given
         mavenRepo.module('org.gradle.test', 'foo', '1.0').publish()

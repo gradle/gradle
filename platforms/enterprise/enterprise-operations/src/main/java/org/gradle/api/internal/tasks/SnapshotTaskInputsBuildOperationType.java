@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.operations.execution.FilePropertyVisitor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Represents the computation of the task artifact state and the task output caching state.
  * <p>
- * This operation is executed only when the build cache is enabled or when the build scan plugin is applied.
+ * This operation is executed only when the build cache is enabled or when the Develocity plugin is applied.
  * Must occur as a child of {@link org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType}.
  *
  * @since 4.0
@@ -50,16 +50,14 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * <p>
          * Null if the overall key was not calculated because the inputs were invalid.
          */
-        @Nullable
-        byte[] getHashBytes();
+        byte @Nullable [] getHashBytes();
 
         /**
          * The hash of the classloader that loaded the task implementation.
          * <p>
          * Null if the classloader is not managed by Gradle.
          */
-        @Nullable
-        byte[] getClassLoaderHashBytes();
+        byte @Nullable [] getClassLoaderHashBytes();
 
 
         /**

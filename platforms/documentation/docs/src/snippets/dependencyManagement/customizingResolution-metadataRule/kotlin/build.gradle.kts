@@ -95,7 +95,7 @@ abstract class GuavaRule: ComponentMetadataRule {
             mapOf(6 to "android", 8 to "jre").forEach { (targetJvmVersion, jarName) ->
                 context.details.addVariant("jdk$targetJvmVersion${base.capitalize()}", base) {
                     attributes {
-                        attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, targetJvmVersion)
+                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, targetJvmVersion)
                     }
                     withFiles {
                         removeAllFiles()
@@ -177,15 +177,15 @@ abstract class LwjglRule: ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.withVariant("runtime") {
             attributes {
-                attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named("none"))
-                attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("none"))
+                attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named("none"))
+                attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("none"))
             }
         }
         nativeVariants.forEach { variantDefinition ->
             context.details.addVariant("${variantDefinition.classifier}-runtime", "runtime") {
                 attributes {
-                    attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(variantDefinition.os))
-                    attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(variantDefinition.arch))
+                    attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(variantDefinition.os))
+                    attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(variantDefinition.arch))
                 }
                 withFiles {
                     addFile("${context.details.id.name}-${context.details.id.version}-${variantDefinition.classifier}.jar")

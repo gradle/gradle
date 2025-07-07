@@ -243,9 +243,10 @@ class ConfigurationCacheRepository(
 
         override fun <T> useForStore(action: Layout.() -> T): ConfigurationCacheStateStore.StateAccessResult<T> =
             withExclusiveAccessToCache(baseDir) { cacheDir ->
-                // TODO GlobalCache require(!cacheDir.isDirectory)
-                Files.createDirectories(cacheDir.toPath())
-                chmod(cacheDir, 448) // octal 0700
+                if (!cacheDir.isDirectory) {
+                    Files.createDirectories(cacheDir.toPath())
+                    chmod(cacheDir, 448) // octal 0700
+                }
                 markAccessed(cacheDir)
                 // this needs to be thread-safe as we may have multiple adding threads
                 val stateFiles = Collections.synchronizedList(mutableListOf<File>())
@@ -314,7 +315,7 @@ class ConfigurationCacheRepository(
     }
 
     private
-    fun <T> withExclusiveAccessToCache(baseDir: File, action: (File) -> T): T =
+    fun <T : Any> withExclusiveAccessToCache(baseDir: File, action: (File) -> T): T =
         cache.withFileLock(
             Supplier {
                 action(baseDir)

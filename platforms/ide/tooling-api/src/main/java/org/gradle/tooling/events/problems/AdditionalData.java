@@ -17,7 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
@@ -36,7 +36,7 @@ import java.util.Map;
  * @since 8.6
  */
 @Incubating
-@NonNullApi
+@NullMarked
 public interface AdditionalData {
     /**
      * Returns additional data as a map.

@@ -32,8 +32,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -129,7 +129,9 @@ import java.util.Map;
  * dependencies {
  *   // Configuring dependency to specific configuration of the module
  *   // This notation should _only_ be used for Ivy dependencies
- *   implementation(group: "org.someOrg", name: "someModule", version: "1.0", configuration: "someConf")
+ *   implementation("org.someOrg:someModule:1.0") {
+ *       targetConfiguration = "someConf"
+ *   }
  *
  *   // Configuring dependency on 'someLib' module
  *   implementation(group: 'org.myorg', name: 'someLib', version:'1.0') {
@@ -161,17 +163,11 @@ import java.util.Map;
  *
  * <h3>External dependencies</h3>
  *
- * <p>There are two notations supported for declaring a dependency on an external module.
- * One is a string notation formatted this way:</p>
+ * <p>The following notation is used to declare a dependency on an external module:</p>
  *
- * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>@<i>extension</i>"</code>
+ * <code><i>configurationName</i>("<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>@<i>extension</i>")</code>
  *
- * <p>The other is a map notation:</p>
- *
- * <code><i>configurationName</i> group: <i>group</i>, name: <i>name</i>, version: <i>version</i>, classifier:
- * <i>classifier</i>, ext: <i>extension</i></code>
- *
- * <p>In both notations, all properties, except name, are optional.</p>
+ * <p>All properties, except name, are optional.</p>
  *
  * <p>External dependencies are represented by a {@link
  * org.gradle.api.artifacts.ExternalModuleDependency}.</p>
@@ -260,23 +256,6 @@ import java.util.Map;
  *   testImplementation gradleTestKit()
  * }
  * </pre>
- *
- * <h3>Client module dependencies</h3>
- *
- * <strong>Client module dependencies are deprecated and will be removed in Gradle 9.0.
- * Please use component metadata rules instead.</strong>
- *
- * <p>To add a client module to a configuration you can use the notation:</p>
- *
- * <pre>
- * <i>configurationName</i> module(<i>moduleNotation</i>) {
- *     <i>module dependencies</i>
- * }
- * </pre>
- *
- * The module notation is the same as the dependency notations described above, except that the classifier property is
- * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
- *
  */
 @ServiceScope(Scope.Project.class)
 public interface DependencyHandler extends ExtensionAware {
@@ -362,30 +341,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return The dependency.
      */
     Dependency create(Object dependencyNotation, Closure configureClosure);
-
-    /**
-     * Creates a dependency on a client module.
-     *
-     * @param notation The module notation, in one of the notations described above.
-     * @return The dependency.
-     *
-     * @deprecated Please use component metadata rules instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    Dependency module(Object notation);
-
-    /**
-     * Creates a dependency on a client module. The dependency is configured using the given closure before it is
-     * returned.
-     *
-     * @param notation The module notation, in one of the notations described above.
-     * @param configureClosure The closure to use to configure the dependency.
-     * @return The dependency.
-     *
-     * @deprecated Please use component metadata rules instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    Dependency module(Object notation, Closure configureClosure);
 
     /**
      * Creates a dependency on a project.

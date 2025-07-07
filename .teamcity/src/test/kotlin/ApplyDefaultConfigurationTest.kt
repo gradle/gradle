@@ -11,6 +11,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.DslContext
 import model.CIBuildModel
 import model.JsonBasedGradleSubprojectProvider
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -39,6 +40,10 @@ import java.io.File
 
 @ExtendWith(MockKExtension::class)
 class ApplyDefaultConfigurationTest {
+    init {
+        DslContext.initForTest()
+    }
+
     @MockK(relaxed = true)
     lateinit var buildType: BaseGradleBuildType
 
@@ -164,7 +169,6 @@ class ApplyDefaultConfigurationTest {
     ): String {
         val linuxPaths =
             listOf(
-                "%linux.java7.oracle.64bit%",
                 "%linux.java8.oracle.64bit%",
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
@@ -182,7 +186,7 @@ class ApplyDefaultConfigurationTest {
         val expectedInstallationPaths = (if (os == Os.WINDOWS) windowsPaths else linuxPaths).joinToString(",")
         return listOf(
             "-Dorg.gradle.workers.max=%maxParallelForks%",
-            "-PmaxParallelForks=%maxParallelForks% $PLUGINS_PORTAL_URL_OVERRIDE -s",
+            "-PmaxParallelForks=%maxParallelForks% $PLUGINS_PORTAL_URL_OVERRIDE -Dscan.value.tcPipeline=master -s",
             "%additional.gradle.parameters%",
             "--continue $extraParameters -Dscan.tag.Check",
             "-Dscan.tag.PullRequestFeedback -PteamCityBuildId=%teamcity.build.id%",

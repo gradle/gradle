@@ -17,10 +17,10 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import spock.lang.Ignore
 
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "creating zips"() {
         given:
@@ -76,8 +76,8 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
         def permissions = readonly
             ? """
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions { unix(0644) }
+                dirPermissions { unix(0755) }
               """
             : ""
 

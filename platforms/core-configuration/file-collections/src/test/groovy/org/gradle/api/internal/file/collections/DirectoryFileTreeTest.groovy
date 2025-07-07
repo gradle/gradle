@@ -90,24 +90,24 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
     }
 
     /**
-    file structure:
-    root
-        rootFile1
-        dir1
-           dirFile1
-           dirFile2
-        rootFile2
-
-        Test that the files are really walked breadth first
+     * file structure:
+     * root
+     *   A
+     *   B
+     *   C
+     *      D
+     *      E
+     *   F
      */
-    def "walk breadth first - isReproducible: #visitor.isReproducibleFileOrder"() {
+    def "walk depth-first prefix - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
-        def rootFile1 = root.createFile("rootFile1")
-        def dir1 = root.createDir("dir1")
-        def dirFile1 = dir1.createFile("dirFile1")
-        def dirFile2 = dir1.createFile("dirFile2")
-        def rootFile2 = root.createFile("rootFile2")
+        def a = root.createFile("A")
+        def b = root.createFile("B")
+        def c = root.createDir("C")
+        def d = c.createFile("D")
+        def e = c.createFile("E")
+        def f = root.createFile("F")
 
         def fileTree = new DirectoryFileTree(root, new PatternSet(), TestFiles.fileSystem(), false)
 
@@ -115,20 +115,38 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         fileTree.visit(visitor)
 
         then:
-        visitor.visited.sort() == [rootFile1, rootFile2, dir1, dirFile1, dirFile2].sort()
+        // Check that all files are visited
+        visitor.visited.collect().sort() == [a, b, c, d, e, f]
+        // Check that parent is visited before children
+        visitor.visited.indexOf(c) < visitor.visited.indexOf(d)
+        visitor.visited.indexOf(c) < visitor.visited.indexOf(e)
+        if (visitor.isReproducibleFileOrder) {
+            assert visitor.visited == [a, b, f, c, d, e]
+        }
 
         where:
         visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    def "walk depth first - isReproducible: #visitor.isReproducibleFileOrder"() {
+    /**
+     * file structure:
+     * root
+     *   A
+     *   B
+     *   C
+     *      D
+     *      E
+     *   F
+     */
+    def "walk depth-first postfix - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
-        def rootFile1 = root.createFile("rootFile1")
-        def dir1 = root.createDir("dir1")
-        def dirFile1 = dir1.createFile("dirFile1")
-        def dirFile2 = dir1.createFile("dirFile2")
-        def rootFile2 = root.createFile("rootFile2")
+        def a = root.createFile("A")
+        def b = root.createFile("B")
+        def c = root.createDir("C")
+        def d = c.createFile("D")
+        def e = c.createFile("E")
+        def f = root.createFile("F")
 
         def fileTree = new DirectoryFileTree(root, new PatternSet(), TestFiles.fileSystem(), false).postfix()
 
@@ -136,7 +154,14 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         fileTree.visit(visitor)
 
         then:
-        visitor.visited.sort() == [rootFile1, rootFile2, dirFile2, dirFile1, dir1].sort()
+        // Check that all files are visited
+        visitor.visited.collect().sort() == [a, b, c, d, e, f]
+        // Check that children are visited before parent
+        visitor.visited.indexOf(c) > visitor.visited.indexOf(d)
+        visitor.visited.indexOf(c) > visitor.visited.indexOf(e)
+        if (visitor.isReproducibleFileOrder) {
+            assert visitor.visited == [a, b, f, d, e, c]
+        }
 
         where:
         visitor << [new TestVisitor(false), new TestVisitor(true)]
@@ -170,32 +195,42 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
+    /**
+     * file structure:
+     * root
+     *   A
+     *   B
+     *   C
+     *      D
+     *      E
+     *   F
+     */
     def "visitor can stop visit - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
-        def rootFile1 = root.createFile("rootFile1")
-        def dir1 = root.createDir("dir1")
-        def dirFile1 = dir1.createFile("dirFile1")
-        def dirFile2 = dir1.createFile("dirFile2")
-        dir1.createDir("dir1Dir").createFile("dir1Dir1File1")
-        def rootFile2 = root.createFile("rootFile2")
+        def a = root.createFile("A")
+        def b = root.createFile("B")
+        def c = root.createDir("C")
+        def d = c.createFile("D")
+        def e = c.createFile("E")
+        def f = root.createFile("F")
 
         def fileTree = new DirectoryFileTree(root, new PatternSet(), TestFiles.fileSystem(), false)
 
         when:
-        visitor.stopOn = rootFile2
+        visitor.stopOn = d
         fileTree.visit(visitor)
 
         then:
-        visitor.visited == [rootFile1, rootFile2]
+        visitor.visited == [a, b, f, c, d]
 
         when:
         visitor = new TestVisitor(true)
-        visitor.stopOn = dirFile1
+        visitor.stopOn = f
         fileTree.visit(visitor)
 
         then:
-        visitor.visited == [rootFile1, rootFile2, dir1, dirFile1]
+        visitor.visited == [a, b, f]
 
         where:
         visitor << [new TestVisitor(true)] // stopping at a given point assumes the order is fixed, so only reproducible visitor makes sense here

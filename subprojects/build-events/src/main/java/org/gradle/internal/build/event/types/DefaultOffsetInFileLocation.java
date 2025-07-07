@@ -16,12 +16,12 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalOffsetInFileLocation;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 
-@NonNullApi
+@NullMarked
 public class DefaultOffsetInFileLocation extends DefaultFileLocation implements InternalOffsetInFileLocation, Serializable {
     private final int offset;
     private final int length;

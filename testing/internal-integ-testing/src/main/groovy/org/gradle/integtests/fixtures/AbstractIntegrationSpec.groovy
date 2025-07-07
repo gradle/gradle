@@ -15,9 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.apache.commons.lang.StringEscapeUtils
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.Config
+import org.apache.commons.lang3.StringEscapeUtils
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails
@@ -49,7 +47,6 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.Matchers
-import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
@@ -122,9 +119,6 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
 
-    @Lazy
-    private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
-
     def setup() {
         // Verify that the previous test (or fixtures) has cleaned up state correctly
         m2.assertNoLeftoverState()
@@ -184,23 +178,6 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
 
     GradleExecuter createExecuter() {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
-    }
-
-    /**
-     * Some integration tests need to run git commands in test directory,
-     * but distributed-test-remote-executor has no .git directory so we init a "dummy .git dir".
-     */
-    void initGitDir() {
-        Git.init().setDirectory(testDirectory).call().withCloseable { Git git ->
-            // Clear config hierarchy to avoid global configuration loaded from user home
-            for (Config config = git.repository.config; config != null; config = config.getBaseConfig()) {
-                //noinspection GroovyAccessibility
-                config.clear()
-            }
-            testDirectory.file('initial-commit').createNewFile()
-            git.add().addFilepattern("initial-commit").call()
-            git.commit().setMessage("Initial commit").call()
-        }
     }
 
     /**

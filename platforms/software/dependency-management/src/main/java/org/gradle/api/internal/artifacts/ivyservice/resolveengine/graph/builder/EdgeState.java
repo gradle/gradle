@@ -16,26 +16,29 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the edges in the dependency graph.
@@ -52,12 +55,14 @@ class EdgeState implements DependencyGraphEdge {
     private final List<NodeState> targetNodes = new LinkedList<>();
     private final boolean isTransitive;
     private final boolean isConstraint;
-    private final int hashCode;
 
     private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
-    private ImmutableAttributes cachedAttributes;
-    private ExcludeSpec transitiveExclusions;
+
+    /**
+     * The accumulated exclusions that apply to this edge based on the paths from the root
+     */
+    private @Nullable ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
@@ -65,25 +70,13 @@ class EdgeState implements DependencyGraphEdge {
     private boolean unattached;
     private boolean used;
 
-    EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
+    EdgeState(NodeState from, DependencyState dependencyState, ResolveState resolveState) {
         this.from = from;
         this.dependencyState = dependencyState;
         this.dependencyMetadata = dependencyState.getDependency();
-        // The accumulated exclusions that apply to this edge based on the path from the root
-        this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
         this.isConstraint = dependencyMetadata.isConstraint();
-        this.hashCode = computeHashCode();
-    }
-
-    private int computeHashCode() {
-        int hashCode = from.hashCode();
-        hashCode = 31 * hashCode + dependencyState.hashCode();
-        if (transitiveExclusions != null) {
-            hashCode = 31 * hashCode + transitiveExclusions.hashCode();
-        }
-        return hashCode;
     }
 
     void computeSelector() {
@@ -199,14 +192,9 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        assert cachedAttributes != null;
-        return cachedAttributes;
-    }
-
-    private ImmutableAttributes safeGetAttributes() throws AttributeMergingException {
         ModuleResolveState module = selector.getTargetModule();
-        cachedAttributes = module.mergedConstraintsAttributes(dependencyState.getDependency().getSelector().getAttributes());
-        return cachedAttributes;
+        ComponentSelectorInternal componentSelector = (ComponentSelectorInternal) dependencyState.getDependency().getSelector();
+        return resolveState.getAttributesFactory().safeConcat(module.getMergedConstraintAttributes(), componentSelector.getAttributes());
     }
 
     private void calculateTargetNodes(ComponentState targetComponent) {
@@ -252,9 +240,7 @@ class EdgeState implements DependencyGraphEdge {
 
         GraphVariantSelectionResult targetVariants;
         try {
-            ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
-            attributes = resolveState.getAttributesFactory().concat(attributes, safeGetAttributes());
-            targetVariants = dependencyMetadata.selectVariants(resolveState.getVariantSelector(), attributes, targetComponentState, resolveState.getConsumerSchema(), dependencyState.getDependency().getSelector().getCapabilitySelectors());
+            targetVariants = selectTargetVariants(targetComponentState);
         } catch (AttributeMergingException mergeError) {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
@@ -268,10 +254,77 @@ class EdgeState implements DependencyGraphEdge {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
             return;
         }
+
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
             this.targetNodes.add(targetNodeState);
         }
+    }
+
+    /**
+     * Determine which variants of a given target component that this edge should point to.
+     */
+    private GraphVariantSelectionResult selectTargetVariants(ComponentGraphResolveState targetComponentState) {
+        GraphVariantSelector variantSelector = resolveState.getVariantSelector();
+        ImmutableAttributes attributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), getAttributes());
+        ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
+
+        // First allow the dependency to override variant selection, if it has a special
+        // variant selection mechanism for its ecosystem.
+        List<? extends VariantGraphResolveState> overrideVariants = dependencyMetadata.overrideVariantSelection(
+            variantSelector,
+            attributes,
+            targetComponentState,
+            consumerSchema
+        );
+
+        if (overrideVariants != null) {
+            return new GraphVariantSelectionResult(overrideVariants, false);
+        }
+
+        // Use attribute matching if it is supported.
+        if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
+            Set<CapabilitySelector> capabilitySelectors = dependencyState.getDependency().getSelector().getCapabilitySelectors();
+            VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
+                attributes,
+                capabilitySelectors,
+                targetComponentState,
+                consumerSchema,
+                dependencyMetadata.getArtifacts()
+            );
+
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
+        }
+
+        // Otherwise, for target components that don't support attribute matching, fallback to legacy variant selection.
+        List<? extends VariantGraphResolveState> legacyVariants = dependencyMetadata.selectLegacyVariants(
+            variantSelector,
+            attributes,
+            targetComponentState,
+            consumerSchema
+        );
+
+        return new GraphVariantSelectionResult(legacyVariants, false);
+    }
+
+    public static class GraphVariantSelectionResult {
+
+        private final List<? extends VariantGraphResolveState> variants;
+        private final boolean selectedByVariantAwareResolution;
+
+        public GraphVariantSelectionResult(List<? extends VariantGraphResolveState> variants, boolean selectedByVariantAwareResolution) {
+            this.variants = variants;
+            this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
+        }
+
+        public List<? extends VariantGraphResolveState> getVariants() {
+            return variants;
+        }
+
+        public boolean isSelectedByVariantAwareResolution() {
+            return selectedByVariantAwareResolution;
+        }
+
     }
 
     private boolean isVirtualDependency() {
@@ -424,25 +477,6 @@ class EdgeState implements DependencyGraphEdge {
         return selector.getTargetModule().getSelected();
     }
 
-    @Override
-    public Dependency getOriginalDependency() {
-        if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
-            return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
-        }
-        return null;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return this == o;
-        // Edge states are deduplicated, this is a performance optimization
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
     DependencyState getDependencyState() {
         return dependencyState;
     }
@@ -454,8 +488,12 @@ class EdgeState implements DependencyGraphEdge {
         }
         transitiveExclusions = newResolutionFilter;
         cachedExclusions = null;
+    }
+
+    public void updateTransitiveExcludesAndRequeueTargetNodes(ExcludeSpec newResolutionFilter) {
+        updateTransitiveExcludes(newResolutionFilter);
         for (NodeState targetNode : targetNodes) {
-            targetNode.updateTransitiveExcludes();
+            targetNode.clearTransitiveExclusionsAndEnqueue();
         }
     }
 

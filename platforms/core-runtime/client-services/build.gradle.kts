@@ -37,6 +37,7 @@ dependencies {
     api(projects.processServices)
     api(projects.resources)
     api(projects.resourcesHttp)
+    api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
@@ -52,23 +53,24 @@ dependencies {
     api(projects.fileCollections)
     api(projects.fileTemp)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.nativePlatform)
 
     implementation(projects.baseAsm)
-    implementation(projects.serviceRegistryBuilder)
     implementation(projects.buildConfiguration)
     implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
-    implementation(projects.files)
     implementation(projects.fileOperations)
+    implementation(projects.files)
     implementation(projects.hashing)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.loggingApi)
     implementation(projects.io)
+    implementation(projects.loggingApi)
+    implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.guava)
     implementation(libs.asm)
+    implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core)) {

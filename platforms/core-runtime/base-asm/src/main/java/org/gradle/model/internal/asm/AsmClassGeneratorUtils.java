@@ -16,11 +16,12 @@
 
 package org.gradle.model.internal.asm;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import org.objectweb.asm.signature.SignatureVisitor;
 import org.objectweb.asm.signature.SignatureWriter;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -247,7 +248,7 @@ public class AsmClassGeneratorUtils {
         }
     }
 
-    @Nonnull
+    @NonNull
     private static String descriptorOf(Class<?> cl) {
         return getType(cl).getDescriptor();
     }

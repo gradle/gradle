@@ -17,7 +17,7 @@
 /**
  * Classes related to Gradle parallelism and concurrency.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.concurrent;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

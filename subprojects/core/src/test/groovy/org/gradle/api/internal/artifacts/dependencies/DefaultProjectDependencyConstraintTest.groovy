@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.dependencies
 
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -66,21 +69,29 @@ class DefaultProjectDependencyConstraintTest extends Specification {
     }
 
     private DefaultProjectDependencyConstraint createProjectDependencyConstraint() {
+        def projectState = Stub(ProjectState) {
+            getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "test-project")
+        }
         def project = Mock(ProjectInternal) {
             getGroup() >> "org.example"
             getVersion() >> "0.0.1"
+            getOwner() >> projectState
         }
+        projectState.getMutableModel() >> project
+
+        def projectStateRegistry = Mock(ProjectStateRegistry) {
+            stateFor(Path.ROOT) >> projectState
+        }
+
         def dependencyFactory = new DefaultProjectDependencyFactory(
             TestUtil.instantiatorFactory().decorateLenient(),
-            true,
             new CapabilityNotationParserFactory(false).create(),
             TestUtil.objectFactory(),
             AttributeTestUtil.attributesFactory(),
-            TestFiles.taskDependencyFactory(),
-            Mock(ProjectStateRegistry)
+            projectStateRegistry
         )
-        def projectDependency = dependencyFactory.create(project)
-        projectDependency.setTargetConfiguration("mockConfiguration")
+
+        def projectDependency = dependencyFactory.create(Path.ROOT)
         new DefaultProjectDependencyConstraint(projectDependency)
     }
 }

@@ -46,17 +46,18 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
-import static org.gradle.architecture.test.ArchUnitFixture.beAbstract;
+import static org.gradle.architecture.test.ArchUnitFixture.beAbstractClass;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
+import static org.gradle.architecture.test.ArchUnitFixture.not_from_fileevents;
 import static org.gradle.architecture.test.ArchUnitFixture.not_written_in_kotlin;
 import static org.gradle.architecture.test.ArchUnitFixture.overrideMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
-import static org.gradle.architecture.test.ArchUnitFixture.useJavaxAnnotationNullable;
+import static org.gradle.architecture.test.ArchUnitFixture.useJSpecifyNullable;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiCorrectnessTest {
@@ -93,9 +94,15 @@ public class PublicApiCorrectnessTest {
     );
 
     @ArchTest
+    public static final ArchRule public_api_methods_with_closures = freeze(methods()
+        .that(are(public_api_methods))
+        .should(new ArchUnitFixture.HaveGradleTypeEquivalent())
+    );
+
+    @ArchTest
     public static final ArchRule public_api_tasks_and_plugins_are_abstract = classes()
             .that(are(public_api_tasks_or_plugins))
-            .should(beAbstract());
+            .should(beAbstractClass());
 
 
     @ArchTest
@@ -110,8 +117,8 @@ public class PublicApiCorrectnessTest {
      */
     @ArchTest
     public static final ArchRule all_methods_use_proper_Nullable = methods()
-            .that(are(not_written_in_kotlin))
-            .should(useJavaxAnnotationNullable()
+            .that(are(not_written_in_kotlin).and(are(not_from_fileevents)))
+            .should(useJSpecifyNullable()
     );
 
     @ArchTest

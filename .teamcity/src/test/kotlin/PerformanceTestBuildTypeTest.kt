@@ -74,7 +74,6 @@ class PerformanceTestBuildTypeTest {
         )
         val linuxPaths =
             listOf(
-                "%linux.java7.oracle.64bit%",
                 "%linux.java8.oracle.64bit%",
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
@@ -98,6 +97,7 @@ class PerformanceTestBuildTypeTest {
                 "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 PLUGINS_PORTAL_URL_OVERRIDE,
+                "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
                 "--continue",
@@ -172,6 +172,7 @@ class PerformanceTestBuildTypeTest {
                 "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 PLUGINS_PORTAL_URL_OVERRIDE,
+                "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
                 "--continue",

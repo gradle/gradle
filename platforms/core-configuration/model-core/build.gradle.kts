@@ -5,8 +5,12 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
-gradlebuildJava {
-    usesJdkInternals = true
+jvmCompile {
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 dependencies {
@@ -24,7 +28,7 @@ dependencies {
     api(projects.problemsApi)
     api(projects.snapshots)
     api(libs.asm)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
     api(libs.groovy)
     api(libs.guava)
@@ -36,6 +40,7 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
 
+    implementation(libs.jsr305)
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)
@@ -47,7 +52,6 @@ dependencies {
     testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(projects.baseAsm)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.groovyDatetime)
     testFixturesImplementation(libs.groovyDateUtil)
 
@@ -74,8 +78,6 @@ dependencies {
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")

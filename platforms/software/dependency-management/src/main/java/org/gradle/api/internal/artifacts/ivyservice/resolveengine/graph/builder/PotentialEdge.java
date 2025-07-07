@@ -22,8 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This class wraps knowledge about a potential edge to a component. It's called potential,
@@ -58,7 +57,8 @@ class PotentialEdge {
         if (exclusions == null) {
             exclusions = resolveState.getModuleExclusions().nothing();
         }
-        EdgeState edge = new EdgeState(from, dependencyState, exclusions, resolveState);
+        EdgeState edge = new EdgeState(from, dependencyState, resolveState);
+        edge.updateTransitiveExcludes(exclusions);
         edge.computeSelector();
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);

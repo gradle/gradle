@@ -20,8 +20,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 @ServiceScope(Scope.Project.class)
 public class CompilerOutputFileNamingSchemeFactory implements Factory<CompilerOutputFileNamingScheme> {
@@ -31,7 +30,7 @@ public class CompilerOutputFileNamingSchemeFactory implements Factory<CompilerOu
         this.fileResolver = fileResolver;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CompilerOutputFileNamingScheme create() {
         return new CompilerOutputFileNamingScheme(fileResolver);

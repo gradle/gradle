@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +35,9 @@ import java.util.List;
  */
 public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
 
-    private final List<Provider<R>> items;
+    private final List<? extends Provider<R>> items;
 
-    public MergeProvider(List<Provider<R>> items) {
+    public MergeProvider(List<? extends Provider<R>> items) {
         this.items = ImmutableList.copyOf(items);
     }
 

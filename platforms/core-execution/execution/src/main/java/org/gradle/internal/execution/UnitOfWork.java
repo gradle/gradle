@@ -19,6 +19,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
@@ -33,9 +34,9 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.Map;
@@ -177,8 +178,17 @@ public interface UnitOfWork extends Describable {
 
     // TODO Move this to {@link InputVisitor}
     interface ImplementationVisitor {
+        /**
+         * Visit the implementation of the work. This is the type of the task or transform being executed.
+         */
         void visitImplementation(Class<?> implementation);
-        void visitImplementation(ImplementationSnapshot implementation);
+
+        /**
+         * Visits additional implementations related to the work. This is only used for additional task
+         * actions that are added via {@code Task.doLast()} etc.
+         */
+        // TODO Make these additional implementations into identity inputs
+        void visitAdditionalImplementation(ImplementationSnapshot implementation);
     }
 
     /**
@@ -288,7 +298,7 @@ public interface UnitOfWork extends Describable {
 
         public static OutputFileValueSupplier fromStatic(File root, FileCollection fileCollection) {
             return new OutputFileValueSupplier(fileCollection) {
-                @Nonnull
+                @NonNull
                 @Override
                 public File getValue() {
                     return root;
@@ -298,7 +308,7 @@ public interface UnitOfWork extends Describable {
 
         public static OutputFileValueSupplier fromSupplier(Supplier<File> root, FileCollection fileCollection) {
             return new OutputFileValueSupplier(fileCollection) {
-                @Nonnull
+                @NonNull
                 @Override
                 public File getValue() {
                     return root.get();
@@ -306,7 +316,7 @@ public interface UnitOfWork extends Describable {
             };
         }
 
-        @Nonnull
+        @NonNull
         @Override
         abstract public File getValue();
 
@@ -367,6 +377,18 @@ public interface UnitOfWork extends Describable {
      * Validate the work definition and configuration.
      */
     default void validate(WorkValidationContext validationContext) {}
+
+    /**
+     * Checks if outputs of the work are only consumed by inputs that declare a dependency on this unit of work.
+     */
+    default void checkOutputDependencies(WorkValidationContext validationContext) {}
+
+    /**
+     * Retuns a visitor that checks if inputs have declared dependencies on any consumed outputs.
+     */
+    default FileCollectionStructureVisitor getInputDependencyChecker(WorkValidationContext validationContext) {
+        return FileCollectionStructureVisitor.NO_OP;
+    }
 
     /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.

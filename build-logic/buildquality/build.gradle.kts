@@ -10,9 +10,11 @@ dependencies {
     implementation(projects.cleanup)
     implementation(projects.documentation)
     implementation(projects.integrationTesting)
+    implementation(projects.jvm)
     implementation(projects.performanceTesting)
     implementation(projects.profiling)
     implementation(projects.binaryCompatibility)
+    implementation(projects.dependencyModules)
 
     implementation("org.codenarc:CodeNarc") {
         exclude(group = "org.apache.groovy")
@@ -22,7 +24,7 @@ dependencies {
         exclude(group = "com.google.guava")
     }
     implementation(kotlin("gradle-plugin"))
-    implementation(kotlin("compiler-embeddable") as String) {
+    compileOnly(kotlin("compiler-embeddable") as String) {
         because("Required by IncubatingApiReportTask")
     }
     implementation("com.gradle:develocity-gradle-plugin") {
@@ -30,4 +32,5 @@ dependencies {
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.apache.commons:commons-lang3")
 }

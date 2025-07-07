@@ -18,7 +18,6 @@ package org.gradle.internal.concurrent;
 
 import org.gradle.internal.UncheckedException;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -35,7 +34,7 @@ public abstract class AbstractManagedExecutor<S extends ExecutorService> extends
     }
 
     @Override
-    public void execute(@Nonnull final Runnable command) {
+    public void execute(final Runnable command) {
         delegate.execute(trackedCommand(command));
     }
 

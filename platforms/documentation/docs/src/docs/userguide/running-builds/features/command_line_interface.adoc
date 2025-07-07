@@ -356,7 +356,7 @@ Running the `projects` task gives you a list of the subprojects of the selected 
 $ gradle projects
 ----
 
-You also get a project report within https://scans.gradle.com/[Build Scans].
+You also get a project report with https://scans.gradle.com/[Build Scan].
 
 [[sec:listing_tasks]]
 === Listing tasks
@@ -428,7 +428,7 @@ You can get detailed information about the task class types using the `--types` 
 
 === Reporting dependencies
 
-https://scans.gradle.com/[Build Scans] give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
+https://scans.gradle.com/[Build Scan] gives a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
 They can be invoked using the `--scan` options:
 
 [source,bash]
@@ -554,7 +554,7 @@ Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec
 Print out the stacktrace also for user exceptions (e.g. compile error). See also <<#sec:command_line_logging, logging options>>.
 
 `--scan`::
-Create a https://gradle.com/build-scans[Build Scan] with fine-grained information about all aspects of your Gradle build.
+Create a https://gradle.com/develocity/product/build-scan[Build Scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that debugs the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
@@ -612,7 +612,7 @@ Specifies the scheduling priority for the Gradle daemon and all processes launch
 Generates a high-level performance report in the `layout.buildDirectory.dir("reports/profile")` directory. `--scan` is preferred.
 
 `--scan`::
-Generate a build scan with detailed performance diagnostics.
+Generate a Build Scan with detailed performance diagnostics.
 
 image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
@@ -669,13 +669,15 @@ _Lifecycle_ is the default log level.
 
 You can control the use of rich output (colors and font variants) by specifying the console mode in the following ways:
 
-`-Dorg.gradle.console=(auto,plain,rich,verbose)`::
+`-Dorg.gradle.console=(auto,plain,colored,rich,verbose)`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that specifies the console mode. Different modes are described immediately below.
 
-`--console=(auto,plain,rich,verbose)`::
+`--console=(auto,plain,colored,rich,verbose)`::
 Specifies which type of console output to generate.
 +
 Set to `plain` to generate plain text only. This option disables all color and other rich output in the console output. This is the default when Gradle is _not_ attached to a terminal.
++
+Set to `colored` to generate colored output without rich status information such as progress bars.
 +
 Set to `auto` (the default) to enable color and other rich output in the console output when the build process is attached to a console or to generate plain text only when not attached to a console. _This is the default when Gradle is attached to a terminal._
 +
@@ -789,12 +791,6 @@ Exports the public keys used for dependency verification.
 == Environment options
 
 You can <<build_environment.adoc#build_environment,customize>> many aspects of build scripts, settings, caches, and so on through the options below.
-
-`-b`, `--build-file` (deprecated)::
-Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle`, then `build.gradle.kts`.
-
-`-c`, `--settings-file` (deprecated)::
-Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
 
 `-g`, `--gradle-user-home`::
 Specifies the Gradle User Home directory. The default is the `.gradle` directory in the user's home directory.

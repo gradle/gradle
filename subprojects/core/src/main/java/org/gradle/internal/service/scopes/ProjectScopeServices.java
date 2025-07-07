@@ -40,6 +40,7 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -111,8 +112,8 @@ import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -301,7 +302,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ProjectFinder createProjectFinder() {
-        return new DefaultProjectFinder(() -> project);
+        return new DefaultProjectFinder(project.getOwner());
     }
 
     @Provides
@@ -321,12 +322,12 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             buildLogicBuilder
         );
 
-        return factory.createProjectScriptHandler(
+        return factory.create(
             project.getBuildScriptSource(),
             project.getClassLoaderScope(),
             fileResolver,
             fileCollectionFactory,
-            project
+            StandaloneDomainObjectContext.forProjectBuildscript(project)
         );
     }
 

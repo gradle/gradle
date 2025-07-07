@@ -16,7 +16,7 @@
 
 package org.gradle.testdistribution;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.util.GroovyNullMarked;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@NonNullApi
+@GroovyNullMarked
 public @interface LocalOnly {
     String because() default "";
 }

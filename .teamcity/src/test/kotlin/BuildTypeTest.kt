@@ -47,7 +47,6 @@ class BuildTypeTest {
     fun `CompileAll parameters are correct`() {
         val linuxPaths =
             listOf(
-                "%linux.java7.oracle.64bit%",
                 "%linux.java8.oracle.64bit%",
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
@@ -61,6 +60,7 @@ class BuildTypeTest {
                 "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+                "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
                 "--continue",
@@ -104,6 +104,7 @@ class BuildTypeTest {
                 "-Dorg.gradle.workers.max=4",
                 "-PmaxParallelForks=4",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+                "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
                 "--continue",

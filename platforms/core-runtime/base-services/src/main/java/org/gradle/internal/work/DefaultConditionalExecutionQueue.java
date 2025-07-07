@@ -19,8 +19,8 @@ package org.gradle.internal.work;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -142,7 +142,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             try {
                 // Wait for work to be submitted if the queue is empty and our worker count is under max workers
                 // This attempts to keep up to max workers threads alive once they've been started.
-                while (queueState == QueueState.Working && queue.isEmpty() && (workerCount <= getMaxWorkerCount())) {
+                while (queueState == QueueState.Working && queue.isEmpty() && workerCount <= getMaxWorkerCount()) {
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {

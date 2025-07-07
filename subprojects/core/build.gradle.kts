@@ -18,16 +18,26 @@ tasks.classpathManifest {
 
 // Instrumentation interceptors for tests
 // Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
-sourceSets {
-    val testInterceptors = create("testInterceptors") {
-        compileClasspath += sourceSets.main.get().output
-        runtimeClasspath += sourceSets.main.get().output
-    }
-    getByName("test") {
-        compileClasspath += testInterceptors.output
-        runtimeClasspath += testInterceptors.output
+val testInterceptors = sourceSets.create("testInterceptors") {
+    compileClasspath += sourceSets.main.get().output
+    runtimeClasspath += sourceSets.main.get().output
+}
+sourceSets.test {
+    compileClasspath += testInterceptors.output
+    runtimeClasspath += testInterceptors.output
+}
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(testInterceptors.name)
     }
 }
+jvmCompile {
+    addCompilationFrom(testInterceptors) {
+        // By default, test interceptors compile to the same JVM version as the production code.
+        targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
+    }
+}
+
 val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
@@ -35,35 +45,18 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 4 occurrences
-        "EmptyBlockTag", // 4 occurrences
         "Finally", // 1 occurrences
-        "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
-        "InconsistentCapitalization", // 2 occurrences
-        "InlineFormatString", // 2 occurrences
-        "InlineMeSuggester", // 1 occurrences
-        "InvalidBlockTag", // 1 occurrences
-        "InvalidInlineTag", // 1 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-        "MixedMutabilityReturnType", // 1 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
-        "MutablePublicArray", // 2 occurrences
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
-        "NotJavadoc", // 1 occurrences
-        "OptionalMapUnusedValue", // 1 occurrences
-        "ProtectedMembersInFinalClass", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
         "ReturnValueIgnored", // 1 occurrences
-        "SameNameButDifferent", // 11 occurrences
         "StreamResourceLeak", // 6 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
-        "UnrecognisedJavadocTag", // 1 occurrences
         "UnusedMethod", // 18 occurrences
-        "UnusedVariable", // 8 occurrences
     )
 }
 
@@ -112,6 +105,7 @@ dependencies {
     api(projects.processServices)
     api(projects.requestHandlerWorker)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
@@ -127,6 +121,7 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.nativePlatform)
 
@@ -141,7 +136,6 @@ dependencies {
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.commonsLang3)
     implementation(libs.errorProneAnnotations)
     implementation(libs.fastutil)
     implementation(libs.groovyAnt)
@@ -160,17 +154,10 @@ dependencies {
 
     // Libraries that are not used in this project but required in the distribution
     runtimeOnly(libs.groovyAstbuilder)
-    runtimeOnly(libs.groovyConsole)
     runtimeOnly(libs.groovyDateUtil)
     runtimeOnly(libs.groovyDatetime)
     runtimeOnly(libs.groovyDoc)
     runtimeOnly(libs.groovyNio)
-    runtimeOnly(libs.groovySql)
-    runtimeOnly(libs.groovyTest)
-
-    // The bump to SSHD 2.10.0 causes a global exclusion for `groovy-ant` -> `ant-junit`, so forcing it back in here
-    // TODO investigate why we depend on SSHD as a platform for internal-integ-testing
-    runtimeOnly(libs.antJunit)
 
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
@@ -244,7 +231,6 @@ dependencies {
     testFixturesImplementation(projects.snapshots)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.asm)
-    testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(projects.internalInstrumentationApi)
     testFixturesImplementation(libs.ivy)
@@ -302,6 +288,7 @@ dependencies {
     annotationProcessor(platform(projects.distributionsDependencies))
 
     testInterceptorsImplementation(platform(projects.distributionsDependencies))
+    testInterceptorsImplementation(testFixtures(projects.core))
     "testInterceptorsAnnotationProcessor"(projects.internalInstrumentationProcessor)
     "testInterceptorsAnnotationProcessor"(platform(projects.distributionsDependencies))
 }
@@ -327,5 +314,4 @@ tasks.compileTestGroovy {
     }
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true

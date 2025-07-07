@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class TaskPropertyUtils {
     /**
      * Visits both properties declared via annotations on the properties of the task type as well as

@@ -19,8 +19,8 @@ package org.gradle.api.problems.internal;
 import com.google.common.base.Objects;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class DefaultProblemId extends ProblemId implements Serializable {

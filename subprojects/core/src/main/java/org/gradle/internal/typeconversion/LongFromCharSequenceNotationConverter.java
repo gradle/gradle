@@ -16,10 +16,10 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class LongFromCharSequenceNotationConverter implements NotationConverter<CharSequence, Long> {
 
     @Override

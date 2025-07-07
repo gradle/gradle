@@ -25,9 +25,9 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ConcurrentModificationException;
 
 /**
@@ -166,7 +166,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    @Nonnull
+    @NonNull
     private Value<? extends T> doCalculateValue(EvaluationScopeContext context, ValueConsumer consumer) {
         try {
             return calculateValueFrom(context, value, consumer);

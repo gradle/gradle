@@ -18,8 +18,7 @@ package org.gradle.api.services.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Contextual
 class ServiceLifecycleException extends GradleException {

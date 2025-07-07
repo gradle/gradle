@@ -594,9 +594,9 @@ As with other source types, you can configure the location of the windows resour
 === Example: Configuring the location of Windows resource sources
 
 [source.multi-language-sample,groovy,indent=0]
-.build-resource-only-dll.gradle
+.only-dll/build.gradle
 ----
-include::{snippetsPath}/native-binaries/windows-resources/groovy/build-resource-only-dll.gradle[tag=windows-resource-set]
+include::{snippetsPath}/native-binaries/windows-resources/groovy/only-dll/build.gradle[tag=windows-resource-set]
 ----
 
 You are able to construct a resource-only library by providing Windows Resource sources with no other language sources, and configure the linker as appropriate:
@@ -604,9 +604,9 @@ You are able to construct a resource-only library by providing Windows Resource 
 === Example: Building a resource-only dll
 
 [source.multi-language-sample,groovy]
-.build-resource-only-dll.gradle
+.only-dll/build.gradle
 ----
-include::{snippetsPath}/native-binaries/windows-resources/groovy/build-resource-only-dll.gradle[tag=resource-only-library]
+include::{snippetsPath}/native-binaries/windows-resources/groovy/only-dll/build.gradle[tag=resource-only-library]
 ----
 
 The example above also demonstrates the mechanism of passing extra command-line arguments to the resource compiler. The `rcCompiler` extension is of type link:{javadocPath}/org/gradle/nativeplatform/PreprocessingTool.html[PreprocessingTool].

@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.failure;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.List;
  * Implementors of this class should not depend on classes outside the standard library, as there is no guarantee that they will be on the test VM's classpath.
  * Instead, they should rely completely on reflection.
  */
-@NonNullApi
+@NullMarked
 public abstract class TestFailureMapper {
 
     /**

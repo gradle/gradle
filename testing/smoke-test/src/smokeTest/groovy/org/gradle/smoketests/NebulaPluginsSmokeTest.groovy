@@ -18,8 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
@@ -74,6 +73,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('groovydoc', '-s').build()
     }
 
+    @Ignore("https://github.com/nebula-plugins/gradle-lint-plugin/issues/417")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
     def 'nebula lint plugin'() {
         given:
@@ -199,7 +199,6 @@ testImplementation('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules')
-    @Requires(UnitTestPreconditions.Jdk11OrEarlier)
     def 'nebula resolution rules plugin'() {
         when:
         file('rules.json') << """

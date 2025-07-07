@@ -19,12 +19,11 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.CoreMatchers.instanceOf
@@ -36,8 +35,6 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(BasePlugin)
 
         then:
-        project.convention.plugins.base instanceof BasePluginConvention
-        project.extensions.findByType(DefaultArtifactPublicationSet) != null
         project.extensions.findByType(BasePluginExtension) != null
     }
 
@@ -65,6 +62,8 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "assemble task builds the published artifacts"() {
+        TestUtil.initDeprecationLogger("because archives configuration is deprecated")
+
         given:
         def someZip = project.tasks.create('someZip', Zip)
 
@@ -86,6 +85,8 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "adds implicit tasks for configuration"() {
+        TestUtil.initDeprecationLogger("because archives configuration is deprecated")
+
         given:
         def someZip = project.tasks.create('someZip', Zip)
 
@@ -145,15 +146,15 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def someZip = project.tasks.create('someZip', Zip)
-        someZip.destinationDirectory.get().asFile == project.distsDirectory.get().asFile
+        someZip.destinationDirectory.get().asFile == project.base.distsDirectory.get().asFile
         someZip.archiveVersion.get() == project.version
-        someZip.archiveBaseName.get() == project.archivesBaseName
+        someZip.archiveBaseName.get() == project.base.archivesName.get()
 
         and:
         def someTar = project.tasks.create('someTar', Tar)
-        someTar.destinationDirectory.get().asFile == project.distsDirectory.get().asFile
+        someTar.destinationDirectory.get().asFile == project.base.distsDirectory.get().asFile
         someTar.archiveVersion.get() == project.version
-        someTar.archiveBaseName.get() == project.archivesBaseName
+        someTar.archiveBaseName.get() == project.base.archivesName.get()
     }
 
     def "uses null version when project version not specified"() {
@@ -178,24 +179,11 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def defaultConfig = project.configurations[Dependency.DEFAULT_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
-        defaultConfig.visible
         defaultConfig.transitive
 
         and:
         def archives = project.configurations[Dependency.ARCHIVES_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
-        archives.visible
         archives.transitive
-    }
-
-    def "adds every published artifact to the archives configuration"() {
-        PublishArtifact artifact = Mock()
-
-        when:
-        project.pluginManager.apply(BasePlugin)
-        project.configurations.create("custom").artifacts.add(artifact)
-
-        then:
-        project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts.contains(artifact)
     }
 }

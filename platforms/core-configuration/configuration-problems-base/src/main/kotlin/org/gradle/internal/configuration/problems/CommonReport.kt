@@ -16,7 +16,6 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
@@ -27,7 +26,6 @@ import org.gradle.internal.cc.impl.problems.HtmlReportWriter
 import org.gradle.internal.cc.impl.problems.JsonModelWriter
 import org.gradle.internal.cc.impl.problems.JsonSource
 import org.gradle.internal.cc.impl.problems.JsonWriter
-import org.gradle.internal.cc.impl.problems.ProblemSeverity
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -83,15 +81,6 @@ class CommonReport(
         DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
     }
 
-    private
-    fun problemSeverity(kind: DiagnosticKind): ProblemSeverity {
-        return when (kind) {
-            DiagnosticKind.PROBLEM -> ProblemSeverity.Failure
-            DiagnosticKind.INCOMPATIBLE_TASK -> ProblemSeverity.Warning
-            DiagnosticKind.INPUT -> ProblemSeverity.Info
-        }
-    }
-
 
     sealed class State {
 
@@ -141,10 +130,6 @@ class CommonReport(
             spoolFileProvider: TemporaryFileProvider,
             private val reportFileName: String,
             val executor: ManagedExecutor,
-            /**
-             * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
-             */
-            private val groovyJsonClassLoader: ClassLoader,
             private val distinctReports: Boolean
         ) : State() {
 
@@ -159,7 +144,6 @@ class CommonReport(
 
             init {
                 executor.submit {
-                    Thread.currentThread().contextClassLoader = groovyJsonClassLoader
                     writer.beginHtmlReport()
                 }
             }
@@ -275,7 +259,6 @@ class CommonReport(
             temporaryFileProvider,
             reportFileName,
             executorFactory.create("${reportContext.capitalized()} writer", 1),
-            CharBuf::class.java.classLoader,
             distinctReports
         ).onDiagnostic(problem)
     }
@@ -287,7 +270,7 @@ class CommonReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity, kind: String): JsonSource {
+    fun decorateProblem(problem: PropertyProblem, diagnosticKind: DiagnosticKind, kind: String): JsonSource {
         val failure = problem.stackTracingFailure
         val link = problem.documentationSection?.let { section ->
             this.documentationRegistry.documentationLinkFor(section)
@@ -296,7 +279,7 @@ class CommonReport(
             DecoratedReportProblem(
                 problem.trace,
                 decorateMessage(problem, failure),
-                decoratedFailureFor(failure, severity),
+                decoratedFailureFor(failure, diagnosticKind == DiagnosticKind.PROBLEM),
                 link,
                 kind
             )
@@ -304,10 +287,10 @@ class CommonReport(
     }
 
     private
-    fun decoratedFailureFor(failure: Failure?, severity: ProblemSeverity): DecoratedFailure? {
+    fun decoratedFailureFor(failure: Failure?, reportAsFailure: Boolean): DecoratedFailure? {
         return when {
             failure != null -> failureDecorator.decorate(failure)
-            severity == ProblemSeverity.Failure -> DecoratedFailure.MARKER
+            reportAsFailure -> DecoratedFailure.MARKER
             else -> null
         }
     }
@@ -348,7 +331,7 @@ class CommonReport(
         kind: DiagnosticKind,
         problem: PropertyProblem
     ) {
-        onProblem(decorateProblem(problem, problemSeverity(kind), keyFor(kind)))
+        onProblem(decorateProblem(problem, kind, keyFor(kind)))
     }
 
     fun onProblem(decoratedProblem: JsonSource) {

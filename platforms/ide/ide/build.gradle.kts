@@ -21,7 +21,7 @@ dependencies {
     api(libs.guava)
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.ear)
@@ -36,7 +36,7 @@ dependencies {
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
-    implementation(libs.commonsLang3)
+    implementation(libs.commonsLang)
 
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
@@ -83,7 +83,6 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/*")
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false

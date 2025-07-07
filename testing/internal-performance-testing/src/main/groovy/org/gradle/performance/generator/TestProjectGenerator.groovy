@@ -62,7 +62,7 @@ class TestProjectGenerator extends AbstractTestProjectGenerator {
         }
     }
 
-    def generateProject(File projectDir, DependencyTree dependencyTree, Integer subProjectNumber, int projectDepth) {
+    def generateProject(File projectDir, DependencyTree dependencyTree, Integer subProjectNumber, int projectDepth, int currentDepth = 0) {
         def isRoot = subProjectNumber == null
 
         file projectDir, config.dsl.fileNameFor('build'), fileContentGenerator.generateBuildGradle(config.language, subProjectNumber, dependencyTree)
@@ -95,9 +95,9 @@ class TestProjectGenerator extends AbstractTestProjectGenerator {
         }
 
         if (projectDepth > 0) {
-            def subProjectDir = new File(projectDir, "sub${projectDepth}project$subProjectNumber")
+            def subProjectDir = new File(projectDir, "sub${currentDepth}project${subProjectNumber ?: 0}")
             subProjectDir.mkdirs()
-            generateProject(subProjectDir, dependencyTree, subProjectNumber, projectDepth - 1)
+            generateProject(subProjectDir, dependencyTree, subProjectNumber, projectDepth - 1, currentDepth + 1)
         }
     }
 

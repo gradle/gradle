@@ -19,8 +19,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,6 +79,13 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
         return this;
     }
 
+    @Override
+    public AttributeContainer addAllLater(AttributeContainer other) {
+        assertMutable();
+        delegate.addAllLater(other);
+        return this;
+    }
+
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
@@ -86,6 +93,11 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
             return null;
         }
         return delegate.getAttribute(key);
+    }
+
+    @Override
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries() {
+        return delegate.getEntries();
     }
 
     @Override

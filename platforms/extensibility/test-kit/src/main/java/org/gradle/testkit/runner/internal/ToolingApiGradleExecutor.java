@@ -181,7 +181,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
             DeprecationLogger.deprecate(String.format("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.",
                     targetGradleVersion.getVersion()))
-                .willBecomeAnErrorInGradle9()
+                .willBecomeAnErrorInGradle10()
                 .withUserManual("third_party_integration", "sec:embedding_compatibility")
                 .nagUser();
         }

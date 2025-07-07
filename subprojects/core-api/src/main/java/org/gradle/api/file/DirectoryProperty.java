@@ -16,10 +16,11 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -33,6 +34,7 @@ import java.io.File;
  *
  * @since 4.3
  */
+@ManagedType
 public interface DirectoryProperty extends FileSystemLocationProperty<Directory> {
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
@@ -118,5 +120,5 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      * @return The file collection.
      * @since 6.0
      */
-    FileCollection files(Object... paths);
+    FileCollection files(@Nullable Object... paths);
 }

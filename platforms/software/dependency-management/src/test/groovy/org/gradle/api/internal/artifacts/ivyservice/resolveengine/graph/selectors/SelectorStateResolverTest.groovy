@@ -49,8 +49,9 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.util.Path
-import org.jetbrains.annotations.Nullable
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_10
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_9
@@ -316,7 +317,7 @@ class SelectorStateResolverTest extends Specification {
      */
     class TestDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
         @Override
-        void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+        void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
             if (!acceptor.isDynamic()) {
                 def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), acceptor.selector)
                 resolvedOrRejected(id, rejector, result)

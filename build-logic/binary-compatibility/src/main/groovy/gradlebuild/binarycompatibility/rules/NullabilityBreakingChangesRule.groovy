@@ -17,6 +17,7 @@
 package gradlebuild.binarycompatibility.rules
 
 import groovy.transform.CompileStatic
+import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
@@ -37,6 +38,8 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Type
 import org.objectweb.asm.TypePath
 import org.objectweb.asm.TypeReference
+import org.objectweb.asm.signature.SignatureReader
+import org.objectweb.asm.signature.SignatureVisitor
 
 @CompileStatic
 class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
@@ -77,7 +80,24 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
             }
         }
 
-        if (member instanceof JApiField) {
+        if (member instanceof JApiClass) {
+
+            JApiClass apiClass = (JApiClass) member;
+            CtClass oldClass = apiClass.oldClass.get()
+            CtClass newClass = apiClass.newClass.get()
+
+            List<Boolean> oldTypeParametersNullability = typeParametersNullabilityOf(oldClass)
+            List<Boolean> newTypeParametersNullability = typeParametersNullabilityOf(newClass)
+
+            for (int idx = 0; idx < oldTypeParametersNullability.size(); idx++) {
+                def oldNullability = oldTypeParametersNullability[idx]
+                def newNullability = newTypeParametersNullability[idx]
+                if (oldNullability != newNullability) {
+                    errors << "Type parameter $idx nullability changed, might be a breaking change depending on its usage".toString()
+                }
+            }
+
+        } else if (member instanceof JApiField) {
 
             JApiField field = (JApiField) member
             CtField oldField = field.oldFieldOptional.get()
@@ -127,6 +147,43 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
             return Violation.warning(member, warnings.join(" "))
         }
         return null
+    }
+
+    private static List<Boolean> typeParametersNullabilityOf(CtClass ctClass) {
+        NullableClassTypeParametersVisitor visitor = new NullableClassTypeParametersVisitor()
+        new ClassReader(byteCodeFrom(ctClass)).accept(visitor, 0)
+        return visitor.typeParametersNullability
+    }
+
+    static class NullableClassTypeParametersVisitor extends ClassVisitor {
+
+        List<Boolean> typeParametersNullability = []
+
+        NullableClassTypeParametersVisitor() {
+            super(AsmConstants.ASM_LEVEL)
+        }
+
+        @Override
+        void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+            if (signature != null) {
+                new SignatureReader(signature).accept(new SignatureVisitor(AsmConstants.ASM_LEVEL) {
+                    @Override
+                    void visitFormalTypeParameter(String formalTypeParameterName) {
+                        typeParametersNullability.add(false)
+                    }
+                })
+            }
+        }
+
+        @Override
+        AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+            TypeReference typeReference = new TypeReference(typeRef)
+            if ((typeReference.getSort() == TypeReference.CLASS_TYPE_PARAMETER || typeReference.getSort() == TypeReference.CLASS_TYPE_PARAMETER_BOUND) &&
+                NULLABLE_ANNOTATIONS.contains(Type.getType(descriptor).getClassName())) {
+                typeParametersNullability.set(typeReference.getTypeParameterIndex(), true)
+            }
+            return null
+        }
     }
 
     private static boolean hasNullableAnnotation(CtField field) {

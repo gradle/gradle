@@ -26,8 +26,8 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 /**
@@ -54,9 +54,8 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
         return Describables.of(delegate.asDescribable(), exclusions);
     }
 
-    @Nullable
     @Override
-    public VariantResolveMetadata.Identifier getIdentifier() {
+    public VariantResolveMetadata.@Nullable Identifier getIdentifier() {
         return id;
     }
 
@@ -86,7 +85,7 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
         private final ExcludeSpec exclusions;
 
         public ExcludingIdentifier(
-            @Nullable VariantResolveMetadata.Identifier identifier,
+            VariantResolveMetadata.@Nullable Identifier identifier,
             ModuleIdentifier moduleId,
             ExcludeSpec exclusions
         ) {
@@ -118,8 +117,8 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
         }
 
         private static boolean areIdsEqual(
-            @Nullable VariantResolveMetadata.Identifier id1,
-            @Nullable VariantResolveMetadata.Identifier id2
+            VariantResolveMetadata.@Nullable Identifier id1,
+            VariantResolveMetadata.@Nullable Identifier id2
         ) {
             // Artifact sets without ID are adhoc.
             // We cannot compare them by ID so assume they are not equal.

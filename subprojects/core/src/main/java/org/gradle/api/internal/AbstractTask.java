@@ -66,7 +66,6 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -86,8 +85,8 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -103,7 +102,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
- * @deprecated This class will be removed in Gradle 9.0. Please use {@link org.gradle.api.DefaultTask} instead.
+ * @deprecated This class will be removed in Gradle 10. Please use {@link org.gradle.api.DefaultTask} instead.
  */
 @Deprecated
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
@@ -586,24 +585,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
-    @Deprecated
-    public org.gradle.api.plugins.Convention getConvention() {
-        return getConventionVia("Task.convention", false);
-    }
-
-    @Internal
-    @Override
     public ExtensionContainer getExtensions() {
-        return getConventionVia("Task.extensions", true);
-    }
-
-    private org.gradle.api.plugins.Convention getConventionVia(String invocationDescription, boolean disableDeprecationForConventionAccess) {
-        notifyConventionAccess(invocationDescription);
+        notifyConventionAccess("Task.extensions");
         assertDynamicObject();
-        if (disableDeprecationForConventionAccess) {
-            return DeprecationLogger.whileDisabled(() -> extensibleDynamicObject.getConvention());
-        }
-        return extensibleDynamicObject.getConvention();
+        return extensibleDynamicObject.getExtensions();
     }
 
     @Internal
@@ -743,10 +728,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static class ClosureTaskAction implements InputChangesAwareTaskAction {
         private final Closure<?> closure;
         private final String actionName;
-        @Nullable
-        private final UserCodeApplicationContext.Application application;
+        private final UserCodeApplicationContext.@Nullable Application application;
 
-        private ClosureTaskAction(Closure<?> closure, String actionName, @Nullable UserCodeApplicationContext.Application application) {
+        private ClosureTaskAction(Closure<?> closure, String actionName, UserCodeApplicationContext.@Nullable Application application) {
             this.closure = closure;
             this.actionName = actionName;
             this.application = application;
@@ -897,6 +881,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getMustRunAfter() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.mustRunAfter");
         return mustRunAfter;
     }
 
@@ -924,6 +909,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getFinalizedBy() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.finalizedBy");
         return finalizedBy;
     }
 
@@ -951,6 +937,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getShouldRunAfter() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.shouldRunAfter");
         return shouldRunAfter;
     }
 

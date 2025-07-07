@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
@@ -48,10 +47,10 @@ import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -99,7 +98,14 @@ public class DynamicVersionResolver {
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(ModuleComponentSelector requested, ComponentOverrideMetadata overrideMetadata, VersionSelector versionSelector, @Nullable VersionSelector rejectedVersionSelector, AttributeContainer consumerAttributes, BuildableComponentIdResolveResult result) {
+    public void resolve(
+        ModuleComponentSelector requested,
+        ComponentOverrideMetadata overrideMetadata,
+        VersionSelector versionSelector,
+        @Nullable VersionSelector rejectedVersionSelector,
+        ImmutableAttributes consumerAttributes,
+        BuildableComponentIdResolveResult result
+    ) {
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<>();
 
@@ -258,7 +264,20 @@ public class DynamicVersionResolver {
         private final CacheExpirationControl cacheExpirationControl;
         private ModuleComponentIdentifier firstRejected = null;
 
-        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, VersionParser versionParser, AttributeContainer consumerAttributes, AttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentMetadataSupplierRuleExecutor metadataSupplierRuleExecutor, CacheExpirationControl cacheExpirationControl) {
+        public RepositoryResolveState(
+            VersionedComponentChooser versionedComponentChooser,
+            ModuleComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository,
+            VersionSelector versionSelector,
+            VersionSelector rejectedVersionSelector,
+            VersionParser versionParser,
+            ImmutableAttributes consumerAttributes,
+            AttributesFactory attributesFactory,
+            ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+            ComponentMetadataSupplierRuleExecutor metadataSupplierRuleExecutor,
+            CacheExpirationControl cacheExpirationControl
+        ) {
             this.versionedComponentChooser = versionedComponentChooser;
             this.overrideMetadata = overrideMetadata;
             this.selector = selector;
@@ -275,15 +294,9 @@ public class DynamicVersionResolver {
             this.versionListingResult = new VersionListResult(selector, overrideMetadata, repository);
         }
 
-        private ImmutableAttributes buildAttributes(AttributeContainer consumerAttributes, AttributesFactory attributesFactory) {
-            // TODO: There is a bug here were we do not consider attributes coming from dependency constraints
-            // when determining the effective attributes for dynamic version selection. This means attributes directly declared
-            // on the configuration or on the dependency being resolved are considered, but not attributes coming from
-            // a constraint targeting the dependency being resolved. This is unusual, as we do consider constraint attributes
-            // when selecting variants.
-            ImmutableAttributes immutableConsumerAttributes = ((AttributeContainerInternal) consumerAttributes).asImmutable();
+        private ImmutableAttributes buildAttributes(ImmutableAttributes consumerAttributes, AttributesFactory attributesFactory) {
             ImmutableAttributes dependencyAttributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
-            return attributesFactory.concat(immutableConsumerAttributes, dependencyAttributes);
+            return attributesFactory.concat(consumerAttributes, dependencyAttributes);
         }
 
         public boolean canMakeFurtherAttempts() {

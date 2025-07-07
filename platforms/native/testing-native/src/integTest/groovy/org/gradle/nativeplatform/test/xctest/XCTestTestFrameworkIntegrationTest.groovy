@@ -40,11 +40,9 @@ class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
 allprojects { p ->
     apply plugin: ${toolChain.pluginClass}
 
-    model {
-          toolChains {
-            ${toolChain.buildScriptConfig}
-          }
-    }
+      toolChains {
+        ${toolChain.buildScriptConfig}
+      }
 }
 """
         executer.beforeExecute({

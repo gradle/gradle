@@ -38,7 +38,7 @@ This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in 
 If the `gradlew` or `gradlew.bat` files are already present in your project, *you do not need to install Gradle*.
 But you need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
 
-You can follow the steps in the <<upgrading_version_8.adoc#upgrading_version_8,Upgrading Gradle section>> if you want to update the Gradle version for your project.
+You can follow the steps in the <<upgrading_version_9.adoc#upgrading_version_9,Upgrading Gradle section>> if you want to update the Gradle version for your project.
 Please use the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> to upgrade Gradle.
 
 Android Studio comes with a working installation of Gradle, so you *don't need to install Gradle separately when only working within that IDE*.
@@ -59,12 +59,13 @@ To check, run `java -version`:
 
 ----
 ❯ java -version
-openjdk version "11.0.18" 2023-01-17
-OpenJDK Runtime Environment Homebrew (build 11.0.18+0)
-OpenJDK 64-Bit Server VM Homebrew (build 11.0.18+0, mixed mode)
+openjdk version "17.0.6" 2023-01-17
+OpenJDK Runtime Environment Temurin-17.0.6+10 (build 17.0.6+10)
+OpenJDK 64-Bit Server VM Temurin-17.0.6+10 (build 17.0.6+10, mixed mode)
 ----
 
-Gradle uses the JDK it finds in your path, the JDK used by your IDE, or the JDK specified by your project.
+Gradle uses the JDK it finds in your path, the JDK used by your IDE, or the <<gradle_daemon#sec:configuring_daemon_jvm,JDK specified in your project>>.
+
 In this example, the $PATH points to JDK17:
 
 ----
@@ -77,12 +78,12 @@ This is especially useful when multiple JDKs are installed:
 
 ----
 ❯ echo %JAVA_HOME%
-C:\Program Files\Java\jdk1.7.0_80
+C:\Program Files\Java\jdk17.0_6
 ----
 
 ----
 ❯ echo $JAVA_HOME
-/Library/Java/JavaVirtualMachines/jdk-16.jdk/Contents/Home
+/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
 ----
 
 Gradle supports link:https://kotlinlang.org/[Kotlin] and link:https://groovy-lang.org/[Groovy] as the main build languages.
@@ -284,15 +285,15 @@ Open a console (or a Windows command prompt) and run `gradle -v` to run gradle a
 Gradle {gradleVersion}
 ------------------------------------------------------------
 
-Build time:    2024-06-17 18:10:00 UTC
-Revision:      6028379bb5a8512d0b2c1be6403543b79825ef08
+Build time:    2025-05-13 06:56:13 UTC
+Revision:      3c890746756262d3778e12eaa5155d661d7cbdf2
 
-Kotlin:        1.9.23
-Groovy:        3.0.21
-Ant:           Apache Ant(TM) version 1.10.13 compiled on January 4 2023
-Launcher JVM:  11.0.23 (Eclipse Adoptium 11.0.23+9)
-Daemon JVM:    /Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home (no JDK specified, using current Java home)
-OS:            Mac OS X 14.5 aarch64
+Kotlin:        2.1.21
+Groovy:        4.0.27
+Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+Launcher JVM:  22.0.1 (Oracle Corporation 22.0.1+8-16)
+Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)
+OS:            Mac OS X 15.5 aarch64
 
 ----
 

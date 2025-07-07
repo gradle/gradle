@@ -29,9 +29,6 @@ import spock.lang.Issue
 
 import java.nio.file.Paths
 
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
-import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
-
 // TODO: Move all of these tests to AbstractJavaCompilerIntegrationSpec
 // so that we can verify them for forking, in-process, and cli compilers.
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
@@ -57,7 +54,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
-            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
             "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
             "Configure an absolute path to a Java executable instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
@@ -975,48 +972,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires([UnitTestPreconditions.Jdk8OrEarlier, IntegTestPreconditions.Java7HomeAvailable, IntegTestPreconditions.Java8HomeAvailable ])
-    // bootclasspath has been removed in Java 9+
-    def "bootclasspath can be set"() {
-        def jdk7 = AvailableJavaHomes.getJdk7()
-        def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.absolutePath) + "/lib/rt.jar"
-        def jdk8 = AvailableJavaHomes.getJdk8()
-        def jdk8bootClasspath = TextUtil.escapeString(jdk8.jre.absolutePath) + "/lib/rt.jar"
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            compileJava {
-                if (providers.gradleProperty("java7").isPresent()) {
-                    options.bootstrapClasspath = files("$jdk7bootClasspath")
-                } else if (providers.gradleProperty("java8").isPresent()) {
-                    options.bootstrapClasspath = files("$jdk8bootClasspath")
-                }
-                options.fork = true
-            }
-        """
-        file('src/main/java/Main.java') << """
-            import java.nio.file.Files;
-            import java.nio.file.Paths;
-
-            public class Main {
-                public static void main(String... args) throws Exception {
-                    // Use Files.lines() method introduced in Java 8
-                    System.out.println("Line count: " + Files.lines(Paths.get(args[0])));
-                }
-            }
-        """
-
-        expect:
-        succeeds "clean", "compileJava"
-
-        fails "-Pjava7", "clean", "compileJava"
-        failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
-
-        succeeds "-Pjava8", "clean", "compileJava"
-    }
-
     // bootclasspath has been removed in Java 9+
     @Requires(IntegTestPreconditions.BestJreAvailable)
     @Issue("https://github.com/gradle/gradle/issues/19817")
@@ -1173,77 +1128,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds("compileJava")
     }
 
-    def "CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory is deprecated"() {
-        when:
-        buildFile << """
-            plugins {
-                id("java")
-            }
-            tasks.withType(JavaCompile) {
-                doLast {
-                    println(options.annotationProcessorGeneratedSourcesDirectory)
-                }
-            }
-        """
-        file("src/main/java/com/example/Main.java") << """
-            package com.example;
-            public class Main {}
-        """
-        expectAnnotationProcessorGeneratedSourcesDirectoryDeprecation()
-
-        then:
-        succeeds("compileJava")
-    }
-
-    private expectAnnotationProcessorGeneratedSourcesDirectoryDeprecation() {
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. Please use the generatedSourceOutputDirectory property instead. ${getCompileOptionsLink()}")
-    }
-
-    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(File) is deprecated"() {
-        when:
-        buildFile << """
-            plugins {
-                id("java")
-            }
-            tasks.withType(JavaCompile) {
-                options.annotationProcessorGeneratedSourcesDirectory = file("build/annotation-processor-out")
-            }
-        """
-        file("src/main/java/com/example/Main.java") << """
-            package com.example;
-            public class Main {}
-        """
-        expectAnnotationProcessorGeneratedSourcesDirectoryDeprecation()
-
-        then:
-        succeeds("compileJava")
-    }
-
-    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(Provider<File>) is deprecated"() {
-        when:
-        buildFile << """
-            plugins {
-                id("java")
-            }
-            tasks.withType(JavaCompile) {
-                options.annotationProcessorGeneratedSourcesDirectory = provider(() -> file("build/annotation-processor-out"))
-            }
-        """
-        file("src/main/java/com/example/Main.java") << """
-            package com.example;
-            public class Main {}
-        """
-        expectAnnotationProcessorGeneratedSourcesDirectoryDeprecation()
-
-        then:
-        succeeds("compileJava")
-    }
-
-    private getCompileOptionsLink() {
-        String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory")
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/18262")
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "should compile sources from source with -sourcepath option for modules"() {
@@ -1278,34 +1162,4 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         !file("build/classes/java-custom-path/main/com/example/SourcePathTest.class").exists()
     }
 
-    def "Map-accepting methods are deprecated"() {
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            tasks.compileJava {
-                options.define(encoding: 'UTF-8')
-                options.fork(memoryMaximumSize: '1G')
-                options.debug(debugLevel: 'lines')
-                options.forkOptions.define([:])
-                options.debugOptions.define([:])
-
-                // Ensure replacement compiles successfully
-                options.encoding = 'UTF-8'
-                options.fork = true
-                options.forkOptions.memoryMaximumSize = '1G'
-                options.debug = true
-                options.debugOptions.debugLevel = 'lines'
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.fork(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'forkOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.debug(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'debugOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        succeeds("compileJava")
-    }
 }

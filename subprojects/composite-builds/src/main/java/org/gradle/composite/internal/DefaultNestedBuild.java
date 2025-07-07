@@ -34,8 +34,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.function.Function;
@@ -108,11 +108,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
         return buildAction.apply(buildTreeLifecycleController);
-    }
-
-    @Override
-    public Path calculateIdentityPathForProject(Path projectPath) {
-        return getBuildController().getGradle().getIdentityPath().append(projectPath);
     }
 
     @Override

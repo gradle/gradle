@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -32,8 +31,8 @@ import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassPr
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.results.TestRetryShieldingTestResultProcessor;
-import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
+import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -58,14 +57,13 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final WorkerLeaseService workerLeaseService;
     private final int maxWorkerCount;
     private final Clock clock;
-    private final DocumentationRegistry documentationRegistry;
     private final DefaultTestFilter testFilter;
     private TestClassProcessor processor;
 
     public DefaultTestExecuter(
         WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
         WorkerLeaseService workerLeaseService, int maxWorkerCount,
-        Clock clock, DocumentationRegistry documentationRegistry, DefaultTestFilter testFilter
+        Clock clock, DefaultTestFilter testFilter
     ) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
@@ -73,7 +71,6 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         this.workerLeaseService = workerLeaseService;
         this.maxWorkerCount = maxWorkerCount;
         this.clock = clock;
-        this.documentationRegistry = documentationRegistry;
         this.testFilter = testFilter;
     }
 
@@ -83,15 +80,15 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
 
         ForkedTestClasspath classpath = testClasspathFactory.create(
-            testExecutionSpec.getClasspath(), testExecutionSpec.getModulePath(),
-            testFramework, testExecutionSpec.getTestIsModule()
+            testExecutionSpec.getClasspath(),
+            testExecutionSpec.getModulePath()
         );
 
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             @Override
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, testFramework.getWorkerConfigurationAction(), documentationRegistry);
+                    classpath, testFramework.getWorkerConfigurationAction());
             }
         };
         final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {

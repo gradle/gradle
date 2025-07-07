@@ -40,6 +40,7 @@ This migration process can be performed incrementally, and you can maintain a fu
 
 WARNING: Ant integration is not fully compatible with the <<configuration_cache.adoc#config_cache,configuration cache>>.
 Using link:{javadocPath}/org/gradle/api/Task.html#getAnt--[Task.ant] to run Ant task in the task action may work, but importing the Ant build is not supported.
+As a result, the configuration cache is automatically disabled when importing an Ant build.
 
 [[sec:ant_api]]
 The Ant integration is provided by the link:{javadocPath}/org/gradle/api/AntBuilder.html[AntBuilder API].

@@ -22,13 +22,25 @@ plugins {
 
 description = "Tools to handle classloaders"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
+}
 
 dependencies {
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.concurrent)
     implementation(projects.io)

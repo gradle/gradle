@@ -22,6 +22,7 @@ import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
@@ -32,15 +33,37 @@ public class BuildLoggerFactory {
     private final WorkValidationWarningReporter workValidationWarningReporter;
     private final Clock clock;
     private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
+    private final FailureFactory failureFactory;
 
-    public BuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
+    public BuildLoggerFactory(
+        StyledTextOutputFactory styledTextOutputFactory,
+        WorkValidationWarningReporter workValidationWarningReporter,
+        Clock clock,
+        GradleEnterprisePluginManager gradleEnterprisePluginManager,
+        FailureFactory failureFactory
+    ) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.workValidationWarningReporter = workValidationWarningReporter;
         this.clock = clock;
         this.gradleEnterprisePluginManager = gradleEnterprisePluginManager;
+        this.failureFactory = failureFactory;
     }
 
-    public BuildLogger create(Logger logger, LoggingConfiguration loggingConfiguration, BuildStartedTime buildStartedTime, BuildRequestMetaData buildRequestMetaData) {
-        return new BuildLogger(logger, styledTextOutputFactory, loggingConfiguration, buildRequestMetaData, buildStartedTime, clock, workValidationWarningReporter, gradleEnterprisePluginManager);
+    public BuildLogger create(
+        Logger logger,
+        LoggingConfiguration loggingConfiguration,
+        BuildStartedTime buildStartedTime,
+        BuildRequestMetaData buildRequestMetaData
+    ) {
+        return new BuildLogger(logger,
+            styledTextOutputFactory,
+            loggingConfiguration,
+            buildRequestMetaData,
+            buildStartedTime,
+            clock,
+            workValidationWarningReporter,
+            gradleEnterprisePluginManager,
+            failureFactory
+        );
     }
 }

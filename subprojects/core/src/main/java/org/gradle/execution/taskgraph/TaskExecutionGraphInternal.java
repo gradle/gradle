@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,25 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
-import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 @ServiceScope(Scope.Gradle.class)
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
 
     /**
      * Find a task with the given path in the task graph.
+     *
      * @param path the path of the task to find in the task graph
      * @return the task with the given path if it is present in the task graph, null otherwise
      */
-    @Nullable Task findTask(String path);
+    @Nullable
+    Task findTask(String path);
 
     /**
      * Attaches the work that this graph will run. Fires events and no further tasks should be added.
@@ -59,11 +59,14 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      */
     int size();
 
+    default boolean hasScheduledWork() {
+        return size() > 0;
+    }
+
     /**
-     * Returns all the work items in this graph scheduled for execution plus all
-     * dependencies from other builds.
+     * Returns a snapshot of currently scheduled nodes.
      */
-    void visitScheduledNodes(BiConsumer<List<Node>, Set<Node>> visitor);
+    ScheduledWork collectScheduledWork();
 
     /**
      * Resets the lifecycle for this graph.

@@ -33,8 +33,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -145,7 +145,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 //                "Publishing a component that depends on another project without publications";
 //            DeprecationLogger.deprecate(message)
 //                .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
-//                .willBecomeAnErrorInGradle9()
+//                .willBecomeAnErrorInGradle10()
 //                .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
 //                .nagUser();
 

@@ -18,8 +18,8 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -49,7 +49,7 @@ public interface TaskInputs {
      * @param paths The input files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return a property builder to further configure the property.
      */
-    TaskInputFilePropertyBuilder files(Object... paths);
+    TaskInputFilePropertyBuilder files(@Nullable Object... paths);
 
     /**
      * Registers some input file for this task.

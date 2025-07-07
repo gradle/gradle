@@ -23,19 +23,19 @@ description = "The Tooling API provider implementation (the version-specific par
 dependencies {
     api(projects.toolingApi)
 
+    implementation(projects.baseServices)
+    implementation(projects.buildState)
+    implementation(projects.classloaders)
+    implementation(projects.coreApi)
     implementation(projects.instrumentationAgentServices)
+    implementation(projects.launcher)
+    implementation(projects.logging)
+    implementation(projects.native)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
-    implementation(libs.jsr305)
-    implementation(libs.slf4jApi)
-
-    implementation(projects.launcher)
-    implementation(projects.buildState)
-    implementation(projects.baseServices)
-    implementation(projects.classloaders)
-    implementation(projects.coreApi)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.logging)
-    implementation(projects.native)
+
+    implementation(libs.jspecify)
+    implementation(libs.slf4jApi)
 }

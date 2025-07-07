@@ -27,8 +27,6 @@ import org.gradle.util.GradleVersion
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "Provides target module name for module dependencies"() {
-
-
         file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'
@@ -42,7 +40,7 @@ project(':impl') {
     }
 }
 """
-        file('settings.gradle').text = "include 'api', 'impl'"
+        includeProjects("api", "impl")
 
         when:
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
@@ -82,7 +80,7 @@ project(':impl') {
     idea.module.downloadJavadoc = true
 }
 """
-        file('settings.gradle').text = "include 'api', 'impl'"
+        includeProjects("api", "impl")
 
         when:
         IdeaProject project = withConnection { connection -> connection.action(new FetchIdeaModel()).run() }

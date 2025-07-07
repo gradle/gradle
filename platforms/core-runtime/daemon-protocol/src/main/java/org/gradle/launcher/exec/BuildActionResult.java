@@ -17,8 +17,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Encapsulates either a result object, or a failure as an exception or a serialized exception.

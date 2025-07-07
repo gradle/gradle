@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
@@ -28,8 +27,9 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.StaticValue;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
 
     private final InputFilePropertyType filePropertyType;
@@ -93,10 +93,10 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
         } else if (normalizer == CompileClasspathNormalizer.class) {
             return withInternalNormalizer(InputNormalizer.COMPILE_CLASSPATH);
         } else {
-            DeprecationLogger.deprecateBehaviour("Setting an input property's normalizer to a custom implementation of FileNormalizer")
-                .willBeRemovedInGradle9()
-                // TODO Document this
-                .undocumented();
+            DeprecationLogger.deprecateBehaviour(String.format("Setting normalizer of type '%s' on property '%s'.", normalizer.getCanonicalName(), getPropertyName()))
+                .willBecomeAnErrorInGradle10()
+                .undocumented() // TODO: We don't seem to have any user manual documentation for this API
+                .nagUser();
             return this;
         }
     }

@@ -16,8 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A configurable version constraint. This is exposed to the build author, so that one can express

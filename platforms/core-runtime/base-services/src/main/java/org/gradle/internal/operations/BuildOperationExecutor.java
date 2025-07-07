@@ -74,7 +74,4 @@ public interface BuildOperationExecutor {
      * @see BuildOperationExecutor#runAll(BuildOperationWorker, Action)
      */
     <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
-
-    @Deprecated
-    BuildOperationRef getCurrentOperation();
 }

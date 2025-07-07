@@ -25,8 +25,8 @@ import org.gradle.internal.Actions;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;

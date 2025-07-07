@@ -129,7 +129,7 @@ spring-boot.version = 2.2.1.RELEASE
 
 You can place the `gradle.properties` file in the root directory of your project, the Gradle user home directory (`GRADLE_USER_HOME`), or the directory where Gradle is optionally installed (`GRADLE_HOME`).
 
-When resolving properties, Gradle first looks in the project-level `gradle.properties` file, then in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with project-level properties taking precedence over user-level and installation-level properties.
+When resolving properties, Gradle first looks in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, then in the project-level `gradle.properties` file, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with user-level properties taking precedence over project-level and installation-level properties.
 
 [[sec:project_properties]]
 == Project properties
@@ -167,6 +167,10 @@ org.gradle.project.myProperty='Hi, world'
 ----
 myProperty='Hi, world'
 ----
++
+The `gradle.properties` file can be located in a number of places, including `<GRADLE_USER_HOME>/gradle.properties`, `./gradle.properties` (the project root) and `<GRADLE_HOME>/gradle.properties`.
++
+If the same property is defined in multiple locations, the file’s location determines its <<#priority-table-gradle-properties,precedence>>.
 4. *Environment Variables:* You can set project properties with environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___myProperty__='Hi, world'`, then Gradle will set a `myProperty` property on your project object, with the value of `Hi, world`.
 +
 [source,text]
@@ -282,6 +286,7 @@ org.gradle.caching.debug=false
 The final configuration considered by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files.
 If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
+[[priority-table-gradle-properties]]
 [%autowidth.stretch]
 |===
 |Priority |Method |Location |Details
@@ -324,7 +329,7 @@ When set to `true`, individual input property hashes and the build cache key for
 _Default is `false`._
 
 `org.gradle.configuration-cache=(true,false)`::
-Enables <<configuration_cache.adoc#config_cache:usage:enable, configuration caching>>. Gradle will try to reuse the build configuration from previous builds.
+Enables <<configuration_cache_enabling.adoc#config_cache:usage:enable, configuration caching>>. Gradle will try to reuse the build configuration from previous builds.
 +
 _Default is `false`._
 
@@ -333,7 +338,7 @@ Enables incubating configuration-on-demand, where Gradle will attempt to configu
 +
 _Default is `false`._
 
-`org.gradle.console=(auto,plain,rich,verbose)`::
+`org.gradle.console=(auto,plain,colored,rich,verbose)`::
 Customize <<command_line_interface.adoc#sec:command_line_logging,console output>> coloring or verbosity.
 +
 _Default depends on how Gradle is invoked._

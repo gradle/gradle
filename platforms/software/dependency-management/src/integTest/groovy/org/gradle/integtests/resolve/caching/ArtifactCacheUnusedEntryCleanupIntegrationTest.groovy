@@ -217,7 +217,7 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
-    def "does not clean up resources and files when cache cleanup is disabled via #cleanupMethod"(CleanupMethod cleanupMethod) {
+    def "does not clean up resources and files when cache cleanup is disabled"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
@@ -225,8 +225,7 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         executer.requireIsolatedDaemons() // needs to stop daemon
 
         and:
-        disableCacheCleanup(cleanupMethod)
-        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        disableCacheCleanupViaDsl()
 
         and:
         succeeds 'resolve'
@@ -248,7 +247,6 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1))
 
         and:
-        cleanupMethod.maybeExpectDeprecationWarning(executer)
         // start as new process so journal is not restored from in-memory cache
         executer.withTasks('help').start().waitForFinish()
 
@@ -256,52 +254,6 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         resource.assertExists()
         files[0].assertExists()
         files[1].assertExists()
-
-        where:
-        cleanupMethod << CleanupMethod.values()
-    }
-
-    def "cleans up resources and files that were not recently used from caches when DSL is configured even if legacy property is set"() {
-        given:
-        buildscriptWithDependency(snapshotModule)
-
-        when:
-        executer.requireIsolatedDaemons() // needs to stop daemon
-
-        and:
-        disableCacheCleanupViaProperty()
-        explicitlyEnableCacheCleanupViaDsl()
-
-        and:
-        succeeds 'resolve'
-
-        then:
-        def resource = findFile(cacheDir, 'resources-*/**/maven-metadata.xml')
-        def files = findFiles(cacheDir, "files-*/**/*")
-        files.size() == 2
-        journal.assertExists()
-
-        when:
-        run '--stop' // ensure daemon does not cache file access times in memory
-        forceCleanup(gcFile)
-
-        and:
-        writeLastFileAccessTimeToJournal(resource.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1))
-        writeLastFileAccessTimeToJournal(files[0].parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1))
-        writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1))
-
-        and:
-        // start as new process so journal is not restored from in-memory cache
-        executer.withTasks('help').start().waitForFinish()
-
-        then:
-        resource.assertDoesNotExist()
-        files[0].assertDoesNotExist()
-        files[1].assertDoesNotExist()
-
-        and: // deletes empty parent directories
-        findFiles(cacheDir, 'resources-*/*').isEmpty()
-        findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
     @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
@@ -477,7 +429,7 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
                 custom
             }
             dependencies {
-                custom group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'
+                custom("${module.groupId}:${module.artifactId}:${module.version}")
             }
             task resolve {
                 def files = configurations.custom

@@ -156,10 +156,6 @@ class RuntimeShadedJarCreator {
 
         String[] descriptorImplClasses = periodsToSlashes(separateLines(content));
         String[] relocatedImplClassNames = maybeRelocateResources(descriptorImplClasses);
-        if (relocatedImplClassNames.length == 0) {
-            relocatedImplClassNames = descriptorImplClasses;
-        }
-
         String serviceType = slashesToPeriods(relocatedApiClassName)[0];
         String[] serviceProviders = slashesToPeriods(relocatedImplClassNames);
 
@@ -292,8 +288,13 @@ class RuntimeShadedJarCreator {
     private String[] maybeRelocateResources(String... resources) {
         return Arrays.stream(resources)
             .filter(Objects::nonNull)
-            .map(remapper::maybeRelocateResource)
-            .filter(Objects::nonNull)
+            .map(resource -> {
+                String remapped = remapper.maybeRelocateResource(resource);
+                if (remapped == null) {
+                    return resource; // This resource was not relocated. Use the original name.
+                }
+                return remapped;
+            })
             .toArray(String[]::new);
     }
 

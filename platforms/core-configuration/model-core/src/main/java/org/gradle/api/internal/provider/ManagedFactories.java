@@ -24,8 +24,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.internal.state.ManagedFactory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class ManagedFactories {
@@ -65,9 +65,19 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            // TODO - should preserve the property type (which may be different to the provider type)
+
             ProviderInternal<S> provider = Cast.uncheckedNonnullCast(state);
-            return type.cast(propertyOf(provider.getType(), provider));
+            Class<S> providerType = provider.getType();
+            if (providerType == null) {
+                // TODO: This violates the assumption that all Property instances have a type.
+                // We should properly serialize the type for the source property instead
+                // of trying to infer it from the backing provider.
+                @SuppressWarnings("deprecation")
+                DefaultProperty<?> noTypeProperty = propertyFactory.propertyWithNoType();
+                return type.cast(noTypeProperty);
+            } else {
+                return type.cast(propertyOf(providerType, provider));
+            }
         }
 
         <V> Property<V> propertyOf(Class<V> type, Provider<V> value) {

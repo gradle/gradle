@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.publish.internal.component.ConfigurationVariantDetailsInternal;
 import org.gradle.api.specs.Spec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 public class JavaConfigurationVariantMapping implements Action<ConfigurationVariantDetails> {

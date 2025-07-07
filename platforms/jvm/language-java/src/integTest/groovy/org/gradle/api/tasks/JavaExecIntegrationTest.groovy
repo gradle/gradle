@@ -80,7 +80,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
-            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
             "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
             "Configure an absolute path to a Java executable instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
@@ -285,6 +285,50 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ":run"
+    }
+
+    def "getAllJvmArgs respects user added jvm args"() {
+        given:
+        def allJvmArgsFile = file("allJvmArgs.txt")
+        buildFile """
+            tasks.named("run") {
+                jvmArgs "-Dfoo=bar"
+            }
+
+            def file = providers.gradleProperty('allJvmArgsFile').map {
+                layout.projectDirectory.file(it)
+            }
+            file.get().getAsFile().text = tasks.run.allJvmArgs.join(",")
+        """
+
+        when:
+        run "run", "-PallJvmArgsFile=$allJvmArgsFile.absolutePath"
+
+        then:
+        allJvmArgsFile.text.contains("-Dfoo=bar")
+    }
+
+    def "setAllJvmArgs respects user added jvm args"() {
+        given:
+        def allJvmArgsFile = file("allJvmArgs.txt")
+        buildFile """
+            tasks.named("run") {
+                jvmArgs "-Dfoo=bar"
+                setAllJvmArgs(["-Dfoo=42"])
+            }
+
+            def file = providers.gradleProperty('allJvmArgsFile').map {
+                layout.projectDirectory.file(it)
+            }
+            file.get().getAsFile().text = tasks.run.allJvmArgs.join(",")
+        """
+
+        when:
+        run "run", "-PallJvmArgsFile=$allJvmArgsFile.absolutePath"
+
+        then:
+        allJvmArgsFile.text.contains("-Dfoo=42")
+        !allJvmArgsFile.text.contains("-Dfoo=bar")
     }
 
     private void assertOutputFileIs(String text) {

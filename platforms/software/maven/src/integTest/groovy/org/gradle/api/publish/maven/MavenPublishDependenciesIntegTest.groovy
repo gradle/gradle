@@ -73,7 +73,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3233")
-    def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
+    def "publishes POM dependency with empty version for Gradle"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -91,7 +91,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
             }
 
             dependencies {
-                api $dependencyNotation
+                api 'group:projectA'
                 api 'group:projectB:1.0'
             }
 
@@ -117,11 +117,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         dependency.groupId == "group"
         dependency.artifactId == "projectA"
         dependency.version == ""
-
-        where:
-        versionType | dependencyNotation
-        "empty"     | "'group:projectA'"
-        "null"      | "group:'group', name:'projectA', version:null"
     }
 
     void "defaultDependencies are included in published pom file"() {
@@ -415,7 +410,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    def "publishing a dependency to with name different than the artifactId is deprecated"() {
+    def "cannot publish a dependency to with name different than the artifactId"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -452,22 +447,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Publishing a dependency with an artifact name different from the dependency's artifactId. This behavior has been deprecated. This will fail with an error in Gradle 9.0. This functionality is only supported by Ivy repositories. Declare a dependency with artifactId 'notfoo' instead of 'foo'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#publishing_artifact_name_different_from_artifact_id_maven")
-        succeeds "publish"
+        fails "publish"
 
         then:
-        repoModule.assertPublished()
-        repoModule.assertApiDependencies()
-        repoModule.parsedPom.scope("runtime") {
-            def deps = dependencies.values()
-            assert deps.size() == 1
-            def dep = deps[0]
-            assert dep.groupId == "org"
-            assert dep.artifactId == "notfoo"
-            assert dep.version == "1.0"
-            assert dep.classifier == null
-            assert dep.type == null
-        }
+        failure.assertHasCause("Cannot publish a dependency with an artifact name different from the dependency's artifactId. This functionality is only supported by Ivy repositories. Declare a dependency with artifactId 'notfoo' instead of 'foo'.")
     }
 
 }

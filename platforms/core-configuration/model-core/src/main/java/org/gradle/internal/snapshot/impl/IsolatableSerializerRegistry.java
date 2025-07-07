@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer;
 import org.gradle.internal.Cast;
@@ -38,6 +37,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -45,7 +45,7 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 @ServiceScope({Scope.UserHome.class, Scope.Global.class})  //Global scope is needed for the usage in process isolated worker actions
 public class IsolatableSerializerRegistry extends DefaultSerializerRegistry implements IsolatableToBytesSerializer {
     private static final byte STRING_VALUE = (byte) 0;
@@ -620,7 +620,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class IsolatedArrayOfPrimitiveSerializer extends IsolatableSerializer<ArrayOfPrimitiveValueSnapshot> {
 
         @Override

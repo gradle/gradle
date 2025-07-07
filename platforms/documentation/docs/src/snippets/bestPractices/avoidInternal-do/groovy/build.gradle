@@ -1,0 +1,15 @@
+// tag::do-this[]
+configurations.create("good") {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+    }
+    def goodMap = attributes.keySet().collectEntries {
+        [Attribute.of(it.name, it.type), attributes.getAttribute(it as Attribute<Object>)]
+    }
+    logger.warn("Good map")
+    goodMap.each {
+        logger.warn("$it.key -> $it.value")
+    }
+}
+// end::do-this[]

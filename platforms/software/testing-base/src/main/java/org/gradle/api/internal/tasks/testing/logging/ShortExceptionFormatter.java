@@ -42,6 +42,7 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
     }
 
     private void printException(TestDescriptor descriptor, Throwable exception, boolean cause, int indentLevel, StringBuilder builder) {
+        @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
         String indent = Strings.repeat(INDENT, indentLevel);
         builder.append(indent);
         if (cause) {

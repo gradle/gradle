@@ -17,10 +17,10 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@NonNullApi
+@NullMarked
 public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCollector {
     private final Logger logger = LoggerFactory.getLogger(DefaultHeaderDependenciesCollector.class);
     private final DirectoryFileTreeFactory directoryFileTreeFactory;

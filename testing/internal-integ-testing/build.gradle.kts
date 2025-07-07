@@ -7,6 +7,15 @@ plugins {
 
 description = "Collection of test fixtures for integration tests, internal use only"
 
+jvmCompile {
+    compilations {
+        named("main") {
+            // These test fixtures are used by the tooling API tests, which still run on JVM 8
+            targetJvmVersion = 8
+        }
+    }
+}
+
 sourceSets {
     main {
         // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
@@ -50,7 +59,6 @@ dependencies {
     api(libs.groovy)
     api(libs.groovyXml)
     api(libs.guava)
-    api(libs.hamcrestCore)
     api(libs.hamcrest)
     api(libs.jettyWebApp) {
         because("Part of the public API via HttpServer")
@@ -84,37 +92,39 @@ dependencies {
     implementation(projects.buildCache)
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
+    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.cli)
+    implementation(projects.clientServices)
     implementation(projects.daemonServices)
-    implementation(projects.enterpriseOperations)
     implementation(projects.enterpriseLogging)
-    implementation(projects.files)
+    implementation(projects.enterpriseOperations)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
+    implementation(projects.files)
+    implementation(projects.gradleCli)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.io)
+    implementation(projects.launcher)
     implementation(projects.messaging)
     implementation(projects.modelCore)
     implementation(projects.modelReflect)
+    implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)
-    implementation(projects.buildProcessServices)
-    implementation(projects.gradleCli)
-    implementation(projects.launcher)
-    implementation(projects.clientServices)
+    implementation(projects.toolingApi)
+    implementation(projects.wrapperShared)
 
     implementation(testFixtures(projects.buildOperations))
+    implementation(testFixtures(projects.buildProcessServices))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)
     implementation(libs.commonsLang)
-    implementation(libs.commonsLang3)
     implementation(libs.commonsIo)
-    implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.httpcore)
     implementation(libs.inject)
@@ -172,11 +182,11 @@ packageCycles {
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
     destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
-    versions = moduleIdentity.releasedVersions.map {
+    versions = gradleModule.identity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
     }
-    mostRecent = moduleIdentity.releasedVersions.map { it.mostRecentRelease.version }
-    mostRecentSnapshot = moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version }
+    mostRecent = gradleModule.identity.releasedVersions.map { it.mostRecentRelease.version }
+    mostRecentSnapshot = gradleModule.identity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
 val copyTestedVersionsInfo by tasks.registering(Copy::class) {

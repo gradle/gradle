@@ -17,6 +17,7 @@
 package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.internal.jvm.Jvm
 
 abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCompilerIntegrationSpec {
     def canEnableAndDisableIntegerOptimization() {
@@ -60,5 +61,15 @@ abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCo
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("Person")
         result.testClass("Person").assertTestPassed("testMe")
+    }
+
+    String configureToolchainsForOptimizationTasks(Jvm supportedJvm) {
+        return """
+            tasks.matching { it.name == "compileWithOptimization" || it.name == "compileWithoutOptimization" }.configureEach {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${supportedJvm.javaVersion.majorVersion})
+                }
+            }
+        """
     }
 }

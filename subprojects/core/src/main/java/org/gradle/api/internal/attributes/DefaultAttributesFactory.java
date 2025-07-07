@@ -20,28 +20,36 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class DefaultAttributesFactory implements AttributesFactory {
+
+    private final AttributeValueIsolator attributeValueIsolator;
+    private final PropertyFactory propertyFactory;
+
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, ImmutableList<DefaultImmutableAttributesContainer>> children;
-    private final AttributeValueIsolator attributeValueIsolator;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
 
     public DefaultAttributesFactory(
         AttributeValueIsolator attributeValueIsolator,
         IsolatableFactory isolatableFactory,
-        NamedObjectInstantiator instantiator
+        NamedObjectInstantiator instantiator,
+        PropertyFactory propertyFactory
     ) {
         this.attributeValueIsolator = attributeValueIsolator;
+        this.propertyFactory = propertyFactory;
+
         this.root = ImmutableAttributes.EMPTY;
         this.children = new ConcurrentHashMap<>();
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
@@ -52,17 +60,17 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
-    public DefaultMutableAttributeContainer mutable() {
-        return new DefaultMutableAttributeContainer(this, attributeValueIsolator);
+    public AttributeContainerInternal mutable() {
+        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory);
     }
 
     @Override
-    public HierarchicalMutableAttributeContainer mutable(AttributeContainerInternal fallback) {
-        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator));
+    public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
+        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory));
     }
 
     @Override
-    public HierarchicalMutableAttributeContainer join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+    public AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
         return new HierarchicalMutableAttributeContainer(this, fallback, primary);
     }
 
@@ -182,7 +190,8 @@ public final class DefaultAttributesFactory implements AttributesFactory {
                 Object currentAttribute = entry.get();
                 Object existingAttribute = attributes1.getAttribute(attribute);
                 if (!currentAttribute.equals(existingAttribute)) {
-                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute, buildSameNameDifferentTypeErrorMsg(attribute, attributes2.findAttribute(attribute.getName())));
+                    String message = "An attribute named '" + attribute.getName() + "' of type '" + attribute.getType().getName() + "' already exists in this container";
+                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute, message);
                 }
             }
             if (attributes1 instanceof DefaultImmutableAttributesContainer) {
@@ -195,7 +204,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
-    public ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes) {
+    public ImmutableAttributes fromEntries(Collection<AttributeEntry<?>> entries) {
         /*
          * This should use safeConcat, but can't because of how the GradleModuleMetadataParser
          * uses the DefaultAttributesFactory in consumeAttributes.  See the "can detect incompatible X when merging" tests
@@ -207,22 +216,17 @@ public final class DefaultAttributesFactory implements AttributesFactory {
          * of this method in a different factory implementation, and let this one do safeConcat.
          */
         ImmutableAttributes result = ImmutableAttributes.EMPTY;
-        for (Map.Entry<Attribute<?>, Isolatable<?>> entry : attributes.entrySet()) {
-            result = uncheckedConcat(result, entry.getKey(), entry.getValue());
+        for (AttributeEntry<?> entry : entries) {
+            result = concatEntry(result, entry);
         }
         return result;
     }
 
     /**
-     * Concatenates a key/value pair to an immutable attributes instance, assuming the key and value are the same type.
-     * <p>
-     * We know these are the same type when they are added to the mutable attribute container, but lose the type
-     * safety when adding the key and value to the attributes map. We should instead create some kind of {@code AttributePair}
-     * type that allows us to maintain type safety here.
+     * Concatenates an attribute entry to an immutable attributes instance.
      */
-    private <T> ImmutableAttributes uncheckedConcat(ImmutableAttributes attributes, Attribute<T> key, Isolatable<?> value) {
-        Isolatable<T> castValue = Cast.uncheckedCast(value);
-        return concat(attributes, key, castValue);
+    private <T> ImmutableAttributes concatEntry(ImmutableAttributes attributes, AttributeEntry<T> entry) {
+        return concat(attributes, entry.getKey(), entry.getValue());
     }
 
     /**
@@ -242,7 +246,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         }
     }
 
-    @Nonnull
+    @NonNull
     private String buildSameNameDifferentTypeErrorMsg(Attribute<?> newAttribute, Attribute<?> oldAttribute) {
         return "Cannot have two attributes with the same name but different types. "
             + "This container already has an attribute named '" + newAttribute.getName() + "' of type '" + oldAttribute.getType().getName()

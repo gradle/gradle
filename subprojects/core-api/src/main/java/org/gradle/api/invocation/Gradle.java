@@ -33,8 +33,8 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -352,7 +352,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * provides with your own implementation, for certain types of events.
      *
      * @param logger The logger to use.
-     * @deprecated Will be removed in Gradle 9. Logging customization through listeners is no longer supported.
+     * @deprecated Will be removed in Gradle 10. Logging customization through listeners is no longer supported.
      */
     @Deprecated
     void useLogger(Object logger);

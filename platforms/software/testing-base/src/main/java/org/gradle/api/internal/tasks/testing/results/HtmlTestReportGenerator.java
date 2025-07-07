@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -34,7 +34,7 @@ import java.util.Collections;
 /**
  * Generates HTML test reports given binary test results.
  */
-@NonNullApi
+@NullMarked
 @ServiceScope(Scope.BuildSession.class)
 public class HtmlTestReportGenerator {
 
@@ -64,7 +64,7 @@ public class HtmlTestReportGenerator {
         try {
             Files.createDirectories(reportsDirectory);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         new GenericTestReportGenerator(Collections.singletonList(resultsDirectory), metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportsDirectory);

@@ -16,8 +16,9 @@
 
 package org.gradle.internal.classloader;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -372,7 +373,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             return set.contains(seq);
         }
 
-        @Nonnull
+        @NonNull
         @Override
         public Iterator<String> iterator() {
             return set.iterator();
@@ -414,7 +415,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
 
         @Override
-        public int compareTo(@Nonnull Trie o) {
+        public int compareTo(@NonNull Trie o) {
             return chr - o.chr;
         }
 

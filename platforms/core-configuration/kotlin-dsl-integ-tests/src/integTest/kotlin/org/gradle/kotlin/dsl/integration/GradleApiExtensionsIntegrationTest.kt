@@ -91,7 +91,6 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "source dependency VCS mappings are defined")
     fun `can use Gradle API generated extensions in scripts`() {
 
         withFile(
@@ -235,7 +234,7 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
                 `withType`(`type`.java)
             """,
             """
-            inline fun org.gradle.api.tasks.AbstractCopyTask.`filter`(`filterType`: kotlin.reflect.KClass<out java.io.FilterReader>, vararg `properties`: Pair<String, Any?>): org.gradle.api.tasks.AbstractCopyTask =
+            inline fun org.gradle.api.tasks.AbstractCopyTask.`filter`(`filterType`: kotlin.reflect.KClass<out java.io.FilterReader>, vararg `properties`: Pair<String, Any>): org.gradle.api.tasks.AbstractCopyTask =
                 `filter`(mapOf(*`properties`), `filterType`.java)
             """,
             """

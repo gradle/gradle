@@ -21,28 +21,23 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
 public interface ConfigurationInternal extends DeprecatableConfiguration, Configuration {
 
+    // This type is referenced by Nebula:
+    // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/db24ee7e0b5c5c6f6327cdfd377e90e505bb1fd2/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L59
     enum InternalState {
         UNRESOLVED,
-        BUILD_DEPENDENCIES_RESOLVED,
-        GRAPH_RESOLVED,
-
-        // This state should be removed, but it is referenced by nebula gradle-resolution-rules-plugin.
-        // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/623bbbcd4f187101bc233e46c4d9ec960c02e1a7/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L62
-        @Deprecated
-        ARTIFACTS_RESOLVED
+        OBSERVED
     }
 
     String getDisplayName();
@@ -64,24 +59,25 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
 
     /**
      * Marks this configuration as observed, meaning its state has been seen by some external operation
-     * and further changes to this context that would change its public state are forbidden.
+     * and further changes to this configuration that would change its public state are forbidden.
+     * <p>
+     * The state guarded by this method includes all mutable state except for the dependencies,
+     * dependency constraints, and global excludes of this configuration. After configuration
+     * dependencies are observed, {@link #markDependenciesObserved()} should be called.
      *
      * @param reason Describes the external operation that observed this configuration
      */
     void markAsObserved(String reason);
 
     /**
-     * Legacy observation mechanism, will be removed in Gradle 9.0.
-     * <p>
-     * Prefer {@link #markAsObserved(String)}
+     * Marks the dependencies of a configuration observed, after which the dependencies,
+     * dependency constraints, and global excludes of this configuration cannot be mutated.
+     *
+     * @throws IllegalStateException if {@link #markAsObserved(String)} has not yet been called.
      */
-    void markAsObserved(InternalState requestedState);
+    void markDependenciesObserved();
 
     DomainObjectContext getDomainObjectContext();
-
-    void addMutationValidator(MutationValidator validator);
-
-    void removeMutationValidator(MutationValidator validator);
 
     /**
      * Visits the variants of this configuration.
@@ -107,9 +103,9 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
     ResolutionHost getResolutionHost();
 
     /**
-     * @see ResolutionParameters#getRootComponent()
+     * Return true if this is a detached configuration, false otherwise.
      */
-    RootComponentMetadataBuilder.RootComponentState toRootComponent();
+    boolean isDetachedConfiguration();
 
     /**
      * Version locks to use during resolution as a result of consistent resolution.
@@ -137,23 +133,6 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      * Returns the role used to create this configuration and set its initial allowed usage.
      */
     ConfigurationRole getRoleAtCreation();
-
-    /**
-     * Indicates if the allowed usages of this configuration (consumable, resolvable, declarable) can be changed.
-     *
-     * @return {@code true} if so; {@code false} otherwise
-     */
-    boolean usageCanBeMutated();
-
-    /**
-     * Update a configuration's allowed and disallowed usage to match the given role
-     *
-     * This method does <strong>NOT</strong> warn.  This method does <strong>NOT</strong> modify deprecation status.  It
-     * is only meant to be called by the container.
-     *
-     * @param role the role specifying the usage the conf should possess
-     */
-     void setAllowedUsageFromRole(ConfigurationRole role);
 
     /**
      * Test if the given configuration can either be declared against or extends another

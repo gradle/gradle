@@ -16,15 +16,30 @@
 package org.gradle.reporting;
 
 import org.gradle.internal.html.SimpleHtmlWriter;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 
-public class CodePanelRenderer extends ReportRenderer<String, SimpleHtmlWriter> {
+import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
+
+public class CodePanelRenderer extends ReportRenderer<CodePanelRenderer.Data, SimpleHtmlWriter> {
+    @NullMarked
+    public static final class Data {
+        private final String text;
+        private final String codePanelId;
+
+        public Data(String text, String codePanelId) {
+            this.text = text;
+            this.codePanelId = codePanelId;
+        }
+    }
+
     @Override
-    public void render(String text, SimpleHtmlWriter htmlWriter) throws IOException {
+    public void render(Data data, SimpleHtmlWriter htmlWriter) throws IOException {
         // Wrap in a <span>, to work around CSS problem in IE
         htmlWriter.startElement("span").attribute("class", "code")
-            .startElement("pre").characters(text).endElement()
-        .endElement();
+            .startElement("pre").attribute("id", data.codePanelId).characters(data.text).endElement();
+        addClipboardCopyButton(htmlWriter, data.codePanelId);
+        htmlWriter.endElement();
     }
 }

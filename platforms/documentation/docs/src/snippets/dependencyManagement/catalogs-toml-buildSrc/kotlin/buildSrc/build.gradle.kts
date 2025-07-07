@@ -1,6 +1,6 @@
 plugins {
     `kotlin-dsl`
-    alias(libs.plugins.versions) // Access version catalog in builSrc build file for plugin
+    alias(libs.plugins.versions) // Access version catalog in buildSrc build file for plugin
 }
 
 repositories {

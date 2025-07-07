@@ -15,14 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
+import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
@@ -125,5 +128,30 @@ public abstract class AbstractAuthenticationSupportedRepository<T extends Reposi
 
     boolean usesCredentials() {
         return delegate.usesCredentials();
+    }
+
+    @Override
+    public Provider<Boolean> isUsingCredentialsProvider() {
+        return getConfiguredCredentials().map(configured ->
+            isUsingCredentialsProvider(getName(), configured)
+        );
+    }
+
+    private boolean isUsingCredentialsProvider(String identity, Credentials toCheck) {
+        Credentials referenceCredentials;
+        try {
+            Provider<? extends Credentials> credentialsProvider;
+            try {
+                credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
+            } catch (IllegalArgumentException e) {
+                // some possibilities are invalid repository names and invalid credential types
+                // either way, this is not the place to validate that
+                return false;
+            }
+            referenceCredentials = credentialsProvider.get();
+        } catch (MissingValueException e) {
+            return false;
+        }
+        return EqualsBuilder.reflectionEquals(toCheck, referenceCredentials);
     }
 }

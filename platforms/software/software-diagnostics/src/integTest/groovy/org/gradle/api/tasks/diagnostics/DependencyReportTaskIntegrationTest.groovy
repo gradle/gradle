@@ -18,10 +18,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
-    }
-
     def "omits repeated dependencies in case of circular dependencies"() {
         given:
         createDirs("client", "a", "b", "c")
@@ -771,7 +767,9 @@ compileClasspath - Compile classpath for source set 'main'.
 
             project(":impl") {
                 dependencies {
-                    compile group: 'org.utils', name: 'api', version: '1.3', configuration: 'compile'
+                    compile("org.utils:api:1.3") {
+                        targetConfiguration = "compile"
+                    }
                 }
 
                 configurations.compile.resolutionStrategy.dependencySubstitution {
@@ -812,7 +810,7 @@ compile
 
             project(":impl") {
                 dependencies {
-                    compile group: 'org.utils', name: 'api', version: '1.3'
+                    compile("org.utils:api:1.3")
                 }
 
                 configurations.compile.resolutionStrategy.eachDependency {
@@ -856,8 +854,8 @@ compile
 
             project(":impl") {
                 dependencies {
-                    compile group: 'org.utils', name: 'api', version: '1.3'
-                    compile group: 'org.original', name: 'original', version: '1.0'
+                    compile("org.utils:api:1.3")
+                    compile("org.original:original:1.0")
                 }
 
                 configurations.compile.resolutionStrategy.dependencySubstitution {
@@ -1049,7 +1047,7 @@ compileClasspath - Compile classpath for source set 'main'.
         buildFile << """
             subprojects {
                 configurations {
-                    migratingUnlocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
+                    migratingLocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1060,7 +1058,7 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 10. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
 
         expect:
         succeeds ':a:dependencies'
@@ -1089,7 +1087,6 @@ compileClasspath - Compile classpath for source set 'main'.
         result.assertHasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
     }
 
-
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
@@ -1099,7 +1096,7 @@ compileClasspath - Compile classpath for source set 'main'.
                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
-                migratingUnlocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
+                migratingLocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)
                 implementation.extendsFrom variant
             }
             dependencies {
@@ -1109,7 +1106,6 @@ compileClasspath - Compile classpath for source set 'main'.
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         run ":dependencies"
 
         then:
@@ -1125,7 +1121,6 @@ variant (n)
 """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         run ":dependencies", "--configuration", "variant"
 
         then:

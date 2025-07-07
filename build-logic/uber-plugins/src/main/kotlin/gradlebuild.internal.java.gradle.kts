@@ -17,3 +17,11 @@
 plugins {
     id("gradlebuild.java-library")
 }
+
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
+}

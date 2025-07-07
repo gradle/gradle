@@ -35,8 +35,8 @@ import org.gradle.internal.Transformers;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -82,9 +82,7 @@ public abstract class War extends Jar {
 
     @Inject
     @Override
-    public ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ObjectFactory getObjectFactory();
 
     @Internal
     @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")
@@ -158,7 +156,7 @@ public abstract class War extends Jar {
      * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      */
     @SuppressWarnings("rawtypes")
-    public void classpath(Object... classpath) {
+    public void classpath(@Nullable Object... classpath) {
         FileCollection oldClasspath = getClasspath();
         this.classpath = getProject().files(oldClasspath != null ? oldClasspath : new ArrayList(), classpath);
     }

@@ -17,7 +17,7 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.Providers;
@@ -33,8 +33,8 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -128,11 +128,11 @@ public abstract class JacocoTaskExtension {
     public void setDestinationFile(Provider<File> destinationFile) {
         // TODO: This is a workaround for behavior in AGP.
         // see https://github.com/gradle/gradle/issues/33389
-        // This can be removed once we've fixed RegularFileProperty.fileProvider(...) to work properly 
+        // This can be removed once we've fixed RegularFileProperty.fileProvider(...) to work properly
         this.destinationFile.fileProvider(destinationFile.flatMap(Providers::of));
     }
 
-    public void setDestinationFile(File destinationFile) {
+    public void setDestinationFile(@Nullable File destinationFile) {
         this.destinationFile.set(destinationFile);
     }
 

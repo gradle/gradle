@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.internal.GUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Date;
 
@@ -33,6 +34,7 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     private AbstractArchiveTask archiveTask;
 
+    @Inject
     public ArchivePublishArtifact(TaskDependencyFactory taskDependencyFactory, AbstractArchiveTask archiveTask) {
         super(taskDependencyFactory, archiveTask);
         this.archiveTask = archiveTask;

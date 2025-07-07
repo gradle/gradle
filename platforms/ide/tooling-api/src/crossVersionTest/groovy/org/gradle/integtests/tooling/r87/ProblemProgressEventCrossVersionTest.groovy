@@ -59,7 +59,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             plugins {
               id 'java-library'
             }
-            repositories.jcenter()
             task bar {}
             task baz {}
         """
@@ -79,7 +78,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        listener.problems.size() == 2
+        listener.problems.size() == 1
     }
 
     @TargetGradleVersion(">=8.5 <8.9")

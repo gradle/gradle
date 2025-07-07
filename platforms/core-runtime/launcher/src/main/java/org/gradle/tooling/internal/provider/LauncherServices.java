@@ -58,6 +58,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -107,8 +108,18 @@ public class LauncherServices extends AbstractGradleModuleServices {
 
     static class ToolingGlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
-        BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
-            return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
+        BuildLoggerFactory createBuildLoggerFactory(
+            StyledTextOutputFactory styledTextOutputFactory,
+            WorkValidationWarningReporter workValidationWarningReporter,
+            FailureFactory failureFactory
+        ) {
+            return new BuildLoggerFactory(
+                styledTextOutputFactory,
+                workValidationWarningReporter,
+                Time.clock(),
+                null,
+                failureFactory
+            );
         }
     }
 
@@ -136,8 +147,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            ValueSnapshotter valueSnapshotter,
-            ExceptionProblemRegistry problemContainer
+            ValueSnapshotter valueSnapshotter
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -164,8 +174,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
                             new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
                             buildOperationRunner,
                             loggingBuildOperationProgressBroadcaster,
-                            buildOperationNotificationValve,
-                            problemContainer))));
+                            buildOperationNotificationValve
+                        ))));
         }
 
         @Provides
@@ -212,15 +222,22 @@ public class LauncherServices extends AbstractGradleModuleServices {
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
             StartParameter startParameter,
+            FailureFactory failureFactory,
             InternalProblems problemsService,
             ProblemStream problemStream,
             ExceptionProblemRegistry registry
         ) {
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(
+                    eventEmitter,
+                    startParameter,
+                    problemsService,
+                    problemStream,
                     new RootBuildLifecycleBuildActionExecutor(
                         buildStateRegistry,
                         new BuildCompletionNotifyingBuildActionRunner(
+                            gradleEnterprisePluginManager,
+                            failureFactory,
                             new FileSystemWatchingBuildActionRunner(
                                 eventEmitter,
                                 virtualFileSystem,
@@ -229,32 +246,44 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                 fileHasherStatisticsCollector,
                                 directorySnapshotterStatisticsCollector,
                                 buildOperationRunner,
+                                options,
                                 new BuildOutcomeReportingBuildActionRunner(
                                     styledTextOutputFactory,
                                     listenerManager,
-                                    new ProblemReportingBuildActionRunner(
-                                        new ChainingBuildActionRunner(buildActionRunners),
-                                        exceptionAnalyser,
-                                        buildLayout,
-                                        problemReporters
-                                    ),
                                     buildStartedTime,
                                     buildRequestMetaData,
                                     buildLoggerFactory,
-                                    registry
-                                ),
-                                options),
-                            gradleEnterprisePluginManager)),
-                    eventEmitter,
-                    startParameter,
-                    problemsService,
-                    problemStream),
+                                    failureFactory,
+                                    registry,
+                                    new ProblemReportingBuildActionRunner(
+                                        exceptionAnalyser,
+                                        buildLayout,
+                                        problemReporters,
+                                        new ChainingBuildActionRunner(buildActionRunners)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
                 problemsService);
         }
 
         @Provides
-        BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
-            return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, clock, gradleEnterprisePluginManager);
+        BuildLoggerFactory createBuildLoggerFactory(
+            StyledTextOutputFactory styledTextOutputFactory,
+            WorkValidationWarningReporter workValidationWarningReporter,
+            Clock clock,
+            GradleEnterprisePluginManager gradleEnterprisePluginManager,
+            FailureFactory failureFactory
+        ) {
+            return new BuildLoggerFactory(
+                styledTextOutputFactory,
+                workValidationWarningReporter,
+                clock,
+                gradleEnterprisePluginManager,
+                failureFactory
+            );
         }
     }
 }

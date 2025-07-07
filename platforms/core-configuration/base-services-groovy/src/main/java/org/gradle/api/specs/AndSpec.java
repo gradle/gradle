@@ -20,8 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.internal.Cast;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.
@@ -71,9 +70,9 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return null;
     }
 
-    // TODO Use @SafeVarargs and make method final
-    @SuppressWarnings("unchecked")
-    public AndSpec<T> and(Spec<? super T>... specs) {
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public final AndSpec<T> and(Spec<? super T>... specs) {
         if (specs.length == 0) {
             return this;
         }

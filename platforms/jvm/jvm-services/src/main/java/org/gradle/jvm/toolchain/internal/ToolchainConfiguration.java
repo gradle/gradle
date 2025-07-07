@@ -18,8 +18,8 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -53,4 +53,6 @@ public interface ToolchainConfiguration {
     @Nullable File getJabbaHomeDirectory();
 
     File getSdkmanCandidatesDirectory();
+
+    @Nullable String getEnvironmentVariableValue(String variableName);
 }

@@ -24,12 +24,13 @@ import org.gradle.util.AttributeTestUtil
  * Unit tests for the {@link HierarchicalMutableAttributeContainer} class.
  */
 final class HierarchicalMutableAttributeContainerTest extends BaseAttributeContainerTest {
-    private one = Attribute.of("one", String)
-    private two = Attribute.of("two", String)
+
+    private Attribute<String> one = Attribute.of("one", String)
+    private Attribute<String> two = Attribute.of("two", String)
 
     @Override
     protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
+        DefaultMutableAttributeContainer container = AttributeTestUtil.attributesFactory().mutable()
         attributes.forEach { key, value ->
             container.attribute(key, value)
         }
@@ -277,5 +278,22 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
             assert it.size() == 1
             assert it[Attribute.of("test", String)] == "b" // Second attribute to be added remains
         }
+    }
+
+    def "can addAllLater to container"() {
+        def container = createContainer()
+        def other = createContainer()
+        container.addAllLater(other)
+
+        def a = Attribute.of("a", String)
+        def b = Attribute.of("b", String)
+
+        when:
+        other.attribute(a, "aa")
+        other.attributeProvider(b, Providers.of("bb"))
+
+        then:
+        other.getAttribute(a) == "aa"
+        other.getAttribute(b) == "bb"
     }
 }

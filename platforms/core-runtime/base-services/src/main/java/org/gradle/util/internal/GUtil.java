@@ -16,15 +16,15 @@
 
 package org.gradle.util.internal;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -181,24 +181,6 @@ public class GUtil {
         return addToCollection(dest, false, src);
     }
 
-    @Deprecated
-    public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V>... srcs) {
-        for (Iterable<? extends V> src : srcs) {
-            for (V v : src) {
-                if (failOnNull && v == null) {
-                    throw new IllegalArgumentException("Illegal null value provided in this collection: " + src);
-                }
-                dest.add(v);
-            }
-        }
-        return dest;
-    }
-
-    @Deprecated
-    public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
-        return addToCollection(dest, false, srcs);
-    }
-
     public static Comparator<String> caseInsensitive() {
         return new Comparator<String>() {
             @Override
@@ -234,7 +216,7 @@ public class GUtil {
                 inputStream.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -244,7 +226,7 @@ public class GUtil {
             uc.setUseCaches(false);
             return loadProperties(uc.getInputStream());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -253,7 +235,7 @@ public class GUtil {
         try {
             properties.load(inputStream);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             IoActions.closeQuietly(inputStream);
         }
@@ -269,7 +251,7 @@ public class GUtil {
                 propertiesFileOutputStream.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -281,7 +263,7 @@ public class GUtil {
                 outputStream.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

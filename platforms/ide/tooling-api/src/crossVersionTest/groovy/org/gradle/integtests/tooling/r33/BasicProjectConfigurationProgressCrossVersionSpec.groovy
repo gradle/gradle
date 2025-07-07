@@ -17,14 +17,12 @@
 package org.gradle.integtests.tooling.r33
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
-@TargetGradleVersion(">=3.3")
 class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "generates project configuration events for single project build"() {
@@ -55,8 +53,8 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         given:
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
 
         when:
         def events = ProgressEvents.create()
@@ -91,8 +89,9 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         given:
         settingsFile << """
             rootProject.name = 'multi'
-            include 'a', 'b'
         """
+
+        includeProjects("a", "b")
         file("a/build.gradle") << """
             throw new RuntimeException("broken")
 """
@@ -219,6 +218,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
     }
 
     def buildSrc() {
+        createProjectSubDirs("buildSrc/a", "buildSrc/b")
         file("buildSrc/settings.gradle") << "include 'a', 'b'"
         file("buildSrc/build.gradle") << """
             allprojects {

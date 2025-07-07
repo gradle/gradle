@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 public class AssumptionFailureDetails extends DefaultTestFailureDetails {
     public AssumptionFailureDetails(String message, String className, String stacktrace) {
         super(message, className, stacktrace);

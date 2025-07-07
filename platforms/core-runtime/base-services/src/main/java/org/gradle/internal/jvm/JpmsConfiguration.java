@@ -83,6 +83,7 @@ public class JpmsConfiguration {
             "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
             "--add-opens=java.base/java.nio.charset=ALL-UNNAMED", // required by BeanSchemaKt
             "--add-opens=java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec
+            "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED", // required by AccessTrackingProperties
             "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED", // serialized from org.gradle.internal.file.StatStatistics$Collector
             "--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED" // serialized from IvyDescriptorFileGenerator.Model
         ));

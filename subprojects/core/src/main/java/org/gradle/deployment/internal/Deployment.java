@@ -17,8 +17,7 @@
 package org.gradle.deployment.internal;
 
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A deployed application.

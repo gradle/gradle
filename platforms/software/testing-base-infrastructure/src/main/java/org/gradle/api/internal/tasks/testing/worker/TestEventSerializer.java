@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.AssertionFailureDetails;
 import org.gradle.api.internal.tasks.testing.AssumptionFailureDetails;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
@@ -44,6 +43,7 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -173,7 +173,7 @@ public class TestEventSerializer {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class DefaultTestFailureSerializer implements Serializer<TestFailure> {
         private final Serializer<Throwable> throwableSerializer;
 
@@ -228,19 +228,17 @@ public class TestEventSerializer {
             }
 
             // Order is important here because a file comparison is _also_ an assertion failure
+            final TestFailureDetails details;
             if (isFileComparisonFailure) {
-                TestFailureDetails details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
             } else if (isAssertionFailure) {
-                TestFailureDetails details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
             } else if (isAssumptionFailure) {
-                TestFailureDetails details = new AssumptionFailureDetails(message, className, stacktrace);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new AssumptionFailureDetails(message, className, stacktrace);
             } else {
-                TestFailureDetails details = new DefaultTestFailureDetails(message, className, stacktrace);
-                return new DefaultTestFailure(rawFailure, details, causes);
+                details = new DefaultTestFailureDetails(message, className, stacktrace);
             }
+            return new DefaultTestFailure(rawFailure, details, causes);
         }
 
         /**
@@ -352,7 +350,7 @@ public class TestEventSerializer {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class DefaultParameterizedTestDescriptorSerializer implements Serializer<DefaultParameterizedTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 

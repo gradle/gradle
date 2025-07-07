@@ -18,11 +18,11 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 class WarTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def canCreateAWarArchiveWithNoWebXml() {
@@ -358,26 +358,5 @@ task war(type: War) {
 
         then:
         skipped ":war"
-    }
-
-    def "emits deprecation message when war convention is accessed"() {
-        setup:
-        buildFile << '''
-            plugins {
-                id 'war'
-            }
-
-            tasks.register('custom') {
-                println webAppDir
-            }
-        '''
-
-        expect:
-        executer
-            .expectDocumentedDeprecationWarning('The org.gradle.api.plugins.WarPluginConvention type has been deprecated. ' +
-                'This is scheduled to be removed in Gradle 9.0. ' +
-                'Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#war_convention_deprecation')
-
-        succeeds 'custom'
     }
 }

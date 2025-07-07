@@ -136,7 +136,7 @@ data class CIBuildModel(
                 StageName.QUICK_FEEDBACK,
                 functionalTests =
                     listOf(
-                        TestCoverage(2, TestType.QUICK, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC),
+                        TestCoverage(2, TestType.QUICK, Os.WINDOWS, JvmCategory.MIN_VERSION),
                     ),
             ),
             Stage(
@@ -145,7 +145,6 @@ data class CIBuildModel(
                     listOf(
                         SpecificBuild.BuildDistributions,
                         SpecificBuild.Gradleception,
-                        SpecificBuild.GradleceptionWithGroovy4,
                         SpecificBuild.CheckLinks,
                         SpecificBuild.CheckTeamCityKotlinDSL,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
@@ -211,7 +210,7 @@ data class CIBuildModel(
                             6,
                             TestType.QUICK_FEEDBACK_CROSS_VERSION,
                             Os.WINDOWS,
-                            JvmCategory.MIN_VERSION_WINDOWS_MAC,
+                            JvmCategory.MIN_VERSION,
                             QUICK_CROSS_VERSION_BUCKETS.size,
                         ),
                     ),
@@ -238,7 +237,7 @@ data class CIBuildModel(
                             DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE,
                         ),
                         TestCoverage(8, TestType.SOAK, Os.LINUX, JvmCategory.MAX_LTS_VERSION, 1),
-                        TestCoverage(9, TestType.SOAK, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC, 1),
+                        TestCoverage(9, TestType.SOAK, Os.WINDOWS, JvmCategory.MIN_VERSION, 1),
                         TestCoverage(35, TestType.SOAK, Os.MACOS, JvmCategory.MAX_LTS_VERSION, 1, arch = Arch.AARCH64),
                         TestCoverage(
                             10,
@@ -251,7 +250,7 @@ data class CIBuildModel(
                             11,
                             TestType.ALL_VERSIONS_CROSS_VERSION,
                             Os.WINDOWS,
-                            JvmCategory.MIN_VERSION_WINDOWS_MAC,
+                            JvmCategory.MIN_VERSION,
                             ALL_CROSS_VERSION_BUCKETS.size,
                         ),
                         TestCoverage(
@@ -266,7 +265,7 @@ data class CIBuildModel(
                             14,
                             TestType.PLATFORM,
                             Os.MACOS,
-                            JvmCategory.MIN_VERSION_WINDOWS_MAC,
+                            JvmCategory.MIN_VERSION,
                             expectedBucketNumber = 5,
                             arch = Arch.AMD64,
                         ),
@@ -288,7 +287,7 @@ data class CIBuildModel(
                             34,
                             TestType.ALL_VERSIONS_INTEG_MULTI_VERSION,
                             Os.WINDOWS,
-                            JvmCategory.MIN_VERSION_WINDOWS_MAC,
+                            JvmCategory.MIN_VERSION,
                             ALL_CROSS_VERSION_BUCKETS.size,
                         ),
                         TestCoverage(
@@ -376,7 +375,7 @@ data class CIBuildModel(
             ),
             Stage(
                 StageName.HISTORICAL_PERFORMANCE,
-                trigger = Trigger.WEEKLY,
+                trigger = if (branch.isLegacyRelease) Trigger.NEVER else Trigger.WEEKLY,
                 runsIndependent = true,
                 performanceTests =
                     listOf(
@@ -579,7 +578,7 @@ enum class TestType(
     ALL_VERSIONS_INTEG_MULTI_VERSION(false, true, false),
     PARALLEL(false, true, false),
 
-    NO_DAEMON(false, true, false, 300),
+    NO_DAEMON(false, true, false, 360),
     CONFIG_CACHE(false, true, false),
     ISOLATED_PROJECTS(false, true, false),
     SOAK(false, false, false),
@@ -672,12 +671,6 @@ enum class SpecificBuild {
             model: CIBuildModel,
             stage: Stage,
         ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default")
-    },
-    GradleceptionWithGroovy4 {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovy4 = true)
     },
     GradleceptionWithMaxLtsJdk {
         override fun create(

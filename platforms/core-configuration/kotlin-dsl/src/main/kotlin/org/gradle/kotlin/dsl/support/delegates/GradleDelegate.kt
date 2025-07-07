@@ -39,15 +39,15 @@ import java.io.File
 /**
  * Facilitates the implementation of the [Gradle] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class GradleDelegate : Gradle {
 
     init {
         @Suppress("DEPRECATION")
         if (!org.gradle.kotlin.dsl.InitScriptApi::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(GradleDelegate::class.java)
-                .willBeRemovedInGradle9()
-                .undocumented()
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }
@@ -145,7 +145,7 @@ abstract class GradleDelegate : Gradle {
         delegate.removeListener(listener)
 
     @Suppress("DEPRECATION")
-    @Deprecated("Will be removed in Gradle 9. Logging customization through listeners is no longer supported.")
+    @Deprecated("Will be removed in Gradle 10. Logging customization through listeners is no longer supported.")
     override fun useLogger(logger: Any) =
         delegate.useLogger(logger)
 

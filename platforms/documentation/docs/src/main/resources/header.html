@@ -144,7 +144,8 @@
                 <li><a href="../userguide/installation.html">Installing Gradle</a></li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#upgrading-gradle" aria-expanded="false" aria-controls="upgrading-gradle">Upgrading Gradle</a>
                     <ul id="upgrading-gradle">
-                        <li><a href="../userguide/upgrading_version_8.html">version 8.X to latest</a></li>
+                        <li><a href="../userguide/upgrading_version_9.html">version 9.X to latest</a></li>
+                        <li><a href="../userguide/upgrading_version_8.html">version 8.X to 9.0</a></li>
                         <li><a href="../userguide/upgrading_version_7.html">version 7.X to 8.0</a></li>
                         <li><a href="../userguide/upgrading_version_6.html">version 6.X to 7.0</a></li>
                         <li><a href="../userguide/upgrading_version_5.html">version 5.X to 6.0</a></li>
@@ -176,7 +177,7 @@
                         <li><a href="../userguide/task_basics.html">7. Tasks Basics</a></li>
                         <li><a href="../userguide/plugin_basics.html">8. Plugins Basics</a></li>
                         <li><a href="../userguide/gradle_optimizations.html">9. Caching Basics</a></li>
-                        <li><a href="../userguide/build_scans.html">10. Build Scans</a></li>
+                        <li><a href="../userguide/build_scans.html">10. Build Scan</a></li>
 
                     </ul>
                 </li>
@@ -197,7 +198,7 @@
                         <li><a href="../userguide/logging.html">Gradle Log Levels</a></li>
                         <li><a href="../userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
                         <li><a href="../userguide/gradle_daemon.html">Gradle Daemon</a></li>
-                        <li><a href="../userguide/inspect.html">Build Scans</a></li>
+                        <li><a href="../userguide/inspect.html">Build Scan</a></li>
                         <li><a href="../userguide/continuous_builds.html">Continuous Builds</a></li>
                         <li><a href="../userguide/file_system_watching.html">File System Watching</a></li>
                     </ul>
@@ -290,11 +291,6 @@
             <h3 id="optimizing-build-performance">Optimizing Gradle Builds</h3>
             <ul>
                 <li><a href="../userguide/performance.html">Improving Performance Basics</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#configuration-cache" aria-expanded="false" aria-controls="configuration-cache">Configuration Cache</a>
-                    <ul id="configuration-cache">
-                        <li><a href="../userguide/configuration_cache.html">Enabling and Configuring</a></li>
-                    </ul>
-                </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#build-cache" aria-expanded="false" aria-controls="build-cache">Build Cache</a>
                     <ul id="build-cache">
                         <li><a href="../userguide/build_cache.html">Enabling and Configuring</a></li>
@@ -305,6 +301,15 @@
                         <li><a href="../userguide/caching_android_projects.html">Caching Android Project</a></li>
                         <li><a href="../userguide/build_cache_debugging.html">Debugging Caching Issues</a></li>
                         <li><a href="../userguide/common_caching_problems.html">Troubleshooting</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#configuration-cache" aria-expanded="false" aria-controls="configuration-cache">Configuration Cache</a>
+                    <ul id="configuration-cache">
+                        <li><a href="../userguide/configuration_cache.html">How it Works</a></li>
+                        <li><a href="../userguide/configuration_cache_enabling.html">Enabling and Configuring</a></li>
+                        <li><a href="../userguide/configuration_cache_requirements.html">Requirements for your Build Logic</a></li>
+                        <li><a href="../userguide/configuration_cache_debugging.html">Debugging and Troubleshooting</a></li>
+                        <li><a href="../userguide/configuration_cache_status.html">Status</a></li>
                     </ul>
                 </li>
             </ul>
@@ -368,6 +373,7 @@
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-resolution" aria-expanded="false" aria-controls="dependency-resolution">Controlling Dependency Resolution</a>
                     <ul id="dependency-resolution">
                         <li><a href="../userguide/dependency_resolution_consistency.html">Consistent Dependency Resolution</a></li>
+                        <li><a href="../userguide/resolving_specific_artifacts.html">Resolving Specific Artifacts</a></li>
                         <li><a href="../userguide/component_capabilities.html">Capabilities</a></li>
                         <li><a href="../userguide/variant_attributes.html">Variants and Attributes</a></li>
                         <li><a href="../userguide/artifact_views.html">Artifact Views</a></li>
@@ -464,10 +470,13 @@
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#gradle-best-practices" aria-expanded="false" aria-controls="gradle-best-practices">Gradle Best Practices</a>
                     <ul id="gradle-best-practices">
                         <li><a href="../userguide/best_practices.html">Introduction</a></li>
+                        <li><a href="../userguide/best_practices_index.html">Index</a></li>
                         <li><a href="../userguide/best_practices_general.html">General Best Practices</a></li>
+                        <li><a href="../userguide/best_practices_structuring_builds.html">Best Practices for Structuring Builds</a></li>
                         <li><a href="../userguide/best_practices_dependencies.html">Best Practices for Dependencies</a></li>
                         <li><a href="../userguide/best_practices_tasks.html">Best Practices for Tasks</a></li>
                         <li><a href="../userguide/best_practices_performance.html">Best Practices for Performance</a></li>
+                        <li><a href="../userguide/best_practices_security.html">Best Practices for Security</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#core-plugins" aria-expanded="false" aria-controls="core-plugins">Core Plugins</a>

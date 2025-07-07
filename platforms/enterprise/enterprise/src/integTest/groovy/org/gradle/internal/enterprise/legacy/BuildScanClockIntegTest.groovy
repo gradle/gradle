@@ -21,7 +21,7 @@ import org.gradle.internal.scan.time.BuildScanClock
 
 class BuildScanClockIntegTest extends AbstractIntegrationSpec {
 
-    def "can access build scan time provider"() {
+    def "can access Build Scan time provider"() {
         when:
         buildFile << """
             def time = project.services.get($BuildScanClock.name).currentTime

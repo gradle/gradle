@@ -26,7 +26,11 @@ plugins {
 
 description = "Entry point of the Gradle wrapper command"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+    }
+}
 
 dependencies {
     implementation(projects.cli)
@@ -42,10 +46,12 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(libs.jetty)
+    integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.logging)
     crossVersionTestImplementation(projects.persistentCache)
     crossVersionTestImplementation(projects.launcher)
+    crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
 
     integTestNormalizedDistribution(projects.distributionsFull)
     crossVersionTestNormalizedDistribution(projects.distributionsFull)
@@ -59,6 +65,7 @@ val executableJar by tasks.registering(Jar::class) {
     manifest {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
+        attributes("SPDX-License-Identifier" to "Apache-2.0")
         attributes(Attributes.Name.MAIN_CLASS.toString() to "org.gradle.wrapper.GradleWrapperMain")
         // Allow launcher to access JNI: https://openjdk.org/jeps/472
         attributes("Enable-Native-Access" to "ALL-UNNAMED")
@@ -67,7 +74,6 @@ val executableJar by tasks.registering(Jar::class) {
     from(sourceSets.main.get().output)
     // Exclude properties files from this project as they are not needed for the executable JAR
     exclude("gradle-*-classpath.properties")
-    exclude("gradle-*-parameter-names.properties")
 }
 
 // Using Gr8 plugin with ProGuard to minify the wrapper JAR.
@@ -84,7 +90,6 @@ gr8 {
         exclude("META-INF/.*")
         // Exclude properties files from dependency subprojects
         exclude("gradle-.*-classpath.properties")
-        exclude("gradle-.*-parameter-names.properties")
     }
 }
 

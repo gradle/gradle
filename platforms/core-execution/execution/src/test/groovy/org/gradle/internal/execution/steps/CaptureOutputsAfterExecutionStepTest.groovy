@@ -17,11 +17,11 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.caching.internal.SimpleBuildCacheKey
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
-import org.gradle.internal.execution.caching.impl.DefaultBuildCacheKey
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -73,7 +73,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> 
         1 * delegate.execute(work, _) >> delegateResult
 
         then:
-        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(hashCodeFrom(1234)), beforeExecutionState)
+        _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(hashCodeFrom(1234)), beforeExecutionState)
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
         0 * _
     }
@@ -106,7 +106,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> 
         then:
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         1 * outputFilter.filterOutputs(context, beforeExecutionState, outputSnapshots) >> filteredOutputSnapshots
-        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(buildCacheKey), beforeExecutionState)
+        _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(buildCacheKey), beforeExecutionState)
         0 * _
     }
 

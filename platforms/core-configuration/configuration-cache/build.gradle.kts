@@ -11,6 +11,11 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+// The integration tests in this project do not need to run in 'isolated projects' mode.
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -22,6 +27,7 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.fileTemp)
     api(projects.graphSerialization)
+    api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
@@ -53,21 +59,20 @@ dependencies {
     implementation(projects.files)
     implementation(projects.flowServices)
     implementation(projects.functional)
-    implementation(projects.guavaSerializationCodecs)
     implementation(projects.hashing)
     implementation(projects.inputTracking)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
+    implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
-    implementation(libs.fastutil)
     implementation(libs.guava)
+    implementation(libs.jspecify)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
@@ -80,9 +85,10 @@ dependencies {
     runtimeOnly(libs.kotlinReflect)
 
     testImplementation(projects.beanSerializationServices)
+    testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
     testImplementation(libs.kotlinCoroutinesDebug)
 
     integTestImplementation(projects.cli)
@@ -117,7 +123,4 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/internal/cc/**")
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

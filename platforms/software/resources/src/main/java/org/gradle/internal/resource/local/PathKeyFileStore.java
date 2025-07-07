@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.local;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * File store that accepts the target path as the key for the entry.

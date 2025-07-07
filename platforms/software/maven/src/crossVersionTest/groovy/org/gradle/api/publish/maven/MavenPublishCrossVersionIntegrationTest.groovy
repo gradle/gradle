@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.util.GradleVersion
 
 @DoesNotSupportNonAsciiPaths(reason = "Old Gradle versions don't deal well with non-ASCII paths")
 class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -33,7 +32,7 @@ class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         projectPublishedUsingMavenPublishPlugin('java')
 
         expect:
-        consumePublicationWithPreviousVersion(false)
+        consumePublicationWithPreviousVersion()
 
         file('build/resolved').assertHasDescendants('published-1.9.jar', 'test-project-1.2.jar')
     }
@@ -43,7 +42,7 @@ class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         projectPublishedUsingMavenPublishPlugin('web')
 
         expect:
-        consumePublicationWithPreviousVersion(true)
+        consumePublicationWithPreviousVersion()
 
         file('build/resolved').assertHasDescendants('published-1.9.war')
     }
@@ -81,7 +80,7 @@ publishing {
         version current withTasks 'publish' run()
     }
 
-    def consumePublicationWithPreviousVersion(boolean expectDeprecationWarningForGradle11To112) {
+    def consumePublicationWithPreviousVersion() {
         settingsFile.text = "rootProject.name = 'consumer'"
 
         buildFile.text = """
@@ -105,9 +104,6 @@ task retrieve(type: Sync) {
 """
 
         def executer = version previous
-        if (expectDeprecationWarningForGradle11To112 && GradleVersion.version("1.1") <= previous.version && previous.version <= GradleVersion.version("1.12")) {
-            executer.expectDeprecationWarning()
-        }
         executer.requireOwnGradleUserHomeDir() withTasks 'retrieve' run()
     }
 }

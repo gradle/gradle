@@ -55,7 +55,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         if (useIvy()) {
             buildFile << """
                 dependencies {
-                    $variantToTest group: 'org.test', name: 'moduleA', version: '1.0' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+                    $variantToTest("org.test:moduleA:1.0") {
+                        if (${!publishedModulesHaveAttributes}) {
+                            targetConfiguration = "$variantToTest"
+                        }
+                    }
                 }
             """
         } else {

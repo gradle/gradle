@@ -116,4 +116,4 @@ This speeds up local and CI builds since cycles are not wasted re-building binar
 You can consult the <<build_cache#build_cache,Build cache chapter>> to learn more.
 
 [.text-right]
-**Next Step:** <<build_scans.adoc#build_scans,Learn about Build Scans>> >>
+**Next Step:** <<build_scans.adoc#build_scans,Learn about Build Scan>> >>
