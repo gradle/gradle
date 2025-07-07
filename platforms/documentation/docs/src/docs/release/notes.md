@@ -230,8 +230,7 @@ This feature provides a quick overview of the task graph, helping users understa
 You can iterate by diving into a subgraph by adjusting an invocation.
 
 This feature is incubating and may change in future releases.
-Additionally, it shares a known [issue](https://github.com/gradle/gradle/issues/2517) with `--dry-run`:
-Tasks from included builds may still be executed.
+Note that tasks from some included builds may still be executed during the configuration time.
 
 ## Promoted features
 
