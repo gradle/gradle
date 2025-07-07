@@ -125,7 +125,7 @@ object BuildParams {
     const val RERUN_ALL_TESTS = "rerunAllTests"
     const val SKIP_BUILD_LOGIC_TESTS = "skipBuildLogicTests"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
-    const val TEAMCITY_PARALLEL_TESTS_CURRENT_BATCH = "teamCityParallelTestsBatch"
+    const val TEAMCITY_PARALLEL_TESTS_CURRENT_BATCH = "teamCityParallelTestsCurrentBatch"
     const val TEST_DISTRIBUTION_DOGFOODING_TAG = "testDistributionDogfoodingTag"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
     const val TEST_DISTRIBUTION_PARTITION_SIZE = "testDistributionPartitionSizeInSeconds"
