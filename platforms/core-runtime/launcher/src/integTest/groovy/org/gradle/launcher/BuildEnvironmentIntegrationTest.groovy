@@ -117,9 +117,9 @@ task check {
         """
 
         buildFile """
-        assert System.getProperty("java.security.properties") == "${customPropertiesFile.absolutePath}"
-        println "keystore.type = \${java.security.Security.getProperty("keystore.type")}"
-        println "default keystore type = \${java.security.KeyStore.getDefaultType()}"
+        assert "${customPropertiesFile.absolutePath}" == System.getProperty("java.security.properties")
+        // The "keystore.type" security property defines the base value for this
+        println "default keystore type = " + java.security.KeyStore.getDefaultType()
         """
 
         when:
@@ -127,7 +127,6 @@ task check {
         succeeds("help")
 
         then:
-        outputContains("keystore.type = ${keystoreType}")
         outputContains("default keystore type = ${keystoreType}")
 
         where:
