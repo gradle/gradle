@@ -50,7 +50,7 @@ interface ValueDataContainer<out DValue, out DValueFactory : DValue, out DLitera
 typealias ValueData<DValue> = ValueDataContainer<DValue, DValue, DValue, DValue>
 
 
-fun <C, D> C.data(node: DeclarativeDocument.Node): D where C : NodeData<out D>, C : ValueData<out D> = when (node) {
+fun <C, D> C.data(node: DeclarativeDocument.Node): D where C : NodeData<D>, C : ValueData<D> = when (node) {
     is DeclarativeDocument.DocumentNode -> data(node)
     is DeclarativeDocument.ValueNode -> data(node)
 }

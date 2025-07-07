@@ -1,4 +1,4 @@
  - Configuration Cache is the recommended execution mode
  - Gradle requires JVM 17 or higher to run
- - Build scripts use Kotlin 2.1 and Groovy 4.0
+ - Build scripts use Kotlin 2.2 and Groovy 4.0
  - Improved Kotlin DSL script compilation avoidance

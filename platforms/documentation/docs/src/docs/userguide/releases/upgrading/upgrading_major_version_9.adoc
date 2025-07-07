@@ -53,28 +53,25 @@ For more, see the <<upgrading_version_8.adoc#minimum_daemon_jvm_version,Running 
 <<tooling_api.adoc#embedding,Gradle Tooling API>> and <<test_kit#test_kit, TestKit>> remain compatible with JVM 8 and higher.
 
 [[kotlin-2]]
-=== Upgrade to Kotlin 2.1.21
+==== Upgrade to Kotlin 2.2.0
 
-Gradle now embeds Kotlin 2.1.21, upgrading from the previously embedded version 2.0.21.
+Gradle now embeds Kotlin 2.2.0, upgrading from the previously embedded version 2.0.21.
 
-For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21[Kotlin release notes].
+For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.0[Kotlin release notes].
 
-=== Kotlin DSL and plugins use the Kotlin language version 2.1
+==== Kotlin DSL and plugins use the Kotlin language version 2.2
 
-The Kotlin DSL has been upgraded to the latest stable link:https://kotlinlang.org/docs/whatsnew2120.html[Kotlin 2.1.x] runtime and uses Kotlin language version 2.1 across the entire toolchain.
+The Kotlin DSL has been upgraded to the latest stable link:https://kotlinlang.org/docs/whatsnew2120.html[Kotlin 2.2.x] runtime and uses Kotlin language version 2.2 across the entire toolchain.
 This marks a shift from Gradle 8.x, which embedded link:https://kotlinlang.org/docs/whatsnew20.html[Kotlin 2.0] starting in 8.11 but continued using Kotlin language version 1.8 for compatibility.
 
 This change impacts not only Kotlin DSL scripts (`.gradle.kts`) but also build logic and plugins written in Kotlin (both classic and convention plugins).
-Users should review their code for compatibility with link:https://kotlinlang.org/docs/compatibility-guide-21.html[Kotlin 2.1], as both link:https://kotlinlang.org/docs/compatibility-guide-20.html[Kotlin 2.0] and 2.1 introduced several breaking language changes.
+Users should review their code for compatibility with link:https://kotlinlang.org/docs/compatibility-guide-22.html[Kotlin 2.2], as both link:https://kotlinlang.org/docs/compatibility-guide-20.html[Kotlin 2.0] and link:https://kotlinlang.org/docs/compatibility-guide-21.html[Kotlin 2.1] introduced several breaking language changes.
 
 Due to changes in how the Kotlin 2 compiler handles script compilation, you can no longer refer to the script instance using labels like `this@Build_gradle`, `this@Settings_gradle`, or `this@Init_gradle`.
 If they are used to reference the DSL script target object, then use `project`, `settings`, or `gradle` instead.
 If they are used to reference a top-level symbol that happens to have the same name as a nested symbol, then use a different name, possibly by adding an intermediary variable.
 
-This upgrade also includes several important changes for build-logic and plugin authors:
-
-* Support for Kotlin language versions 1.4 and 1.5 has been removed.
-* Kotlin language version 1.7 is now deprecated.
+This upgrade also includes an important change for build-logic and plugin authors: support for Kotlin language versions from 1.4 to 1.7 has been removed.
 
 Read the link:#jspecify[JSpecify section] below to learn about potential breaking changes in Kotlin build logic code related to nullability.
 
