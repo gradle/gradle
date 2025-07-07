@@ -114,7 +114,8 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         expectConfigurationCacheRequestedDeprecation()
         executer.expectExternalDeprecatedMessage("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
 
-        build("help").apply {
+        // Suppress CC problem caused by the outdated KGP version. Can be removed when KGP 2.0+ is used.
+        build("help", "-Dorg.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true").apply {
             assertThat(output, containsString("some!"))
         }
     }
