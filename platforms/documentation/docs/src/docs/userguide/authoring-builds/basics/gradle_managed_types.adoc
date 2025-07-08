@@ -17,6 +17,8 @@
 
 Gradle Managed Types are the building blocks for writing modern, efficient, and cache-friendly build logic.
 
+image::gradle-basic-12.png[]
+
 They replace eager properties (like `val file = File(...)`) with lazy, trackable inputs and outputs, enabling incremental builds, build caching, and configuration cache support.
 
 == Common Managed Types

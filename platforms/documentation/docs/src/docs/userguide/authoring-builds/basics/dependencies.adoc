@@ -17,6 +17,8 @@
 
 Gradle provides a rich model for managing dependencies, resolving conflicts, and enforcing consistency.
 
+image::gradle-basic-13.png[]
+
 == Dependencies Block
 
 The dependencies block in Gradle is where you declare the external libraries, internal modules, and files your project needs to compile, run, or test.

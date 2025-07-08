@@ -65,4 +65,4 @@ If you haven’t read the <<gradle_basics.adoc#gradle,Learning the Basics>> sect
 Already comfortable with the basics? Great — you’re ready to move on to the more advanced concepts next.
 
 [.text-right]
-**Next Step:** <<getting_started_dev.adoc#dev_introduction,Authoring Gradle Builds>> >>
+**Next Step:** <<,Start the Tutorial>> >>

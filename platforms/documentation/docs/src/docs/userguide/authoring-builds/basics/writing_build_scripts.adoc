@@ -13,9 +13,11 @@
 // limitations under the License.
 
 [[writing_build_scripts]]
-= Authoring Build Scripts
+= Writing Build Scripts
 
 The initialization phase in the Gradle Build lifecycle finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
+
+image::gradle-basic-11.png[]
 
 For each project included in the settings file, Gradle creates a link:{javadocPath}/org/gradle/api/Project.html[`Project`] instance.
 Gradle then looks for a corresponding build file, which is used during the configuration phase to configure the `Project` object.

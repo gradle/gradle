@@ -13,9 +13,12 @@
 // limitations under the License.
 
 [[build_lifecycle]]
-= Build Lifecycle
+= Gradle Build Lifecycle
 
 As a build author, you write build logic by defining tasks and declaring how they depend on one another.
+
+image::gradle-basic-10.png[]
+
 Gradle uses this information to construct a **task graph** that models the relationships between these tasks.
 
 For example, if your project includes tasks such as `build`, `assemble`, and `createDocs`, and you declare that `assemble` depends on `build`, and `createDocs` depends on `assemble`, Gradle constructs a graph with this order: `build` → `assemble` → `createDocs`.

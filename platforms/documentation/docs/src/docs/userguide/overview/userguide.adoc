@@ -58,7 +58,7 @@ Want to get up and running with Gradle quickly? Take our free, self-paced Gradle
 </div>
 ++++
 
-== For Software Developers
+== For Software Engineers and Developers
 
 For software developers that need to build, test, and publish their app, or add dependencies to their build, get started here:
 
@@ -68,9 +68,9 @@ For software developers that need to build, test, and publish their app, or add 
 _Description_: *Learn how to invoke tasks and add dependencies.* +
 _Training level_: **Beginner** +
 _Reading time_: **25 minutes** +
-<<gradle_basics.adoc#gradle,-> Read Core Concepts >>
+<<gradle_basics.adoc#gradle,-> Read Beginner Concepts >>
 
-=== 2. Hands-on Beginner Tutorial
+=== 2. Beginner Tutorial
 
 [sidebar]
 _Description_: *Initialize a Gradle build for a basic Java App.* +
@@ -88,9 +88,9 @@ Build engineers that are ready to configure custom build logic or write their ow
 _Description_: *Learn to configure builds, create tasks, and write plugins.* +
 _Training level_: **Intermediate** +
 _Reading time_: **35 minutes** +
-<<gradle_directories.adoc#gradle_directories,-> Read Core Concepts >>
+<<gradle_directories.adoc#gradle_directories,-> Read Intermediate Concepts >>
 
-=== 2. Hands-on Advanced Tutorial
+=== 2. Intermediate Tutorial
 
 [sidebar]
 _Description_: *Initialize a Gradle project and create a basic plugin.* +
@@ -98,14 +98,25 @@ _Training level_: **Intermediate** +
 _Training time_: **55 minutes** +
 <<part1_gradle_init_project#part1_begin,-> Start the Tutorial >>
 
-[[reference]]
-=== 3. API Reference
+== For Plugin Developers
 
-Gradle's API references can be found in the links below:
+Plugin authors that are ready to develop and publish their own plugins should start here:
 
-- link:{javadocPath}/index.html[Javadocs^]
-- link:{groovyDslPath}/index.html[Groovy DSL Reference^]
-- link:{kotlinDslPath}/index.html[Kotlin DSL Reference^]
+=== 1. Deep Dive
+
+[sidebar]
+_Description_: *Learn to write and publish a plugin.* +
+_Training level_: **Advanced** +
+_Reading time_: **35 minutes** +
+<<#,-> Read Advanced Concepts >>
+
+=== 2. Advanced Tutorial
+
+[sidebar]
+_Description_: *Initialize a Gradle project, create a plugin, and publish it.* +
+_Training level_: **Advanced** +
+_Training time_: **65 minutes** +
+<<#,COMING SOON! >>
 
 == Support
 

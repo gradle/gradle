@@ -17,6 +17,8 @@
 
 Much of Gradle's functionality is delivered via plugins, including core plugins distributed with Gradle, third-party plugins, and script plugins defined within builds.
 
+image::gradle-basic-15.png[]
+
 [[sec:what_plugins_do]]
 Plugins introduce new tasks (e.g., `JavaCompile`), domain objects (e.g., `SourceSet`), conventions (e.g., locating Java source at `src/main/java`), and extend core or other plugin objects.
 
