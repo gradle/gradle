@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.WrapUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -158,18 +157,18 @@ class UnixStartScriptGeneratorTest extends Specification {
         destination.toString().contains(text) == result
 
         where:
-        classpath                            | text                     | result
-        new ArrayList()                      | '-classpath "$CLASSPATH' | false
-        new ArrayList()                      | 'CLASSPATH='             | false
-        WrapUtil.toList('path\\to\\Jar.jar') | '-classpath "$CLASSPATH' | true
-        WrapUtil.toList('path\\to\\Jar.jar') | 'CLASSPATH='             | true
+        classpath             | text                     | result
+        []                    | '-classpath "$CLASSPATH' | false
+        []                    | 'CLASSPATH='             | false
+        ['path\\to\\Jar.jar'] | '-classpath "$CLASSPATH' | true
+        ['path\\to\\Jar.jar'] | 'CLASSPATH='             | true
     }
 
     private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(
         List<String> defaultJvmOpts,
         String scriptRelPath,
         AppEntryPoint appEntryPoint = new MainClass(""),
-        List<String> classpath = WrapUtil.toList('path\\to\\Jar.jar')
+        List<String> classpath = ['path\\to\\Jar.jar']
     ) {
         final String applicationName = 'TestApp'
         return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
