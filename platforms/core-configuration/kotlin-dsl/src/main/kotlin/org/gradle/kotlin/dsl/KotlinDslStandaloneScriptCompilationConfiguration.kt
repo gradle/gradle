@@ -33,8 +33,8 @@ abstract class KotlinDslStandaloneScriptCompilationConfiguration protected const
 
     isStandalone(true)
     compilerOptions.put(listOf(
-        "-language-version", "2.1",
-        "-api-version", "2.1",
+        "-language-version", "2.2",
+        "-api-version", "2.2",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
         "-Xjspecify-annotations=strict",

@@ -177,7 +177,7 @@ sealed class PropertyTrace {
         }
     }
 
-    @Suppress("DataClassPrivateConstructor")
+    @ConsistentCopyVisibility
     data class BuildLogic private constructor(
         val source: DisplayName,
         val lineNumber: Int? = null
