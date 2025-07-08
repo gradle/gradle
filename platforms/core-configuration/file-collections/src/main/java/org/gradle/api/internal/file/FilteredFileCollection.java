@@ -61,6 +61,11 @@ public class FilteredFileCollection extends AbstractFileCollection {
     }
 
     @Override
+    protected String getEvaluationOwnerNameNoReentrance() {
+        return collection.getEvaluationOwnerName() + ".filter({})";
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         collection.visitDependencies(context);
     }

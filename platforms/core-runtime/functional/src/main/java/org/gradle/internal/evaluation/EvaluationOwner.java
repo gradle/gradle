@@ -19,4 +19,18 @@ package org.gradle.internal.evaluation;
 /**
  * A marker interface for types that can be evaluating.
  */
-public interface EvaluationOwner {}
+public interface EvaluationOwner {
+    String CIRCULAR_REFERENCE = "<CIRCULAR REFERENCE>";
+
+    /**
+     * Returns the display name of this evaluation owner, used to format the failure message.
+     * <p>
+     * The name is intentionally obtuse to prevent accidental collisions.
+     *
+     * @implSpec the default implementation returns the {@code toString()} value.
+     * @return the display name of the owner
+     */
+    default String getEvaluationOwnerName() {
+        return toString();
+    }
+}

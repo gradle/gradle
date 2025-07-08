@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * An immutable sequence of file collections.
@@ -44,6 +45,11 @@ public class UnionFileCollection extends CompositeFileCollection {
     @Override
     public String getDisplayName() {
         return "file collection";
+    }
+
+    @Override
+    protected String getEvaluationOwnerNameNoReentrance() {
+        return source.stream().map(FileCollectionInternal::getEvaluationOwnerName).collect(Collectors.joining(" + ", "(", ")"));
     }
 
     @Override

@@ -59,9 +59,9 @@ public class CircularEvaluationException extends GradleException {
     /**
      * Computes {@code Object.toString()}, but swallows all thrown exceptions.
      */
-    private static String safeToString(Object owner) {
+    private static String safeToString(EvaluationOwner owner) {
         try {
-            return owner.toString();
+            return owner.getEvaluationOwnerName();
         } catch (Throwable e) {
             // Calling e.getMessage() here can cause infinite recursion.
             // It happens if e is CircularEvaluationException itself, because getMessage calls formatEvaluationChain.

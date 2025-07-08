@@ -374,4 +374,18 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     ) {
         visitor.visitCollection(OTHER, this);
     }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Override {@link #getEvaluationOwnerNameNoReentrance()} instead.
+     */
+    @Override
+    public final String getEvaluationOwnerName() {
+        return EvaluationContext.current().tryEvaluate(this, CIRCULAR_REFERENCE, this::getEvaluationOwnerNameNoReentrance);
+    }
+
+    protected String getEvaluationOwnerNameNoReentrance() {
+        return getDisplayName();
+    }
 }

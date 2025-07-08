@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.evaluation.EvaluationOwner;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -45,6 +46,11 @@ public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     @Override
     public String getDisplayName() {
         return "file collection";
+    }
+
+    @Override
+    protected String getEvaluationOwnerNameNoReentrance() {
+        return "(" + left.getEvaluationOwnerName() + " - " + ((EvaluationOwner) right).getEvaluationOwnerName() + ")";
     }
 
     @Override

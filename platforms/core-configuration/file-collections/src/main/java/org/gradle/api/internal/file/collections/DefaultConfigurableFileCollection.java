@@ -43,6 +43,7 @@ import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.evaluation.EvaluationOwner;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
@@ -61,6 +62,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
@@ -172,6 +174,17 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public String getDisplayName() {
         return displayName == null ? "file collection" : displayName.getDisplayName();
+    }
+
+    @Override
+    protected String getEvaluationOwnerNameNoReentrance() {
+        if (displayName != null) {
+            return displayName.getDisplayName();
+        }
+
+        return value.getItems().stream()
+            .map(item -> item instanceof EvaluationOwner ? ((EvaluationOwner) item).getEvaluationOwnerName() : item.toString())
+            .collect(Collectors.joining(", ", "files(", ")"));
     }
 
     @Override
@@ -535,6 +548,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
          * Returns a shallow copy of this value collector, to avoid sharing mutable data.
          */
         ValueCollector isolated();
+
+        Collection<?> getItems();
     }
 
     private static class EmptyCollector implements ValueCollector {
@@ -580,6 +595,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Override
         public ValueCollector isolated() {
             return this;
+        }
+
+        @Override
+        public Collection<?> getItems() {
+            return ImmutableList.of();
         }
     }
 
@@ -707,6 +727,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
                 return null;
             }
         }
+
+        @Override
+        public Collection<?> getItems() {
+            return items;
+        }
     }
 
     private static class ResolvedItemsCollector implements ValueCollector {
@@ -762,6 +787,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Override
         public ValueCollector isolated() {
             return this;
+        }
+
+        @Override
+        public Collection<?> getItems() {
+            return fileCollections;
         }
     }
 
