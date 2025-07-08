@@ -221,6 +221,7 @@ class ConfigurationCacheProblems(
             }
             .documentationSection(DocumentationSection.TaskOptOut).build()
         report.onIncompatibleTask(problem)
+        summarizer.onIncompatibleTask()
     }
 
     override fun onProblem(problem: PropertyProblem) {

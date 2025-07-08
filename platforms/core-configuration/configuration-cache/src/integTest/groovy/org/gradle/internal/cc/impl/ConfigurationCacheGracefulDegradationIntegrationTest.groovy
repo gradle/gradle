@@ -21,6 +21,25 @@ import org.gradle.api.internal.ConfigurationCacheDegradationController
 import javax.inject.Inject
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+    public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER = "Some tasks in this build are not compatible with the configuration cache."
+    public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible task"
+
+    def "a compatible build does not print degradation reasons"() {
+        buildFile """
+            System.getenv("HOME")  // Add a configuration input to force report to be generated
+            tasks.register("compatible") {
+                doLast {
+                    println("Hello")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("compatible", "-D${LOG_REPORT_LINK_AS_WARNING}=true")
+
+        then:
+        assertNoConfigurationCacheDegradation()
+    }
 
     def "a task can require CC degradation"() {
         def configurationCache = newConfigurationCacheFixture()
@@ -445,12 +464,16 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     private void assertConfigurationCacheDegradation(boolean hasOtherProblems = false) {
-        def reportLinkPreamble = "Some tasks in this build are not compatible with the configuration cache."
         if (hasOtherProblems) {
-            outputDoesNotContain(reportLinkPreamble)
+            outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER)
         } else {
-            outputContains(reportLinkPreamble)
+            outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER)
         }
-        postBuildOutputContains("Configuration cache disabled because incompatible task")
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_REASON)
+    }
+
+    private void assertNoConfigurationCacheDegradation() {
+        outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER)
+        postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
     }
 }
