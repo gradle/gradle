@@ -76,6 +76,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -124,6 +125,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(GLOBAL_SERVICES.get(ClientExecHandleBuilderFactory.class), GLOBAL_SERVICES.get(TemporaryFileProvider.class))));
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
+    protected boolean debugMode = false;
 
     // TODO - don't use statics to communicate between the test runner and executer
     public static void propagateSystemProperty(String name) {
@@ -230,6 +232,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (gradleVersion.compareTo(GradleVersion.version("4.5.0")) < 0) {
             warningMode = null;
         }
+        debugMode = isDebuggerAttached();
+        maybeApplyDebugMode();
+    }
+
+    protected static boolean isDebuggerAttachedImpl() {
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
+    }
+
+
+    protected boolean isDebuggerAttached() {
+        return false; // no need for remote debugging for embedded executor
     }
 
     protected Logger getLogger() {
@@ -274,7 +287,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
+        maybeApplyDebugMode();
         return this;
+    }
+
+    private void maybeApplyDebugMode() {
+        if (debugMode) {
+            startBuildProcessInDebugger(true);
+        }
     }
 
     @Override
@@ -411,10 +431,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        if (debug.isEnabled()) {
+        if (isDebug()) {
             executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts));
         }
-        if (debugLauncher.isEnabled()) {
+        if (isDebugLauncher()) {
             executer.startLauncherInDebugger(opts -> debugLauncher.copyTo(opts));
         }
 
@@ -603,7 +623,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     /**
      * Returns additional JVM args that should be used to start the build JVM.
      */
-    protected List<String> getImplicitBuildJvmArgs() {
+    public List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOpts = new ArrayList<>();
         buildJvmOpts.add("-ea");
 

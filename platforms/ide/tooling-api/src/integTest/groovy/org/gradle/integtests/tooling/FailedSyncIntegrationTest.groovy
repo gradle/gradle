@@ -22,8 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiBackedGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpec
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
-// TODO: wrong package/project, just using for convenience
-
 class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements ToolingApiSpec {
 
     def "broken settings file - strict mode- build action"() {
@@ -79,7 +77,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         model.paths == [":", ":included"]
     }
 
-    def "basic project w/ included build - broken included build settings file - build action"() {
+    def "basic project w/ included build - broken included build settings file and build script - strict mode - build action"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"

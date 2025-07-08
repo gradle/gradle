@@ -36,6 +36,11 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         super(distribution, testDirectoryProvider)
     }
 
+    @Override
+    protected boolean isDebuggerAttached() {
+        return isDebuggerAttachedImpl();
+    }
+
     void withToolingApiJvmArgs(String... args) {
         jvmArgs.addAll(args.toList())
     }
