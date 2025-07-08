@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.specs.Spec
+import org.gradle.internal.evaluation.CircularEvaluationException
 import org.spockframework.lang.Wildcard
 
 import java.util.concurrent.Callable
@@ -2045,5 +2046,50 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         ["src2"]        | _             | _                 | "from() before convention prevents it"        | { it.from("src2"); it.convention("src1") }
         ["src1", "src2"]| _             | ["src1"]          | "from() commits convention"                   | { it.from("src2"); it.unsetConvention() }
         ["src1"]        | _             | ["src1"]          | "from() does not modify convention"           | { it.from("src2"); it.unset() }
+    }
+
+    def "self reference is allowed in #operation"() {
+        given:
+        collection = containing(file("src1"), file("src2"))
+
+        when:
+        actionValue(this)
+
+        then:
+        collection.files as List == expected
+
+        where:
+        operation | actionValue                                                                      | expected
+        "from"    | action { it.collection.from(it.collection) }                                     | [file("src1"), file("src2")]
+        "setFrom" | action { it.collection.setFrom(it.collection) }                                  | [file("src1"), file("src2")]
+        "plus"    | action { it.collection.setFrom(it.collection + it.containing(file("src3"))) }    | [file("src1"), file("src2"), file("src3")]
+        "filter"  | action { it.collection.setFrom(it.collection.filter { it.name.contains("1") }) } | [file("src1")]
+    }
+
+    def "self reference is disallowed in #operation"() {
+        given:
+        collection = containing(file("src1"), file("src2"))
+        actionValue(this)
+
+        when:
+        collection.files
+
+        then:
+        def e = thrown(CircularEvaluationException)
+        e.printStackTrace()
+
+        where:
+        operation    | actionValue
+        "from(lazy)" | action { def c = it.collection; c.from({ c }) } // This is an opaque self-reference not detectable by "replace()" upon assignment
+        "minus"      | action { it.collection.setFrom(it.collection - it.containing(file("src1"))) }
+    }
+
+    // Workaround to access spec fields from a closure defined in the where: block and have types visible to the IDE.
+    private static Closure<Void> action(Consumer<DefaultConfigurableFileCollectionSpec> action) {
+        return { action.accept(it) }
+    }
+
+    private static File file(String name) {
+        return new File(name)
     }
 }
