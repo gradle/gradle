@@ -171,10 +171,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
-    private final ConfigurableFileCollection testClassesDirs = getObjectFactory().fileCollection();
+    private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
-    private final ConfigurableFileCollection classpath = getObjectFactory().fileCollection();
-    private final ConfigurableFileCollection stableClasspath = getObjectFactory().fileCollection();
+    private FileCollection classpath;
+    private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -184,8 +184,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
+        testClassesDirs = objectFactory.fileCollection();
+        classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
-        stableClasspath.from((Callable<Object>) this::getClasspath);
+        stableClasspath = objectFactory.fileCollection();
+        stableClasspath.from(new Callable<Object>() {
+            @Override
+            public Object call() {
+                return getClasspath();
+            }
+        });
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
@@ -860,7 +868,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.0
      */
     public void setTestClassesDirs(FileCollection testClassesDirs) {
-        this.testClassesDirs.setFrom(testClassesDirs);
+        this.testClassesDirs = testClassesDirs;
     }
 
     /**
@@ -1110,7 +1118,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     public void setClasspath(FileCollection classpath) {
-        this.classpath.setFrom(classpath);
+        this.classpath = classpath;
     }
 
     /**

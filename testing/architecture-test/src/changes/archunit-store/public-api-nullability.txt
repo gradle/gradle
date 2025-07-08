@@ -165,6 +165,7 @@ Class <org.gradle.api.tasks.testing.AggregateTestReport> is not annotated (direc
 Class <org.gradle.api.tasks.testing.GroupTestEventReporter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GroupTestEventReporter.java:0)
 Class <org.gradle.api.tasks.testing.JUnitXmlReport> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JUnitXmlReport.java:0)
 Class <org.gradle.api.tasks.testing.Test$1> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (Test.java:0)
+Class <org.gradle.api.tasks.testing.Test$2> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (Test.java:0)
 Class <org.gradle.api.tasks.testing.TestEventReporter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestEventReporter.java:0)
 Class <org.gradle.api.tasks.testing.TestEventReporterFactory> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestEventReporterFactory.java:0)
 Class <org.gradle.api.tasks.testing.TestExecutionException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestExecutionException.java:0)

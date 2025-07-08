@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
@@ -73,13 +72,12 @@ public abstract class AntlrTask extends SourceTask {
     private boolean traceTreeWalker;
     private List<String> arguments = new ArrayList<>();
 
-    ConfigurableFileCollection antlrClasspath = getProject().getObjects().fileCollection();
+    private FileCollection antlrClasspath;
 
     private File outputDirectory;
     private String maxHeapSize;
     private FileCollection sourceSetDirectories;
     private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
-
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -201,7 +199,7 @@ public abstract class AntlrTask extends SourceTask {
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
      */
     protected void setAntlrClasspath(FileCollection antlrClasspath) {
-        this.antlrClasspath.setFrom(antlrClasspath);
+        this.antlrClasspath = antlrClasspath;
     }
 
     @Inject
