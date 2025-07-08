@@ -101,7 +101,7 @@ This configuration ensures that only the correct artifacts are exposed and preve
 [[sec:setup-consumer]]
 == Step 2: Configuring the consumer project
 
-In Gradle, it's important to separate the configuration where you declare dependencies from the one where you resolve artifacts.
+In Gradle, it's recommended to separate the configuration where you declare dependencies from the one where you resolve artifacts.
 
 First, the consumer project creates two configurations:
 
@@ -174,7 +174,7 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProject
 
 If the consumer fails to resolve the artifact, check:
 
-- The attributes in the consumer are compatible to those in the producer.
+- The attributes in the consumer are compatible with those in the producer.
 - The producer project properly declares the artifact.
 - There are no conflicting configurations with different attributes.
 
@@ -183,8 +183,8 @@ If the consumer fails to resolve the artifact, check:
 
 There are two perspectives to keep in mind:
 
-1. *Inside a project*: You configure configurations, which declare how your build consumes or produces artifacts.
-2. *Outside a project*: Gradle resolves variants published by other projects, selecting the best match based on compatibility with the consuming configuration’s attributes.
+1. *Configuring a project*: You configure configurations, which declare how your build consumes or produces artifacts.
+2. *Referencing a project*: Gradle resolves variants published by other projects, selecting the best match based on compatibility with the consuming configuration’s attributes.
 
 _Variant-aware_ sharing enables clean and flexible artifact sharing between projects.
 It avoids hardcoded task dependencies and improves build maintainability.

@@ -5,10 +5,7 @@ plugins {
 
 // This configuration is used to declare dependencies only.
 // It is neither resolvable nor consumable.
-val instrumentedRuntimeDependencies by configurations.creating {
-    isCanBeConsumed = false
-    isCanBeResolved = false
-}
+val instrumentedRuntimeDependencies by configurations.dependencyScope("instrumentedRuntimeDependencies")
 
 // This resolvable configuration is used to resolve the instrumented JAR files.
 // It extends from the dependency-declaring configuration above.

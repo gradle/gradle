@@ -4,10 +4,7 @@ plugins {
 }
 
 // This configuration is used to declare dependencies only.
-def instrumentedRuntimeDependencies = configurations.create("instrumentedRuntimeDependencies") {
-    canBeConsumed = false
-    canBeResolved = false
-}
+def instrumentedRuntimeDependencies = configurations.dependencyScope("instrumentedRuntimeDependencies")
 
 // This resolvable configuration is used to resolve the instrumented JAR files.
 def instrumentedRuntime = configurations.resolvable("instrumentedRuntime") {
