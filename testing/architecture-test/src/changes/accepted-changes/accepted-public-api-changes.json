@@ -1731,7 +1731,7 @@
         {
             "type": "org.gradle.api.tasks.AbstractExecTask",
             "member": "Method org.gradle.api.tasks.AbstractExecTask.setArgs(java.lang.Iterable)",
-            "acceptation": "Setting parameter to null doesn't work",
+            "acceptation": "Setting parameter to null doesn\u0027t work",
             "changes": [
                 "Parameter 0 from null accepting to non-null accepting breaking change"
             ]
@@ -1747,7 +1747,7 @@
         {
             "type": "org.gradle.api.tasks.Exec",
             "member": "Method org.gradle.api.tasks.Exec.setArgs(java.lang.Iterable)",
-            "acceptation": "Setting parameter to null doesn't work",
+            "acceptation": "Setting parameter to null doesn\u0027t work",
             "changes": [
                 "Parameter 0 from null accepting to non-null accepting breaking change"
             ]
@@ -3760,6 +3760,46 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String)",
+            "acceptation": "Kotlin 2.2 produces JVM default methods instead of abstract methods for invoke operators",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String,java.lang.Object[],kotlin.jvm.functions.Function1)",
+            "acceptation": "Kotlin 2.2 produces JVM default methods instead of abstract methods for invoke operators",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String,kotlin.Pair[])",
+            "acceptation": "Kotlin 2.2 produces JVM default methods instead of abstract methods for invoke operators",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String,kotlin.Pair[],kotlin.jvm.functions.Function1)",
+            "acceptation": "Kotlin 2.2 produces JVM default methods instead of abstract methods for invoke operators",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Kotlin 2.2 produces JVM default methods instead of abstract methods for invoke operators",
+            "changes": [
+                "Abstract method is now default method"
             ]
         },
         {
