@@ -103,7 +103,8 @@ tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
 // After introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper-executable.jar and processed
 //   by gr8, then the processed `gradle-wrapper.jar` need to be copied back to build/libs for promotion build
 val copyGr8OutputJarAsGradleWrapperJar by tasks.registering(Copy::class) {
-    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
+    // unwrap output jar as a workaround for https://github.com/gradle/gradle/issues/33045
+    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { providers.provider { it.outputJar().get() } })
     into(layout.buildDirectory.dir("libs"))
 }
 
@@ -119,7 +120,8 @@ tasks.jar {
     if (launcherDebuggingIsEnabled) { // shadowing and minification prevents debugging
         from(debuggableJar)
     } else {
-        from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
+        // unwrap output jar as a workaround for https://github.com/gradle/gradle/issues/33045
+        from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { providers.provider { it.outputJar().get() } })
         dependsOn(copyGr8OutputJarAsGradleWrapperJar)
     }
 }
