@@ -26,6 +26,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
+import org.gradle.internal.evaluation.EvaluationContext;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
@@ -71,26 +73,31 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
 
     @Override
     public void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
-        visitContents(new FileCollectionStructureVisitor() {
-            @Override
-            public void visitCollection(Source source, Iterable<File> contents) {
-                throw new UnsupportedOperationException("Should not be called");
-            }
+        try (EvaluationScopeContext scope = EvaluationContext.current().open(this)) {
+            visitContents(scope, new FileCollectionStructureVisitor() {
+                @Override
+                public void visitCollection(Source source, Iterable<File> contents) {
+                    throw new UnsupportedOperationException("Should not be called");
+                }
 
-            @Override
-            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                visitor.accept(fileTree);
-            }
+                @Override
+                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                    visitor.accept(fileTree);
+                }
 
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitor.accept(fileTree);
-            }
-        });
+                @Override
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                    visitor.accept(fileTree);
+                }
+            });
+        }
     }
 
     @Override
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(
+        @SuppressWarnings("unused") EvaluationScopeContext scope,
+        FileCollectionStructureVisitor visitor
+    ) {
         collection.visitStructure(new FileCollectionStructureVisitor() {
             final Set<File> seen = new HashSet<>();
 

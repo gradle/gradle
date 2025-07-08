@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
@@ -117,7 +118,10 @@ public final class FileTreeAdapter extends AbstractFileTree {
     }
 
     @Override
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(
+        @SuppressWarnings("unused") EvaluationScopeContext scope,
+        FileCollectionStructureVisitor visitor
+    ) {
         tree.visitStructure(new MinimalFileTree.MinimalFileTreeStructureVisitor() {
 
             @Override

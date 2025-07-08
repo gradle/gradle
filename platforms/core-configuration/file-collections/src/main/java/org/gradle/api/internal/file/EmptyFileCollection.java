@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import java.io.File;
 import java.util.Optional;
@@ -42,7 +43,10 @@ final class EmptyFileCollection extends AbstractFileCollection {
     }
 
     @Override
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(
+        @SuppressWarnings("unused") EvaluationScopeContext scope,
+        FileCollectionStructureVisitor visitor
+    ) {
     }
 
     @Override

@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
@@ -108,7 +109,10 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(
+        @SuppressWarnings("unused") EvaluationScopeContext scope,
+        FileCollectionStructureVisitor visitor
+    ) {
         visitChildren(child -> child.visitStructure(visitor));
     }
 }

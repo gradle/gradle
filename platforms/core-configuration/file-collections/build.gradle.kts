@@ -9,6 +9,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.files)
+    api(projects.functional)
     api(projects.modelCore)
     api(projects.logging)
     api(projects.native)

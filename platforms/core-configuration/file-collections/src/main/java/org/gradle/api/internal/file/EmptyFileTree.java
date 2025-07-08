@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import java.io.File;
 import java.util.Collections;
@@ -76,6 +77,9 @@ final class EmptyFileTree extends AbstractFileTree {
     }
 
     @Override
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(
+        @SuppressWarnings("unused") EvaluationScopeContext scope,
+        FileCollectionStructureVisitor visitor
+    ) {
     }
 }

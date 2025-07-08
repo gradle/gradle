@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveConte
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 public class ResolutionBackedFileCollection extends AbstractFileCollection {
@@ -70,7 +71,10 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
     }
 
     @Override
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(
+        @SuppressWarnings("unused") EvaluationScopeContext scope,
+        FileCollectionStructureVisitor visitor
+    ) {
         ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
         artifacts.visitFiles(collectingVisitor, lenient);
         maybeThrowResolutionFailures(collectingVisitor);

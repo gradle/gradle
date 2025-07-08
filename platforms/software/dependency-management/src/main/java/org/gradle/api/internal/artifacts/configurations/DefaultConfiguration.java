@@ -102,6 +102,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -516,7 +517,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(
+        @SuppressWarnings("unused") EvaluationScopeContext scope,
+        FileCollectionStructureVisitor visitor
+    ) {
         getIntrinsicFiles().visitStructure(visitor);
     }
 

@@ -41,6 +41,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.deprecation.DocumentedFailure;
+import org.gradle.internal.evaluation.EvaluationContext;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
@@ -121,29 +123,31 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     public Set<File> getFiles() {
         // Use a JVM type here, rather than a Guava type, as some plugins serialize this return value and cannot deserialize the result
         Set<File> files = new LinkedHashSet<>();
-        visitContents(new FileCollectionStructureVisitor() {
-            @Override
-            public void visitCollection(Source source, Iterable<File> contents) {
-                for (File content : contents) {
-                    files.add(content);
+        try (EvaluationScopeContext scope = EvaluationContext.current().open(this)) {
+            visitContents(scope, new FileCollectionStructureVisitor() {
+                @Override
+                public void visitCollection(Source source, Iterable<File> contents) {
+                    for (File content : contents) {
+                        files.add(content);
+                    }
                 }
-            }
 
-            private void addTreeContents(FileTreeInternal fileTree) {
-                // TODO - add some convenient way to visit the files of the tree without collecting them into a set
-                files.addAll(fileTree.getFiles());
-            }
+                private void addTreeContents(FileTreeInternal fileTree) {
+                    // TODO - add some convenient way to visit the files of the tree without collecting them into a set
+                    files.addAll(fileTree.getFiles());
+                }
 
-            @Override
-            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                addTreeContents(fileTree);
-            }
+                @Override
+                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                    addTreeContents(fileTree);
+                }
 
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                addTreeContents(fileTree);
-            }
-        });
+                @Override
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                    addTreeContents(fileTree);
+                }
+            });
+        }
         return files;
     }
 
@@ -353,16 +357,21 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     /**
-     * This is final - override {@link #visitContents(FileCollectionStructureVisitor)} instead to provide the contents.
+     * This is final - override {@link #visitContents(EvaluationScopeContext, FileCollectionStructureVisitor)}} instead to provide the contents.
      */
     @Override
     public final void visitStructure(FileCollectionStructureVisitor visitor) {
         if (visitor.startVisit(OTHER, this)) {
-            visitContents(visitor);
+            try (EvaluationScopeContext scope = EvaluationContext.current().open(this)) {
+                visitContents(scope, visitor);
+            }
         }
     }
 
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(
+        @SuppressWarnings("unused") EvaluationScopeContext scope,
+        FileCollectionStructureVisitor visitor
+    ) {
         visitor.visitCollection(OTHER, this);
     }
 }

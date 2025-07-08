@@ -54,10 +54,5 @@ public abstract class AbstractOpaqueFileCollection extends AbstractFileCollectio
         return getIntrinsicFiles().iterator();
     }
 
-    @Override
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
-        visitor.visitCollection(OTHER, this);
-    }
-
     abstract protected Set<File> getIntrinsicFiles();
 }
