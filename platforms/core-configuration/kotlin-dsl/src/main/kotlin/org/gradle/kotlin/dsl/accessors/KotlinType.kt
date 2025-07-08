@@ -16,9 +16,9 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.KmType
 import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.newTypeParameterTypeOf
+import kotlin.metadata.KmType
 
 
 internal

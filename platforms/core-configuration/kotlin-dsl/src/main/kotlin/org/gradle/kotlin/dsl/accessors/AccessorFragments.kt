@@ -15,15 +15,6 @@
  */
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.KmFunction
-import kotlinx.metadata.KmProperty
-import kotlinx.metadata.KmPropertyAccessorAttributes
-import kotlinx.metadata.KmType
-import kotlinx.metadata.KmTypeProjection
-import kotlinx.metadata.KmVariance
-import kotlinx.metadata.hasAnnotations
-import kotlinx.metadata.isNullable
-import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Project
@@ -64,6 +55,15 @@ import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Type
+import kotlin.metadata.KmFunction
+import kotlin.metadata.KmProperty
+import kotlin.metadata.KmPropertyAccessorAttributes
+import kotlin.metadata.KmType
+import kotlin.metadata.KmTypeProjection
+import kotlin.metadata.KmVariance
+import kotlin.metadata.isNullable
+import kotlin.metadata.jvm.JvmMethodSignature
+import kotlin.metadata.jvm.hasAnnotationsInBytecode
 
 
 internal
@@ -819,7 +819,7 @@ fun MetadataFragmentScope.maybeFunctionHasAnnotations(attributes: KmFunction.() 
     useLowPriorityInOverloadResolution -> {
         {
             attributes(this)
-            hasAnnotations = true
+            hasAnnotationsInBytecode = true
         }
     }
 
@@ -831,7 +831,7 @@ fun MetadataFragmentScope.maybePropertyHasAnnotations(attributes: KmProperty.() 
     useLowPriorityInOverloadResolution -> {
         {
             attributes(this)
-            hasAnnotations = true
+            hasAnnotationsInBytecode = true
         }
     }
 
@@ -945,37 +945,37 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
 
 private fun KmFunction.hasAnnotationsIfDeprecated(deprecation: Deprecated?) {
     if (deprecation != null) {
-        hasAnnotations = true
+        hasAnnotationsInBytecode = true
     }
 }
 
 private fun KmProperty.hasAnnotationsIfDeprecated(deprecation: Deprecated?) {
     if (deprecation != null) {
-        hasAnnotations = true
+        hasAnnotationsInBytecode = true
     }
 }
 
 private fun KmPropertyAccessorAttributes.hasAnnotationsIfDeprecated(deprecation: Deprecated?) {
     if (deprecation != null) {
-        hasAnnotations = true
+        hasAnnotationsInBytecode = true
     }
 }
 
 private fun KmFunction.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
     if (optInRequirements != null) {
-        hasAnnotations = true
+        hasAnnotationsInBytecode = true
     }
 }
 
 private fun KmProperty.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
     if (optInRequirements != null) {
-        hasAnnotations = true
+        hasAnnotationsInBytecode = true
     }
 }
 
 private fun KmPropertyAccessorAttributes.hasAnnotationsIfRequiresOptIn(optInRequirements: List<AnnotationRepresentation>?) {
     if (optInRequirements != null) {
-        hasAnnotations = true
+        hasAnnotationsInBytecode = true
     }
 }
 

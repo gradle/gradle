@@ -90,7 +90,7 @@ dependencies {
     implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
         isTransitive = false
     }
-    shadow("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0") {
+    shadow(libs.futureKotlin("metadata-jvm")) {
         isTransitive = false
     }
 
@@ -150,7 +150,7 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
-// Relocate kotlinx-metadata-jvm
+// Relocate kotlin-metadata-jvm
 configurations.compileOnly {
     extendsFrom(configurations.shadow.get())
 }

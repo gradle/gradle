@@ -36,8 +36,8 @@ import org.jetbrains.kotlin.load.java.ReportLevel
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     compilerOptions {
         allWarningsAsErrors = true
-        apiVersion = KotlinVersion.KOTLIN_1_8
-        languageVersion = KotlinVersion.KOTLIN_1_8
+        apiVersion = KotlinVersion.KOTLIN_2_2
+        languageVersion = KotlinVersion.KOTLIN_2_2
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
             "-Xjspecify-annotations=strict",
@@ -53,8 +53,8 @@ fun CompilerConfiguration.configureKotlinCompilerForGradleBuild() {
     put(
         CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS,
         LanguageVersionSettingsImpl(
-            languageVersion = LanguageVersion.KOTLIN_1_8,
-            apiVersion = ApiVersion.KOTLIN_1_8,
+            languageVersion = LanguageVersion.KOTLIN_2_2,
+            apiVersion = ApiVersion.KOTLIN_2_2,
             analysisFlags = mapOf(
                 JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
                     Jsr305Settings(ReportLevel.STRICT, ReportLevel.STRICT)
