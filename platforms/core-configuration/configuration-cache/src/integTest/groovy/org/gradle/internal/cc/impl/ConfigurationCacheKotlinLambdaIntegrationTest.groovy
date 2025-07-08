@@ -16,19 +16,13 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.JavaVersion
-import org.gradle.test.fixtures.dsl.GradleDsl
 
-import static org.junit.Assume.assumeTrue
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 class ConfigurationCacheKotlinLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "defers evaluation of #description objects"() {
         given:
-        // TODO Remove after a wrapper upgrade
-        assumeTrue(JavaVersion.current() < JavaVersion.VERSION_24)
-
-        and:
         file("buildSrc/settings.gradle.kts").text = ""
         file("buildSrc/build.gradle.kts").text = """
             plugins { `embedded-kotlin` }
