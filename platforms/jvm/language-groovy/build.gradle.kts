@@ -51,6 +51,7 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(testFixtures(projects.modelReflect))
     testFixturesImplementation(libs.guava)
+    testFixturesImplementation(testFixtures(projects.core))
 
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(libs.commonsLang)

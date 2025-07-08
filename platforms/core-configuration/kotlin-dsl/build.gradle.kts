@@ -137,6 +137,8 @@ dependencies {
     testFixturesImplementation(projects.testKit)
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.unitTestFixtures)
+    testFixturesImplementation(projects.serviceRegistryImpl)
 
     testFixturesImplementation(testFixtures(projects.hashing))
 
