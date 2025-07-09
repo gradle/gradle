@@ -106,7 +106,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
         @Override
         public List<String> getResolutions() {
-            return Collections.singletonList(Documentation.upgradeGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage());
+            return Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage());
         }
     }
 }
