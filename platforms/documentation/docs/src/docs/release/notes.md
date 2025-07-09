@@ -112,7 +112,7 @@ Additional updates for the [Configuration Cache](userguide/configuration_cache.h
 <a name="jvm-17"></a>
 ### Gradle requires Java Virtual Machine (JVM) version 17 or higher to run
 
-Gradle requires a Java Virtual Machine (JVM) version [17 or higher](userguide/upgrading_version_8.html#jvm-17) to start the Gradle daemon.
+Gradle requires a Java Virtual Machine (JVM) version [17 or higher](userguide/upgrading_major_version_9.html#jvm-17) to start the Gradle daemon.
 
 If you need to build with older JVM versions, you can specify a separate JDK toolchain in the build definition by using [toolchains](userguide/toolchains.html).  
 Gradle still supports compiling, testing and running other JVM-based tools with Java 8 and higher.
@@ -133,7 +133,7 @@ Gradle uses Kotlin for build logic, which includes:
 - Plugins
 
 As a result, some behavior has changed, most notably the new K2 compiler and [nullability annotations on APIs](#jspecify).
-If you're upgrading, review the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#kotlin-2) for migration details.
+If you're upgrading, review the [Gradle 9.0.0 upgrade guide](userguide/upgrading_major_version_9.html#kotlin-2) for migration details.
 
 <a name="groovy-4"></a>
 ### Update to Groovy 4
@@ -148,7 +148,7 @@ Build scripts written in the Groovy DSL (`.gradle` files)
 Ant integration
 Plugins
 
-Some behavior has changed between Groovy 3.0 and 4.0. If you're upgrading, review the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#groovy-4) for migration details.
+Some behavior has changed between Groovy 3.0 and 4.0. If you're upgrading, review the [Gradle 9.0.0 upgrade guide](userguide/upgrading_major_version_9.html#groovy-4) for migration details.
 
 <a name="sem-ver"></a>
 ### Semantic Versioning for Gradle releases
@@ -185,7 +185,7 @@ Since Gradle 5.0 we've been using annotations from [JSR-305](https://jcp.org/en/
 Starting with Gradle 9, the Gradle API is annotated using [JSpecify](https://jspecify.dev/) instead.
 
 Kotlin 2.1, when combined with JSpecify annotations in the Gradle API, introduces stricter nullability handling.
-For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_version_8.html#jspecify).
+For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_major_version_9.html#jspecify).
 
 <a name="sem-ver-wrapper"></a>
 #### Support for major and minor version specification in Gradle Wrapper
@@ -211,13 +211,13 @@ Gradle’s [version information endpoint](https://services.gradle.org/versions/)
 
 #### Archive tasks produce reproducible archives by default
 
-Archive tasks such as `Jar`, `Ear`, `War`, `Zip`, `Tar`, and `AbstractArchiveTask` produce reproducible archives by default.
+Archive tasks such as `Jar`, `Ear`, `War`, `Zip`, `Tar`, and `AbstractArchiveTask` produce [reproducible archives by default](userguide/working_with_files.html#sec:reproducible_archives).
 This means that generated archives have reproducible file order and preconfigured file timestamps and permissions.
 As a result archives generated from the same inputs will be identical byte-for-byte.
 
 This change may affect builds that rely on non-deterministic archive characteristics like file order, file system timestamps, or file system permissions, or file executable bit.
 
-For more information, see the [upgrading guide section](userguide/upgrading_version_8.html#reproducible_archives_by_default).
+For more information, see the [upgrading guide section](userguide/upgrading_major_version_9.html#reproducible_archives_by_default).
 
 #### Detached configurations can resolve dependencies on their own project
 
