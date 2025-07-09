@@ -9,7 +9,7 @@ def instrumentedRuntimeDependencies = configurations.dependencyScope("instrument
 // This resolvable configuration is used to resolve the instrumented JAR files.
 def instrumentedRuntime = configurations.resolvable("instrumentedRuntime") {
     // Wire the dependency declarations
-    extendsFrom(instrumentedRuntimeDependencies)
+    extendsFrom(instrumentedRuntimeDependencies.get())
 
     // These attributes must be compatible with the producer
     attributes {
