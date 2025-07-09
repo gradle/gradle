@@ -16,12 +16,14 @@
 
 package org.gradle.internal.cc.impl.promo
 
+import org.gradle.BuildResult
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.configuration.problems.ProblemsListener
@@ -39,6 +41,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  *     <li>An incompatible API is used at configuration time (in other words, if a CC problem would be emitted by it).</li>
  *     <li>A {@code noCompatibleWithConfigurationCache} task is present in the main task graph.</li>
  *     <li>Graceful degradation is requested.</li>
+ *     <li>Build fails.</li>
  * </ul>
  *
  * Instances of this class are thread-safe.
@@ -57,7 +60,14 @@ internal class ConfigurationCachePromoHandler(
         // We cannot collect the state of the tasks in the whenReady callback to avoid racing with user-specified ones, which may modify the compatibility state.
         // We cannot listen for the task execution either, because incompatible tasks may not run (e.g. they may have onlyIf {false}).
         // Note that skipping tasks with "-x" excludes them from the graph, so we still nudge. CC behaves similarly.
-        buildRegistry.rootBuild.mutableModel.taskGraph.addExecutionListener(this::onRootBuildTaskGraphIsAboutToExecute)
+        val rootBuildGradle = buildRegistry.rootBuild.mutableModel
+        rootBuildGradle.taskGraph.addExecutionListener(this::onRootBuildTaskGraphIsAboutToExecute)
+
+        rootBuildGradle.addBuildListener(object : InternalBuildAdapter() {
+            override fun buildFinished(result: BuildResult) {
+                hasProblems = hasProblems || result.failure != null
+            }
+        })
     }
 
     private fun onRootBuildTaskGraphIsAboutToExecute(graph: TaskExecutionGraph) {

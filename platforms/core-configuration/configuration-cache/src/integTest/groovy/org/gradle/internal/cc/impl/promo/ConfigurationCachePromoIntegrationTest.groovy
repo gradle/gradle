@@ -38,7 +38,25 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         postBuildOutputContains(PROMO_PREFIX)
     }
 
-    def "shows promo message when build fails without giving explicit CC state"() {
+
+    def "shows no promo message if build fails at configuration time"() {
+        given:
+        buildFile """
+            throw new RuntimeException("failed")
+
+            tasks.register("run") {}
+        """
+
+        when:
+        fails("run")
+
+        then:
+        // TODO(mlopatkin) post-build output scraping is broken for failed builds
+        outputDoesNotContain(PROMO_PREFIX)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+    }
+
+    def "shows no promo message if build fails at execution time"() {
         given:
         buildFile """
             tasks.register("fail") { doLast { throw new UnsupportedOperationException("I must fail") } }
@@ -49,7 +67,8 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
         then:
         // TODO(mlopatkin) post-build output scraping is broken for failed builds
-        outputContains(PROMO_PREFIX)
+        outputDoesNotContain(PROMO_PREFIX)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
     }
 
     def "shows promo message when running with isolated projects disabled in command-line"() {
