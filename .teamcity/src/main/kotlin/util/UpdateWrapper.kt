@@ -49,12 +49,11 @@ object UpdateWrapper : BuildType({
                     exit 0
                 fi
                 
-                git commit -m "Update Gradle wrapper to version %wrapperVersion%"
-                
                 TIMESTAMP=$(date +%%Y%%m%%d-%%H%%M%%S)
                 BRANCH_NAME="update-wrapper-${"$"}TIMESTAMP"
-                
-                git checkout -b ${"$"}BRANCH_NAME
+
+                git switch -c ${"$"}BRANCH_NAME
+                git commit --signoff -m "Update Gradle wrapper to version %wrapperVersion%"
                 git push https://%github.bot-gradle.token%@github.com/gradle/gradle.git ${"$"}BRANCH_NAME
                 
                 PR_TITLE="Update Gradle wrapper to version %wrapperVersion%"
