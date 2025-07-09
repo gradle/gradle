@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.promo
 
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
@@ -297,8 +298,8 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
     def "shows no promo message if a task in the graph is marked as cc incompatible"() {
         given:
         buildFile """
-            tasks.register("incompatible") {
-                notCompatibleWithConfigurationCache("reasons")
+            tasks.register("incompatible") { task ->
+                $incompatibleReason
                 onlyIf { !Boolean.getBoolean("skip.incompatible") }
 
                 doLast {
@@ -335,13 +336,19 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
         then:
         postBuildOutputContains(PROMO_PREFIX)
+
+        where:
+        incompatibleReason << [
+            "notCompatibleWithConfigurationCache('reasons')",
+            "services.get(${ConfigurationCacheDegradationController.name}).requireConfigurationCacheDegradation(task, provider { 'reasons' })"
+        ]
     }
 
     def "shows promo message if an incompatible task is in the build logic build"() {
         given:
         buildFile("buildSrc/build.gradle", """
-            tasks.named("jar") {
-                notCompatibleWithConfigurationCache("reasons")
+            tasks.named("jar") { task ->
+                $incompatibleReason
             }
         """)
         buildFile """
@@ -353,5 +360,11 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
         then:
         postBuildOutputContains(PROMO_PREFIX)
+
+        where:
+        incompatibleReason << [
+            "notCompatibleWithConfigurationCache('reasons')",
+            "services.get(${ConfigurationCacheDegradationController.name}).requireConfigurationCacheDegradation(task, provider { 'reasons' })"
+        ]
     }
 }

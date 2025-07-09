@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -37,13 +38,15 @@ import org.gradle.internal.service.scopes.ServiceScope
  * <ul>
  *     <li>An incompatible API is used at configuration time (in other words, if a CC problem would be emitted by it).</li>
  *     <li>A {@code noCompatibleWithConfigurationCache} task is present in the main task graph.</li>
+ *     <li>Graceful degradation is requested.</li>
  * </ul>
  *
  * Instances of this class are thread-safe.
  */
 @ServiceScope(Scope.BuildTree::class)
-class ConfigurationCachePromoHandler(
+internal class ConfigurationCachePromoHandler(
     private val buildRegistry: BuildStateRegistry,
+    private val degradationController: DefaultConfigurationCacheDegradationController,
     private val documentationRegistry: DocumentationRegistry
 ) : RootBuildLifecycleListener, ProblemsListener {
     @Volatile
@@ -54,9 +57,19 @@ class ConfigurationCachePromoHandler(
         // We cannot collect the state of the tasks in the whenReady callback to avoid racing with user-specified ones, which may modify the compatibility state.
         // We cannot listen for the task execution either, because incompatible tasks may not run (e.g. they may have onlyIf {false}).
         // Note that skipping tasks with "-x" excludes them from the graph, so we still nudge. CC behaves similarly.
-        buildRegistry.rootBuild.mutableModel.taskGraph.addExecutionListener { graph ->
-            hasProblems = hasProblems || graph.hasIncompatibleTasks()
+        buildRegistry.rootBuild.mutableModel.taskGraph.addExecutionListener(this::onRootBuildTaskGraphIsAboutToExecute)
+    }
+
+    private fun onRootBuildTaskGraphIsAboutToExecute(graph: TaskExecutionGraph) {
+        if (!hasProblems) {
+            // Collecting degradation reasons may be somewhat expensive, let's skip it if the build is already incompatible.
+            // We can only collect the reasons before the start of the execution phase. CC does that too.
+            degradationController.collectDegradationReasons()
+            hasProblems = degradationController.hasDegradationReasons
         }
+
+        // Checking task graph for compatibility may be even more expensive, so do it only after collecting the degradation reasons.
+        hasProblems = hasProblems || graph.hasIncompatibleTasks()
     }
 
     override fun beforeComplete() {
