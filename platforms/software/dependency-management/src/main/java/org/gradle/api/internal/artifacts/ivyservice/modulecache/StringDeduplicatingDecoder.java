@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -87,6 +88,11 @@ class StringDeduplicatingDecoder implements Decoder, Closeable {
     @Override
     public String readString() throws EOFException, IOException {
         return stringInterner.intern(delegate.readString());
+    }
+
+    @Override
+    public File readFile() throws IOException {
+        return new File(readString());
     }
 
     @Override
