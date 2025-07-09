@@ -4,6 +4,8 @@ import common.BuildToolBuildJvm
 import common.Os
 import common.VersionedSettingsBranch
 import common.javaHome
+import common.requiresNotEc2Agent
+import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
@@ -14,6 +16,10 @@ object UpdateWrapper : BuildType({
     id("UpdateWrapper")
 
     vcs.useAbsoluteVcs(VersionedSettingsBranch.fromDslContext().vcsRootId())
+
+    requirements {
+        requiresOs(Os.LINUX)
+    }
 
     params {
         text(
@@ -35,29 +41,29 @@ object UpdateWrapper : BuildType({
                 """
                 #!/bin/bash
                 set -e
-                
+
                 git config user.name "bot-gradle"
                 git config user.email "bot-gradle@gradle.com"
 
                 ./gradlew wrapper --gradle-version=%wrapperVersion%
                 ./gradlew wrapper
-                
+
                 git add .
-                
+
                 if git diff --cached --quiet; then
                     echo "No changes to commit"
                     exit 0
                 fi
-                
+
                 TIMESTAMP=$(date +%%Y%%m%%d-%%H%%M%%S)
                 BRANCH_NAME="update-wrapper-${"$"}TIMESTAMP"
 
                 git switch -c ${"$"}BRANCH_NAME
                 git commit --signoff -m "Update Gradle wrapper to version %wrapperVersion%"
                 git push https://%github.bot-gradle.token%@github.com/gradle/gradle.git ${"$"}BRANCH_NAME
-                
+
                 PR_TITLE="Update Gradle wrapper to version %wrapperVersion%"
-                    
+
                 curl -X POST \
                     -H "Authorization: token %github.bot-gradle.token%" \
                     -H "Accept: application/vnd.github.v3+json" \
