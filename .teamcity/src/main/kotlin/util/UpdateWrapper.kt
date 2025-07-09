@@ -3,13 +3,10 @@ package util
 import common.BuildToolBuildJvm
 import common.Os
 import common.VersionedSettingsBranch
-import common.buildToolGradleParameters
-import common.gradleWrapper
 import common.javaHome
 import jetbrains.buildServer.configs.kotlin.BuildType
-import jetbrains.buildServer.configs.kotlin.buildFeatures.freeDiskSpace
-import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import vcsroots.useAbsoluteVcs
 
 object UpdateWrapper : BuildType({
@@ -24,7 +21,9 @@ object UpdateWrapper : BuildType({
             "should-be-overridden",
             display = ParameterDisplay.PROMPT,
             allowEmpty = false,
-            description = "The version of Gradle to update to. 'latest', 'release-candidate', 'release-milestone', 'release-nightly', 'nightly'.",
+            description =
+                "The version of Gradle to update to. " +
+                    "Can be a specific version or one of 'latest', 'release-candidate', 'release-milestone', 'release-nightly', 'nightly'.",
         )
         param("env.JAVA_HOME", javaHome(BuildToolBuildJvm, Os.LINUX))
     }
@@ -32,7 +31,8 @@ object UpdateWrapper : BuildType({
     steps {
         script {
             name = "Update Wrapper"
-            scriptContent = """
+            scriptContent =
+                """
                 #!/bin/bash
                 set -e
                 
@@ -69,7 +69,7 @@ object UpdateWrapper : BuildType({
                         \"head\": \"${"$"}BRANCH_NAME\",
                         \"base\": \"%teamcity.build.branch%\"
                     }"
-            """.trimIndent()
+                """.trimIndent()
         }
     }
 })
