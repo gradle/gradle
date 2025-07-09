@@ -228,7 +228,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         spec << SystemPropertiesCompositeBuildFixture.specsWithSystemPropertyAccess()
     }
 
-    def "passing cli override doesn't invalidates cache entry if property wasn't read at configuration time"() {
+    def "reuses cache when system property used only at execution time changes"() {
         given:
         String systemProp = "fromPropertiesFile"
         def fixture = spec.createFixtureFor(this, systemProp)
@@ -259,7 +259,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         spec << SystemPropertiesCompositeBuildFixture.specsWithoutSystemPropertyAccess()
     }
 
-    def "passing cli override invalidates cache entry if property was read at configuration time"() {
+    def "invalidates cache when system property used at configuration time changes"() {
         given:
         String systemProp = "fromPropertiesFile"
         def fixture = spec.createFixtureFor(this, systemProp)
