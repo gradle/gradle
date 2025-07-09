@@ -67,6 +67,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final List<NodeExecutor> nodeExecutors;
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
+    private final ListenerBroadcast<TaskExecutionGraphExecutionListener> internalGraphListeners;
     private final ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners;
     private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
     private final ServiceRegistry globalServices;
@@ -83,6 +84,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
+        ListenerBroadcast<TaskExecutionGraphExecutionListener> internalGraphListeners,
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
         ServiceRegistry globalServices
@@ -93,6 +95,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
+        this.internalGraphListeners = internalGraphListeners;
         this.taskListeners = taskListeners;
         this.buildScopeListenerRegistrationListener = buildScopeListenerRegistrationListener;
         this.globalServices = globalServices;
@@ -119,6 +122,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         if (!hasFiredWhenReady) {
             throw new IllegalStateException("Task graph should be populated before execution starts.");
         }
+
+        internalGraphListeners.getSource().beforeGraphExecutionStarts(this);
+
         try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
             return executeWithServices(projectExecutionServices);
         } finally {
@@ -182,6 +188,16 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         graphListeners.add(
             decorateListener("TaskExecutionGraph.whenReady", action::execute)
         );
+    }
+
+    @Override
+    public void addExecutionListener(TaskExecutionGraphExecutionListener listener) {
+        internalGraphListeners.add(listener);
+    }
+
+    @Override
+    public void removeExecutionListener(TaskExecutionGraphExecutionListener listener) {
+        internalGraphListeners.remove(listener);
     }
 
     @Override

@@ -293,4 +293,65 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         then:
         postBuildOutputContains(PROMO_PREFIX)
     }
+
+    def "shows no promo message if a task in the graph is marked as cc incompatible"() {
+        given:
+        buildFile """
+            tasks.register("incompatible") {
+                notCompatibleWithConfigurationCache("reasons")
+                onlyIf { !Boolean.getBoolean("skip.incompatible") }
+
+                doLast {
+                    println("I am not compatible")
+                }
+            }
+
+            tasks.register("withIncompatibleDep") {
+                dependsOn ":incompatible"
+                doLast { println "I am compatible" }
+            }
+        """
+
+        when: "incompatible task runs"
+        run("incompatible")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+
+        when: "incompatible task runs as dependency"
+        run("withIncompatibleDep")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+
+        when: "incompatible task is a skipped dependency"
+        run("withIncompatibleDep", "-Dskip.incompatible=true")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+
+        when: "promo is present when incompatible task is excluded from the task graph"
+        run("withIncompatibleDep", "-x", "incompatible")
+
+        then:
+        postBuildOutputContains(PROMO_PREFIX)
+    }
+
+    def "shows promo message if an incompatible task is in the build logic build"() {
+        given:
+        buildFile("buildSrc/build.gradle", """
+            tasks.named("jar") {
+                notCompatibleWithConfigurationCache("reasons")
+            }
+        """)
+        buildFile """
+            tasks.register("run") {}
+        """
+
+        when:
+        run("run")
+
+        then:
+        postBuildOutputContains(PROMO_PREFIX)
+    }
 }
