@@ -81,8 +81,10 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         def repo = publishKotlinLibraryWithInlineFunctionToRemote()
         def kotlinLibraryWithInlineFunction = "com.example:kotlin-library:1.0.0"
 
-        setupBaseProjectA()
         file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
             repositories {
                 maven { url = uri("${repo.uri}") }
             }
@@ -90,6 +92,15 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
                 implementation("$kotlinLibraryWithInlineFunction")
             }
         """
+        file("a/settings.gradle") << """
+            rootProject.name = "a"
+        """
+        file('a/src/main/java/A.java') << '''
+            public class A {
+                public void foo() {
+                }
+            }
+        '''
         file("a/gradle/init.gradle.kts") << """
             initscript {
                 repositories {
@@ -185,22 +196,6 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         '''
     }
 
-    void setupBaseProjectA() {
-        file("a/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-        """
-        file("a/settings.gradle") << """
-            rootProject.name = "a"
-        """
-        file('a/src/main/java/A.java') << '''
-            public class A {
-                public void foo() {
-                }
-            }
-        '''
-    }
 
     def publishKotlinLibraryWithInlineFunctionToRemote() {
         file("kotlin-library/build.gradle.kts") << """
