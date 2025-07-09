@@ -211,7 +211,7 @@ Gradle’s [version information endpoint](https://services.gradle.org/versions/)
 
 #### Archive tasks produce reproducible archives by default
 
-Archive tasks such as `Jar`, `Ear`, `War`, `Zip`, `Tar`, and `AbstractArchiveTask` produce reproducible archives by default.
+Archive tasks such as `Jar`, `Ear`, `War`, `Zip`, `Tar`, and `AbstractArchiveTask` produce [reproducible archives by default](userguide/working_with_files.html#sec:reproducible_archives).
 This means that generated archives have reproducible file order and preconfigured file timestamps and permissions.
 As a result archives generated from the same inputs will be identical byte-for-byte.
 
