@@ -9,6 +9,7 @@ import common.javaHome
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.buildFeatures.freeDiskSpace
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import vcsroots.useAbsoluteVcs
 
 object UpdateWrapper : BuildType({
@@ -18,7 +19,13 @@ object UpdateWrapper : BuildType({
     vcs.useAbsoluteVcs(VersionedSettingsBranch.fromDslContext().vcsRootId())
 
     params {
-        param("wrapperVersion", "should-be-overridden")
+        text(
+            "wrapperVersion",
+            "should-be-overridden",
+            display = ParameterDisplay.PROMPT,
+            allowEmpty = false,
+            description = "The version of Gradle to update to. 'latest', 'release-candidate', 'release-milestone', 'release-nightly', 'nightly'.",
+        )
         param("env.JAVA_HOME", javaHome(BuildToolBuildJvm, Os.LINUX))
     }
 
@@ -44,7 +51,7 @@ object UpdateWrapper : BuildType({
                 
                 git commit -m "Update Gradle wrapper to version %wrapperVersion%"
                 
-                TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+                TIMESTAMP=$(date +%%Y%%m%%d-%%H%%M%%S)
                 BRANCH_NAME="update-wrapper-${"$"}TIMESTAMP"
                 
                 git checkout -b ${"$"}BRANCH_NAME
