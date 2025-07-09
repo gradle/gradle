@@ -15,28 +15,34 @@
 [[writing_build_scripts]]
 = Writing Build Scripts
 
-The initialization phase in the Gradle Build lifecycle finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
+The initialization phase in the Gradle Build lifecycle finds the settings file.
 
 image::gradle-basic-11.png[]
 
-For each project included in the settings file, Gradle creates a link:{javadocPath}/org/gradle/api/Project.html[`Project`] instance.
-Gradle then looks for a corresponding build file, which is used during the configuration phase to configure the `Project` object.
+When Gradle evaluates the settings file, it creates a single link:{javadocPath}/org/gradle/api/Settings.html[`Settings`] instance.
+
+Then, for each project declared in the settings file, Gradle creates a corresponding link:{javadocPath}/org/gradle/api/Project.html[`Project`] instance.
+
+Gradle then locates the associated build script (e.g., `build.gradle(.kts)`) and uses it during the configuration phase to configure each `Project` object.
 
 == Anatomy of a Build Script
 
 Gradle build scripts are written in either <<groovy_build_script_primer.adoc#groovy_build_script_primer, Groovy DSL>> or <<kotlin_dsl.adoc#kotdsl:kotlin_dsl, Kotlin DSL>> (domain-specific language).
 The build script is either a `\*.gradle` file in Groovy or a `*.gradle.kts` file in Kotlin.
 
-As a build script executes, it configures a link:{javadocPath}/org/gradle/api/Project.html[`Project`] object and its children.
+As a build script executes, it configures either a link:{javadocPath}/org/gradle/api/Settings.html[`Settings`] object or link:{javadocPath}/org/gradle/api/Project.html[`Project`] object and its children.
 
+image::author-gradle-3.png[Build,500,63,align="left"]
 image::author-gradle-4.png[Build,500,63,align="left"]
+
+TIP: There is a third type of build script that also configures a link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`] object, but it is not covered in the intermediate concepts.
 
 === Script Structure
 
-A Gradle build script consists of two main types of elements:
+A Gradle script consists of two main types of elements:
 
-1. *Statements*: Top-level expressions that execute immediately during the configuration phase.
-2. *Blocks*: Nested sections (_closures_ or _lambdas_) passed to configuration methods that apply settings to Gradle objects.
+1. *Statements:* Top-level expressions that execute immediately during the initialization (for settings scripts) or configuration (for build scripts) phase.
+2. *Blocks:* Nested sections (Groovy _closures_ or Kotlin _lambdas_) passed to configuration methods. These blocks apply settings to Gradle objects like `project`, `pluginManagement`, `dependencyResolutionManagement`, `repositories`, or `dependencies`.
 
 Examples of common blocks include:
 
@@ -45,7 +51,8 @@ include::sample[dir="snippets/multiproject/basic-dependencies/kotlin",files="api
 include::sample[dir="snippets/multiproject/basic-dependencies/groovy",files="api/build.gradle[]"]
 ====
 
-Each block corresponds to a method on the Project API and is evaluated with a *delegate* or *receiver* (more on that below).
+In this case, we are looking at a build script.
+Therefore, each block corresponds to a method on the link:{javadocPath}/org/gradle/api/Project.html[`Project`] API and is evaluated with a *delegate* or *receiver* (more on that below).
 
 === Closures and Lambdas
 
@@ -63,7 +70,7 @@ repositories {
 }
 ----
 
-In this case, the `repositories {}` block is a method call where the _closure_ configures a `RepositoryHandler` instance.
+In this case, the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[`repositories {}`] block is a method call where the _closure_ configures a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`RepositoryHandler`] instance.
 
 [source,kotlin]
 ----
@@ -72,7 +79,8 @@ repositories {
 }
 ----
 
-In this case, the `repositories {}` block is a method call, and the _lambda_ configures a `RepositoryHandler` instance.
+In this case, the link:{kotlinDslPath}/gradle/org.gradle.api/-project/repositories.html[`repositories {}`] block is a method call, and the _lambda_ configures a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`RepositoryHandler`] instance.
+
 Inside the block, `mavenCentral()` is a method on that *receiver*, so no qualifier is needed.
 
 === Delegates and Receivers
@@ -82,7 +90,7 @@ Every configuration block executes in the context of an object:
 - In Groovy, this is the block's *delegate*.
 - In Kotlin, this is the block's *receiver*.
 
-Inside the `dependencies {}` block, for instance, the `implementation(...)` method is delegated to the `DependencyHandler`:
+Inside the link:{kotlinDslPath}/gradle/org.gradle.api/-project/dependencies.html[`dependencies {}`] block, for instance, the `implementation(...)` method is delegated to the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`DependencyHandler`]:
 
 [source,kotlin]
 ----
@@ -105,16 +113,7 @@ That means:
 
 This top-down execution model means the order of declarations can affect behavior, especially when using variables or configuring tasks.
 
-== Core Building Blocks
-
-Let's review core building blocks:
-
-- `plugins {}` — Apply and manage plugins
-- `repositories {}` — Where to resolve dependencies
-- `dependencies {}` — What your build needs
-- `tasks {}` — Registering and configuring work
-- Properties and extensions (`group`, `version`, `application.mainClass`)
-- Extra properties (`ext`, `extra`)
+=== Example Breakdown
 
 Now, let's take a look at an example and break it down:
 
@@ -128,7 +127,7 @@ include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build
 <4> Set properties.
 <5> Register and configure tasks.
 
-=== 1. Apply plugins to the build
+==== 1. Apply plugins to the build
 
 Plugins are used to extend Gradle. They are also used to modularize and reuse project configurations.
 
@@ -143,7 +142,7 @@ include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build
 
 In the example, the `application` plugin, which is included with Gradle, has been applied, describing our project as a Java application.
 
-=== 2. Define the locations where dependencies can be found
+==== 2. Define the locations where dependencies can be found
 
 A project generally has a number of dependencies it needs to do its work.
 Dependencies include plugins, libraries, or components that Gradle must download for the build to succeed.
@@ -158,7 +157,7 @@ include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build
 
 In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbrains.kotlin.jvm`) will be downloaded from the link:https://repo.maven.apache.org/maven2/[Maven Central Repository].
 
-=== 3. Add dependencies
+==== 3. Add dependencies
 
 A project generally has a number of dependencies it needs to do its work.
 These dependencies are often libraries of precompiled classes that are imported in the project's source code.
@@ -176,7 +175,7 @@ include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build
 In the example, the application code uses Google's `guava` libraries.
 Guava provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.
 
-=== 4. Set properties
+==== 4. Set properties
 
 A plugin can add properties and methods to a project using extensions.
 
@@ -189,7 +188,7 @@ include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build
 include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=app]"]
 ====
 
-=== 5. Register and configure tasks
+==== 5. Register and configure tasks
 
 Tasks perform some basic piece of work, such as compiling classes, or running unit tests, or zipping up a WAR file.
 
@@ -227,15 +226,9 @@ include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build
 include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=doc]"]
 ====
 
-== Working with the Project API
+== Accessing Project Properties in Build Scripts
 
-The `Project` object is part of the public Gradle APIs:
-
-- In the Groovy DSL, the `Project` object documentation is found link:{groovyDslPath}/org.gradle.api.Project.html[here].
-- In the Kotlin DSL, the `Project` object documentation is found link:{kotlinDslPath}/gradle/org.gradle.api/-project/index.html[here].
-
-Many top-level properties and blocks in a build script are part of the link:{javadocPath}/org/gradle/api/Project.html[Project API].
-For example, the following build script uses the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:name[Project.name] property to print the name of the project:
+In a Gradle build script, you can refer to project-level properties like `name`, `version`, or `group` without needing to qualify them with `project`:
 
 ====
 include::sample[dir="snippets/tutorial/projectApi/kotlin",files="build.gradle.kts[tags=project-name]"]
@@ -246,73 +239,42 @@ include::{snippetsPath}/tutorial/projectApi/tests/projectApi.out[]
 ----
 ====
 
-Both `println` statements print out the same property.
-The first uses the explicit, fully qualified way to access the project's link:{javadocPath}org/gradle/api/Project.html#getName()[`name`] property.
-It’s always correct and unambiguous.
+This works because of how Gradle evaluates build scripts:
 
-In a Groovy build script, `name` is often used without qualification because Gradle makes name a delegate to `project.name`.
-This works because of Groovy’s dynamic resolution and Gradle's delegation model.
+* In **Groovy**, Gradle dynamically delegates unqualified references like `name` to the `Project` object.
+* In **Kotlin**, the build script is compiled as an extension of the `Project` type, so you can directly access its properties.
 
-In a Kotlin build script, it also works because the script is compiled as an extension of the link:{javadocPath}/org/gradle/api/Project.html[`Project`] class, and `name` is a property on `Project`.
+While you can always use `project.name` to be explicit, using the shorthand `name` is common and safe in most situations.
 
-The link:{javadocPath}/org/gradle/api/Project.html[`Project`] object exposes a standard set of properties in your build script.
+== Accessing Settings Properties in Settings Scripts
 
-The following table lists a few commonly used properties:
+Just like build scripts operate within a `Project` context, settings scripts (`settings.gradle(.kts)`) operate within a `Settings` context.
 
-[%header%autowidth,compact]
-|===
-| Name | Type | Description
+This means you can refer to properties and methods available on the `Settings` object, often without qualification.
 
-| `name`
-| `String`
-| The name of the project directory.
+For example:
 
-| `path`
-| `String`
-| The fully qualified name of the project.
+[source,kotlin]
+----
+println(rootProject.name)
+println(name)
+----
 
-| `description`
-| `String`
-| A description for the project.
+In a `settings.gradle(.kts)` script, both of these print the name of the root project.
+That’s because:
 
-| `dependencies`
-| `DependencyHandler`
-| Returns the dependency handler of the project.
+* In **Groovy**, unqualified property references like `name` are dynamically delegated to the `Settings` object.
+* In **Kotlin**, the script is compiled as an extension of the `Settings` class, so `name` and `pluginManagement {}` are directly accessible.
 
-| `repositories`
-| `RepositoryHandler`
-| Returns the repository handler of the project.
+Unlike in build scripts, where `name` refers to the current subproject, in settings scripts `name` typically refers to the *root project name*, and it can be set explicitly:
 
-| `layout`
-| `ProjectLayout`
-| Provides access to several important locations for a project.
-
-| `group`
-| `Object`
-| The group of this project.
-
-| `version`
-| `Object`
-| The version of this project.
-|===
-
-The following table lists a few commonly used methods:
-
-[%autowidth.stretch]
-|===
-| Name | Description
-
-| `uri()`
-| Resolves a file path to a URI, relative to the project directory of this project.
-
-| `task()`
-| Creates a Task with the given name and adds it to this project.
-|===
-
-It's a good idea to check out the Javadocs for link:{javadocPath}/org/gradle/api/Project.html[`Project`] if you haven't done so already to familiarize yourself with an important Gradle API.
+[source,kotlin]
+----
+rootProject.name = "my-awesome-project"
+----
 
 [[script-default-imports]]
-== Script Defaults and Imports
+== Default Imports
 
 To make build scripts more concise, Gradle automatically adds a set of import statements to scripts.
 
@@ -337,10 +299,6 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 ----
-
-[[sec:build_script_external_dependencies]]
-[[sec:configuring_arbitrary_objects_using_an_external_script]]
-[[sec:closures_as_the_last_parameter_in_a_method]]
 
 [.text-right]
 **Next Step:** <<gradle_managed_types.adoc#gradle_types_intro,Learn about Gradle Managed Types>> >>

@@ -15,46 +15,39 @@
 [[dependencies_intro]]
 = Declaring and Managing Dependencies
 
-Gradle provides a rich model for managing dependencies, resolving conflicts, and enforcing consistency.
+Gradle provides a rich and flexible model for declaring dependencies, managing versions, and resolving conflicts across builds.
 
 image::gradle-basic-13.png[]
 
-== Dependencies Block
+== Declare Dependencies
 
-The dependencies block in Gradle is where you declare the external libraries, internal modules, and files your project needs to compile, run, or test.
-It’s one of the most central parts of any Gradle build script:
+The `dependencies{}` block is where you declare the external libraries, internal modules, or files your project needs to compile, run, or test:
 
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin/app",files="build.gradle.kts[tags=java-dependency-mgmt]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
 ====
 
-Dependencies are associated with configurations, which define the context in which the dependency is used.
-For example, `implementation` is used for main source code at compile and runtime, while `debugImplementation` is specific to debugging builds in Android.
+Each dependency is associated with a configuration, such as `implementation`, `runtimeOnly`, or `testImplementation`, which defines the scope in which it's used.
 
-However, Gradle's dependency management ecosystem offers much more than just declaring dependencies.
+== Centralize Versions with Version Catalogs
 
-== Version Catalogs (`libs.versions.toml`)
-
-Gradle provides version catalogs which are the recommended way to *centralize dependency versions*.
-They can act as the single source of truth across all of your dependency declarations and are easily shared across projects.
-
-With the following `gradle/libs.versions.toml` version catalog:
+Gradle recommends using version catalogs to declare dependency versions in a single, reusable location:
 
 ====
 include::sample[dir="snippets/init/generated/groovy",files="gradle/libs.versions.toml[]"]
 ====
 
-Dependencies are accessed in your build script as follows:
+You can then use these aliases in your build scripts:
 
 ====
 include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
 include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
 ====
 
-== Declare Constraints and Enforce Versions
+== Enforce and Constrain Versions
 
-Gradle lets you **constrain versions** to avoid unwanted upgrades or resolve conflicts deterministically.
+Gradle allows you to constrain dependency versions to avoid unwanted upgrades or enforce known good versions:
 
 ====
 include::sample[dir="snippets/how-to/downgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
@@ -68,12 +61,9 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
 ====
 
-== Declare Capabilities to Resolve Conflicts
+== Resolve Conflicts with Capabilities
 
-Some modules provide **the same functionality** but under different coordinates (e.g., shaded libraries or alternatives).
-Gradle lets you resolve these using **capabilities**.
-
-Consider a case where two libraries, `jaxen` and `jdom2`, both claim to provide XPath support:
+Sometimes multiple libraries provide the same functionality under different coordinates. This can lead to classpath conflicts:
 
 [source,kotlin]
 ----
@@ -84,9 +74,8 @@ dependencies {
 
 ----
 
-This might lead to duplicate or conflicting classes on the classpath.
-
-To prevent this, you can declare a common capability and explicitly require only one implementation:
+Gradle lets you model these cases using capabilities.
+For example:
 
 [source,kotlin]
 ----
@@ -100,7 +89,7 @@ dependencies {
 }
 ----
 
-In the same build file, use component metadata rules to assign a common capability to both libraries:
+Then declare capabilities via a component metadata rule:
 
 [source,kotlin]
 ----
@@ -122,10 +111,7 @@ components {
 }
 ----
 
-Gradle now understands that both modules provide `xml:xpath-support:1.0` and will select only one.
-Since you used `requireCapability` on `jaxen`, it will include that and exclude `jdom2`, avoiding conflict.
-
-If both were declared without disambiguation, Gradle would fail the build, asking you to choose between the conflicting capabilities.
+Gradle will now treat `jaxen` and `jdom2` as alternate implementations and select the one with a required capability.
 
 There are many more ways to influence dependency resolution in Gradle.
 Consult the <<getting_started_dep_man.adoc#dependency-management-in-gradle,Dependency Management>> chapter to learn more.

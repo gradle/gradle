@@ -15,11 +15,18 @@
 [[gradle_directories]]
 = Anatomy of a Gradle Build
 
-There are important components of a Gradle build.
+A Gradle build is made up of several key components that work together to automate tasks like compiling code, running tests, and packaging artifacts.
 
 image::gradle-basic-1.png[]
 
-Let's first quickly review the directories and components of a Gradle project:
+At a high level, a build includes:
+
+- *Projects*, which represent things you’re building (like apps or libraries)
+- *Tasks*, which define the work to do (like compiling or testing)
+- *Build scripts*, which configure the projects and tasks
+- *Plugins*, which extend the build with reusable logic
+
+Let's first quickly review the directories in a sample Gradle project:
 
 ====
 [.multi-language-sample]
@@ -59,11 +66,11 @@ gradle-project          // <1>
 <4> *Gradle Files* -  Wrapper executables and version pinning
 <5> *Gradle Wrapper*
 
-This basic Gradle build has a root project called `gradle-project` and contains one subproject called `app`.
+This basic Gradle build has a *root project* called `gradle-project` and contains one *subproject* called `app`.
 
-The settings file in the root directory lets Gradle know about the structure of the build.
+The *settings file* in the root directory lets Gradle know about the structure of the build.
 
-The build file in the `app` directory contains build logic specific to the `app` subproject such as declaring dependencies.
+The *build file* in the `app` directory contains build logic specific to the `app` subproject such as declaring dependencies.
 
 [[dir:build_dir]]
 == Build directory
@@ -117,7 +124,7 @@ $ ./gradlew clean
 
 This is useful when you want to ensure a fresh build with no leftover outputs.
 
-WARNING: Gradle creates the `build` directory by default, so it must be writable. If a custom build directory is specified, it must already exist and also be writable.
+WARNING: Gradle creates the `build` directory by default, so it must be writable. If a custom build directory is specified, it must exist and also be writable.
 
 Gradle uses two main directories to perform and manage its work: the <<#gradle_user_home>> and the <<#project_root>>.
 

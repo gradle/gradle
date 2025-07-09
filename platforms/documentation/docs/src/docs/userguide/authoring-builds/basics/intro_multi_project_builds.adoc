@@ -15,7 +15,8 @@
 [[intro_multi_project_builds]]
 = Structuring Multi-Project Builds
 
-Gradle supports multi-project builds.
+As your codebase grows, organizing it into multiple subprojects becomes essential for maintainability, performance, and reuse.
+Gradle supports this with multi-project builds.
 
 image::gradle-basic-9.png[]
 
@@ -24,14 +25,14 @@ The word "interdependent" is vital, as you typically want to link the many modul
 
 Gradle supports this scenario through _multi-project_ builds.
 This is sometimes referred to as a multi-module project.
-Gradle refers to modules as subprojects.
+Gradle refers to *modules* as *subprojects*.
 
-A multi-project build consists of one root project and one or more subprojects.
+A multi-project build consists of *one root project and one or more subprojects*.
 
 [[sec:project_structure]]
 == Multi-Project structure
 
-The following represents the structure of a multi-project build that contains three subprojects:
+The following represents the structure of a sample multi-project build that contains three subprojects:
 
 image::multi-project-structure.png[]
 
@@ -82,16 +83,20 @@ include('sub-project-1', 'sub-project-2', 'sub-project-3')
 NOTE: The order in which the subprojects (modules) are included does not matter.
 
 [[sec:project_standard]]
-== Multi-Project standards
-
 The Gradle community has two standards for multi-project build structures:
 
-1. **<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
-2. **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing reusable build logic.
+1. **<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,Multi-Project Builds using `buildSrc`>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
+2. **<<composite_builds.adoc#composite_builds,Composite Builds including `build-logic`>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing reusable build logic.
 
 image::multi-project-standards.png[]
 
-=== 1. Multi-Project Builds using `buildSrc`
+In either case, the `build-logic` and `buildSrc` folders are used to organize build logic.
+
+Each approach has trade-offs.
+`buildSrc` is easier to get started with but less flexible.
+Composite builds require a bit more setup but scale better and align with Gradle’s long-term best practices for sharing build logic.
+
+== Multi-Project Builds using `buildSrc`
 
 Multi-project builds allow you to organize projects with many modules, wire dependencies between those modules, and easily share common build logic amongst them.
 
@@ -129,7 +134,7 @@ It is a good place to define and maintain shared configuration or imperative bui
 
 Consult the <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logic using `buildSrc`>> chapter to learn more.
 
-=== 2. Composite Builds
+== Composite Builds including `build-logic`
 
 Composite Builds, also referred to as _included builds_, are best for sharing logic between builds (_not subprojects_) or isolating access to shared build logic.
 
@@ -189,6 +194,52 @@ includeBuild('build-logic')
 ----
 =====
 ====
+
+There’s no reason that any of the subprojects in a multi-project build couldn’t themselves be composite builds.
+This allows teams to independently develop and test build logic or components, then include them in a larger build as needed.
+For example:
+
+[source,text]
+----
+.
+├── .gradle
+│   └── ⋮
+├── gradle
+│   ├── libs.versions.toml
+│   └── wrapper
+├── gradlew
+├── gradlew.bat
+├── settings.gradle(.kts)
+├── build-logic                     // <1>
+│   ├── settings.gradle.kts
+│   └── conventions
+│       └── build.gradle.kts
+├── project-1                       // <2>
+│   ├── settings.gradle.kts
+│   ├── client
+│   │   └── build.gradle(.kts)
+│   └── server
+│       └── build.gradle(.kts)
+├── project-2                       // <3>
+│   ├── settings.gradle.kts
+│   └── lib
+│       └── build.gradle(.kts)
+└── project-3                       // <4>
+    ├── settings.gradle.kts
+    ├── app-plugin
+    │   └── build.gradle(.kts)
+    ├── client-plugin
+    │   └── build.gradle(.kts)
+    └── server-plugin
+        └── build.gradle(.kts)
+----
+<1> Separate Gradle build called `build-logic`
+<2> Separate Gradle build called `project-1` with 2 of its own subproject
+<3> Separate Gradle build called `project-2` with 1 of its own subproject
+<4> Separate Gradle build called `project-3` with 3 of its own subprojects
+
+In this setup, a team could work on `project-3` as an entirely independent build.
+Once their changes are complete, another team could test and validate those changes by integrating `project-3`'s changes into the full root build.
 
 Consult the <<composite_builds.adoc#composite_builds,Composite Builds>> chapter to learn more.
 

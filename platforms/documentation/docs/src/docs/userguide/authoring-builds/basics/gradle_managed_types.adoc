@@ -19,29 +19,34 @@ Gradle Managed Types are the building blocks for writing modern, efficient, and 
 
 image::gradle-basic-12.png[]
 
-They replace eager properties (like `val file = File(...)`) with lazy, trackable inputs and outputs, enabling incremental builds, build caching, and configuration cache support.
+They replace eager properties (like `val file = File(...)`) with lazy, trackable inputs and outputs, enabling:
+
+- Incremental builds
+- Build cache support
+- Configuration cache compatibility
+- Accurate task input/output tracking
 
 == Common Managed Types
 
-[cols="1,3", options="header"]
+[cols="~,~,~", options="header"]
 |===
-| Type                  | Purpose
+| Type                  | Purpose                                               | Use-Case
 
-| `Property<T>`         | Lazy scalar value
-| `ListProperty<T>`     | Lazy list of values
-| `MapProperty<K, V>`   | Lazy map of values
-| `RegularFileProperty` | Lazy file input/output
-| `DirectoryProperty`   | Lazy directory input/output
-| `Provider<T>`         | Read-only, deferred value (e.g. from another task)
+| `Property<T>`         | Lazy scalar value (e.g., a version number)            | A version string
+| `ListProperty<T>`     | Lazy list of values (e.g., compiler args)             | A list of compiler args
+| `MapProperty<K, V>`   | Lazy map of values (e.g., environment vars)           | A map of Maven Pom properties
+| `RegularFileProperty` | Lazy reference to a single file (input or output)     | A single file input/output
+| `DirectoryProperty`   | Lazy reference to a directory (input or output)       | A destination directory
+| `Provider<T>`         | Lazily evaluated, read-only value (e.g., task output) | A dependency on task output
 |===
 
 == Eager vs Lazy
 
-Gradle distinguishes between *eager* and *lazy* evaluation to control **when** values are computed and **how** they participate in task wiring, up-to-date checks, and caching.
+Gradle distinguishes between *eager* and *lazy* evaluation to control **when** values are computed and **how** they participate in up-to-date checks, caching, and task wiring.
 
 Writing lazy, declarative build logic is key to unlocking Gradle’s performance features.
 
-=== Eager Evaluation
+== Eager Evaluation
 
 * Happens **immediately** during the configuration phase.
 * Values are resolved *as soon as the line is executed*.
@@ -49,26 +54,55 @@ Writing lazy, declarative build logic is key to unlocking Gradle’s performance
 
 [source,kotlin]
 ----
-val version = project.version.toString()       // evaluated now
-val file = File("build/output.txt")            // evaluated now
+val version = project.version.toString()         // evaluated now
+val file = File("build/output.txt")              // evaluated now
 myTask.outputFile.set(file)
 ----
 
-Here, `project.version` and `File(...)` are evaluated immediately, even if the task isn’t run. This makes builds less cacheable and more brittle.
+These eager values are resolved even if the task isn’t run, breaking configuration cache compatibility and reducing build performance.
 
-=== Lazy Evaluation
+== Lazy Evaluation
 
-* Defers computation until it’s actually needed (usually at task execution time).
-* Allows Gradle to build the task graph, apply caching, and run tasks in parallel.
-* Enables **configuration cache**, **incremental builds**, and **task avoidance**.
+* Defers computation until it’s actually needed (usually during task execution).
+* Enables Gradle to apply caching, parallel execution, and configuration avoidance.
+* Fully supports configuration cache and incremental builds.
 
 [source,kotlin]
 ----
-val outputFile: RegularFileProperty = project.objects.fileProperty()    // evaluated later
+val outputFile: RegularFileProperty = project.objects.fileProperty()
 outputFile.set(layout.buildDirectory.file("output.txt"))                // evaluated later
 ----
 
-Here, `layout.buildDirectory.file(...)` returns a `Provider<RegularFile>`, nothing is resolved until Gradle needs it during task execution.
+Here, nothing is resolved immediately—Gradle delays evaluation until it’s actually required.
+
+== Real-world example
+
+This task will break the configuration cache due to eager access:
+
+[source,kotlin]
+----
+// ❌ Not Configuration Cache compatible
+tasks.register("printVersion") {
+    doLast {
+        val version = project.version.toString()
+        println("Version is $version")
+    }
+}
+----
+
+The fix: use `Provider` or a `Property<String>`:
+
+[source,kotlin]
+----
+// ✅ Configuration Cache compatible
+tasks.register("printVersion") {
+    val version: Property<String> = project.objects.property(String::class.java)
+    version.set(project.version.toString())
+    doLast {
+        println("Version is ${version.get()}")
+    }
+}
+----
 
 Consult the <<properties_providers.adoc#properties_and_providers,Gradle Types>> chapter to learn more.
 
