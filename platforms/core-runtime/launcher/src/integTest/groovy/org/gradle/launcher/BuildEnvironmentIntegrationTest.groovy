@@ -117,7 +117,7 @@ task check {
         """
 
         buildFile """
-        assert "${customPropertiesFile.absolutePath}" == System.getProperty("java.security.properties")
+        assert \$/${customPropertiesFile.absolutePath}/\$ == System.getProperty("java.security.properties")
         // The "keystore.type" security property defines the base value for this
         println "default keystore type = " + java.security.KeyStore.getDefaultType()
         """
