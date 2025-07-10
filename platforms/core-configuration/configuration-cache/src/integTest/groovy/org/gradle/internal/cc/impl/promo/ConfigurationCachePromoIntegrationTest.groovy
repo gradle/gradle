@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.promo
 
+import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
@@ -37,7 +38,25 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         postBuildOutputContains(PROMO_PREFIX)
     }
 
-    def "shows promo message when build fails without giving explicit CC state"() {
+
+    def "shows no promo message if build fails at configuration time"() {
+        given:
+        buildFile """
+            throw new RuntimeException("failed")
+
+            tasks.register("run") {}
+        """
+
+        when:
+        fails("run")
+
+        then:
+        // TODO(https://github.com/gradle/gradle/issues/33857) post-build output scraping is broken for failed builds
+        outputDoesNotContain(PROMO_PREFIX)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+    }
+
+    def "shows no promo message if build fails at execution time"() {
         given:
         buildFile """
             tasks.register("fail") { doLast { throw new UnsupportedOperationException("I must fail") } }
@@ -47,8 +66,9 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         fails("fail")
 
         then:
-        // TODO(mlopatkin) post-build output scraping is broken for failed builds
-        outputContains(PROMO_PREFIX)
+        // TODO(https://github.com/gradle/gradle/issues/33857) post-build output scraping is broken for failed builds
+        outputDoesNotContain(PROMO_PREFIX)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
     }
 
     def "shows promo message when running with isolated projects disabled in command-line"() {
@@ -292,5 +312,78 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
         then:
         postBuildOutputContains(PROMO_PREFIX)
+    }
+
+    def "shows no promo message if a task in the graph is marked as cc incompatible"() {
+        given:
+        buildFile """
+            tasks.register("incompatible") { task ->
+                $incompatibleReason
+                onlyIf { !Boolean.getBoolean("skip.incompatible") }
+
+                doLast {
+                    println("I am not compatible")
+                }
+            }
+
+            tasks.register("withIncompatibleDep") {
+                dependsOn ":incompatible"
+                doLast { println "I am compatible" }
+            }
+        """
+
+        when: "incompatible task runs"
+        run("incompatible")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+
+        when: "incompatible task runs as dependency"
+        run("withIncompatibleDep")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+
+        when: "incompatible task is a skipped dependency"
+        run("withIncompatibleDep", "-Dskip.incompatible=true")
+
+        then:
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
+
+        when: "promo is present when incompatible task is excluded from the task graph"
+        run("withIncompatibleDep", "-x", "incompatible")
+
+        then:
+        postBuildOutputContains(PROMO_PREFIX)
+
+        where:
+        incompatibleReason << [
+            "notCompatibleWithConfigurationCache('reasons')",
+            "services.get(${ConfigurationCacheDegradationController.name}).requireConfigurationCacheDegradation(task, provider { 'reasons' })"
+        ]
+    }
+
+    def "shows promo message if an incompatible task is in the build logic build"() {
+        given:
+        buildFile("buildSrc/build.gradle", """
+            tasks.named("jar") { task ->
+                $incompatibleReason
+            }
+        """)
+        buildFile """
+            tasks.register("run") {}
+        """
+
+        when:
+        run("run")
+
+        then:
+        postBuildOutputContains(PROMO_PREFIX)
+
+        where:
+        incompatibleReason << [
+            "notCompatibleWithConfigurationCache('reasons')",
+            "services.get(${ConfigurationCacheDegradationController.name}).requireConfigurationCacheDegradation(task, provider { 'reasons' })"
+        ]
     }
 }

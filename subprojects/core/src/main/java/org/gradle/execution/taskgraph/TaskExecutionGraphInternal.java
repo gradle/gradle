@@ -20,9 +20,9 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.internal.build.ExecutionResult;
-import org.jspecify.annotations.Nullable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -30,6 +30,20 @@ import java.util.function.BiConsumer;
 
 @ServiceScope(Scope.Gradle.class)
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
+    /**
+     * Adds the internal listener for task execution graph events.
+     * These listeners are not persisted through the configuration cache, beware if you want to receive graph execution events with CC enabled.
+     *
+     * @param listener the listener
+     */
+    void addExecutionListener(TaskExecutionGraphExecutionListener listener);
+
+    /**
+     * Removes the previously registered internal listener.
+     *
+     * @param listener the listener
+     */
+    void removeExecutionListener(TaskExecutionGraphExecutionListener listener);
 
     /**
      * Find a task with the given path in the task graph.
