@@ -51,7 +51,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         fails("run")
 
         then:
-        // TODO(mlopatkin) post-build output scraping is broken for failed builds
+        // TODO(https://github.com/gradle/gradle/issues/33857) post-build output scraping is broken for failed builds
         outputDoesNotContain(PROMO_PREFIX)
         postBuildOutputDoesNotContain(PROMO_PREFIX)
     }
@@ -66,7 +66,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         fails("fail")
 
         then:
-        // TODO(mlopatkin) post-build output scraping is broken for failed builds
+        // TODO(https://github.com/gradle/gradle/issues/33857) post-build output scraping is broken for failed builds
         outputDoesNotContain(PROMO_PREFIX)
         postBuildOutputDoesNotContain(PROMO_PREFIX)
     }
