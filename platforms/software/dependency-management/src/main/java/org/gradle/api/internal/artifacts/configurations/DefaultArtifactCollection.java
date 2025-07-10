@@ -18,12 +18,13 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -35,16 +36,29 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class DefaultArtifactCollection implements ArtifactCollectionInternal {
-    private final ResolutionBackedFileCollection fileCollection;
-    private final boolean lenient;
-    private final CalculatedValue<ArtifactSetResult> result;
 
-    public DefaultArtifactCollection(ResolutionBackedFileCollection files, boolean lenient, ResolutionHost resolutionHost, CalculatedValueFactory calculatedValueFactory, AttributeDesugaring attributeDesugaring) {
-        this.fileCollection = files;
+    private final SelectedArtifactSet artifacts;
+    private final boolean lenient;
+    private final ResolutionHost resolutionHost;
+    private final CalculatedValue<ArtifactSetResult> result;
+    private final TaskDependencyFactory taskDependencyFactory;
+
+    public DefaultArtifactCollection(
+        SelectedArtifactSet artifacts,
+        boolean lenient,
+        ResolutionHost resolutionHost,
+        TaskDependencyFactory taskDependencyFactory,
+        CalculatedValueFactory calculatedValueFactory,
+        AttributeDesugaring attributeDesugaring
+    ) {
+        this.artifacts = artifacts;
         this.lenient = lenient;
+        this.resolutionHost = resolutionHost;
+        this.taskDependencyFactory = taskDependencyFactory;
+
         this.result = calculatedValueFactory.create(resolutionHost.displayName("files"), () -> {
             ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(attributeDesugaring);
-            fileCollection.getArtifacts().visitArtifacts(visitor, lenient);
+            artifacts.visitArtifacts(visitor, lenient);
 
             Set<ResolvedArtifactResult> artifactResults = visitor.getArtifacts();
             Set<Throwable> failures = visitor.getFailures();
@@ -58,7 +72,7 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
 
     @Override
     public ResolutionHost getResolutionHost() {
-        return fileCollection.getResolutionHost();
+        return resolutionHost;
     }
 
     @Override
@@ -67,8 +81,13 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
     }
 
     @Override
-    public FileCollection getArtifactFiles() {
-        return fileCollection;
+    public FileCollectionInternal getArtifactFiles() {
+        return new ResolutionBackedFileCollection(
+            artifacts,
+            lenient,
+            resolutionHost,
+            taskDependencyFactory
+        );
     }
 
     @Override
@@ -79,7 +98,7 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
 
     @Override
     public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
-        return new BuildableBackedProvider<>((FileCollectionInternal) getArtifactFiles(), Cast.uncheckedCast(Set.class), new ArtifactCollectionResolvedArtifactsFactory(this));
+        return new BuildableBackedProvider<>(getArtifactFiles(), Cast.uncheckedCast(Set.class), new ArtifactCollectionResolvedArtifactsFactory(this));
     }
 
     @Override
@@ -97,7 +116,7 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
     @Override
     public void visitArtifacts(ArtifactVisitor visitor) {
         // TODO - if already resolved, use the results
-        fileCollection.getArtifacts().visitArtifacts(visitor, lenient);
+        artifacts.visitArtifacts(visitor, lenient);
     }
 
     private void ensureResolved() {

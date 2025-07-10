@@ -210,5 +210,6 @@ abstract class AbstractUserTypeCodecTest {
         transformStepNodeFactory = mock(),
         problems = mock(),
         attributeDesugaring = mock(),
+        taskDependencyFactory = mock()
     )
 }
