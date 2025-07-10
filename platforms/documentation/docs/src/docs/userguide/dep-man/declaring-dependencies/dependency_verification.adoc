@@ -824,7 +824,7 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 # Write its ASCII-armored version
-$ gpg --keyring /tmp/keyring.gpg --export --armor 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
+$ gpg --keyring /tmp/keyring.gpg --export --armor 8756c4f765c9ac3cb6b85d62379ce192d401ab61 >> gradle/verification-keyring.keys
 ----
 
 Once done, make sure to run <<#sec:verification-update,the generation command again>> so that the key is processed by Gradle.
