@@ -34,8 +34,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * Must live in same package as {@link SocksServer}.
  */
-public final class TestRecordingSocksServer extends SocksServer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(org.bbottema.javasocksproxyserver.SocksServer.class);
+public final class TestRecordingSocksServer extends SyncSocksServer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(org.bbottema.javasocksproxyserver.SyncSocksServer.class);
 
     private List<InetAddress> connectionTargets = new CopyOnWriteArrayList<>();
 

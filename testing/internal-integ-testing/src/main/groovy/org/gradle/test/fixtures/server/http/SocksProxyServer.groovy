@@ -17,8 +17,9 @@
 package org.gradle.test.fixtures.server.http
 
 import org.bbottema.javasocksproxyserver.SocksServer
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.bbottema.javasocksproxyserver.SyncSocksServer
 import org.bbottema.javasocksproxyserver.TestRecordingSocksServer
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.gradle.util.ports.PortAllocator
 import org.junit.rules.ExternalResource
@@ -40,7 +41,7 @@ import org.junit.rules.ExternalResource
  */
 class SocksProxyServer extends ExternalResource {
     private PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
-    private SocksServer socksServer
+    private SyncSocksServer socksServer
     private int port
 
     @Override
@@ -49,10 +50,10 @@ class SocksProxyServer extends ExternalResource {
     }
 
     void start() {
-        start(new SocksServer())
+        start(new SyncSocksServer())
     }
 
-    void start(SocksServer socksServer) {
+    void start(SyncSocksServer socksServer) {
         assert port > 0
         this.socksServer = socksServer
         socksServer.start(port)
