@@ -4465,6 +4465,22 @@
             ]
         },
         {
+            "type": "org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder",
+            "member": "Method org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder.buildAll(java.lang.String,java.lang.Object,org.gradle.api.Project)",
+            "acceptation": "We actually support null returning tooling model builders",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.provider.model.ToolingModelBuilder",
+            "member": "Method org.gradle.tooling.provider.model.ToolingModelBuilder.buildAll(java.lang.String,org.gradle.api.Project)",
+            "acceptation": "We actually support null returning tooling model builders",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.util.ClosureBackedAction",
             "member": "Class org.gradle.util.ClosureBackedAction",
             "acceptation": "Deprecated in 8.x",
