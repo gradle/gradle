@@ -79,5 +79,5 @@ public interface BuildableModuleComponentMetaDataResolveResult<T> extends Resour
      */
     void redirectToGradleMetadata();
 
-    boolean shouldUseGradleMetatada();
+    boolean shouldUseGradleMetadata();
 }

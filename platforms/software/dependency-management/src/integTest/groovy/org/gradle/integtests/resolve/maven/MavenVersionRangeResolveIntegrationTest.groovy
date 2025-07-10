@@ -67,20 +67,21 @@ dependencies {
     @Issue("https://github.com/gradle/gradle/issues/1898")
     def "can resolve parent pom with version range"() {
         given:
-        settingsFile << "rootProject.name = 'test' "
+        settingsFile << """
+            rootProject.name = 'test'
+        """
         buildFile << """
-repositories {
-    maven {
-        url = "${mavenRepo.uri}"
-    }
-}
+            ${mavenTestRepository()}
 
-configurations { compile }
+            configurations {
+                compile
+            }
 
-dependencies {
-    compile("org.test:child:1.0")
-}
-"""
+            dependencies {
+                compile("org.test:child:1.0")
+            }
+        """
+
         and:
         mavenRepo.module('org.test', 'child', '1.0').parent('org.test', 'parent', '[2.0,3.0)').publish()
         mavenRepo.module('org.test', 'parent', '1.0').dependsOn('org.test', 'dep', '1.0').publishPom()
@@ -93,14 +94,66 @@ dependencies {
         resolve.prepare()
 
         when:
-        succeeds 'checkDeps'
+        succeeds("checkDeps")
 
         then:
-        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:child:1.0", "org.test:child:1.0") {
                     edge("org.test:dep:2.1", "org.test:dep:2.1")
+                }
+            }
+        }
+    }
+
+    def "component selection rules affect parent pom with version range"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+        buildFile << """
+            ${mavenTestRepository()}
+
+            configurations {
+                compile
+            }
+
+            dependencies {
+                compile("org.test:child:1.0")
+            }
+
+            configurations.compile {
+                resolutionStrategy {
+                    componentSelection {
+                        withModule('org.test:parent') { ComponentSelection selection ->
+                            if (selection.candidate.version == '2.1') {
+                                selection.reject("Rejecting parent 2.1")
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        and:
+        mavenRepo.module('org.test', 'child', '1.0').parent('org.test', 'parent', '[2.0,3.0)').publish()
+        mavenRepo.module('org.test', 'parent', '1.0').dependsOn('org.test', 'dep', '1.0').publishPom()
+        mavenRepo.module('org.test', 'parent', '2.0').dependsOn('org.test', 'dep', '2.0').publishPom()
+        mavenRepo.module('org.test', 'parent', '2.1').dependsOn('org.test', 'dep', '2.1').publishPom()
+        mavenRepo.module('org.test', 'parent', '3.0').dependsOn('org.test', 'dep', '3.0').publishPom()
+        mavenRepo.module('org.test', 'dep', '2.0').publish()
+
+        def resolve = new ResolveTestFixture(buildFile, "compile")
+        resolve.prepare()
+
+        when:
+        succeeds("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:child:1.0", "org.test:child:1.0") {
+                    edge("org.test:dep:2.0", "org.test:dep:2.0")
                 }
             }
         }
