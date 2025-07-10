@@ -123,7 +123,7 @@ class BuildActionExecuterBuilder implements BuildActionExecuter.Builder {
 /**
  * This trait is used to add the missing methods to the ToolingApiConnection class without actually deriving from ProjectConnection.
  * While still allowing the ToolingApiConnection to be used as a ProjectConnection.
- * This avoids loading the ProjectConnection class from the test code and postbones loading to the tooling api magic.
+ * This avoids loading the ProjectConnection class from the test code and postpones loading to the tooling api magic.
  */
 trait ProjectConnectionTrait implements ProjectConnection {
 }
@@ -132,11 +132,13 @@ class ToolingApiConnection {
     private final ProjectConnection projectConnection
     private final OutputStream stderr
     private final OutputStream stdout
+    private final javaHome
 
-    ToolingApiConnection(ProjectConnection projectConnection, OutputStream stdout, OutputStream stderr) {
+    ToolingApiConnection(ProjectConnection projectConnection, File javaHome, OutputStream stdout, OutputStream stderr) {
         this.stdout = stdout
         this.stderr = stderr
         this.projectConnection = projectConnection
+        this.javaHome = javaHome
         this.withTraits(ProjectConnectionTrait)
     }
 
@@ -149,18 +151,27 @@ class ToolingApiConnection {
     }
 
     BuildLauncher newBuild() {
-        new ToolingApiBuildLauncher(projectConnection.newBuild(), stdout, stderr)
+        ToolingApiBuildLauncher launcher = new ToolingApiBuildLauncher(projectConnection.newBuild(), stdout, stderr)
+        launcher.javaHome = javaHome
+        return launcher
     }
 
     TestLauncher newTestLauncher() {
-        new ToolingApiTestLauncher(projectConnection.newTestLauncher(), stdout, stderr)
+        ToolingApiTestLauncher launcher = new ToolingApiTestLauncher(projectConnection.newTestLauncher(), stdout, stderr)
+        launcher.javaHome = javaHome
+        return launcher
+
     }
 
     <T> ModelBuilder<T> model(Class<T> modelType) {
-        new ToolingApiModelBuilder(projectConnection.model(modelType), stdout, stderr)
+        ToolingApiModelBuilder modelBuilder = new ToolingApiModelBuilder(projectConnection.model(modelType), stdout, stderr)
+        modelBuilder.javaHome = javaHome
+        return modelBuilder
     }
 
     <T> BuildActionExecuter<T> action(BuildAction<T> buildAction) {
-        new ToolingApiBuildActionExecuter(projectConnection.action(buildAction), stdout, stderr)
+        ToolingApiBuildActionExecuter executer = new ToolingApiBuildActionExecuter(projectConnection.action(buildAction), stdout, stderr)
+        executer.javaHome = javaHome
+        return executer
     }
 }
