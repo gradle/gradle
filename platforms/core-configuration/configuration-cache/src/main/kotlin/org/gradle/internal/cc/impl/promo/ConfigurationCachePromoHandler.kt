@@ -52,8 +52,18 @@ internal class ConfigurationCachePromoHandler(
     private val degradationController: DefaultConfigurationCacheDegradationController,
     private val documentationRegistry: DocumentationRegistry
 ) : RootBuildLifecycleListener, ProblemsListener {
-    @Volatile
-    private var hasProblems = false
+    private val problems = object {
+        @Volatile
+        private var _seenProblems = false // if ever, only goes false -> true
+
+        fun arePresent(): Boolean = _seenProblems
+
+        fun addIfNeeded(hasNewProblem: Boolean) {
+            if (hasNewProblem) {
+                _seenProblems = true
+            }
+        }
+    }
 
     override fun afterStart() {
         // We can't reach out to the task graph when the build is finished.
@@ -65,25 +75,27 @@ internal class ConfigurationCachePromoHandler(
 
         rootBuildGradle.addBuildListener(object : InternalBuildAdapter() {
             override fun buildFinished(result: BuildResult) {
-                hasProblems = hasProblems || result.failure != null
+                problems.addIfNeeded(result.failure != null)
             }
         })
     }
 
     private fun onRootBuildTaskGraphIsAboutToExecute(graph: TaskExecutionGraph) {
-        if (!hasProblems) {
+        if (!problems.arePresent()) {
             // Collecting degradation reasons may be somewhat expensive, let's skip it if the build is already incompatible.
             // We can only collect the reasons before the start of the execution phase. CC does that too.
             degradationController.collectDegradationReasons()
-            hasProblems = degradationController.hasDegradationReasons
+            problems.addIfNeeded(degradationController.hasDegradationReasons)
         }
 
         // Checking task graph for compatibility may be even more expensive, so do it only after collecting the degradation reasons.
-        hasProblems = hasProblems || graph.hasIncompatibleTasks()
+        if (!problems.arePresent()) {
+            problems.addIfNeeded(graph.hasIncompatibleTasks())
+        }
     }
 
     override fun beforeComplete() {
-        if (hasProblems) {
+        if (problems.arePresent()) {
             return
         }
 
@@ -93,11 +105,11 @@ internal class ConfigurationCachePromoHandler(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        hasProblems = true
+        problems.addIfNeeded(true)
     }
 
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-        hasProblems = true
+        problems.addIfNeeded(true)
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
