@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.ToBeImplemented
 
 /**
  * Tests interactions a Configuration's root component during resolution.
@@ -103,7 +102,7 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    def "configuration cannot resolve itself"() {
+    def "configuration can resolve itself"() {
         buildFile << """
             configurations {
                 conf {
@@ -128,14 +127,11 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        fails("resolve")
-
-        then:
-        failure.assertHasCause("Cannot select root node 'conf' as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
+        expect:
+        succeeds("resolve")
     }
 
-    def "resolvable configuration and consumable configuration from same project live in same resolved component"() {
+    def "resolvable configuration and consumable configuration from same project live in different component"() {
         buildFile << """
             configurations {
                 conf {
@@ -160,50 +156,29 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
 
             task resolve {
                 def result = configurations.conf.incoming.resolutionResult
-                def root = result.root
-                assert root.id.projectName == 'root'
-                assert root.variants.size() == 2
-                def conf = root.variants.find { it.displayName == 'conf' }
-                def other = root.variants.find { it.displayName == 'other' }
-                assert conf != null
-                assert other != null
-            }
-        """
+                def rootComponentProvider = result.rootComponent
+                def rootVariantProvider = result.rootVariant
 
-        expect:
-        succeeds("resolve")
-    }
-
-    @ToBeImplemented("See #30320, the final solution might be different and require this test to be updated")
-    // This is not necessarily desired behavior, or important behavior at all.
-    // The detached configuration is _not_ the project. It should not claim to be the project.
-    // Ideally, this configuration would have an unspecified identity, similar to init, settings, and standalone scripts.
-    def "project detached configurations are identified by the root project's identity"() {
-        mavenRepo.module("org", "foo").publish()
-        buildFile << """
-            ${mavenTestRepository()}
-
-            version = "1.0"
-            group = "foo"
-
-            task resolve {
-                def rootComponent = configurations.detachedConfiguration(
-                    dependencies.create("org:foo:1.0")
-                ).incoming.resolutionResult.rootComponent
                 doLast {
-                    def root = rootComponent.get()
-                    assert root.moduleVersion.group == "foo"
-                    assert root.moduleVersion.name == "root-detachedConfiguration1"
-                    assert root.moduleVersion.version == "1.0"
-                    assert root.id instanceof ModuleComponentIdentifier
-                    assert root.id.group == "foo"
-                    assert root.id.module == "root-detachedConfiguration1"
-                    assert root.id.version == "1.0"
+                    def rootComponent = rootComponentProvider.get()
+                    def rootVariant = rootVariantProvider.get()
+
+                    assert rootComponent.id instanceof RootComponentIdentifier
+                    assert rootComponent.variants.size() == 1
+
+                    def other = rootComponent.getDependenciesForVariant(rootVariant)
+                    assert other.size() == 1
+
+                    def otherDependency = other.first()
+                    def otherComponent = otherDependency.selected
+
+                    assert otherComponent.id instanceof ProjectComponentIdentifier
+                    assert otherComponent.id != rootComponent.id
                 }
             }
         """
 
         expect:
-        fails("resolve")
+        succeeds("resolve")
     }
 }

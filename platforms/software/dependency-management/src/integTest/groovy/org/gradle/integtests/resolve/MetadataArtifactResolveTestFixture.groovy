@@ -191,13 +191,27 @@ task verify {
 
     void createVerifyTaskForProjectComponentIdentifier() {
         buildFile << """
+configurations {
+    consumable("default")
+}
+
+dependencies {
+    ${config}(project)
+}
+
 task verify {
+    def rr = configurations.${config}.incoming.resolutionResult
+    def rootComponentProvider = rr.rootComponent
+    def rootVariantProvider = rr.rootVariant
+
     doLast {
-        def rootId = configurations.${config}.incoming.resolutionResult.root.id
-        assert rootId instanceof ProjectComponentIdentifier
+        def projectId = rootComponentProvider.get()
+            .getDependenciesForVariant(rootVariantProvider.get())
+            .findAll { it.selected.id instanceof ProjectComponentIdentifier }
+            .first().selected.id
 
         def result = dependencies.createArtifactResolutionQuery()
-            .forComponents(rootId)
+            .forComponents(projectId)
             .withArtifacts($requestedComponent, $requestedArtifact)
             .execute()
 
