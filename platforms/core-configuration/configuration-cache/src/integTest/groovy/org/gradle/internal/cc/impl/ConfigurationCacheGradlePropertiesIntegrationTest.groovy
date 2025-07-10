@@ -330,4 +330,35 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         cleanup:
         System.clearProperty(systemProp)
     }
+
+    def "reuses cache when project property changes on command-line, if used only at execution time"() {
+        propertiesFile << """
+            foo=bar
+        """
+
+        buildFile """
+            def prop = providers.gradleProperty("foo")
+            tasks.register("some") {
+                doLast {
+                    println("Execution: '\${prop.orNull}'")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Execution: 'bar'")
+
+        when:
+        configurationCacheRun "some", "-Pfoo=buz"
+
+        then:
+        configurationCache.assertStateStored()
+        // TODO: should load instead
+//        configurationCache.assertStateLoaded()
+        outputContains("Execution: 'buz'")
+    }
 }
