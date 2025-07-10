@@ -26,11 +26,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -125,21 +123,15 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         VariantGraphResolveState variant = node.getResolveState();
 
         ImmutableAttributes attributes = dependency.getAttributes();
-        List<IvyArtifactName> artifacts = dependency.getDependencyMetadata().getArtifacts();
-        ExcludeSpec exclusions = dependency.getExclusions();
         Set<CapabilitySelector> capabilitySelectors = dependency.getDependencyMetadata().getSelector().getCapabilitySelectors();
 
         // If all dependency modifiers are empty, this edge does not produce an adhoc artifact set.
-        if (artifacts.isEmpty() &&
-            attributes.isEmpty() &&
-            capabilitySelectors.isEmpty() &&
-            !exclusions.mayExcludeArtifacts()
-        ) {
+        if (attributes.isEmpty() && capabilitySelectors.isEmpty()) {
             return false;
         }
 
         int id = nextId++;
-        VariantResolvingArtifactSet artifactSet = new VariantResolvingArtifactSet(component, variant, attributes, artifacts, exclusions, capabilitySelectors);
+        VariantResolvingArtifactSet artifactSet = new VariantResolvingArtifactSet(component, variant, attributes, node, capabilitySelectors);
         artifactResults.visitArtifacts(dependency.getFrom(), node, id, artifactSet);
 
         return true;

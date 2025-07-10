@@ -17,18 +17,15 @@
 package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
-import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
-import org.gradle.internal.component.model.DefaultVariantMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.jspecify.annotations.Nullable;
 
@@ -45,24 +42,6 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
         this.resolvedVariantCache = resolvedVariantCache;
-    }
-
-    @Override
-    public ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, VariantIdentifier sourceVariantId, ImmutableList<? extends ComponentArtifactMetadata> artifacts) {
-        VariantResolveMetadata.Identifier identifier = artifacts.size() == 1
-            ? new SingleArtifactVariantIdentifier(artifacts.iterator().next().getId())
-            : null;
-
-        VariantResolveMetadata adhoc = new DefaultVariantMetadata(
-            "adhoc",
-            identifier,
-            Describables.of("adhoc variant for", component.getId()),
-            component.getAttributes(),
-            artifacts,
-            ImmutableCapabilities.EMPTY
-        );
-
-        return resolveVariantArtifactSet(component, sourceVariantId, adhoc);
     }
 
     @Override
@@ -139,34 +118,6 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(component.getModuleVersionId()));
         } else {
             return capabilities;
-        }
-    }
-
-    /**
-     * Identifier for adhoc variants with a single artifact
-     */
-    private static class SingleArtifactVariantIdentifier implements VariantResolveMetadata.Identifier {
-        private final ComponentArtifactIdentifier artifactIdentifier;
-
-        public SingleArtifactVariantIdentifier(ComponentArtifactIdentifier artifactIdentifier) {
-            this.artifactIdentifier = artifactIdentifier;
-        }
-
-        @Override
-        public int hashCode() {
-            return artifactIdentifier.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
-            SingleArtifactVariantIdentifier other = (SingleArtifactVariantIdentifier) obj;
-            return artifactIdentifier.equals(other.artifactIdentifier);
         }
     }
 }
