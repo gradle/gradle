@@ -27,6 +27,7 @@ dependencyAnalysis {
 
 addDependenciesAndConfigurations("smokeIde")
 
+val smokeIdeTestImplementation: Configuration by configurations
 val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
 val ideStarter by configurations.creating {
     isVisible = false
@@ -90,4 +91,5 @@ dependencies {
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
+    smokeIdeTestImplementation(testFixtures(projects.core))
 }
