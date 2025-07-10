@@ -265,6 +265,64 @@ plugins {
 TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
 If you are already applying one of those, no further action is needed.
 
+[[reproducible_archives_by_default]]
+==== Archive tasks (Jar, Ear, War, Zip, AbstractArchiveTask) produce reproducible archives by default
+
+NOTE: This change may affect existing builds that relied on the previous behavior of archive tasks, where file order was not deterministic, and file timestamps and permissions were taken from the file system.
+
+In Gradle 9.0, the default behavior of archive tasks (such as `Jar`, `Ear`, `War`, `Zip`, and `AbstractArchiveTask`) has changed to produce reproducible archives by default.
+That means that:
+
+- File order in the archive is now deterministic.
+- Files have fixed timestamps (timestamps depends on the archive type).
+- All directories have fixed permissions set to `0755`.
+- All files have fixed permissions set to `0644`.
+
+This change improves the reproducibility of builds and ensures that the generated archives are consistent across different environments.
+
+You can restore the previous behaviour for one or more properties for your task with the following configuration:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.withType<AbstractArchiveTask>().configureEach {
+    // Make file order based on the file system
+    isReproducibleFileOrder = false
+    // Use file timestamps from the file system
+    isPreserveFileTimestamps = true
+    // Use permissions from the file system
+    useFileSystemPermissions()
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.withType(AbstractArchiveTask).configureEach {
+    // Makes file order non deterministic
+    reproducibleFileOrder = false
+    // Use file timestamps from the file system
+    preserveFileTimestamps = true
+    // Use permissions from the file system
+    useFileSystemPermissions()
+}
+----
+=====
+====
+
+You can also preserve the file system permissions across archives tasks by configuring a property:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.archives.use-file-system-permissions=true
+----
+
 === `test` task fails when no tests are discovered
 
 When test sources are present and no filters are applied, the `test` task will now fail with an error if it runs but doesn’t discover any tests.
