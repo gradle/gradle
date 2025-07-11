@@ -45,7 +45,7 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
     @Override
     protected JavaVersion getJVMVersion(NoCompatibleVariantsFailure failure) {
         ImmutableAttributesEntry<Integer> jvmVersionEntry = failure.getRequestedAttributes().findEntry(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-        return JavaVersion.toVersion(jvmVersionEntry.get());
+        return JavaVersion.toVersion(jvmVersionEntry.getIsolatedValue());
     }
 
     @Override

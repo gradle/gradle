@@ -32,6 +32,8 @@ import java.util.Map;
  */
 public final class EmptyImmutableAttributes extends AbstractAttributeContainer implements ImmutableAttributes {
 
+    public static final EmptyImmutableAttributes INSTANCE = new EmptyImmutableAttributes();
+
     @Override
     public ImmutableAttributesEntry<?> getHead() {
         throw new IllegalStateException("Cannot get first entry since this container is empty.");
@@ -84,7 +86,7 @@ public final class EmptyImmutableAttributes extends AbstractAttributeContainer i
     }
 
     @Override
-    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntryProvider() {
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
         return Providers.of(ImmutableMap.of());
     }
 

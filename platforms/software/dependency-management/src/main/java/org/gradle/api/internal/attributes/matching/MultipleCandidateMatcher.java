@@ -130,7 +130,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         for (int a = 0; a < requestedAttributes.size(); a++) {
             Attribute<?> attribute = requestedAttributes.get(a);
             ImmutableAttributesEntry<?> requestedEntry = requested.findEntry(attribute);
-            requestedAttributeValues[a] = requestedEntry != null ? requestedEntry.get() : null;
+            requestedAttributeValues[a] = requestedEntry != null ? requestedEntry.getIsolatedValue() : null;
         }
         return requestedAttributeValues;
     }

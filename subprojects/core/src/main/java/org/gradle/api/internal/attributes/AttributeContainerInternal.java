@@ -42,6 +42,6 @@ public interface AttributeContainerInternal extends AttributeContainer {
     /**
      * Get all entries in this attribute container as a provider.
      */
-    Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntryProvider();
+    Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider();
 
 }

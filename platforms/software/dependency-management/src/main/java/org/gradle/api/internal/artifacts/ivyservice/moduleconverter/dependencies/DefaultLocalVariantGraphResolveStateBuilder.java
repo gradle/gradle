@@ -309,7 +309,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ImmutableAttributes attributes
     ) {
         ImmutableAttributesEntry<Category> entry = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
-        if (entry == null || !entry.get().getName().equals(Category.ENFORCED_PLATFORM)) {
+        if (entry == null || !entry.getIsolatedValue().getName().equals(Category.ENFORCED_PLATFORM)) {
             return dependencies;
         }
 

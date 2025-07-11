@@ -74,8 +74,8 @@ class ImmutableAttributesTest extends Specification  {
 
         then:
         attributes.getAttribute(FOO) == 'foo'
-        attributes.findEntry(FOO).get() == "foo"
-        attributes.findEntry("foo").get() == "foo"
+        attributes.findEntry(FOO).getIsolatedValue() == "foo"
+        attributes.findEntry("foo").getIsolatedValue() == "foo"
 
         attributes.getAttribute(BAR) == null
         attributes.findEntry(BAR) == null
@@ -88,12 +88,12 @@ class ImmutableAttributesTest extends Specification  {
 
         then:
         attributes.getAttribute(FOO) == "foo"
-        attributes.findEntry(FOO).get() == "foo"
-        attributes.findEntry("foo").get() == "foo"
+        attributes.findEntry(FOO).getIsolatedValue() == "foo"
+        attributes.findEntry("foo").getIsolatedValue() == "foo"
 
         attributes.getAttribute(BAR) == "bar"
-        attributes.findEntry(BAR).get() == "bar"
-        attributes.findEntry("bar").get() == "bar"
+        attributes.findEntry(BAR).getIsolatedValue() == "bar"
+        attributes.findEntry("bar").getIsolatedValue() == "bar"
 
         attributes.getAttribute(BAZ) == null
         attributes.findEntry(BAZ) == null
@@ -113,7 +113,7 @@ class ImmutableAttributesTest extends Specification  {
         def result = factory.of(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
 
         expect:
-        result.findEntry(Usage.USAGE_ATTRIBUTE).get().name == "java-api"
+        result.findEntry(Usage.USAGE_ATTRIBUTE).getIsolatedValue().name == "java-api"
     }
 
     def "translates deprecated usage values as Isolatable"() {
@@ -121,7 +121,7 @@ class ImmutableAttributesTest extends Specification  {
         def result = factory.concat(ImmutableAttributes.EMPTY, stringUsage, new CoercingStringValueSnapshot(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS, TestUtil.objectInstantiator()))
 
         expect:
-        result.findEntry(stringUsage).get() == "java-runtime"
+        result.findEntry(stringUsage).getIsolatedValue() == "java-runtime"
         result.getAttribute(Usage.USAGE_ATTRIBUTE).name.toString() == "java-runtime"
     }
 }

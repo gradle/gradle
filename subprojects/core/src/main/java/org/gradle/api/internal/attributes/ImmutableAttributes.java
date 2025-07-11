@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
 
-    ImmutableAttributes EMPTY = new EmptyImmutableAttributes();
+    ImmutableAttributes EMPTY = EmptyImmutableAttributes.INSTANCE;
 
     /**
      * Get the most recent entry in this container.
@@ -59,9 +59,9 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
     /**
      * Locates the entry for the attribute with the given name.
      *
-     * @param name the name of an attribute to locate in this container
+     * @param name the name of an attribute to locate in this container.
      *
-     * @return the value for the attribute in this container, or null if not present
+     * @return the entry in this container corresponding to the attribute with the given name, or null if not present.
      */
     @Nullable
     ImmutableAttributesEntry<?> findEntry(String name);

@@ -73,7 +73,7 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
         // 1) Both attributes are strongly typed and match, usually the case if both are sourced from the local build
         // 2) Both attributes are desugared, usually the case if both are sourced from published metadata
         if (otherAttributeType.isAssignableFrom(attribute.getType())) {
-            return Cast.uncheckedCast(get());
+            return Cast.uncheckedCast(getIsolatedValue());
         }
 
         // Attempt to coerce myself into the other attribute's type
@@ -89,7 +89,7 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
                 return converted;
             }
         }
-        String foundType = get().getClass().getName();
+        String foundType = getIsolatedValue().getClass().getName();
         if (foundType.equals(otherAttributeType.getName())) {
             foundType += " with a different ClassLoader";
         }
@@ -101,10 +101,10 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
         // - Named
         // - Enum
         if (Named.class.isAssignableFrom(attribute.getType())) {
-            return ((Named) get()).getName();
+            return ((Named) getIsolatedValue()).getName();
         }
         if (Enum.class.isAssignableFrom(attribute.getType())) {
-            return ((Enum<?>) get()).name();
+            return ((Enum<?>) getIsolatedValue()).name();
         }
         return null;
     }
@@ -132,7 +132,7 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
 
     @Override
     public String toString() {
-        return attribute + "=" + get();
+        return attribute + "=" + getIsolatedValue();
     }
 
 }
