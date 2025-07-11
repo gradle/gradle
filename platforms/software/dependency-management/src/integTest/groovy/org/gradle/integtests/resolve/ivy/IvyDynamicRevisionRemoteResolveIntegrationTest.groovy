@@ -122,7 +122,7 @@ configurations.all {
 
 dependencies {
     if (${name.contains(':') || name.contains('@')}) {
-        compile(services.get(DependencyFactory).create(/${name}/, /${name}/, "latest.integration"))
+        compile(project.dependencyFactory.create(/${name}/, /${name}/, "latest.integration"))
     } else {
         compile(/${name}:${name}:latest.integration/)
     }

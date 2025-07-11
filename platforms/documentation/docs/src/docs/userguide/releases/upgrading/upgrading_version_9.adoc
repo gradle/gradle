@@ -58,6 +58,8 @@ Below are examples of the deprecated multi-string notation:
 dependencies {
     implementation(group = "org", name = "foo", version = "1.0")
     implementation(group = "org", name = "foo", version = "1.0", configuration = "conf")
+    implementation(group = "org", name = "foo", version = "1.0", classifier = "classifier")
+    implementation(group = "org", name = "foo", version = "1.0", ext = "ext")
 }
 
 testing.suites.named<JvmTestSuite>("test") {
@@ -75,6 +77,8 @@ testing.suites.named<JvmTestSuite>("test") {
 dependencies {
     implementation(group: 'org', name: 'foo', version: '1.0')
     implementation(group: 'org', name: 'foo', version: '1.0', configuration: 'conf')
+    implementation(group: 'org', name: 'foo', version: '1.0', classifier: 'classifier')
+    implementation(group: 'org', name: 'foo', version: '1.0', ext: 'ext')
 }
 
 testing.suites.test {
@@ -99,6 +103,8 @@ dependencies {
     implementation("org:foo:1.0") {
         targetConfiguration = "conf"
     }
+    implementation("org:foo:1.0:classifier")
+    implementation("org:foo:1.0@ext")
 }
 
 testing.suites.named<JvmTestSuite>("test") {
@@ -118,6 +124,8 @@ dependencies {
     implementation("org:foo:1.0") {
         targetConfiguration = "conf"
     }
+    implementation("org:foo:1.0:classifier")
+    implementation("org:foo:1.0@ext")
 }
 
 testing.suites.test {
