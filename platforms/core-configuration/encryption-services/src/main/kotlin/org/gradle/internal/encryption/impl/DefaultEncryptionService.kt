@@ -49,9 +49,6 @@ class DefaultEncryptionService(
     val keystoreDirOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
 
     private
-    val keystoreTypeOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-type", null)
-
-    private
     val encryptionAlgorithmOption: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
 
     private
@@ -124,7 +121,6 @@ class DefaultEncryptionService(
                 KeyStoreKeySource(
                     encryptionAlgorithm = encryptionAlgorithm.algorithm,
                     customKeyStoreDir = keystoreDirOption?.let { File(it) },
-                    customKeyStoreType = keystoreTypeOption,
                     keyAlias = "gradle-secret",
                     cacheBuilderFactory = cacheBuilderFactory,
                     fileSystem = fileSystem
