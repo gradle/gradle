@@ -45,8 +45,8 @@ class KeyStoreKeySource(
     }
 
     override val sourceDescription: String
-        get() = customKeyStoreDir?.let { "custom Java keystore (${keyStore.type}) at $it" }
-            ?: "default Gradle configuration cache keystore (${keyStore.type})"
+        get() = customKeyStoreDir?.let { "custom Gradle keystore (${keyStore.type}) at $it" }
+            ?: "default Gradle keystore (${keyStore.type})"
 
     private
     fun createKeyStoreAndGenerateKey(keyStoreFile: File): SecretKey {

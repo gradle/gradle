@@ -279,7 +279,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         run("help", "-i")
 
         then:
-        outputContains("Encryption key source: default Gradle configuration cache keystore (${defaultKeystoreType})")
+        outputContains("Encryption key source: default Gradle keystore (${defaultKeystoreType})")
     }
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Test sets a custom security properties file")
@@ -299,7 +299,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         succeeds("help", "-i")
 
         then:
-        outputContains("Encryption key source: default Gradle configuration cache keystore (${actualType})")
+        outputContains("Encryption key source: default Gradle keystore (${actualType})")
 
         where:
         requestedType   | actualType
