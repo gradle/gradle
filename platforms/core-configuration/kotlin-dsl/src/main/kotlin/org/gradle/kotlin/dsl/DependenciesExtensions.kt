@@ -72,10 +72,6 @@ class DependenciesExtensions {
             // Add a dependency by String
             implementation("org:foo:1.0") // is getImplementation().add("org:foo:1.0")
 
-            // Add a dependency with explicit coordinate parameters
-            @Suppress("DEPRECATION")
-            implementation(module(group = "org", name = "foo", version = "1.0")) // is getImplementation().add(module("org", "foo", "1.0"))
-
             // Add dependencies on projects
             implementation(project(":path")) // is getImplementation().add(project(":path"))
             implementation(project()) // is getImplementation().add(project())
