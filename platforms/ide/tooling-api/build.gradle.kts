@@ -146,9 +146,6 @@ tasks.named("toolingApiShadedJar") {
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
 
 // AutoTestedSamplesToolingApiTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
 integTest.generateDefaultAutoTestedSamplesTest = false

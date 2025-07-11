@@ -73,6 +73,3 @@ packageCycles {
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

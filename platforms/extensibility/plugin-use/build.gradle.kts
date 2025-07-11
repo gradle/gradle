@@ -41,6 +41,3 @@ dependencies {
 testFilesCleanup.reportOnly = true
 
 description = """Provides functionality for resolving and managing plugins during their application to projects."""
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

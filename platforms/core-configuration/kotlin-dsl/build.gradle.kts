@@ -210,9 +210,6 @@ testFilesCleanup.reportOnly = true
 strictCompile {
     ignoreDeprecations()
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
 
 // Filter out what goes into the public API
 configure<KotlinJvmProjectExtension> {

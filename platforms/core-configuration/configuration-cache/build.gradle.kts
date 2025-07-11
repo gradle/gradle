@@ -12,9 +12,6 @@ tasks.configCacheIntegTest {
 }
 
 // The integration tests in this project do not need to run in 'isolated projects' mode.
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
 
 dependencies {
     api(projects.baseServices)

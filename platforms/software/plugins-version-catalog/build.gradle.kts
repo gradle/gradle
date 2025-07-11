@@ -49,6 +49,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/**")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
