@@ -60,7 +60,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val ignoreInputsDuringConfigurationCacheStore: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
-        fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOfDirectoryContent(file: File): HashCode?
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>

@@ -51,7 +51,6 @@ import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.extensions.core.directoryChildrenNamesHash
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
@@ -479,9 +478,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val ignoredFileSystemCheckInputs: String?
             get() = startParameter.ignoredFileSystemCheckInputs
-
-        override fun gradleProperty(propertyName: String): String? =
-            gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOfDirectoryContent(file: File): HashCode =
             directoryChildrenNamesHash(file)
