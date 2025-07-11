@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -36,6 +37,11 @@ public interface ResolvedVariant extends HasAttributes {
      * using {@link org.gradle.api.artifacts.ModuleDependency#artifact(Action)} or where individual artifacts have been excluded from the variant.
      */
     VariantResolveMetadata.@Nullable Identifier getIdentifier();
+
+    /**
+     * Get the ID of the variant in the graph that produces this artifact collection.
+     */
+    VariantIdentifier getSourceVariantId();
 
     @Override
     ImmutableAttributes getAttributes();

@@ -18,7 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.NamedModuleVariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -50,34 +50,38 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     private ImmutableList<ModuleDependencyMetadata> filteredConfigDependencies;
 
     public DefaultConfigurationMetadata(
-            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-            ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-            VariantMetadataRules componentMetadataRules,
-            ImmutableList<ExcludeMetadata> excludes,
-            ImmutableAttributes componentLevelAttributes,
-            boolean externalVariant
+        NamedModuleVariantIdentifier id,
+        String name,
+        boolean transitive,
+        boolean visible,
+        ImmutableSet<String> hierarchy,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+        VariantMetadataRules componentMetadataRules,
+        ImmutableList<ExcludeMetadata> excludes,
+        ImmutableAttributes componentLevelAttributes,
+        boolean externalVariant
     ) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY, externalVariant);
+        super(id, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY, externalVariant);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = DependencyFilter.ALL;
     }
 
     private DefaultConfigurationMetadata(
-            ModuleComponentIdentifier componentId,
-            String name,
-            boolean transitive,
-            boolean visible,
-            ImmutableSet<String> hierarchy,
-            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-            VariantMetadataRules componentMetadataRules,
-            ImmutableList<ExcludeMetadata> excludes,
-            ImmutableAttributes attributes,
-            Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-            DependencyFilter dependencyFilter,
-            ImmutableCapabilities capabilities,
-            boolean externalVariant
+        NamedModuleVariantIdentifier id,
+        String name,
+        boolean transitive,
+        boolean visible,
+        ImmutableSet<String> hierarchy,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+        VariantMetadataRules componentMetadataRules,
+        ImmutableList<ExcludeMetadata> excludes,
+        ImmutableAttributes attributes,
+        Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+        DependencyFilter dependencyFilter,
+        ImmutableCapabilities capabilities,
+        boolean externalVariant
     ) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, capabilities, externalVariant);
+        super(id, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, capabilities, externalVariant);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = dependencyFilter;
     }
@@ -297,20 +301,21 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         }
 
         public DefaultConfigurationMetadata build() {
+            NamedModuleVariantIdentifier id = new NamedModuleVariantIdentifier(getId().getComponentId(), name);
             return new DefaultConfigurationMetadata(
-                    getComponentId(),
-                    name,
-                    isTransitive(),
-                    isVisible(),
-                    getHierarchy(),
-                    artifacts == null ? DefaultConfigurationMetadata.this.getOriginalArtifacts() : artifacts,
-                    componentMetadataRules,
-                    getExcludes(),
-                    attributes == null ? DefaultConfigurationMetadata.super.getAttributes() : attributes,
-                    lazyConfigDependencies(),
-                    dependencyFilter,
-                    capabilities == null ? DefaultConfigurationMetadata.this.getRawCapabilities() : capabilities,
-                    isExternalVariant()
+                id,
+                name,
+                isTransitive(),
+                isVisible(),
+                getHierarchy(),
+                artifacts == null ? DefaultConfigurationMetadata.this.getOriginalArtifacts() : artifacts,
+                componentMetadataRules,
+                getExcludes(),
+                attributes == null ? DefaultConfigurationMetadata.super.getAttributes() : attributes,
+                lazyConfigDependencies(),
+                dependencyFilter,
+                capabilities == null ? DefaultConfigurationMetadata.this.getRawCapabilities() : capabilities,
+                isExternalVariant()
             );
         }
     }

@@ -38,6 +38,11 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
      */
     String getName();
 
+    /**
+     * Get the ID of this variant.
+     */
+    VariantIdentifier getId();
+
     @Override
     ImmutableAttributes getAttributes();
 
