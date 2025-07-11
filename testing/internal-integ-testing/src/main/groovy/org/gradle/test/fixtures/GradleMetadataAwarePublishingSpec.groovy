@@ -51,7 +51,7 @@ trait GradleMetadataAwarePublishingSpec {
 
     private static String asDependency(String group, String name, String version) {
         if ([group, name, version].any { it.contains(':') || it.contains('@') }) {
-            return "project.services.get(DependencyFactory).create('${group}', '${name}', '${version}')"
+            return "project.dependencyFactory.create('${group}', '${name}', '${version}')"
         }
         return "'${group}:${name}:${version}'"
     }
