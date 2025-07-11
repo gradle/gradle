@@ -121,7 +121,7 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             if (noChildren) {
                 description = "Displays the tasks runnable from " + projectName + ".";
             } else {
-                description = "Displays the tasks runnable from " + projectName + " (some of the displayed tasks may belong to subprojects).";
+                description = "Displays the tasks runnable from " + projectName + ". Use --include-subprojects to include tasks from subprojects.";
             }
             task.setDescription(description);
             task.setGroup(HELP_GROUP);
