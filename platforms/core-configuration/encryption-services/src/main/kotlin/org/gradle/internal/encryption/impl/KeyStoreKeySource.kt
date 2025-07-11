@@ -31,7 +31,6 @@ internal
 class KeyStoreKeySource(
     val encryptionAlgorithm: String,
     val customKeyStoreDir: File?,
-    val customKeyStoreType: String?,
     val keyAlias: String,
     val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     val fileSystem: FileSystem
