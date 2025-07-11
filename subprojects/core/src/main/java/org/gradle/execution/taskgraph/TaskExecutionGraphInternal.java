@@ -28,6 +28,20 @@ import java.util.Set;
 
 @ServiceScope(Scope.Gradle.class)
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
+    /**
+     * Adds the internal listener for task execution graph events.
+     * These listeners are not persisted through the configuration cache, beware if you want to receive graph execution events with CC enabled.
+     *
+     * @param listener the listener
+     */
+    void addExecutionListener(TaskExecutionGraphExecutionListener listener);
+
+    /**
+     * Removes the previously registered internal listener.
+     *
+     * @param listener the listener
+     */
+    void removeExecutionListener(TaskExecutionGraphExecutionListener listener);
 
     /**
      * Find a task with the given path in the task graph.
