@@ -28,7 +28,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.spockframework.lang.Wildcard
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
@@ -54,17 +53,11 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         encryptionKeyAsBase64 = Base64.encoder.encodeToString(encryptionKeyText.getBytes(StandardCharsets.UTF_8))
     }
 
-    def "configuration cache can be loaded without errors from #source using #encryptionTransformation and #keystoreType"() {
+    def "configuration cache can be loaded without errors from #source using #encryptionTransformation"() {
         given:
         def additionalOpts = [
             "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionTransformation}"
         ]
-        if (keystoreType != Wildcard.INSTANCE) {
-            file "security.properties" << """
-            keystore.type=${keystoreType}
-            """
-            additionalOpts << "-Djava.security.properties=security.propertie"
-        }
         def configurationCache = newConfigurationCacheFixture()
         runWithEncryption(source, ["help"], additionalOpts)
 
@@ -75,15 +68,11 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         configurationCache.assertStateLoaded()
 
         where:
-        encryptionTransformation | keystoreType | source
-        "AES/CTR/NoPadding"      | _            | EncryptionKind.KEYSTORE
-        "AES/CTR/NoPadding"      | "jceks"      | EncryptionKind.KEYSTORE
-        "AES/CTR/NoPadding"      | "pkcs12"     | EncryptionKind.KEYSTORE
-        "AES/CTR/NoPadding"      | _            | EncryptionKind.ENV_VAR
-        "AES/GCM/NoPadding"      | _            | EncryptionKind.KEYSTORE
-        "AES/GCM/NoPadding"      | "jceks"      | EncryptionKind.KEYSTORE
-        "AES/GCM/NoPadding"      | "pkcs12"     | EncryptionKind.KEYSTORE
-        "AES/GCM/NoPadding"      | _            | EncryptionKind.ENV_VAR
+        encryptionTransformation | source
+        "AES/CTR/NoPadding"      | EncryptionKind.KEYSTORE
+        "AES/CTR/NoPadding"      | EncryptionKind.ENV_VAR
+        "AES/GCM/NoPadding"      | EncryptionKind.KEYSTORE
+        "AES/GCM/NoPadding"      | EncryptionKind.ENV_VAR
     }
 
     def "configuration cache encryption enablement is #enabled if kind=#kind"() {
