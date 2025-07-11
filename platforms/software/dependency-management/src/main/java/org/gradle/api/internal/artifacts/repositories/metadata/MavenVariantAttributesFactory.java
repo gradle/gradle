@@ -24,13 +24,10 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * A specialized attributes factory for Maven metadata. The specialized methods take advantage
- * of the fact we know that for derived variants, we're going to see almost always the same input
- * attributes, and the same mutations to make on them, so it's more efficient to map them, than
- * recomputing each time.
+ * Creates attribute sets for derived variants of Maven components.
  */
 @ServiceScope(Scope.BuildSession.class)
-public interface MavenAttributesFactory {
+public interface MavenVariantAttributesFactory {
 
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
     Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);

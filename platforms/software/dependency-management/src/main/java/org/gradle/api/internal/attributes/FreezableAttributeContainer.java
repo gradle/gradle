@@ -96,8 +96,8 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
     }
 
     @Override
-    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntryProvider() {
-        return delegate.getEntryProvider();
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
+        return delegate.getEntriesProvider();
     }
 
     @Override

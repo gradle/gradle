@@ -43,7 +43,7 @@ public interface ImmutableAttributesEntry<T> {
     /**
      * Get an isolated instance of the entry's value.
      */
-    default T get() {
+    default T getIsolatedValue() {
         return Objects.requireNonNull(getValue().isolate());
     }
 

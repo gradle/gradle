@@ -73,7 +73,7 @@ public class RejectedByAttributesVersion extends RejectedVersion {
 
     private static String prettify(@Nullable ImmutableAttributesEntry<?> entry) {
         if (entry != null) {
-            return "'" + entry.get() + "'";
+            return "'" + entry.getIsolatedValue() + "'";
         } else {
             return "not found";
         }

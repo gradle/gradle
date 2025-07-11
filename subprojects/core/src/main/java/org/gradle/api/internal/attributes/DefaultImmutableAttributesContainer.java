@@ -100,7 +100,7 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
 
         for (ImmutableAttributesEntry<?> entry : getEntries()) {
             ImmutableAttributesEntry<?> otherEntry = that.findEntry(entry.getKey());
-            if (otherEntry == null || !entry.get().equals(otherEntry.get())) {
+            if (otherEntry == null || !entry.getIsolatedValue().equals(otherEntry.getIsolatedValue())) {
                 return false;
             }
         }
@@ -239,13 +239,13 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     public Map<Attribute<?>, ?> asMap() {
         ImmutableMap.Builder<Attribute<?>, Object> builder = ImmutableMap.builder();
         for (ImmutableAttributesEntry<?> entry : getEntries()) {
-            builder.put(entry.getKey(), entry.get());
+            builder.put(entry.getKey(), entry.getIsolatedValue());
         }
         return builder.build();
     }
 
     @Override
-    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntryProvider() {
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
         ImmutableMap.Builder<Attribute<?>, AttributeEntry<?>> builder = ImmutableMap.builder();
         for (ImmutableAttributesEntry<?> entry : getEntries()) {
             builder.put(entry.getKey(), asEntry(entry));
@@ -261,7 +261,7 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
         for (ImmutableAttributesEntry<?> entry : getEntries()) {
-            sorted.put(entry.getKey(), entry.get());
+            sorted.put(entry.getKey(), entry.getIsolatedValue());
         }
         return sorted.toString();
     }

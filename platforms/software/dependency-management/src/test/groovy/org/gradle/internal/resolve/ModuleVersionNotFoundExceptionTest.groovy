@@ -25,7 +25,6 @@ import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import spock.lang.Specification
 
@@ -35,7 +34,7 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionNotFoundExceptionTest extends Specification {
 
-    private static final IsolatableFactory isolatableFactory = SnapshotTestUtil.isolatableFactory()
+    private static final IsolatableFactory ISOLATABLE_FACTORY = SnapshotTestUtil.isolatableFactory()
 
     static ModuleIdentifier mid(String group, String name) {
         DefaultModuleIdentifier.newId(group, name)
@@ -240,8 +239,8 @@ Searched in the following locations:
             def match = v[2] as Boolean
 
             new AttributeMatcher.MatchingDescription<Object>(
-                new DefaultImmutableAttributesEntry<>(attribute, isolatableFactory.isolate(requestedValue)),
-                new DefaultImmutableAttributesEntry<>(attribute, isolatableFactory.isolate(foundValue)),
+                new DefaultImmutableAttributesEntry<>(attribute, ISOLATABLE_FACTORY.isolate(requestedValue)),
+                new DefaultImmutableAttributesEntry<>(attribute, ISOLATABLE_FACTORY.isolate(foundValue)),
                 match
             )
         }

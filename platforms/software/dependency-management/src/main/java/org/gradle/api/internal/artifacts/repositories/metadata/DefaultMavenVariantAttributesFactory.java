@@ -31,14 +31,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
+/**
+ * Default implementation of {@link MavenVariantAttributesFactory}, which caches results per input attribute set.
+ */
+public class DefaultMavenVariantAttributesFactory implements MavenVariantAttributesFactory {
 
     private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
     private final Map<List<Object>, ImmutableAttributes> concatCache = new ConcurrentHashMap<>();
 
     @Inject
-    public DefaultMavenAttributesFactory(AttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator) {
+    public DefaultMavenVariantAttributesFactory(AttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator) {
         this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
     }

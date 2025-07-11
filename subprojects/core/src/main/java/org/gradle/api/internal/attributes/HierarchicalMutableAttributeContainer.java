@@ -83,8 +83,8 @@ import java.util.TreeMap;
     }
 
     @Override
-    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntryProvider() {
-        return primary.getEntryProvider().zip(fallback.getEntryProvider(), (prim, fall) ->
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
+        return primary.getEntriesProvider().zip(fallback.getEntriesProvider(), (prim, fall) ->
             ImmutableMap.<Attribute<?>, AttributeEntry<?>>builderWithExpectedSize(prim.size() + fall.size())
                 .putAll(fall)
                 .putAll(prim)

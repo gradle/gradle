@@ -117,7 +117,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
 
     @Override
     public AttributeContainer addAllLater(AttributeContainer other) {
-        state.putAll(((AttributeContainerInternal) other).getEntryProvider());
+        state.putAll(((AttributeContainerInternal) other).getEntriesProvider());
         return this;
     }
 
@@ -184,7 +184,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     }
 
     @Override
-    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntryProvider() {
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
         return state;
     }
 

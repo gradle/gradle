@@ -129,9 +129,9 @@ public final class ResolutionCandidateAssessor {
                     incompatible.add(assessedAttribute);
                 }
             } else if (consumerEntry != null) {
-                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerEntry.get()), null));
+                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerEntry.getIsolatedValue()), null));
             } else if (producerEntry != null) {
-                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerEntry.get())));
+                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerEntry.getIsolatedValue())));
             }
         }
     }

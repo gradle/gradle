@@ -37,8 +37,11 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     private final PropertyFactory propertyFactory;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
 
-    // Mutable state
-    private final Map<ImmutableAttributes, ImmutableList<ImmutableAttributes>> children;
+    /**
+     * A map from parent attribute containers to the set of containers that have
+     * been produced by appending a single entry to it.
+     */
+    private final Map<ImmutableAttributes, ImmutableList<ImmutableAttributes>> concatCache;
 
     public DefaultAttributesFactory(
         AttributeValueIsolator attributeValueIsolator,
@@ -50,7 +53,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         this.propertyFactory = propertyFactory;
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
 
-        this.children = new ConcurrentHashMap<>();
+        this.concatCache = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -91,7 +94,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         assertAttributeNotAlreadyPresent(node, entry.getKey());
 
         // Try to retrieve a cached value without locking
-        ImmutableList<ImmutableAttributes> cachedChildren = children.get(node);
+        ImmutableList<ImmutableAttributes> cachedChildren = concatCache.get(node);
         if (cachedChildren != null) {
             ImmutableAttributes child = findChild(cachedChildren, entry);
             if (child != null) {
@@ -100,7 +103,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         }
 
         // If we didn't find a cached value, we need to lock and update the cache
-        cachedChildren = children.compute(node, (k, nodeChildren) -> {
+        cachedChildren = concatCache.compute(node, (k, nodeChildren) -> {
             if (nodeChildren != null) {
                 // Check if the value is already present again, now that we have the lock.
                 ImmutableAttributes child = findChild(nodeChildren, entry);
@@ -179,10 +182,10 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         ImmutableAttributes current = attributes2;
         for (ImmutableAttributesEntry<?> toConcat : attributes1.getEntries()) {
             ImmutableAttributesEntry<?> existing = current.findEntry(toConcat.getKey().getName());
-            if (existing != null && !toConcat.get().equals(existing.get())) {
+            if (existing != null && !toConcat.getIsolatedValue().equals(existing.getIsolatedValue())) {
                 Attribute<?> attribute = toConcat.getKey();
                 String message = "An attribute named '" + attribute.getName() + "' of type '" + attribute.getType().getName() + "' already exists in this container";
-                throw new AttributeMergingException(attribute, toConcat.get(), existing.get(), message);
+                throw new AttributeMergingException(attribute, toConcat.getIsolatedValue(), existing.getIsolatedValue(), message);
             }
             current = doConcatEntry(current, toConcat);
         }
