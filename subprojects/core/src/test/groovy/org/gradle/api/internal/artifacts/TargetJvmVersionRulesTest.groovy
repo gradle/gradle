@@ -18,44 +18,31 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry
-import org.gradle.api.internal.attributes.CompatibilityCheckResult
-import org.gradle.api.internal.attributes.CompatibilityRule
-import org.gradle.api.internal.attributes.DisambiguationRule
-import org.gradle.api.internal.attributes.MultipleCandidatesResult
-import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.attributes.matching.DefaultAttributeSelectionSchema
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class TargetJvmVersionRulesTest extends Specification {
-    private CompatibilityRule<Object> compatibilityRules
-    private DisambiguationRule<Object> disambiguationRules
 
-    def setup() {
-        ImmutableAttributesSchema schema = AttributeTestUtil.immutableSchema {
+    def schema = new DefaultAttributeSelectionSchema(
+        AttributeTestUtil.immutableSchema {
             JavaEcosystemSupport.configureServices(it, Mock(AttributeDescriberRegistry), TestUtil.objectFactory())
         }
-        compatibilityRules = schema.compatibilityRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
-        disambiguationRules = schema.disambiguationRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
-    }
+    )
 
     @Unroll("compatibility consumer=#consumer producer=#producer compatible=#compatible")
     def "check compatibility rules"() {
-        CompatibilityCheckResult details = Mock(CompatibilityCheckResult)
-
         when:
-        compatibilityRules.execute(details)
+        def matches = schema.matchValue(
+            TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+            consumer,
+            producer
+        )
 
         then:
-        1 * details.getConsumerValue() >> consumer
-        1 * details.getProducerValue() >> producer
-
-        if (compatible) {
-            1 * details.compatible()
-        } else {
-            1 * details.incompatible()
-        }
+        matches == compatible
 
         where:
         consumer | producer | compatible
@@ -67,22 +54,20 @@ class TargetJvmVersionRulesTest extends Specification {
         8        | 11       | false
     }
 
-    @Unroll("disamgiguates when consumer=#consumer and candidates=#candidates chooses=#expected")
+    @Unroll("disambiguates when consumer=#consumer and candidates=#candidates chooses=#expected")
     def "check disambiguation rules"() {
-        MultipleCandidatesResult details = Mock()
-
         when:
-        disambiguationRules.execute(details)
+        def result = schema.disambiguate(
+            TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+            consumer,
+            candidates as Set
+        )
 
         then:
-        1 * details.getCandidateValues() >> candidates
-        1 * details.closestMatch(expected)
-        1 * details.hasResult()
-        0 * details._
+        result == ([expected] as Set)
 
         where:
         consumer | candidates | expected
-        6        | [6]        | 6
         7        | [6, 7]     | 7
         8        | [6, 7]     | 7
         9        | [6, 7, 9]  | 9
