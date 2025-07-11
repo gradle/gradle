@@ -57,7 +57,7 @@ internal class DefaultConfigurationCacheDegradationController(
             DegradationDecision(collectTaskDegradationReasons(), collectFeatureDegradationReasons())
         }
 
-    private fun collectTaskDegradationReasons(): ImmutableMap<Task, List<String>> =
+    private fun collectTaskDegradationReasons(): Map<Task, List<String>> =
         if (tasksDegradationRequests.isNotEmpty()) {
             val builder = ImmutableMap.builderWithExpectedSize<Task, List<String>>(tasksDegradationRequests.size)
             for ((task, reasons) in tasksDegradationRequests) {
@@ -74,7 +74,7 @@ internal class DefaultConfigurationCacheDegradationController(
             builder.build()
         } else ImmutableMap.of()
 
-    private fun collectFeatureDegradationReasons(): ImmutableMap<String, List<String>> =
+    private fun collectFeatureDegradationReasons(): Map<String, List<String>> =
         if (isSourceDependenciesUsed()) {
             ImmutableMap.of(
                 "source dependencies",
@@ -89,8 +89,8 @@ internal class DefaultConfigurationCacheDegradationController(
         vcsMappingsStore.asResolver().hasRules()
 
     internal data class DegradationDecision(
-        private val taskDegradationReasons: ImmutableMap<Task, List<String>>,
-        private val featureDegradationReasons: ImmutableMap<String, List<String>>
+        private val taskDegradationReasons: Map<Task, List<String>>,
+        private val featureDegradationReasons: Map<String, List<String>>
     ) {
         val shouldDegrade: Boolean
             get() = taskDegradationReasons.isNotEmpty() || featureDegradationReasons.isNotEmpty()
