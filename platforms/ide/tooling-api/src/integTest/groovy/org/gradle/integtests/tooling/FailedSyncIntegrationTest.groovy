@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiBackedGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpec
-import org.gradle.internal.buildtree.ResilientConfigurationCollector
-import org.gradle.internal.buildtree.ResilientConfigurationCollector.ResilientConfigurationException
+import org.gradle.plugins.ide.internal.tooling.model.PartialBuildInfo
+import org.gradle.plugins.ide.internal.tooling.model.ResilientConfigurationException
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
@@ -129,7 +129,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         def e = thrown(BuildActionFailureException)
         // It seems these are loaded from different classloaders, so we cannot use `instanceof`
         e.cause.class.name == ResilientConfigurationException.class.name
-        List<ResilientConfigurationCollector.PartialBuildInfo> partialBuildInfos = e.cause.partialBuildInfos
+        List<PartialBuildInfo> partialBuildInfos = e.cause.partialBuildInfos
         partialBuildInfos.collect { it.buildId } == [":", ":included"]
         partialBuildInfos.collect { it.projectDir } == [
             testDirectory,

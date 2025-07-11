@@ -120,11 +120,6 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ResilientConfigurationCollector createResilientConfigurationListener() {
-        return new ResilientConfigurationCollector();
-    }
-
-    @Provides
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PatternSetFactory patternSetFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,

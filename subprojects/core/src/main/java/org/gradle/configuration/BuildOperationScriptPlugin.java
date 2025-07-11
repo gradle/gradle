@@ -16,9 +16,7 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.buildtree.ResilientConfigurationCollector;
 import org.gradle.internal.code.DefaultUserCodeSource;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
@@ -44,13 +42,11 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
     private final ScriptPlugin decorated;
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
-    private final ResilientConfigurationCollector resilientConfigurationListener;
 
-    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, ResilientConfigurationCollector resilientConfigurationListener) {
+    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
         this.decorated = decorated;
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.resilientConfigurationListener = resilientConfigurationListener;
     }
 
     @Override
@@ -61,7 +57,6 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
     @Override
     public void apply(final Object target) {
         TextResource resource = getSource().getResource();
-        reportForResilientSync(target);
         if (resource.isContentCached() && resource.getHasEmptyContent()) {
             //no operation, if there is no script code provided
             decorated.apply(target);
@@ -87,17 +82,6 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
                         .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
                 }
             }));
-        }
-    }
-
-    private void reportForResilientSync(Object target) {
-        if (target instanceof SettingsInternal) {
-            SettingsInternal settingsInternal = (SettingsInternal) target;
-            resilientConfigurationListener.addVisitedBuilds(
-                settingsInternal.getGradle().getOwner().getBuildIdentifier().getBuildPath(),
-                settingsInternal.getGradle().getOwner().getBuildRootDir(),
-                new File(settingsInternal.getSettingsScript().getFileName())
-            );
         }
     }
 

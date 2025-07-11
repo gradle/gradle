@@ -18,18 +18,20 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.ResilientConfigurationCollector;
-import org.gradle.internal.buildtree.ResilientConfigurationCollector.ResilientConfigurationException;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
+import org.gradle.plugins.ide.internal.tooling.model.PartialBuildInfo;
+import org.gradle.plugins.ide.internal.tooling.model.ResilientConfigurationException;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,10 +54,27 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         try {
             target.ensureProjectsLoaded();
         } catch (Exception e) {
-            ResilientConfigurationCollector resilientConfigurationCollector = target.getMutableModel().getServices().get(ResilientConfigurationCollector.class);
-            throw new ResilientConfigurationException(resilientConfigurationCollector.getPartialBuildInfos(), e);
+            throw new ResilientConfigurationException(collectPartialData(buildStateRegistry), e);
         }
         return convert(target, new LinkedHashMap<>());
+    }
+
+    private static List<PartialBuildInfo> collectPartialData(BuildStateRegistry buildStateRegistry) {
+        List<PartialBuildInfo> partialBuildInfos = new ArrayList<>();
+        partialBuildInfos.add(getPartialBuildInfo(buildStateRegistry.getRootBuild()));
+        for (BuildState buildState : buildStateRegistry.getIncludedBuilds()) {
+            if (buildState.isImportableBuild()) {
+                partialBuildInfos.add(getPartialBuildInfo(buildState));
+            }
+        }
+        return partialBuildInfos;
+    }
+
+    private static PartialBuildInfo getPartialBuildInfo(BuildState buildState) {
+        String buildId = buildState.getBuildIdentifier().getBuildPath();
+        File projectDir = buildState.getMutableModel().getOwner().getBuildRootDir();
+        File scriptFile = buildState.getMutableModel().getServices().get(BuildLayout.class).getSettingsFile();
+        return new PartialBuildInfo(buildId, projectDir, scriptFile);
     }
 
     private DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {

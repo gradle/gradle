@@ -182,7 +182,6 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.buildtree.ResilientConfigurationCollector;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
@@ -551,8 +550,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         CompileOperationFactory compileOperationFactory,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
-        ListenerManager listenerManager,
-        ResilientConfigurationCollector resilientConfigurationListener
+        ListenerManager listenerManager
     ) {
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(buildScopedServices));
         DefaultScriptPluginFactory defaultScriptPluginFactory = new DefaultScriptPluginFactory(
@@ -563,7 +561,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             pluginRequestApplicator,
             compileOperationFactory
         );
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationRunner, userCodeApplicationContext, listenerManager.getBroadcaster(ScriptSourceListener.class), resilientConfigurationListener);
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationRunner, userCodeApplicationContext, listenerManager.getBroadcaster(ScriptSourceListener.class));
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
     }
