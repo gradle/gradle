@@ -331,6 +331,24 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         System.clearProperty(systemProp)
     }
 
+    def "reuses cache when unused project property changes on command-line"() {
+        buildFile """
+            tasks.register("some") {
+                doLast {}
+            }
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
     def "reuses cache when project property changes on command-line, if used only at execution time"() {
         propertiesFile << """
             foo=bar
@@ -356,9 +374,34 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCacheRun "some", "-Pfoo=buz"
 
         then:
-        configurationCache.assertStateStored()
-        // TODO: should load instead
-//        configurationCache.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("Execution: 'buz'")
     }
+
+    def "invalidates cache when project property changes on command-line, if used at configuration time via ext"() {
+        buildFile """
+            // access the property
+            project.foo
+
+            tasks.register("some") {
+                doLast {}
+            }
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+
+        then:
+        executed(":some")
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+
+        then:
+        executed(":some")
+        configurationCache.assertStateStored()
+    }
+
+    // TODO: write a test about settings.ext, e.g., settings.foo in the settings script
 }

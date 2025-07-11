@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.internal.extensibility;
 
-import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.internal.extensibility.ExtraPropertiesGradlePropertiesLookup;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
-/**
- * Internal protocol for the initialization of extra properties.
- */
-public interface ExtraPropertiesExtensionInternal extends ExtraPropertiesExtension {
-    void attachGradleProperties(ExtraPropertiesGradlePropertiesLookup gradleProperties);
+public interface ExtraPropertiesGradlePropertiesLookup {
+
+    boolean hasGradleProperty(String propertyName);
+
+    @Nullable
+    Object getGradleProperty(String propertyName);
+
+    Map<String, Object> asMap();
+
 }

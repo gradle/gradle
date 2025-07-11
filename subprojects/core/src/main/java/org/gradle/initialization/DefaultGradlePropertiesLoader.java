@@ -24,6 +24,7 @@ import java.util.Map;
 
 import static org.gradle.api.Project.GRADLE_PROPERTIES;
 
+// Root gradle properties loader
 public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
 
     private final StartParameterInternal startParameter;

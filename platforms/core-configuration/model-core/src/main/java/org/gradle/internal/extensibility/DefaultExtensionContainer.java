@@ -42,11 +42,12 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultExtensionContainer.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
-    private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
+    private final ExtraPropertiesExtension extraProperties;
     private final InstanceGenerator instanceGenerator;
 
     public DefaultExtensionContainer(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
+        extraProperties = new DefaultExtraPropertiesExtension();
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.internal.extensibility;
 
-import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.internal.extensibility.ExtraPropertiesGradlePropertiesLookup;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scope;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
+@EventScope(Scope.Build.class)
+public interface GradlePropertiesAccessListener {
 
-/**
- * Internal protocol for the initialization of extra properties.
- */
-public interface ExtraPropertiesExtensionInternal extends ExtraPropertiesExtension {
-    void attachGradleProperties(ExtraPropertiesGradlePropertiesLookup gradleProperties);
+    void onGradlePropertyAccess(String propertyName, @Nullable Object propertyValue);
+
 }
