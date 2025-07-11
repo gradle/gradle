@@ -21,6 +21,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.buildtree.ResilientConfigurationCollector;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -83,19 +84,22 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ScriptSourceListener scriptSourceListener;
+    private final ResilientConfigurationCollector resilientConfigurationCollector;
 
     public ScriptPluginFactorySelector(
         ScriptPluginFactory defaultScriptPluginFactory,
         ProviderInstantiator providerInstantiator,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
-        ScriptSourceListener scriptSourceListener
+        ScriptSourceListener scriptSourceListener,
+        ResilientConfigurationCollector resilientConfigurationCollector
     ) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
         this.providerInstantiator = providerInstantiator;
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.scriptSourceListener = scriptSourceListener;
+        this.resilientConfigurationCollector = resilientConfigurationCollector;
     }
 
     @Override
@@ -106,7 +110,7 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
         scriptSourceListener.scriptSourceObserved(scriptSource);
         ScriptPlugin scriptPlugin = scriptPluginFactoryFor(scriptSource.getFileName())
             .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
-        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationRunner, userCodeApplicationContext);
+        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationRunner, userCodeApplicationContext, resilientConfigurationCollector);
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {

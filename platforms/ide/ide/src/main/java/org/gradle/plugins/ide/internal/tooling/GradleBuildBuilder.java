@@ -22,6 +22,8 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildtree.ResilientConfigurationCollector;
+import org.gradle.internal.buildtree.ResilientConfigurationCollector.ResilientConfigurationException;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
@@ -47,7 +49,12 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
 
     @Override
     public DefaultGradleBuild create(BuildState target) {
-        target.ensureProjectsLoaded();
+        try {
+            target.ensureProjectsLoaded();
+        } catch (Exception e) {
+            ResilientConfigurationCollector resilientConfigurationCollector = target.getMutableModel().getServices().get(ResilientConfigurationCollector.class);
+            throw new ResilientConfigurationException(resilientConfigurationCollector.getPartialBuildInfos(), e);
+        }
         return convert(target, new LinkedHashMap<>());
     }
 

@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiBackedGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpec
+import org.gradle.internal.buildtree.ResilientConfigurationCollector
+import org.gradle.internal.buildtree.ResilientConfigurationCollector.ResilientConfigurationException
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements ToolingApiSpec {
@@ -99,6 +102,44 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         failureDescriptionContains("Script compilation error")
     }
 
+    def "basic project with settings included build - broken included build build file - build action"() {
+        given:
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("included")
+            }
+            rootProject.name = "root"
+        """
+
+        def included = testDirectory.createDir("included")
+        included.file("settings.gradle.kts") << """
+            boom !!!
+            rootProject.name = "included"
+        """
+        included.file("build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+        """
+
+        when:
+        runBuildAction(new CustomModelAction())
+
+        then:
+        def e = thrown(BuildActionFailureException)
+        // It seems these are loaded from different classloaders, so we cannot use `instanceof`
+        e.cause.class.name == ResilientConfigurationException.class.name
+        List<ResilientConfigurationCollector.PartialBuildInfo> partialBuildInfos = e.cause.partialBuildInfos
+        partialBuildInfos.collect { it.buildId } == [":", ":included"]
+        partialBuildInfos.collect { it.projectDir } == [
+            testDirectory,
+            testDirectory.file("included")
+        ]
+        partialBuildInfos.collect { it.scriptFile } == [
+            testDirectory.file("settings.gradle.kts"),
+            testDirectory.file("included").file("settings.gradle.kts")
+        ]
+    }
 
     @Override
     GradleExecuter createExecuter() {
