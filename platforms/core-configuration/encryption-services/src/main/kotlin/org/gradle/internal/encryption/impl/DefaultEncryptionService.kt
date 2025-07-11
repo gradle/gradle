@@ -49,6 +49,9 @@ class DefaultEncryptionService(
     val keystoreDirOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
 
     private
+    val keystoreTypeOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-type", null)
+
+    private
     val encryptionAlgorithmOption: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
 
     private
@@ -60,6 +63,7 @@ class DefaultEncryptionService(
     fun produceSecretKey(encryptionKind: EncryptionKind) =
         secretKeySource(encryptionKind).let { keySource ->
             try {
+                logger.info("Encryption key source: {}", keySource.sourceDescription)
                 secretKeyFrom(keySource)?.also { key ->
                     assertKeyLength(key)
                 }
@@ -120,6 +124,7 @@ class DefaultEncryptionService(
                 KeyStoreKeySource(
                     encryptionAlgorithm = encryptionAlgorithm.algorithm,
                     customKeyStoreDir = keystoreDirOption?.let { File(it) },
+                    customKeyStoreType = keystoreTypeOption,
                     keyAlias = "gradle-secret",
                     cacheBuilderFactory = cacheBuilderFactory,
                     fileSystem = fileSystem
@@ -132,5 +137,7 @@ class DefaultEncryptionService(
 
             EncryptionKind.NONE ->
                 NoEncryptionKeySource()
+        }.apply {
+            logger.info("Encryption key source: $sourceDescription")
         }
 }
