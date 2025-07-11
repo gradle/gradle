@@ -42,7 +42,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -427,18 +430,24 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
             try {
-                File argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt");
-                Files.write(argsFile.toPath(), arguments
-                    .stream()
-                    .map(arg -> {
-                        if (arg.contains(" ") && !arg.contains("\"")) {
-                            return '"' + arg + '"';
-                        } else {
-                            return arg;
-                        }
-                    }).collect(Collectors.toList()));
-                LOGGER.info("Using argsFile", argsFile);
-                return Collections.singletonList("\"@" + argsFile.getAbsolutePath() + "\"");
+                Path argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
+                LOGGER.info("Using argsFile {}", argsFile);
+
+                List<String> effectiveArguments = new ArrayList<>();
+                effectiveArguments.add("@" + argsFile.toAbsolutePath());
+
+                for (String arg : arguments) {
+                    if (arg.startsWith("@")) {
+                        effectiveArguments.add(arg);
+                        continue;
+                    }
+                    arg = arg.replace("\\", "\\\\");
+                    // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
+                    arg = arg.replace(" ", "\" \"");
+                    Files.write(argsFile, Collections.singleton(arg), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                }
+                LOGGER.info("effective arguments {}", effectiveArguments);
+                return effectiveArguments;
             } catch (IOException e) {
                 LOGGER.info("args file could not be created, Gradle cannot shorten the command line.", e);
             }
