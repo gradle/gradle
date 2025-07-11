@@ -119,18 +119,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
     }
 
-    public static ClasspathFingerprintingStrategy compileClasspathFallbackToRuntimeClasspath(
-        ResourceHasher classpathResourceHasher,
-        ResourceHasher runtimeClasspathResourceHasher,
-        ResourceSnapshotterCacheService cacheService,
-        Interner<String> stringInterner,
-        ZipHasher.HashingExceptionReporter hashingExceptionReporter
-    ) {
-        ZipHasher fallbackZipHasher = new ZipHasher(runtimeClasspathResourceHasher);
-        ZipHasher zipHasher = new ZipHasher(classpathResourceHasher, fallbackZipHasher, hashingExceptionReporter);
-        return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
-    }
-
     public static ResourceHasher runtimeClasspathResourceHasher(
         RuntimeClasspathResourceHasher runtimeClasspathResourceHasher,
         LineEndingSensitivity lineEndingSensitivity,

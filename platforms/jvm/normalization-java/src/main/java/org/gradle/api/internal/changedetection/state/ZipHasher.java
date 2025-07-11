@@ -52,26 +52,12 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
     private static final HashCode EMPTY_HASH_MARKER = Hashing.signature(ZipHasher.class);
 
-    public static boolean isZipFile(final String name) {
-        return KNOWN_ZIP_EXTENSIONS.contains(FilenameUtils.getExtension(name).toLowerCase(Locale.ROOT));
-    }
-
     private final ResourceHasher resourceHasher;
-    private final ZipHasher fallbackZipHasher;
     private final HashingExceptionReporter hashingExceptionReporter;
 
     public ZipHasher(ResourceHasher resourceHasher) {
-        this(
-            resourceHasher,
-            null,
-            (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e)
-        );
-    }
-
-    public ZipHasher(ResourceHasher resourceHasher, @Nullable ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
         this.resourceHasher = resourceHasher;
-        this.fallbackZipHasher = fallbackZipHasher;
-        this.hashingExceptionReporter = hashingExceptionReporter;
+        this.hashingExceptionReporter = (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
     }
 
     @Nullable
@@ -98,9 +84,6 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             return hasher.hash();
         } catch (Exception e) {
             hashingExceptionReporter.report(zipFileSnapshot, e);
-            if (fallbackZipHasher != null) {
-                return fallbackZipHasher.hashZipContents(zipFileSnapshot);
-            }
             return zipFileSnapshot.getHash();
         }
     }
@@ -141,6 +124,10 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
 
     private DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
         return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, EMPTY_HASH_MARKER);
+    }
+
+    public static boolean isZipFile(final String name) {
+        return KNOWN_ZIP_EXTENSIONS.contains(FilenameUtils.getExtension(name).toLowerCase(Locale.ROOT));
     }
 
     public interface HashingExceptionReporter {
