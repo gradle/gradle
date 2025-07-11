@@ -17,6 +17,7 @@
 package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
@@ -40,9 +41,15 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
     private void gradle() {
         new TestFile("build/gradleSources").copyTo(testDirectory)
+
         file("gradle.properties") << """
             org.gradle.configuration-cache.problems=warn
             org.gradle.unsafe.isolated-projects=true
+
+            # gradle/gradle build contains gradle/gradle-daemon-jvm.properties, which requires daemon to be run with Java 17.
+            # However, on CI JDK's installed not in the default location, and Gradle can't find appropriate toolchain to run.
+            # So we need to specify required JDK explicitly.
+            org.gradle.java.installations.paths=$AvailableJavaHomes.jdk17.javaHome.absolutePath
         """
     }
 }
