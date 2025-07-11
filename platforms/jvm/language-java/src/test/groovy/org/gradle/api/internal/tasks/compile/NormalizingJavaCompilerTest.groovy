@@ -16,27 +16,21 @@
 package org.gradle.api.internal.tasks.compile
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.util.TestUtil
+import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
 class NormalizingJavaCompilerTest extends Specification {
     org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> target = Mock()
-    DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec()
     NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
     def setup() {
-        spec.sourceFiles = files("Source1.java", "Source2.java", "Source3.java")
-        spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
-        def compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
-        compileOptions.annotationProcessorPath = TestFiles.fixed(new File("processor.jar"))
-        spec.compileOptions = compileOptions
     }
 
     def "replaces iterable sources with immutable set"() {
-        spec.sourceFiles = ["Person1.java", "Person2.java"].collect { new File(it) }
+        def spec = getSpec(TestJavaOptions.of()) {
+            sourceFiles = ["Person1.java", "Person2.java"].collect { new File(it) }
+        }
 
         when:
         compiler.execute(spec)
@@ -49,7 +43,9 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     def "silently excludes source files not ending in .java"() {
-        spec.sourceFiles = files("House.scala", "Person1.java", "package.html", "Person2.java")
+        def spec = getSpec(TestJavaOptions.of()) {
+            sourceFiles = files("House.scala", "Person1.java", "package.html", "Person2.java")
+        }
 
         when:
         compiler.execute(spec)
@@ -62,6 +58,9 @@ class NormalizingJavaCompilerTest extends Specification {
 
     def "delegates to target compiler after resolving source and processor path"() {
         WorkResult workResult = Mock()
+        def spec = getSpec(TestJavaOptions.of()) {
+            sourceFiles = files("Source1.java", "Source2.java", "Source3.java")
+        }
 
         when:
         def result = compiler.execute(spec)
@@ -75,10 +74,13 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     def "propagates compile failure when failOnError is true"() {
+        def spec = getSpec(TestJavaOptions.of {
+            failOnError = true
+        })
+
         def failure
         target.execute(spec) >> { throw failure = new CompilationFailedException() }
 
-        spec.compileOptions.failOnError = true
 
         when:
         compiler.execute(spec)
@@ -89,9 +91,11 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     def "ignores compile failure when failOnError is false"() {
-        target.execute(spec) >> { throw new CompilationFailedException() }
+        def spec = getSpec(TestJavaOptions.of {
+            failOnError = false
+        })
 
-        spec.compileOptions.failOnError = false
+        target.execute(spec) >> { throw new CompilationFailedException() }
 
         when:
         def result = compiler.execute(spec)
@@ -102,6 +106,8 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     def "propagates other failure"() {
+        def spec = getSpec(TestJavaOptions.of())
+
         def failure
         target.execute(spec) >> { throw failure = new RuntimeException() }
 
@@ -114,20 +120,29 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     def "resolves any non-strings that make it into custom compiler args"() {
-        spec.compileOptions.compilerArgs << "a dreaded ${"GString"}"
-        spec.compileOptions.compilerArgs << 42
-        assert !spec.compileOptions.compilerArgs.any { it instanceof String }
+        def spec = getSpec(TestJavaOptions.of {
+            def args = ["a dreaded ${"GString"}", 42] as List<String>
+            assert !args.any { it instanceof String }
+            compilerArgs = args
+        })
 
         when:
         compiler.execute(spec)
 
         then:
-        1 * target.execute(_) >> { JavaCompileSpec spec ->
-            assert spec.compileOptions.compilerArgs.every { it instanceof String }
+        1 * target.execute(_) >> { JavaCompileSpec s ->
+            assert s.compileOptions.compilerArgs.every { it instanceof String }
         }
     }
 
     private files(String... paths) {
         paths.collect { new File(it) } as Set
+    }
+
+    private static DefaultJavaCompileSpec getSpec(MinimalJavaCompileOptions compileOptions, @DelegatesTo(DefaultGroovyJavaJointCompileSpec) Closure<?> action = {}) {
+        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec()
+        spec.sourceFiles = []
+        spec.compileOptions = compileOptions
+        return ConfigureUtil.configure(action, spec)
     }
 }

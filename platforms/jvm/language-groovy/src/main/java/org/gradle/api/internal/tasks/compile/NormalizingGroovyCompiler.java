@@ -45,7 +45,6 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
     @Override
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
-        resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
         logCompilerArguments(spec);
         return delegateAndHandleErrors(spec);
@@ -66,11 +65,6 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         });
 
         spec.setSourceFiles(ImmutableSet.copyOf(filtered));
-    }
-
-    private void resolveNonStringsInCompilerArgs(GroovyJavaJointCompileSpec spec) {
-        // in particular, this is about GStrings
-        spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
     }
 
     private void logSourceFiles(GroovyJavaJointCompileSpec spec) {

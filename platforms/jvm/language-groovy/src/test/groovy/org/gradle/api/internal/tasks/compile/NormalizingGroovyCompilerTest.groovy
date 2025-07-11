@@ -15,30 +15,24 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
-import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.ServiceLookup
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
 class NormalizingGroovyCompilerTest extends Specification {
+
     org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> target = Mock()
-    DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
     NormalizingGroovyCompiler compiler = new NormalizingGroovyCompiler(target)
 
     def setup() {
-        spec.compileClasspath = [new File('Dep1.jar'), new File('Dep2.jar'), new File('Dep3.jar')]
-        spec.groovyClasspath = spec.compileClasspath
-        spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
-        spec.destinationDir = new File("destinationDir")
-        spec.compileOptions = TestUtil.newInstance(CompileOptions.class, TestUtil.objectFactory())
-        ServiceLookup services = new DefaultServiceRegistry().add(ObjectFactory, TestUtil.objectFactory())
-        spec.groovyCompileOptions = new MinimalGroovyCompileOptions(TestUtil.instantiatorFactory().decorateLenient(services).newInstance(GroovyCompileOptions.class))
     }
 
     def "silently excludes source files not ending in .java or .groovy by default"() {
+        def spec = getSpec(groovyOptionsOf {}) {
+            sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
+        }
+
         when:
         compiler.execute(spec)
 
@@ -49,7 +43,11 @@ class NormalizingGroovyCompilerTest extends Specification {
     }
 
     def "excludes source files that have extension different from specified by fileExtensions option"() {
-        spec.groovyCompileOptions.fileExtensions = ['html']
+        def spec = getSpec(groovyOptionsOf {
+            fileExtensions = ['html']
+        }) {
+            sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
+        }
 
         when:
         compiler.execute(spec)
@@ -61,11 +59,16 @@ class NormalizingGroovyCompilerTest extends Specification {
     }
 
     def "propagates compile failure when both compileOptions.failOnError and groovyCompileOptions.failOnError are true"() {
+        def javaOptions = TestJavaOptions.of {
+            failOnError = true
+        }
+        def groovyOptions = groovyOptionsOf {
+            failOnError = true
+        }
+        def spec = getSpec(javaOptions, groovyOptions)
+
         def failure
         target.execute(spec) >> { throw failure = new CompilationFailedException() }
-
-        spec.compileOptions.failOnError = true
-        spec.groovyCompileOptions.failOnError = true
 
         when:
         compiler.execute(spec)
@@ -75,10 +78,8 @@ class NormalizingGroovyCompilerTest extends Specification {
         e == failure
     }
 
-    def "ignores compile failure when one of #options dot failOnError is false"() {
+    def "ignores compile failure when one of java or groovy failOnError is false"() {
         target.execute(spec) >> { throw new CompilationFailedException() }
-
-        spec[options].failOnError = false
 
         when:
         def result = compiler.execute(spec)
@@ -88,10 +89,31 @@ class NormalizingGroovyCompilerTest extends Specification {
         !result.didWork
 
         where:
-        options << ['compileOptions', 'groovyCompileOptions']
+        spec << [
+            getSpec(TestJavaOptions.of { failOnError = false }, groovyOptionsOf { failOnError = true }),
+            getSpec(TestJavaOptions.of { failOnError = true }, groovyOptionsOf { failOnError = false }),
+        ]
     }
 
     private files(String... paths) {
         paths.collect { new File(it) } as Set
     }
+
+    private static MinimalGroovyCompileOptions groovyOptionsOf(@DelegatesTo(GroovyCompileOptions) Closure<?> action) {
+        def groovyCompileOptions = ConfigureUtil.configure(action, TestUtil.newInstance(GroovyCompileOptions))
+        return MinimalGroovyCompileOptionsConverter.toMinimalGroovyCompileOptions(groovyCompileOptions)
+    }
+
+    private DefaultGroovyJavaJointCompileSpec getSpec(MinimalGroovyCompileOptions groovyCompileOptions, @DelegatesTo(DefaultGroovyJavaJointCompileSpec) Closure<?> action = {}) {
+        return getSpec(TestJavaOptions.of { }, groovyCompileOptions, action)
+    }
+
+    private static DefaultGroovyJavaJointCompileSpec getSpec(MinimalJavaCompileOptions javaCompileOptions, MinimalGroovyCompileOptions groovyCompileOptions, @DelegatesTo(DefaultGroovyJavaJointCompileSpec) Closure<?> action = {}) {
+        DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
+        spec.sourceFiles = []
+        spec.compileOptions = javaCompileOptions
+        spec.groovyCompileOptions = groovyCompileOptions
+        return ConfigureUtil.configure(action, spec)
+    }
+
 }

@@ -77,7 +77,7 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
             while (it.hasNext()) {
                 Object classInfo = it.next();
                 if (classInfo != null) {
-                    Class clazz = getClazz(classInfo);
+                    Class<?> clazz = getClazz(classInfo);
                     removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
@@ -99,7 +99,7 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
             while (it.hasNext()) {
                 Object classInfo = it.next();
                 if (classInfo != null) {
-                    Class clazz = getClazz(classInfo);
+                    Class<?> clazz = getClazz(classInfo);
                     if (clazz != null && clazz.getClassLoader() == classLoader) {
                         removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                         if (LOG.isDebugEnabled()) {
@@ -113,15 +113,15 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
         }
     }
 
-    private Class getClazz(Object classInfo) throws IllegalAccessException {
+    private Class<?> getClazz(Object classInfo) throws IllegalAccessException {
         if (classRefField != null) {
-            return (Class) ((WeakReference) classRefField.get(classInfo)).get();
+            return (Class<?>) ((WeakReference<?>) classRefField.get(classInfo)).get();
         } else {
-            return (Class) clazzField.get(classInfo);
+            return (Class<?>) clazzField.get(classInfo);
         }
     }
 
     private Iterator<?> globalClassSetIterator() throws IllegalAccessException, InvocationTargetException {
-        return (Iterator) globalClassSetIteratorMethod.invoke(globalClassSetItems);
+        return (Iterator<?>) globalClassSetIteratorMethod.invoke(globalClassSetItems);
     }
 }

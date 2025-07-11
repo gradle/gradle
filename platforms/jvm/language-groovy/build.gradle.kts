@@ -25,6 +25,7 @@ dependencies {
     api(projects.workerMain)
     api(projects.workers)
 
+    api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
 
@@ -37,13 +38,13 @@ dependencies {
     implementation(projects.loggingApi)
 
     implementation(libs.groovy)
-    implementation(libs.guava)
     implementation(libs.asm)
 
     testImplementation(projects.baseServicesGroovy)
     testImplementation(projects.internalTesting)
     testImplementation(projects.resources)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.languageJava))
 
     testFixturesApi(testFixtures(projects.languageJvm))
     testFixturesImplementation(projects.core)
