@@ -298,6 +298,15 @@ data class CIBuildModel(
                             expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE,
                             arch = Arch.AARCH64,
                         ),
+                        TestCoverage(
+                            37,
+                            TestType.CONFIG_CACHE,
+                            Os.MACOS,
+                            JvmCategory.MAX_VERSION,
+                            expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE,
+                            arch = Arch.AARCH64,
+                        ),
+                        TestCoverage(38, TestType.CONFIG_CACHE, Os.WINDOWS, JvmCategory.MAX_VERSION),
                     ),
                 docsTests =
                     listOf(
@@ -323,15 +332,6 @@ data class CIBuildModel(
                     ),
                 functionalTests =
                     listOf(
-                        TestCoverage(
-                            37,
-                            TestType.CONFIG_CACHE,
-                            Os.MACOS,
-                            JvmCategory.MAX_VERSION,
-                            expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE,
-                            arch = Arch.AARCH64,
-                        ),
-                        TestCoverage(38, TestType.CONFIG_CACHE, Os.WINDOWS, JvmCategory.MAX_VERSION),
                         TestCoverage(
                             39,
                             TestType.CONFIG_CACHE,
