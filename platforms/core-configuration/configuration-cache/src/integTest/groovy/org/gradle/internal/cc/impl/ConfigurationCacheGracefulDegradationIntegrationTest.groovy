@@ -43,7 +43,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
     def configurationCache = newConfigurationCacheFixture()
 
-    def "a task can require CC degradation"() {
+    def "a task can require CC degradation#mode"() {
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -55,7 +55,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheRun "a"
+        configurationCacheRun("a", *args)
 
         then:
         configurationCache.assertNoConfigurationCache()
@@ -71,6 +71,11 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         and:
         outputContains("Project path is :")
         assertConfigurationCacheDegradation()
+
+        where:
+        mode               | args
+        ""                 | []
+        " with IP enabled" | ["-Dorg.gradle.unsafe.isolated-projects=true"]
     }
 
     def "a task can require CC degradation for multiple reasons"() {
