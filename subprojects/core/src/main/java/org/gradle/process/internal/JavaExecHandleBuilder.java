@@ -38,19 +38,18 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
-import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
 
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
 
@@ -428,27 +427,24 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
             try {
-                File pathingJarFile = writePathingJarFile(classpath);
-                ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
-                shortenedClasspath.from(pathingJarFile);
-                List<String> shortenedArguments = getAllArguments(shortenedClasspath);
-                LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
-                return shortenedArguments;
+                File argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt");
+                Files.write(argsFile.toPath(), arguments
+                    .stream()
+                    .map(arg -> {
+                        if (arg.contains(" ") && !arg.contains("\"")) {
+                            return '"' + arg + '"';
+                        } else {
+                            return arg;
+                        }
+                    }).collect(Collectors.toList()));
+                LOGGER.info("Using argsFile", argsFile);
+                return Collections.singletonList("\"@" + argsFile.getAbsolutePath() + "\"");
             } catch (IOException e) {
-                LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
+                LOGGER.info("args file could not be created, Gradle cannot shorten the command line.", e);
             }
         }
 
         return arguments;
-    }
-
-    private File writePathingJarFile(FileCollection classpath) throws IOException {
-        File pathingJarFile = temporaryFileProvider.createTemporaryFile("gradle-javaexec-classpath", ".jar");
-        try (FileOutputStream fileOutputStream = new FileOutputStream(pathingJarFile);
-             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classpath))) {
-            jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
-        }
-        return pathingJarFile;
     }
 
     private static Manifest toManifest(FileCollection classpath) {
