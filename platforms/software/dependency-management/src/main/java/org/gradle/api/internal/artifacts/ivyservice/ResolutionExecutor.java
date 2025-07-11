@@ -376,7 +376,8 @@ public class ResolutionExecutor {
             artifactsVisitor,
             immutableArtifactTypeRegistry,
             variantArtifactSetCache,
-            calculatedValueContainerFactory
+            calculatedValueContainerFactory,
+            attributesFactory
         );
     }
 

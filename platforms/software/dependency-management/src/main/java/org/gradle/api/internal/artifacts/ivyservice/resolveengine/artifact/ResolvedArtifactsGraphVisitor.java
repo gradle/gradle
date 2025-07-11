@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -29,6 +31,8 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -40,6 +44,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final VariantArtifactSetCache artifactSetCache;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final AttributesFactory attributesFactory;
 
     // State
     private int nextId;
@@ -48,12 +53,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         DependencyArtifactsVisitor artifactsBuilder,
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         VariantArtifactSetCache artifactSetCache,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        AttributesFactory attributesFactory
     ) {
         this.artifactResults = artifactsBuilder;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactSetCache = artifactSetCache;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -70,7 +77,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             // there are edges to this node that would follow this file dependency.
             for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
                 int id = nextId++;
-                artifactResults.visitArtifacts(node, fileDependency, id, new FileDependencyArtifactSet(fileDependency, node.getId(), artifactTypeRegistry, calculatedValueContainerFactory));
+                artifactResults.visitArtifacts(node, id, new FileDependencyArtifactSet(fileDependency, node.getId(), artifactTypeRegistry, calculatedValueContainerFactory));
             }
         }
     }
@@ -81,60 +88,65 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
      * @return true if there is a transitive incoming edge.
      */
     private boolean visitNonFileEdges(DependencyGraphNode node) {
+        boolean contributesArtifacts = false;
         boolean hasTransitiveIncomingEdge = false;
-
-        int implicitArtifactSetId = -1;
-        ArtifactSet implicitArtifactSet = null;
+        ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
+        Set<CapabilitySelector> capabilitySelectors = Collections.emptySet();
 
         for (DependencyGraphEdge edge : node.getIncomingEdges()) {
             hasTransitiveIncomingEdge |= edge.isTransitive();
 
             if (edge.contributesArtifacts()) {
-                if (maybeVisitAdhocEdge(node, edge)) {
-                    // The artifacts for this node were modified by the dependency.
-                    // Do not use the implicit artifact set.
-                    continue;
-                }
+                contributesArtifacts = true;
+                artifactResults.visitEdge(edge.getFrom(), node);
 
-                // Since the dependency does not modify the artifacts, we can use the same
-                // artifact set as other dependencies that do not modify the artifacts. We call
-                // this the implicit artifact set.
-                if (implicitArtifactSet == null) {
-                    // We have not visited the implicit artifacts yet.
-                    implicitArtifactSetId = nextId++;
-                    implicitArtifactSet = artifactSetCache.getImplicitVariant(node.getOwner().getResolveState(), node.getResolveState());
-                }
+                // TODO: Should be safeConcat, but safeConcat currently fails when a Named attribute
+                // and its desugared String attribute are on different edges, but with the same String value.
+                attributes = attributesFactory.concat(attributes, edge.getAttributes());
 
-                artifactResults.visitArtifacts(edge.getFrom(), node, implicitArtifactSetId, implicitArtifactSet);
+                Set<CapabilitySelector> edgeCapabilitySelectors = edge.getDependencyMetadata().getSelector().getCapabilitySelectors();
+                if (!edgeCapabilitySelectors.isEmpty()) {
+                    if (capabilitySelectors == Collections.EMPTY_SET) {
+                        capabilitySelectors = new HashSet<>(edgeCapabilitySelectors);
+                    } else {
+                        capabilitySelectors.addAll(edgeCapabilitySelectors);
+                    }
+                }
             }
+        }
+
+        if (contributesArtifacts) {
+            int artifactSetId = nextId++;
+            ArtifactSet artifactSet = getArtifactSetForNode(node, attributes, ImmutableSet.copyOf(capabilitySelectors));
+            artifactResults.visitArtifacts(node, artifactSetId, artifactSet);
         }
 
         return hasTransitiveIncomingEdge;
     }
 
-    /**
-     * Process the given edge, and if it modifies the artifacts, visit the artifacts.
-     *
-     * @return true if this edge modifies the artifacts, meaning it is adhoc, and should
-     * not also contribute to the implicit artifact set.
-     */
-    private boolean maybeVisitAdhocEdge(DependencyGraphNode node, DependencyGraphEdge dependency) {
-        ComponentGraphResolveState component = node.getOwner().getResolveState();
-        VariantGraphResolveState variant = node.getResolveState();
+    private ArtifactSet getArtifactSetForNode(
+        DependencyGraphNode node,
+        ImmutableAttributes attributes,
+        ImmutableSet<CapabilitySelector> capabilitySelectors
+    ) {
+        ExcludeSpec excludes = node.getAllExcludes();
 
-        ImmutableAttributes attributes = dependency.getAttributes();
-        Set<CapabilitySelector> capabilitySelectors = dependency.getDependencyMetadata().getSelector().getCapabilitySelectors();
+        if (attributes.isEmpty() && capabilitySelectors.isEmpty() && !excludes.mayExcludeArtifacts()) {
+            // If the edges do not modify the artifacts, we can use the cached artifact set.
+            return artifactSetCache.getImplicitVariant(node.getOwner().getResolveState(), node.getResolveState());
+        } else {
+            // Otherwise, we need to create a new artifact set for this node.
+            ComponentGraphResolveState component = node.getOwner().getResolveState();
+            VariantGraphResolveState variant = node.getResolveState();
 
-        // If all dependency modifiers are empty, this edge does not produce an adhoc artifact set.
-        if (attributes.isEmpty() && capabilitySelectors.isEmpty()) {
-            return false;
+            return new VariantResolvingArtifactSet(
+                component,
+                variant,
+                attributes,
+                excludes,
+                capabilitySelectors
+            );
         }
-
-        int id = nextId++;
-        VariantResolvingArtifactSet artifactSet = new VariantResolvingArtifactSet(component, variant, attributes, node, capabilitySelectors);
-        artifactResults.visitArtifacts(dependency.getFrom(), node, id, artifactSet);
-
-        return true;
     }
 
     @Override

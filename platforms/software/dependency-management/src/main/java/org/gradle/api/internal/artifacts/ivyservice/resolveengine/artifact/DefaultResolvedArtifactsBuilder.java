@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,25 +34,14 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifacts) {
-        collectArtifacts(artifactSetId, artifacts);
-    }
-
-    @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+    public void visitArtifacts(DependencyGraphNode from, int artifactSetId, ArtifactSet artifacts) {
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
             artifacts = new NoBuildDependenciesArtifactSet(artifacts);
         }
-        collectArtifacts(artifactSetId, artifacts);
-    }
-
-    private void collectArtifacts(int artifactSetId, ArtifactSet artifacts) {
         // Collect artifact sets in a list, using the id of the set as its index in the list
-        assert artifactSetsById.size() >= artifactSetId;
-        if (artifactSetsById.size() == artifactSetId) {
-            artifactSetsById.add(artifacts);
-        }
+        assert artifactSetsById.size() == artifactSetId;
+        artifactSetsById.add(artifacts);
     }
 
     public VisitedArtifactResults complete() {
