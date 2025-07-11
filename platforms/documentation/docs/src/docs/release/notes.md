@@ -80,13 +80,13 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 #### Plain console with colors
 
 This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
-See ![this asciinema](release-notes-assets/colored-console.cast) recording for a demo.
+See ![this recording](release-notes-assets/colored-console.gif) for a demo.
 
 #### Off-screen lines reported in rich console
 
 This release adds a status line to the `rich` console, where the number of off-screen in-progress events is reported.
 This situation arrises when there are more in-progress events than lines available in the console for displaying them.
-See ![this asciinema](release-notes-assets/off-screen-lines.cast) recording for a demo.
+See ![this recording](release-notes-assets/off-screen-lines.gif) for a demo.
 
 
 ### Build authoring improvements
