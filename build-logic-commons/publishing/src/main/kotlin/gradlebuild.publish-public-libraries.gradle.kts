@@ -135,7 +135,6 @@ fun publishNormalizedToLocalRepository() {
         }
         isCanBeResolved = false
         isCanBeConsumed = true
-        isVisible = false
         outgoing.artifact(localRepository) {
             builtBy(localPublish)
         }

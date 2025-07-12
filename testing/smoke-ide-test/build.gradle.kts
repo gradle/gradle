@@ -27,7 +27,6 @@ addDependenciesAndConfigurations("smokeIde")
 val smokeIdeTestImplementation: Configuration by configurations
 val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
 val ideStarter by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
 }
 
