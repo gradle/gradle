@@ -216,6 +216,12 @@ fun Project.enableScriptCompilationOf(
             outputDir = compiledPluginsBlocks
         )
 
+        val accessorsGenerationClasspath = configurations.resolvable("precompiledScriptPluginAccessorsGenerationClasspath") {
+            // We use both compile and runtime classpath to include compileOnly, implementation and runtimeOnly dependencies
+            it.extendsFrom(configurations["compileClasspath"])
+            it.extendsFrom(configurations["runtimeClasspath"])
+        }
+
         val (generatePrecompiledScriptPluginAccessors, _) =
             codeGenerationTask<GeneratePrecompiledScriptPluginAccessors>(
                 "accessors",
@@ -224,7 +230,7 @@ fun Project.enableScriptCompilationOf(
             ) {
                 dependsOn(compilePluginsBlocks)
                 classPathFiles.from(compileClasspath)
-                runtimeClassPathArtifactCollection.set(configurations["runtimeClasspath"].incoming.artifacts)
+                accessorsGenerationClassPathArtifactCollection.set(accessorsGenerationClasspath.get().incoming.artifacts)
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
@@ -397,10 +403,11 @@ fun Task.validateKotlinCompilerArguments() {
 
 private
 fun configureKotlinCompilerArgumentsEagerly() {
-    throw PrecompiledScriptException("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. " +
-        "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
-        "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
-        "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
+    throw PrecompiledScriptException(
+        "Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. " +
+            "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
+            "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
+            "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
     )
 }
 

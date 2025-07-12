@@ -304,6 +304,58 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
         }
     }
 
+    @Test
+    fun `can use accessors for plugin declared as compileOnly dependency`() {
+
+        withSettings(
+            """
+            $defaultSettingsScript
+
+            include("producer")
+            include("consumer")
+
+            dependencyResolutionManagement {
+                $repositoriesBlock
+            }
+            """
+        )
+        withBuildScript("""plugins { `kotlin-dsl` apply false }""")
+        withFolders {
+            "producer" {
+                withFile(
+                    "build.gradle.kts",
+                    """plugins { id("org.gradle.kotlin.kotlin-dsl") }"""
+                )
+                withFile(
+                    "src/main/kotlin/producer-plugin.gradle.kts",
+                    """tasks.register("producerPluginTask")"""
+                )
+            }
+            "consumer" {
+                withFile(
+                    "build.gradle.kts",
+                    """
+                    plugins { id("org.gradle.kotlin.kotlin-dsl") }
+                    dependencies {
+                        compileOnly(project(":producer"))
+                    }
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/consumer-plugin.gradle.kts",
+                    """
+                    plugins {
+                        id("producer-plugin")
+                    }
+                    tasks.producerPluginTask {}
+                    """
+                )
+            }
+        }
+
+        build("assemble")
+    }
+
     private
     fun forceJarsOnCompileClasspath() = """
         configurations {

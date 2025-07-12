@@ -10,7 +10,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
-import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -249,8 +248,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle/issues/23576")
-    @ToBeImplemented
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `can compile precompiled scripts with compileOnly dependency`() {
 
         fun withPluginJar(fileName: String, versionString: String): File =
@@ -277,7 +275,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                 compileOnly(files("${normaliseFileSeparators(pluginJarV1.absolutePath)}"))
             }
         """)
-        val precompiledScript = withFile("buildSrc/src/main/kotlin/my-precompiled-script.gradle.kts", """
+        withFile("buildSrc/src/main/kotlin/my-precompiled-script.gradle.kts", """
             plugins {
                 id("my-plugin")
             }
@@ -294,16 +292,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
             }
         """)
 
-        buildAndFail("action").apply {
-            assertHasFailure("Plugin [id: 'my-plugin'] was not found in any of the following sources") {
-                assertHasErrorOutput("Precompiled script plugin '${precompiledScript.absolutePath}' line: 1")
-            }
-        }
-
-        // Once implemented:
-        // build("action").apply {
-        //     assertOutputContains("Applied plugin 2.0")
-        // }
+         build("action").apply {
+             assertOutputContains("Applied plugin 2.0")
+         }
     }
 
     @Test
