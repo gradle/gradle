@@ -47,7 +47,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
@@ -430,17 +429,16 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
             try {
-                Path argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
                 LOGGER.info("Command line too long - creating argsfile(s)");
 
                 List<String> effectiveArguments = new ArrayList<>();
+                List<String> argsFileContents = new ArrayList<>(arguments.size());
 
                 for (String arg : arguments) {
                     if (arg.startsWith("@")) {
-                        if (Files.size(argsFile) > 0) {
-                            // Finish existing args file and create a new one
-                            effectiveArguments.add("@" + argsFile.toAbsolutePath());
-                            argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
+                        if (!argsFileContents.isEmpty()) {
+                            createArgsFile(argsFileContents, effectiveArguments);
+                            argsFileContents.clear();
                             continue;
                         }
                         effectiveArguments.add(arg);
@@ -452,10 +450,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
                         // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
                         arg = arg.replace(" ", "\" \"");
                     }
-                    Files.write(argsFile, Collections.singleton(arg), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                    argsFileContents.add(arg);
                 }
-                if (Files.size(argsFile) > 0) {
-                    effectiveArguments.add("@" + argsFile.toAbsolutePath());
+                if (!argsFileContents.isEmpty()) {
+                    createArgsFile(argsFileContents, effectiveArguments);
                 }
                 LOGGER.info("effective arguments {}", effectiveArguments);
                 return effectiveArguments;
@@ -465,6 +463,12 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         }
 
         return arguments;
+    }
+
+    private void createArgsFile(List<String> argsFileContents, List<String> effectiveArguments) throws IOException {
+        Path argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
+        effectiveArguments.add("@" + argsFile.toAbsolutePath());
+        Files.write(argsFile, argsFileContents, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
     }
 
     private static Manifest toManifest(FileCollection classpath) {
