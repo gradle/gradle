@@ -32,7 +32,7 @@ To get started using Gradle:
 2. Follow the <<getting_started,Beginner Tutorial>> for a hands-on approach.
 
 [[gradle_intro]]
-== 1. Gradle Basics
+== 1. Learning the Gradle Basics
 
 The learning the basics section goes through the Gradle core concepts so that you can quickly understand how to invoke tasks, turn on features, apply plugins, add dependencies to your project, and more.
 
@@ -40,7 +40,7 @@ The learning the basics section goes through the Gradle core concepts so that yo
 _Training level_: **Beginner** +
 _Reading time_: **25 minutes**
 
-The basics covers:
+This section covers:
 
 <<gradle_basics.adoc#gradle,Part 1.>> Core Concepts +
 <<gradle_wrapper_basics.adoc#gradle_wrapper_basics,Part 2.>> Wrapper Basics +
@@ -54,7 +54,7 @@ The basics covers:
 <<build_scans.adoc#build_scans,Part 10.>> Build Scan +
 
 [[getting_started]]
-== 2. Gradle Tutorial
+== 2. Beginner Gradle Tutorial
 
 The tutorial will take you from Gradle initialization all the way through to utilizing Gradle's task caching for your basic Java App.
 No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
