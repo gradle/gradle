@@ -6,7 +6,7 @@ import org.gradle.workers.WorkerExecutor;
 
 // tag::download[]
 public abstract class Download extends DefaultTask {
-    // Use an abstract getter method
+    // Preferrably, use an abstract getter method
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
