@@ -72,7 +72,7 @@ internal class DefaultConfigurationCacheDegradationController(
                 }
             }
             builder.build()
-        } else emptyMap()
+        } else ImmutableMap.of()
 
     private fun collectFeatureDegradationReasons(): Map<String, List<String>> =
         if (isSourceDependenciesUsed()) {
@@ -80,7 +80,7 @@ internal class DefaultConfigurationCacheDegradationController(
                 "source dependencies",
                 listOf("Source dependencies are not compatible yet")
             )
-        } else emptyMap()
+        } else ImmutableMap.of()
 
     private fun workGraphContains(task: Task): Boolean =
         task.project.gradle.taskGraph.hasTask(task)
@@ -92,9 +92,11 @@ internal class DefaultConfigurationCacheDegradationController(
         private val taskDegradationReasons: Map<Task, List<String>>,
         private val featureDegradationReasons: Map<String, List<String>>
     ) {
-        val shouldDegrade = taskDegradationReasons.isNotEmpty() || featureDegradationReasons.isNotEmpty()
+        val shouldDegrade: Boolean
+            get() = taskDegradationReasons.isNotEmpty() || featureDegradationReasons.isNotEmpty()
 
-        val degradedTaskCount = taskDegradationReasons.size
+        val degradedTaskCount: Int
+            get() = taskDegradationReasons.size
 
         fun degradationReasonForTask(task: Task): List<String>? = taskDegradationReasons[task]
 
@@ -107,7 +109,7 @@ internal class DefaultConfigurationCacheDegradationController(
         }
 
         companion object {
-            val shouldNotDegrade = DegradationDecision(emptyMap(), emptyMap())
+            val shouldNotDegrade = DegradationDecision(ImmutableMap.of(), ImmutableMap.of())
         }
     }
 }
