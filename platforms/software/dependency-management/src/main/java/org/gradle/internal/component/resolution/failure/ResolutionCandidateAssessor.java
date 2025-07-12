@@ -22,8 +22,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Cast;
@@ -115,19 +115,23 @@ public final class ResolutionCandidateAssessor {
     ) {
         if (alreadyAssessed.add(attribute.getName())) {
             String attributeName = attribute.getName();
-            AttributeValue<?> consumerValue = requestedAttributes.findEntry(attributeName);
-            AttributeValue<?> producerValue = candidateAttributes.findEntry(attributeName);
+            ImmutableAttributesEntry<?> consumerEntry = requestedAttributes.findEntry(attributeName);
+            ImmutableAttributesEntry<?> producerEntry = candidateAttributes.findEntry(attributeName);
 
-            if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatchingValue(attribute, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+            if (consumerEntry != null && producerEntry != null) {
+                T coercedProducer = producerEntry.coerce(attribute);
+                T coercedConsumer = consumerEntry.coerce(attribute);
+                AssessedAttribute<T> assessedAttribute = new AssessedAttribute<>(attribute, coercedConsumer, coercedProducer);
+
+                if (attributeMatcher.isMatchingValue(attribute, coercedProducer, coercedConsumer)) {
+                    compatible.add(assessedAttribute);
                 } else {
-                    incompatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+                    incompatible.add(assessedAttribute);
                 }
-            } else if (consumerValue.isPresent()) {
-                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), null));
-            } else if (producerValue.isPresent()) {
-                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerValue.get())));
+            } else if (consumerEntry != null) {
+                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerEntry.getIsolatedValue()), null));
+            } else if (producerEntry != null) {
+                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerEntry.getIsolatedValue())));
             }
         }
     }

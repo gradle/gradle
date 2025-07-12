@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.attributes.matching;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.model.InMemoryCacheFactory;
@@ -95,13 +95,13 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return true;
         }
 
-        for (Attribute<?> attribute : requested.keySet()) {
-            AttributeValue<?> requestedAttributeValue = requested.findEntry(attribute);
-            AttributeValue<?> candidateAttributeValue = candidate.findEntry(attribute.getName());
+        for (ImmutableAttributesEntry<?> requestedEntry : requested.getEntries()) {
+            Attribute<?> attribute = requestedEntry.getKey();
+            ImmutableAttributesEntry<?> candidateEntry = candidate.findEntry(attribute.getName());
 
-            if (candidateAttributeValue.isPresent()) {
+            if (candidateEntry != null) {
                 Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
-                if (!predicate.test(typedAttribute, requestedAttributeValue, candidateAttributeValue)) {
+                if (!predicate.test(typedAttribute, requestedEntry, candidateEntry)) {
                     return false;
                 }
             }
@@ -127,8 +127,8 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
          */
         default <T> boolean test(
             Attribute<T> attribute,
-            AttributeValue<?> requested,
-            AttributeValue<?> candidate
+            ImmutableAttributesEntry<?> requested,
+            ImmutableAttributesEntry<?> candidate
         ) {
             T requestedValue = requested.coerce(attribute);
             T candidateValue = candidate.coerce(attribute);
@@ -145,17 +145,18 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
         CoercingAttributeValuePredicate matches = schema::matchValue;
 
-        ImmutableSet<Attribute<?>> attributes = requested.keySet();
+        ImmutableCollection<ImmutableAttributesEntry<?>> attributes = requested.getEntries();
         List<AttributeMatcher.MatchingDescription<?>> result = new ArrayList<>(attributes.size());
-        for (Attribute<?> attribute : attributes) {
-            AttributeValue<?> requestedValue = requested.findEntry(attribute);
-            AttributeValue<?> candidateValue = candidate.findEntry(attribute.getName());
-            if (candidateValue.isPresent()) {
+        for (ImmutableAttributesEntry<?> requestedEntry : attributes) {
+            Attribute<?> attribute = requestedEntry.getKey();
+            ImmutableAttributesEntry<?> candidateEntry = candidate.findEntry(attribute.getName());
+
+            if (candidateEntry != null) {
                 Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
-                boolean match = matches.test(typedAttribute, requestedValue, candidateValue);
-                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedValue, candidateValue, match));
+                boolean match = matches.test(typedAttribute, requestedEntry, candidateEntry);
+                result.add(new AttributeMatcher.MatchingDescription(requestedEntry, candidateEntry, match));
             } else {
-                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedValue, candidateValue, false));
+                result.add(new AttributeMatcher.MatchingDescription(requestedEntry, candidateEntry, false));
             }
         }
         return result;
