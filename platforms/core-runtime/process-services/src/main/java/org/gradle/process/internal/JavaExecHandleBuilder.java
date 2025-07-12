@@ -431,13 +431,18 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
             try {
                 Path argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
-                LOGGER.info("Using argsFile {}", argsFile);
+                LOGGER.info("Command line too long - creating argsfile(s)");
 
                 List<String> effectiveArguments = new ArrayList<>();
-                effectiveArguments.add("@" + argsFile.toAbsolutePath());
 
                 for (String arg : arguments) {
                     if (arg.startsWith("@")) {
+                        if (Files.size(argsFile) > 0) {
+                            // Finish existing args file and create a new one
+                            effectiveArguments.add("@" + argsFile.toAbsolutePath());
+                            argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
+                            continue;
+                        }
                         effectiveArguments.add(arg);
                         continue;
                     }
@@ -448,6 +453,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
                         arg = arg.replace(" ", "\" \"");
                     }
                     Files.write(argsFile, Collections.singleton(arg), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                }
+                if (Files.size(argsFile) > 0) {
+                    effectiveArguments.add("@" + argsFile.toAbsolutePath());
                 }
                 LOGGER.info("effective arguments {}", effectiveArguments);
                 return effectiveArguments;
