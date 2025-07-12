@@ -69,6 +69,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
                     registry.register(new GradleBuildBuilder(buildStateRegistry));
+                    registry.register(new GradleApiBuilder());
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
