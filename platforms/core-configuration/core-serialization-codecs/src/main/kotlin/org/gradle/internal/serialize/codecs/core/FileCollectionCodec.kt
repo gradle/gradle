@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.collections.FailingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.util.PatternSet
@@ -51,7 +52,8 @@ import kotlin.jvm.optionals.getOrNull
 
 class FileCollectionCodec(
     private val fileCollectionFactory: FileCollectionFactory,
-    private val artifactSetConverter: ArtifactSetToFileCollectionFactory
+    private val artifactSetConverter: ArtifactSetToFileCollectionFactory,
+    private val taskDependencyFactory: TaskDependencyFactory
 ) : Codec<FileCollectionInternal> {
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
@@ -97,7 +99,12 @@ class FileCollectionCodec(
                     is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                     is ProviderBackedFileCollectionSpec -> fileCollectionFactory.withResolver(element.resolver).resolving(element.provider)
                     is FileTree -> element
-                    is ResolutionBackedFileCollectionSpec -> artifactSetConverter.asFileCollection(element.displayName, element.lenient, element.elements)
+                    is ResolutionBackedFileCollectionSpec -> ResolutionBackedFileCollection(
+                        artifactSetConverter.getSelectedArtifacts(element.elements),
+                        element.lenient,
+                        artifactSetConverter.resolutionHost(element.displayName),
+                        taskDependencyFactory
+                    )
                     is BeanSpec -> element.bean
                     else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                 }
