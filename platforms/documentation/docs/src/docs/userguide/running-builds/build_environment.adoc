@@ -262,7 +262,7 @@ Only the root project's `gradle.properties` file will be checked for properties 
 [[sec:gradle_configuration_properties]]
 == Gradle properties
 
-Gradle properties configure Gradle itself and usually have the name `org.gradle.\*`.
+Gradle properties configure Gradle itself and usually have the name `org.gradle.*`.
 Gradle properties should not be used in build logic, their values should not be read/retrieved in build scripts.
 
 === Setting a Gradle property
