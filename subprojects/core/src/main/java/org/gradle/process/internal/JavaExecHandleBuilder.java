@@ -38,19 +38,21 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
-import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
 
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
 
@@ -428,27 +430,41 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
             try {
-                File pathingJarFile = writePathingJarFile(classpath);
-                ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
-                shortenedClasspath.from(pathingJarFile);
-                List<String> shortenedArguments = getAllArguments(shortenedClasspath);
-                LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
-                return shortenedArguments;
+                Path argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
+                LOGGER.info("Command line too long - creating argsfile(s)");
+
+                List<String> effectiveArguments = new ArrayList<>();
+
+                for (String arg : arguments) {
+                    if (arg.startsWith("@")) {
+                        if (Files.size(argsFile) > 0) {
+                            // Finish existing args file and create a new one
+                            effectiveArguments.add("@" + argsFile.toAbsolutePath());
+                            argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
+                            continue;
+                        }
+                        effectiveArguments.add(arg);
+                        continue;
+                    }
+                    if (arg.contains("\\") || arg.contains("/")) {
+                        // In case of a file path, we need to escape backslashes and spaces
+                        arg = arg.replace("\\", "\\\\");
+                        // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
+                        arg = arg.replace(" ", "\" \"");
+                    }
+                    Files.write(argsFile, Collections.singleton(arg), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                }
+                if (Files.size(argsFile) > 0) {
+                    effectiveArguments.add("@" + argsFile.toAbsolutePath());
+                }
+                LOGGER.info("effective arguments {}", effectiveArguments);
+                return effectiveArguments;
             } catch (IOException e) {
-                LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
+                LOGGER.info("args file could not be created, Gradle cannot shorten the command line.", e);
             }
         }
 
         return arguments;
-    }
-
-    private File writePathingJarFile(FileCollection classpath) throws IOException {
-        File pathingJarFile = temporaryFileProvider.createTemporaryFile("gradle-javaexec-classpath", ".jar");
-        try (FileOutputStream fileOutputStream = new FileOutputStream(pathingJarFile);
-             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classpath))) {
-            jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
-        }
-        return pathingJarFile;
     }
 
     private static Manifest toManifest(FileCollection classpath) {
