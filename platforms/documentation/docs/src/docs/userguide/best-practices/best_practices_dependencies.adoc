@@ -299,9 +299,8 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/groovy
 == Declare Dependencies using a single GAV (`group:artifact:version`) String
 
 When declaring dependencies without a <<version_catalogs.adoc#version-catalog,version catalog>>, prefer using the single GAV string notation `implementation("org.example:library:1.0")`.
-Avoid using the named argument notation unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
-
-TIP: The named argument and map notations may be deprecated in the future.
+Avoid using the named argument notation.
+The named argument notation has been deprecated and will no longer be supported starting in Gradle 10.
 
 === Explanation
 
@@ -309,17 +308,6 @@ All of these declarations will be treated equivalently when Gradle resolves depe
 However, the single-string form is more concise, easier to read, and is widely adopted in the broader JVM ecosystem.
 
 This format is also recommended by link:https://central.sonatype.com/artifact/com.google.guava/guava[Maven Central] in its documentation and usage examples, making it the most familiar and consistent style for developers across tools.
-
-A valid reason to use named arguments format is when resolving a dependency from an Ivy repository that requires selecting a specific configuration by name.
-This syntax is only applicable for Ivy dependencies and should not be used with standard Maven modules:
-
-[source,kotlin]
-----
-// Use this syntax only for Ivy modules when a specific configuration must be selected
-dependencies {
-    implementation(group = "org.someOrg", name = "someModule", version = "1.0", configuration = "someConf")
-}
-----
 
 === Example
 

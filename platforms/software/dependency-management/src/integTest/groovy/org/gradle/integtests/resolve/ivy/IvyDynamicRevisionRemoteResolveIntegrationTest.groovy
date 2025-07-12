@@ -121,7 +121,11 @@ configurations.all {
 }
 
 dependencies {
-    compile group: /${name}/, name: /${name}/, version: "latest.integration"
+    if (${name.contains(':') || name.contains('@')}) {
+        compile(project.dependencyFactory.create(/${name}/, /${name}/, "latest.integration"))
+    } else {
+        compile(/${name}:${name}:latest.integration/)
+    }
 }
 """
         when:
