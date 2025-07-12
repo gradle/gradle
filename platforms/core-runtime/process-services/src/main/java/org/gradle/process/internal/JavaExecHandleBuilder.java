@@ -441,9 +441,12 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
                         effectiveArguments.add(arg);
                         continue;
                     }
-                    arg = arg.replace("\\", "\\\\");
-                    // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
-                    arg = arg.replace(" ", "\" \"");
+                    if (arg.contains("\\") || arg.contains("/")) {
+                        // In case of a file path, we need to escape backslashes and spaces
+                        arg = arg.replace("\\", "\\\\");
+                        // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
+                        arg = arg.replace(" ", "\" \"");
+                    }
                     Files.write(argsFile, Collections.singleton(arg), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
                 }
                 LOGGER.info("effective arguments {}", effectiveArguments);
