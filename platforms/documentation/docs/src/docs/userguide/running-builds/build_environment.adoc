@@ -53,7 +53,7 @@ Gradle provides multiple mechanisms for configuring the behavior of Gradle itsel
 
 When configuring Gradle behavior, you can use these methods, but you must consider their priority.
 
-The following table lists these methods in order of highest to lowest precedence (the first one wins):
+Gradle reads `gradle.properties` configurations in the following order (highest precedence first):
 
 [%autowidth.stretch]
 |===
@@ -338,7 +338,7 @@ Enables incubating configuration-on-demand, where Gradle will attempt to configu
 +
 _Default is `false`._
 
-`org.gradle.console=(auto,plain,rich,verbose)`::
+`org.gradle.console=(auto,plain,colored,rich,verbose)`::
 Customize <<command_line_interface.adoc#sec:command_line_logging,console output>> coloring or verbosity.
 +
 _Default depends on how Gradle is invoked._

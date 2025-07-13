@@ -18,8 +18,6 @@ package org.gradle.test.fixtures.server.http
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.HttpRequest
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.util.ports.FixedAvailablePortAllocator
-import org.gradle.util.ports.PortAllocator
 import org.junit.rules.ExternalResource
 import org.littleshoot.proxy.HttpFilters
 import org.littleshoot.proxy.HttpFiltersSourceAdapter
@@ -33,7 +31,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * A Proxy Server used for testing that proxies are correctly supported.
  */
 class TestProxyServer extends ExternalResource {
-    private PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
     private HttpProxyServer proxyServer
     private int port
     private AtomicInteger requestCountInternal = new AtomicInteger()
@@ -48,11 +45,10 @@ class TestProxyServer extends ExternalResource {
     }
 
     void start(final String expectedUsername = null, final String expectedPassword = null) {
-        port = portFinder.assignPort()
-        startHttpProxy(expectedUsername, expectedPassword, port)
+        startHttpProxy(expectedUsername, expectedPassword)
     }
 
-    private void startHttpProxy(String expectedUsername, String expectedPassword, int port) {
+    private void startHttpProxy(String expectedUsername, String expectedPassword) {
         def filters = new HttpFiltersSourceAdapter() {
             HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
                 requestCountInternal.incrementAndGet()
@@ -76,10 +72,12 @@ class TestProxyServer extends ExternalResource {
         }
 
         proxyServer = DefaultHttpProxyServer.bootstrap()
-            .withPort(port)
+            .withPort(0)
             .withFiltersSource(filters)
             .withProxyAuthenticator(proxyAuthenticator)
             .start()
+
+        port = proxyServer.getListenAddress().getPort()
     }
 
     @Override
@@ -92,7 +90,6 @@ class TestProxyServer extends ExternalResource {
 
     void stop() {
         proxyServer?.stop()
-        portFinder.releasePort(port)
     }
 
     void configureProxy(GradleExecuter executer, String proxyScheme, String userName = null, String password = null) {

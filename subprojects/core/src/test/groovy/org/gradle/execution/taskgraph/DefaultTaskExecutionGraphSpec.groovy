@@ -76,6 +76,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def cancellationToken = Mock(BuildCancellationToken)
     def listenerManager = new DefaultListenerManager(Scope.Build)
     def graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class)
+    def internalGraphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class)
     def taskExecutionListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class)
     def listenerRegistrationListener = listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class)
     def nodeExecutor = Mock(NodeExecutor)
@@ -96,6 +97,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         listenerBuildOperationDecorator,
         thisBuild,
         graphListeners,
+        internalGraphListeners,
         taskExecutionListeners,
         listenerRegistrationListener,
         Stub(ServiceRegistry) {
@@ -379,6 +381,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             listenerBuildOperationDecorator,
             thisBuild,
             graphListeners,
+            internalGraphListeners,
             taskExecutionListeners,
             listenerRegistrationListener,
             Stub(ServiceRegistry)
@@ -414,6 +417,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             listenerBuildOperationDecorator,
             thisBuild,
             graphListeners,
+            internalGraphListeners,
             taskExecutionListeners,
             listenerRegistrationListener,
             Stub(ServiceRegistry)

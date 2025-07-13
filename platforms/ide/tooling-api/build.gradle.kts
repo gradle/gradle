@@ -88,6 +88,7 @@ dependencies {
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
+    integTestImplementation(projects.kotlinDslToolingModels)
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.jvmServices)
@@ -112,6 +113,7 @@ dependencies {
     integTestNormalizedDistribution(projects.distributionsFull) {
         because("Used by ToolingApiRemoteIntegrationTest")
     }
+
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
     integTestLocalRepository(project(path)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.fixtures
+package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.SelfType
 import org.apache.tools.ant.util.TeeOutputStream
@@ -178,7 +178,7 @@ trait ToolingApiSpec {
 
             class MyModelBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
-                    return modelName == "${SomeToolingModel.class.name}"
+                    return modelName == "${ org.gradle.integtests.tooling.fixture.SomeToolingModel.class.name}"
                 }
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
@@ -260,12 +260,12 @@ trait ToolingApiSpec {
         result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
-            def args = executer.allArgs
-            args.remove("--no-daemon")
+            def args = getAllArgs()
 
             model = connection.model(type)
                 .forTasks(tasks)
                 .withArguments(args)
+                .addJvmArguments(executer.jvmArgs)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .get()
@@ -280,11 +280,11 @@ trait ToolingApiSpec {
             def error = new ByteArrayOutputStream()
             def failure
             try {
-                def args = executer.allArgs
-                args.remove("--no-daemon")
+                def args = getAllArgs()
 
                 connection.model(type)
                     .withArguments(args)
+                    .addJvmArguments(executer.jvmArgs)
                     .setStandardOutput(new TeeOutputStream(output, System.out))
                     .setStandardError(new TeeOutputStream(error, System.err))
                     .get()
@@ -301,13 +301,14 @@ trait ToolingApiSpec {
         result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
-            def args = executer.allArgs.tap { remove("--no-daemon") }
+            def args = getAllArgs()
 
             def actionExecuter = connection.action(buildAction)
             config.delegate = actionExecuter
             config.call()
 
             model = actionExecuter
+                .addJvmArguments(executer.implicitBuildJvmArgs)
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
@@ -327,6 +328,7 @@ trait ToolingApiSpec {
             try {
                 connection.action(buildAction)
                     .withArguments(args)
+                    .addJvmArguments(executer.implicitBuildJvmArgs)
                     .setStandardOutput(new TeeOutputStream(output, System.out))
                     .setStandardError(new TeeOutputStream(error, System.err))
                     .run()
@@ -344,8 +346,7 @@ trait ToolingApiSpec {
         result = toolingApiExecutor.runBuildWithToolingConnection { ProjectConnection connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
-            def args = executer.allArgs
-            args.remove("--no-daemon")
+            def args = getAllArgs()
 
 
             def actionExecuter = connection.action()
@@ -358,6 +359,7 @@ trait ToolingApiSpec {
             config.call()
             actionExecuter
                 .withArguments(args)
+                .addJvmArguments(executer.implicitBuildJvmArgs)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
@@ -370,11 +372,11 @@ trait ToolingApiSpec {
         result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
-            def args = executer.allArgs
-            args.remove("--no-daemon")
+            def args = getAllArgs()
 
             connection.newTestLauncher()
                 .withJvmTestClasses(testClasses)
+                .addJvmArguments(executer.implicitBuildJvmArgs)
                 .addJvmArguments(executer.jvmArgs)
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
@@ -382,5 +384,11 @@ trait ToolingApiSpec {
                 .run()
             OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
+    }
+
+    def List<String> getAllArgs() {
+        def args = executer.allArgs
+        args.remove("--no-daemon")
+        args
     }
 }

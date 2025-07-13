@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NullMarked
+package org.gradle.execution.taskgraph;
 
-package org.gradle.internal.cc.impl.fixtures
-
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
-
-interface SomeToolingModel {
-    String getMessage()
-}
-
-interface SomeToolingModelParameter {
-    String getMessagePrefix()
-    void setMessagePrefix(String value)
-}
-
-class SomeToolingModelBuildAction implements BuildAction<SomeToolingModel> {
-    @Override
-    SomeToolingModel execute(BuildController controller) {
-        return controller.getModel(SomeToolingModel)
-    }
-}
+import org.jspecify.annotations.NullMarked;
