@@ -27,7 +27,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -345,7 +344,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test bootstrapClasspath(Object... classpath) {
+    public Test bootstrapClasspath(@Nullable Object... classpath) {
         forkOptions.bootstrapClasspath(classpath);
         return this;
     }
@@ -714,7 +713,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 getServices().get(WorkerLeaseService.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
-                getServices().get(DocumentationRegistry.class),
                 (DefaultTestFilter) getFilter());
         } else {
             return testExecuter;

@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.cache.internal.streams.BlockAddress
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
@@ -55,7 +56,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     /**
      * See [ConfigurationCacheState.writeRootBuildState].
      */
-    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile)
+    fun writeRootBuildStateTo(rootBuild: BuildState, stateFile: ConfigurationCacheStateFile)
 
     fun readRootBuildStateFrom(
         stateFile: ConfigurationCacheStateFile,

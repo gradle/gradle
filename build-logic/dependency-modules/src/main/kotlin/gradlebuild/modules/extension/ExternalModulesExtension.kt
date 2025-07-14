@@ -27,8 +27,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     }
 
     val configurationCacheReportVersion = "1.26"
-    val gradleIdeStarterVersion = "0.5"
-    val kotlinVersion = "2.1.21"
+    val gradleIdeStarterVersion = "0.6"
+    val kotlinVersion = "2.2.0"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -197,7 +197,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
     val jtar = "org.kamranzafar:jtar"
-    val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+    val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
     val littleproxy = "xyz.rogfam:littleproxy"
     val mina = "org.apache.mina:mina-core"

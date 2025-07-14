@@ -17,8 +17,9 @@
 package org.gradle.testing.fixture
 
 import groovy.transform.SelfType
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
+
 import static org.gradle.util.Matchers.matchesRegexp
 
 /**
@@ -38,8 +39,11 @@ trait TestFrameworkStartupTestFixture {
         assert taskOutput =~ /afterSuite Gradle Test Run $taskName \[.*\] FAILURE/
     }
 
-    void assertTestWorkerStartedAndTestFrameworkFailedToStart(String taskName = ":test") {
-        failure.assertHasDescription("Execution failed for task '$taskName'.")
+    void assertTestWorkerStartedAndTestFrameworkFailedToStart(String taskName = ":test", int expectedWorkerFailures = 1) {
+        failure.assertHasFailure("Execution failed for task '$taskName'.") {
+            it.assertHasCauses(1 + expectedWorkerFailures)
+            it.assertHasCause("Test process encountered an unexpected problem.")
+        }
         failure.assertThatCause(matchesRegexp(/Could not start Gradle Test Executor \d+:.*/))
 
         def taskOutput = result.groupedOutput.task(taskName).output
@@ -48,7 +52,7 @@ trait TestFrameworkStartupTestFixture {
     }
 
     void assertSuggestsInspectTaskConfiguration() {
-        failure.assertHasResolution("Inspect your task configuration for errors.")
+        failure.assertHasResolution("Check common problems https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:java_testing_troubleshooting.")
     }
 
     String addLoggingTestListener() {

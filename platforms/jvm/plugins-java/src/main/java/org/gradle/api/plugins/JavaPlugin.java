@@ -47,6 +47,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.testing.base.TestingExtension;
@@ -266,8 +267,10 @@ public abstract class JavaPlugin implements Plugin<Project> {
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
 
         // Build the main jar when running `assemble`.
-        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
-            .add(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+        DeprecationLogger.whileDisabled(() -> {
+            project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
+                .add(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+        });
 
         configureTestTaskOrdering(project.getTasks());
         configureDiagnostics(project, javaComponent.getMainFeature());

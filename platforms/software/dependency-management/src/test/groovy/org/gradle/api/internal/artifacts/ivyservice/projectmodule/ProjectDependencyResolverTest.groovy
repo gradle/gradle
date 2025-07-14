@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -52,7 +53,7 @@ class ProjectDependencyResolverTest extends Specification {
         def id = newProjectId(":project")
 
         when:
-        resolver.resolve(selector, DefaultComponentOverrideMetadata.EMPTY, null, null, result)
+        resolver.resolve(selector, DefaultComponentOverrideMetadata.EMPTY, null, null, result, ImmutableAttributes.EMPTY)
 
         then:
         1 * registry.getComponent(id) >> componentState
@@ -80,7 +81,7 @@ class ProjectDependencyResolverTest extends Specification {
         def selector = Stub(ComponentSelector)
 
         when:
-        resolver.resolve(selector, DefaultComponentOverrideMetadata.EMPTY, null, null, result)
+        resolver.resolve(selector, DefaultComponentOverrideMetadata.EMPTY, null, null, result, ImmutableAttributes.EMPTY)
 
         then:
         0 * registry.getComponent(_)

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -57,7 +58,6 @@ class EdgeState implements DependencyGraphEdge {
 
     private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
-    private ImmutableAttributes cachedAttributes;
 
     /**
      * The accumulated exclusions that apply to this edge based on the paths from the root
@@ -192,14 +192,9 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        assert cachedAttributes != null;
-        return cachedAttributes;
-    }
-
-    private ImmutableAttributes safeGetAttributes() throws AttributeMergingException {
         ModuleResolveState module = selector.getTargetModule();
-        cachedAttributes = module.mergedConstraintsAttributes(dependencyState.getDependency().getSelector().getAttributes());
-        return cachedAttributes;
+        ComponentSelectorInternal componentSelector = (ComponentSelectorInternal) dependencyState.getDependency().getSelector();
+        return resolveState.getAttributesFactory().safeConcat(module.getMergedConstraintAttributes(), componentSelector.getAttributes());
     }
 
     private void calculateTargetNodes(ComponentState targetComponent) {
@@ -270,10 +265,8 @@ class EdgeState implements DependencyGraphEdge {
      * Determine which variants of a given target component that this edge should point to.
      */
     private GraphVariantSelectionResult selectTargetVariants(ComponentGraphResolveState targetComponentState) {
-        ImmutableAttributes requestAttributes = resolveState.getRoot().getMetadata().getAttributes();
-        ImmutableAttributes attributes = resolveState.getAttributesFactory().concat(requestAttributes, safeGetAttributes());
-
         GraphVariantSelector variantSelector = resolveState.getVariantSelector();
+        ImmutableAttributes attributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), getAttributes());
         ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
 
         // First allow the dependency to override variant selection, if it has a special

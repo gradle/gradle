@@ -41,7 +41,7 @@ import org.gradle.plugins.ide.IdeWorkspace;
  *          solution {
  *              solutionFile.location = "vs/${name}.sln"
  *              solutionFile.withContent { TextProvider content -&gt;
- *                  content.asBuilder().insert(0, "# GENERATED FILE: DO NOT EDIT\n")
+ *                  content.asBuilder().insert(0, "# GENERATED FILE: DO NOT EDIT\\n")
  *                  content.text = content.text.replaceAll("HideSolutionNode = FALSE", "HideSolutionNode = TRUE")
  *              }
  *          }

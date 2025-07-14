@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedArtifactResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedComponentResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Describables;
@@ -155,8 +156,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             resolutionStrategy.getComponentSelection(),
             resolutionStrategy.isDependencyVerificationEnabled(),
             resolutionStrategy.getCachePolicy().asImmutable(),
-            ImmutableAttributes.EMPTY,
-            null
+            ImmutableAttributesSchema.EMPTY
         );
 
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();

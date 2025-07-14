@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+
 plugins {
     `kotlin-dsl`
 }
@@ -15,7 +17,8 @@ dependencies {
     implementation(projects.moduleIdentity)
     implementation("net.ltgt.gradle:gradle-errorprone-plugin:4.1.0")
 
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:6.1.2")
+
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$embeddedKotlinVersion")
     implementation("org.gradle:test-retry-gradle-plugin:1.6.2")
 

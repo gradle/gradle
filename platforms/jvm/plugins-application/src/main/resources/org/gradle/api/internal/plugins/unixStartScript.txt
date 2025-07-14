@@ -147,7 +147,9 @@ case "\$( uname )" in                #(
   NONSTOP* )        nonstop=true ;;
 esac
 
+<% if ( classpath ) {%>\
 CLASSPATH=$classpath
+<% } %>\
 <% if ( mainClassName.startsWith('--module ') ) { %>
 MODULE_PATH=$modulePath
 <% } %>
@@ -207,7 +209,9 @@ fi
 # For Cygwin or MSYS, switch paths to Windows format before running java
 if "\$cygwin" || "\$msys" ; then
     APP_HOME=\$( cygpath --path --mixed "\$APP_HOME" )
+<% if ( classpath ) {%>\
     CLASSPATH=\$( cygpath --path --mixed "\$CLASSPATH" )
+<% } %>\
 <% if ( mainClassName.startsWith('--module ') ) { %>    MODULE_PATH=\$( cygpath --path --mixed "\$MODULE_PATH" )<% } %>
     JAVACMD=\$( cygpath --unix "\$JAVACMD" )
 
@@ -251,7 +255,10 @@ DEFAULT_JVM_OPTS=${defaultJvmOpts}
 set -- \\
 <% if ( appNameSystemProperty ) {
      %>        "-D${appNameSystemProperty}=\$APP_BASE_NAME" \\
-<% } %>        -classpath "\$CLASSPATH" \\
+<% } %>\
+<% if ( classpath ) {%>\
+        -classpath "\$CLASSPATH" \\
+<% } %>\
 <% if ( mainClassName.startsWith('--module ') ) {
      %>        --module-path "\$MODULE_PATH" \\
 <% } %>        ${mainClassName ?: entryPointArgs} \\

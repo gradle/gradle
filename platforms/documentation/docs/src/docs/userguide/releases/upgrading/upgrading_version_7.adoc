@@ -13,10 +13,10 @@
 // limitations under the License.
 
 [[upgrading_version_7]]
-= Upgrading your build from Gradle 7.x to 8.0
+= Upgrading from Gradle 7.x to 8.0
 
 This chapter provides the information you need to migrate your Gradle 7.x builds to Gradle 8.0.
-For migrating from Gradle 6.x or earlier, complete the  <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
+For migrating from Gradle 6.x, see the  <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
 
 We recommend the following steps for all users:
 
@@ -32,7 +32,7 @@ Alternatively, you can run `gradle help --warning-mode=all` to see the deprecati
 Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
 The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
-. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Run `gradle wrapper --gradle-version 8.0.2` to update the project to 8.0.2.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_8.0]]

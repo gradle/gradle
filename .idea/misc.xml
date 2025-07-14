@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <list size="4">
+    <list size="5">
       <item index="0" class="java.lang.String" itemvalue="com.tngtech.archunit.junit.ArchTest" />
       <item index="1" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade" />
       <item index="2" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls" />

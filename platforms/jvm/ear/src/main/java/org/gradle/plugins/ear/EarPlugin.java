@@ -34,6 +34,7 @@ import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -123,7 +124,11 @@ public abstract class EarPlugin implements Plugin<Project> {
             task.setDeploymentDescriptor(deploymentDescriptor);
         });
 
-        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
+        DeprecationLogger.whileDisabled(() -> {
+            project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
+                .getArtifacts()
+                .add(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
+        });
     }
 
     private void wireEarTaskConventions(Project project) {

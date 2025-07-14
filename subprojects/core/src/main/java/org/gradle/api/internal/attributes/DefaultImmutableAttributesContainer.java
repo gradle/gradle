@@ -222,13 +222,6 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
         return attributes == null ? MISSING : attributes;
     }
 
-    @Override
-    @Nullable
-    public Attribute<?> findAttribute(String name) {
-        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(name);
-        return attributes == null ? null : attributes.attribute;
-    }
-
     @SuppressWarnings("DataFlowIssue")
     @Override
     public Object get() {
@@ -306,6 +299,11 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     @Override
     public boolean isEmpty() {
         return attribute == null;
+    }
+
+    @Override
+    public Attribute<?> getAttribute() {
+        return attribute;
     }
 
     @Override

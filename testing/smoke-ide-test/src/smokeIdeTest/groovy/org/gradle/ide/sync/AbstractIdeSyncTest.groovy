@@ -41,9 +41,9 @@ import java.nio.file.Paths
 abstract class AbstractIdeSyncTest extends Specification {
 
     // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
-    final static String IDEA_COMMUNITY_VERSION = "2024.3-rc"
+    final static String IDEA_COMMUNITY_VERSION = "2025.1.3"
     // https://developer.android.com/studio/archive
-    final static String ANDROID_STUDIO_VERSION = "2024.3.1.6"
+    final static String ANDROID_STUDIO_VERSION = "2025.1.1.1"
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())

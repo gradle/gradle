@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NullMarked
+package org.gradle.execution.taskgraph;
 
-package org.gradle.language.base
-
-import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.junit.Test
-
-@UnsupportedWithConfigurationCache(because = "software model")
-class AutoTestedSamplePlatformBaseIntegrationTest extends AbstractAutoTestedSamplesTest {
-    @Test
-    void runSamples() {
-        runSamplesFrom("src/main")
-    }
-}
+import org.jspecify.annotations.NullMarked;

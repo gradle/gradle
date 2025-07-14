@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.internal.time.MockClock
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
@@ -71,15 +72,12 @@ class TestMainActionTest extends Specification {
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop()
         then:
-        1 * resultProcessor.failure(!null, !null)
+        1 * resultProcessor.failure(!null, { TestFailure f -> f.rawFailure == failure })
         1 * resultProcessor.completed(!null, !null)
 
         0 * resultProcessor._
         0 * detector._
         0 * processor._
-
-        def exception = thrown(RuntimeException)
-        exception == failure
     }
 
 
@@ -95,15 +93,12 @@ class TestMainActionTest extends Specification {
         then:
         1 * processor.startProcessing(!null) >> { throw failure }
         then:
-        1 * resultProcessor.failure(!null, !null)
+        1 * resultProcessor.failure(!null, { TestFailure f -> f.rawFailure == failure })
         1 * resultProcessor.completed(!null, !null)
 
         0 * resultProcessor._
         0 * detector._
         0 * processor._
-
-        def exception = thrown(RuntimeException)
-        exception == failure
     }
 
     def 'fires end events when end processing fails'() {
@@ -123,14 +118,11 @@ class TestMainActionTest extends Specification {
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop() >> { throw failure }
         then:
-        1 * resultProcessor.failure(!null, !null)
+        1 * resultProcessor.failure(!null, { TestFailure f -> f.rawFailure == failure })
         1 * resultProcessor.completed(!null, !null)
 
         0 * resultProcessor._
         0 * detector._
         0 * processor._
-
-        def exception = thrown(RuntimeException)
-        exception == failure
     }
 }

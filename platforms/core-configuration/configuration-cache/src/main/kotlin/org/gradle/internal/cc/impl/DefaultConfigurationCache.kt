@@ -33,6 +33,7 @@ import org.gradle.configurationcache.withModelStoreOperation
 import org.gradle.configurationcache.withWorkGraphLoadOperation
 import org.gradle.configurationcache.withWorkGraphStoreOperation
 import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
@@ -243,7 +244,8 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                degradeGracefullyOr { saveWorkGraph() }
+                val rootBuild = buildStateRegistry.rootBuild
+                degradeGracefullyOr { saveWorkGraph(rootBuild) }
                 crossConfigurationTimeBarrier()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
@@ -627,7 +629,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun saveWorkGraph() {
+    fun saveWorkGraph(rootBuild: BuildState) {
         cacheEntryRequiresCommit = true
 
         if (startParameter.isIgnoreInputsDuringStore) {
@@ -636,7 +638,7 @@ class DefaultConfigurationCache internal constructor(
 
         buildOperationRunner.withWorkGraphStoreOperation(cacheKey.string) {
             val stateStoreResult = runAndStore(stateType = StateType.Work) { stateFile: ConfigurationCacheStateFile ->
-                writeConfigurationCacheState(stateFile)
+                writeConfigurationCacheState(rootBuild, stateFile)
             }
             WorkGraphStoreResult(stateStoreResult.accessedFiles, stateStoreResult.value)
         }
@@ -721,8 +723,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        cacheIO.writeRootBuildStateTo(stateFile)
+    fun writeConfigurationCacheState(rootBuild: BuildState, stateFile: ConfigurationCacheStateFile) =
+        cacheIO.writeRootBuildStateTo(rootBuild, stateFile)
 
     private
     fun ConfigurationCacheRepository.Layout.writeConfigurationCacheFingerprint(reusedProjects: Set<Path>) {

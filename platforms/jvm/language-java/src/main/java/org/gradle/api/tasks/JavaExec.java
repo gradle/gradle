@@ -307,7 +307,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec bootstrapClasspath(Object... classpath) {
+    public JavaExec bootstrapClasspath(@Nullable Object... classpath) {
         javaExecSpec.bootstrapClasspath(classpath);
         return this;
     }
@@ -520,7 +520,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec classpath(Object... paths) {
+    public JavaExec classpath(@Nullable Object... paths) {
         javaExecSpec.classpath(paths);
         return this;
     }

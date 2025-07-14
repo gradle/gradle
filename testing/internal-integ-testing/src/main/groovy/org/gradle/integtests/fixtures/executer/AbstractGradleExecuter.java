@@ -1111,8 +1111,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         if (consoleType != null) {
-            String s = consoleType.toString();
-            allArgs.add("--console=" + s.toLowerCase(Locale.ROOT));
+            allArgs.add("--console=" + consoleType.toString().toLowerCase(Locale.ROOT));
         }
 
         // Rich console output is difficult to check, so we disable warnings

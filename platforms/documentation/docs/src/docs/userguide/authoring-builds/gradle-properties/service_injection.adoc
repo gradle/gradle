@@ -48,6 +48,7 @@ The following services are available for injection in project plugins, extension
 2. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
 3. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
 4. <<testeventreporterfactory,`TestEventReporterFactory`>> - Allows a plugin to access Gradle's test events and its corresponding API.
+5. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
 
 === Additional services in settings
 
@@ -55,6 +56,7 @@ The following services are available for injection in settings plugins, extensio
 
 1. <<buildlayout,`BuildLayout`>> - Provides access to important locations for a Gradle build.
 2. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
+3. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
 
 [[objectfactory]]
 == `ObjectFactory`
@@ -300,6 +302,15 @@ WARNING: This API is incubating.
 link:{javadocPath}/org/gradle/api/tasks/testing/TestEventReporterFactory.html[`TestEventReporterFactory`] is a service that provides access to the test event reporting API.
 
 You can learn more at <<test_reporting_api.adoc#test_reporting_api,Test Reporting API>>.
+
+[[dependencyfactory]]
+== `DependencyFactory`
+
+link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] is a service that provides methods for creating dependencies in a type-safe way.
+
+You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies,Implementing Binary Plugins guide>>.
+
+[[service_injection_patterns]]
 
 == Constructor injection
 

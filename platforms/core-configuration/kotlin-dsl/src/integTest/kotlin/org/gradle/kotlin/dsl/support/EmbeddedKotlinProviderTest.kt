@@ -45,32 +45,25 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     @Test
     @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4723
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
+        val requestedKotlinVersion = "2.0.0"
         withBuildScript(
             """
             buildscript {
                 $repositoriesBlock
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.9.21")
-                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.9.21")
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib:$requestedKotlinVersion")
+                    classpath("org.jetbrains.kotlin:kotlin-reflect:$requestedKotlinVersion")
                 }
             }
             plugins {
-                kotlin("jvm") version "1.9.21"
+                kotlin("jvm") version "$requestedKotlinVersion"
             }
             """
         )
 
-        executer.expectDocumentedDeprecationWarning(
-            "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10. " +
-                "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
-        )
-
         val result = build("buildEnvironment")
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.9.21 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:$requestedKotlinVersion -> $embeddedKotlinVersion"))
         }
     }
 

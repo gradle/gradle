@@ -114,9 +114,6 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
     }
 
     private String createJoinedPath(Iterable<String> path) {
-        if (!windows && !path.iterator().hasNext()) {
-            return "\"\\\\\\\"\\\\\\\"\""; // empty path argument for shell script
-        }
         return Streams.stream(path).map(this::encodePath).collect(Collectors.joining(getMultiPathSeparator()));
     }
 
