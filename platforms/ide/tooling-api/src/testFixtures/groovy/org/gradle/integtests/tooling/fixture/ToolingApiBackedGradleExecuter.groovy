@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.fixtures
+package org.gradle.integtests.tooling.fixture
 
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Action
@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
 
@@ -35,6 +34,11 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
 
     ToolingApiBackedGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider)
+    }
+
+    @Override
+    protected boolean isDebuggerAttached() {
+        return isDebuggerAttachedImpl();
     }
 
     void withToolingApiJvmArgs(String... args) {

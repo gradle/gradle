@@ -557,4 +557,38 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         output.count("two = unknown") == 2
         output.count("one = null") == 2
     }
+
+    /**
+     * These tests are to verify that when a property is marked as disallowChanges during configuration time,
+     * this setting is properly restored by the CC and honored at task execution time.
+     */
+    static class DisallowChangesIntegrationTests extends AbstractIntegrationSpec {
+        /**
+         * This test is to verify that when a property is marked as disallowChanges during configuration time,
+         * this setting is properly restored by the CC and honored at task execution time.
+         */
+        def "cannot update property marked disallowChanges"() {
+            given:
+            buildFile """
+                class Setter extends DefaultTask {
+                    @Internal
+                    final Property<String> prop = project.objects.property(String)
+
+                    @TaskAction
+                    def run() {
+                        prop.set("new content")
+                    }
+                }
+
+                tasks.register("setter", Setter) {
+                    prop = "original content"
+                    prop.disallowChanges()
+                }
+            """
+
+            expect:
+            fails("setter")
+            failure.assertHasCause("The value for task ':setter' property 'prop' cannot be changed any further.")
+        }
+    }
 }

@@ -84,6 +84,12 @@ plugins {
 ----
 =====
 
+When creating precompiled script plugins intended for `Settings` or `Init` scripts, the filename suffix determines where Gradle applies them:
+
+* `.settings.gradle` or `.settings.gradle.kts` → interpreted as `Plugin<Settings>`
+* `.init.gradle` or `.init.gradle.kts` → interpreted as `Plugin<Init>`
+* `.gradle` or `.gradle.kts` → interpreted as the default `Plugin<Project>`
+
 IMPORTANT: Groovy pre-compiled script plugins cannot have packages.
 
 [[sec:getting_input_from_the_build]]

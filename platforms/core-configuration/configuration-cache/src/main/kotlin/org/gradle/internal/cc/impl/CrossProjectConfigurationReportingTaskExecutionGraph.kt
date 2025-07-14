@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
@@ -58,6 +59,14 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     override fun removeTaskExecutionGraphListener(listener: TaskExecutionGraphListener) {
         delegate.removeTaskExecutionGraphListener(listener.wrap())
+    }
+
+    override fun addExecutionListener(listener: TaskExecutionGraphExecutionListener) {
+        delegate.addExecutionListener(listener)
+    }
+
+    override fun removeExecutionListener(listener: TaskExecutionGraphExecutionListener) {
+        delegate.removeExecutionListener(listener)
     }
 
     override fun whenReady(closure: Closure<*>) {

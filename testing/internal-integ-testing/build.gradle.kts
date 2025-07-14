@@ -51,10 +51,6 @@ dependencies {
     api(projects.daemonProtocol)
     api(projects.serviceLookup)
 
-    api(testFixtures(projects.core)) {
-        because("HttpServer leaks PortAllocator to spock AST transformer")
-    }
-
     api(libs.gson)
     api(libs.groovy)
     api(libs.groovyXml)
@@ -120,6 +116,7 @@ dependencies {
 
     implementation(testFixtures(projects.buildOperations))
     implementation(testFixtures(projects.buildProcessServices))
+    implementation(testFixtures(projects.core))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)

@@ -30,7 +30,16 @@ Unlike simple project dependencies, _variant-aware sharing_ provides:
 [[sec:setup-producer]]
 == Step 1: Configuring the Producer Project
 
-To get started, you should check the existing variants of the producer project by running the `outgoingVariants` task:
+Let's take a producer project that produces a Java library:
+
+====
+include::sample[dir="snippets/how-to/share-outputs/kotlin",files="producer/build.gradle.kts[tags=java-lib]"]
+include::sample[dir="snippets/how-to/share-outputs/groovy",files="producer/build.gradle[tags=java-lib]"]
+====
+
+To get started, you should check the existing variants of the producer project by running the `outgoingVariants` task.
+
+Our Java library produces the following variant for the `runtimeElements` configuration:
 
 [source,bash]
 ----
@@ -54,7 +63,7 @@ Artifacts
 - build/libs/producer.jar (artifactType = jar)
 ----
 
-What it tells us is that this Java Library plugin produces variants with 5 attributes:
+Specifically, the Java library produces a variant `runtimeElements` with 5 attributes:
 
 1. `org.gradle.category` - this variant represents a library
 2. `org.gradle.dependency.bundling` - the dependencies of this variant are found as jars (they are not, for example, repackaged inside the jar)
@@ -62,18 +71,20 @@ What it tells us is that this Java Library plugin produces variants with 5 attri
 4. `org.gradle.libraryelements` - this variant contains all elements found in a jar (classes and resources)
 5. `org.gradle.usage` - this variant is a Java runtime, therefore suitable for a Java compiler but also at runtime
 
-The producer project defines an artifact (e.g., an instrumented JAR) that other projects can consume based on attributes.
+Let's say that the producer project defines an artifact (e.g., an instrumented JAR) that other projects can consume based on attributes.
 If we want the instrumented classes to be used in place of the existing variant when executing tests, we need to attach similar attributes to this variant.
-In fact, the attribute we care about is `org.gradle.libraryelements` which explains what the variant contains.
 
-First, the following task defines a custom JAR artifact with an instrumented classifier (e.g., `producer-instrumented.jar)`:
+In this case, the attribute we care about is `org.gradle.libraryelements`.
+This attribute explains _what_ the variant contains.
+
+The following task in the producer build file defines a custom JAR artifact with an instrumented classifier (e.g., `producer-instrumented.jar)`:
 
 ====
 include::sample[dir="snippets/how-to/share-outputs/kotlin",files="producer/build.gradle.kts[tags=instrumentedjar-task]"]
 include::sample[dir="snippets/how-to/share-outputs/groovy",files="producer/build.gradle[tags=instrumentedjar-task]"]
 ====
 
-Second, a configuration  is created which:
+The producer build file also creates a new configuration which:
 
 - Provides an artifact variant for consumption.
 - This variant is a `runtime-library` artifact with the element type `instrumented-jar`.
@@ -90,16 +101,22 @@ This configuration ensures that only the correct artifacts are exposed and preve
 [[sec:setup-consumer]]
 == Step 2: Configuring the consumer project
 
-The consumer project requests the instrumented JAR by defining matching attributes.
+In Gradle, it's recommended to separate the configuration where you declare dependencies from the one where you resolve artifacts.
 
-First, the consumer explicitly requests a runtime usage artifact with the variant marked as `instrumented-jar`:
+First, the consumer project creates two configurations:
+
+* `instrumentedRuntimeDependencies` is used to declare a dependency on the producer.
+* `instrumentedRuntime` is a resolvable configuration that resolves all the dependencies declared in `instrumentedRuntimeDependencies`, including `instrumentedJars`.
 
 ====
 include::sample[dir="snippets/how-to/share-outputs/kotlin",files="consumer/build.gradle.kts[tags=custom-config]"]
 include::sample[dir="snippets/how-to/share-outputs/groovy",files="consumer/build.gradle[tags=custom-config]"]
 ====
 
-Then, a dependency is added on the producer:
+Now, the consumer project declares a dependency on the producer and aligns its configuration with the desired variant by defining attributes.
+When the configuration is resolved, Gradle uses these attributes to select a compatible variant published by the producer.
+
+Second, a dependency is added on the producer on `instrumentedRuntimeDependencies`:
 
 ====
 include::sample[dir="snippets/how-to/share-outputs/kotlin",files="consumer/build.gradle.kts[tags=dependency]"]
@@ -107,7 +124,7 @@ include::sample[dir="snippets/how-to/share-outputs/groovy",files="consumer/build
 ====
 
 Finally, we use the artifact variant in a task.
-This task runs the application using the resolved instrumented JAR from the producer:
+The `runWithInstrumentation` task runs the application using the resolved instrumented JAR from the producer:
 
 ====
 include::sample[dir="snippets/how-to/share-outputs/kotlin",files="consumer/build.gradle.kts[tags=task]"]
@@ -157,12 +174,17 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProject
 
 If the consumer fails to resolve the artifact, check:
 
-- The attributes in the consumer match those in the producer.
+- The attributes in the consumer are compatible with those in the producer.
 - The producer project properly declares the artifact.
 - There are no conflicting configurations with different attributes.
 
 [[sec:conclusion]]
 == Summary
+
+There are two perspectives to keep in mind:
+
+1. *Configuring a project*: You configure configurations, which declare how your build consumes or produces artifacts.
+2. *Referencing a project*: Gradle resolves variants published by other projects, selecting the best match based on compatibility with the consuming configuration’s attributes.
 
 _Variant-aware_ sharing enables clean and flexible artifact sharing between projects.
 It avoids hardcoded task dependencies and improves build maintainability.

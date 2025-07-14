@@ -23,4 +23,5 @@ package org.gradle.tooling.model;
  *
  * @since 1.0-milestone-8
  */
+// If you add a new Model implementation, please also add it to GradleBuildToolingApiSmokeTest's list.
 public interface Model {}
