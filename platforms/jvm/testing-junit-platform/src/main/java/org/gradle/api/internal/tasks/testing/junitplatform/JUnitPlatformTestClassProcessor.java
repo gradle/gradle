@@ -306,13 +306,20 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         private boolean classMatch(TestDescriptor descriptor) {
+            String methodName = null;
             while (true) {
                 Optional<TestDescriptor> parent = descriptor.getParent();
+                String finalMethodName = methodName;
                 if (!parent.isPresent()) {
                     break;
                 }
-                if (className(descriptor).filter(className -> matcher.matchesTest(className, null)).isPresent()) {
+                if (className(descriptor).filter(className -> matcher.matchesTest(className, finalMethodName)).isPresent()) {
                     return true;
+                }
+                // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names
+                // (for instance, if the method is in a nested class).
+                if (descriptor.getSource().isPresent() && descriptor.getSource().get() instanceof MethodSource) {
+                    methodName = ((MethodSource) descriptor.getSource().get()).getMethodName();
                 }
                 descriptor = parent.get();
             }
