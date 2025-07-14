@@ -43,9 +43,6 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
 
-[[use_build_cache]]
-== Use the Build Cache
-
 [[use_configuration_cache]]
 == Use the Configuration Cache
 
@@ -54,8 +51,51 @@ Use the Configuration Cache to significantly improves build performance by cachi
 === Explanation
 
 The Configuration Cache works by saving the result of the configuration phase.
-On the next build, if nothing relevant has changed, Gradle skips configuration entirely and loads the cached task graph from disk, jumping straight to the execution phase.
+On the next build, if nothing relevant has changed, Gradle skips configuration entirely and loads the cached task graph from disk, jumping straight to task execution.
 
 This can dramatically reduce build time, especially in large builds, as long as your build scripts and plugins are compatible (i.e., no dynamic or undeclared inputs).
 
+It’s important to understand how this differs from the Build Cache.
+The Build Cache stores the outputs of task execution, while the Configuration Cache stores the configured task graph before execution begins.
+These are independent mechanisms that solve different problems, but they are designed to work together for optimal performance.
+
 === Example
+
+Configuration caching is disabled by default:
+
+====
+include::sample[dir="snippets/bestPractices/useConfigurationCache-avoid/kotlin",files="gradle.properties[]"]
+====
+
+==== Do This Instead
+
+To enable the Build Cache, add the following to your `gradle.properties` file:
+
+====
+include::sample[dir="snippets/bestPractices/useConfigurationCache-do/kotlin",files="gradle.properties[]"]
+====
+
+When you build your project for the first time, Gradle populates the cache with the outputs of tasks like compilation.
+
+Even if you run `./gradlew clean` to delete the build directory, Gradle can reuse cached outputs in subsequent builds.
+
+----
+> ./gradlew clean
+:clean
+BUILD SUCCESSFUL
+----
+
+On subsequent builds, instead of executing the `:compileJava` task again, the outputs of the task will be loaded from the Build Cache:
+
+----
+> ./gradlew compileJava
+include::{snippetsPath}/bestPractices/useBuildCache-do/tests/useConfigurationCache-do.secondRun.out[]
+----
+
+=== References
+
+- <<configuration_cache.adoc#config_cache,Configuration Cache Overview>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
