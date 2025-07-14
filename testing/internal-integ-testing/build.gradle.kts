@@ -7,6 +7,15 @@ plugins {
 
 description = "Collection of test fixtures for integration tests, internal use only"
 
+jvmCompile {
+    compilations {
+        named("main") {
+            // These test fixtures are used by the tooling API tests, which still run on JVM 8
+            targetJvmVersion = 8
+        }
+    }
+}
+
 sourceSets {
     main {
         // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
@@ -41,10 +50,6 @@ dependencies {
     api(projects.processServices)
     api(projects.daemonProtocol)
     api(projects.serviceLookup)
-
-    api(testFixtures(projects.core)) {
-        because("HttpServer leaks PortAllocator to spock AST transformer")
-    }
 
     api(libs.gson)
     api(libs.groovy)
@@ -111,6 +116,7 @@ dependencies {
 
     implementation(testFixtures(projects.buildOperations))
     implementation(testFixtures(projects.buildProcessServices))
+    implementation(testFixtures(projects.core))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)

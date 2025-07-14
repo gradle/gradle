@@ -24,10 +24,9 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.ConfigurationCacheDegradationController;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -55,6 +54,7 @@ import javax.inject.Inject;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 
 /**
  * Adds the ability to publish in the Maven format to Maven repositories.
@@ -81,10 +81,6 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
-    }
-
-    private ConfigurationCacheDegradationController getDegradationController(Task task) {
-        return ((ProjectInternal) task.getProject()).getServices().get(ConfigurationCacheDegradationController.class);
     }
 
     @Override
@@ -143,8 +139,8 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
             });
-            tasks.withType(PublishToMavenRepository.class).configureEach(t ->
-                getDegradationController(t).requireConfigurationCacheDegradation(t, usingExplicitCredentials(t))
+            tasks.withType(PublishToMavenRepository.class).configureEach(
+                task -> requireDegradation(task, usingExplicitCredentials(task))
             );
 
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
@@ -153,7 +149,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     }
 
     private Provider<String> usingExplicitCredentials(PublishToMavenRepository task) {
-        return task.getProject().provider(() -> (AuthenticationSupportedInternal) task.getRepository())
+        return new DefaultProvider<>(() -> (AuthenticationSupportedInternal) task.getRepository())
                 .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
                 .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials are unsupported with the Configuration Cache");
     }

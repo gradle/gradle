@@ -54,6 +54,7 @@ import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
@@ -138,6 +139,11 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    ListenerBroadcast<TaskExecutionGraphExecutionListener> createTaskExecutionGraphListenerInternalBroadcast(ListenerManager listenerManager) {
+        return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class);
+    }
+
+    @Provides
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
         List<NodeExecutor> nodeExecutors,
@@ -146,6 +152,7 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
         GradleInternal gradleInternal,
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
+        ListenerBroadcast<TaskExecutionGraphExecutionListener> internalGraphListeners,
         ListenerManager listenerManager,
         ServiceRegistry gradleScopedServices
     ) {
@@ -156,6 +163,7 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
             listenerBuildOperationDecorator,
             gradleInternal,
             graphListeners,
+            internalGraphListeners,
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
             gradleScopedServices

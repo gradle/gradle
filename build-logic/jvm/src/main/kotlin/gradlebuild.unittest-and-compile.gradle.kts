@@ -38,12 +38,10 @@ import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.identity.extension.GradleModuleExtension
 import gradlebuild.identity.extension.ModuleTargetRuntimes
+import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
-import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.jvm.JpmsConfiguration
 import org.gradle.internal.os.OperatingSystem
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.Duration
 import java.util.Optional
@@ -53,29 +51,29 @@ plugins {
     idea // Need to apply the idea plugin, so the extended configuration is taken into account on sync
     id("gradlebuild.module-jar")
     id("gradlebuild.dependency-modules")
+    id("gradlebuild.jvm-compile")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release = provider {
+        throw GradleException("This task '${name}' is not associated with a compilation. Associate it with a compilation on the '${JvmCompileExtension.NAME}' extension.")
+    }
 }
 
 val gradleModule = the<GradleModuleExtension>()
-
-// Create an extension that allows projects to configure the way they are compiled and tested.
-//
-// Projects may describe whether they are using any "workarounds" like:
-// - Using JDK internal classes
-// - Using Java standard library APIs that were introduced after the JVM version they are targeting
-// - Using dependencies that target a higher JVM version than the project's target JVM version
-//
-// All of these workarounds should be generally avoided, but, with this data we can configure the
-// compile tasks to permit some of these requirements.
-val jvmCompile = extensions.create<UnitTestAndCompileExtension>(UnitTestAndCompileExtension.NAME).apply {
-    // And assume it does not use any workarounds
-    usesJdkInternals = false
-    usesFutureStdlib = false
-
-    // By default, use the target runtimes of the module to determine the java version
-    targetJvmVersion = gradleModule.targetRuntimes.computeProductionJvmTargetVersion()
+the<JvmCompileExtension>().apply {
+    compilations {
+        configureEach {
+            // Everything compiles to Java 17 by default
+            targetJvmVersion = 17
+        }
+    }
+    addCompilationFrom(sourceSets.main) {
+        // For the production code, we derive the JVM version from the target runtime
+        targetJvmVersion = gradleModule.targetRuntimes.computeProductionJvmTargetVersion()
+    }
+    addCompilationFrom(sourceSets.test)
 }
-
-enforceCompatibility(jvmCompile)
 
 removeTeamcityTempProperty()
 addDependencies()
@@ -98,32 +96,6 @@ fun configureCompileDefaults() {
 }
 
 /**
- * Given the user-configured values in the extension, configure the compilation tasks
- * to enforce compatibility with the target JVM version.
- *
- * We try to use the toolchain configured in [configureDefaultToolchain] as much as possible,
- * but in some cases, we need to use another toolchain.
- *
- * In some cases, we need to set the source and target compatibility flags instead of using
- * the release flag. This is because the release flag limits us from using internal APIs or
- * APIs defined by a Java version higher than the target version.
- *
- * Finally, Groovy does not support the release flag at all. We manually set a toolchain
- * for Groovy to ensure it compiles against the correct classes.
- */
-private
-fun enforceCompatibility(jvmCompile: UnitTestAndCompileExtension) {
-    // When using the release flag, compiled code cannot access JDK internal classes or standard library
-    // APIs defined in future versions of Java. If either of these cases are true, we do not use the
-    // release flag, but instead set the source and target compatibility flags.
-    val useRelease = jvmCompile.usesJdkInternals.zip(jvmCompile.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
-
-    enforceJavaCompatibility(jvmCompile.targetJvmVersion, useRelease)
-    enforceGroovyCompatibility(jvmCompile.targetJvmVersion)
-    enforceKotlinCompatibility(jvmCompile.targetJvmVersion, useRelease)
-}
-
-/**
  * Given the declared target platforms of a given Gradle module, determine
  * the JVM version that the production code should target.
  */
@@ -136,67 +108,8 @@ fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
     )
 
     return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(provider {
-        throw GradleException("No target JVM version configured. Specify a runtime target for $project on ${UnitTestAndCompileExtension::class.java.simpleName} for $project")
+        throw GradleException("No target JVM version configured. Specify at least one runtime target for $project on the '${GradleModuleExtension.NAME}' extension.")
     })
-}
-
-fun enforceJavaCompatibility(targetVersion: Provider<Int>, useRelease: Provider<Boolean>) {
-    tasks.withType<JavaCompile>().configureEach {
-        // Set the release flag is requested.
-        // Otherwise, we set the source and target compatibility in the afterEvaluate below.
-        options.release = useRelease.zip(targetVersion) { doUseRelease, target -> if (doUseRelease) { target } else { null } }
-    }
-
-    // Need to use afterEvaluate since source/target compatibility are not lazy
-    project.afterEvaluate {
-        tasks.withType<JavaCompile>().configureEach {
-            if (!useRelease.get()) {
-                val version = targetVersion.get().toString()
-                sourceCompatibility = version
-                targetCompatibility = version
-            }
-        }
-    }
-}
-
-fun enforceGroovyCompatibility(targetVersion: Provider<Int>) {
-    tasks.withType<GroovyCompile>().configureEach {
-        // Groovy does not support the release flag. We must compile with the same
-        // JDK we are targeting in order to see the correct standard lib classes
-        // during compilation
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = targetVersion.map { JavaLanguageVersion.of(it) }
-        }
-    }
-
-    // Need to use afterEvaluate since source/target Compatibility are not lazy
-    project.afterEvaluate {
-        tasks.withType<GroovyCompile>().configureEach {
-            val version = targetVersion.get().toString()
-            sourceCompatibility = version
-            targetCompatibility = version
-        }
-    }
-}
-
-fun enforceKotlinCompatibility(targetVersion: Provider<Int>, useRelease: Provider<Boolean>) {
-    tasks.withType<KotlinCompile>().configureEach {
-        jvmTargetValidationMode.set(JvmTargetValidationMode.ERROR)
-        compilerOptions {
-            jvmTarget = targetVersion.map {
-                JvmTarget.fromTarget(if (it < 9) "1.${it}" else it.toString())
-            }
-
-            // TODO KT-49746: Use the DSL to set the release version
-            freeCompilerArgs.addAll(useRelease.zip(jvmTarget) { doUseRelease, targetVersion ->
-                if (doUseRelease) {
-                    listOf("-Xjdk-release=${targetVersion.target}")
-                } else {
-                    listOf()
-                }
-            })
-        }
-    }
 }
 
 fun configureSourcesVariant() {
@@ -204,6 +117,7 @@ fun configureSourcesVariant() {
         withSourcesJar()
     }
 
+    // TODO: This should not be necessary anymore now that we have variant reselection.
     @Suppress("UnusedPrivateProperty")
     val transitiveSourcesElements by configurations.creating {
         isCanBeResolved = false
@@ -275,7 +189,7 @@ fun addCompileAllTasks() {
     tasks.register("compileAll") {
         description = "Compile all source code, including main, test, integTest, crossVersionTest, testFixtures, etc."
         val compileTasks = project.tasks.matching {
-            it is JavaCompile || it is GroovyCompile
+            it is JavaCompile || it is GroovyCompile || it is KotlinCompile
         }
         dependsOn(compileTasks)
     }
@@ -284,7 +198,7 @@ fun addCompileAllTasks() {
         description = "Compile all production source code, usually only main and testFixtures."
         val compileTasks = project.tasks.matching {
             // Currently, we compile everything since the Groovy compiler is not deterministic enough.
-            (it is JavaCompile || it is GroovyCompile)
+            (it is JavaCompile || it is GroovyCompile || it is KotlinCompile)
         }
         dependsOn(compileTasks)
     }

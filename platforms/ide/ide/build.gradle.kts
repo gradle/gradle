@@ -83,7 +83,6 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/*")
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false

@@ -16,7 +16,6 @@ dependencies {
     api(projects.coreApi)
     api(projects.enterpriseLogging)
     api(projects.stdlibJavaExtensions)
-    api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
@@ -33,6 +32,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.logging)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
     implementation(projects.files)
@@ -77,7 +77,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

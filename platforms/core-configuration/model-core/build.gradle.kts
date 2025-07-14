@@ -6,7 +6,11 @@ plugins {
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
 jvmCompile {
-    usesJdkInternals = true
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 dependencies {
@@ -74,8 +78,6 @@ dependencies {
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")

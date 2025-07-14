@@ -59,5 +59,3 @@ packageCycles {
     // which in turn references the interface.
     excludePatterns.add("org/gradle/jvm/toolchain/JavaToolchainDownload**")
 }
-
-integTest.usesJavadocCodeSnippets.set(true)

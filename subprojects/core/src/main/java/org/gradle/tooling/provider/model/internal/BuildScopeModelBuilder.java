@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.jspecify.annotations.Nullable;
 
 public interface BuildScopeModelBuilder extends ToolingModelBuilder {
     /**
@@ -34,9 +35,11 @@ public interface BuildScopeModelBuilder extends ToolingModelBuilder {
      * are cases when such builders can be used as regular builders (for example as part of larger build actions),
      * that's why they need extend {@code ToolingModelBuilder} too.
      */
+    @Nullable
     Object create(BuildState target);
 
     @Override
+    @Nullable
     default Object buildAll(String modelName, Project project) {
         BuildState targetBuild = ((GradleInternal) project.getGradle()).getOwner();
         return create(targetBuild);

@@ -461,16 +461,15 @@ public class ResolutionExecutor {
         }
         resolvers.add(projectDependencyResolver);
 
+        // TODO: We should reuse these resolvers for all resolutions instead of creating
+        // a new one each time we resolve a graph. This means we should not pass any
+        // state to `createResolvers` that is specific to this resolution.
         resolvers.add(externalResolverFactory.createResolvers(
             repositories,
             componentMetadataProcessorFactory,
             legacyParams.getComponentSelectionRules(),
             params.isDependencyVerificationEnabled(),
             params.getCacheExpirationControl(),
-            // We should not need to know _what_ we're resolving in order to construct a resolver for a set of repositories.
-            // The request attributes and schema are used to support filtering components by attributes when using dynamic versions.
-            // We should consider just removing that feature and making dynamic version selection dumber.
-            params.getRootVariant().getAttributes(),
             params.getRootComponent().getMetadata().getAttributesSchema()
         ));
 

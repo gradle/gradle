@@ -29,7 +29,11 @@ gradleModule {
 }
 
 jvmCompile {
-    usesFutureStdlib = true
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 dependencies {

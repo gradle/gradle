@@ -5,7 +5,11 @@ plugins {
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
 jvmCompile {
-    usesJdkInternals = true
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 errorprone {
@@ -124,8 +128,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/tasks/**")
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 tasks.javadoc {
     options {

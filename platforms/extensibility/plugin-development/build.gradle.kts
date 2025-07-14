@@ -90,8 +90,6 @@ dependencies {
     testFixturesImplementation(projects.baseServices)
 }
 
-integTest.usesJavadocCodeSnippets = true
-
 strictCompile {
     ignoreDeprecations()
 }

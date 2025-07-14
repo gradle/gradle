@@ -32,7 +32,7 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
 
     val mainTestedVersions: List<GradleVersion>
     val lowestInterestingVersion: GradleVersion = GradleVersion.version("0.8")
-    val lowestTestedVersion: GradleVersion = GradleVersion.version("3.0")
+    val lowestTestedVersion: GradleVersion = GradleVersion.version("4.0")
 
     init {
         val releasedVersions = releasedVersionsFile.asFile.reader().use {

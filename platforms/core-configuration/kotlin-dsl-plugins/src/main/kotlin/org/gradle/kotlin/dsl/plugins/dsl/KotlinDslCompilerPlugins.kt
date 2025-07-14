@@ -51,8 +51,8 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
 
         tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
             kotlinCompile.compilerOptions {
-                apiVersion.set(KotlinVersion.KOTLIN_2_1)
-                languageVersion.set(KotlinVersion.KOTLIN_2_1)
+                apiVersion.set(KotlinVersion.KOTLIN_2_2)
+                languageVersion.set(KotlinVersion.KOTLIN_2_2)
                 freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
             }
             // Set this back to a warning for now, as this plugin is frequently used without toolchains specifying a JVM target, and it causes errors when using newer JDKs.

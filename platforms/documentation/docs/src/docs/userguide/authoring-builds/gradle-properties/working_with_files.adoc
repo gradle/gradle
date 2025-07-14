@@ -719,7 +719,9 @@ For any `CopySpec` involved in copying files, may it be the `Copy` task itself, 
 You can do the same for directories too, independently of files, via the link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#dirPermissions-org.gradle.api.Action-[CopySpec.dirPermissions {}] configurations block.
 
 NOTE: Not setting permissions explicitly will preserve the permissions of the original files or directories.
+The exception are archive tasks, see <<sec:reproducible_archives,Reproducible archives>> for details.
 
+.Setting file permissions for files and directories
 ====
 include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=file-permissions]"]
 include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=file-permissions]"]
@@ -732,8 +734,19 @@ Using empty configuration blocks for file or directory permissions still sets th
 Everything inside one of these configuration blocks is relative to the default values.
 Default permissions differ for files and directories:
 
-* *file*: read & write for *owner*, read for *group*, read for *other* (*0644*, *rw-r--r--*)
-* *directory*: read, write & execute for *owner*, read & execute for *group*, read & execute for *other* (*0755*, *rwxr-xr-x*)
+* *file*: read & write for *owner*, read for *group*, read for *other* (`0644`, `rw-r--r--`)
+* *directory*: read, write & execute for *owner*, read & execute for *group*, read & execute for *other* (`0755`, `rwxr-xr-x`)
+
+It's also possible to set permissions for a specific file. See the following example:
+
+.Setting file permissions for a specific file
+====
+include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=file-specific-permissions]"]
+include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=file-specific-permissions]"]
+====
+
+NOTE: Setting file permissions explicitly for a file doesn't support `UP-TO-DATE` checks, so a task using this setting will always run.
+
 
 [[sec:moving_files_example]]
 == Moving files and directories
@@ -999,7 +1012,9 @@ include::sample[dir="snippets/files/fileTrees/groovy",files="build.gradle[tags=a
 You can see a practical example of extracting an archive file <<#sec:unpacking_archives_example,in the unpacking archives section>> below.
 
 [[sec:reproducible_archives]]
-=== Using `AbstractArchiveTask` for reproducible builds
+== Reproducible archives
+
+NOTE: Starting with Gradle 9, archives are reproducible by default.
 
 It's desirable to recreate archives exactly the same, byte for byte, on different machines.
 Building an artifact from source code should produce the same result no matter when and where it is built.
@@ -1021,7 +1036,7 @@ or link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#o
 while keeping the archives reproducible.
 
 [[sec:revert_reproducible_archives]]
-==== Preserve file system-defined aspects
+=== Preserve file system-defined aspects
 
 If desired, you can revert individual aspects of reproducible archives.
 
@@ -1040,6 +1055,19 @@ In case the file system is already the source of truth for the permissions, e.g.
 ----
 org.gradle.archives.use-file-system-permissions=true
 ----
+
+[[sec:permissions_inside_archives]]
+== Permissions for files inside archives
+
+Setting file permissions in Gradle archives is done in the same way as when copying file, see <<#sec:setting_file_permissions,Setting file permissions>> for details.
+The main difference is that archive tasks by default set the permissions of files and directories in the archive to fixed values, which are `0644` for files and `0755` for directories for reproducibility.
+
+We recognize two main cases, where users may want to change the permissions of files and directories in archives:
+
+1. Case where the file system is already the source of truth for the permissions.
+For such configuration see <<#sec:revert_reproducible_archives,Preserve file system-defined aspects>> section.
+2. Case where the permissions of files and directories in the archive should be set to specific values, for example to set the executable bit on a script file.
+For such configuration see <<#sec:setting_file_permissions,Setting file permissions>> section.
 
 [[sec:unpacking_archives_example]]
 == Unpacking archives

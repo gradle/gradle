@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class TestState {
     private final Map<Object, TestState> executing;
     public boolean failedChild;
     public List<TestFailure> failures = new ArrayList<TestFailure>();
+    @Nullable
     public TestFailure assumptionFailure = null;
     public long testCount;
     public long successfulCount;
