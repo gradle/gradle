@@ -120,6 +120,11 @@ import java.util.function.BiFunction;
  *     <li>The computation of the provider (except the {@code Callable} of {@link ProviderFactory#provider(Callable)}) should not invoke configuration-time only APIs.
  *     This requirement may not be enforced when the Configuration Cache runs the computation chain containing non-conforming transformation to cache the end result.
  *     </li>
+ *     <li>The computation of the provider should not use external state (read system properties, environment variables, or files) to avoid introducing accidental build configuration inputs.
+ *     Preferably, these should be obtained through providers returned by {@link ProviderFactory} and {@link Provider#zip(Provider, BiFunction)} should be used to mix them into the computation chain.
+ *     The {@code Callable} of {@link ProviderFactory#provider(Callable)} must ignore this requirement if the external state is used by configuration-time-only API because adding an input is
+ *     unavoidable in this case.
+ *     </li>
  * </ol>
  * <p>
  * Configuration Cache's support of providers that do not conform to these requirements is unspecified.
