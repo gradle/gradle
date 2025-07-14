@@ -29,6 +29,8 @@ class ManagedObjectRegistryTest extends Specification {
 
     static class Thing {}
 
+    static class ThingSubtype extends Thing {}
+
     static class OneParamThing<T> {
         Class<T> one
         OneParamThing(Class<T> one) {
@@ -107,8 +109,8 @@ class ManagedObjectRegistryTest extends Specification {
     static class ProvidingImplementation implements ProvidingInterface {
 
         @Override
-        Thing createThing() {
-            return new Thing()
+        ThingSubtype createThing() {
+            return new ThingSubtype()
         }
 
     }
@@ -123,6 +125,12 @@ class ManagedObjectRegistryTest extends Specification {
 
         then:
         instance instanceof Thing
+
+        when:
+        def subtypeInstance = registry.newInstance(ThingSubtype)
+
+        then:
+        subtypeInstance == null
     }
 
     @ManagedObjectProvider
@@ -429,6 +437,64 @@ class ManagedObjectRegistryTest extends Specification {
 
         then:
         defaultThing == null
+    }
+
+    interface Grandparent {}
+    interface Parent extends Grandparent {}
+    static class Child implements Parent {}
+
+    @ManagedObjectProvider
+    static class ParentProvider {
+
+        @ManagedObjectCreator
+        Parent createParent() {
+            return new Child()
+        }
+
+    }
+
+    def "can create instances of parent type when creator returns child type"() {
+        def registry = registryOf {
+            it.add(ParentProvider)
+        }
+
+        expect: "we can create an instance of the child by requesting the parent type"
+        registry.newInstance(Parent) instanceof Child
+
+        and: "other types in the hierarchy are not valid for instantiation"
+        registry.newInstance(Grandparent) == null
+        registry.newInstance(Child) == null
+    }
+
+    static class GrandparentImpl implements Grandparent {}
+    static class ChildImpl extends Child {}
+
+    @ManagedObjectProvider
+    static class FamilyProvider {
+
+        @ManagedObjectCreator
+        Grandparent createGrandparent() {
+            return new GrandparentImpl()
+        }
+
+        @ManagedObjectCreator
+        Child createChild() {
+            return new ChildImpl()
+        }
+
+    }
+
+    def "can create instances of child and grandparent even if parent does not have factory"() {
+        def registry = registryOf {
+            it.add(FamilyProvider)
+        }
+
+        expect: "types from factory methods in  provider can be used to create instances"
+        registry.newInstance(Child) instanceof ChildImpl
+        registry.newInstance(Grandparent) instanceof GrandparentImpl
+
+        and: "unrelated types in hierarchy are not valid for instantiation"
+        registry.newInstance(Parent) == null
     }
 
     private static ManagedObjectRegistry registryOf(ServiceRegistrationAction action) {
