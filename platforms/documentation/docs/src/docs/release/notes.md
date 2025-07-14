@@ -125,7 +125,7 @@ See the [Compatibility Matrix](userguide/compatibility.html) for more informatio
 Gradle embeds the latest stable release of [Kotlin 2.2.x](userguide/compatibility.html#kotlin) runtime and uses [Kotlin language version 2.2](userguide/compatibility.html#kotlin).
 This marks a shift from Gradle 8.x, which embedded Kotlin 2.0 starting in 8.11 but continued to use Kotlin language version 1.8 for compatibility.
 
-For a comprehensive overview of what’s new, see the [Kotlin 2.2.0](https://kotlinlang.org/docs/whatsnew22.html), [Kotlin 2.1.0](https://kotlinlang.org/docs/whatsnew21.html) and [Kotlin 2.0.0](https://kotlinlang.org/docs/whatsnew20.html) release notes for full details.
+For a comprehensive overview of what’s new, see the [Kotlin 2.2.0](https://kotlinlang.org/docs/whatsnew22.html), [Kotlin 2.1.0](https://kotlinlang.org/docs/whatsnew21.html) and [Kotlin 2.0.0](https://kotlinlang.org/docs/whatsnew20.html) release notes.
 
 Gradle uses Kotlin for build logic, which includes:
 
