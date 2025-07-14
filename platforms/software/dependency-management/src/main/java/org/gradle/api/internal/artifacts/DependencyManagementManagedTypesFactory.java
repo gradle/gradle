@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyCollector;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectCreator;
 import org.gradle.internal.instantiation.managed.ManagedObjectProvider;
@@ -35,20 +34,17 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public class DependencyManagementManagedTypesFactory {
 
     private final Instantiator instantiator;
-    private final DependencyFactoryInternal dependencyFactory;
 
     public DependencyManagementManagedTypesFactory(
-        DependencyFactoryInternal dependencyFactory,
         InstantiatorFactory instantiatorFactory,
         ServiceRegistry serviceRegistry
     ) {
-        this.dependencyFactory = dependencyFactory;
         this.instantiator = instantiatorFactory.decorate(serviceRegistry);
     }
 
     @ManagedObjectCreator
     public DependencyCollector dependencyCollector() {
-        return instantiator.newInstance(DefaultDependencyCollector.class, dependencyFactory);
+        return instantiator.newInstance(DefaultDependencyCollector.class);
     }
 
 }

@@ -30,8 +30,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,7 +45,7 @@ import java.util.stream.Stream;
 public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
 
     private final @Nullable ManagedObjectRegistry parent;
-    private final Map<Class<?>, MethodHandle> factories = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Class<?>, MethodHandle> factoryByPublicType = new ConcurrentHashMap<>();
 
     public ManagedObjectRegistry(@Nullable ManagedObjectRegistry parent) {
         this.parent = parent;
@@ -74,13 +74,13 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
             if (declaredType.isAnnotationPresent(ManagedObjectProvider.class)) {
                 boolean registeredCreator = false;
                 for (Method declaredMethod : declaredType.getMethods()) {
-                    ManagedObjectCreator creatorAnnotation = declaredMethod.getAnnotation(ManagedObjectCreator.class);
-                    if (creatorAnnotation != null) {
+                    Class<?> publicType = findCreatorAnnotation(declaredMethod);
+                    if (publicType != null) {
                         Method instanceMethod = getMethodInInstance(declaredMethod, instanceClass);
                         MethodHandle handle = bindMethodHandle(instanceMethod, lookup, instance);
 
                         validateFactoryMethod(instanceMethod, handle);
-                        registerFactory(creatorAnnotation, handle);
+                        registerFactory(publicType, handle);
 
                         registeredCreator = true;
                     }
@@ -90,6 +90,28 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
                 }
             }
         }
+    }
+
+    /**
+     * Determine if this method is a factory method, returning the public type of the
+     * object that will be created, or null if it is not a factory method.
+     * <p>
+     * The returned type is the type that we expect users to request when creating an
+     * instance of the managed object.
+     */
+    @Nullable
+    private static Class<?> findCreatorAnnotation(Method declaredMethod) {
+        ManagedObjectCreator creatorAnnotation = declaredMethod.getAnnotation(ManagedObjectCreator.class);
+        if (creatorAnnotation == null) {
+            // This method is not a factory method.
+            return null;
+        }
+
+        if (creatorAnnotation.publicType() != void.class) {
+            return creatorAnnotation.publicType();
+        }
+
+        return declaredMethod.getReturnType();
     }
 
     private static Method getMethodInInstance(Method method, Class<?> instanceClass) {
@@ -135,13 +157,8 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
         }
     }
 
-    private void registerFactory(ManagedObjectCreator creatorAnnotation, MethodHandle handle) {
-        // Use the return type of the method as the public type, unless otherwise specified.
-        Class<?> publicType = creatorAnnotation.publicType() == void.class
-            ? handle.type().returnType()
-            : creatorAnnotation.publicType();
-
-        MethodHandle existing = factories.put(publicType, handle);
+    private void registerFactory(Class<?> publicType, MethodHandle handle) {
+        MethodHandle existing = factoryByPublicType.put(publicType, handle);
 
         if (existing != null) {
             // Class#getMethods does not have a consistent order.
@@ -162,7 +179,7 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
      */
     @Nullable
     public <T> T newInstance(Class<T> type) {
-        MethodHandle factory = factories.get(type);
+        MethodHandle factory = factoryByPublicType.get(type);
 
         if (factory != null) {
             try {
@@ -187,7 +204,7 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
      */
     @Nullable
     public <T> T newInstance(Class<T> type, Class<?> arg1) {
-        MethodHandle factory = factories.get(type);
+        MethodHandle factory = factoryByPublicType.get(type);
 
         if (factory != null) {
             try {
@@ -212,7 +229,7 @@ public class ManagedObjectRegistry implements AnnotatedServiceLifecycleHandler {
      */
     @Nullable
     public <T> T newInstance(Class<T> type, Class<?> arg1, Class<?> arg2) {
-        MethodHandle factory = factories.get(type);
+        MethodHandle factory = factoryByPublicType.get(type);
 
         if (factory != null) {
             try {
