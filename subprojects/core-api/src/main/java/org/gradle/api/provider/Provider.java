@@ -83,50 +83,52 @@ import java.util.function.BiFunction;
  * When a provider is discovered to be part of the cached build configuration (e.g. when it is a task input), one of two things happen:
  * </p>
  * <ul>
- *     <li><b>Flattening</b>: the value of the provider is computed and cached. This typically happens if the provider is derived from purely configuration-time data.</li>
- *     <li><b>Lazy-preserving store</b>: the computation and its inputs are cached.
- *     For example, if the provider is a result of {@link #map(Transformer)}, then the origin provider (on which {@code map} was called) and the {@code Transformer} are stored.
+ *     <li><b>Cache by value</b>.
+ *     The value of the provider is computed and stored. This typically happens if the provider is derived from purely configuration-time data.
+ *     </li>
+ *     <li><b>Cache by computation</b>. The provider is stored as a lazy computation.
+ *     For example, if the provider is a result of {@link #map(Transformer)}, then the origin provider (on which {@code map} was called) and
+ *     the {@code Transformer} (including its captured variables) are stored. Note that the origin provider may still be cached by value.
  *     After loading from cache, the value is only computed if requested (e.g. with {@link #get()}), as usual.
  *     This typically happens when the value of the provider is only available at execution time (e.g. derived from a task output)
  *     or if it is sourced from the environment (e.g. a system property or an environment variable).
  *     </li>
  * </ul>
  * <p>
- * Configuration Cache operates under the assumption that most of the stored providers will be used at execution time,
- * so it attempts to flatten as many providers as possible without introducing more build configuration inputs.
- * However, the exact definition of which provider to flatten is intentionally left underspecified.
- * Even a system property provider may be flattened if that system property is already an input.
+ * The Configuration Cache operates under the assumption that most of the stored providers will be used at execution time,
+ * so it attempts to cache values of as many providers as possible without introducing more build configuration inputs.
+ * However, the exact definition of which provider to cache is intentionally left underspecified.
+ * For example, even a provider derived from a system property provider may be cached by value if that system property is already an input.
  * </p>
  * <p>
  * Following the rules below ensures that your Providers remain configuration-cache compatible regardless of applied optimizations.
  * </p>
  * <ol>
- *     <li>Providers returned by {@link ProviderFactory#provider(Callable)} are always flattened (computed at configuration time).
+ *     <li>Providers returned by {@link ProviderFactory#provider(Callable)} are always computed at configuration time.
  *     The {@code Callable} may capture arbitrary data types and freely call configuration-time-only APIs.
  *     This is the preferred way to bridge non-lazy and lazy APIs, like passing {@link Project#getVersion()} into task's input {@link Property}.
  *     </li>
  *     <li>Any value returned (provided) by the provider must conform to the
  *     <a href="https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements">configuration cache requirements</a>.
- *     This requirement may not be enforced when the value is an intermediate result and the Configuration Cache flattens the computation chain
- *     or if the computation of the value is stored instead.
+ *     This requirement may not be enforced when the value is an intermediate result and the Configuration Cache runs the computation chain to cache the end result.
  *     </li>
  *     <li>Any value captured by the computation of the provider (e.g. a variable captured by the {@code Transformer} lambda supplied to {@link #map(Transformer)})
  *     must conform to the
  *     <a href="https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements">configuration cache requirements</a>.
- *     This requirement may not be enforced when the Configuration Cache flattens the computation chain that contains a non-conforming transformation.
+ *     This requirement may not be enforced when the Configuration Cache runs the computation chain containing non-conforming transformation to cache the end result.
  *     </li>
  *     <li>The computation of the provider (except the {@code Callable} of {@link ProviderFactory#provider(Callable)}) should not invoke configuration-time only APIs.
- *     This requirement may not be enforced when the Configuration Cache flattens the computation chain that contains a non-conforming transformation.
+ *     This requirement may not be enforced when the Configuration Cache runs the computation chain containing non-conforming transformation to cache the end result.
  *     </li>
  * </ol>
  * <p>
- * Configuration Cache support of providers that do not conform to these requirements is unspecified.
+ * Configuration Cache's support of providers that do not conform to these requirements is unspecified.
  * </p>
  *
  * <p>Some providers returned by Gradle APIs provide types that cannot be configuration-cached, for example {@link TaskProvider} or {@code Provider<Configuration>}.
  * Such providers should not be used as part of the cached build configuration directly,
- * but the providers returned by their {@link #map(Transformer)} or {@link #flatMap(Transformer)} are typically safely flattened.
- * In most cases it is also safe to add these providers to {@linkplain ConfigurableFileCollection ConfigurableFileCollections} when it makes sense.
+ * but the providers returned by their {@link #map(Transformer)} or {@link #flatMap(Transformer)} can be if their value or the downstream transformation chain conforms to the requirements above.
+ * In most cases it is also safe to add these non-cacheable providers to {@linkplain ConfigurableFileCollection ConfigurableFileCollections} when it makes sense.
  * </p>
  * @param <T> Type of value represented by provider
  * @since 4.0
