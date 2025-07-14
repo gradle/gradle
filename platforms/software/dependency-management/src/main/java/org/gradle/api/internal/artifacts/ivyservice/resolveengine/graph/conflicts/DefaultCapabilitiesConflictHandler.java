@@ -72,7 +72,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             ModuleIdentifier rootId = null;
             for (NodeState ns : tracker) {
                 if (ns.isRoot()) {
-                    rootId = ns.getComponent().getId().getModule();
+                    rootId = ns.getComponent().getModule().getId();
                 }
             }
 
@@ -85,7 +85,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 // allow 2 modules to have the same capability, so we filter the nodes coming
                 // from transitive dependencies
                 ModuleIdentifier rootModuleId = rootId;
-                candidatesForConflict.removeIf(n -> !n.isRoot() && n.getComponent().getId().getModule().equals(rootModuleId));
+                candidatesForConflict.removeIf(n -> !n.isRoot() && n.getComponent().getModule().getId().equals(rootModuleId));
             }
 
             // For a conflict we want at least 2 nodes, and at least one of them should not be rejected
@@ -99,7 +99,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                     @Override
                     public void withParticipatingModules(Action<ModuleIdentifier> action) {
                         for (NodeState node : candidatesForConflict) {
-                            action.execute(node.getComponent().getId().getModule());
+                            action.execute(node.getComponent().getModule().getId());
                         }
                     }
 
@@ -278,7 +278,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             seen.add(winningModule);
 
             for (NodeState node : conflict.nodes) {
-                ModuleIdentifier module = node.getComponent().getId().getModule();
+                ModuleIdentifier module = node.getComponent().getModule().getId();
                 if (seen.add(module)) {
                     action.execute(module);
                 }

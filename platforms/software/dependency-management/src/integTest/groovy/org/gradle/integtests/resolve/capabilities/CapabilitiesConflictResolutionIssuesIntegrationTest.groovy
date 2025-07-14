@@ -64,9 +64,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         then:
         failure.assertHasCause("Could not resolve org.hamcrest:hamcrest-core:2.2")
         failure.assertHasCause("Module 'org.hamcrest:hamcrest-core' has been rejected")
-        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by [org.hamcrest:hamcrest:2.2(runtime)]")
+        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by ['org.hamcrest:hamcrest:2.2' (runtime)]")
         failure.assertHasCause("Module 'org.hamcrest:hamcrest' has been rejected")
-        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by [org.hamcrest:hamcrest-core:2.2(runtime)]")
+        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by ['org.hamcrest:hamcrest-core:2.2' (runtime)]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30969")

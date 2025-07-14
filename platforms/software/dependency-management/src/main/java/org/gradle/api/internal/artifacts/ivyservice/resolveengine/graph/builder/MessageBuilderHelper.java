@@ -31,10 +31,7 @@ abstract class MessageBuilderHelper {
             String header = Iterables.getLast(path).getSelector().getDependencyMetadata().isConstraint() ? "Constraint" : "Dependency";
             String formattedPath = path.stream()
                 .map(EdgeState::getFrom)
-                .map(node -> {
-                    String id = node.getComponent().getComponentId().getDisplayName();
-                    return "'" + id + "' (" + node.getMetadata().getName() + ")";
-                })
+                .map(NodeState::getDisplayName)
                 .collect(Collectors.joining(" --> "));
 
             return header + " path: " + formattedPath;
