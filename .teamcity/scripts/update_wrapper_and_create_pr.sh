@@ -15,6 +15,17 @@ set -e
 #   TRIGGERED_BY    - Optional. If it's "Release - Final", version will be from version-info-final-release.properties
 #                     If it's "Release - Release Candidate", version will be from version-info-release-candidate.properties
 
+post() {
+    local endpoint="$1"
+    local data="$2"
+    
+    curl -X POST \
+        -H "Authorization: token $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "https://api.github.com/repos/gradle/gradle$endpoint" \
+        -d "$data"
+}
+
 main() {
     WRAPPER_VERSION="${1:-}"
 
@@ -29,7 +40,6 @@ main() {
         export WRAPPER_VERSION="$promotedVersion"
     fi
 
-    git config user.name "bot-gradle" && git config user.email "bot-gradle@gradle.com"
     ./gradlew wrapper --gradle-version=$WRAPPER_VERSION && ./gradlew wrapper
     git add gradle && git add gradlew && git add gradlew.bat
     
@@ -38,22 +48,26 @@ main() {
         exit 0
     fi
     
-    BRANCH_NAME="update-wrapper-$(date +%Y%m%d-%H%M%S)"
+    BRANCH_NAME="bot/update-wrapper-$(date +%Y%m%d-%H%M%S)"
     git switch -c $BRANCH_NAME
-    git commit --signoff -m "Update Gradle wrapper to version $WRAPPER_VERSION"
+    git commit --signoff --author="bot-gradle <bot-gradle@gradle.com>" -m "Update Gradle wrapper to version $WRAPPER_VERSION"
     git push https://${GITHUB_TOKEN}@github.com/gradle/gradle.git $BRANCH_NAME
     
     PR_TITLE="Update Gradle wrapper to version $WRAPPER_VERSION"
-    curl -X POST \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -H "Accept: application/vnd.github.v3+json" \
-        https://api.github.com/repos/gradle/gradle/pulls \
-        -d "{
-            \"title\": \"$PR_TITLE\",
-            \"body\": \"$PR_TITLE\",
-            \"head\": \"$BRANCH_NAME\",
-            \"base\": \"$DEFAULT_BRANCH\"
+    PR_RESPONSE=$(post "/pulls" "{
+        \"title\": \"$PR_TITLE\",
+        \"body\": \"$PR_TITLE\",
+        \"head\": \"$BRANCH_NAME\",
+        \"base\": \"$DEFAULT_BRANCH\"
+    }")
+    
+    PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number')
+    
+    if [[ -n "$PR_NUMBER" ]]; then
+        post "/issues/$PR_NUMBER/comments" "{
+            \"body\": \"@bot-gradle test and merge\"
         }"
+    fi
 }
 
 main "$@"
