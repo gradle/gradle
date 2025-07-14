@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
 // https://plugins.gradle.org/plugin/com.gradle.develocity
-class BuildScanPluginSmokeTest extends AbstractSmokeTest {
+class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
         TEAM_CITY(
