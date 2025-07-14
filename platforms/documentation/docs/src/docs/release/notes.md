@@ -39,6 +39,7 @@ We would like to thank the following community members for their contributions t
 [Madalin Valceleanu](https://github.com/vmadalin),
 [Marc Philipp](https://github.com/marcphilipp),
 [Mark S. Lewis](https://github.com/bestbeforetoday),
+[Matthew Haughton](https://github.com/3flex),
 [Mycroft Wong](https://github.com/MycroftWong),
 [Na Minhyeok](https://github.com/NaMinhyeok),
 [Nelson Osacky](https://github.com/runningcode),
