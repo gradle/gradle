@@ -210,7 +210,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     public String getDisplayName() {
-        return String.format("'%s' (%s)", component.getComponentId().getDisplayName(), metadata.getName());
+        return String.format("'%s' (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
     }
 
     public boolean isTransitive() {

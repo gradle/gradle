@@ -331,7 +331,7 @@ Configuration 'bar':
             getAttributes() >> attributes
             getCapabilities() >> ImmutableCapabilities.EMPTY
             getMetadata() >> Stub(VariantGraphResolveMetadata) {
-                getName() >> name
+                getDisplayName() >> name
                 getAttributes() >> attributes
             }
         }

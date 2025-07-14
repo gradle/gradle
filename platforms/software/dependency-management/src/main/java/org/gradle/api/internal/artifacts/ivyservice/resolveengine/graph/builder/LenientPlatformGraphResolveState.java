@@ -361,7 +361,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             return ImmutableSet.of(new DefaultVariantMetadata(
                 name,
                 new ComponentConfigurationIdentifier(componentId, name),
-                Describables.of(componentId, "variant", name),
+                Describables.of(componentId, "variant", variant.getDisplayName()),
                 variant.getAttributes(),
                 ImmutableList.of(),
                 variant.getCapabilities()
