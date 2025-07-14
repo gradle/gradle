@@ -64,9 +64,12 @@ main() {
     PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number')
     
     if [[ -n "$PR_NUMBER" ]]; then
-        post "/issues/$PR_NUMBER/comments" "{
-            \"body\": \"@bot-gradle test and merge\"
-        }"
+        post "/issues/$PR_NUMBER/comments" '{
+            "body": "@bot-gradle test and merge"
+        }'
+        post "/issues/$PR_NUMBER/labels" '{
+            "labels": ["@dev-productivity"]
+        }'
     fi
 }
 
