@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
@@ -27,6 +27,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Issue
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
@@ -185,7 +186,7 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         version << SUPPORTED
     }
 
-    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/34252")
     def "does not fail when using TD #version"() {
         when:
         usePluginVersion version
