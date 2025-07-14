@@ -117,7 +117,7 @@ assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 #### Accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
 
 Previously, it was not possible to use a plugin coming from a `compileOnly` dependency in a [precompiled Kotlin script](userguide/implementing_gradle_plugins_precompiled.html).
-Now, one can and [type-safe accessors](userguide/kotlin_dsl.html#type-safe-accessors) for model elements contributed by the plugin are available in the precompiled Kotlin scripts.
+Now it is supported, and [​type-safe accessors​]​(​userguide/kotlin_dsl.html#type-safe-accessors​) for plugins from such dependencies are available in the precompiled Kotlin scripts.
 
 As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin: 
 ```kotlin
