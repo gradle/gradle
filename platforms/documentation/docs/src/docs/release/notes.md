@@ -39,6 +39,7 @@ We would like to thank the following community members for their contributions t
 [Madalin Valceleanu](https://github.com/vmadalin),
 [Marc Philipp](https://github.com/marcphilipp),
 [Mark S. Lewis](https://github.com/bestbeforetoday),
+[Matthew Haughton](https://github.com/3flex),
 [Mycroft Wong](https://github.com/MycroftWong),
 [Na Minhyeok](https://github.com/NaMinhyeok),
 [Nelson Osacky](https://github.com/runningcode),
@@ -122,10 +123,10 @@ See the [Compatibility Matrix](userguide/compatibility.html) for more informatio
 <a name="kotlin-2"></a>
 ### Update to Kotlin 2
 
-Gradle embeds the latest stable release of [Kotlin 2.1.x](userguide/compatibility.html#kotlin) runtime and uses [Kotlin language version 2.1](userguide/compatibility.html#kotlin).
+Gradle embeds the latest stable release of [Kotlin 2.2.x](userguide/compatibility.html#kotlin) runtime and uses [Kotlin language version 2.2](userguide/compatibility.html#kotlin).
 This marks a shift from Gradle 8.x, which embedded Kotlin 2.0 starting in 8.11 but continued to use Kotlin language version 1.8 for compatibility.
 
-For a comprehensive overview of what’s new, see the [Kotlin 2.1.0](https://kotlinlang.org/docs/whatsnew21.html) and [Kotlin 2.0.0](https://kotlinlang.org/docs/whatsnew20.html) release notes for full details.
+For a comprehensive overview of what’s new, see the [Kotlin 2.2.0](https://kotlinlang.org/docs/whatsnew22.html), [Kotlin 2.1.0](https://kotlinlang.org/docs/whatsnew21.html) and [Kotlin 2.0.0](https://kotlinlang.org/docs/whatsnew20.html) release notes.
 
 Gradle uses Kotlin for build logic, which includes:
 
