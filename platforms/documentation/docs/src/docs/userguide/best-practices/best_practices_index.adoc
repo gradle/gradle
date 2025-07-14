@@ -18,7 +18,7 @@
 The table below provides a complete list of documented Gradle Best Practices.
 
 ****
-There are currently *22 Best Practices*.
+There are currently *23 Best Practices*.
 ****
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
@@ -51,6 +51,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_tasks.adoc#avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>> | Task | 9.1.0
 
 | <<best_practices_performance.adoc#use_utf8_encoding,Enable UTF‑8>> | Performance | 9.0.0
+| <<best_practices_performance.adoc#use_build_cache,Use the Build Cache>> | Performance | 9.1.0
 | <<best_practices_performance.adoc#avoid_computations_in_configuration_phase,Avoid Expensive Computations in Configuration Phase>> | Performance | 9.0.0
 
 | <<best_practices_security.adoc#best_practices_for_security,Validate the Gradle Distribution SHA-256 Checksum>> | Security | 9.1.0
