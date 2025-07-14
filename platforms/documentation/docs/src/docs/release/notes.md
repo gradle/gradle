@@ -114,6 +114,30 @@ assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
 assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 ```
 
+#### Accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
+
+Previously, it was not possible to use a plugin coming from a `compileOnly` dependency in a [precompiled Kotlin script](userguide/implementing_gradle_plugins_precompiled.html).
+Now it is supported, and [​type-safe accessors​]​(​userguide/kotlin_dsl.html#type-safe-accessors​) for plugins from such dependencies are available in the precompiled Kotlin scripts.
+
+As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin: 
+```kotlin
+plugins {
+    `kotlin-dsl`
+}
+dependencies {
+    compileOnly("com.android.tools.build:gradle:x.y.z")
+}
+```
+And a convention precompiled Kotlin script in `buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts` applies it, and can now use type-safe accessors to configure the third party plugin:
+```kotlin
+plugins {
+    id("com.android.application")
+}
+android {
+    // The accessor to the `android` extension registered by the Android plugin is available
+}
+```
+
 ### Configuration Improvements
 
 #### Simpler target package configuration for Antlr 4
