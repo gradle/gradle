@@ -70,12 +70,12 @@ These eager values are resolved even if the task isn’t run, breaking configura
 [source,kotlin]
 ----
 val outputFile: RegularFileProperty = project.objects.fileProperty()
-outputFile.set(layout.buildDirectory.file("output.txt"))                // evaluated later
+outputFile.set(layout.buildDirectory.file("output.txt"))    // evaluated later
 ----
 
 Here, nothing is resolved immediately—Gradle delays evaluation until it’s actually required.
 
-== Real-world example
+== Example
 
 This task will break the configuration cache due to eager access:
 

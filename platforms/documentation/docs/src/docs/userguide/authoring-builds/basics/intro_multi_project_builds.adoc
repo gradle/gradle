@@ -30,7 +30,7 @@ Gradle refers to *modules* as *subprojects*.
 A multi-project build consists of *one root project and one or more subprojects*.
 
 [[sec:project_structure]]
-== Multi-Project structure
+== Multi-Project Structure
 
 The following represents the structure of a sample multi-project build that contains three subprojects:
 
@@ -85,7 +85,7 @@ NOTE: The order in which the subprojects (modules) are included does not matter.
 [[sec:project_standard]]
 The Gradle community has two standards for multi-project build structures:
 
-1. **<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,Multi-Project Builds using `buildSrc`>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
+1. **<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,Multi-Project Builds using `buildSrc`>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing shared build logic.
 2. **<<composite_builds.adoc#composite_builds,Composite Builds including `build-logic`>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing reusable build logic.
 
 image::multi-project-standards.png[]
@@ -210,22 +210,22 @@ For example:
 ├── gradlew
 ├── gradlew.bat
 ├── settings.gradle(.kts)
-├── build-logic                     // <1>
-│   ├── settings.gradle.kts
+├── build-logic             // <1>
+│   ├── settings.gradle(.kts)
 │   └── conventions
-│       └── build.gradle.kts
-├── project-1                       // <2>
-│   ├── settings.gradle.kts
+│       └── build.gradle(.kts)
+├── project-1                   // <2>
+│   ├── settings.gradle(.kts)
 │   ├── client
 │   │   └── build.gradle(.kts)
 │   └── server
 │       └── build.gradle(.kts)
-├── project-2                       // <3>
-│   ├── settings.gradle.kts
+├── project-2                   // <3>
+│   ├── settings.gradle(.kts)
 │   └── lib
 │       └── build.gradle(.kts)
-└── project-3                       // <4>
-    ├── settings.gradle.kts
+└── project-3                   // <4>
+    ├── settings.gradle(.kts)
     ├── app-plugin
     │   └── build.gradle(.kts)
     ├── client-plugin
@@ -242,129 +242,6 @@ In this setup, a team could work on `project-3` as an entirely independent build
 Once their changes are complete, another team could test and validate those changes by integrating `project-3`'s changes into the full root build.
 
 Consult the <<composite_builds.adoc#composite_builds,Composite Builds>> chapter to learn more.
-
-[[sec:project_path]]
-== Multi-Project path
-
-A project path has the following pattern: it starts with an optional colon, which denotes the root project.
-
-The root project, `:`, is the only project in a path not specified by its name.
-
-The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project:
-
-[source,bash]
-----
-:sub-project-1
-----
-
-You can see the project paths when running `gradle projects`:
-
-[source,text]
-----
-------------------------------------------------------------
-Root project 'project'
-------------------------------------------------------------
-
-Root project 'project'
-+--- Project ':sub-project-1'
-\--- Project ':sub-project-2'
-----
-
-Project paths usually reflect the filesystem layout, but there are exceptions.
-Most notably for <<composite_builds#defining_composite_builds,composite builds>>.
-
-[[sec:identifying_project_structure]]
-== Identifying the project structure
-
-You can use the `gradle projects` command to identify the project structure.
-
-As an example, let's use a multi-project build with the following structure:
-
-[source,text]
-----
-$ gradle -q projects
-include::{snippetsPath}/java/multiproject/tests/listProjects.out[]
-----
-
-Multi-project builds are collections of tasks you can run.
-The difference is that you may want to control _which_ project's tasks get executed.
-
-The following sections will cover your two options for executing tasks in a multi-project build.
-
-[[sec:executing_tasks_by_name]]
-=== Executing tasks by name
-
-The command `gradle test` will execute the `test` task in any subprojects relative to the current working directory that has that task.
-
-If you run the command from the root project directory, you will run `test` in _api_, _shared_, _services:shared_ and _services:webservice_.
-
-If you run the command from the _services_ project directory, you will only execute the task in _services:shared_ and _services:webservice_.
-
-The basic rule behind Gradle's behavior is to *execute all tasks down the hierarchy with _this_ name*.
-And *complain if there is _no_ such task found* in any of the subprojects traversed.
-
-NOTE: Some task selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects to reduce the amount of information printed on the screen.
-
-[[sec:executing_tasks_by_fully_qualified_name]]
-=== Executing tasks by fully qualified name
-
-You can use a task's fully qualified name to execute a specific task in a particular subproject.
-For example: `gradle :services:webservice:build` will run the `build` task of the _webservice_ subproject.
-
-The fully qualified name of a task is its <<sec:project_path,project path>> plus the task name.
-
-This approach works for any task, so if you want to know what tasks are in a particular subproject, use the `tasks` task, e.g. `gradle :services:webservice:tasks`.
-
-[[sec:multiproject_build_and_test]]
-== Multi-Project building and testing
-
-The `build` task is typically used to compile, test, and check a single project.
-
-In multi-project builds, you may often want to do all of these tasks across various projects.
-The `buildNeeded` and `buildDependents` tasks can help with this.
-
-In <<multi_project_builds.adoc#javadependencies_2,this example>>, the `:services:person-service` project depends on both the `:api` and `:shared` projects.
-The `:api` project also depends on the `:shared` project.
-
-Assuming you are working on a single project, the `:api` project, you have been making changes but have not built the entire project since performing a `clean`.
-You want to build any necessary supporting JARs but only perform code quality and unit tests on the parts of the project you have changed.
-
-The `build` task does this:
-
-[source,text]
-----
-$ gradle :api:build
-include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuild.out[]
-----
-
-If you have just gotten the latest version of the source from your version control system, which included changes in other projects that `:api` depends on, you might want to build all the projects you depend on AND test them too.
-
-The `buildNeeded` task builds *and* tests all the projects from the project dependencies of the `testRuntime` configuration:
-
-[source,text]
-----
-$ gradle :api:buildNeeded
-include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildNeeded.out[]
-----
-
-You may want to refactor some part of the `:api` project used in other projects.
-If you make these changes, testing only the `:api` project is insufficient.
-You must test all projects that depend on the `:api` project.
-
-The `buildDependents` task tests *all* the projects that have a project dependency (in the testRuntime configuration) on the specified project:
-
-[source, text]
-----
-$ gradle :api:buildDependents
-include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildDependents.out[]
-----
-
-Finally, you can build and test everything in all projects.
-Any task you run in the root project folder will cause that same-named task to be run on all the children.
-
-You can run `gradle build` to build and test ALL projects.
-
-Consult the <<multi_project_builds.adoc#multi_project_builds,Structuring Builds>> chapter to learn more.
 
 [.text-right]
 **Next Step:** <<build_lifecycle.adoc#build_lifecycle,Learn about the Gradle Build Lifecycle>> >>

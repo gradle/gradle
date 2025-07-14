@@ -49,8 +49,8 @@ This section covers:
 <<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files Basics +
 <<dependency_management_basics.adoc#dependency_management_basics,Part 6.>> Dependencies and Dependency Management Basics +
 <<task_basics.adoc#task_basics,Part 7.>> Tasks Basics +
-<<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins Basics +
-<<gradle_optimizations.adoc#gradle_optimizations,Part 9.>> Incremental Builds and Build Caching Basics +
+<<gradle_optimizations.adoc#gradle_optimizations,Part 8.>> Incremental Builds and Build Caching Basics +
+<<plugin_basics.adoc#plugin_basics,Part 9.>> Plugins Basics +
 <<build_scans.adoc#build_scans,Part 10.>> Build Scan +
 
 [[getting_started]]
@@ -72,5 +72,4 @@ The tutorial covers:
 <<part3_gradle_dep_man#part3_begin,Part 3.>> Understanding Dependencies +
 <<part4_gradle_plugins#part4_begin,Part 4.>> Applying Plugins +
 <<part5_gradle_inc_builds#part5_begin,Part 5.>> Exploring Incremental Builds +
-<<part6_gradle_caching#part6_begin,Part 6.>> Enabling the Cache +
-<<part7_gradle_refs#part7_begin,Part 7.>> Using Reference Materials +
+<<part6_gradle_caching#part6_begin,Part 6.>> Enabling the Cache

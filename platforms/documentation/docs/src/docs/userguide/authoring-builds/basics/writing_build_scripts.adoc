@@ -52,7 +52,7 @@ include::sample[dir="snippets/multiproject/basic-dependencies/groovy",files="api
 ====
 
 In this case, we are looking at a build script.
-Therefore, each block corresponds to a method on the link:{javadocPath}/org/gradle/api/Project.html[`Project`] API and is evaluated with a *delegate* or *receiver* (more on that below).
+Therefore, each block corresponds to a method on the link:{javadocPath}/org/gradle/api/Project.html[`Project`] object, also referred to as the Project API, and is evaluated with a *delegate* or *receiver* (more on that below).
 
 === Closures and Lambdas
 
