@@ -254,7 +254,7 @@ public class ModuleResolveState implements CandidateModule {
         assert this.selected == null;
         assert selected != null;
 
-        if (!selected.getId().getModule().equals(getId())) {
+        if (!selected.getModule().getId().equals(getId())) {
             this.overriddenSelection = true;
         }
         this.selected = selected;
@@ -269,7 +269,7 @@ public class ModuleResolveState implements CandidateModule {
 
     private boolean computeReplaced(ComponentState selected) {
         // This module might be resolved to a different module, through replacedBy
-        return !selected.getId().getModule().equals(getId());
+        return !selected.getModule().getId().equals(getId());
     }
 
     private void doRestart(ComponentState selected) {

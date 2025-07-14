@@ -114,7 +114,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         VariantGraphResolveMetadata metadata = variant.getMetadata();
         return new DefaultResolvedVariantResult(
             getId(),
-            Describables.of(metadata.getName()),
+            Describables.of(metadata.getDisplayName()),
             attributeDesugaring.desugar(metadata.getAttributes()),
             capabilitiesFor(metadata.getCapabilities()),
             externalVariant

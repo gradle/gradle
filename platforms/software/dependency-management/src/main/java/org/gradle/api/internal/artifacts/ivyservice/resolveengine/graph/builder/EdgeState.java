@@ -64,7 +64,7 @@ class EdgeState implements DependencyGraphEdge {
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
-    private NodeState resolvedVariant;
+    private @Nullable NodeState resolvedVariant;
     private boolean unattached;
     private boolean used;
 
@@ -348,10 +348,6 @@ class EdgeState implements DependencyGraphEdge {
         return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
     }
 
-    boolean hasSelectedVariant() {
-        return resolvedVariant != null || !findTargetNodes().isEmpty();
-    }
-
     @Nullable
     @Override
     public Long getSelectedVariant() {
@@ -369,18 +365,7 @@ class EdgeState implements DependencyGraphEdge {
         if (resolvedVariant != null) {
             return resolvedVariant;
         }
-        List<NodeState> targetNodes = findTargetNodes();
-        assert !targetNodes.isEmpty();
-        for (NodeState targetNode : targetNodes) {
-            if (targetNode.isSelected()) {
-                resolvedVariant = targetNode;
-                return resolvedVariant;
-            }
-        }
-        return null;
-    }
 
-    private List<NodeState> findTargetNodes() {
         List<NodeState> targetNodes = this.targetNodes;
         if (targetNodes.isEmpty()) {
             // TODO: This code is not correct. At the end of graph traversal,
@@ -392,7 +377,18 @@ class EdgeState implements DependencyGraphEdge {
                 targetNodes = targetComponent.getNodes();
             }
         }
-        return targetNodes;
+
+        assert !targetNodes.isEmpty();
+
+        for (NodeState targetNode : targetNodes) {
+            // TODO: The target node should _always_ be selected. By definition, since we are an edge
+            // and the node is our target, the node is selected.
+            if (targetNode.isSelected()) {
+                resolvedVariant = targetNode;
+                return resolvedVariant;
+            }
+        }
+        return null;
     }
 
     @Override

@@ -313,9 +313,9 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         def platformVariant = platformType == MODULE ? 'runtime' : 'apiElements'
         (platformType == ENFORCED_PLATFORM && !failed) || failure.assertHasCause(
             """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'org:platform:1.1' (${platformVariant}) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
-   Constraint path ':test:unspecified' --> 'org:foo:3.2'""")
+   Dependency path: 'root project :' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
+   Constraint path: 'root project :' (conf) --> 'org:platform:1.1' (${platformVariant}) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
+   Constraint path: 'root project :' (conf) --> 'org:foo:3.2'""")
 
         where:
         platformType << PlatformType.values()
@@ -372,9 +372,9 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         then:
         if (platformType == ENFORCED_PLATFORM) {
             failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'org:platform:1.1' (enforcedApiElements) --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
-   Constraint path ':test:unspecified' --> 'org:foo:{strictly 3.2}'"""
+   Dependency path: 'root project :' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
+   Constraint path: 'root project :' (conf) --> 'org:platform:1.1' (enforcedApiElements) --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
+   Constraint path: 'root project :' (conf) --> 'org:foo:{strictly 3.2}'"""
         } else {
             resolve.expectGraph {
                 root(':', ':test:') {
@@ -464,16 +464,16 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         then:
         if (platformType == ENFORCED_PLATFORM) {
             failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'test:recklessLibrary:unspecified' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' (conf) --> 'org:platform:1.1' (enforcedApiElements) --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' (conf) --> 'org:foo:{strictly 3.2}'"""
+   Dependency path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
+   Constraint path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:platform:1.1' (enforcedApiElements) --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
+   Constraint path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:foo:{strictly 3.2}'"""
         } else {
             def platformVariant = platformType == MODULE ? 'runtime' : 'apiElements'
             failure.assertHasCause(
                 """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'test:recklessLibrary:unspecified' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' (conf) --> 'org:platform:1.1' (${platformVariant}) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' (conf) --> 'org:foo:{strictly 3.2}'""")
+   Dependency path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
+   Constraint path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:platform:1.1' (${platformVariant}) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
+   Constraint path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:foo:{strictly 3.2}'""")
         }
 
         where:

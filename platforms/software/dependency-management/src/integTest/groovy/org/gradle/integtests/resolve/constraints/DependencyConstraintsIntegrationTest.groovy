@@ -122,8 +122,8 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' (runtime) --> 'org:foo:1.1'
-   Constraint path ':test:unspecified' --> 'org:foo:{reject all versions}'""")
+   Dependency path: 'root project :' (conf) --> 'org:bar:1.0' (runtime) --> 'org:foo:1.1'
+   Constraint path: 'root project :' (conf) --> 'org:foo:{reject all versions}'""")
     }
 
     void "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
