@@ -17,7 +17,9 @@
 package org.gradle.process.internal.worker
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testdistribution.LocalOnly
 
+@LocalOnly(because = "Cannot manipulate path in a way that is both CC and TD compatible")
 class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     def "test classpath does not contain nonexistent entries"() {
@@ -25,15 +27,17 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
         javaFile("src/test/java/ClasspathTest.java", '''
             import org.junit.Test;
 
-            import static org.junit.Assert.assertTrue;
+            import static org.junit.Assert.*;
 
             public class ClasspathTest {
                 @Test
                 public void test() {
                     String runtimeClasspath = System.getProperty("java.class.path");
                     System.out.println(runtimeClasspath);
-                    assertTrue(runtimeClasspath.contains(System.getProperty("user.home")));
-                    assertTrue(!runtimeClasspath.contains("Non exist path"));
+
+                    String userHome = System.getProperty("user.home");
+                    assertTrue("Must contain user home: " + userHome, runtimeClasspath.contains(userHome));
+                    assertFalse("Must not contain non-existent path", runtimeClasspath.contains("Non exist path"));
                 }
             }
         ''')
@@ -52,6 +56,11 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
             }
 
             tasks.test {
+                testLogging {
+                    showStandardStreams = true
+                    exceptionFormat = "full"
+                }
+
                 def nonExistent = files(
                     System.getProperty("user.home"),
                     System.getProperty("user.home") + File.separator + "*",
