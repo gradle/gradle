@@ -69,6 +69,7 @@ import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListener
+import org.gradle.internal.extensibility.GradlePropertiesAccessListener
 import org.gradle.internal.extensions.core.fileSystemEntryType
 import org.gradle.internal.extensions.core.uri
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -112,6 +113,7 @@ class ConfigurationCacheFingerprintWriter(
     FeatureFlagListener,
     FileCollectionObservationListener,
     ScriptSourceListener,
+    GradlePropertiesAccessListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -180,13 +182,15 @@ class ConfigurationCacheFingerprintWriter(
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
+    private
+    val gradleProperties = newConcurrentHashSet<String>()
+
     init {
         buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
-                host.startParameterProperties,
                 host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
                 host.ignoredFileSystemCheckInputs
@@ -914,6 +918,22 @@ class ConfigurationCacheFingerprintWriter(
 
     override fun onScriptFileResolved(scriptFile: File) {
         fileObserved(scriptFile)
+    }
+
+    override fun onGradlePropertyAccess(propertyName: String, propertyValue: Any?) {
+        // TODO: may need to ignore some properties, see `org.gradle.internal.cc.impl.Workarounds#isIgnoredStartParameterProperty`
+        if (gradleProperties.add(propertyName)) {
+            sink().write(ConfigurationCacheFingerprint.GradleProperty(propertyName, propertyValue))
+            reportGradlePropertyInput(propertyName)
+        }
+    }
+
+    private
+    fun reportGradlePropertyInput(key: String, consumer: String? = null) {
+        reportInput(consumer, null) {
+            text("Gradle property ")
+            reference(key)
+        }
     }
 }
 

@@ -23,6 +23,8 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Pair;
+import org.gradle.internal.extensibility.DefaultExtraPropertiesGradlePropertiesLookup;
+import org.gradle.internal.extensibility.GradlePropertiesAccessListener;
 import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.util.internal.GUtil;
@@ -46,11 +48,18 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private final GradleProperties gradleProperties;
     private final FileResourceListener fileResourceListener;
     private final BuildLoader buildLoader;
+    private final GradlePropertiesAccessListener gradlePropertiesAccessListener;
 
-    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader, FileResourceListener fileResourceListener) {
+    public ProjectPropertySettingBuildLoader(
+        GradleProperties gradleProperties,
+        BuildLoader buildLoader,
+        FileResourceListener fileResourceListener,
+        GradlePropertiesAccessListener gradlePropertiesAccessListener
+    ) {
         this.buildLoader = buildLoader;
         this.gradleProperties = gradleProperties;
         this.fileResourceListener = fileResourceListener;
+        this.gradlePropertiesAccessListener = gradlePropertiesAccessListener;
     }
 
     @Override
@@ -82,7 +91,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             configurePropertiesOf(project, applicator, ImmutableMap.of());
         }
         ((ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties())
-            .setGradleProperties(applicator.endProjectProperties());
+            .attachGradlePropertiesLookup(new DefaultExtraPropertiesGradlePropertiesLookup(gradlePropertiesAccessListener, applicator.endProjectProperties()));
     }
 
     // {@code mergedProperties} should really be <String, Object>, however properties loader signature expects a <String, String>
