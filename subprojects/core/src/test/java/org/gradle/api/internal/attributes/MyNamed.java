@@ -28,6 +28,7 @@ import java.io.Serializable;
 public final class MyNamed implements Named, Serializable {
 
     private final String name;
+    private String noname;
 
     public MyNamed(String name) {
         this.name = name;
