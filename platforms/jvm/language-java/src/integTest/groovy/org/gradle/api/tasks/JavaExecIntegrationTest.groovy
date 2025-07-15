@@ -339,7 +339,16 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             task demo(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = 'com.example.demo.DemoApplication'
+                jvmArgumentProviders.add(objects.newInstance(MyApplicationJvmArguments))
                 systemProperties = [foo: '"1 2"']
+            }
+
+            abstract class MyApplicationJvmArguments implements CommandLineArgumentProvider {
+
+                @Override
+                Iterable<String> asArguments() {
+                    return ['-Dbar="3 4"']
+                }
             }
         """
         file("src/main/java/com/example/demo/DemoApplication.java") << """
@@ -355,6 +364,9 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("demo")
+
+        outputContains('foo="1 2"')
+        outputContains('bar="3 4"')
     }
 
     private void assertOutputFileIs(String text) {
