@@ -24,7 +24,6 @@ import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -133,7 +132,6 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         return properties;
     }
 
-    @Nonnull
     private Map<String, Object> getGradlePropertiesAsMap() {
         return gradleProperties == null ? Collections.emptyMap() : gradleProperties.asMap();
     }
