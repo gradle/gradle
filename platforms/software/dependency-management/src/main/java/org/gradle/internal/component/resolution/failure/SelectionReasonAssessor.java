@@ -17,7 +17,7 @@
 package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
@@ -99,7 +99,7 @@ public final class SelectionReasonAssessor {
         if (selectionDescriptor.hasCustomDescription()) {
             return selectionDescriptor.getDescription();
         } else {
-            return WordUtils.capitalize(selectionDescriptor.getDescription());
+            return StringUtils.capitalize(selectionDescriptor.getDescription());
         }
     }
 

@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterators;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,6 +31,24 @@ import java.util.stream.Collectors;
     public static final String PATH_SEPARATOR = " --> ";
 
     private MessageBuilderHelper() { /* not instantiable */ }
+
+    public static List<String> formattedPathsTo(EdgeState edge) {
+        return findPathsTo(edge).stream().map(path -> {
+            String header = Iterables.getLast(path).getSelector().getDependencyMetadata().isConstraint() ? "Constraint" : "Dependency";
+            String formattedPath = path.stream()
+                .map(EdgeState::getFrom)
+                .map(NodeState::getDisplayName)
+                .collect(Collectors.joining(" --> "));
+
+            return header + " path: " + formattedPath;
+        }).collect(Collectors.toList());
+    }
+
+    private static List<List<EdgeState>> findPathsTo(EdgeState edge) {
+        List<List<EdgeState>> acc = new ArrayList<>(1);
+        pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
+        return acc;
+    }
 
     /* package */ static List<String> pathTo(EdgeState edge, boolean includeLast) {
         List<List<EdgeState>> acc = new ArrayList<>(1);
@@ -95,7 +116,7 @@ import java.util.stream.Collectors;
 
     @Nullable
     private static String variantDetails(EdgeState e) {
-        String selectedVariantName = e.hasSelectedVariant() ? e.getSelectedNode().getMetadata().getName() : null;
+        String selectedVariantName = e.getSelectedNode().getMetadata().getName();
         if (selectedVariantName != null) {
             return " (" + selectedVariantName + ")";
         }

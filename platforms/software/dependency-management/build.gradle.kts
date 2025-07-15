@@ -82,10 +82,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.wrapperShared)
 
-    implementation(libs.ant)
-    implementation(libs.commonsLang3)
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
