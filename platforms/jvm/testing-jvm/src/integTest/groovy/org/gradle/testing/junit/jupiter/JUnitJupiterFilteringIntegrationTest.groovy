@@ -18,6 +18,7 @@ package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
@@ -36,9 +37,7 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
                 testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
             }
             test {
-                ${configureTestFramework} {
-                    useJUnitPlatform()
-                }
+                ${configureTestFramework}
                 ${maybeConfigureFilters(withConfiguredFilters)}
             }
         """
@@ -80,6 +79,29 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
                 }
             }
         """
+        file("src/test/java/TestSomethingTest.java") << """
+            import static org.junit.jupiter.api.Assertions.fail;
+
+            import org.junit.jupiter.api.Nested;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.params.ParameterizedTest;
+            import org.junit.jupiter.params.provider.ValueSource;
+
+            public class TestSomethingTest {
+                @Test
+                public void regularTest() {
+                    fail();
+                }
+
+                @Nested
+                public class NestedTestClass {
+                    @Test
+                    public void nestedTest() {
+                      fail();
+                    }
+                }
+            }
+        """
 
         when:
         fails "test", "--tests", commandLineFilter
@@ -87,17 +109,32 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         then:
         result.assertTaskExecuted(":test")
         def testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted(expectedTests as String[])
-        testResult.testClass('SampleTest$NestedTestClass$SubNestedTestClass').assertTestCount(4, 4, 0)
+        assertExpectedTestCounts(testResult, expectedTests)
 
         where:
-        commandLineFilter                                   | withConfiguredFilters | expectedTests
-        "SampleTest"                                        | false                 | ['SampleTest', 'SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
-        "SampleTest"                                        | true                  | ['SampleTest', 'SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
-        "SampleTest\$NestedTestClass"                       | false                 | ['SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
-        "SampleTest\$NestedTestClass"                       | true                  | ['SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
-        "SampleTest\$NestedTestClass\$SubNestedTestClass"   | false                 | ['SampleTest$NestedTestClass$SubNestedTestClass']
-        "SampleTest\$NestedTestClass\$SubNestedTestClass"   | true                  | ['SampleTest$NestedTestClass$SubNestedTestClass']
+        commandLineFilter                                 | withConfiguredFilters | expectedTests
+        'SampleTest'                                      | false                 | ['SampleTest', 'SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest'                                      | true                  | ['SampleTest', 'SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest$NestedTestClass'                      | false                 | ['SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest$NestedTestClass'                      | true                  | ['SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest$NestedTestClass$SubNestedTestClass'   | false                 | ['SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest$NestedTestClass$SubNestedTestClass'   | true                  | ['SampleTest$NestedTestClass$SubNestedTestClass']
+    }
+
+    void assertExpectedTestCounts(TestExecutionResult testExecutionResult, List < String > expectedTests) {
+        testExecutionResult.assertTestClassesExecuted(expectedTests as String[])
+
+        if (expectedTests.contains('SampleTest')) {
+            testExecutionResult.testClass('SampleTest').assertTestCount(1, 1, 0)
+        }
+
+        if (expectedTests.contains('SampleTest$NestedTestClass')) {
+            testExecutionResult.testClass('SampleTest$NestedTestClass').assertTestCount(1, 1, 0)
+        }
+
+        if (expectedTests.contains('SampleTest$NestedTestClass$SubNestedTestClass')) {
+            testExecutionResult.testClass('SampleTest$NestedTestClass$SubNestedTestClass').assertTestCount(4, 4, 0)
+        }
     }
 
     String maybeConfigureFilters(boolean withConfiguredFilters) {
