@@ -48,6 +48,7 @@ import org.gradle.api.attributes.CompatibilityRuleChain
 import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.project.IsolatedProject
 import org.gradle.api.publish.Publication
 import org.gradle.api.services.BuildService
@@ -101,6 +102,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<TaskDependency>())
     bind(unsupported<SourceSetContainer>())
     bind(unsupported<SourceSet>())
+    bind(unsupported<ExtraPropertiesExtension>())
 
     // Dependency Resolution Types
     bind(unsupported<ConfigurationContainer>())
