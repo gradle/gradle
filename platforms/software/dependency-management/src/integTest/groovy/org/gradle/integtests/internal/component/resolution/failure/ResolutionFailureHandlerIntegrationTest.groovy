@@ -19,6 +19,7 @@ package org.gradle.integtests.internal.component.resolution.failure
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.internal.component.resolution.failure.exception.ConflictingConstraintsException
@@ -28,6 +29,10 @@ import org.gradle.internal.component.resolution.failure.exception.VariantSelecti
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure

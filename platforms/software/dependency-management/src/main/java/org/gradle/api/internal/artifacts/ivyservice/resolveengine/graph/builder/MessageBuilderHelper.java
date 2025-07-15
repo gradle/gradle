@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.jspecify.annotations.Nullable;
@@ -50,33 +50,22 @@ import java.util.stream.Collectors;
         return acc;
     }
 
-    /* package */ static List<String> pathTo(EdgeState edge, boolean includeLast) {
-        List<List<EdgeState>> acc = new ArrayList<>(1);
-        pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
-        List<String> result = new ArrayList<>(acc.size());
-        for (List<EdgeState> path : acc) {
-            List<String> segmentedPathTo = segmentedPathTo(edge, includeLast, path);
+    private static void pathTo(EdgeState edge, List<EdgeState> currentPath, List<List<EdgeState>> accumulator, Set<NodeState> alreadySeen) {
+        NodeState from = edge.getFrom();
+        if (alreadySeen.add(from)) {
+            currentPath.add(edge);
 
-            EdgeState target = Iterators.getLast(path.iterator());
-            StringBuilder sb = new StringBuilder();
-            if (target.getSelector().getDependencyMetadata().isConstraint()) {
-                sb.append("Constraint path ");
-            } else {
-                sb.append("Dependency path ");
-            }
-
-            boolean first = true;
-            for (String segment : segmentedPathTo) {
-                if (!first) {
-                    sb.append(PATH_SEPARATOR);
+            List<EdgeState> incomingEdges = from.getIncomingEdges();
+            if (!incomingEdges.isEmpty()) {
+                for (EdgeState dependent : incomingEdges) {
+                    List<EdgeState> otherPath = new ArrayList<>(currentPath);
+                    pathTo(dependent, otherPath, accumulator, alreadySeen);
                 }
-                first = false;
-                sb.append(segment);
+            } else {
+                // We've hit the root of the path
+                accumulator.add(Lists.reverse(currentPath));
             }
-
-            result.add(sb.toString());
         }
-        return result;
     }
 
     /* package */ static List<List<String>> segmentedPathsTo(EdgeState edge, boolean includeLast) {
@@ -116,20 +105,10 @@ import java.util.stream.Collectors;
 
     @Nullable
     private static String variantDetails(EdgeState e) {
-        String selectedVariantName = e.getSelectedNode().getMetadata().getName();
+        String selectedVariantName = e.getSelectedNode() != null ? e.getSelectedNode().getMetadata().getName() : null;
         if (selectedVariantName != null) {
             return " (" + selectedVariantName + ")";
         }
         return null;
-    }
-
-    /* package */ static void pathTo(EdgeState component, List<EdgeState> currentPath, List<List<EdgeState>> accumulator, Set<NodeState> alreadySeen) {
-        if (alreadySeen.add(component.getFrom())) {
-            currentPath.add(0, component);
-            for (EdgeState dependent : component.getFrom().getIncomingEdges()) {
-                List<EdgeState> otherPath = new ArrayList<>(currentPath);
-                pathTo(dependent, otherPath, accumulator, alreadySeen);
-            }
-        }
     }
 }
