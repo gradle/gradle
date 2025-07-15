@@ -89,7 +89,7 @@ This release adds a status line to the `rich` console that reports the number of
 \```console
 > (2 lines not showing)
 \```
-This situation arrises when there are more in-progress events than lines available in the console for displaying them.
+This occurs when there are more ongoing events than the console has lines available to display them.
 See ![this recording](release-notes-assets/off-screen-lines.gif) for a demo.
 
 
