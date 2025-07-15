@@ -16,10 +16,8 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation;
+import org.gradle.api.internal.classpath.GradleApiClasspathProvider;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleApiModel;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.jspecify.annotations.NullMarked;
@@ -34,7 +32,10 @@ public class GradleApiBuilder implements BuildScopeModelBuilder {
 
     @Override
     public DefaultGradleApiModel create(BuildState target) {
-        ClassPath classpath = target.getMutableModel().getServices().get(ClassPathRegistry.class).getClassPath(ClassPathNotation.GRADLE_API.name());
-        return new DefaultGradleApiModel(classpath.getAsFiles());
+        GradleApiClasspathProvider gradleApiClasspathProvider = target.getMutableModel().getServices().get(GradleApiClasspathProvider.class);
+        return new DefaultGradleApiModel(
+            gradleApiClasspathProvider.getGradleApi().getAsFiles(),
+            gradleApiClasspathProvider.getGradleKotlinDslApi().getAsFiles()
+        );
     }
 }

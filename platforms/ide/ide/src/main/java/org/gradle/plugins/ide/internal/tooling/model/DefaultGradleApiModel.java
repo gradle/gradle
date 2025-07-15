@@ -28,13 +28,19 @@ import java.util.List;
 @NullMarked
 public class DefaultGradleApiModel implements Serializable {
 
-    private final List<File> gradleApiClasspath;
+    private final List<File> gradleApi;
+    private final List<File> gradleKotlinDslApi;
 
-    public DefaultGradleApiModel(List<File> gradleApiClasspath) {
-        this.gradleApiClasspath = gradleApiClasspath;
+    public DefaultGradleApiModel(List<File> gradleApi, List<File> gradleKotlinDslApi) {
+        this.gradleApi = gradleApi;
+        this.gradleKotlinDslApi = gradleKotlinDslApi;
     }
 
-    public List<File> getGradleApiClasspath() {
-        return gradleApiClasspath;
+    public List<File> getGradleApi() {
+        return gradleApi;
+    }
+
+    public List<File> getGradleKotlinDslApi() {
+        return gradleKotlinDslApi;
     }
 }

@@ -14,39 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.gradle;
+package org.gradle.api.internal.classpath;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.model.Model;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-import java.util.List;
-
 /**
- * Represents the Gradle API classpath for a build.
- *
- * This model provides access to the classpath that contains the Gradle API classes.
- *
- * @since 9.1.0
+ * Provides classpaths for Gradle API and Kotlin DSL API.
+ * <p>
+ * This interface is used to retrieve the classpaths necessary for tooling API model.
  */
 @NullMarked
-@Incubating
-public interface GradleApiModel extends Model {
+@ServiceScope(Scope.Build.class)
+public interface GradleApiClasspathProvider {
 
     /**
-     * Returns the classpath containing the Gradle API classes.
-     *
-     * @since 9.1.0
+     * Returns the classpath for the Kotlin DSL API.
      */
-    @Incubating
-    List<File> getGradleApi();
+    ClassPath getGradleKotlinDslApi();
 
     /**
-     * Returns the classpath containing the Gradle Kotlin DSL API classes.
-     *
-     * @since 9.1.0
+     * Returns the classpath for the Gradle API.
      */
-    @Incubating
-    List<File> getGradleKotlinDslApi();
+    ClassPath getGradleApi();
 }

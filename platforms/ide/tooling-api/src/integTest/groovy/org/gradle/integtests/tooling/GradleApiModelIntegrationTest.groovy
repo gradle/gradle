@@ -36,10 +36,11 @@ class GradleApiModelIntegrationTest extends AbstractIntegrationSpec implements T
         TestBuildActionResult result = runBuildAction(new TestBuildAction())
 
         then:
-        !result.gradleApiClasspath.isEmpty()
-        result.gradleApiClasspath.find { it.name.contains("gradle-core-api-") && it.name.endsWith(".jar") }
-        result.gradleApiClasspath.find { it.name.contains("gradle-core-") && it.name.endsWith(".jar") }
-        result.gradleApiClasspath.find { it.name.contains("gradle-configuration-cache-") && it.name.endsWith(".jar") }
+        result.gradleApi.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
+        result.gradleApi.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
+        result.gradleApi.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") } == null
+        result.gradleKotlinDslApi.containsAll(result.gradleApi)
+        result.gradleKotlinDslApi.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }
     }
 
     @Override
@@ -51,15 +52,17 @@ class GradleApiModelIntegrationTest extends AbstractIntegrationSpec implements T
         @Override
         TestBuildActionResult execute(BuildController controller) {
             def gradleApiModel = controller.getModel(GradleApiModel)
-            return new TestBuildActionResult(gradleApiModel.gradleApiClasspath)
+            return new TestBuildActionResult(gradleApiModel.gradleApi, gradleApiModel.gradleKotlinDslApi)
         }
     }
 
     static class TestBuildActionResult implements Serializable {
-        List<File> gradleApiClasspath;
+        List<File> gradleApi;
+        List<File> gradleKotlinDslApi
 
-        TestBuildActionResult(List<File> gradleApiClasspath) {
-            this.gradleApiClasspath = gradleApiClasspath;
+        TestBuildActionResult(List<File> gradleApi, List<File> gradleKotlinDslApi) {
+            this.gradleApi = gradleApi
+            this.gradleKotlinDslApi = gradleKotlinDslApi
         }
     }
 }
