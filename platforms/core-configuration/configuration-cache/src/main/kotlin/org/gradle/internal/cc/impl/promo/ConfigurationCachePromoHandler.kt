@@ -84,8 +84,8 @@ internal class ConfigurationCachePromoHandler(
         if (!problems.arePresent()) {
             // Collecting degradation reasons may be somewhat expensive, let's skip it if the build is already incompatible.
             // We can only collect the reasons before the start of the execution phase. CC does that too.
-            degradationController.collectDegradationReasons()
-            problems.addIfNeeded(degradationController.hasDegradationReasons)
+            val hasDegradationReasons = degradationController.degradationDecision.shouldDegrade
+            problems.addIfNeeded(hasDegradationReasons)
         }
 
         // Checking task graph for compatibility may be even more expensive, so do it only after collecting the degradation reasons.

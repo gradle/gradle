@@ -4,7 +4,7 @@ project :producer FAILED
    Failures:
       - Could not resolve project :producer.
           - Module 'org.gradle.demo:producer' has been rejected:
-               Cannot select module with conflict on capability 'org.gradle.demo:producer-db-support:1.0' also provided by [org.gradle.demo:producer:1.0(postgresSupportRuntimeElements), org.gradle.demo:producer:1.0(mysqlSupportRuntimeElements)]
+               Cannot select module with conflict on capability 'org.gradle.demo:producer-db-support:1.0' also provided by ['project :producer' (postgresSupportRuntimeElements), 'project :producer' (mysqlSupportRuntimeElements)]
 
 project :producer FAILED
 \--- runtimeClasspath

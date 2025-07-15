@@ -15,81 +15,49 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Iterators;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.jspecify.annotations.Nullable;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 abstract class MessageBuilderHelper {
 
-    static Collection<String> pathTo(EdgeState edge) {
-        return pathTo(edge, true);
+    public static List<String> formattedPathsTo(EdgeState edge) {
+        return findPathsTo(edge).stream().map(path -> {
+            String header = Iterables.getLast(path).getSelector().getDependencyMetadata().isConstraint() ? "Constraint" : "Dependency";
+            String formattedPath = path.stream()
+                .map(EdgeState::getFrom)
+                .map(NodeState::getDisplayName)
+                .collect(Collectors.joining(" --> "));
+
+            return header + " path: " + formattedPath;
+        }).collect(Collectors.toList());
     }
 
-    static Collection<String> pathTo(EdgeState edge, boolean includeLast) {
+    private static List<List<EdgeState>> findPathsTo(EdgeState edge) {
         List<List<EdgeState>> acc = new ArrayList<>(1);
         pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
-        List<String> result = new ArrayList<>(acc.size());
-        for (List<EdgeState> path : acc) {
-            EdgeState target = Iterators.getLast(path.iterator());
-            StringBuilder sb = new StringBuilder();
-            if (target.getSelector().getDependencyMetadata().isConstraint()) {
-                sb.append("Constraint path ");
+        return acc;
+    }
+
+    private static void pathTo(EdgeState edge, List<EdgeState> currentPath, List<List<EdgeState>> accumulator, Set<NodeState> alreadySeen) {
+        NodeState from = edge.getFrom();
+        if (alreadySeen.add(from)) {
+            currentPath.add(edge);
+
+            List<EdgeState> incomingEdges = from.getIncomingEdges();
+            if (!incomingEdges.isEmpty()) {
+                for (EdgeState dependent : incomingEdges) {
+                    List<EdgeState> otherPath = new ArrayList<>(currentPath);
+                    pathTo(dependent, otherPath, accumulator, alreadySeen);
+                }
             } else {
-                sb.append("Dependency path ");
-            }
-            boolean first = true;
-            String variantDetails = null;
-            for (EdgeState e : path) {
-                if (!first) {
-                    sb.append(" --> ");
-                }
-                first = false;
-                ModuleVersionIdentifier id = e.getFrom().getComponent().getModuleVersion();
-                sb.append('\'').append(id).append('\'');
-                if (variantDetails != null) {
-                    sb.append(variantDetails);
-                }
-                variantDetails = variantDetails(e);
-            }
-            if (includeLast) {
-                sb.append(" --> ");
-                SelectorState selector = edge.getSelector();
-                ModuleIdentifier moduleId = selector.getTargetModule().getId();
-                sb.append('\'').append(moduleId.getGroup()).append(':').append(moduleId.getName()).append('\'');
-                if (variantDetails != null) {
-                    sb.append(variantDetails);
-                }
-            }
-            result.add(sb.toString());
-        }
-        return result;
-    }
-
-    @Nullable
-    private static String variantDetails(EdgeState e) {
-        String selectedVariantName = e.hasSelectedVariant() ? e.getSelectedNode().getMetadata().getName() : null;
-        if (selectedVariantName != null) {
-            return " (" + selectedVariantName + ")";
-        }
-        return null;
-    }
-
-    static void pathTo(EdgeState component, List<EdgeState> currentPath, List<List<EdgeState>> accumulator, Set<NodeState> alreadySeen) {
-        if (alreadySeen.add(component.getFrom())) {
-            currentPath.add(0, component);
-            for (EdgeState dependent : component.getFrom().getIncomingEdges()) {
-                List<EdgeState> otherPath = new ArrayList<>(currentPath);
-                pathTo(dependent, otherPath, accumulator, alreadySeen);
-            }
-            if (component.getFrom().isRoot()) {
-                accumulator.add(currentPath);
+                // We've hit the root of the path
+                accumulator.add(Lists.reverse(currentPath));
             }
         }
     }

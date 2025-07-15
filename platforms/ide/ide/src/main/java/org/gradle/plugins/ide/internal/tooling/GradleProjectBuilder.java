@@ -61,7 +61,8 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
             .map(it -> buildHierarchy(it, realizeTasks))
             .collect(toList());
 
-        String projectIdentityPath = ((ProjectInternal) project).getIdentityPath().getPath();
+        ProjectInternal projectInternal = (ProjectInternal) project;
+        String projectIdentityPath = projectInternal.getIdentityPath().getPath();
         DefaultGradleProject gradleProject = new DefaultGradleProject()
             .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
             .setName(project.getName())
@@ -78,7 +79,9 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
         }
 
         if (realizeTasks) {
-            List<LaunchableGradleProjectTask> tasks = collectTasks(gradleProject, (TaskContainerInternal) project.getTasks());
+            List<LaunchableGradleProjectTask> tasks = projectInternal.getOwner().fromMutableState(p ->
+                collectTasks(gradleProject, p.getTasks())
+            );
             gradleProject.setTasks(tasks);
         }
 
