@@ -60,7 +60,6 @@ class DefaultEncryptionService(
     fun produceSecretKey(encryptionKind: EncryptionKind) =
         secretKeySource(encryptionKind).let { keySource ->
             try {
-                logger.info("Encryption key source: {}", keySource.sourceDescription)
                 secretKeyFrom(keySource)?.also { key ->
                     assertKeyLength(key)
                 }
