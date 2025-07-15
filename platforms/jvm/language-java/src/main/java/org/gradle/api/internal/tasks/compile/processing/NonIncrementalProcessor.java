@@ -40,6 +40,7 @@ public class NonIncrementalProcessor extends DelegatingProcessor {
     }
 
     @Override
+    @SuppressWarnings("DoNotClaimAnnotations")
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         strategy.recordProcessingInputs(getSupportedAnnotationTypes(), annotations, roundEnv);
         return super.process(annotations, roundEnv);

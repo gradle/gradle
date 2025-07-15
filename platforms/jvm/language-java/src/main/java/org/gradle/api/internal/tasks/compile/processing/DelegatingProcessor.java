@@ -58,6 +58,7 @@ abstract class DelegatingProcessor implements Processor {
     }
 
     @Override
+    @SuppressWarnings("DoNotClaimAnnotations")
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         return delegate.process(annotations, roundEnv);
     }

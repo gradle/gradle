@@ -27,7 +27,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
@@ -47,7 +46,6 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         resolveSourceFiles(spec);
         resolveClasspath(spec);
-        resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
         logCompilerArguments(spec);
         return delegateAndHandleErrors(spec);
@@ -65,11 +63,6 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Class path: {}", spec.getCompileClasspath());
         }
-    }
-
-    private void resolveNonStringsInCompilerArgs(ScalaJavaJointCompileSpec spec) {
-        // in particular, this is about GStrings
-        spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
     }
 
     private void logSourceFiles(ScalaJavaJointCompileSpec spec) {
