@@ -84,7 +84,11 @@ See ![this recording](release-notes-assets/colored-console.gif) for a demo.
 
 #### Off-screen lines reported in rich console
 
-This release adds a status line to the `rich` console, where the number of off-screen in-progress events is reported.
+This release adds a status line to the `rich` console that reports the number of in-progress events not currently visible on screen.
+
+\```console
+> (2 lines not showing)
+\```
 This situation arrises when there are more in-progress events than lines available in the console for displaying them.
 See ![this recording](release-notes-assets/off-screen-lines.gif) for a demo.
 
