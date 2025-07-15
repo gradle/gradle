@@ -87,9 +87,9 @@ internal class ConfigurationCachePromoHandler(
             // Collecting degradation reasons may be somewhat expensive, let's skip it if the build is already incompatible.
             // We can only collect the reasons before the start of the execution phase. CC does that too.
 
+            val hasDegradationReasons = DeprecationLogger.whileDisabled(
             // Collecting degradation reasons uses Task.project call internally, which is deprecated at execution time.
             // We disable deprecations for the computation until we'll have a proper build lifecycle callback.
-            val hasDegradationReasons = DeprecationLogger.whileDisabled(
                 Factory {
                     degradationController.collectDegradationReasons()
                     degradationController.hasDegradationReasons
