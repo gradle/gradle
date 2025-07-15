@@ -332,7 +332,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         System.clearProperty(systemProp)
     }
 
-    @ToBeImplemented
     def "reuses cache when unused project property changes on command-line"() {
         buildFile """
             tasks.register("some")
@@ -455,7 +454,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         errorOutput.contains('- Task `:some` of type `org.gradle.api.DefaultTask`: cannot serialize object of type \'org.gradle.internal.event.DefaultListenerManager$EventBroadcast$ListenerDispatch\', a subtype of \'org.gradle.internal.event.AbstractBroadcastDispatch\', as these are not supported with the configuration cache.\n')
     }
 
-    @ToBeImplemented
     def "reuses cache when project property changes on command-line, if used only at execution time via gradleProperty"() {
         buildFile """
             def prop = providers.gradleProperty('foo')
@@ -481,7 +479,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         outputContains("Execution: 'two'")
     }
 
-    @ToBeImplemented
     def "reuses cache when project property changes on command-line, if looked up but unused at configuration time via gradleProperty"() {
         buildFile """
             providers.gradleProperty("foo")
