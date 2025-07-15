@@ -36,6 +36,41 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         !output.contains("Configuration cache is an incubating feature.")
     }
 
+    def "should not create an entry on a cache miss if in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        settingsFile << ""
+
+        when:
+        run("help", "--configuration-cache", "-Dorg.gradle.configuration-cache.internal.read-only=true")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
+    }
+
+    def "should load an entry on a cache cache hit if in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        settingsFile << ""
+
+        when:
+        run("help", "--configuration-cache")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        run("help", "--configuration-cache", "-Dorg.gradle.configuration-cache.internal.read-only=true")
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+
     def "configuration cache for Help plugin task '#task' on empty project"() {
         given:
         settingsFile.createFile()

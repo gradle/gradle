@@ -39,7 +39,10 @@ internal sealed class ConfigurationCacheAction {
      * Configuration cache entry is invalid for the current invocation.
      * The new entry will be stored by the end of the build.
      */
-    object Store : ConfigurationCacheAction() {
-        override fun toString(): String = "Store"
-    }
+    data object Store : ConfigurationCacheAction()
+
+    /**
+     * No valid entry was found and no entry should be created, as CC is in read-only mode.
+     */
+    data object Skip : ConfigurationCacheAction()
 }

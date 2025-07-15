@@ -196,6 +196,7 @@ class DefaultConfigurationCache internal constructor(
             is ConfigurationCacheAction.Load -> cacheAction.entryId
             is ConfigurationCacheAction.Update -> cacheAction.entryId
             ConfigurationCacheAction.Store -> UUID.randomUUID().toString()
+            ConfigurationCacheAction.Skip -> "SKIP"
         }
         initializeCacheEntrySideEffects(cacheAction)
         problems.action(cacheAction, cacheActionDescription)
@@ -218,6 +219,8 @@ class DefaultConfigurationCache internal constructor(
             }
 
             ConfigurationCacheAction.Store -> {}
+
+            ConfigurationCacheAction.Skip -> {}
         }
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
@@ -245,7 +248,9 @@ class DefaultConfigurationCache internal constructor(
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
                 val rootBuild = buildStateRegistry.rootBuild
-                degradeGracefullyOr { saveWorkGraph(rootBuild) }
+                if (shouldSaveWorkGraph()) {
+                    saveWorkGraph(rootBuild)
+                }
                 crossConfigurationTimeBarrier()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
@@ -285,11 +290,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun degradeGracefullyOr(action: () -> Unit) {
-        if (!problems.shouldDegradeGracefully()) {
-            action()
-        }
-    }
+    fun shouldSaveWorkGraph() = cacheAction != ConfigurationCacheAction.Skip && !problems.shouldDegradeGracefully()
 
     private
     fun runLoadedSideEffects() {
@@ -415,7 +416,10 @@ class DefaultConfigurationCache internal constructor(
                         buildActionModelRequirements.configurationCacheKeyDisplayName.displayName
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.Store to description
+                    if (startParameter.isReadOnlyCache)
+                        ConfigurationCacheAction.Skip to description
+                    else
+                        ConfigurationCacheAction.Store to description
                 }
 
                 is CheckedFingerprint.Invalid -> {
@@ -425,7 +429,10 @@ class DefaultConfigurationCache internal constructor(
                         checkedFingerprint.reason.render()
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.Store to description
+                    if (startParameter.isReadOnlyCache)
+                        ConfigurationCacheAction.Skip to description
+                    else
+                        ConfigurationCacheAction.Store to description
                 }
 
                 is CheckedFingerprint.Valid -> {
@@ -443,7 +450,10 @@ class DefaultConfigurationCache internal constructor(
                                 invalid.first.reason.render()
                             )
                             logBootstrapSummary(description)
-                            ConfigurationCacheAction.Update(checkedFingerprint.entryId, invalid) to description
+                            if (startParameter.isReadOnlyCache)
+                                ConfigurationCacheAction.Skip to description
+                            else
+                                ConfigurationCacheAction.Update(checkedFingerprint.entryId, invalid) to description
                         }
                     }
                 }
