@@ -332,7 +332,8 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         !allJvmArgsFile.text.contains("-Dfoo=bar")
     }
 
-    def "can handle system properties with quotation marks on all platforms"() {
+    @Issue("https://github.com/gradle/gradle/issues/6072")
+    def "can handle arguments with quotes and spaces"() {
         buildFile """
             apply plugin: 'java'
 
@@ -340,6 +341,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = 'com.example.demo.DemoApplication'
                 jvmArgumentProviders.add(objects.newInstance(MyApplicationJvmArguments))
+                argumentProviders.add(objects.newInstance(MyOtherApplicationArguments))
                 systemProperties = [foo: '"1 2"']
             }
 
@@ -350,6 +352,14 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
                     return ['-Dbar="3 4"']
                 }
             }
+
+            abstract class MyOtherApplicationArguments implements CommandLineArgumentProvider {
+
+                @Override
+                Iterable<String> asArguments() {
+                    return ['baz="5 6"']
+                }
+            }
         """
         file("src/main/java/com/example/demo/DemoApplication.java") << """
             package com.example.demo;
@@ -358,6 +368,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
                 public static void main(String[] args) {
                     System.getProperties().entrySet().forEach(System.out::println);
+                    System.out.println("Arguments: " + String.join(" ", args));
                 }
             }
         """
@@ -367,6 +378,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         outputContains('foo="1 2"')
         outputContains('bar="3 4"')
+        outputContains('Arguments: baz="5 6"')
     }
 
     private void assertOutputFileIs(String text) {
