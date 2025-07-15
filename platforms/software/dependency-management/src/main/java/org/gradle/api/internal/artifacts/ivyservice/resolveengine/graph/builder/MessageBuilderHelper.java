@@ -105,7 +105,7 @@ import java.util.stream.Collectors;
 
     @Nullable
     private static String variantDetails(EdgeState e) {
-        String selectedVariantName = e.getSelectedNode() != null ? e.getSelectedNode().getMetadata().getName() : null;
+        String selectedVariantName = e.hasSelectedVariant() ? e.getSelectedNode().getMetadata().getName() : null;
         if (selectedVariantName != null) {
             return " (" + selectedVariantName + ")";
         }
