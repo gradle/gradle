@@ -15,14 +15,15 @@
  */
 package org.gradle.initialization
 
-import com.google.common.collect.ImmutableMap
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
-import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.internal.extensibility.DefaultExtensionContainer
+import org.gradle.internal.extensibility.GradlePropertiesAccessListener
+import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.GUtil
@@ -37,15 +38,13 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final SettingsInternal settings = Mock()
     final ProjectInternal rootProject = Mock()
     final ProjectInternal childProject = Mock()
-    final GradleProperties gradleProperties = Mock()
     final File rootProjectDir = tmpDir.createDir('root')
     final File childProjectDir = tmpDir.createDir('child')
     final FileResourceListener fileResourceListener = Mock(FileResourceListener)
-    final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradleProperties, target, fileResourceListener)
-    final ExtensionContainerInternal rootExtension = Mock()
-    final ExtraPropertiesExtensionInternal rootProperties = Mock()
-    final ExtensionContainerInternal childExtension = Mock()
-    final ExtraPropertiesExtensionInternal childProperties = Mock()
+    final GradlePropertiesAccessListener gradlePropertiesAccessListener = Mock()
+    final InstanceGenerator instanceGenerator = Mock()
+    final ExtensionContainerInternal rootExtension = new DefaultExtensionContainer(instanceGenerator)
+    final ExtensionContainerInternal childExtension = new DefaultExtensionContainer(instanceGenerator)
 
     def setup() {
         _ * gradle.rootProject >> rootProject
@@ -55,15 +54,21 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         _ * childProject.projectDir >> childProjectDir
         _ * rootProject.extensions >> rootExtension
         _ * childProject.extensions >> childExtension
-        _ * rootExtension.extraProperties >> rootProperties
-        _ * childExtension.extraProperties >> childProperties
         1 * fileResourceListener.fileObserved(rootPropertiesFile())
         1 * fileResourceListener.fileObserved(childPropertiesFile())
     }
 
+    def newLoader(GradleProperties gradleProperties) {
+        new ProjectPropertySettingBuildLoader(gradleProperties, target, fileResourceListener, gradlePropertiesAccessListener)
+    }
+
+    def newGradleProperties(Map<String, Object> defaults, Map<String, Object> overrides = [:]) {
+        new DefaultGradleProperties(defaults, overrides)
+    }
+
     def "delegates to build loader"() {
         given:
-        _ * gradleProperties.mergeProperties(!null) >> [:]
+        def loader = newLoader(newGradleProperties([:]))
 
         when:
         loader.load(settings, gradle)
@@ -73,27 +78,27 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         0 * target._
     }
 
-    def "sets project properties on each project in hierarchy"() {
-        given:
-        2 * gradleProperties.mergeProperties([:]) >> [prop: 'value']
-
-        when:
-        loader.load(settings, gradle)
-
-        then:
-        1 * rootProperties.setGradleProperties(ImmutableMap.of('prop', 'value'))
-        1 * childProperties.setGradleProperties(ImmutableMap.of('prop', 'value'))
-    }
-
     def "defines extra property for unknown property"() {
         given:
-        2 * gradleProperties.mergeProperties([:]) >> [prop: 'value']
+        def loader = newLoader(newGradleProperties([prop: 'value']))
 
         when:
         loader.load(settings, gradle)
 
         then:
-        1 * rootProperties.setGradleProperties(ImmutableMap.of('prop', 'value'))
+        rootProject.extensions.extraProperties.properties == [prop: 'value']
+    }
+
+    def "sets project properties on each project in hierarchy"() {
+        given:
+        def loader = newLoader(newGradleProperties([prop: 'value']))
+
+        when:
+        loader.load(settings, gradle)
+
+        then:
+        rootProject.extensions.extraProperties.properties == [prop: 'value']
+        childProject.extensions.extraProperties.properties == [prop: 'value']
     }
 
     def "loads project properties from gradle.properties file in project dir"() {
@@ -101,19 +106,19 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         GUtil.saveProperties(new Properties([prop: 'rootValue']), rootPropertiesFile())
         GUtil.saveProperties(new Properties([prop: 'childValue']), childPropertiesFile())
 
+        def loader = newLoader(newGradleProperties([:]))
+
         when:
         loader.load(settings, gradle)
 
         then:
-        1 * gradleProperties.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']
-        1 * gradleProperties.mergeProperties([prop: 'childValue']) >> [prop: 'childValue']
-        1 * rootProperties.setGradleProperties(ImmutableMap.of('prop', 'rootValue'))
-        1 * childProperties.setGradleProperties(ImmutableMap.of('prop', 'childValue'))
+        rootProject.extensions.extraProperties.properties == [prop: 'rootValue']
+        childProject.extensions.extraProperties.properties == [prop: 'childValue']
     }
 
     def "defines project properties from Project class"() {
         given:
-        2 * gradleProperties.mergeProperties([:]) >> [version: '1.0']
+        def loader = newLoader(newGradleProperties([version: '1.0']))
 
         when:
         loader.load(settings, gradle)
@@ -121,8 +126,6 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         then:
         1 * rootProject.setVersion('1.0')
         1 * childProject.setVersion('1.0')
-        0 * rootProperties.set(_, _)
-        0 * childProperties.set(_, _)
     }
 
     private File childPropertiesFile() {
