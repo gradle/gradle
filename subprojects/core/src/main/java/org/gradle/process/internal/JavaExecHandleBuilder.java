@@ -102,9 +102,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private List<String> getAllJvmArgs(FileCollection realClasspath) {
         List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
 
-        if (OperatingSystem.current().isWindows()) {
-            allArgs = setAllArgsWindows(allArgs);
-        }
         boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
 
         if (runAsModule) {
@@ -116,9 +113,13 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return allArgs;
     }
 
-    private static List<String> setAllArgsWindows(List<String> allArgs) {
-        return allArgs.stream().map(listItem ->
-            listItem.replaceAll("\"", "\\\\\"")).collect(Collectors.toList());  // Escape double quotes).collect(Collectors.toCollection(() -> allArgs));
+    private static List<String> escapeQuotes(List<String> allArgs) {
+        if (OperatingSystem.current().isWindows()) {
+            return allArgs.stream().map(listItem ->
+                listItem.replaceAll("\"", "\\\\\"")).collect(Collectors.toList());
+        } else {
+            return allArgs; // No escaping needed on non-Windows systems
+        }
     }
 
     private void addClassicJavaRunArgs(FileCollection classpath, List<String> allArgs) {
@@ -378,7 +379,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private List<String> getAllArguments(FileCollection realClasspath) {
         List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath));
         arguments.addAll(execHandleBuilder.getAllArguments());
-        return arguments;
+        return escapeQuotes(arguments);
     }
 
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
