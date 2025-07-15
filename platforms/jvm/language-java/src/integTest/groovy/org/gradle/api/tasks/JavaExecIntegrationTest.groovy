@@ -332,6 +332,31 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         !allJvmArgsFile.text.contains("-Dfoo=bar")
     }
 
+    def "can handle system properties with quotation marks on all platforms"() {
+        buildFile """
+            apply plugin: 'java'
+
+            task demo(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = 'com.example.demo.DemoApplication'
+                systemProperties = [foo: '"1 2"']
+            }
+        """
+        file("src/main/java/com/example/demo/DemoApplication.java") << """
+            package com.example.demo;
+
+            public class DemoApplication {
+
+                public static void main(String[] args) {
+                    System.getProperties().entrySet().forEach(System.out::println);
+                }
+            }
+        """
+
+        expect:
+        succeeds("demo")
+    }
+
     private void assertOutputFileIs(String text) {
         assert file("out.txt").text == text
     }
