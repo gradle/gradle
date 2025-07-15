@@ -25,25 +25,26 @@ import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.ToolchainToolFactory;
 import org.gradle.process.internal.ExecActionFactory;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Provides toolchain services related to Javadoc.
+ * Provides services related to Javadoc generation.
  * <p>
  * This service is responsible for creating {@link ToolchainToolFactory} instances that can
  * create {@link JavadocTool} instances.
  */
-public class JavadocToolchainServices extends AbstractGradleModuleServices {
+public class JavadocServices extends AbstractGradleModuleServices {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.addProvider(new JavaProjectScopeServices());
+        registration.addProvider(new JavadocProjectScopeServices());
     }
 
-    private static class JavaProjectScopeServices implements ServiceRegistrationProvider {
+    private static class JavadocProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         public ToolchainToolFactory createToolFactory(ExecActionFactory generator) {
-            // TODO should we create all tools via this factory?
             return new ToolchainToolFactory() {
                 @Override
+                @Nullable
                 public <T> T create(Class<T> toolType, JavaToolchain toolchain) {
                     if (toolType == JavadocTool.class) {
                         return toolType.cast(new JavadocToolAdapter(generator, toolchain));
