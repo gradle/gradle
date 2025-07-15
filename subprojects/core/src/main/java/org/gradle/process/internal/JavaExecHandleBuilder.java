@@ -28,6 +28,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -100,6 +101,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     private List<String> getAllJvmArgs(FileCollection realClasspath) {
         List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
+
+        if (OperatingSystem.current().isWindows()) {
+            allArgs = setAllArgsWindows(allArgs);
+        }
         boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
 
         if (runAsModule) {
@@ -109,6 +114,11 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         }
 
         return allArgs;
+    }
+
+    private static List<String> setAllArgsWindows(List<String> allArgs) {
+        return allArgs.stream().map(listItem ->
+            listItem.replaceAll("\"", "\\\\\"")).collect(Collectors.toList());  // Escape double quotes).collect(Collectors.toCollection(() -> allArgs));
     }
 
     private void addClassicJavaRunArgs(FileCollection classpath, List<String> allArgs) {
