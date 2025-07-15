@@ -350,3 +350,57 @@ include::sample[dir="snippets/bestPractices/nameYourRootProject-do/tests",files=
 === Tags
 
 <<tags_reference.adoc#tag:settings,`#settings`>>
+
+[[do_not_use_gradle_properties_in_subprojects]]
+== Do not use `gradle.properties` in subprojects
+
+Do not use `gradle.properties` in subprojects to set properties in your build.
+
+=== Explanation
+
+It's possible to have `gradle.properties` in both the root project and in any of the subprojects.
+Using it outside of the root project makes it difficult to trace what Gradle property values are set throughout the project, and understand where they were set or overriden.
+
+=== Example
+
+==== Don't Do This
+
+[source,text]
+----
+├── app
+│   ├── src
+│   ├── ⋮
+│   ├── build.gradle.kts
+│   └── gradle.properties
+├── utilities
+│   ├── src
+│   ├── ⋮
+│   ├── build.gradle.kts
+│   └── gradle.properties
+├── settings.gradle.kts
+└── gradle.properties
+----
+
+==== Do This Instead
+
+[source,text]
+----
+├── app
+│   ├── src
+│   ├── ⋮
+│   └── build.gradle.kts
+├── utilities
+│   ├── src
+│   ├── ⋮
+│   └── build.gradle.kts
+├── settings.gradle.kts
+└── gradle.properties
+----
+
+=== References
+
+- <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:properties,`#properties`>>
