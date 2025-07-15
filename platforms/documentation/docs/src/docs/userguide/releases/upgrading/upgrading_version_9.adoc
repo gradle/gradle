@@ -188,7 +188,11 @@ There is no direct replacement for this method.
 [[set-all-jvm-args]]
 ==== Deprecation of `JavaForkOptions.setAllJvmArgs()`
 The `JavaForkOptions.setAllJvmArgs()` method has been deprecated and will be removed in Gradle 10.0.0.
-Instead, use the `JavaForkOptions.jvmArgs`, `JavaForkOptions.setJvmArgs`, or provide a `CommandLineArgumentProvider` to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
+Instead, do one of the following:
+
+* Use `JavaForkOptions.jvmArgs()`
+* Use `JavaForkOptions.setJvmArgs()`
+* Provide a `CommandLineArgumentProvider` to add arguments via `JavaForkOptions.getJvmArgumentProviders()`
 
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration
