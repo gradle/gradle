@@ -26,7 +26,7 @@ class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<D
 
         DefaultExtraPropertiesExtension createExtension() {
             new DefaultExtraPropertiesExtension().tap {
-                it.setGradleProperties([:])
+                it.attachGradlePropertiesLookup(new DefaultExtraPropertiesGradlePropertiesLookup(Mock(GradlePropertiesAccessListener), [:]))
             }
         }
     }
