@@ -271,9 +271,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     def "encryption service honors default keystore type"() {
         def defaultKeystoreType = KeyStore.defaultType
         buildFile """
-        def encryptionService = services.get(org.gradle.internal.encryption.EncryptionConfiguration)
-        // ensure encryption service is triggered
-        assert encryptionService.encrypting
+            def encryptionService = services.get(org.gradle.internal.encryption.EncryptionConfiguration)
+            // ensure encryption service is triggered
+            assert encryptionService.encrypting
         """
         when:
         run("help", "-i")
@@ -285,13 +285,13 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Test sets a custom security properties file")
     def "encryption service attempts to honor explicitly requested keystore type"() {
         buildFile """
-        def encryptionService = services.get(org.gradle.internal.encryption.EncryptionConfiguration)
-        // ensure encryption service is triggered
-        assert encryptionService.encrypting
-        assert java.security.KeyStore.getDefaultType() == "$requestedType"
+            def encryptionService = services.get(org.gradle.internal.encryption.EncryptionConfiguration)
+            // ensure encryption service is triggered
+            assert encryptionService.encrypting
+            assert java.security.KeyStore.getDefaultType() == "$requestedType"
         """
         def customPropertiesFile = file("security.properties") << """
-        keystore.type=${requestedType}
+            keystore.type=${requestedType}
         """
 
         when:
