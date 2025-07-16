@@ -17,7 +17,7 @@ package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
-import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
+import org.gradle.test.fixtures.DependencyDeclarationFixture
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -27,7 +27,8 @@ import org.gradle.test.fixtures.maven.MavenModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
+abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements DependencyDeclarationFixture {
+    boolean requiresExternalDependencies
 
     protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule, List<String> features = [MavenJavaModule.MAIN_FEATURE], boolean withDocumentation = false) {
         return new MavenJavaModule(mavenFileModule, features, withDocumentation)
@@ -45,7 +46,16 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         expectationSpec()
 
         expectation.validate()
+    }
 
+    private String convertDependencyNotation(dependencyNotation) {
+        if (dependencyNotation instanceof CharSequence) {
+            return dependencyNotation
+        }
+        if (dependencyNotation instanceof MavenModule) {
+            return asDependencyNotation(dependencyNotation.groupId, dependencyNotation.artifactId, dependencyNotation.version)
+        }
+        throw new UnsupportedOperationException("Unsupported dependency notation: ${dependencyNotation}")
     }
 
     void resolveApiArtifacts(MavenModule module, @DelegatesTo(value = MavenArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {

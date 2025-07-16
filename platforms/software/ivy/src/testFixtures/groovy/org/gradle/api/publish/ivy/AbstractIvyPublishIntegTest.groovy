@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
-import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
+import org.gradle.test.fixtures.DependencyDeclarationFixture
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.ivy.IvyFileModule
@@ -27,7 +27,8 @@ import org.gradle.test.fixtures.ivy.IvyModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
+abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements DependencyDeclarationFixture {
+    boolean requiresExternalDependencies
 
     protected static IvyJavaModule javaLibrary(IvyFileModule module) {
         new IvyJavaModule(module)
@@ -41,6 +42,16 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         expectationSpec()
 
         expectation.validate()
+    }
+
+    private String convertDependencyNotation(dependencyNotation) {
+        if (dependencyNotation instanceof CharSequence) {
+            return dependencyNotation
+        }
+        if (dependencyNotation instanceof IvyModule) {
+            return asDependencyNotation(dependencyNotation.organisation, dependencyNotation.module, dependencyNotation.revision)
+        }
+        throw new UnsupportedOperationException("Unsupported dependency notation: ${dependencyNotation}")
     }
 
     void resolveApiArtifacts(IvyModule module, @DelegatesTo(value = IvyArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
