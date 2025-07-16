@@ -155,7 +155,8 @@ This release introduces a new API on the [Gradle](javadoc/org/gradle/api/invocat
 For the root build, this will return `:`.
 For included builds, this will return the path of the included build relative to the root build.
 
-This is the same path that is returned by `BuildIdentifier#getBuildPath`, but is now available directly on the `Gradle` instance.
+This is the same path returned by `BuildIdentifier#getBuildPath`, but it is now available directly on the `Gradle` instance.
+This enables build authors to obtain the path of a build, similar to how they can already obtain the path of a project.
 
 The following example demonstrates how to determine the path of the build which owns a given project:
 
