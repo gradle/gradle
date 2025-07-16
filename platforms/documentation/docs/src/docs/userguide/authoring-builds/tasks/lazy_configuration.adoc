@@ -52,7 +52,7 @@ This allows you to wire together `Provider` and `Property` instances before the 
 ** A `Property` can be created by the factory method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)].
 
 Lazy properties are intended to be passed around and only queried when required.
-This typically happens during the <<build_lifecycle.adoc#sec:build_phases,execution phase>>.
+This typically happens during the <<build_lifecycle_intermediate.adoc#sec:build_phases,execution phase>>.
 
 The following demonstrates a task with a configurable `greeting` property and a read-only `message` property:
 

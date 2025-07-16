@@ -29,7 +29,7 @@ image::configuration-cache-4.png[]
 [[config_cache:intro]]
 == Configuration Cache Basics
 
-The <<build_lifecycle.adoc#build_lifecycle, Gradle Build Lifecycle>> consists of three phases: **initialization**, **configuration**, and **execution**.
+The <<build_lifecycle_intermediate.adoc#build_lifecycle, Gradle Build Lifecycle>> consists of three phases: **initialization**, **configuration**, and **execution**.
 
 1. The **initialization** phase determines the structure of the build.
 2. The **configuration** phase evaluates what work needs to be done.

@@ -301,4 +301,4 @@ import javax.inject.Inject
 ----
 
 [.text-right]
-**Next Step:** <<gradle_managed_types.adoc#gradle_types_intro,Learn about Gradle Managed Types>> >>
+**Next Step:** <<gradle_managed_types_intermediate.adoc#gradle_types_intro,Learn about Gradle Managed Types>> >>

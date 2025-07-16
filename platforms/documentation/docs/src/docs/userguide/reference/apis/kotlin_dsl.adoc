@@ -161,7 +161,7 @@ The link:{kotlinDslPath}/[Kotlin DSL API] extends the public Gradle API with typ
 [[sec:compilation_warnings]]
 === Compilation warnings
 
-Gradle Kotlin DSL scripts are compiled by Gradle during the <<build_lifecycle.adoc#build_lifecycle,configuration phase>> of your build.
+Gradle Kotlin DSL scripts are compiled by Gradle during the <<build_lifecycle_intermediate.adoc#build_lifecycle,configuration phase>> of your build.
 
 Deprecation warnings found by the Kotlin compiler are reported on the console when compiling the scripts:
 

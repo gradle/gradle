@@ -300,4 +300,4 @@ Typically, a *lifecycle* tasks depends on many *actionable* tasks, and is used t
 Consult the <<more_about_tasks.adoc#more_about_tasks,Developing Gradle Tasks chapter>> to learn more.
 
 [.text-right]
-**Next Step:** <<plugins.adoc#using_plugins,Learn about Plugins>> >>
+**Next Step:** <<plugins_intermediate.adoc#using_plugins,Learn about Plugins>> >>

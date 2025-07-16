@@ -35,7 +35,7 @@ This section covers:
 
 <<gradle_directories.adoc#gradle_directories,Part 1.>> Anatomy of a Gradle Build +
 <<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 2.>> Structuring Multi-Project Builds +
-<<build_lifecycle.adoc#build_lifecycle,Part 3.>> Gradle Build Lifecycle +
+<<build_lifecycle_intermediate.adoc#build_lifecycle,Part 3.>> Gradle Build Lifecycle +
 <<writing_build_scripts.adoc#writing_build_scripts,Part 4.>> Writing Build Scripts +
 <<gradle_managed_types.adoc#,Part 5.>> Gradle Managed Types +
 <<dependencies.adoc#,Part 6.>> Declaring and Managing Dependencies +
@@ -60,6 +60,6 @@ The tutorial covers:
 <<part2_build_lifecycle#part2_begin,Part 2.>> Understanding the Build Lifecycle +
 <<part3_multi_project_builds#part3_begin,Part 3.>> Multi-Project Builds +
 <<part4_settings_file#part4_begin,Part 6.>> Writing the Settings File +
-<<part5_build_scripts#part5_begin,Part 5.>> Writing Build Script +
+<<part5_build_scripts#part5_begin,Part 5.>> Writing Build Scripts +
 <<part6_writing_tasks#part6_begin,Part 6.>> Writing Tasks +
 <<part7_writing_plugins#part7_begin,Part 7.>> Writing Plugins +

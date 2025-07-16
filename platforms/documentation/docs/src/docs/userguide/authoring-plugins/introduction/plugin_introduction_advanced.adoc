@@ -1,0 +1,118 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[plugin_introduction_advanced]]
+= Plugin Introduction
+
+Gradle's plugin system lets you extend and organize build logic in a modular and reusable way.
+Plugins can add tasks, configure settings, and enforce conventions across different scopes of a build.
+
+Gradle supports three types of plugins, each applied at a different phase of the build lifecycle:
+
+== Init Plugins
+
+* Applied globally to _all_ builds.
+* Useful for enforcing corporate policies, setting up shared CI configuration, or applying global conventions.
+* Loaded from `~/.gradle/init.gradle[.kts]` or passed via the `--init-script` command-line option.
+* Implement the `Plugin<Gradle>` interface.
+
+== Settings Plugins
+
+* Applied in `settings.gradle[.kts]` files.
+* Used to configure the build layout, such as which projects are included or how plugins are resolved.
+* Implement the `Plugin<Settings>` interface.
+
+== Project Plugins
+
+* Applied in `build.gradle[.kts]` files.
+* Configure tasks, dependencies, and project-specific behavior.
+* Implement the `Plugin<Project>` interface.
+
+== Plugin Scope
+
+The scope of a plugin is determined by the interface it implements:
+
+[cols="25,25,25,25", options="header"]
+|===
+| Plugin Type | Interface | Scope | Applied In
+
+| Init Plugin
+| `Plugin<Gradle>`
+| Global
+| `init.gradle[.kts]` or `--init-script`
+
+| Settings Plugin
+| `Plugin<Settings>`
+| Build Layout
+| `settings.gradle[.kts]`
+
+| Project Plugin
+| `Plugin<Project>`
+| Per-Project
+| `build.gradle[.kts]`
+|===
+
+== Types of Plugins
+
+Gradle plugins come in several flavors, each suited to different use cases:
+
+=== Core Plugins
+
+* Bundled with Gradle itself (e.g., `java`, `application`).
+* You don't author or publish them.
+
+=== Community Plugins
+
+* Published by the community, typically via the [Gradle Plugin Portal](https://plugins.gradle.org/).
+* Distributed as binary JARs.
+
+=== Local Plugins
+
+* Custom plugins you write yourself, for your own builds.
+* Can be:
+
+** Precompiled Script Plugins
+*** Written in `.gradle.kts` or `.gradle` files.
+*** Quick to write, great for local conventions.
+*** Always behave as `Project` plugins.
+
+** Binary Plugins
+*** Implemented in Java, Kotlin, or Groovy.
+*** Packaged as JARs, reusable across multiple builds.
+*** Can be published to repositories for sharing.
+
+== Authoring Plugins
+
+Gradle provides three main ways to create your own plugins:
+
+=== Precompiled Script Plugins
+
+* Written as `.gradle.kts` or `.gradle` files, compiled automatically.
+* Simple to write but limited to `Project` plugins.
+* Ideal for bundling simple conventions and applying standard tasks.
+
+=== Convention Plugins
+
+* A type of precompiled script plugin, typically used to:
+** Bundle together multiple plugins.
+** Apply shared configuration across projects.
+
+=== Binary Plugins
+
+* Implemented in Java, Kotlin, or Groovy.
+* Can implement any plugin type: `Init`, `Settings`, or `Project`.
+* Ideal for reusable logic shared across teams or published publicly.
+
+[.text-right]
+**Next Step:** <<,TO DO>> >>

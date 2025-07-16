@@ -107,4 +107,4 @@ tasks.register("printVersion") {
 Consult the <<properties_providers.adoc#properties_and_providers,Gradle Types>> chapter to learn more.
 
 [.text-right]
-**Next Step:** <<dependencies.adoc#dependencies_intro,Learn about Declaring and Managing Dependencies>> >>
+**Next Step:** <<dependencies_intermediate.adoc#dependencies_intro,Learn about Declaring and Managing Dependencies>> >>

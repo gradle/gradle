@@ -390,7 +390,7 @@ For more details, see the <<config_gradle.adoc#sec:configuring_jvm_memory,JVM Me
 [[optimize_configuration]]
 == 9. Optimize Configuration
 
-As described in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through three phases: *initialization, configuration, and execution*.
+As described in <<build_lifecycle_intermediate.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through three phases: *initialization, configuration, and execution*.
 The *configuration phase* always executes, regardless of which tasks run.
 Any expensive operations during this phase slow down every build, including simple commands like `gradle help` and `gradle tasks`.
 

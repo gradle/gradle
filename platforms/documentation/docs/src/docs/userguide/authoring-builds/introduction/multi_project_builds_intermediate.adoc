@@ -244,4 +244,4 @@ Once their changes are complete, another team could test and validate those chan
 Consult the <<composite_builds.adoc#composite_builds,Composite Builds>> chapter to learn more.
 
 [.text-right]
-**Next Step:** <<build_lifecycle.adoc#build_lifecycle,Learn about the Gradle Build Lifecycle>> >>
+**Next Step:** <<build_lifecycle_intermediate.adoc#build_lifecycle,Learn about the Gradle Build Lifecycle>> >>

@@ -187,7 +187,7 @@ For production grade deployments, link:https://gradle.com/gradle-enterprise-solu
 
 If you haven’t read the <<gradle_basics.adoc#gradle,Learning the Basics>> section yet, we recommend starting there to build a solid foundation.
 
-Already comfortable with the basics? Great — you’re ready to move on to the more advanced concepts next.
+Already comfortable with the basics? Great — you’re ready to move on to the intermediate concepts next.
 
 [.text-right]
-**Next Step:** <<,Start the Tutorial>> >>
+**Next Step:** <<getting_started_dev.adoc#dev_introduction,Go Beyond The Basics>> >>

@@ -117,4 +117,4 @@ There are many more ways to influence dependency resolution in Gradle.
 Consult the <<getting_started_dep_man.adoc#dependency-management-in-gradle,Dependency Management>> chapter to learn more.
 
 [.text-right]
-**Next Step:** <<writing_tasks.adoc#writing_tasks,Learn about Creating and Registering Tasks>> >>
+**Next Step:** <<writing_tasks_intermediate.adoc#writing_tasks,Learn about Creating and Registering Tasks>> >>

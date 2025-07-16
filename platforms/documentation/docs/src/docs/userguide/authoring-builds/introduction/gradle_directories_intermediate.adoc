@@ -227,4 +227,4 @@ It is roughly structured as follows:
 Consult the <<directory_layout.adoc#dir:gradle_user_home,Gradle Directories>> reference to learn more.
 
 [.text-right]
-**Next Step:** <<intro_multi_project_builds.adoc#intro_multi_project_builds,Learn how to structure Multi-Project Builds>> >>
+**Next Step:** <<multi_project_builds_intermediate.adoc#intro_multi_project_builds,Learn how to structure Multi-Project Builds>> >>
