@@ -51,6 +51,35 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
     }
 
+    def "should not create an entry on a cache miss when using #options if in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        settingsFile << ""
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("help", *options, "-Dorg.gradle.configuration-cache.internal.read-only=true")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
+
+        where:
+        options << [
+            ["--write-locks"],
+            ["--update-locks", "*:*"],
+            ["--refresh-dependencies"],
+            ["-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"]
+        ]
+    }
+
     def "should load an entry on a cache cache hit if in read-only mode"() {
         def configurationCache = newConfigurationCacheFixture()
 
