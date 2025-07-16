@@ -7,6 +7,7 @@ description = "Kotlin DSL Tooling Builders for IDEs"
 dependencies {
     api(projects.coreApi)
     api(projects.core)
+    api(projects.serviceProvider)
     api(libs.kotlinStdlib)
 
     implementation(projects.classloaders)
