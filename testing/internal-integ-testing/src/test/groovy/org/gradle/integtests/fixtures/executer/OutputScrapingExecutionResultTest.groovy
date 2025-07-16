@@ -599,6 +599,222 @@ BUILD FAILED in 13s
         result.assertTasksNotSkipped(":myTestBinaryTest", ":compileMyTestBinaryMyTestJava")
     }
 
+    def "can assert no tasks have been executed"() {
+        def output = """
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertNoTasksExecuted()
+    }
+
+    def "can assert any tasks have been executed"() {
+        def output = """
+> Task :compileMyTestBinaryMyTestJava
+> Task :myTestBinaryTest
+
+MyTest > test FAILED
+    java.lang.AssertionError at MyTest.java:10
+
+1 test completed, 1 failed
+
+> Task :myTestBinaryTest FAILED
+
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertAnyTasksExecuted()
+    }
+
+    def "can assert at least one task was executed and not skipped"() {
+        def output = """
+> Task :a
+> Task :b
+
+> Task :a
+some content
+
+> Task :b
+other content
+
+> Task :a
+all good
+
+> Task :b SKIPPED
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertAnyTasksExecutedAndNotSkipped()
+    }
+
+    def "assertion fails when assertAnyTasksExecutedAndNotSkipped() is called on not skipped output"() {
+        def output = """
+
+$tasksExecuted
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+        result.assertAnyTasksExecutedAndNotSkipped()
+
+        then:
+        def e = thrown(AssertionError)
+        e.message.startsWith(message)
+
+        where:
+        tasksExecuted                                      | message
+        '> Task :a SKIPPED\n\n> Task :b SKIPPED'         | "Build output contains only skipped tasks: [:a, :b]"
+        ''                                                 | "Build output does not contain any executed tasks."
+    }
+
+    def "assertion fails when assertNoTasksExecutedandNotSkipped() is called on at least one test that is not skipped"() {
+        def output = """
+> Task :a
+> Task :b
+
+> Task :a
+some content
+
+> Task :b
+other content
+
+> Task :a
+all good
+
+> Task :b SKIPPED
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+        result.assertNoTasksExecutedAndNotSkipped()
+
+        then:
+        def e = thrown(AssertionError)
+        e.message.startsWith("Build output contains unexpected non skipped tasks.\nExpected: []\nActual: [:a]")
+
+    }
+
+    def "can assert no tasks executed and not skipped"() {
+        def output = """
+
+$tasksExecuted
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertNoTasksExecutedAndNotSkipped()
+
+        where:
+        tasksExecuted << [
+            '> Task :a SKIPPED\n\n> Task :b SKIPPED',
+            ''
+        ]
+    }
+
+    def "throws exception when assertTasksExecuted taskPaths is empty"() {
+        def output = """
+> Task :compileMyTestBinaryMyTestJava
+> Task :myTestBinaryTest
+
+MyTest > test FAILED
+    java.lang.AssertionError at MyTest.java:10
+
+1 test completed, 1 failed
+
+> Task :myTestBinaryTest FAILED
+
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+        result.assertTasksExecuted(taskPaths)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("taskPaths cannot be empty.")
+
+        where:
+        taskPaths << [[] as Object[], null]
+    }
+
+    def "throws exception when assertTasksExecutedAndNotSkipped taskPaths is empty"() {
+        def output = """
+> Task :compileMyTestBinaryMyTestJava
+> Task :myTestBinaryTest
+
+MyTest > test FAILED
+    java.lang.AssertionError at MyTest.java:10
+
+1 test completed, 1 failed
+
+> Task :myTestBinaryTest FAILED
+
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+        result.assertTasksExecutedAndNotSkipped(taskPaths)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("taskPaths cannot be empty.")
+
+        where:
+        taskPaths << [[] as Object[], null]
+    }
+
+
+
     def "strips out work in progress area when evaluating rich console output"() {
         def output = """
 \u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Loading projects\u001B[m\u001B[0K\u001B[18D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Loading projects\u001B[m\u001B[18D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Loading projects\u001B[m\u001B[18D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Loading projects\u001B[m\u001B[18D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Loading projects\u001B[m\u001B[18D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[0K\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/ghale/repos/gradle/build/tmp/teŝt files/RichConsoleBasicGroupedTaskLoggingFunctionalTest/long_running_task_o...ter_delay/w661/build.gradle into local compilation cache > Compiling build file '/Users/ghale/repos/gradle/build/tmp/test files/RichConsoleBasicGroupedTaskLoggingFunctionalTest/long_running_task_o...ter_delay/w661/build.gradle' to cross build script cache\u001B[m\u001B[400D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/ghale/repos/gradle/build/tmp/test files/RichConsoleBasicGroupedTaskLoggingFunctionalTest/long_running_task_o...ter_delay/w661/build.gradle into local compilation cache > Compiling build file '/Users/ghale/repos/gradle/build/tmp/test files/RichConsoleBasicGroupedTaskLoggingFunctionalTest/long_running_task_o...ter_delay/w661/build.gradle' to cross build script cache\u001B[m\u001B[400D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% CONFIGURING [2s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[0K\u001B[33D\u001B[1B> IDLE\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [4s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [4s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[0K

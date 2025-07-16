@@ -107,6 +107,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -556,6 +558,34 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             Set<String> expected = new TreeSet<>(flattenTaskPaths(taskPaths));
             assertThat(skippedTasks, equalTo(expected));
             delegate.assertTasksSkipped(expected);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertNoTasksExecutedAndNotSkipped() {
+            assertThat(getNotSkippedTasks(), is(empty()));
+            delegate.assertNoTasksExecutedAndNotSkipped();
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertAnyTasksExecutedAndNotSkipped() {
+            assertThat(getNotSkippedTasks(), is(not(empty())));
+            delegate.assertAnyTasksExecutedAndNotSkipped();
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertNoTasksExecuted() {
+           assertThat(executedTasks, is(empty()));
+           delegate.assertNoTasksExecuted();
+           return this;
+        }
+
+        @Override
+        public ExecutionResult assertAnyTasksExecuted() {
+            assertThat(executedTasks, is(not(empty())));
+            delegate.assertAnyTasksExecuted();
             return this;
         }
 
