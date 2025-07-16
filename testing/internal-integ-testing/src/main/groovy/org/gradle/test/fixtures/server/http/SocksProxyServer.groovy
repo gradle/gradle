@@ -16,9 +16,11 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.bbottema.javasocksproxyserver.SocksServer
+
+import org.bbottema.javasocksproxyserver.SyncSocksServer
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.bbottema.javasocksproxyserver.TestRecordingSocksServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.gradle.util.ports.PortAllocator
 import org.junit.rules.ExternalResource
@@ -35,13 +37,13 @@ import org.junit.rules.ExternalResource
  * To use the proxy with a build, you must call configureProxy(GradleExecuter) before
  * starting the proxy.
  *
- * Use {@link #start(SocksServer)} to start the proxy with an alternate implementation of {@link SocksServer} (for instance,
- * a {@link TestRecordingSocksServer}, which can record connections which would have been made).
  */
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Socks proxy for localhost breaks things")
 class SocksProxyServer extends ExternalResource {
     private PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
-    private SocksServer socksServer
+    private SyncSocksServer socksServer
     private int port
+    private RecordingServerSocketFactory recordingServerSocketFactory
 
     @Override
     protected void after() {
@@ -49,19 +51,22 @@ class SocksProxyServer extends ExternalResource {
     }
 
     void start() {
-        start(new SocksServer())
-    }
-
-    void start(SocksServer socksServer) {
-        assert port > 0
-        this.socksServer = socksServer
-        socksServer.start(port)
+        if (port == 0) {
+            port = portFinder.assignPort()
+        }
+        this.recordingServerSocketFactory = new RecordingServerSocketFactory()
+        this.socksServer = new SyncSocksServer()
+        socksServer.start(port, recordingServerSocketFactory)
         println(this)
     }
 
+    boolean hadConnections() {
+        !recordingServerSocketFactory.getConnectionLog().isEmpty()
+    }
+
     void configureProxy(GradleExecuter executer) {
-        if (port == 0) {
-            port = portFinder.assignPort()
+        if (port <= 0) {
+            throw new IllegalStateException("Port must be assigned before configuring the proxy.")
         }
         // Daemon | Test worker
         // build -> proxy(localhost) -> repo(localhost)
@@ -69,7 +74,7 @@ class SocksProxyServer extends ExternalResource {
         //
         executer.withArgument('-DsocksProxyHost=localhost')
         executer.withArgument("-DsocksProxyPort=${port}")
-        executer.withArgument("-DsocksNonProxyHosts=127.*")
+        executer.withArgument("-DsocksNonProxyHosts=") // to allow connections to localhost via socks proxy
     }
 
     void stop() {

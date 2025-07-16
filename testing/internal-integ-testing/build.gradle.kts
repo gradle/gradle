@@ -79,7 +79,6 @@ dependencies {
     api(libs.samplesDiscovery)
     api(libs.servletApi)
     api(libs.slf4jApi)
-    api(libs.socksProxy)
     api(libs.spock) {
         because("Part of the public API")
     }
@@ -139,6 +138,7 @@ dependencies {
     implementation(libs.nativePlatform)
     implementation(libs.netty)
     implementation(libs.opentest4j)
+    implementation(libs.socksProxy)
     // we depend on both: sshd platforms and libraries
     implementation(libs.sshdCore)
     implementation(platform(libs.sshdCore))
