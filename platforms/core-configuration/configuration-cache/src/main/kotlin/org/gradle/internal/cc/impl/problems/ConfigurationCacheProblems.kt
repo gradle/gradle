@@ -34,7 +34,7 @@ import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
-import org.gradle.internal.cc.impl.ConfigurationCacheAction.Skip
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Discard
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
@@ -133,7 +133,7 @@ class ConfigurationCacheProblems(
             if (cacheAction is Load) {
                 return false
             }
-            if (cacheAction == Skip) {
+            if (cacheAction == Discard) {
                 return true
             }
             if (seenSerializationErrorOnStore) {
@@ -368,7 +368,7 @@ class ConfigurationCacheProblems(
         when (this) {
             is Load -> "reusing"
             Store -> "storing"
-            Skip -> "skipping"
+            Discard -> "discarding"
             is Update -> "updating"
         }
 
@@ -409,7 +409,7 @@ class ConfigurationCacheProblems(
                 cacheAction is Update -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
                 cacheAction is Load && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction is Load -> log("Configuration cache entry reused with {}.", problemCountString)
-                cacheAction == Skip -> log("Configuration cache entry discarded as cache is in read-only mode.")
+                cacheAction == Discard -> log("Configuration cache entry discarded as cache is in read-only mode.")
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
                 hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report

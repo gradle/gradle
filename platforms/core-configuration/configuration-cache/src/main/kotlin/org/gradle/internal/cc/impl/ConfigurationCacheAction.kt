@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.internal.configuration.problems.StructuredMessage
+
 
 /**
  * A build execution strategy chosen by Configuration Cache
@@ -23,6 +25,15 @@ package org.gradle.internal.cc.impl
  * that correspond to the build environment and build parameters of the current invocation.
  */
 internal sealed class ConfigurationCacheAction {
+
+    /**
+     * Whether this action is read-only, i.e., does not create/modify cache entries.
+     */
+    val isReadOnly: Boolean get() = when (this) {
+        Store -> false
+        is Update -> false
+        else -> true
+    }
 
     /**
      * Configuration cache entry is fully loaded and reused.
@@ -44,5 +55,12 @@ internal sealed class ConfigurationCacheAction {
     /**
      * No valid entry was found and no entry should be created, as CC is in read-only mode.
      */
-    data object Skip : ConfigurationCacheAction()
+    data object Discard : ConfigurationCacheAction()
+
+    fun withDescription(description: StructuredMessage): DescribedAction =
+        DescribedAction(this, description)
 }
+
+internal data class DescribedAction(
+    val action: ConfigurationCacheAction, val description: StructuredMessage
+)
