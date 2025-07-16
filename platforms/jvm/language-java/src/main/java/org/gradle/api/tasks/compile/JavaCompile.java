@@ -58,7 +58,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.jvm.toolchain.JavaCompiler;
@@ -94,16 +93,12 @@ import java.util.concurrent.Callable;
  */
 @CacheableTask
 public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
-    private final CompileOptions compileOptions;
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
-    private final ModularitySpec modularity;
     private File previousCompilationDataFile;
     private final Property<JavaCompiler> javaCompiler;
 
     public JavaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
-        compileOptions = objectFactory.newInstance(CompileOptions.class);
-        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavaCompiler> javaCompilerConvention = getProviderFactory()
             .provider(() -> JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(this, getPropertyFactory()))
@@ -111,8 +106,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             .orElse(javaToolchainService.compilerFor(it -> {}));
         javaCompiler = objectFactory.property(JavaCompiler.class).convention(javaCompilerConvention);
         javaCompiler.finalizeValueOnRead();
-        compileOptions.getIncrementalAfterFailure().convention(true);
-        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+        getOptions().getIncrementalAfterFailure().convention(true);
+        CompilerForkUtils.doNotCacheIfForkingViaExecutable(getOptions(), getOutputs());
     }
 
     /**
@@ -144,7 +139,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @TaskAction
     protected void compile(InputChanges inputs) {
         DefaultJavaCompileSpec spec = createSpec();
-        if (!compileOptions.isIncremental()) {
+        if (!getOptions().isIncremental()) {
             performFullCompilation(spec);
         } else {
             performIncrementalCompilation(inputs, spec);
@@ -230,10 +225,10 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         validateForkOptionsMatchToolchain();
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
-        boolean isSourcepathUserDefined = compileOptions.getSourcepath() != null && !compileOptions.getSourcepath().isEmpty();
+        boolean isModule = JavaModuleDetector.isModuleSource(getModularity().getInferModulePath().get(), sourcesRoots);
+        boolean isSourcepathUserDefined = getOptions().getSourcepath() != null && !getOptions().getSourcepath().isEmpty();
 
-        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
+        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(getOptions(), getToolchain()).create();
 
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
@@ -242,9 +237,9 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
 
         if (isModule && !isSourcepathUserDefined) {
-            compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
+            getOptions().setSourcepath(getProjectLayout().files(sourcesRoots));
         }
-        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(getOptions().getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(getOptions().getAnnotationProcessorPath()));
         configureCompileOptions(spec);
         spec.setSourcesRoots(sourcesRoots);
 
@@ -294,8 +289,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private void configureCompileOptions(DefaultJavaCompileSpec spec) {
-        if (compileOptions.getRelease().isPresent()) {
-            spec.setRelease(compileOptions.getRelease().get());
+        if (getOptions().getRelease().isPresent()) {
+            spec.setRelease(getOptions().getRelease().get());
         } else {
             String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
             String sourceCompatibility = getSourceCompatibility();
@@ -312,7 +307,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             spec.setSourceCompatibility(sourceCompatibility);
             spec.setTargetCompatibility(targetCompatibility);
         }
-        spec.setCompileOptions(compileOptions);
+        spec.setCompileOptions(getOptions());
     }
 
     private JavaInstallationMetadata getToolchain() {
@@ -330,9 +325,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      * @since 6.4
      */
     @Nested
-    public ModularitySpec getModularity() {
-        return modularity;
-    }
+    public abstract ModularitySpec getModularity();
 
     /**
      * Returns the compilation options.
@@ -341,9 +334,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      */
     @Nested
     @Override
-    public CompileOptions getOptions() {
-        return compileOptions;
-    }
+    public abstract CompileOptions getOptions();
 
     @Override
     @CompileClasspath

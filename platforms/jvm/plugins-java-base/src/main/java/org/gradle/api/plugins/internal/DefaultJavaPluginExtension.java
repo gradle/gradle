@@ -26,12 +26,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
-import org.gradle.api.jvm.ModularitySpec;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
@@ -41,7 +38,6 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
@@ -68,62 +64,35 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * multiple components may be created by JVM language plugins in the future.
  */
 @SuppressWarnings("JavadocReference")
-public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
+public abstract class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     private static final Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
     private final SourceSetContainer sourceSets;
 
     private final JavaToolchainSpecInternal toolchainSpec;
-    private final ObjectFactory objectFactory;
-    private final ModularitySpec modularity;
     private final JavaToolchainSpec toolchain;
     private final ProjectInternal project;
 
-    private final DirectoryProperty docsDir;
-    private final DirectoryProperty testResultsDir;
-    private final DirectoryProperty testReportDir;
-    private final Property<Boolean> autoTargetJvm;
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
 
     @Inject
     public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
-        this.docsDir = project.getObjects().directoryProperty();
-        this.testResultsDir = project.getObjects().directoryProperty();
-        this.testReportDir = project.getObjects().directoryProperty(); //TestingBasePlugin.TESTS_DIR_NAME;
-        this.autoTargetJvm = project.getObjects().property(Boolean.class).convention(true);
         this.project = project;
         this.sourceSets = sourceSets;
         this.toolchainSpec = toolchainSpec;
-        this.objectFactory = project.getObjects();
-        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.toolchain = toolchainSpec;
         configureDefaults();
     }
 
     private void configureDefaults() {
-        docsDir.convention(project.getLayout().getBuildDirectory().dir("docs"));
-        testResultsDir.convention(project.getLayout().getBuildDirectory().dir(TestingBasePlugin.TEST_RESULTS_DIR_NAME));
-        testReportDir.convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
+        getDocsDir().convention(project.getLayout().getBuildDirectory().dir("docs"));
+        getTestResultsDir().convention(project.getLayout().getBuildDirectory().dir(TestingBasePlugin.TEST_RESULTS_DIR_NAME));
+        getTestReportDir().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
     }
 
     @Override
     public Object sourceSets(@SuppressWarnings("rawtypes") Closure closure) {
         return sourceSets.configure(closure);
-    }
-
-    @Override
-    public DirectoryProperty getDocsDir() {
-        return docsDir;
-    }
-
-    @Override
-    public DirectoryProperty getTestResultsDir() {
-        return testResultsDir;
-    }
-
-    @Override
-    public DirectoryProperty getTestReportDir() {
-        return testReportDir;
     }
 
     @Override
@@ -198,19 +167,16 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
 
     @Override
     public void disableAutoTargetJvm() {
-        this.autoTargetJvm.set(false);
+        getAutoTargetJvm().set(false);
     }
 
     @Override
     public boolean getAutoTargetJvmDisabled() {
-        return !autoTargetJvm.get();
+        return !getAutoTargetJvm().get();
     }
 
     @Override
-    public Property<Boolean> getAutoTargetJvm() {
-        return autoTargetJvm;
-    }
-
+    public abstract Property<Boolean> getAutoTargetJvm();
     /**
      * @implNote throws an exception if used when multiple {@link JvmSoftwareComponentInternal} components are present.
      */
@@ -269,11 +235,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     @Override
     public void withSourcesJar() {
        project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withSourcesJar);
-    }
-
-    @Override
-    public ModularitySpec getModularity() {
-        return modularity;
     }
 
     @Override

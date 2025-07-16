@@ -69,7 +69,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -168,7 +167,6 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
     private final JavaForkOptions forkOptions;
-    private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
     private FileCollection testClassesDirs;
@@ -197,7 +195,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
-        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
@@ -644,9 +641,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 6.4
      */
     @Nested
-    public ModularitySpec getModularity() {
-        return modularity;
-    }
+    public abstract ModularitySpec getModularity();
 
     /**
      * {@inheritDoc}
@@ -660,7 +655,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         copyTo(javaForkOptions);
         javaForkOptions.systemProperty(TestWorker.WORKER_TMPDIR_SYS_PROPERTY, new File(getTemporaryDir(), "work"));
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
+        boolean testIsModule = javaModuleDetector.isModule(getModularity().getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);

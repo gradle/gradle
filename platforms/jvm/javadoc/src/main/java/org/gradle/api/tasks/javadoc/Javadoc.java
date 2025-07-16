@@ -49,7 +49,6 @@ import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
@@ -121,7 +120,6 @@ public abstract class Javadoc extends SourceTask {
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
-    private final ModularitySpec modularity;
 
     @Nullable
     private String executable;
@@ -130,13 +128,12 @@ public abstract class Javadoc extends SourceTask {
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
         PropertyFactory propertyFactory = getPropertyFactory();
-        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavadocTool> javadocToolConvention = getProviderFactory()
             .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
             .flatMap(javaToolchainService::javadocToolFor)
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
-        this.javadocTool = propertyFactory.property(JavadocTool.class).convention(javadocToolConvention);
+        this.javadocTool = objectFactory.property(JavadocTool.class).convention(javadocToolConvention);
         this.javadocTool.finalizeValueOnRead();
     }
 
@@ -192,7 +189,7 @@ public abstract class Javadoc extends SourceTask {
 
     private boolean isModule() {
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource());
-        return JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
+        return JavaModuleDetector.isModuleSource(getModularity().getInferModulePath().get(), sourcesRoots);
     }
 
     private List<String> sourceNames() {
@@ -335,9 +332,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 6.4
      */
     @Nested
-    public ModularitySpec getModularity() {
-        return modularity;
-    }
+    public abstract ModularitySpec getModularity();
 
     /**
      * Returns the Javadoc generation options.

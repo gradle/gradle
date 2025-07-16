@@ -23,10 +23,9 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
@@ -37,6 +36,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -58,24 +58,20 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
  * Use {@link JavaExecHandleFactory} instead.
  */
 @NullMarked
-public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+public abstract class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
 
     private final FileCollectionFactory fileCollectionFactory;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final JavaModuleDetector javaModuleDetector;
-    private final Property<String> mainModule;
-    private final Property<String> mainClass;
-    private final ListProperty<String> jvmArguments;
+    private final @Nullable JavaModuleDetector javaModuleDetector;
     private final ClientExecHandleBuilder execHandleBuilder;
     private ConfigurableFileCollection classpath;
     private final JavaForkOptionsInternal javaOptions;
-    private final ModularitySpec modularity;
 
+    @Inject
     public JavaExecHandleBuilder(
         FileCollectionFactory fileCollectionFactory,
-        ObjectFactory objectFactory,
         TemporaryFileProvider temporaryFileProvider,
         @Nullable JavaModuleDetector javaModuleDetector,
         JavaForkOptionsInternal javaOptions,
@@ -85,11 +81,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         this.temporaryFileProvider = temporaryFileProvider;
         this.javaModuleDetector = javaModuleDetector;
         this.classpath = fileCollectionFactory.configurableFiles("classpath");
-        this.mainModule = objectFactory.property(String.class);
-        this.mainClass = objectFactory.property(String.class);
-        this.jvmArguments = objectFactory.listProperty(String.class);
         this.javaOptions = javaOptions;
-        this.modularity = new DefaultModularitySpec(objectFactory);
         this.execHandleBuilder = execHandleBuilder;
         setExecutable(javaOptions.getExecutable());
     }
@@ -100,7 +92,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     private List<String> getAllJvmArgs(FileCollection realClasspath) {
         List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
-        boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
+        boolean runAsModule = getModularity().getInferModulePath().get() && getMainModule().isPresent();
 
         if (runAsModule) {
             addModularJavaRunArgs(realClasspath, allArgs);
@@ -112,7 +104,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     private void addClassicJavaRunArgs(FileCollection classpath, List<String> allArgs) {
-        if (!mainClass.isPresent()) {
+        if (!getMainClass().isPresent()) {
             if (classpath != null && classpath.getFiles().size() == 1) {
                 allArgs.add("-jar");
                 allArgs.add(classpath.getSingleFile().getAbsolutePath());
@@ -124,7 +116,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
                 allArgs.add("-cp");
                 allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
             }
-            allArgs.add(mainClass.get());
+            allArgs.add(getMainClass().get());
         }
     }
 
@@ -132,8 +124,8 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         if (javaModuleDetector == null) {
             throw new IllegalStateException("Running a Java module is not supported in this context.");
         }
-        FileCollection rtModulePath = javaModuleDetector.inferModulePath(modularity.getInferModulePath().get(), classpath);
-        FileCollection rtClasspath = javaModuleDetector.inferClasspath(modularity.getInferModulePath().get(), classpath);
+        FileCollection rtModulePath = javaModuleDetector.inferModulePath(getModularity().getInferModulePath().get(), classpath);
+        FileCollection rtClasspath = javaModuleDetector.inferClasspath(getModularity().getInferModulePath().get(), classpath);
 
         if (rtClasspath != null && !rtClasspath.isEmpty()) {
             allArgs.add("-cp");
@@ -144,10 +136,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
             allArgs.add(CollectionUtils.join(File.pathSeparator, rtModulePath));
         }
         allArgs.add("--module");
-        if (!mainClass.isPresent()) {
-            allArgs.add(mainModule.get());
+        if (!getMainClass().isPresent()) {
+            allArgs.add(getMainModule().get());
         } else {
-            allArgs.add(mainModule.get() + "/" + mainClass.get());
+            allArgs.add(getMainModule().get() + "/" + getMainClass().get());
         }
     }
 
@@ -173,9 +165,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return this;
     }
 
-    public ListProperty<String> getJvmArguments() {
-        return jvmArguments;
-    }
+    public abstract ListProperty<String> getJvmArguments();
 
     public Map<String, @Nullable Object> getSystemProperties() {
         return javaOptions.getSystemProperties();
@@ -303,13 +293,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return this;
     }
 
-    public Property<String> getMainModule() {
-        return mainModule;
-    }
+    public abstract Property<String> getMainModule();
 
-    public Property<String> getMainClass() {
-        return mainClass;
-    }
+    public abstract Property<String> getMainClass();
 
     @NonNull
     public List<String> getArgs() {
@@ -348,9 +334,8 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return this;
     }
 
-    public ModularitySpec getModularity() {
-        return modularity;
-    }
+    @Nested
+    public abstract ModularitySpec getModularity();
 
     public JavaExecHandleBuilder classpath(Object... paths) {
         this.classpath.from(paths);

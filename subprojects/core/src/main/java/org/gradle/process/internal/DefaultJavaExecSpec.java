@@ -19,12 +19,8 @@ package org.gradle.process.internal;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Property;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
 import org.jspecify.annotations.Nullable;
@@ -39,16 +35,11 @@ import java.util.List;
 import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
 
 
-public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
+public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
 
     private boolean ignoreExitValue;
     private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
-
-    private final Property<String> mainClass;
-    private final Property<String> mainModule;
-    private final ModularitySpec modularity;
-    private final ListProperty<String> jvmArguments;
 
     private final FileCollectionFactory fileCollectionFactory;
     private ConfigurableFileCollection classpath;
@@ -60,10 +51,6 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         FileCollectionFactory fileCollectionFactory
     ) {
         super(objectFactory, resolver, fileCollectionFactory);
-        this.jvmArguments = objectFactory.listProperty(String.class);
-        this.mainClass = objectFactory.property(String.class);
-        this.mainModule = objectFactory.property(String.class);
-        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.fileCollectionFactory = fileCollectionFactory;
         this.classpath = fileCollectionFactory.configurableFiles("classpath");
     }
@@ -72,9 +59,9 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         // JavaExecSpec
         targetSpec.setArgs(getArgs());
         targetSpec.getArgumentProviders().addAll(getArgumentProviders());
-        targetSpec.getMainClass().set(getMainClass());
-        targetSpec.getMainModule().set(getMainModule());
-        targetSpec.getModularity().getInferModulePath().set(getModularity().getInferModulePath());
+        targetSpec.getMainClass().convention(getMainClass());
+        targetSpec.getMainModule().convention(getMainModule());
+        targetSpec.getModularity().getInferModulePath().convention(getModularity().getInferModulePath());
         targetSpec.classpath(getClasspath());
         // BaseExecSpec
         copyBaseExecSpecTo(this, targetSpec);
@@ -201,25 +188,5 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     public void setAllJvmArgs(Iterable<?> arguments) {
         getJvmArguments().empty();
         super.setAllJvmArgs(arguments);
-    }
-
-    @Override
-    public ListProperty<String> getJvmArguments() {
-        return jvmArguments;
-    }
-
-    @Override
-    public Property<String> getMainClass() {
-        return mainClass;
-    }
-
-    @Override
-    public Property<String> getMainModule() {
-        return mainModule;
-    }
-
-    @Override
-    public ModularitySpec getModularity() {
-        return modularity;
     }
 }

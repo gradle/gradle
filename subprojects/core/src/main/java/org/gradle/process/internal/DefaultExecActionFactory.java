@@ -192,14 +192,15 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(
+        JavaExecHandleBuilder javaExecHandleBuilder = objectFactory.newInstance(JavaExecHandleBuilder.class,
             fileCollectionFactory,
-            objectFactory,
             temporaryFileProvider,
             javaModuleDetector,
             newJavaForkOptions(),
             execHandleFactory.newExecHandleBuilder()
         );
+        javaExecHandleBuilder.getModularity().getInferModulePath().convention(true);
+        return javaExecHandleBuilder;
     }
 
     @Override

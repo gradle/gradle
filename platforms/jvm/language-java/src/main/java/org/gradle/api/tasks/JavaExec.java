@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -31,7 +30,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
@@ -116,28 +114,21 @@ import static java.util.Collections.emptyList;
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
-
     private final DefaultJavaExecSpec javaExecSpec;
-    private final Property<String> mainModule;
-    private final Property<String> mainClass;
-    private final ModularitySpec modularity;
-    private final Property<ExecResult> execResult;
     private final Property<JavaLauncher> javaLauncher;
+    private final Property<ExecResult> execResult;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
-        mainModule = objectFactory.property(String.class);
-        mainClass = objectFactory.property(String.class);
-        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
 
         Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
         javaExecSpec.getJvmArguments().convention(jvmArgumentsConvention);
 
-        javaExecSpec.getMainClass().convention(mainClass);
-        javaExecSpec.getMainModule().convention(mainModule);
-        javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
+        javaExecSpec.getMainClass().convention(getMainClass());
+        javaExecSpec.getMainModule().convention(getMainModule());
+        javaExecSpec.getModularity().getInferModulePath().convention(getModularity().getInferModulePath());
 
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         PropertyFactory propertyFactory = getPropertyFactory();
@@ -418,23 +409,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public Property<String> getMainModule() {
-        return mainModule;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Property<String> getMainClass() {
-        return mainClass;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @ToBeReplacedByLazyProperty
     public List<String> getArgs() {
         return javaExecSpec.getArgs();
@@ -532,14 +506,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return javaExecSpec.getClasspath();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ModularitySpec getModularity() {
-        return modularity;
     }
 
     /**

@@ -1,11 +1,59 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getModularity()",
+            "acceptation": "the base class is abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getModularity()",
+            "acceptation": "the base class is abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getModularity()",
+            "acceptation": "the base class is abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.TestResult",
             "member": "Method org.gradle.api.tasks.testing.TestResult.getAssumptionFailure()",
             "acceptation": "Was always nullable, this is correctly reflecting the state of the code",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()",
+            "acceptation": "the base class is abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()",
+            "acceptation": "the base class is abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getModularity()",
+            "acceptation": "the base class is abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         }
     ]

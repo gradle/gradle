@@ -33,9 +33,8 @@ class JavaExecHandleBuilderTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
-    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(
+    JavaExecHandleBuilder builder = TestUtil.objectFactory().newInstance(JavaExecHandleBuilder,
         TestFiles.fileCollectionFactory(),
-        TestUtil.objectFactory(),
         temporaryFileProvider,
         null,
         TestFiles.execFactory().newJavaForkOptions(),
@@ -168,9 +167,8 @@ class JavaExecHandleBuilderTest extends Specification {
                 Set<File> getFiles() { [libJar] }
             }
         }
-        builder = new JavaExecHandleBuilder(
+        builder = TestUtil.objectFactory().newInstance(JavaExecHandleBuilder,
             TestFiles.fileCollectionFactory(),
-            TestUtil.objectFactory(),
             temporaryFileProvider,
             moduleDetector,
             TestFiles.execFactory().newJavaForkOptions(),
