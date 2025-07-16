@@ -18,12 +18,13 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.test.fixtures.DependencyDeclarationFixture
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Issue
 
-class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements DependencyDeclarationFixture {
     ResolveTestFixture resolve
 
     def setup() {
@@ -119,13 +120,8 @@ configurations { compile }
 configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
 }
-
 dependencies {
-    if (${name.contains(':') || name.contains('@')}) {
-        compile(project.dependencyFactory.create(/${name}/, /${name}/, "latest.integration"))
-    } else {
-        compile(/${name}:${name}:latest.integration/)
-    }
+    compile(${asDependencyNotation(name, name, "latest.integration")})
 }
 """
         when:
