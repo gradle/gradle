@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer
 
+import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT
 
@@ -723,7 +724,7 @@ BUILD FAILED in 13s
 
         then:
         def e = thrown(AssertionError)
-        e.message.startsWith("Build output contains unexpected non skipped tasks.\nExpected: []\nActual: [:a]")
+        TextUtil.convertLineSeparatorsToUnix(e.message).startsWith("Build output contains unexpected non skipped tasks.\nExpected: []\nActual: [:a]");
 
     }
 
