@@ -77,6 +77,3 @@ tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

@@ -57,9 +57,6 @@ dependencies {
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalIntegTesting)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
 
 packageCycles {
     excludePatterns.add("org/gradle/api/problems/**") // ProblemId.create() and ProblemGroup.create() return internal types

@@ -84,6 +84,3 @@ fun Test.setupPreconditionTesting() {
     // These tests should always run
     outputs.upToDateWhen { false }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

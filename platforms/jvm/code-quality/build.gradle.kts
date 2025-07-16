@@ -76,6 +76,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/quality/internal/*")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
