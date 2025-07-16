@@ -119,8 +119,9 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
             execSpec.jvmArgs(jvmArgs);
         } else {
             // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
+            // This branch is only taken on Java 8, so the removal of the SecurityManager in the future is not an issue.
             execSpec.classpath(workerMainClassPath);
-            execSpec.systemProperty("java.security.manager", WORKER_GRADLE_REMAPPING_PREFIX + "." + BootstrapSecurityManager.class.getName());
+            execSpec.systemProperty("java.security.manager", WORKER_GRADLE_REMAPPING_PREFIX + "." + "org.gradle.process.internal.worker.child.BootstrapSecurityManager");
         }
 
         // Serialize configuration for the worker process to it stdin
