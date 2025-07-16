@@ -67,6 +67,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(List<String> arguments) {
         DeprecationLogger.deprecateMethod(DefaultJavaForkOptions.class, "setAllJvmArgs")
             .withAdvice("Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
@@ -80,7 +81,13 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(Iterable<?> arguments) {
+        DeprecationLogger.deprecateMethod(DefaultJavaForkOptions.class, "setAllJvmArgs")
+            .withAdvice("Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "set-all-jvm-args")
+            .nagUser();
         options.setAllJvmArgs(arguments);
         if (hasJvmArgumentProviders(this)) {
             jvmArgumentProviders.clear();
