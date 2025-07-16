@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 
 /**
- * The documentation generation {@link org.gradle.api.Task} implementations.
+ * Internal types used by the {@link org.gradle.api.tasks.javadoc.Javadoc} task implementations.
  */
-@NullMarked
-package org.gradle.api.tasks.javadoc;
-
-import org.jspecify.annotations.NullMarked;
+@org.jspecify.annotations.NullMarked
+package org.gradle.api.tasks.javadoc.internal;

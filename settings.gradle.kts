@@ -231,6 +231,7 @@ val jvm = platform("jvm") {
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
+    subproject("javadoc")
     subproject("jvm-services")
     subproject("language-groovy")
     subproject("language-java")
