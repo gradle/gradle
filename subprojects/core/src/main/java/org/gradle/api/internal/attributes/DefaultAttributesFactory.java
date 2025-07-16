@@ -228,7 +228,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
      *
      * @throws IllegalArgumentException if attribute with same name and different type already exists
      */
-    public void assertAttributeNotAlreadyPresent(ImmutableAttributes container, Attribute<?> key) {
+    void assertAttributeNotAlreadyPresent(ImmutableAttributes container, Attribute<?> key) {
         ImmutableAttributesEntry<?> entry = container.findEntry(key.getName());
         if (entry != null && entry.getKey().getType() != key.getType()) {
             throw new IllegalArgumentException(buildSameNameDifferentTypeErrorMsg(key, entry.getKey()));

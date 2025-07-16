@@ -116,7 +116,12 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
         }
 
         DefaultImmutableAttributesEntry<?> that = (DefaultImmutableAttributesEntry<?>) o;
-        return attribute.equals(that.attribute) && value.equals(that.value);
+
+        // The coercion cache is not part of the equals/hashCode contract, as it is transient
+        // and not part of the entry's identity.
+
+        return attribute.equals(that.attribute) &&
+            value.equals(that.value);
     }
 
     private static <T> int computeHashCode(Attribute<T> attribute, Isolatable<T> value) {

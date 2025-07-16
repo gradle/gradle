@@ -22,9 +22,13 @@ import org.gradle.internal.isolation.Isolatable;
 import java.util.Objects;
 
 /**
- * An entry of an {@link ImmutableAttributes} container.
+ * An entry of an {@link ImmutableAttributes} container. This type contains
+ * both the attribute key and the value corresponding to that key.
  * <p>
- * This type contains both the attribute key and the value corresponding to that key.
+ * This type differs from {@link AttributeEntry} in that is supports coercing
+ * the value to a different type. In order to support coercion efficiently, this
+ * entry may leverage strategies like caching, making this type more heavyweight
+ * than {@link AttributeEntry}.
  *
  * @param <T> the type of the attribute
  */

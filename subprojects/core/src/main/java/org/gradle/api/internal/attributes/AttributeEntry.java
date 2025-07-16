@@ -22,6 +22,12 @@ import org.gradle.internal.isolation.Isolatable;
 /**
  * A type safe pair of an {@link Attribute} key and an {@link Isolatable} value which has the
  * same type as the attribute.
+ * <p>
+ * This type is intended to be used specifically in mutable
+ * {@link org.gradle.api.attributes.AttributeContainer} implementations. While immutable,
+ * this type differs from {@link ImmutableAttributesEntry} in that it does not support coercion.
+ * We should consider combining these two entry implementations together, but we should
+ * be careful to avoid the overhead of the coercion cache in the "sugared" mutable containers.
  *
  * @param <T> The type that the key and value share.
  */
