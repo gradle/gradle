@@ -17,15 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /* package */ abstract class MessageBuilderHelper {
     public static final String PATH_SEPARATOR = " --> ";
@@ -35,13 +33,17 @@ import java.util.stream.Collectors;
     public static List<String> formattedPathsTo(EdgeState edge) {
         return findPathsTo(edge).stream().map(path -> {
             String header = Iterables.getLast(path).getSelector().getDependencyMetadata().isConstraint() ? "Constraint" : "Dependency";
-            String formattedPath = path.stream()
-                .map(EdgeState::getFrom)
-                .map(NodeState::getDisplayName)
+            String formattedPath = streamNodeNames(path)
                 .collect(Collectors.joining(" --> "));
 
             return header + " path: " + formattedPath;
         }).collect(Collectors.toList());
+    }
+
+    /* package */ static List<List<String>> segmentedPathsTo(EdgeState edge) {
+        return findPathsTo(edge).stream()
+            .map(p -> streamNodeNames(p).collect(Collectors.toList()))
+            .collect(Collectors.toList());
     }
 
     private static List<List<EdgeState>> findPathsTo(EdgeState edge) {
@@ -68,47 +70,9 @@ import java.util.stream.Collectors;
         }
     }
 
-    /* package */ static List<List<String>> segmentedPathsTo(EdgeState edge, boolean includeLast) {
-        List<List<EdgeState>> acc = new ArrayList<>(1);
-        pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
-        List<List<String>> result = new ArrayList<>(acc.size());
-        for (List<EdgeState> path : acc) {
-            List<String> currentPath = segmentedPathTo(edge, includeLast, path);
-            result.add(currentPath);
-        }
-        return result;
-    }
-
-    private static List<String> segmentedPathTo(EdgeState edge, boolean includeLast, List<EdgeState> path) {
-        List<String> currentPath = new ArrayList<>(path.size());
-        String variantDetails = null;
-        for (EdgeState e : path) {
-            ModuleVersionIdentifier id = e.getFrom().getComponent().getModuleVersion();
-            String currentSegment = "'" + id + "'";
-            if (variantDetails != null) {
-                currentSegment += variantDetails;
-            }
-            variantDetails = variantDetails(e);
-            currentPath.add(currentSegment);
-        }
-        if (includeLast) {
-            SelectorState selector = edge.getSelector();
-            ModuleIdentifier moduleId = selector.getTargetModule().getId();
-            String lastSegment = "'" + moduleId.getGroup()+ ":" + moduleId.getName() + "'";
-            if (variantDetails != null) {
-                lastSegment += variantDetails;
-            }
-            currentPath.add(lastSegment);
-        }
-        return currentPath;
-    }
-
-    @Nullable
-    private static String variantDetails(EdgeState e) {
-        String selectedVariantName = e.hasSelectedVariant() ? e.getSelectedNode().getMetadata().getName() : null;
-        if (selectedVariantName != null) {
-            return " (" + selectedVariantName + ")";
-        }
-        return null;
+    private static Stream<String> streamNodeNames(List<EdgeState> path) {
+        return path.stream()
+            .map(EdgeState::getFrom)
+            .map(NodeState::getDisplayName);
     }
 }

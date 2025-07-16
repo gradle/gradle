@@ -410,10 +410,6 @@ class EdgeState implements DependencyGraphEdge {
         return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
     }
 
-    boolean hasSelectedVariant() {
-        return resolvedVariant != null || !findTargetNodes().isEmpty();
-    }
-
     @Nullable
     @Override
     public Long getSelectedVariant() {
@@ -432,7 +428,17 @@ class EdgeState implements DependencyGraphEdge {
             return resolvedVariant;
         }
 
-        List<NodeState> targetNodes = findTargetNodes();
+        List<NodeState> targetNodes = this.targetNodes;
+        if (targetNodes.isEmpty()) {
+            // TODO: This code is not correct. At the end of graph traversal,
+            // all edges that are part of the graph should have target nodes.
+            // Going to the target component and grabbing all of its nodes
+            // is certainly not the right thing to do here.
+            ComponentState targetComponent = getTargetComponent();
+            if (targetComponent != null) {
+                targetNodes = targetComponent.getNodes();
+            }
+        }
 
         assert !targetNodes.isEmpty();
 
@@ -445,21 +451,6 @@ class EdgeState implements DependencyGraphEdge {
             }
         }
         return null;
-    }
-
-    private List<NodeState> findTargetNodes() {
-        List<NodeState> targetNodes = this.targetNodes;
-        if (targetNodes.isEmpty()) {
-            // TODO: This code is not correct. At the end of graph traversal,
-            // all edges that are part of the graph should have target nodes.
-            // Going to the target component and grabbing all of its nodes
-            // is certainly not the right thing to do here.
-            ComponentState targetComponent = getTargetComponent();
-            if (targetComponent != null) {
-                targetNodes = targetComponent.getNodes();
-            }
-        }
-        return targetNodes;
     }
 
     @Override

@@ -82,7 +82,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
     // endregion Component Selection failures
 
-
     // region Variant Selection failures
     def "demonstrate ambiguous graph variant selection failure with single disambiguating value for project"() {
         ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute.prepare()

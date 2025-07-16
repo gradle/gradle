@@ -73,10 +73,10 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
     private String summarizeReason(AssessedSelectionReason reason) {
         StringBuilder sb = new StringBuilder(reason.getRequiredVersion());
 
-        if (reason.getSegmentedSelectionPath().size() > 2) {
-            String lastSegment = reason.getSegmentedSelectionPath().get(reason.getSegmentedSelectionPath().size() - 2);
-            sb.append(" - via ")
-                .append(lastSegment);
+        if (reason.getSegmentedSelectionPath().size() > 1) {
+            // If the path has more than one segment, it indicates a transitive selection path which could be arbitrarily deep, so just show the first segment
+            sb.append(" - transitively via ")
+                .append(reason.getLastSegment());
         } else if (reason.isFromLock()) {
             sb.append(" - via Dependency Locking");
         }

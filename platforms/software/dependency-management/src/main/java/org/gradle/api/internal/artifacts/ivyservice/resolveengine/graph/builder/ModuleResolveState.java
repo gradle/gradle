@@ -537,6 +537,6 @@ public class ModuleResolveState implements CandidateModule {
 
     public Map<SelectorState, List<List<String>>> getSegmentedPathsBySelectors() {
         return getAllEdges().stream()
-            .collect(Collectors.toMap(EdgeState::getSelector, edge -> MessageBuilderHelper.segmentedPathsTo(edge, true)));
+            .collect(Collectors.toMap(EdgeState::getSelector, MessageBuilderHelper::segmentedPathsTo));
     }
 }
