@@ -2,7 +2,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.workers.WorkerExecutor;
 import org.gradle.api.tasks.TaskAction;
 
-import javax.inject.Inject
+import javax.inject.Inject;
 
 // tag::download[]
 public class Download extends DefaultTask {
