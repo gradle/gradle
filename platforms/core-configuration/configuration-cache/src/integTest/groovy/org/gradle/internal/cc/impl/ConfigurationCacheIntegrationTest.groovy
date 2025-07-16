@@ -80,7 +80,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         ]
     }
 
-    def "should load an entry on a cache cache hit if in read-only mode"() {
+    def "should load an entry on a cache hit if in read-only mode"() {
         def configurationCache = newConfigurationCacheFixture()
 
         given:
