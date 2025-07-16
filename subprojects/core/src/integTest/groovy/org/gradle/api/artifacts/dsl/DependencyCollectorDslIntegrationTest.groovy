@@ -134,7 +134,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
         when:
         if (expression.contains("module(")) {
-            executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+            executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"org.example:foo:1.0\". Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
         }
         succeeds("help")
 
@@ -310,7 +310,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
         when:
         if (expression.contains("module(")) {
-            executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+            executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"org.example:foo:1.0\". Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
         }
         succeeds("help")
 

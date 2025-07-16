@@ -63,7 +63,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug")
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation()
+                expectMultiStringNotationDeprecation(agpVersion)
             }
             .build()
     }
@@ -71,7 +71,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug")
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
             }
             .build()
     }

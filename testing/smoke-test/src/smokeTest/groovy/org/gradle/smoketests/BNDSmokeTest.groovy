@@ -158,7 +158,7 @@ public class MyUtil {
         when:
         runner(":jar")
             // See https://github.com/bndtools/bnd/blob/86c306d06095e1b69f5d73bdb8e178a55742d1ab/gradle-plugins/biz.aQute.bnd.gradle/src/main/java/aQute/bnd/gradle/BndBuilderPlugin.java#L110
-            .expectLegacyDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+            .expectLegacyDeprecationWarning("Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"com.example.direct:direct\". Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation")
             .build()
 
         then: "version numbers exist in the manifest"
@@ -347,7 +347,7 @@ public class MyUtil {
         expect:
         runner(":resolve")
             // See https://github.com/bndtools/bnd/blob/86c306d06095e1b69f5d73bdb8e178a55742d1ab/gradle-plugins/biz.aQute.bnd.gradle/src/main/java/aQute/bnd/gradle/BndBuilderPlugin.java#L110
-            .expectLegacyDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+            .expectLegacyDeprecationWarning("Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"com.example.direct:direct\". Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation")
             .build()
     }
 

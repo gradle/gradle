@@ -475,11 +475,11 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         """
 
         expect: 'we will request an incorrect dependency'
-        executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+        executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"org.apache.commons:commons-lang3:3.11:com.google.guava:guava:30.1.1-jre\". Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
         succeeds 'checkConfiguration'
 
         and: 'and not be able to run the suite, failing at resolution time'
-        executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+        executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"org.apache.commons:commons-lang3:3.11:com.google.guava:guava:30.1.1-jre\". Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
         fails suiteName
         result.assertHasErrorOutput("Could not resolve all files for configuration ':${suiteName}CompileClasspath'.")
         result.assertHasErrorOutput("Could not find org.apache.commons:commons-lang3:3.11:com.google.guava:guava:30.1.1-jre:.")
