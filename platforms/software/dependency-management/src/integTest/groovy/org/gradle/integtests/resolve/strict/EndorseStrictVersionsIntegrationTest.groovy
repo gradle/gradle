@@ -197,7 +197,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
 1.0 - via 'org:platform-a:1.0' (runtime)
 2.0 - via 'org:platform-b:1.0' (runtime)"""
-        failure.assertHasResolution "Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict."
+        failure.assertHasResolution "Run with :dependencyInsight --configuration conf --dependency org:foo to view complete paths to each conflicting constraint."
         failure.assertHasResolution "Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection."
     }
 

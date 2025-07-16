@@ -22,6 +22,7 @@ import org.gradle.internal.component.resolution.failure.exception.ConflictingCon
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,7 +49,7 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
             .filter(reason -> reason.getCause() == ComponentSelectionCause.CONSTRAINT)
             .collect(Collectors.groupingBy(AssessedSelectionReason::getRequiredVersion));
         return versionsByReasons.values().stream()
-            .map(reasons -> reasons.iterator().next())
+            .flatMap(Collection::stream)
             .collect(Collectors.toList());
     }
 
@@ -65,8 +66,26 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
     }
 
     private String summarizeFailure(ModuleRejectedFailure failure) {
+        Map<String, Integer> reasons = findConflictingConstraints(failure).stream()
+            .map(this::summarizeReason)
+            .collect(Collectors.groupingBy(summary -> summary, Collectors.summingInt(reason -> 1)));
+
         StringBuilder sb = new StringBuilder("Component is the target of multiple version constraints with conflicting requirements:\n");
-        findConflictingConstraints(failure).forEach(reason -> sb.append(summarizeReason(reason)).append("\n"));
+        reasons.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .forEach(entry -> {
+                sb.append(entry.getKey());
+                int numOtherPaths = entry.getValue() -1;
+                if (numOtherPaths > 0) {
+                    sb.append(" (").append(numOtherPaths).append(" other path");
+                    if (numOtherPaths > 1) {
+                        sb.append("s");
+                    }
+                    sb.append(" to this version)");
+                }
+                sb.append("\n");
+            });
+
         return sb.toString();
     }
 
@@ -74,9 +93,9 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
         StringBuilder sb = new StringBuilder(reason.getRequiredVersion());
 
         if (reason.getSegmentedSelectionPath().size() > 1) {
-            // If the path has more than one segment, it indicates a transitive selection path which could be arbitrarily deep, so just show the first segment
+            // If the path has more than one segment, it indicates a transitive selection path which could be arbitrarily deep, so show the first segment past the root
             sb.append(" - transitively via ")
-                .append(reason.getLastSegment());
+                .append(reason.getSegmentedSelectionPath().get(1));
         } else if (reason.isFromLock()) {
             sb.append(" - via Dependency Locking");
         }

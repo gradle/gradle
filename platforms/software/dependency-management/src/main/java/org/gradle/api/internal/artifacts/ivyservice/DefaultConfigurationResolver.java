@@ -225,7 +225,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             String dependencyNotation = moduleId.getGroup() + ":" + moduleId.getName();
 
             return Collections.singletonList(String.format(
-                "Run with %s --configuration %s --dependency %s to get more insight on how to solve the conflict.",
+                "Run with %s --configuration %s --dependency %s to view complete paths to each conflicting constraint.",
                 taskPath, configurationName, dependencyNotation
             ));
         }

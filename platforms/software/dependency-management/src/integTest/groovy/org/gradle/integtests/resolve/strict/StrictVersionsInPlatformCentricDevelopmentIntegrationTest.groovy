@@ -318,7 +318,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
 3.2
 3.1.1 - via 'org:platform:1.1' ($platformVariant)""") &&
-                failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict.") &&
+                failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to view complete paths to each conflicting constraint.") &&
                 failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
         )
 
@@ -380,7 +380,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
 3.2
 3.1.1 - via 'org:platform:1.1' (enforcedApiElements)"""
-            failure.assertHasResolution "Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict."
+            failure.assertHasResolution "Run with :dependencyInsight --configuration conf --dependency org:foo to view complete paths to each conflicting constraint."
             failure.assertHasResolution "Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection."
 
         } else {
@@ -485,7 +485,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
 3.2 - via 'project :recklessLibrary' (conf)
 3.1.1 - via 'org:platform:1.1' ($platformVariant)"""
-        failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict.") &&
+        failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to view complete paths to each conflicting constraint.") &&
         failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
 
         where:

@@ -161,10 +161,6 @@ public final class SelectionReasonAssessor {
                 return segmentedSelectionPath;
             }
 
-            public String getLastSegment() {
-                return getSegmentedSelectionPath().get(getSegmentedSelectionPath().size() - 1);
-            }
-
             public String getRequiredVersion() {
                 return requiredVersion;
             }

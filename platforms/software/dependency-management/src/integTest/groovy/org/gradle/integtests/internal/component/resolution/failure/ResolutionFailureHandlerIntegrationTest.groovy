@@ -65,11 +65,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.5.3
-4.1.0""")
+4.1.0
+4.5.3""")
 
         and: "Helpful resolutions are provided"
-        assertSuggestsViewingDocs("Run with :dependencyInsight --configuration resolveMe --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
+        assertSuggestsViewingDocs("Run with :dependencyInsight --configuration resolveMe --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
         assertSuggestsViewingDocs("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
 
         and: "Problems are reported"

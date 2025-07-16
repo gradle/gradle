@@ -100,7 +100,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         then:
         failure.assertHasCause """Conflict found for module 'org:foo': between versions 1.1 and 1.0"""
         failure.assertHasResolutions("Run with :dependencyInsight --configuration conf " +
-            "--dependency org:foo to get more insight on how to solve the conflict.",
+            "--dependency org:foo to view complete paths to each conflicting constraint.",
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
             SCAN,
