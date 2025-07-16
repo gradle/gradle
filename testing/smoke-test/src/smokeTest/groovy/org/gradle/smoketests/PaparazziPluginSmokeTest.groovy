@@ -68,7 +68,7 @@ class PaparazziPluginSmokeTest extends AbstractSmokeTest implements RunnerFactor
         agpRunner(agpVersion, 'testDebug')
             .deprecations(AndroidDeprecations) {
                 maybeExpectIsPropertyDeprecationWarnings(agpVersion)
-                expectMultiStringNotationDeprecation()
+                expectMultiStringNotationDeprecation(agpVersion)
             }
             .build()
     }

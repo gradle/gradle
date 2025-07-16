@@ -107,7 +107,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         def result = runner
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation()
+                expectMultiStringNotationDeprecation(agpVersion)
                 expectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
@@ -129,7 +129,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
                 maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
@@ -150,7 +150,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
             }
             .build()
 
@@ -168,14 +168,14 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         agpRunner(agpVersion, 'clean')
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation()
+                expectMultiStringNotationDeprecation(agpVersion)
                 maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
                 maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }.build()
 

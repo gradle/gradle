@@ -127,7 +127,10 @@ public interface Dependencies {
      */
     @Deprecated
     default ExternalModuleDependency module(@Nullable String group, String name, @Nullable String version) {
-        DeprecationLogger.deprecateBehaviour("Declaring dependencies using multi-string notation.")
+        String suggestedNotation = (group == null ? "" : group)  + ":" + name + (version == null ? "" : ":" + version);
+
+        DeprecationLogger.deprecateAction("Declaring dependencies using multi-string notation")
+            .withAdvice("Please use single-string notation instead: \"" + suggestedNotation + "\".")
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(9, "dependency_multi_string_notation")
             .nagUser();
