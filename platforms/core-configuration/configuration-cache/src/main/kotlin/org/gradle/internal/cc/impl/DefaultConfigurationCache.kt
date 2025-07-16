@@ -42,7 +42,10 @@ import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
-import org.gradle.internal.cc.impl.ConfigurationCacheAction.*
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Discard
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
