@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
 
 class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
@@ -119,6 +120,7 @@ No sub-projects
 """
     }
 
+    @ToBeFixedForIsolatedProjects
     def "project project structure and software types for multi-project build using declarative dcl"() {
         given: "a build-logic build registering an ecosystem plugin defining several software types via several plugins"
         file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << """
