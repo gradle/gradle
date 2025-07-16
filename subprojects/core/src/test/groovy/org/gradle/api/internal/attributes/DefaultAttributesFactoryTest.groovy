@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.attributes
 
-
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAR
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAZ
-import static org.gradle.api.internal.attributes.immutable.TestAttributes.FOO
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BOOLEAN_BAR
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.FOO
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.OBJECT_BAR
 
 /**
@@ -213,8 +212,11 @@ class DefaultAttributesFactoryTest extends Specification {
         factory.safeConcat(set1, set2)
 
         then:
-        IllegalArgumentException e = thrown()
-        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Boolean'"
+        AttributeMergingException e = thrown()
+        e.attribute == BOOLEAN_BAR
+        e.leftValue == true
+        e.rightValue == "bar2"
+        e.message == "An attribute named 'bar' of type 'java.lang.Boolean' already exists in this container"
     }
 
     def "safeConcat can detect incompatible attributes with different types when merging; different value and different compatible types"() {
@@ -226,8 +228,11 @@ class DefaultAttributesFactoryTest extends Specification {
         factory.safeConcat(set1, set2)
 
         then:
-        IllegalArgumentException e = thrown()
-        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Object'"
+        AttributeMergingException e = thrown()
+        e.attribute == OBJECT_BAR
+        e.leftValue == "bar1"
+        e.rightValue == "bar2"
+        e.message == "An attribute named 'bar' of type 'java.lang.Object' already exists in this container"
     }
 
     def "safeConcat can detect incompatible attributes with different types when merging; same value and different compatible types"() {

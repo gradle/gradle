@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.internal.GradleInternal
-import org.gradle.execution.plan.ScheduledWork
-import org.gradle.internal.build.BuildState
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
 
+interface SomeToolingModel {
+    String getMessage()
+}
 
-interface VintageGradleBuild {
-    val isRootBuild: Boolean
-    val state: BuildState
-    val gradle: GradleInternal
-    val hasScheduledWork: Boolean
-    val scheduledWork: ScheduledWork
+interface SomeToolingModelParameter {
+    String getMessagePrefix()
+    void setMessagePrefix(String value)
+}
+
+class SomeToolingModelBuildAction implements BuildAction<SomeToolingModel> {
+    @Override
+    SomeToolingModel execute(BuildController controller) {
+        return controller.getModel(SomeToolingModel)
+    }
 }

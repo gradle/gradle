@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 128
+    protected static final THIRD_PARTY_LIB_COUNT = 127
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -186,11 +186,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     def "distribution size should not change too much"() {
         expect:
-        def actual = (int) Math.ceil((double) getZip().size() / 1024 / 1024)
-        def expected = getDistributionSizeMiB()
+        def actualKB = (int) Math.ceil((double) getZip().size() / 1024)
+        def expectedKB = getDistributionSizeMiB() * 1024
 
-        assert actual <= expected + 1: "Distribution is at least 1MiB larger, content needs to be verified. Current size: ${actual} MiB. Expected size: ${expected} MiB."
-        assert actual >= expected - 1: "Distribution is  at least 1MiB smaller, content needs to be verified. Current size: ${actual} MiB. Expected size: ${expected} MiB."
+        int margin = buildContext.version.isSnapshot() ? 1024 : 2048 // Allow 1 MiB margin for current dev, 2 MiB for more stable releases (promotion builds)
+        def message = "content needs to be verified. Current size: ${(int) (actualKB / 1024)} MiB (${actualKB} KiB). Expected size: ${getDistributionSizeMiB()} ± ${margin / 1024} MiB."
+
+        assert actualKB <= expectedKB + margin: "Distribution is unexpectedly larger, $message"
+        assert actualKB >= expectedKB - margin: "Distribution is unexpectedly smaller, $message"
     }
 
     def "no duplicate jar entries in distribution"() {

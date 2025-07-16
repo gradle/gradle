@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.TestFrameworkStartupTestFixture
 
+import static org.gradle.util.Matchers.matchesRegexp
+
 /**
  * Tests behavior of the test task there are problems starting test processing.
  *
@@ -65,6 +67,84 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
 
         and: "No test class results are created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
+    }
+
+    def "mix of startup failure and regular failures show startup failures first"() {
+        given:
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                    }
+                }
+            }
+
+            ${addLoggingTestListener()}
+        """
+
+        addMyTestForJunit5()
+        succeeds("compileTestJava")
+        file("build/classes/java/test/MyOtherTest.class").text = "corrupted content"
+
+        when:
+        fails('test', "-x", "compileTestJava")
+
+        then: "Task failure is reported"
+
+        failure.assertHasFailure("Execution failed for task ':test'.") {
+            it.assertHasCause("Could not execute test class 'MyOtherTest'.")
+        }
+        def testResults = new DefaultTestExecutionResult(testDirectory)
+        testResults.testClassDoesNotExist("MyOtherTest")
+        testResults.testClassExists("MyTest")
+    }
+
+
+    def "test process failing in an unusual way is shown"() {
+        given:
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                    }
+                }
+            }
+
+            ${addLoggingTestListener()}
+        """
+
+        addMyTestForJunit5()
+        file("src/test/java/MyOtherTest.java") << """
+            public class MyOtherTest {
+                @org.junit.jupiter.api.Test
+                void test() {
+                    System.exit(-25);
+                }
+            }
+        """
+        when:
+        executer.withStackTraceChecksDisabled()
+        fails('test')
+
+        then: "Task failure is reported"
+
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("Test process encountered an unexpected problem.")
+        failure.assertThatCause(matchesRegexp(/Process 'Gradle Test Executor \d+' finished with non-zero exit value.*/))
     }
 
     def "tests not found due to incorrect framework used (junit 4 default)"() {

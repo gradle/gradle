@@ -5,7 +5,6 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.FqName
-import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.ExpectedByProperty
 import org.gradle.internal.declarativedsl.language.AccessChain
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.NamedReference
@@ -77,7 +76,7 @@ class NamedReferenceResolverImpl(
         namedReference: NamedReference,
         expectedType: ExpectedTypeData
     ): TypedOrigin? {
-        if (namedReference.receiver == null && expectedType is ExpectedByProperty) {
+        if (namedReference.receiver == null && expectedType is ExpectedTypeData.HasExpectedType) {
             // A named reference with a type expected by a property assignment might be an enum entry reference.
             val dataType = resolveRef(expectedType.type)
             if (dataType is EnumClass) {

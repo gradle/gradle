@@ -16,7 +16,7 @@
 
 [[config_cache]]
 = Configuration Cache
-:keywords: configuration-cache, no-configuration-cache, org.gradle.configuration-cache, org.gradle.configuration-cache.problems, org.gradle.configuration-cache.max-problems, org.gradle.configuration-cache.parallel, STABLE_CONFIGURATION_CACHE,
+:keywords: configuration cache, configuration-cache, no-configuration-cache, org.gradle.configuration-cache, org.gradle.configuration-cache.problems, org.gradle.configuration-cache.max-problems, org.gradle.configuration-cache.parallel, STABLE_CONFIGURATION_CACHE,
 
 // Run tests for snippets included in this chapter with:
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"

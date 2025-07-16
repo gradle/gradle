@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
@@ -215,10 +216,10 @@ class DefaultConfigurationCacheIO internal constructor(
     /**
      * See [ConfigurationCacheState.writeRootBuildState].
      */
-    override fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) =
+    override fun writeRootBuildStateTo(rootBuild: BuildState, stateFile: ConfigurationCacheStateFile) =
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
-                writeRootBuildState(host.currentBuild)
+                writeRootBuildState(rootBuild)
             }
         }
 
@@ -294,7 +295,7 @@ class DefaultConfigurationCacheIO internal constructor(
         isUsingObjectSharingStrategy(baseFile).let { deduplicate ->
             if (deduplicate) {
                 val (globalContext, _) = writeContextFor(globalsFile, SpecialEncoders(stringEncoder)) { "global values" }
-                globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
+                globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.mutableModel))
                 DefaultSharedObjectEncoder(globalContext)
             } else {
                 InlineSharedObjectEncoder
@@ -308,7 +309,7 @@ class DefaultConfigurationCacheIO internal constructor(
                 // Create a context that honors global value duplication
                 // but uses an inline global value decoder
                 val (globalContext, _) = readContextFor(globalsFile, SpecialDecoders(stringDecoder))
-                globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
+                globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.mutableModel))
                 DefaultSharedObjectDecoder(globalContext)
             } else {
                 InlineSharedObjectDecoder
@@ -365,7 +366,7 @@ class DefaultConfigurationCacheIO internal constructor(
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
         val profile = {
-            host.currentBuild.gradle.owner.displayName.displayName + " state"
+            host.currentBuild.displayName.displayName + " state"
         }
         return withWriteContextFor(stateFile, profile, specialEncoders) { codecs ->
             action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
@@ -374,7 +375,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     override fun writeModelTo(model: Any, stateFile: ConfigurationCacheStateFile) {
         writeConfigurationCacheState(stateFile) {
-            withGradleIsolate(host.currentBuild.gradle, codecs.userTypesCodec()) {
+            withGradleIsolate(host.currentBuild.mutableModel, codecs.userTypesCodec()) {
                 write(model)
             }
         }
@@ -382,7 +383,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     override fun readModelFrom(stateFile: ConfigurationCacheStateFile): Any {
         return readConfigurationCacheState(stateFile) {
-            withGradleIsolate(host.currentBuild.gradle, codecs.userTypesCodec()) {
+            withGradleIsolate(host.currentBuild.mutableModel, codecs.userTypesCodec()) {
                 readNonNull()
             }
         }

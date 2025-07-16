@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.variants
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.artifacts.Dependency
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
@@ -134,7 +135,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             version = "1.0"
 
             configurations.configureEach {
-                if (canBeConsumed)  {
+                if (canBeConsumed && name != '${Dependency.ARCHIVES_CONFIGURATION}')  {
                     attributes {
                         attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
                     }

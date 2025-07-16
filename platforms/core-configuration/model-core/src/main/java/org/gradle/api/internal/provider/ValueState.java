@@ -73,6 +73,8 @@ public abstract class ValueState<S> {
 
     public abstract void disallowChanges();
 
+    public abstract boolean isDisallowChanges();
+
     public abstract void finalizeOnNextGet();
 
     public abstract void disallowUnsafeRead();
@@ -246,6 +248,11 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public boolean isDisallowChanges() {
+            return disallowChanges;
+        }
+
+        @Override
         public void finalizeOnNextGet() {
             finalizeOnNextGet = true;
         }
@@ -373,6 +380,11 @@ public abstract class ValueState<S> {
         @Override
         public void disallowChanges() {
             // Finalized, so already cannot change
+        }
+
+        @Override
+        public boolean isDisallowChanges() {
+            return true;
         }
 
         @Override

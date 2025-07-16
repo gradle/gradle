@@ -468,3 +468,79 @@ It's important to remember that Artifact Transforms:
 If there are no artifacts present in an input variant to a transform, that transform will be skipped.
 This can happen in the middle of a chain of actions, resulting in all subsequent transforms being skipped.
 ====
+
+[[sec:debugging-artifact-transforms]]
+== Debugging Artifact Transforms
+
+You can use the `artifactTransforms` task to inspect the artifact transforms registered in your build.
+This task makes it easier to debug unexpected transform behavior, understand which transforms are applied, and see how artifacts flow through your build.
+
+To generate the report, run:
+
+[source, bash]
+----
+$ ./gradlew artifactTransforms
+----
+
+This will produce output listing all registered transforms, including details such as:
+
+* The input and output artifact types for each transform
+* Attributes required for the transform to apply
+* Implementation details of custom transforms
+
+This report is especially helpful if you encounter issues with artifact selection or resolution errors related to transforms.
+
+It’s important to note that the `artifactTransforms` task operates on a single project.
+If you run it on a subproject, it will report the transforms registered only in that specific project.
+
+For example, to view the artifact transforms in the `app` subproject, you would run:
+
+[source, text]
+----
+$ ./gradlew :app:artifactTransforms
+
+> Task :app:artifactTransforms
+
+--------------------------------------------------
+CopyTransform
+--------------------------------------------------
+Type: dagger.hilt.android.plugin.transform.CopyTransform
+Cacheable: No
+From Attributes:
+    - artifactType = android-classes
+To Attributes:
+    - artifactType = jar-for-dagger
+
+--------------------------------------------------
+CopyTransform
+--------------------------------------------------
+Type: dagger.hilt.android.plugin.transform.CopyTransform
+Cacheable: No
+From Attributes:
+    - artifactType = directory
+To Attributes:
+    - artifactType = jar-for-dagger
+
+--------------------------------------------------
+AggregatedPackagesTransform
+--------------------------------------------------
+Type: dagger.hilt.android.plugin.transform.AggregatedPackagesTransform
+Cacheable: Yes
+From Attributes:
+    - artifactType = jar-for-dagger
+To Attributes:
+    - artifactType = aggregated-jar-for-hilt
+
+Some artifact transforms are not cacheable.  This can have negative performance impacts.
+----
+
+Because the task only inspects the current project, running it on the root project, where no transforms are registered, will produce empty output:
+
+[source, text]
+----
+$ ./gradlew artifactTransforms
+
+> Task :artifactTransforms
+
+There are no transforms registered in root project 'gradle'.
+----

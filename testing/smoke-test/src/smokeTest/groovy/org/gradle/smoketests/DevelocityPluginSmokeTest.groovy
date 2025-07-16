@@ -26,12 +26,13 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Issue
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
 // https://plugins.gradle.org/plugin/com.gradle.develocity
-class BuildScanPluginSmokeTest extends AbstractSmokeTest {
+class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
         TEAM_CITY(
@@ -155,7 +156,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.19.2",
         "4.0",
         "4.0.1",
-        "4.0.2"
+        "4.0.2",
+        "4.1"
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above
@@ -182,6 +184,75 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         where:
         version << SUPPORTED
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34252")
+    def "does not fail when using TD #version"() {
+        when:
+        usePluginVersion version
+
+        buildFile << """
+            dependencies {
+                testImplementation("org.testng:testng:7.5.1")
+                testRuntimeOnly("org.junit.support:testng-engine:1.0.6")
+            }
+
+            tasks.named("test") {
+                develocity {
+                    testDistribution {
+                        enabled = true
+                        maxRemoteExecutors = 0
+                    }
+                    testRetry {
+                        maxRetries = 1
+                    }
+                }
+            }
+        """
+
+        // The underlying problem is reproducible with a TestNG based test
+        file("src/test/java/MyFlakyTest.java").java """
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public class MyFlakyTest {
+
+    private static final Path LIFECYCLE_MARKER_FILE = Paths.get("flakyLifecycleMarker.txt");
+    private static final Path TEST_MARKER_FILE = Paths.get("flakyTestMarker.txt");
+
+    @AfterSuite
+    public static void flakyAfterSuite() throws IOException {
+        if (!Files.exists(LIFECYCLE_MARKER_FILE)) {
+            Files.createFile(LIFECYCLE_MARKER_FILE);
+            throw new RuntimeException("AfterSuite goes boom!");
+        }
+    }
+
+    @Test
+    public void flakyTest() throws IOException {
+        if (!Files.exists(TEST_MARKER_FILE)) {
+            Files.createFile(TEST_MARKER_FILE);
+            throw new RuntimeException("test goes boom!");
+        }
+    }
+
+    @Test
+    public void successfulTest() {
+
+    }
+}
+        """
+
+        then:
+        scanRunner("test").build()
+
+        where:
+        version << SUPPORTED.grep { String version -> VersionNumber.parse(version) >= FIRST_VERSION_UNDER_DEVELOCITY_BRAND }
     }
 
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
@@ -453,8 +524,12 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             apply plugin: 'java'
             ${mavenCentralRepository()}
 
-            dependencies {
-                testImplementation 'junit:junit:4.13'
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                    }
+                }
             }
         """
 
@@ -469,13 +544,14 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     void createTest(TestFile projectDir, String testName) {
-        projectDir.file("src/test/java/${testName}.java") << """
-            import org.junit.*;
+        projectDir.file("src/test/java/${testName}.java").java"""
+            import org.junit.jupiter.api.*;
+            import static org.junit.jupiter.api.Assertions.*;
 
             public class ${testName} {
                @Test
                public void test() {
-                  Assert.assertTrue(MySource.isTrue());
+                  assertTrue(MySource.isTrue());
                }
             }
         """

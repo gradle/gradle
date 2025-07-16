@@ -65,9 +65,8 @@ public class TestMainAction implements Runnable {
                     }
                 });
             }
-        } catch (Throwable t) {
-            resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(t));
-            throw t;
+        } catch (Throwable ex) {
+            resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(ex));
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }

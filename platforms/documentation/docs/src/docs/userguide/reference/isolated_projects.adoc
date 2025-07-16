@@ -59,7 +59,7 @@ You will need Gradle 8.5 or later to use Isolated Projects, preferably a recent 
 You should also use the most recent version of IDEA or Android Studio.
 
 The feature is off by default.
-You can enable it by setting the `org.gradle.unsafe.isolated-projects` system property to `true`.
+You can enable it by setting the `org.gradle.unsafe.isolated-projects` Gradle property to `true`.
 For example:
 
 ----

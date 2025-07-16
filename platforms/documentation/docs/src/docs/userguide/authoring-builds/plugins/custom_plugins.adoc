@@ -291,15 +291,39 @@ For more on publishing plugins, see <<publishing_gradle_plugins.adoc#plugin-publ
 ==  Project vs Settings vs Init plugins
 
 In the example used through this section, the plugin accepts the link:{groovyDslPath}/org.gradle.api.Project.html[Project] type as a type parameter.
-Alternatively, the plugin can accept a parameter of type link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] to be applied in a settings script, or a parameter of type link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] to be applied in an initialization script.
+However, Gradle supports applying plugins in three distinct contexts: link:{groovyDslPath}/org.gradle.api.Project.html[`Project`], link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`], and link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[`Init`].
+Each type of plugin serves a different purpose and is applied in a different phase of the build lifecycle.
 
-The difference between these types of plugins lies in the scope of their application:
+[cols="1,3", options="header"]
+|===
+| Plugin Type | Description
 
-Project Plugin :: A project plugin is a plugin that is applied to a specific project in a build.
-It can customize the build logic, add tasks, and configure the project-specific settings.
+| *Project Plugin*
+| A project plugin is applied to an individual project within a build. It can customize build logic, register tasks, and configure project-specific settings. These plugins are applied in `build.gradle` or `build.gradle.kts` files.
 
-Settings Plugin :: A settings plugin is a plugin that is applied in the `settings.gradle` or `settings.gradle.kts` file.
-It can configure settings that apply to the entire build, such as defining which projects are included in the build, configuring build script repositories, and applying common configurations to all projects.
+| *Settings Plugin*
+| A settings plugin is applied in the `settings.gradle` or `settings.gradle.kts` file. It is used to configure settings that apply to the entire build, such as which subprojects are included, where to find build logic, and buildscript repositories.
 
-Init Plugin :: An init plugin is a plugin that is applied in the `init.gradle` or `init.gradle.kts` file.
-It can configure settings that apply globally to all Gradle builds on a machine, such as configuring the Gradle version, setting up default repositories, or applying common plugins to all builds.
+| *Init Plugin*
+| An init plugin is applied in an `init.gradle` or `init.gradle.kts` file. It configures settings that apply globally across multiple Gradle builds on a machine, such as setting up plugin repositories, enforcing conventions, or applying common plugins to all builds.
+|===
+
+When writing *precompiled script plugins*, Gradle determines the intended plugin target (`Project`, `Settings`, or `Init`) based on the file name of the plugin source file:
+
+|===
+| Filename Suffix | Applies To | Recognized As
+
+| `.gradle`, `.gradle.kts`
+| Project
+| `Plugin<Project>`
+
+| `.settings.gradle`, `.settings.gradle.kts`
+| Settings
+| `Plugin<Settings>`
+
+| `.init.gradle`, `.init.gradle.kts`
+| Init
+| `Plugin<Init>`
+|===
+
+For example, a file named `myplugin.gradle.kts` will always be treated as a Project plugin—even if it's applied from a `settings.gradle.kts` file. To create a plugin for the settings context, it must be named something like `myplugin.settings.gradle.kts`.

@@ -75,6 +75,24 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
 <a name="build-authoring"></a>
+### CLI improvement
+
+#### Plain console with colors
+
+This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
+See ![this recording](release-notes-assets/colored-console.gif) for a demo.
+
+#### Off-screen lines reported in rich console
+
+This release adds a status line to the `rich` console that reports the number of in-progress events not currently visible on screen.
+
+\```console
+> (2 lines not showing)
+\```
+This occurs when there are more ongoing events than the console has lines available to display them.
+See ![this recording](release-notes-assets/off-screen-lines.gif) for a demo.
+
+
 ### Build authoring improvements
 
 #### Introduce `AttributeContainer#addAllLater`
@@ -107,6 +125,30 @@ assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
 assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 ```
 
+#### Accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
+
+Previously, it was not possible to use a plugin coming from a `compileOnly` dependency in a [precompiled Kotlin script](userguide/implementing_gradle_plugins_precompiled.html).
+Now it is supported, and [​type-safe accessors​]​(​userguide/kotlin_dsl.html#type-safe-accessors​) for plugins from such dependencies are available in the precompiled Kotlin scripts.
+
+As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin: 
+```kotlin
+plugins {
+    `kotlin-dsl`
+}
+dependencies {
+    compileOnly("com.android.tools.build:gradle:x.y.z")
+}
+```
+And a convention precompiled Kotlin script in `buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts` applies it, and can now use type-safe accessors to configure the third party plugin:
+```kotlin
+plugins {
+    id("com.android.application")
+}
+android {
+    // The accessor to the `android` extension registered by the Android plugin is available
+}
+```
+
 ### Configuration Improvements
 
 #### Simpler target package configuration for Antlr 4
@@ -132,6 +174,28 @@ This required manually updating the source set to include the new generated sour
 In this release, the generated sources directory is automatically tracked and updates the source set accordingly.
 A task dependency is also created between the source generation task and the source set, ensuring that tasks that consume the source set as an input will automatically create a task dependency on the source generation task.
 
+#### Specify the Repository in MavenPublication.distributionManagement
+
+For a Maven publication, it is now possible to specify the repository used for distribution in the published POM file.
+
+For example, to specify the GitHub Packages repository in the POM file, use this code: 
+```kotlin
+plugins {
+  id("maven-publish")
+}
+
+publications.withType<MavenPublication>().configureEach {
+  pom {
+    distributionManagement {
+      repository {
+        id = "github"
+        name = "GitHub OWNER Apache Maven Packages"
+        url = "https://maven.pkg.github.com/OWNER/REPOSITORY"
+      }
+    }
+  }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

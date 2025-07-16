@@ -26,6 +26,8 @@ import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReporti
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
+    public static final int PROBLEM_LOCATION_LINE = 23
+
     def setup() {
         enableProblemsApiCheck()
     }
@@ -51,7 +53,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             with(oneLocation(StackTraceLocation).fileLocation) {
                 length == -1
                 column == -1
-                line == 13
+                line == PROBLEM_LOCATION_LINE
                 path == buildFile.absolutePath
             }
             with(oneLocation(TaskLocation)) {
@@ -124,7 +126,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 with(fileLocation as LineInFileLocation) {
                     length == -1
                     column == -1
-                    line == 13
+                    line == PROBLEM_LOCATION_LINE
                     path == buildFile.absolutePath
                 }
                 stackTrace.find { it.className == 'ProblemReportingTask' && it.methodName == 'run' }
@@ -314,7 +316,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             with(oneLocation(StackTraceLocation).fileLocation as LineInFileLocation) {
                 length == -1
                 column == -1
-                line == 13
+                line == PROBLEM_LOCATION_LINE
                 path == buildFile.absolutePath
             }
         }

@@ -22,4 +22,12 @@ class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<D
         new DefaultExtraPropertiesExtension()
     }
 
+    static class WithEmptyGradleProperties extends ExtraPropertiesExtensionTest<DefaultExtraPropertiesExtension> {
+
+        DefaultExtraPropertiesExtension createExtension() {
+            new DefaultExtraPropertiesExtension().tap {
+                it.setGradleProperties([:])
+            }
+        }
+    }
 }

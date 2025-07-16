@@ -37,6 +37,7 @@ class CombinatorsTest : AbstractUserTypeCodecTest() {
     @Test(expected = ConfigurationCacheError::class)
     fun `throws if map collection reports invalid size`() {
         class BrokenMap : HashMap<String, String>() {
+            @Suppress("PROPERTY_HIDES_JAVA_FIELD")
             override val size: Int
                 get() = 0
         }

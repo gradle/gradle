@@ -16,13 +16,6 @@
 
 package org.gradle.kotlin.dsl.normalization
 
-import kotlinx.metadata.KmDeclarationContainer
-import kotlinx.metadata.Visibility
-import kotlinx.metadata.isInline
-import kotlinx.metadata.jvm.KotlinClassMetadata
-import kotlinx.metadata.jvm.Metadata
-import kotlinx.metadata.jvm.signature
-import kotlinx.metadata.visibility
 import org.gradle.internal.tools.api.ApiClassExtractionException
 import org.gradle.internal.tools.api.impl.AnnotationMember
 import org.gradle.internal.tools.api.impl.ArrayAnnotationValue
@@ -33,6 +26,13 @@ import org.gradle.internal.tools.api.impl.JavaApiMemberWriter
 import org.gradle.internal.tools.api.impl.MethodMember
 import org.gradle.internal.tools.api.impl.SimpleAnnotationValue
 import org.objectweb.asm.ClassVisitor
+import kotlin.metadata.KmDeclarationContainer
+import kotlin.metadata.Visibility
+import kotlin.metadata.isInline
+import kotlin.metadata.jvm.KotlinClassMetadata
+import kotlin.metadata.jvm.Metadata
+import kotlin.metadata.jvm.signature
+import kotlin.metadata.visibility
 
 
 internal
