@@ -91,16 +91,13 @@ class BeanPropertyReader(
             reportUnsupportedFieldType(it, "deserialize", fieldName)
         }
         readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
-            set(bean, field, fieldValue)
-        }
-    }
-
-    private
-    fun ReadContext.set(bean: Any, field: Field, value: Any?) {
-        try {
-            field.set(bean, value)
-        } catch (_: Exception) {
-            logNotAssignable(value, field)
+            if (fieldValue != null) {
+                try {
+                    relevantField.set(bean, fieldValue)
+                } catch (_: Exception) {
+                    logNotAssignable(fieldValue, field)
+                }
+            }
         }
     }
 

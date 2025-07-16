@@ -40,12 +40,18 @@ class BeanPropertyWriter(
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
         for (relevantField in relevantFields) {
+            val originalFieldValue = relevantField.get(bean)
             val field = relevantField.field
             val fieldName = field.name
             val fieldValue =
-                when (val isExplicitValue = relevantField.isExplicitValueField) {
-                    null -> field.get(bean)
-                    else -> conventionValueOf(bean, field, isExplicitValue)
+                when (relevantField.hasExplicitValue(bean)) {
+                    true -> originalFieldValue
+                    else -> getConventionValue(bean, fieldName, originalFieldValue)
+                        ?.takeIf { conventionValue ->
+                            // Prevent convention value to be assigned to a field of incompatible type
+                            // A common cause is a regular field type being promoted to a Property/Provider type.
+                            conventionValue.isAssignableTo(field.type)
+                        } ?: originalFieldValue
                 }
             relevantField.unsupportedFieldType?.let {
                 reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
@@ -57,25 +63,10 @@ class BeanPropertyWriter(
     }
 
     private
-    fun conventionValueOf(bean: Any, field: Field, isExplicitValue: Field) =
-        field.get(bean).let { fieldValue ->
-            if (isExplicitValue.get(bean).uncheckedCast()) {
-                fieldValue
-            } else {
-                getConventionValue(bean, field, fieldValue)
-                    ?.takeIf { conventionValue ->
-                        // Prevent convention value to be assigned to a field of incompatible type
-                        // A common cause is a regular field type being promoted to a Property/Provider type.
-                        conventionValue.isAssignableTo(field.type)
-                    } ?: fieldValue
-            }
-        }
-
-    private
-    fun getConventionValue(bean: Any, field: Field, fieldValue: Any?): Any? =
+    fun getConventionValue(bean: Any, fieldName: String, fieldValue: Any?): Any? =
         bean.uncheckedCast<IConventionAware>()
             .conventionMapping
-            .getConventionValue(fieldValue, field.name, false)
+            .getConventionValue(fieldValue, fieldName, false)
 
     private
     fun Field.debugFrameName() =

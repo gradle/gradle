@@ -23,6 +23,9 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
 import org.gradle.internal.reflect.ClassInspector
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles.lookup
+import java.lang.invoke.MethodType
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
@@ -100,8 +103,44 @@ data class RelevantField(
      * Boolean flag field injected by [AsmBackedClassGenerator] to capture
      * whether a convention mapped property has been explicitly set or not.
      */
-    val isExplicitValueField: Field? = null
-)
+    private val isExplicitValueField: Field? = null
+) {
+    private
+    val setter: MethodHandle by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        lookup()
+            .unreflectSetter(field)
+            .asType(MethodType.methodType(Void.TYPE, Object::class.java, Object::class.java))
+    }
+
+    private
+    val getter: MethodHandle by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        lookup()
+            .unreflectGetter(field)
+            .asType(MethodType.methodType(Object::class.java, Object::class.java))
+    }
+
+    private
+    val explicitValueFieldGetter: MethodHandle by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        lookup()
+            .unreflectGetter(isExplicitValueField!!)
+            .asType(MethodType.methodType(java.lang.Boolean.TYPE, Object::class.java))
+    }
+
+    fun set(target: Any, value: Any) {
+        setter.invokeExact(target, value)
+    }
+
+    fun get(target: Any): Any {
+        return getter.invokeExact(target)
+    }
+
+    fun hasExplicitValue(bean: Any): Boolean {
+        if (isExplicitValueField != null) {
+            return explicitValueFieldGetter.invokeExact(bean) as Boolean
+        }
+        return true
+    }
+}
 
 
 fun unsupportedFieldTypeFor(field: Field): KClass<*>? =
