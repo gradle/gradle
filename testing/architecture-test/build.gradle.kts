@@ -1,4 +1,5 @@
 import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
+import gradlebuild.basics.ArchitectureDataType
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
@@ -13,7 +14,26 @@ description = """Verifies that Gradle code complies with architectural rules.
     | For example that nullable annotations are used consistently or that or that public api classes do not extend internal types.
 """.trimMargin()
 
+val platformsData = configurations.dependencyScope("platformsData")
+val platformsDataResolvable = configurations.resolvable("platformsDataResolvable") {
+    extendsFrom(platformsData.get())
+    attributes {
+        attribute(ArchitectureDataType.ATTRIBUTE, objects.named<ArchitectureDataType>(ArchitectureDataType.PLATFORMS))
+    }
+}
+
+val packageInfoData = configurations.dependencyScope("packageInfoData")
+val packageInfoDataResolvable = configurations.resolvable("packageInfoDataResolvable") {
+    extendsFrom(packageInfoData.get())
+    attributes {
+        attribute(ArchitectureDataType.ATTRIBUTE, objects.named<ArchitectureDataType>(ArchitectureDataType.PACKAGE_INFO))
+    }
+}
+
 dependencies {
+    add(platformsData.name, projects.gradle)
+    add(packageInfoData.name, projects.gradle)
+
     currentClasspath(projects.distributionsFull)
     testImplementation(projects.baseServices)
     testImplementation(projects.modelCore)
@@ -66,17 +86,19 @@ tasks {
         systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
         systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
 
+        dependsOn(platformsDataResolvable, packageInfoDataResolvable)
+
         jvmArgumentProviders.add(
             ArchUnitPlatformsData(
                 layout.settingsDirectory.dir("platforms"),
-                rootProject.tasks.named("platformsData").get().outputs.files.elements.map { it.single() },
+                providers.provider { platformsDataResolvable.get().singleFile },
             )
         )
 
         jvmArgumentProviders.add(
             PackageInfoData(
                 layout.settingsDirectory,
-                rootProject.tasks.named("packageInfoData").get().outputs.files.elements.map { it.single() },
+                providers.provider { packageInfoDataResolvable.get().singleFile },
             )
         )
 
@@ -103,12 +125,12 @@ class PackageInfoData(
     val basePath: Directory,
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
-    val json: Provider<FileSystemLocation>,
+    val json: Provider<File>,
 ) : CommandLineArgumentProvider {
 
     override fun asArguments(): Iterable<String> = listOf(
         "-Dorg.gradle.architecture.package-info-base-path=${basePath.asFile.absolutePath}",
-        "-Dorg.gradle.architecture.package-info-json=${json.get().asFile.absolutePath}",
+        "-Dorg.gradle.architecture.package-info-json=${json.get().absolutePath}",
     )
 }
 
@@ -117,12 +139,12 @@ class ArchUnitPlatformsData(
     val basePath: Directory,
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
-    val json: Provider<FileSystemLocation>,
+    val json: Provider<File>,
 ) : CommandLineArgumentProvider {
 
     override fun asArguments(): Iterable<String> = listOf(
         "-Dorg.gradle.architecture.platforms-base-path=${basePath.asFile.absolutePath}",
-        "-Dorg.gradle.architecture.platforms-json=${json.get().asFile.absolutePath}",
+        "-Dorg.gradle.architecture.platforms-json=${json.get().absolutePath}",
     )
 }
 
