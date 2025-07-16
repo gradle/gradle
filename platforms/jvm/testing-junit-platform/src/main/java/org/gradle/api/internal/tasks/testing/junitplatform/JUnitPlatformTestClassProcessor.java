@@ -27,6 +27,8 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
@@ -306,22 +308,25 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         private boolean classMatch(TestDescriptor descriptor) {
-            String methodName = null;
+            return classMatch(new MatchContext(descriptor));
+        }
+
+        private boolean classMatch(MatchContext context) {
             while (true) {
-                Optional<TestDescriptor> parent = descriptor.getParent();
-                String finalMethodName = methodName;
+                TestDescriptor current = context.current;
+                Optional<TestDescriptor> parent = current.getParent();
                 if (!parent.isPresent()) {
                     break;
                 }
-                if (className(descriptor).filter(className -> matcher.matchesTest(className, finalMethodName)).isPresent()) {
+                if (className(current).filter(className -> matcher.matchesTest(className, context.methodName)).isPresent()) {
                     return true;
                 }
                 // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names
                 // (for instance, if the method is in a nested class).
-                if (descriptor.getSource().isPresent() && descriptor.getSource().get() instanceof MethodSource) {
-                    methodName = ((MethodSource) descriptor.getSource().get()).getMethodName();
-                }
-                descriptor = parent.get();
+                current.getSource().filter(MethodSource.class::isInstance)
+                    .ifPresent(source -> context.methodName = ((MethodSource) source).getMethodName());
+
+                context.current = parent.get();
             }
             return false;
         }
@@ -331,6 +336,16 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 .filter(ClassSource.class::isInstance)
                 .map(ClassSource.class::cast)
                 .map(ClassSource::getClassName);
+        }
+
+        @NullMarked
+        private static class MatchContext {
+            private TestDescriptor current;
+            @Nullable private String methodName;
+
+            private MatchContext(TestDescriptor current) {
+                this.current = current;
+            }
         }
     }
 
