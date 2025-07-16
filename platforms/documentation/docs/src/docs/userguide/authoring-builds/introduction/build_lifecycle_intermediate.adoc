@@ -111,7 +111,7 @@ This diagram shows two example task graphs, one abstract and the other concrete,
 image::task-dag-examples.png[]
 
 [[build_lifecycle_events]]
-*Your build scripts and plugins are responsible for declaring this task dependency graph*, either explicitly via the <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependency mechanism>> (e.g., `dependsOn`) or implicitly using <<incremental_build.adoc#sec:task_inputs_outputs,task annotation>> (e.g., by wiring task inputs and outputs).
+*Your build scripts and plugins are responsible for declaring this task dependency graph*, either explicitly via the <<writing_tasks_intermediate.adoc#sec:task_dependencies,task dependency mechanism>> (e.g., `dependsOn`) or implicitly using <<incremental_build.adoc#sec:task_inputs_outputs,task annotation>> (e.g., by wiring task inputs and outputs).
 
 [.text-right]
 **Next Step:** <<writing_build_scripts_intermediate.adoc#writing_build_scripts,Learn how to write Build Scripts>> >>

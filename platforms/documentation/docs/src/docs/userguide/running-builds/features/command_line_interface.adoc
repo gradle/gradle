@@ -93,7 +93,7 @@ To execute a task called `myTask` on the root project, type:
 $ gradle :myTask
 ----
 
-This will run the single `myTask` and all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,dependencies>>.
+This will run the single `myTask` and all of its <<writing_tasks_intermediate.adoc#sec:task_dependencies,dependencies>>.
 
 [[sec:disambiguate_task_options_from_built_in_options]]
 === Specify options for tasks
@@ -125,7 +125,7 @@ Consider a task named `mytask` that accepts an option named `profile`:
 [[executing_tasks_in_multi_project_builds]]
 === Executing tasks in multi-project builds
 
-In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with `:` separating the subproject name and task name.
+In a <<multi_project_builds_intermediate.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with `:` separating the subproject name and task name.
 The following are equivalent when _run from the root project_:
 
 [source,bash]

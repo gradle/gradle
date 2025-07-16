@@ -39,7 +39,7 @@ This example reflects how every Groovy build script is backed by an implicit ins
 
 [CAUTION]
 --
-Avoid using https://groovy-lang.org/metaprogramming.html#_metaclasses[Groovy MetaClass] programming techniques in your build scripts. Gradle provides its own API for adding <<writing_build_scripts#sec:extra_properties,dynamic runtime properties>>.
+Avoid using https://groovy-lang.org/metaprogramming.html#_metaclasses[Groovy MetaClass] programming techniques in your build scripts. Gradle provides its own API for adding <<writing_build_scripts_intermediate.adoc#sec:extra_properties,dynamic runtime properties>>.
 
 Use of Groovy-specific metaprogramming can cause builds to retain large amounts of memory between builds that will eventually cause the Gradle daemon to run out-of-memory.
 --
@@ -69,7 +69,7 @@ If the name is unqualified, then it may be one of the following:
 
  * A task instance with that name.
  * A property on link:{groovyDslPath}/org.gradle.api.Project.html[Project].
- * An <<writing_build_scripts#sec:extra_properties,extra property>> defined elsewhere in the project.
+ * An <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra property>> defined elsewhere in the project.
  * A property of an implicit object within a <<#groovy:blocks,block>>.
  * A <<#groovy:local_variables,local variable>> defined earlier in the build script.
 
@@ -225,7 +225,7 @@ def i = 1
 String errorMsg = 'Failed, because reasons'
 ----
 
-Local variables are a Groovy construct — unlike <<writing_build_scripts#sec:extra_properties,extra properties>> — that can be used to share values within a build script.
+Local variables are a Groovy construct — unlike <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra properties>> — that can be used to share values within a build script.
 
 [CAUTION]
 ====

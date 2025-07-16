@@ -33,8 +33,8 @@ _Reading time_: **35 minutes**
 
 This section covers:
 
-<<gradle_directories.adoc#gradle_directories,Part 1.>> Plugin Introduction +
-<<gradle_directories.adoc#gradle_directories,Part 2.>> Anatomy of a Plugin +
+<<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Part 1.>> Plugin Introduction +
+<<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Part 2.>> Anatomy of a Plugin +
 
 [[plugin_tutorial]]
 == 2. Intermediate Gradle Tutorial

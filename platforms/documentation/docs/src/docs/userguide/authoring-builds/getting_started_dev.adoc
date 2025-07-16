@@ -33,14 +33,14 @@ _Reading time_: **35 minutes**
 
 This section covers:
 
-<<gradle_directories.adoc#gradle_directories,Part 1.>> Anatomy of a Gradle Build +
-<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 2.>> Structuring Multi-Project Builds +
+<<gradle_directories_intermediate.adoc#gradle_directories,Part 1.>> Anatomy of a Gradle Build +
+<<multi_project_builds_intermediate.adoc#intro_multi_project_builds,Part 2.>> Structuring Multi-Project Builds +
 <<build_lifecycle_intermediate.adoc#build_lifecycle,Part 3.>> Gradle Build Lifecycle +
-<<writing_build_scripts.adoc#writing_build_scripts,Part 4.>> Writing Build Scripts +
-<<gradle_managed_types.adoc#,Part 5.>> Gradle Managed Types +
-<<dependencies.adoc#,Part 6.>> Declaring and Managing Dependencies +
-<<writing_tasks.adoc#writing_tasks,Part 7.>> Creating and Registering Tasks +
-<<plugins.adoc#using_plugins,Part 8.>> Working With Plugins +
+<<writing_build_scripts_intermediate.adoc#writing_build_scripts,Part 4.>> Writing Build Scripts +
+<<gradle_managed_types_intermediate.adoc#gradle_types_intro,Part 5.>> Gradle Managed Types +
+<<dependencies_intermediate.adoc#dependencies_intro,Part 6.>> Declaring and Managing Dependencies +
+<<writing_tasks_intermediate.adoc#writing_tasks,Part 7.>> Creating and Registering Tasks +
+<<plugins_intermediate.adoc#using_plugins,Part 8.>> Working With Plugins +
 
 [[author_tutorial]]
 == 2. Intermediate Gradle Tutorial

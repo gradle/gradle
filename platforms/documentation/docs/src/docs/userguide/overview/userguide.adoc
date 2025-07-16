@@ -88,7 +88,7 @@ Build engineers that are ready to configure custom build logic or write their ow
 _Description_: *Learn to configure builds, create tasks, and write plugins.* +
 _Training level_: **Intermediate** +
 _Reading time_: **35 minutes** +
-<<gradle_directories.adoc#gradle_directories,-> Read Intermediate Concepts >>
+<<gradle_directories_intermediate.adoc#gradle_directories,-> Read Intermediate Concepts >>
 
 === 2. Intermediate Tutorial
 
@@ -116,7 +116,7 @@ _Reading time_: **35 minutes** +
 _Description_: *Initialize a Gradle project, create a plugin, and publish it.* +
 _Training level_: **Advanced** +
 _Training time_: **65 minutes** +
-<<#,COMING SOON! >>
+<<COMING SOON! >>
 
 == Support
 

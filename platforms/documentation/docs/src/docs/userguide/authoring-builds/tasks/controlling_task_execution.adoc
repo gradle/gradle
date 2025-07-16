@@ -332,7 +332,7 @@ include::{snippetsPath}/tutorial/stopExecutionException/tests/stopExecutionExcep
 ====
 
 This feature is helpful if you work with tasks provided by Gradle.
-It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is that Gradle adds a set of default imports to your script (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>).]
+It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is that Gradle adds a set of default imports to your script (see <<writing_build_scripts_intermediate.adoc#script-default-imports,Default imports>>).]
 
 [[sec:enabling_and_disabling_tasks]]
 === 3. Enabling and Disabling tasks

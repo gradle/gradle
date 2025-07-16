@@ -136,7 +136,7 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 
 === References
 
-- <<plugins.adoc#sec:using_plugins,Using Plugins>>
+- <<plugins_intermediate.adoc#using_plugins,Using Plugins>>
 
 === Tags
 

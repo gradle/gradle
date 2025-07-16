@@ -332,7 +332,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",fil
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 
-For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks.adoc#task_inputs_and_outputs,writing tasks tutorial>>.
+For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks_intermediate.adoc#task_inputs_and_outputs,writing tasks tutorial>>.
 
 When leveraging incremental builds on our reference project, the build (`./gradlew clean build build`) time is *5 seconds*:
 

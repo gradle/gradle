@@ -1,3 +1,3 @@
 ++++
-<meta http-equiv="refresh" content="0;URL=writing_tasks.html">
+<meta http-equiv="refresh" content="0;URL=writing_tasks_intermediate.html">
 ++++

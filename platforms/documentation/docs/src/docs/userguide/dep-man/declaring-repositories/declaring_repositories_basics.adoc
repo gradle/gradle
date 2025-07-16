@@ -154,4 +154,4 @@ include::sample[dir="snippets/kotlinDsl/multiProjectBuild/groovy",files="setting
 However, some plugins may be hosted in other repositories (public or private).
 To include these plugins, you need to specify additional repositories in your build script so Gradle knows where to search.
 
-Since declaring repositories depends on how the plugin is applied, refer to the <<plugins.adoc#sec:custom_plugin_repositories,Custom Plugin Repositories>> for more details on configuring repositories for plugins from different sources.
+Since declaring repositories depends on how the plugin is applied, refer to the <<plugins_intermediate.adoc#sec:custom_plugin_repositories,Custom Plugin Repositories>> for more details on configuring repositories for plugins from different sources.

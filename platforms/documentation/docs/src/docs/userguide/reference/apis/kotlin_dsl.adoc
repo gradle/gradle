@@ -32,7 +32,7 @@ TIP: If you are interested in migrating an existing Gradle build to the Kotlin D
 * The embedded Kotlin compiler works on Linux, macOS, Windows, Cygwin, FreeBSD, and Solaris on x86-64 architectures.
 * Familiarity with Kotlin syntax and basic language features is recommended.
 Refer to the link:{kotlin-reference}[Kotlin documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] to learn the basics.
-* Using the <<plugins#sec:plugins_block,`plugins {}`>> block to declare Gradle plugins is highly recommended as it significantly improves the editing experience.
+* Using the <<plugins_intermediate.adoc#sec:plugins_block,`plugins {}`>> block to declare Gradle plugins is highly recommended as it significantly improves the editing experience.
 
 [[sec:ide_support]]
 == IDE support
@@ -140,7 +140,7 @@ This helps the IDE identify the object "backing" the script, whether it’s link
 
 All Kotlin DSL build scripts come with implicit imports, including:
 
-* The <<writing_build_scripts#script-default-imports,default Gradle API imports>>
+* The <<writing_build_scripts_intermediate.adoc#script-default-imports,default Gradle API imports>>
 * The Kotlin DSL API, which includes types from the following packages:
 ** `org.gradle.kotlin.dsl`
 ** `org.gradle.kotlin.dsl.plugins.dsl`
@@ -461,7 +461,7 @@ include::sample[dir="snippets/kotlinDsl/containers-scope/kotlin",files="build.gr
 [[kotdsl:properties]]
 == Working with runtime properties
 
-Gradle has two main sources of properties defined at runtime: <<build_environment.adoc#sec:project_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
+Gradle has two main sources of properties defined at runtime: <<build_environment.adoc#sec:project_properties,_project properties_>> and <<writing_build_scripts_intermediate.adoc#sec:extra_properties,_extra properties_>>.
 
 The Kotlin DSL provides specific syntax for working with these property types, which we will explore in the following sections.
 

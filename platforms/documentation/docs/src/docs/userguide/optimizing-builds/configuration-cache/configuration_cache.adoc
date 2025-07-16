@@ -22,7 +22,7 @@
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-value-providers-*"
 
-The Configuration Cache improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
+The Configuration Cache improves build performance by caching the result of the <<build_lifecycle_intermediate.adoc#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
 
 image::configuration-cache-4.png[]
 

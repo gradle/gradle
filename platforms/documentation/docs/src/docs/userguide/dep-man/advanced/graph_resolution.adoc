@@ -443,7 +443,7 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-resoluti
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=define-graph-traversal-task]"]
 ====
 
-NOTE: A proper implementation would not use `println` but would write to an output file. For more details on declaring task inputs and outputs, see the <<writing_tasks.adoc#writing_tasks,Writing Tasks>> section.
+NOTE: A proper implementation would not use `println` but would write to an output file. For more details on declaring task inputs and outputs, see the <<writing_tasks_intermediate.adoc#writing_tasks,Writing Tasks>> section.
 
 When we register the task, we use the `ResolutionResult` API to access the root component and root variant of the `runtimeClasspath` configuration:
 

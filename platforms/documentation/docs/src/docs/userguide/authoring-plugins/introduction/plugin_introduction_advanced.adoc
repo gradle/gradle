@@ -74,7 +74,7 @@ Gradle plugins come in several flavors, each suited to different use cases:
 
 === Community Plugins
 
-* Published by the community, typically via the [Gradle Plugin Portal](https://plugins.gradle.org/).
+* Published by the community, typically via the link:https://plugins.gradle.org/[Gradle Plugin Portal].
 * Distributed as binary JARs.
 
 === Local Plugins

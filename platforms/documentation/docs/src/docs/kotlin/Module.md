@@ -10,10 +10,10 @@ Many of the objects, functions, and properties you use in your build scripts com
 This reference covers both the Kotlin DSL and the Java API, but it doesn't include functionality provided by external plugins.
 
 The main package of the Kotlin DSL is <a href="./gradle/org.gradle.kotlin.dsl/index.html">org.gradle.kotlin.dsl</a>.
-All members of this package are implicitly imported and readily available in `.gradle.kts` scripts in addition to the Java API <a href="../userguide/writing_build_scripts.html#script-default-imports">default imports</a>.
+All members of this package are implicitly imported and readily available in `.gradle.kts` scripts in addition to the Java API <a href="../userguide/writing_build_scripts_intermediate.html#script-default-imports">default imports</a>.
 
 # Package org.gradle.kotlin.dsl
 
 The `org.gradle.kotlin.dsl` package contains the Gradle Kotlin DSL public API.
 
-All members of this package are implicitly imported and readily available in `.gradle.kts` scripts in addition to the Gradle Java API <a href="../../../userguide/writing_build_scripts.html#script-default-imports">default imports</a>.
+All members of this package are implicitly imported and readily available in `.gradle.kts` scripts in addition to the Gradle Java API <a href="../../../userguide/writing_build_scripts_intermediate.html#script-default-imports">default imports</a>.

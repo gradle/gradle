@@ -150,7 +150,7 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=local_repository]"]
 ====
 
-To use the repository in another build, add it to <<plugins.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in your `settings.gradle(.kts)` file.
+To use the repository in another build, add it to <<plugins_intermediate.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in your `settings.gradle(.kts)` file.
 
 === Publish to the Plugin Portal
 
@@ -192,7 +192,7 @@ For example, the Greeting Plugin example is already on the portal at https://plu
 
 == Plugins published without {portal}
 
-If your plugin was published without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will be lacking <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>>, which is needed for <<plugins.adoc#sec:plugins_block,plugins DSL>> to locate the plugin.
+If your plugin was published without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will be lacking <<plugins_intermediate.adoc#sec:plugin_markers,Plugin Marker Artifact>>, which is needed for <<plugins_intermediate.adoc#sec:plugins_block,plugins DSL>> to locate the plugin.
 In this case, the recommended way to resolve the plugin in another project is to add a `resolutionStrategy` section to the `pluginManagement {}` block of the project's settings file, as shown below.
 
 ====
