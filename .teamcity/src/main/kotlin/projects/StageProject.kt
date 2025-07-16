@@ -1,10 +1,13 @@
 package projects
 
 import common.HIDDEN_ARTIFACT_DESTINATION
+import common.Os
 import common.uuidPrefix
 import configurations.BaseGradleBuildType
 import configurations.DocsTestProject
 import configurations.DocsTestTrigger
+import configurations.FlakyTestQuarantineProject
+import configurations.FlakyTestQuarantineTrigger
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
 import configurations.OsAwareBaseGradleBuildType
@@ -173,6 +176,15 @@ class StageProject(
         docsTestProjects.forEach(this::subProject)
         docsTestTriggers = docsTestProjects.map { DocsTestTrigger(model, it) }
         docsTestTriggers.forEach(this::buildType)
+
+        if (stage.stageName == StageName.READY_FOR_RELEASE) {
+            listOf(Os.LINUX, Os.WINDOWS, Os.MACOS).forEach {
+                val flakyTestQuarantineProject = FlakyTestQuarantineProject(model, stage, it)
+                val flakyTestQuarantineProjectTrigger = FlakyTestQuarantineTrigger(model, flakyTestQuarantineProject)
+                subProject(flakyTestQuarantineProject)
+                buildType(flakyTestQuarantineProjectTrigger)
+            }
+        }
 
         stage.performanceTestPartialTriggers.forEach { trigger ->
             buildType(
