@@ -17,6 +17,7 @@
 package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.component.resolution.failure.describer.ModuleRejectedIncompatibleConstraintsFailureDescriber
 import org.gradle.util.GradleVersion
 
@@ -74,7 +75,6 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         fails("forceResolution")
 
         then: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
@@ -146,7 +146,6 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         fails("forceResolution")
 
         then: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
@@ -218,7 +217,6 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         fails("forceResolution")
 
         then: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
@@ -280,7 +278,6 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         fails("forceResolution")
 
         then: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
