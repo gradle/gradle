@@ -115,8 +115,8 @@ platforms/enterprise/enterprise/                        @gradle/bt-build-scan @g
 platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-testing-team
 
 # JVM platform
-build-logic/java-api-extractor              @gradle/bt-jvm
-platforms/jvm/                              @gradle/bt-jvm
+platforms/jvm/                                      @gradle/bt-jvm
+platforms/core-configuration/java-api-extractor     @gradle/bt-jvm
 
 # JVM testing services also shared by GE testing plugins
 platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/dv-testing-team
