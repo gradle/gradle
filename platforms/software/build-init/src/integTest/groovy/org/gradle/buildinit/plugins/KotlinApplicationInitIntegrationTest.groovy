@@ -239,7 +239,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
     @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
     def "does not contain junit specific kotlin test dependencies"() {
         when:
-        run ('init', '--type', 'kotlin-application')
+        run ('init', '--type', 'kotlin-application', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         def dslFixture = dslFixtureFor(KOTLIN)
@@ -257,5 +257,6 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
 
         then:
         assertTestPassed("org.example.AppTest", "appHasAGreeting")
+
     }
 }
