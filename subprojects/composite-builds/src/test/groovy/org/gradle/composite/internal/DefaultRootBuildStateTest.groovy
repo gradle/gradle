@@ -54,7 +54,7 @@ class DefaultRootBuildStateTest extends Specification {
     DefaultRootBuildState build
 
     def setup() {
-        _ * factory.servicesForBuild(buildDefinition, _, null) >> Mock(BuildModelControllerServices.Supplier)
+        _ * factory.servicesForBuild(buildDefinition, _) >> Mock(BuildModelControllerServices.Supplier)
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         def services = new DefaultServiceRegistry()
         services.add(buildOperationRunner)
