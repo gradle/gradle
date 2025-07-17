@@ -63,6 +63,7 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.TaskGraphBuildExecutionAction;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -91,11 +92,20 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationRunner buildOperationRunner) {
-        return new BuildOperationFiringBuildWorkerExecutor(
-            new DryRunBuildExecutionAction(textOutputFactory,
-                new SelectedTaskExecutionAction()),
-            buildOperationRunner);
+    BuildWorkExecutor createBuildExecuter(
+        GradleInternal gradle,
+        StyledTextOutputFactory textOutputFactory,
+        BuildOperationRunner buildOperationRunner
+    ) {
+        BuildWorkExecutor executor;
+        if (gradle.getStartParameter().isDryRun()) {
+            executor = new DryRunBuildExecutionAction(textOutputFactory);
+        } else if (gradle.getStartParameter().isTaskGraph()) {
+            executor = new TaskGraphBuildExecutionAction(textOutputFactory);
+        } else {
+            executor = new SelectedTaskExecutionAction();
+        }
+        return new BuildOperationFiringBuildWorkerExecutor(executor, buildOperationRunner);
     }
 
     @Provides
