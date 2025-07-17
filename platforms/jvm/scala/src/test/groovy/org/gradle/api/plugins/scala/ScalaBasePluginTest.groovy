@@ -17,7 +17,6 @@ package org.gradle.api.plugins.scala
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.scala.ScalaCompile
@@ -31,6 +30,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.pluginManager.apply(ScalaBasePlugin)
+        project.version = "1.0"
     }
 
     def "applies the java plugin to the project"() {
@@ -136,7 +136,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task.destinationDir == project.java.docsDir.file("scaladoc").get().asFile
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.title == "test-project 1.0 API"
         task dependsOn()
     }
 }
