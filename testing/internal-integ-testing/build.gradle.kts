@@ -51,10 +51,6 @@ dependencies {
     api(projects.daemonProtocol)
     api(projects.serviceLookup)
 
-    api(testFixtures(projects.core)) {
-        because("HttpServer leaks PortAllocator to spock AST transformer")
-    }
-
     api(libs.gson)
     api(libs.groovy)
     api(libs.groovyXml)
@@ -83,7 +79,6 @@ dependencies {
     api(libs.samplesDiscovery)
     api(libs.servletApi)
     api(libs.slf4jApi)
-    api(libs.socksProxy)
     api(libs.spock) {
         because("Part of the public API")
     }
@@ -120,6 +115,7 @@ dependencies {
 
     implementation(testFixtures(projects.buildOperations))
     implementation(testFixtures(projects.buildProcessServices))
+    implementation(testFixtures(projects.core))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)
@@ -142,6 +138,7 @@ dependencies {
     implementation(libs.nativePlatform)
     implementation(libs.netty)
     implementation(libs.opentest4j)
+    implementation(libs.socksProxy)
     // we depend on both: sshd platforms and libraries
     implementation(libs.sshdCore)
     implementation(platform(libs.sshdCore))

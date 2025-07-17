@@ -777,6 +777,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "javadoc",
+    "path": "platforms/jvm/javadoc",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "jvm-services",
     "path": "platforms/jvm/jvm-services",
     "unitTests": true,

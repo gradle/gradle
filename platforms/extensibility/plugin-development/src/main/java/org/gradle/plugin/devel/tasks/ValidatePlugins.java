@@ -107,7 +107,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                     throw problemReporter.throwing(
                         exception,
                         problemReporter.create(problemId, problemSpec -> {
-                            problemSpec.documentedAt(Documentation.upgradeGuide(8, "validate_plugins_without_java_toolchain_90").getUrl());
+                            problemSpec.documentedAt(Documentation.upgradeMajorGuide(9, "validate_plugins_without_java_toolchain_90").getUrl());
                             problemSpec.contextualLabel(exception.getMessage());
                         })
                     );

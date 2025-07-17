@@ -827,7 +827,7 @@ class ConfigurationCacheState(
     private
     suspend fun WriteContext.writePreviewFlags(gradle: GradleInternal) {
         val featureFlags = gradle.serviceOf<FeatureFlags>()
-        val enabledFeatures = FeaturePreviews.Feature.values().filter { featureFlags.isEnabledWithApi(it) }
+        val enabledFeatures = FeaturePreviews.Feature.entries.filter { featureFlags.isEnabledWithApi(it) }
         writeCollection(enabledFeatures)
     }
 

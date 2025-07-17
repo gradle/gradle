@@ -48,6 +48,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -377,14 +378,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     }
 
-    private String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
-        StringBuilder sb = new StringBuilder("Module '");
-        sb.append(id).append("' has been rejected:\n");
-        sb.append("   Cannot select module with conflict on ");
-        Capability capability = capabilityConflict.left;
-        sb.append("capability '").append(capability.getGroup()).append(":").append(capability.getName()).append(":").append(capability.getVersion()).append("' also provided by ");
-        sb.append(capabilityConflict.getRight());
-        return sb.toString();
+    private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        return "Module '" + id + "' has been rejected:\n" +
+            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
+            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).collect(Collectors.toList());
+    }
+
+    private static String formatCapability(Capability capability) {
+        return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
     }
 
     @Override

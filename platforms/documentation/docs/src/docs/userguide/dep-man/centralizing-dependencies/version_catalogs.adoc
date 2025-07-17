@@ -16,13 +16,16 @@
 = Version Catalogs
 :keywords: toml, libs.versions.toml
 
+A version catalog is a selected list of dependencies that can be referenced in build scripts, simplifying dependency management.
+
 ++++
-<p style="text-align: center;">
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/dZmlSsRdctE?si=2u96T8ieHzOu4_48&rel=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/dZmlSsRdctE?si=2u96T8ieHzOu4_48&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
 </p>
 ++++
-
-A version catalog is a selected list of dependencies that can be referenced in build scripts, simplifying dependency management.
 
 Instead of specifying dependencies directly using string notation, you can pick them from a version catalog:
 

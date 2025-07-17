@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[upgrading_version_4]]
-= Upgrading your build from Gradle 4.x to 5.0
+= Upgrading from Gradle 4.x to 5.0
 
 This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0.
 In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from.

@@ -16,15 +16,11 @@
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
 import org.gradle.api.internal.project.ProjectInternal
-
 import org.gradle.configuration.project.ProjectConfigureAction
 import org.gradle.internal.buildtree.BuildModelParameters
-
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilder
-import org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelBuilder
-
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
@@ -38,7 +34,6 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
         val builders = project.serviceOf<ToolingModelBuilderRegistry>()
 
         builders.register(KotlinBuildScriptModelBuilder)
-        builders.register(KotlinBuildScriptTemplateModelBuilder)
         builders.register(IsolatedScriptsModelBuilder)
 
         if (project.parent == null) {

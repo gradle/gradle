@@ -40,7 +40,6 @@ pluginManager.withPlugin("groovy") {
 }
 
 configurations.consumable("apiStubElements") {
-    isVisible = false
     extendsFrom(configurations.named("implementation").get())
     extendsFrom(configurations.named("compileOnly").get())
     attributes {

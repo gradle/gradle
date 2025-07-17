@@ -15,21 +15,18 @@
  */
 package org.gradle.kotlin.dsl.tooling.builders
 
-import org.gradle.tooling.provider.model.ToolingModelBuilder
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
-
-import org.gradle.api.Project
-
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.support.serviceOf
-
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
+import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
 import java.io.Serializable
 
 
 internal
-object KotlinBuildScriptTemplateModelBuilder : ToolingModelBuilder {
+object KotlinBuildScriptTemplateModelBuilder : BuildScopeModelBuilder {
 
     private
     val gradleModules = listOf("gradle-core", "gradle-tooling-api")
@@ -37,8 +34,8 @@ object KotlinBuildScriptTemplateModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel"
 
-    override fun buildAll(modelName: String, project: Project): KotlinBuildScriptTemplateModel =
-        project.serviceOf<ModuleRegistry>().run {
+    override fun create(target: BuildState): KotlinBuildScriptTemplateModel =
+        target.mutableModel.serviceOf<ModuleRegistry>().run {
             StandardKotlinBuildScriptTemplateModel(
                 gradleModules
                     .map { getModule(it) }

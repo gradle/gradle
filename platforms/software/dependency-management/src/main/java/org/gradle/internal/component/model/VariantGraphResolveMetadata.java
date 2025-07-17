@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
@@ -27,7 +26,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
  * of this variant, as they may be expensive to resolve. Expensive information about this variant
  * can be accessed via the methods of {@link VariantGraphResolveState}.
  */
-public interface VariantGraphResolveMetadata extends HasAttributes {
+public interface VariantGraphResolveMetadata {
 
     /**
      * Returns the name for this variant, which is unique for the variants of its owning component.
@@ -35,10 +34,18 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
      * In general, this method should be avoided. The internal engine should not need to know the name of a node and
      * should instead identify nodes based on their integer node ID. This method should only be used for
      * diagnostics/reporting and for implementing existing public API methods that require this field.
+     *
+     * Prefer {@link #getDisplayName()}.
      */
     String getName();
 
-    @Override
+    /**
+     * Get a name for this variant to be used when displaying it.
+     */
+    default String getDisplayName() {
+        return getName();
+    }
+
     ImmutableAttributes getAttributes();
 
     ImmutableCapabilities getCapabilities();

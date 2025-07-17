@@ -16,10 +16,13 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.util.internal.TextUtil
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import kotlin.io.path.Path
+import kotlin.io.path.pathString
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.script.experimental.annotations.KotlinScript
@@ -88,12 +91,16 @@ class KotlinBuildScriptPatternTest(val script: Script) {
 
     private
     fun checkScriptRecognizedBy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
-        assertScriptFilePatternMatches(filePathPatternFrom(scriptParserClass), supportedScriptType)
+        // Matching happens against a full path in IntelliJ
+        val filePath = TextUtil.normaliseFileSeparators(Path("/some/path/to", script.name).pathString)
+        assertScriptFilePatternMatches(filePathPatternFrom(scriptParserClass), supportedScriptType, filePath)
     }
 
     private
     fun checkScriptRecognizedByLegacy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
-        assertScriptFilePatternMatches(scriptFilePatternFromLegacy(scriptParserClass), supportedScriptType)
+        // Matching happens against the file name in IntelliJ
+        val fileName = script.name
+        assertScriptFilePatternMatches(scriptFilePatternFromLegacy(scriptParserClass), supportedScriptType, fileName)
     }
 
     private
@@ -112,12 +119,12 @@ class KotlinBuildScriptPatternTest(val script: Script) {
         scriptParserClass.findAnnotation<ScriptTemplateDefinition>()!!.scriptFilePattern
 
     private
-    fun assertScriptFilePatternMatches(scriptFilePattern: String, supportedScriptType: ScriptType) {
+    fun assertScriptFilePatternMatches(scriptFilePattern: String, supportedScriptType: ScriptType, filePathOrName: String) {
         val shouldMatch = script.type == supportedScriptType
         assertEquals(
-            "${script.name} should${if (shouldMatch) "" else " not"} match $scriptFilePattern",
+            "$filePathOrName should${if (shouldMatch) "" else " not"} match $scriptFilePattern",
             shouldMatch,
-            script.name.matches(scriptFilePattern.toRegex())
+            filePathOrName.matches(scriptFilePattern.toRegex())
         )
     }
 }

@@ -80,6 +80,17 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 #### Plain console with colors
 
 This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
+See ![this recording](release-notes-assets/colored-console.gif) for a demo.
+
+#### Off-screen lines reported in rich console
+
+This release adds a status line to the `rich` console that reports the number of in-progress events not currently visible on screen.
+
+\```console
+> (2 lines not showing)
+\```
+This occurs when there are more ongoing events than the console has lines available to display them.
+See ![this recording](release-notes-assets/off-screen-lines.gif) for a demo.
 
 
 ### Build authoring improvements
@@ -112,6 +123,30 @@ bar.getAttribute(color) == "purple"         // addAllLater is lazy
 bar.attribute(color, "orange")
 assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
 assert(bar.getAttribute(shape) == "square") // `shape` remains the same
+```
+
+#### Accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
+
+Previously, it was not possible to use a plugin coming from a `compileOnly` dependency in a [precompiled Kotlin script](userguide/implementing_gradle_plugins_precompiled.html).
+Now it is supported, and [​type-safe accessors​]​(​userguide/kotlin_dsl.html#type-safe-accessors​) for plugins from such dependencies are available in the precompiled Kotlin scripts.
+
+As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin: 
+```kotlin
+plugins {
+    `kotlin-dsl`
+}
+dependencies {
+    compileOnly("com.android.tools.build:gradle:x.y.z")
+}
+```
+And a convention precompiled Kotlin script in `buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts` applies it, and can now use type-safe accessors to configure the third party plugin:
+```kotlin
+plugins {
+    id("com.android.application")
+}
+android {
+    // The accessor to the `android` extension registered by the Android plugin is available
+}
 ```
 
 ### Configuration Improvements
@@ -167,6 +202,36 @@ ADD RELEASE FEATURES ABOVE
 ==========================================================
 
 -->
+
+### Task graph diagnostic
+
+A new task dependency graph is available to visualize the dependencies between tasks without executing them.
+You can enable it using the `--task-graph` option on the command line. For example:
+```
+./gradlew root r2 --task-graph
+```
+This prints a visual representation of the task graph for the specified tasks:
+```
+Tasks graph for: root r2
++--- :root (org.gradle.api.DefaultTask)
+|    \\--- :middle (org.gradle.api.DefaultTask)
+|         +--- :leaf1 (org.gradle.api.DefaultTask)
+|         \\--- :leaf2 (org.gradle.api.DefaultTask, disabled)
+\\--- :root2 (org.gradle.api.DefaultTask)
+    +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+    |--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
+    \\--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
+         \\--- :leaf3 (org.gradle.api.DefaultTask)
+         
+(*) - details omitted (listed previously)
+```
+
+This feature provides a quick overview of the task graph, helping users understand the dependencies between tasks without running them.
+You can iterate by diving into a subgraph by adjusting an invocation.
+
+This feature is incubating and may change in future releases.
+Additionally, it shares a known [issue](https://github.com/gradle/gradle/issues/2517) with `--dry-run`:
+Tasks from included builds may still be executed.
 
 ## Promoted features
 
