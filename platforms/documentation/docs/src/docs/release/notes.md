@@ -7,14 +7,14 @@
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="We are excited to announce Gradle @version@.">
+<meta name="twitter:description" content="We are excited to announce major Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
+The Gradle team is excited to announce Gradle @version@, a [new major release](https://gradle.org/whats-new/gradle-9/) (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release makes [Configuration Cache](#config-cache) the preferred execution mode and introduces several enhancements to improve its behavior.
+Gradle @version@ makes [Configuration Cache](#config-cache) the preferred execution mode and introduces several enhancements to improve its behavior.
 
-Gradle @version@ uses [Kotlin 2](#kotlin-2) and [Groovy 4](#groovy-4), and adopts [Semantic Versioning](#sem-ver) (SemVer) with version numbers in the format `MAJOR.MINOR.PATCH`.
+This release uses [Kotlin 2](#kotlin-2) and [Groovy 4](#groovy-4), and adopts [Semantic Versioning](#sem-ver) (SemVer) with version numbers in the format `MAJOR.MINOR.PATCH`.
 
 It also introduces several improvements for [build authors](#build-authoring), including much better Kotlin DSL script compilation avoidance, updates to the Gradle API, reproducible archive outputs, and a new dependency graph root type that allows detached configurations to resolve project dependencies.
 
