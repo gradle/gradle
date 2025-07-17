@@ -17,6 +17,8 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.model.internal.DataModel;
+import org.jspecify.annotations.Nullable;
 
 /**
  * State for a component instance that is used to perform artifact resolution.
@@ -35,11 +37,21 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  */
 public interface ComponentArtifactResolveState {
 
+    /**
+     * Get the identifier of the component.
+     */
     ComponentIdentifier getId();
 
     /**
-     * Metadata for this component's artifacts.
+     * Get the metadata for this component's artifacts.
      */
     ComponentArtifactResolveMetadata getArtifactMetadata();
+
+    /**
+     * Get the data model with the given name.
+     *
+     * @return null if no model with the given name exists.
+     */
+    @Nullable DataModel findDataModel(String name);
 
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -140,7 +141,8 @@ class DependencyGraphBuilderTest extends Specification {
             Mock(DependencyMetadataFactory),
             new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
         ),
-        TestUtil.calculatedValueContainerFactory()
+        TestUtil.calculatedValueContainerFactory(),
+        TestUtil.inMemoryCacheFactory()
     )
 
     def variantSelector = new GraphVariantSelector(AttributeTestUtil.services(), DependencyManagementTestUtil.newFailureHandler())
@@ -1083,7 +1085,7 @@ class DependencyGraphBuilderTest extends Specification {
             attributesSchema
         )
 
-        def component = resolveStateFactory.realizedStateFor(metadata, [defaultVariant])
+        def component = resolveStateFactory.realizedStateFor(metadata, [defaultVariant], ImmutableMap.of())
         return new TestComponent(component, defaultVariant)
     }
 
@@ -1100,7 +1102,7 @@ class DependencyGraphBuilderTest extends Specification {
             attributesSchema
         )
 
-        def component = resolveStateFactory.realizedStateFor(metadata, [])
+        def component = resolveStateFactory.realizedStateFor(metadata, [], ImmutableMap.of())
         return new TestComponent(component, rootVariant)
     }
 

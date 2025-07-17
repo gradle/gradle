@@ -805,6 +805,12 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    public org.gradle.api.model.internal.ModelContainerInternal getModels() {
+        onMutableStateAccess("models");
+        return delegate.getModels();
+    }
+
+    @Override
     public TaskDependencyFactory getTaskDependencyFactory() {
         return delegate.getTaskDependencyFactory();
     }
