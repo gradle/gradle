@@ -45,6 +45,14 @@ import java.util.Collection;
  */
 @HasInternalProtocol
 public interface Gradle extends PluginAware, ExtensionAware {
+
+    /**
+     * Get the path of this build relative to the root build.
+     *
+     * @since 9.1.0
+     */
+    String getBuildPath();
+
     /**
      * Returns the current Gradle version.
      *
