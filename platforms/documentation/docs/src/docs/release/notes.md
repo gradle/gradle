@@ -74,25 +74,28 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
-<a name="build-authoring"></a>
+<a name="cli"></a>
 ### CLI improvement
-
-#### Plain console with colors
-
-This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
-See ![this recording](release-notes-assets/colored-console.gif) for a demo.
 
 #### Off-screen lines reported in rich console
 
 This release adds a status line to the `rich` console that reports the number of in-progress events not currently visible on screen.
 
-\```console
+```console
 > (2 lines not showing)
-\```
+```
+
 This occurs when there are more ongoing events than the console has lines available to display them.
-See ![this recording](release-notes-assets/off-screen-lines.gif) for a demo.
 
+![this recording](release-notes-assets/off-screen-lines.gif)
 
+#### Plain console with colors
+
+This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
+
+![this recording](release-notes-assets/colored-console.gif)
+
+<a name="build-authoring"></a>
 ### Build authoring improvements
 
 #### Introduce `AttributeContainer#addAllLater`
