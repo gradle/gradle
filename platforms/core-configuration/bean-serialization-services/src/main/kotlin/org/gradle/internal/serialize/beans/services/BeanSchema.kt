@@ -106,11 +106,10 @@ data class RelevantField(
     private val isExplicitValueField: Field? = null
 ) {
     private
-    val setter: MethodHandle by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    val setter: MethodHandle =
         lookup()
             .unreflectSetter(field)
             .asType(MethodType.methodType(Void.TYPE, Object::class.java, Object::class.java))
-    }
 
     private
     val getter: MethodHandle by lazy(LazyThreadSafetyMode.PUBLICATION) {
