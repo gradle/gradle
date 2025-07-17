@@ -28,7 +28,7 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
     private DaemonClientFixture client
     private int daemonLogCheckpoint
 
-    @Requires([UnitTestPreconditions.Jdk9OrLater, UnitTestPreconditions.UnixDerivative])
+    @Requires([UnitTestPreconditions.Jdk9OrLater])
     def "forked subprocess tree is destroyed on cancellation"() {
         given:
         def processStartedToken = file("processStarted.txt")
@@ -83,10 +83,8 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
 
         cancelBuild(task)
 
-        def processInfo = new ProcessFixture(0).getProcessInfo(processes as String[]).join('\n')
         processes.forEach {
-            // no info, process has been destroyed
-            assert !processInfo.contains(it)
+            assert !new ProcessFixture(it as Long).isAlive()
         }
     }
 
@@ -122,13 +120,6 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
     }
 
     private List<String> childrenAndGrandchildrenOfDaemon() {
-        def children = []
-        def proc = new ProcessFixture(daemons.daemon.context.pid)
-        while (proc.childProcesses.size() == 1) {
-            def child = proc.childProcesses.first()
-            children += child
-            proc = new ProcessFixture(child as long)
-        }
-        children
+        return new ProcessFixture(daemons.daemon.context.pid).descendants
     }
 }
