@@ -33,6 +33,7 @@ public interface ProjectDetails {
 
     boolean isNonDefaultProjectDir();
     String getRelativeProjectDir();
+    String getAbsoluteProjectDir();
 
     static ProjectDetails of(Project project) {
         return withDisplayNameAndDescription(project);
@@ -50,12 +51,14 @@ public interface ProjectDetails {
         private final String displayName;
         @Nullable
         private final String description;
+        private final String absoluteProjectDirPath;
         private final String relativeProjectDirPath;
         private final String projectLogicalPath;
 
         private ProjectDisplayNameAndDescription(Project project) {
             displayName = project.getDisplayName();
             description = project.getDescription();
+            absoluteProjectDirPath = project.getProjectDir().toPath().toString();
             relativeProjectDirPath = project.getRootProject().getProjectDir().toPath().relativize(project.getProjectDir().toPath()).toString();
             projectLogicalPath = project.getBuildTreePath();
         }
@@ -80,6 +83,11 @@ public interface ProjectDetails {
         @Override
         public String getRelativeProjectDir() {
             return relativeProjectDirPath;
+        }
+
+        @Override
+        public String getAbsoluteProjectDir() {
+            return absoluteProjectDirPath;
         }
 
         @Override

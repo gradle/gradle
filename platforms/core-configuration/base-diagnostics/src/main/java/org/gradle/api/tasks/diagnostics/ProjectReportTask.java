@@ -170,7 +170,11 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     @Override
     protected void generateReportFor(ProjectDetails project, ProjectReportModel model) {
+        renderProjectLocation(model);
         renderProjectDescription(model);
+
+        getRenderer().getTextOutput().println();
+
         renderProjectTree(model);
         renderNonStandardLocations(model);
         renderIncludedBuilds(model);
@@ -233,6 +237,14 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         }
     }
 
+    private void renderProjectLocation(ProjectReportModel model) {
+        StyledTextOutput textOutput = getRenderer().getTextOutput();
+        String projectDir = model.project.getAbsoluteProjectDir();
+        textOutput.withStyle(Info).append("Location: ");
+        textOutput.withStyle(Description).append(projectDir);
+        textOutput.println();
+    }
+
     private void renderProjectDescription(ProjectReportModel model) {
         String projectDescription = model.project.getDescription();
         if (projectDescription != null && !projectDescription.isEmpty()) {
@@ -241,7 +253,6 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             if (model.isRootProject) {
                 textOutput.withStyle(Info).append("Description: ");
                 textOutput.withStyle(Description).append(description);
-                textOutput.println();
                 textOutput.println();
             } else {
                 int newlineInDescription = description.indexOf('\n');

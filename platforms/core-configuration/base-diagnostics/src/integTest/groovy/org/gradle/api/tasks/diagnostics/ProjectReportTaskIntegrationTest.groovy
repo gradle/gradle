@@ -60,6 +60,7 @@ Projects:
 Root project 'my-root-project'
 ------------------------------------------------------------
 
+Location: ${buildFile.parentFile.path}
 Description: This is a test project
 
 Root project 'my-root-project'
@@ -91,6 +92,8 @@ Projects:
 ------------------------------------------------------------
 Root project 'my-root-project'
 ------------------------------------------------------------
+
+Location: ${buildFile.parentFile.path}
 
 Root project 'my-root-project'
 No sub-projects
@@ -145,6 +148,7 @@ Projects:
 Root project 'my-root-project'
 ------------------------------------------------------------
 
+Location: ${buildFile.parentFile.path}
 Description: this is a long description
 that spans
 several lines
@@ -190,6 +194,7 @@ Projects:
 Root project 'my-root-project'
 ------------------------------------------------------------
 
+Location: ${buildFile.parentFile.path}
 Description: this is a long description
 that spans
 several lines
@@ -382,6 +387,8 @@ Projects:
 Root project 'example'
 ------------------------------------------------------------
 
+Location: ${buildFile.parentFile.path}
+
 Root project 'example'
 +--- Project ':app' (application) - Sample application project
 +--- Project ':lib' (library) - Sample library project
@@ -431,6 +438,7 @@ Projects:
 Root project 'my-root-project'
 ------------------------------------------------------------
 
+Location: ${buildFile.parentFile.path}
 Description: This is a test project
 
 Root project 'my-root-project'
