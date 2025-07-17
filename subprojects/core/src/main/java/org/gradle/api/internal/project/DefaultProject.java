@@ -1111,6 +1111,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public abstract DependencyFactory getDependencyFactory();
 
+    @Inject
+    @Override
+    public abstract org.gradle.api.model.internal.ModelContainerInternal getModels();
+
     @Override
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
         return evaluationListener.getSource();

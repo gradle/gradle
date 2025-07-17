@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveState;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.MutableModuleSources;
@@ -80,12 +81,13 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         componentResolver.resolve(moduleComponentIdentifier, DefaultComponentOverrideMetadata.EMPTY, moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        ComponentArtifactResolveState artifactResolveState = moduleVersionResolveResult.getState().prepareForArtifactResolution();
-        artifactResolveState.resolveArtifactsWithType(artifactResolver, artifactType, moduleArtifactsResolveResult);
+        ComponentArtifactResolveState artifactState = moduleVersionResolveResult.getState().prepareForArtifactResolution();
+        ComponentArtifactResolveMetadata artifactMetadata = artifactState.getArtifactMetadata();
+        artifactResolver.resolveArtifactsWithType(artifactMetadata, artifactType, moduleArtifactsResolveResult);
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
         ComponentArtifactMetadata artifactMetaData = moduleArtifactsResolveResult.getResult().iterator().next();
-        artifactResolver.resolveArtifact(artifactResolveState.getArtifactMetadata(), artifactMetaData, artifactResolveResult);
+        artifactResolver.resolveArtifact(artifactState.getArtifactMetadata(), artifactMetaData, artifactResolveResult);
         File file = artifactResolveResult.getResult().getFile();
         LocallyAvailableExternalResource resource = fileResourceRepository.resource(file);
         ComponentArtifactIdentifier id = artifactMetaData.getId();
