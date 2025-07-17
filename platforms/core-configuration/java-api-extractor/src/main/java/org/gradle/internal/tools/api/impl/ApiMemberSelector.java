@@ -220,6 +220,7 @@ public class ApiMemberSelector extends ClassVisitor {
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public AnnotationVisitor visitArray(String name) {
             methodMember.setAnnotationDefaultValue(new ArrayAnnotationValue(nameOrValue(name), new AnnotationValue[0]));
             return super.visitArray(name);
