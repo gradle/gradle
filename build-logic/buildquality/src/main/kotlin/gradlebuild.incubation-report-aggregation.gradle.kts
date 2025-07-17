@@ -7,7 +7,6 @@ plugins {
 }
 
 val reports by configurations.creating {
-    isVisible = false
     isCanBeResolved = false
     isCanBeConsumed = false
     description = "Dependencies to aggregate reports from"
@@ -31,7 +30,6 @@ tasks.register<Zip>("allIncubationReportsZip") {
 }
 
 fun resolver(reportType: String) = configurations.create("incubatingReport${reportType.capitalize()}Path") {
-    isVisible = false
     isCanBeResolved = true
     isCanBeConsumed = false
     attributes {

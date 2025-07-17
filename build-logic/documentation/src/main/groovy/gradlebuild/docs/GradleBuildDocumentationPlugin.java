@@ -106,7 +106,6 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         });
         sourcesPath.setCanBeConsumed(false);
         sourcesPath.setCanBeResolved(true);
-        sourcesPath.setVisible(false);
         sourcesPath.extendsFrom(runtimeClasspath);
 
         extension.getClasspath().from(runtimeClasspath);
