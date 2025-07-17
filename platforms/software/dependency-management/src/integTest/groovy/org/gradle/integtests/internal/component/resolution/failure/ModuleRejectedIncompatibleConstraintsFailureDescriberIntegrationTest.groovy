@@ -82,7 +82,7 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
 4.2.0 - directly in 'project :b' (apiElements) (1 other path to this version)""")
 
         and: "Helpful resolutions are provided"
-        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
+        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
         failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
     }
 
@@ -153,7 +153,7 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
 4.2.0 - transitively via 'project :b' (apiElements) (1 other path to this version)""")
 
         and: "Helpful resolutions are provided"
-        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
+        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
         failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
     }
 
@@ -226,7 +226,7 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
 4.5.11 - directly in 'project :a' (apiElements)""")
 
         and: "Helpful resolutions are provided"
-        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
+        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
         failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
     }
 
@@ -285,7 +285,7 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
 4.5.2 - directly in 'project :c' (apiElements)""")
 
         and: "Helpful resolutions are provided"
-        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
+        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
         failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
     }
 

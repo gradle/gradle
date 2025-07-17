@@ -67,7 +67,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 4.5.3""")
 
         and: "Helpful resolutions are provided"
-        assertSuggestsViewingDocs("Run with :dependencyInsight --configuration resolveMe --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
+        assertSuggestsViewingDocs("Run with :dependencyInsight --configuration resolveMe --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
         assertSuggestsViewingDocs("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
 
         and: "Problems are reported"

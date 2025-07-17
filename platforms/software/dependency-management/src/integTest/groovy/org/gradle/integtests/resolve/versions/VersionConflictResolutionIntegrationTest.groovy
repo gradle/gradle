@@ -98,7 +98,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Conflict found for module 'org:foo': between versions 1.4.4 and 1.3.3")
         failure.assertHasResolutions("Run with :tool:dependencyInsight --configuration runtimeClasspath " +
-            "--dependency org:foo to view complete paths to each conflicting constraint.",
+            "--dependency org:foo to get more insight on how to solve the conflict.",
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
             SCAN,
