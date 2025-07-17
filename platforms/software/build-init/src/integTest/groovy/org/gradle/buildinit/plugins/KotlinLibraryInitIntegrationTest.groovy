@@ -193,7 +193,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
     @Issue("https://github.com/gradle/gradle/issues/17137")
     def "does not contain junit specific kotlin test dependencies"() {
         when:
-        run ('init', '--type', 'kotlin-library')
+        run ('init', '--type', 'kotlin-library', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         def dslFixture = dslFixtureFor(KOTLIN)
