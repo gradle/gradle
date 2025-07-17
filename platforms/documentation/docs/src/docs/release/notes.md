@@ -1,4 +1,4 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-9.0.0.png" />
+<meta property="og:image" content="https://gradle.org/whats-new/gradle-9/opengraph.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
@@ -8,7 +8,7 @@
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
 <meta name="twitter:description" content="We are excited to announce major Gradle @version@.">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-9.0.0.png">
+<meta name="twitter:image" content="https://gradle.org/whats-new/gradle-9/opengraph.png">
 
 The Gradle team is excited to announce Gradle @version@, a [new major release](https://gradle.org/whats-new/gradle-9/) (released [@releaseDate@](https://gradle.org/releases/)).
 
