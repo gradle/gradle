@@ -47,7 +47,8 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentArtifactResolveState;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -170,7 +171,8 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         for (ComponentIdentifier componentId : componentIds) {
             try {
                 ComponentIdentifier validId = validateComponentIdentifier(componentId);
-                componentResults.add(buildComponentResult(validId, componentMetaDataResolver, artifactResolver));
+                ComponentGraphResolveState componentState = resolveComponent(validId, componentMetaDataResolver);
+                componentResults.add(buildComponentResult(artifactResolver, componentState));
             } catch (Exception t) {
                 componentResults.add(new DefaultUnresolvedComponentResult(componentId, t));
             }
@@ -190,27 +192,33 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
     }
 
-    private ComponentArtifactsResult buildComponentResult(ComponentIdentifier componentId, ComponentMetaDataResolver componentMetaDataResolver, ArtifactResolver artifactResolver) {
-        BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
-        componentMetaDataResolver.resolve(componentId, DefaultComponentOverrideMetadata.EMPTY, moduleResolveResult);
-        ComponentArtifactResolveState componentState = moduleResolveResult.getState().prepareForArtifactResolution();
-        DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(componentState.getId());
+    private ComponentArtifactsResult buildComponentResult(ArtifactResolver artifactResolver, ComponentGraphResolveState componentState) {
+        ComponentArtifactResolveMetadata componentArtifactMetadata = componentState.prepareForArtifactResolution().getArtifactMetadata();
+
+        DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(componentArtifactMetadata.getId());
         for (Class<? extends Artifact> artifactType : artifactTypes) {
-            moduleResolveResult.getModuleVersionId();
-            addArtifacts(componentResult, artifactType, componentState, artifactResolver);
+            addArtifacts(componentArtifactMetadata, componentResult, artifactType, artifactResolver);
         }
         return componentResult;
     }
 
-    private <T extends Artifact> void addArtifacts(DefaultComponentArtifactsResult artifacts, Class<T> type, ComponentArtifactResolveState componentState, ArtifactResolver artifactResolver) {
+    private static ComponentGraphResolveState resolveComponent(ComponentIdentifier componentId, ComponentMetaDataResolver componentMetaDataResolver) {
+        BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
+        componentMetaDataResolver.resolve(componentId, DefaultComponentOverrideMetadata.EMPTY, moduleResolveResult);
+        return moduleResolveResult.getState();
+    }
+
+    private <T extends Artifact> void addArtifacts(ComponentArtifactResolveMetadata componentArtifactMetadata, DefaultComponentArtifactsResult artifacts, Class<T> type, ArtifactResolver artifactResolver) {
+        ArtifactType artifactType = convertType(type);
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        componentState.resolveArtifactsWithType(artifactResolver, convertType(type), artifactSetResolveResult);
+
+        artifactResolver.resolveArtifactsWithType(componentArtifactMetadata, artifactType, artifactSetResolveResult);
 
         for (ComponentArtifactMetadata artifactMetaData : artifactSetResolveResult.getResult()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(componentState.getArtifactMetadata(), artifactMetaData, resolveResult);
+            artifactResolver.resolveArtifact(componentArtifactMetadata, artifactMetaData, resolveResult);
             try {
-                artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
+                artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(componentArtifactMetadata.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, e));
             }
