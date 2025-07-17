@@ -217,14 +217,14 @@ This prints a visual representation of the task graph for the specified tasks:
 ```
 Tasks graph for: root r2
 +--- :root (org.gradle.api.DefaultTask)
-|    \\--- :middle (org.gradle.api.DefaultTask)
+|    \--- :middle (org.gradle.api.DefaultTask)
 |         +--- :leaf1 (org.gradle.api.DefaultTask)
-|         \\--- :leaf2 (org.gradle.api.DefaultTask, disabled)
-\\--- :root2 (org.gradle.api.DefaultTask)
+|         \--- :leaf2 (org.gradle.api.DefaultTask, disabled)
+\--- :root2 (org.gradle.api.DefaultTask)
     +--- :leaf1 (org.gradle.api.DefaultTask) (*)
     |--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
-    \\--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
-         \\--- :leaf3 (org.gradle.api.DefaultTask)
+    \--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
+         \--- :leaf3 (org.gradle.api.DefaultTask)
          
 (*) - details omitted (listed previously)
 ```
