@@ -98,7 +98,7 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
         StringBuilder sb = new StringBuilder(reason.getRequiredVersion());
 
         if (reason.isFromLock()) {
-            sb.append(" - by Dependency Locking");
+            sb.append(" - from lock file");
         } else {
             // Size == 1 means the constraint is declared in the root project, no need for "via"
             int pathLength = reason.getSegmentedSelectionPath().size();
