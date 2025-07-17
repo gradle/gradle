@@ -172,6 +172,45 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
+    def "#taskName preserves order of child specs with with"() {
+        given:
+        createTestFiles()
+        buildFile << """
+            tasks.register("myJar", Jar) {
+                def bootJarCopySpec = project.copySpec().into("BOOT-INF")
+                bootJarCopySpec.into('classes') {
+                    from 'dir2'
+                }
+                bootJarCopySpec.into('libs') {
+                    from 'dir1'
+                }
+                bootJarCopySpec.from 'dir1/file13.txt'
+                bootJarCopySpec.from 'dir1/file11.txt'
+                with(bootJarCopySpec)
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
+            }
+        """
+
+        when:
+        succeeds "myJar"
+
+        then:
+        archive(file("build/test.jar")).hasDescendantsInOrder(
+            'META-INF/MANIFEST.MF',
+            'BOOT-INF/file13.txt',
+            'BOOT-INF/file11.txt',
+            'BOOT-INF/classes/file21.txt',
+            'BOOT-INF/classes/file22.txt',
+            'BOOT-INF/classes/file23.txt',
+            'BOOT-INF/classes/file24.txt',
+            'BOOT-INF/libs/file11.txt',
+            'BOOT-INF/libs/file12.txt',
+            'BOOT-INF/libs/file13.txt',
+            'BOOT-INF/libs/file14.txt'
+        )
+    }
+
     def "#taskName can use zipTree and tarTree"() {
         given:
         createTestFiles()
@@ -356,7 +395,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
     ArchiveTestFixture archive(TestFile archiveFile) {
         String type = FilenameUtils.getExtension(archiveFile.name)
-        if (type == 'zip') {
+        if (type == 'zip' || type == 'jar') {
             new ZipTestFixture(archiveFile)
         } else {
             new TarTestFixture(archiveFile)
