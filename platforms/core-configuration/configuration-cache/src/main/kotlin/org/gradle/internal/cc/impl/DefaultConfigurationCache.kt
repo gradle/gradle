@@ -194,13 +194,13 @@ class DefaultConfigurationCache internal constructor(
         get() = cacheAction is Load
 
     override fun initializeCacheEntry() {
-        val (cacheAction, cacheActionDescription) = determineCacheAction().downgradeIfNeeded()
+        val (cacheAction, cacheActionDescription) = determineCacheAction()
         this.cacheAction = cacheAction
         this.entryId = when (cacheAction) {
             is Load -> cacheAction.entryId
             is Update -> cacheAction.entryId
             Store -> UUID.randomUUID().toString()
-            // should not be used
+            // not expected to end up being used as a cache entry key
             Discard -> "DISCARD"
         }
         initializeCacheEntrySideEffects(cacheAction)
@@ -375,7 +375,11 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun determineCacheAction(): DescribedAction = when {
+    fun determineCacheAction(): DescribedAction =
+        determineBasicCacheAction().downgradeIfNeeded()
+
+    private
+    fun determineBasicCacheAction(): DescribedAction = when {
         startParameter.recreateCache -> {
             val description = StructuredMessage.forText("Recreating configuration cache")
             logBootstrapSummary(description)
