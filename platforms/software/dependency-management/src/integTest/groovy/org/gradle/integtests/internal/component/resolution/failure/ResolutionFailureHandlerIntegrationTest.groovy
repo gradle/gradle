@@ -53,7 +53,6 @@ import org.gradle.util.GradleVersion
  */
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // region Component Selection failures
-    @ToBeFixedForConfigurationCache(because = "Error preventing graph construction prevents caching of the configuration's files - this is expected")
     def "demonstrate conflicting version constraints failure"() {
         conflictingVersionConstraints.prepare()
 
@@ -61,7 +60,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(conflictingVersionConstraints)
 
         and: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
@@ -78,6 +76,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['requestTarget'] == "org.apache.httpcomponents:httpclient"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
             additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
+        }
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                additionalData.asMap == [ 'trace' : 'task `:forceResolution` of type `Build_gradle$ForceResolution`' ]
+            }
         }
     }
     // endregion Component Selection failures
