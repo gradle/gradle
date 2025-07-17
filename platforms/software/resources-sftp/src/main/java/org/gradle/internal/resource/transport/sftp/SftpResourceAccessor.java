@@ -27,6 +27,7 @@ import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
+import java.io.File;
 import java.net.URI;
 
 public class SftpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {
@@ -70,7 +71,7 @@ public class SftpResourceAccessor extends AbstractExternalResourceAccessor imple
     }
 
     @Override
-    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate) {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File partPosition) {
         ExternalResourceMetaData metaData = getMetaData(location, revalidate);
         return metaData != null ? new SftpResource(sftpClientFactory, metaData, location.getUri(), credentials) : null;
     }
