@@ -41,7 +41,6 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
-
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration
 The `archives` configuration added by the `base` plugin has been deprecated and will be removed in Gradle 10.0.0.

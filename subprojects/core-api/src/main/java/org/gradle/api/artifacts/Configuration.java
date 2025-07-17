@@ -111,6 +111,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * <p>
      * The value of this property does not dictate in any way the "visibility" of
      * a configuration, or if it is accessible between projects.
+     *
+     * @deprecated This property is deprecated and will be removed in Gradle 10.
      */
     @Deprecated
     boolean isVisible();
@@ -120,6 +122,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * and this method will be deprecated in an upcoming Gradle version.
      *
      * @param visible the value to set.
+     * @deprecated This property is deprecated and will be removed in Gradle 10.
      */
     @Deprecated
     Configuration setVisible(boolean visible);
