@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.model.internal.ModelContainerInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -60,7 +61,8 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         Stub(AttributeDesugaring),
         new ComponentIdGenerator(),
         metadataBuilder,
-        TestUtil.calculatedValueContainerFactory()
+        TestUtil.calculatedValueContainerFactory(),
+        TestUtil.inMemoryCacheFactory()
     )
 
     LocalComponentGraphResolveState state
@@ -75,7 +77,8 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         state = stateFactory.stateFor(
             StandaloneDomainObjectContext.ANONYMOUS,
             metadata,
-            project.configurations as ConfigurationsProvider
+            project.configurations as ConfigurationsProvider,
+            project.models as ModelContainerInternal
         )
     }
 

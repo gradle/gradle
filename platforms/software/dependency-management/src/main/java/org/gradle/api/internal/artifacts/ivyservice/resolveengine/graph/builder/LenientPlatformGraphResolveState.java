@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.model.internal.DataModel;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -110,6 +111,11 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
     @Override
     public ComponentArtifactResolveMetadata getArtifactMetadata() {
         return new LenientPlatformArtifactResolveMetadata(getMetadata());
+    }
+
+    @Override
+    public @Nullable DataModel findDataModel(String name) {
+        return null;
     }
 
     /**

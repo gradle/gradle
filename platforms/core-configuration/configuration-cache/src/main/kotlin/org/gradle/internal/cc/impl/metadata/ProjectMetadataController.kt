@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.metadata
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -137,7 +138,9 @@ class ProjectMetadataController(
 
                 resolveStateFactory.realizedStateFor(
                     metadata,
-                    variants
+                    variants,
+                    // TODO: Serialize the data models
+                    ImmutableMap.of()
                 )
             }
         }

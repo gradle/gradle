@@ -314,6 +314,11 @@ class ProblemReportingCrossProjectModelAccess(
             return super.getDependencyFactory()
         }
 
+        override fun getModels(): org.gradle.api.model.internal.ModelContainerInternal {
+            onIsolationViolation("models")
+            return super.getModels()
+        }
+
         override fun configure(`object`: Any, configureClosure: Closure<*>): Any {
             onIsolationViolation("configure")
             return super.configure(`object`, configureClosure)

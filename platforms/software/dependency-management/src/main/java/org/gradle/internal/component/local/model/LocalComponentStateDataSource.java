@@ -16,14 +16,16 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.model.internal.DataModel;
+import org.jspecify.annotations.Nullable;
+
 import java.util.function.Consumer;
 
 /**
- * Constructs {@link LocalVariantGraphResolveState} instances advertised by a
- * {@link DefaultLocalComponentGraphResolveState} instance. This allows the component state to
- * source variant data from multiple sources, both lazy and eager.
+ * Acts as a source of data for local components, so that the component state instance
+ * can be constructed without needing to know the details of how the data is sourced.
  */
-public interface LocalVariantGraphResolveStateFactory {
+public interface LocalComponentStateDataSource {
 
     /**
      * Visit all variants in this component that can be selected in a dependency graph.
@@ -33,4 +35,10 @@ public interface LocalVariantGraphResolveStateFactory {
      */
     void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor);
 
+    /**
+     * Find the data model for a given name.
+     *
+     * @return null if no data model with the given name exists.
+     */
+    @Nullable DataModel findDataModel(String name);
 }

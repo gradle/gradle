@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultRootComponentIdentifier;
@@ -25,15 +26,19 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.model.internal.DataModel;
+import org.gradle.api.model.internal.DataModelProvider;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -45,17 +50,21 @@ public class LocalComponentGraphResolveStateFactory {
     private final ComponentIdGenerator idGenerator;
     private final LocalVariantGraphResolveStateBuilder metadataBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final InMemoryCacheFactory cacheFactory;
 
+    @Inject
     public LocalComponentGraphResolveStateFactory(
         AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
         LocalVariantGraphResolveStateBuilder metadataBuilder,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        InMemoryCacheFactory cacheFactory
     ) {
         this.attributeDesugaring = attributeDesugaring;
         this.idGenerator = idGenerator;
         this.metadataBuilder = metadataBuilder;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.cacheFactory = cacheFactory;
     }
 
     /**
@@ -63,9 +72,10 @@ public class LocalComponentGraphResolveStateFactory {
      */
     public LocalComponentGraphResolveState realizedStateFor(
         LocalComponentGraphResolveMetadata metadata,
-        List<? extends LocalVariantGraphResolveState> variants
+        List<? extends LocalVariantGraphResolveState> variants,
+        ImmutableMap<String, DataModel> dataModels
     ) {
-        LocalVariantGraphResolveStateFactory configurationFactory = new RealizedListVariantFactory(variants);
+        LocalComponentStateDataSource configurationFactory = new RealizedComponentStateDataSource(variants, dataModels);
         return createLocalComponentState(false, idGenerator.nextComponentId(), metadata, configurationFactory);
     }
 
@@ -94,11 +104,13 @@ public class LocalComponentGraphResolveStateFactory {
     public LocalComponentGraphResolveState stateFor(
         ModelContainer<?> model,
         LocalComponentGraphResolveMetadata metadata,
-        ConfigurationsProvider configurations
+        ConfigurationsProvider configurations,
+        DataModelProvider dataModels
     ) {
-        LocalVariantGraphResolveStateFactory variantsFactory = new ConfigurationsProviderVariantFactory(
+        LocalComponentStateDataSource variantsFactory = new VintageComponentStateDataSource(
             metadata.getId(),
             configurations,
+            dataModels,
             metadataBuilder,
             model,
             calculatedValueContainerFactory
@@ -125,7 +137,7 @@ public class LocalComponentGraphResolveStateFactory {
             attributesSchema
         );
 
-        LocalVariantGraphResolveStateFactory configurationFactory = new RealizedListVariantFactory(Collections.emptyList());
+        LocalComponentStateDataSource configurationFactory = new EmptyComponentStateDataSource();
         return createLocalComponentState(true, instanceId, metadata, configurationFactory);
     }
 
@@ -133,7 +145,7 @@ public class LocalComponentGraphResolveStateFactory {
         boolean adHoc,
         long instanceId,
         LocalComponentGraphResolveMetadata metadata,
-        LocalVariantGraphResolveStateFactory variantsFactory
+        LocalComponentStateDataSource variantsFactory
     ) {
         return new DefaultLocalComponentGraphResolveState(
             instanceId,
@@ -141,20 +153,41 @@ public class LocalComponentGraphResolveStateFactory {
             attributeDesugaring,
             adHoc,
             variantsFactory,
-            calculatedValueContainerFactory
+            calculatedValueContainerFactory,
+            cacheFactory
         );
     }
 
     /**
-     * A {@link LocalVariantGraphResolveStateFactory} which uses a list of pre-constructed variant
-     * states as its data source.
+     * A {@link LocalComponentStateDataSource} which does not provide any data.
      */
-    private static class RealizedListVariantFactory implements LocalVariantGraphResolveStateFactory {
+    private static class EmptyComponentStateDataSource implements LocalComponentStateDataSource {
+
+        @Override
+        public void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor) {
+        }
+
+        @Override
+        public DataModel findDataModel(String name) {
+            throw new IllegalArgumentException("Model '" + name + "' is not available.");
+        }
+    }
+
+    /**
+     * A {@link LocalComponentStateDataSource} which uses pre-constructed
+     * state as its data source.
+     */
+    private static class RealizedComponentStateDataSource implements LocalComponentStateDataSource {
 
         private final List<? extends LocalVariantGraphResolveState> variants;
+        private final ImmutableMap<String, DataModel> dataModels;
 
-        public RealizedListVariantFactory(List<? extends LocalVariantGraphResolveState> variants) {
+        public RealizedComponentStateDataSource(
+            List<? extends LocalVariantGraphResolveState> variants,
+            ImmutableMap<String, DataModel> dataModels
+        ) {
             this.variants = variants;
+            this.dataModels = dataModels;
         }
 
         @Override
@@ -164,28 +197,40 @@ public class LocalComponentGraphResolveStateFactory {
             }
         }
 
+        @Override
+        public DataModel findDataModel(String name) {
+            DataModel dataModel = dataModels.get(name);
+            if (dataModel == null) {
+                throw new IllegalArgumentException("Model '" + name + "' is not available.");
+            }
+            return dataModel;
+        }
+
     }
 
     /**
-     * A {@link LocalVariantGraphResolveStateFactory} which uses a {@link ConfigurationsProvider} as its data source.
+     * A {@link LocalComponentStateDataSource} backed by state from a live project instance.
      */
-    private static class ConfigurationsProviderVariantFactory implements LocalVariantGraphResolveStateFactory {
+    private static class VintageComponentStateDataSource implements LocalComponentStateDataSource {
 
         private final ComponentIdentifier componentId;
         private final ConfigurationsProvider configurationsProvider;
+        private final DataModelProvider dataModels;
         private final LocalVariantGraphResolveStateBuilder stateBuilder;
         private final ModelContainer<?> model;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-        public ConfigurationsProviderVariantFactory(
+        public VintageComponentStateDataSource(
             ComponentIdentifier componentId,
             ConfigurationsProvider configurationsProvider,
+            DataModelProvider dataModels,
             LocalVariantGraphResolveStateBuilder stateBuilder,
             ModelContainer<?> model,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
             this.componentId = componentId;
             this.configurationsProvider = configurationsProvider;
+            this.dataModels = dataModels;
             this.stateBuilder = stateBuilder;
             this.model = model;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -210,6 +255,13 @@ public class LocalComponentGraphResolveStateFactory {
 
                     visitor.accept(variantState);
                 });
+            });
+        }
+
+        @Override
+        public @Nullable DataModel findDataModel(String name) {
+            return model.fromMutableState(p -> {
+                return dataModels.findDataModel(name);
             });
         }
 
