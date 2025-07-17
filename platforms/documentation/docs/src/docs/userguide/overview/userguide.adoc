@@ -108,15 +108,7 @@ Plugin authors that are ready to develop and publish their own plugins should st
 _Description_: *Learn to write and publish a plugin.* +
 _Training level_: **Advanced** +
 _Reading time_: **35 minutes** +
-<<#,-> Read Advanced Concepts >>
-
-=== 2. Advanced Tutorial
-
-[sidebar]
-_Description_: *Initialize a Gradle project, create a plugin, and publish it.* +
-_Training level_: **Advanced** +
-_Training time_: **65 minutes** +
-<<COMING SOON! >>
+<<plugin_introduction_advanced.adoc#plugin_introduction_advanced,-> Read Advanced Concepts >>
 
 == Support
 

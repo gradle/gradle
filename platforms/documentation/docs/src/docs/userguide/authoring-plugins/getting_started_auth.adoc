@@ -19,8 +19,7 @@ Plugin authors that are ready to write their own plugins and publish it should s
 
 To get started developing Gradle plugins:
 
-1. Read the <<gradle_author_intro,Deep Dive chapters>>.
-2. Follow the <<author_tutorial,Advanced Tutorial>> for a hands-on approach.
+1. Read the <<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Deep Dive chapters>>.
 
 [[gradle_plugin_intro]]
 == 1. Gradle Deep Dive

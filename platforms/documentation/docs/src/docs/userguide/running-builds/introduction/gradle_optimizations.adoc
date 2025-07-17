@@ -145,7 +145,7 @@ The build cache allows you to share and reuse unchanged build and test outputs a
 This speeds up local and CI builds since cycles are not wasted re-building binaries unaffected by new code changes.
 
 [.text-right]
-**Next Step:** <<incremental_builds.adoc#incremental_builds,Learn more about Incremental Builds>> >>
+**Next Step:** <<incremental_build.adoc#incremental_build,Learn more about Incremental Builds>> >>
 
 
 [.text-right]

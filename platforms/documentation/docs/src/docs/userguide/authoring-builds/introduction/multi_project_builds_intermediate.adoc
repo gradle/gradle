@@ -96,6 +96,59 @@ Each approach has trade-offs.
 `buildSrc` is easier to get started with but less flexible.
 Composite builds require a bit more setup but scale better and align with Gradle’s long-term best practices for sharing build logic.
 
+[[sec:project_path]]
+== Multi-Project Paths
+
+A project path has the following pattern: it starts with an optional colon, which denotes the root project.
+
+The root project, `:`, is the only project in a path not specified by its name.
+The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project:
+
+[source,bash]
+----
+:sub-project-1
+----
+
+You can see the project paths when running `gradle projects`:
+
+[source,text]
+----
+------------------------------------------------------------
+Root project 'project'
+------------------------------------------------------------
+
+Root project 'project'
++--- Project ':sub-project-1'
+\--- Project ':sub-project-2'
+----
+
+Project paths usually reflect the filesystem layout, but there are exceptions.
+Most notably for <<composite_builds#defining_composite_builds,composite builds>>.
+
+[[sec:executing_tasks_by_name]]
+=== Executing tasks by name
+
+The command `gradle test` will execute the `test` task in any subprojects relative to the current working directory that has that task.
+
+If you run the command from the root project directory, you will run `test` in `sub-project-1`, `sub-project-2`, and `sub-project-3`.
+
+The basic rule behind Gradle's behavior is to *execute all tasks down the hierarchy with _this_ name*.
+And *complain if there is _no_ such task found* in any of the subprojects traversed.
+
+NOTE: Some task selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects to reduce the amount of information printed on the screen.
+
+[[sec:executing_tasks_by_fully_qualified_name]]
+=== Executing tasks by fully qualified name
+
+In a multi-project build, you can run tasks for a specific subproject by using the task’s fully qualified name.
+This name combines the project path and the task name.
+
+For example, to run the build task in `sub-project-1`, use `./gradlew :sub-project-1:build`.
+This ensures that only `sub-project-1`'s `build` task is executed, rather than running build across the entire build.
+
+You can use this pattern for any task.
+For example, to list all tasks available in `sub-project-3`, run `./gradlew :sub-project-3:tasks`.
+
 == Multi-Project Builds using `buildSrc`
 
 Multi-project builds allow you to organize projects with many modules, wire dependencies between those modules, and easily share common build logic amongst them.

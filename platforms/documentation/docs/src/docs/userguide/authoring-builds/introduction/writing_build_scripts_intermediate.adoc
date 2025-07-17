@@ -19,7 +19,7 @@ The initialization phase in the Gradle Build lifecycle finds the settings file.
 
 image::gradle-basic-11.png[]
 
-When Gradle evaluates the settings file, it creates a single link:{javadocPath}/org/gradle/api/Settings.html[`Settings`] instance.
+When Gradle evaluates the settings file, it creates a single link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`] instance.
 
 Then, for each project declared in the settings file, Gradle creates a corresponding link:{javadocPath}/org/gradle/api/Project.html[`Project`] instance.
 
@@ -30,7 +30,7 @@ Gradle then locates the associated build script (e.g., `build.gradle(.kts)`) and
 Gradle build scripts are written in either <<groovy_build_script_primer.adoc#groovy_build_script_primer, Groovy DSL>> or <<kotlin_dsl.adoc#kotdsl:kotlin_dsl, Kotlin DSL>> (domain-specific language).
 The build script is either a `\*.gradle` file in Groovy or a `*.gradle.kts` file in Kotlin.
 
-As a build script executes, it configures either a link:{javadocPath}/org/gradle/api/Settings.html[`Settings`] object or link:{javadocPath}/org/gradle/api/Project.html[`Project`] object and its children.
+As a build script executes, it configures either a link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`] object or link:{javadocPath}/org/gradle/api/Project.html[`Project`] object and its children.
 
 image::author-gradle-3.png[Build,500,63,align="left"]
 image::author-gradle-4.png[Build,500,63,align="left"]
@@ -101,6 +101,57 @@ dependencies {
 
 This behavior allows intuitive configuration but can sometimes obscure where a method is coming from.
 For clarity, you can use explicit references like `project.dependencies.implementation(...)`.
+
+[[sec:declaring_variables]]
+=== Variables
+
+Build scripts support two types of variables:
+
+1. Local Variables
+2. Extra Properties
+
+[[sec:local_variables]]
+==== Local Variables
+
+[.multi-language-text.lang-kotlin]
+Declare local variables with the `val` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Kotlin language.
+
+[.multi-language-text.lang-groovy]
+Declare local variables with the `def` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Groovy language.
+
+====
+include::sample[dir="snippets/tutorial/localVariables/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
+====
+
+[[sec:extra_properties]]
+==== Extra Properties
+
+Gradle provides extra properties for storing user-defined data on <<properties_providers.adoc#properties_and_providers,enhanced objects>> such as `project`.
+
+Extra properties are accessible via:
+
+[.multi-language-text.lang-kotlin]
+- `extra` property in Kotlin.
+
+[.multi-language-text.lang-groovy]
+- `ext` property in Groovy.
+
+====
+include::sample[dir="snippets/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
+include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
+
+----
+$ gradle -q printProperties
+include::{snippetsPath}/tutorial/extraProperties/tests/extraProperties.out[]
+----
+====
+
+Gradle uses special syntax for defining extra properties to ensure fail-fast behavior.
+This means Gradle will immediately detect if you try to set a property that hasn't been declared, helping you catch mistakes early.
+
+Extra properties are attached to the object that owns them (such as `project`).
+Unlike local variables, extra properties have a wider scope, you can access them anywhere the owning object is visible, including from subprojects accessing their parent project's properties.
 
 === Line-by-Line Execution
 
