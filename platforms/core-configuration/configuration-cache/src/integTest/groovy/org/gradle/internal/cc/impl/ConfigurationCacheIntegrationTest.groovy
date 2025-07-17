@@ -43,7 +43,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         settingsFile << ""
 
         when:
-        configurationCacheRun("help", "-Dorg.gradle.configuration-cache.internal.read-only=true")
+        configurationCacheRun("help", ENABLE_READ_ONLY_CACHE)
 
         then:
         configurationCache.assertNoConfigurationCache()
@@ -64,7 +64,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun("help", *options, "-Dorg.gradle.configuration-cache.internal.read-only=true")
+        configurationCacheRun("help", *options, ENABLE_READ_ONLY_CACHE)
 
         then:
         configurationCache.assertNoConfigurationCache()
@@ -93,7 +93,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun("help", "-Dorg.gradle.configuration-cache.internal.read-only=true")
+        configurationCacheRun("help", ENABLE_READ_ONLY_CACHE)
 
         then:
         configurationCache.assertStateLoaded()
