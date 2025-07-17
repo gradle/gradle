@@ -9,6 +9,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.reporting.ReportingExtension",
+            "member": "Method org.gradle.api.reporting.ReportingExtension.getBaseDirectory()",
+            "acceptation": "ReportingExtension is already abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getProjectStateRegistry()",
             "acceptation": "Remove getter for internal service",
