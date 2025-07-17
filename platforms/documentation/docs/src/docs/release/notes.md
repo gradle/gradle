@@ -1,4 +1,4 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-default.png" />
+<meta property="og:image" content="https://gradle.org/whats-new/gradle-9/opengraph.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
@@ -7,10 +7,11 @@
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="We are excited to announce Gradle @version@.">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
+<meta name="twitter:description" content="We are excited to announce major Gradle @version@.">
+<meta name="twitter:image" content="https://gradle.org/whats-new/gradle-9/opengraph.png">
 
-We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
+The Gradle team is excited to announce Gradle @version@, a new major release (released [@releaseDate@](https://gradle.org/releases/)).
+For an overview of the changes between Gradle 8.0 and @version@, along with demos and videos, see [What’s New in Gradle 9](https://gradle.org/whats-new/gradle-9/).
 
 This release makes [Configuration Cache](#config-cache) the preferred execution mode and introduces several enhancements to improve its behavior.
 
