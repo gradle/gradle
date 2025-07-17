@@ -16,10 +16,13 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.internal.component.resolution.failure.SelectionReasonAssessor.AssessedSelection.AssessedSelectionReason;
 import org.gradle.internal.component.resolution.failure.exception.ConflictingConstraintsException;
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
+import org.gradle.util.internal.VersionNumber;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,38 +69,44 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
     }
 
     private String summarizeFailure(ModuleRejectedFailure failure) {
-        Map<String, Integer> reasons = findConflictingConstraints(failure).stream()
-            .map(this::summarizeReason)
-            .collect(Collectors.groupingBy(summary -> summary, Collectors.summingInt(reason -> 1)));
+        Multimap<VersionNumber, String> conflictingVersionsWithExplanations = HashMultimap.create();
+        findConflictingConstraints(failure).forEach(v -> {
+            VersionNumber version = VersionNumber.parse(v.getRequiredVersion());
+            String explanation = explainReason(v);
+            conflictingVersionsWithExplanations.put(version, explanation);
+        });
 
         StringBuilder sb = new StringBuilder("Component is the target of multiple version constraints with conflicting requirements:\n");
-        reasons.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
-            .forEach(entry -> {
-                sb.append(entry.getKey());
-                int numOtherPaths = entry.getValue() -1;
-                if (numOtherPaths > 0) {
-                    sb.append(" (").append(numOtherPaths).append(" other path");
-                    if (numOtherPaths > 1) {
-                        sb.append("s");
-                    }
-                    sb.append(" to this version)");
+        conflictingVersionsWithExplanations.keySet().stream().sorted().forEach(version -> {
+            List<String> explanations = conflictingVersionsWithExplanations.get(version).stream().sorted().collect(Collectors.toList());
+            sb.append(explanations.get(0));
+            int numOtherPaths = explanations.size() -1;
+            if (numOtherPaths > 0) {
+                sb.append(" (").append(numOtherPaths).append(" other path");
+                if (numOtherPaths > 1) {
+                    sb.append("s");
                 }
-                sb.append("\n");
-            });
+                sb.append(" to this version)");
+            }
+            sb.append("\n");
+        });
 
         return sb.toString();
     }
 
-    private String summarizeReason(AssessedSelectionReason reason) {
+    private String explainReason(AssessedSelectionReason reason) {
         StringBuilder sb = new StringBuilder(reason.getRequiredVersion());
 
-        if (reason.getSegmentedSelectionPath().size() > 1) {
-            // If the path has more than one segment, it indicates a transitive selection path which could be arbitrarily deep, so show the first segment past the root
-            sb.append(" - transitively via ")
-                .append(reason.getSegmentedSelectionPath().get(1));
-        } else if (reason.isFromLock()) {
-            sb.append(" - via Dependency Locking");
+        if (reason.isFromLock()) {
+            sb.append(" - by Dependency Locking");
+        } else {
+            // Size == 1 means the constraint is declared in the root project, no need for "via"
+            int pathLength = reason.getSegmentedSelectionPath().size();
+            if (pathLength == 2) { // The constraint is declared in a direct dependency
+                sb.append(" - directly in ").append(reason.getSegmentedSelectionPath().get(1));
+            } else if (pathLength > 2) { // The constraint is declared at some arbitrarily deep point in the graph
+                sb.append(" - transitively via ").append(reason.getSegmentedSelectionPath().get(1));
+            }
         }
 
         return sb.toString();

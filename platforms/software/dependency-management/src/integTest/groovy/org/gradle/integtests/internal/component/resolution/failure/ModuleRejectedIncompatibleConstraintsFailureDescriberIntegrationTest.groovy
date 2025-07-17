@@ -17,10 +17,16 @@
 package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.component.resolution.failure.describer.ModuleRejectedIncompatibleConstraintsFailureDescriber
 import org.gradle.util.GradleVersion
 
+/**
+ * This test verifies that the {@link ModuleRejectedIncompatibleConstraintsFailureDescriber} correctly describes
+ * the failure when a module is rejected due to multiple conflicting version constraints.
+ */
 class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest extends AbstractIntegrationSpec {
-    def "multiple conflicting constraints with different origins are all printed"() {
+
+    def "constraints with same version and different direct origins are properly summarized"() {
         given:
         buildFile("""
             dependencies {
@@ -72,16 +78,15 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.1.0 - transitively via 'project :a' (apiElements)
-4.2.0 - transitively via 'project :b' (apiElements)
-4.2.0 - transitively via 'project :c' (apiElements)""")
+4.1.0 - directly in 'project :a' (apiElements)
+4.2.0 - directly in 'project :b' (apiElements) (1 other path to this version)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
         failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
     }
 
-    def "multiple conflicting constraints with same origin aren't repeated"() {
+    def "constraints with same version and different transitive paths are summarized"() {
         given:
         buildFile("""
             dependencies {
@@ -125,6 +130,18 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
             }
         """)
 
+        groovyFile("c/c1/build.gradle", """
+            dependencies {
+                constraints {
+                    api("org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.2.0")
+                        }
+                    }
+                }
+            }
+        """)
+
         when:
         fails("forceResolution")
 
@@ -133,8 +150,142 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.1.0 - transitively via 'project :a' (apiElements)
+4.1.0 - directly in 'project :a' (apiElements)
 4.2.0 - transitively via 'project :b' (apiElements) (1 other path to this version)""")
+
+        and: "Helpful resolutions are provided"
+        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
+        failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
+    }
+
+    def "constraints with different versions are properly sorted"() {
+        given:
+        buildFile("""
+            dependencies {
+                api("org.apache.httpcomponents:httpclient")
+            }
+        """)
+
+        groovyFile("a/build.gradle", """
+            dependencies {
+                constraints {
+                    api("org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5.11")
+                        }
+                    }
+                }
+            }
+        """)
+
+        groovyFile("b/b1/build.gradle", """
+            dependencies {
+                constraints {
+                    api("org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5.10")
+                        }
+                    }
+                }
+            }
+        """)
+
+        groovyFile("b/b2/build.gradle", """
+            dependencies {
+                constraints {
+                    api("org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5.8")
+                        }
+                    }
+                }
+            }
+        """)
+
+        groovyFile("c/build.gradle", """
+            dependencies {
+                constraints {
+                    api("org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5")
+                        }
+                    }
+                }
+            }
+        """)
+
+        when:
+        fails("forceResolution")
+
+        then: "Has error output"
+        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
+        failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
+        failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
+4.5 - directly in 'project :c' (apiElements)
+4.5.8 - transitively via 'project :b' (apiElements)
+4.5.10 - transitively via 'project :b' (apiElements)
+4.5.11 - directly in 'project :a' (apiElements)""")
+
+        and: "Helpful resolutions are provided"
+        failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
+        failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
+    }
+
+    def "constraints with same version at different depths are property summarized"() {
+        given:
+        buildFile("""
+            dependencies {
+                api("org.apache.httpcomponents:httpclient")
+            }
+        """)
+
+        groovyFile("a/build.gradle", """
+            dependencies {
+                constraints {
+                    api("org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5.1")
+                        }
+                    }
+                }
+            }
+        """)
+
+        groovyFile("b/b1/build.gradle", """
+            dependencies {
+                constraints {
+                    api("org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5.1")
+                        }
+                    }
+                }
+            }
+        """)
+
+        groovyFile("c/build.gradle", """
+            dependencies {
+                constraints {
+                    api("org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5.2")
+                        }
+                    }
+                }
+            }
+        """)
+
+        when:
+        fails("forceResolution")
+
+        then: "Has error output"
+        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
+        failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
+        failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
+4.5.1 - directly in 'project :a' (apiElements) (1 other path to this version)
+4.5.2 - directly in 'project :c' (apiElements)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to view complete paths to each conflicting constraint.")
@@ -146,7 +297,7 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         settingsFile """
             dependencyResolutionManagement {
                 repositories {
-                    mavenCentral()
+                    ${mavenCentralRepository()}
                 }
             }
 
