@@ -63,10 +63,18 @@ Root project 'my-root-project'
 Location: ${buildFile.parentFile.path}
 Description: This is a test project
 
+Project hierarchy:
+
 Root project 'my-root-project'
 +--- Project ':p1' - Initial/core project
 \\--- Project ':p2' - The second feature project
      \\--- Project ':p2:p22'
+
+Project locations:
+
+project ':p1' - /p1
+project ':p2' - /p2
+project ':p2:p22' - /p2/p22
 
 Included builds:
 
@@ -94,6 +102,8 @@ Root project 'my-root-project'
 ------------------------------------------------------------
 
 Location: ${buildFile.parentFile.path}
+
+Project hierarchy:
 
 Root project 'my-root-project'
 No sub-projects
@@ -153,6 +163,8 @@ Description: this is a long description
 that spans
 several lines
 
+Project hierarchy:
+
 Root project 'my-root-project'
 No sub-projects
 """
@@ -198,6 +210,8 @@ Location: ${buildFile.parentFile.path}
 Description: this is a long description
 that spans
 several lines
+
+Project hierarchy:
 
 Root project 'my-root-project'
 \\--- Project ':subA' - this is another quite long description that should be truncated and it also...
@@ -389,6 +403,8 @@ Root project 'example'
 
 Location: ${buildFile.parentFile.path}
 
+Project hierarchy:
+
 Root project 'example'
 +--- Project ':app' (application) - Sample application project
 +--- Project ':lib' (library) - Sample library project
@@ -441,22 +457,27 @@ Root project 'my-root-project'
 Location: ${buildFile.parentFile.path}
 Description: This is a test project
 
+Project hierarchy:
+
 Root project 'my-root-project'
 +--- Project ':common' - Common logic shared across features
 +--- Project ':featureX' - A standard feature
 +--- Project ':featureY' - A more experimental feature that is not yet fully ready for production....
 \\--- Project ':transport' - Transport layer for communication
 
-Projects with non-standard directory locations:
+Project locations:
 
-project ':common' - core/logic/common
-project ':featureX' - features/featureX
-project ':featureY' - features/featureY
-project ':transport' - core/transport
+project ':common' - /core/logic/common
+project ':featureX' - /features/featureX
+project ':featureY' - /features/featureY
+project ':transport' - /core/transport
 
 Included builds:
 
 \\--- Included build ':server'
+
+To see a list of the tasks of a project, run gradle <project-path>:tasks
+For example, try running gradle :common:tasks
 """))
     }
 

@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Project;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.Objects;
 
 /**
@@ -31,7 +30,6 @@ public interface ProjectDetails {
     @Nullable
     String getDescription();
 
-    boolean isNonDefaultProjectDir();
     String getRelativeProjectDir();
     String getAbsoluteProjectDir();
 
@@ -72,12 +70,6 @@ public interface ProjectDetails {
         @Override
         public String getDescription() {
             return description;
-        }
-
-        @Override
-        public boolean isNonDefaultProjectDir() {
-            String relPathToLogicalPath = Project.PATH_SEPARATOR + relativeProjectDirPath.replace(File.separatorChar, Project.PATH_SEPARATOR.charAt(0));
-            return !projectLogicalPath.equals(relPathToLogicalPath);
         }
 
         @Override

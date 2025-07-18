@@ -34,6 +34,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -155,30 +156,16 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         return includedBuildIdentityPaths;
     }
 
+    private void renderSectionTitle(String sectionName, StyledTextOutput textOutput) {
+        textOutput.println();
+        textOutput.withStyle(Header).append(sectionName).append(":");
+        textOutput.println();
+    }
+
     @Override
     protected void generateReportHeaderFor(Map<ProjectDetails, ProjectReportModel> modelsByProjectDetails) {
         renderSoftwareTypeInfo(modelsByProjectDetails);
-        renderSectionTitle("Projects");
-    }
-
-    private void renderSectionTitle(String sectionName) {
-        StyledTextOutput styledTextOutput = getRenderer().getTextOutput();
-        styledTextOutput.println();
-        styledTextOutput.withStyle(Header).append(sectionName).append(":");
-        styledTextOutput.println();
-    }
-
-    @Override
-    protected void generateReportFor(ProjectDetails project, ProjectReportModel model) {
-        renderProjectLocation(model);
-        renderProjectDescription(model);
-
-        getRenderer().getTextOutput().println();
-
-        renderProjectTree(model);
-        renderNonStandardLocations(model);
-        renderIncludedBuilds(model);
-        renderHelp(model);
+        renderSectionTitle("Projects", getRenderer().getTextOutput());
     }
 
     private void renderSoftwareTypeInfo(Map<ProjectDetails, ProjectReportModel> modelsByProjectDetails) {
@@ -187,22 +174,53 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             .sorted(Comparator.comparing(SoftwareTypeImplementation::getSoftwareType))
             .collect(Collectors.toList());
 
-        StyledTextOutput styledTextOutput = getRenderer().getTextOutput();
+        StyledTextOutput textOutput = getRenderer().getTextOutput();
         if (!softwareTypes.isEmpty()) {
-            renderSectionTitle("Available software types");
-            styledTextOutput.println();
+            renderSectionTitle("Available software types", textOutput);
+            textOutput.println();
 
             softwareTypes.forEach(type -> {
-                styledTextOutput.withStyle(Identifier).text(type.getSoftwareType());
-                styledTextOutput.append(" (").append(type.getModelPublicType().getName()).append(")").println();
-                styledTextOutput.append("        ").append("Defined in: ").append(type.getPluginClass().getName()).println();
-                styledTextOutput.append("        ").append("Registered by: ").append(type.getRegisteringPluginClass().getName()).println();
+                textOutput.withStyle(Identifier).text(type.getSoftwareType());
+                textOutput.append(" (").append(type.getModelPublicType().getName()).append(")").println();
+                textOutput.append("        ").append("Defined in: ").append(type.getPluginClass().getName()).println();
+                textOutput.append("        ").append("Registered by: ").append(type.getRegisteringPluginClass().getName()).println();
             });
         }
     }
 
-    private void renderProjectTree(ProjectReportModel model) {
+    @Override
+    protected void generateReportFor(ProjectDetails project, ProjectReportModel model) {
         StyledTextOutput textOutput = getRenderer().getTextOutput();
+        renderRootProjectLocation(model, textOutput);
+        renderRootProjectDescription(model, textOutput);
+
+        renderProjectHierarchy(model, textOutput);
+        renderProjectsLocations(model, textOutput);
+        renderIncludedBuilds(model, textOutput);
+        renderHelp(model, textOutput);
+    }
+
+    private void renderRootProjectLocation(ProjectReportModel model, StyledTextOutput textOutput) {
+        String projectDir = model.project.getAbsoluteProjectDir();
+        textOutput.withStyle(Info).append("Location: ");
+        textOutput.withStyle(Description).append(projectDir);
+        textOutput.println();
+    }
+
+    private void renderRootProjectDescription(ProjectReportModel model, StyledTextOutput textOutput) {
+        String description = model.project.getDescription();
+        if (description != null && !description.isEmpty()) {
+            description = description.trim();
+            textOutput.withStyle(Info).append("Description: ");
+            textOutput.withStyle(Description).append(description);
+            textOutput.println();
+        }
+    }
+
+    private void renderProjectHierarchy(ProjectReportModel model, StyledTextOutput textOutput) {
+        renderSectionTitle("Project hierarchy", textOutput);
+        textOutput.println();
+
         renderProject(model, new GraphRenderer(textOutput), true);
         if (model.children.isEmpty()) {
             textOutput.withStyle(Info).text("No sub-projects");
@@ -215,11 +233,11 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         GraphRenderer renderer,
         boolean lastChild
     ) {
-        renderer.visit(styledTextOutput -> {
-            styledTextOutput.text(StringUtils.capitalize(model.project.getDisplayName()));
+        renderer.visit(textOutput -> {
+            textOutput.text(StringUtils.capitalize(model.project.getDisplayName()));
             renderProjectType(model);
             if (!model.isRootProject) {
-                renderProjectDescription(model);
+                renderProjectDescription(model, textOutput);
             }
         }, lastChild);
         renderer.startChildren();
@@ -227,6 +245,19 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             renderProject(child, renderer, child == model.children.get(model.children.size() - 1));
         }
         renderer.completeChildren();
+    }
+
+    private void renderProjectDescription(ProjectReportModel model, StyledTextOutput textOutput) {
+        String description = model.project.getDescription();
+        if (description != null && !description.isEmpty()) {
+            description = description.trim();
+            int newlineInDescription = description.indexOf('\n');
+            if (newlineInDescription > 0) {
+                textOutput.withStyle(Description).text(" - " + description.substring(0, newlineInDescription) + "...");
+            } else {
+                textOutput.withStyle(Description).text(" - " + description);
+            }
+        }
     }
 
     private void renderProjectType(ProjectReportModel model) {
@@ -237,69 +268,40 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         }
     }
 
-    private void renderProjectLocation(ProjectReportModel model) {
-        StyledTextOutput textOutput = getRenderer().getTextOutput();
-        String projectDir = model.project.getAbsoluteProjectDir();
-        textOutput.withStyle(Info).append("Location: ");
-        textOutput.withStyle(Description).append(projectDir);
-        textOutput.println();
-    }
+    private void renderProjectsLocations(ProjectReportModel model, StyledTextOutput textOutput) {
+        List<ProjectDetails> projectLocations = new ArrayList<>(model.children.size());
+        gatherLocations(model, projectLocations);
 
-    private void renderProjectDescription(ProjectReportModel model) {
-        String projectDescription = model.project.getDescription();
-        if (projectDescription != null && !projectDescription.isEmpty()) {
-            StyledTextOutput textOutput = getRenderer().getTextOutput();
-            String description = projectDescription.trim();
-            if (model.isRootProject) {
-                textOutput.withStyle(Info).append("Description: ");
-                textOutput.withStyle(Description).append(description);
-                textOutput.println();
-            } else {
-                int newlineInDescription = description.indexOf('\n');
-                if (newlineInDescription > 0) {
-                    textOutput.withStyle(Description).text(" - " + description.substring(0, newlineInDescription) + "...");
-                } else {
-                    textOutput.withStyle(Description).text(" - " + description);
-                }
-            }
-        }
-    }
-
-    private void renderNonStandardLocations(ProjectReportModel model) {
-        List<ProjectDetails> nonStandardLocations = new ArrayList<>(model.children.size());
-        gatherNonStandardLocations(model, nonStandardLocations);
-
-        if (!nonStandardLocations.isEmpty()) {
-            StyledTextOutput textOutput = getRenderer().getTextOutput();
+        if (!projectLocations.isEmpty()) {
+            renderSectionTitle("Project locations", textOutput);
             textOutput.println();
-            textOutput.println("Projects with non-standard directory locations:");
-            textOutput.println();
-            nonStandardLocations.sort(Comparator.comparing(ProjectDetails::getDisplayName));
-            for (ProjectDetails project : nonStandardLocations) {
+
+            projectLocations.sort(Comparator.comparing(ProjectDetails::getDisplayName));
+            for (ProjectDetails project : projectLocations) {
                 textOutput.withStyle(Identifier).text(project.getDisplayName());
-                textOutput.withStyle(Description).text(" - ").text(project.getRelativeProjectDir());
+                textOutput.withStyle(Description).text(" - ").text(File.separatorChar).text(project.getRelativeProjectDir());
                 textOutput.println();
             }
         }
     }
 
-    private void gatherNonStandardLocations(ProjectReportModel model, List<ProjectDetails> nonStandardLocations) {
-        if (model.project.isNonDefaultProjectDir()) {
-            nonStandardLocations.add(model.project);
+    private void gatherLocations(ProjectReportModel model, List<ProjectDetails> locations) {
+        if (!model.isRootProject) {
+            locations.add(model.project);
         }
         for (ProjectReportModel child : model.children) {
-            gatherNonStandardLocations(child, nonStandardLocations);
+            gatherLocations(child, locations);
         }
     }
 
-    private void renderIncludedBuilds(ProjectReportModel model) {
+    private void renderIncludedBuilds(ProjectReportModel model, StyledTextOutput textOutput) {
         if (model.isRootProject) {
             int index = 0;
             if (!model.includedBuildIdentityPaths.isEmpty()) {
-                StyledTextOutput textOutput = getRenderer().getTextOutput();
                 GraphRenderer renderer = new GraphRenderer(textOutput);
-                renderSectionTitle("Included builds");
+                renderSectionTitle("Included builds", textOutput);
                 textOutput.println();
+
                 renderer.startChildren();
                 for (Path includedBuildIdentityPath : model.includedBuildIdentityPaths) {
                     renderer.visit(
@@ -313,9 +315,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         }
     }
 
-    private void renderHelp(ProjectReportModel model) {
+    private void renderHelp(ProjectReportModel model, StyledTextOutput textOutput) {
         BuildClientMetaData metaData = getClientMetaData();
-        StyledTextOutput textOutput = getRenderer().getTextOutput();
 
         textOutput.println();
         textOutput.text("To see a list of the tasks of a project, run ");
